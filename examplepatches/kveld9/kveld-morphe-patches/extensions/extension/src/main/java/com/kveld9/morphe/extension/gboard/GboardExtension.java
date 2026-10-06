@@ -40,12 +40,14 @@ public class GboardExtension {
     public static final String PREF_KEY_CLIPBOARD_UNPINNED_LIMIT = "morphe_clipboard_unpinned_limit";
     public static final String PREF_KEY_CLIPBOARD_GRID_LAYOUT = "morphe_clipboard_grid_layout";
     public static final String PREF_KEY_CLIPBOARD_GRID_COLUMNS = "morphe_clipboard_grid_columns";
+    public static final String PREF_KEY_CLIPBOARD_CHAR_LIMIT = "morphe_clipboard_char_limit";
     public static final String PREF_KEY_GRAMMAR_CHECKER = "morphe_grammar_checker";
     public static final String PREF_KEY_BLUETOOTH_MIC = "morphe_bluetooth_mic";
     public static final String PREF_KEY_FORCE_INCOGNITO = "morphe_force_incognito";
     public static final String PREF_KEY_HIDE_INCOGNITO_ICON = "morphe_hide_incognito_icon";
     public static final String PREF_KEY_VOICE_INCOGNITO = "morphe_voice_typing_incognito";
     public static final String PREF_KEY_DECOUPLE_TOUCH_FEEDBACK = "morphe_decouple_touch_feedback";
+    public static final String PREF_KEY_MODERN_HAPTICS = "morphe_modern_haptics";
 
     public static final int MIN_BOTTOM_PADDING = 0;
     public static final int MAX_BOTTOM_PADDING = 150;
@@ -66,6 +68,10 @@ public class GboardExtension {
     public static final int MIN_CLIPBOARD_GRID_COLUMNS = 1;
     public static final int MAX_CLIPBOARD_GRID_COLUMNS = 3;
     public static final int DEFAULT_CLIPBOARD_GRID_COLUMNS = 2;
+
+    public static final int MIN_CLIPBOARD_CHAR_LIMIT_K = 5;
+    public static final int MAX_CLIPBOARD_CHAR_LIMIT_K = 200;
+    public static final int DEFAULT_CLIPBOARD_CHAR_LIMIT_K = 20;
 
     public static final int MIN_EMOJI_SCALE = 50;
     public static final int MAX_EMOJI_SCALE = 150;
@@ -600,6 +606,13 @@ public class GboardExtension {
         return Math.max(MIN_CLIPBOARD_GRID_COLUMNS, Math.min(MAX_CLIPBOARD_GRID_COLUMNS, cols));
     }
 
+    /** Per-item text clip character limit (text_clip_item_char_limit), slider stored in thousands. */
+    public static long getClipboardCharLimit() {
+        int k = getIntPref(PREF_KEY_CLIPBOARD_CHAR_LIMIT, DEFAULT_CLIPBOARD_CHAR_LIMIT_K);
+        k = Math.max(MIN_CLIPBOARD_CHAR_LIMIT_K, Math.min(MAX_CLIPBOARD_CHAR_LIMIT_K, k));
+        return ((long) k) * 1000L;
+    }
+
     public static boolean isAccessPointsRedesignEnabled() {
         return getBooleanPref(PREF_KEY_ACCESS_POINTS_REDESIGN, true);
     }
@@ -619,6 +632,15 @@ public class GboardExtension {
 
     public static boolean isGrammarCheckerEnabled() {
         return getBooleanPref(PREF_KEY_GRAMMAR_CHECKER, true);
+    }
+
+    /**
+     * Minimum SDK for Gboard's haptic primitive keypress path (vibration_effect_min_sdk).
+     * Gboard ships 1024, which disables the path on every device; 30 is the platform floor for
+     * VibrationEffect.Composition. Gboard's own areAllEffectsSupported() check still applies.
+     */
+    public static long getVibrationEffectMinSdk() {
+        return getBooleanPref(PREF_KEY_MODERN_HAPTICS, true) ? 30L : 1024L;
     }
 
     public static boolean isBluetoothMicEnabled() {
@@ -681,6 +703,8 @@ public class GboardExtension {
                 min = MIN_CLIPBOARD_UNPINNED_LIMIT;
             } else if (PREF_KEY_CLIPBOARD_GRID_COLUMNS.equals(key)) {
                 min = MIN_CLIPBOARD_GRID_COLUMNS;
+            } else if (PREF_KEY_CLIPBOARD_CHAR_LIMIT.equals(key)) {
+                min = MIN_CLIPBOARD_CHAR_LIMIT_K;
             } else if (PREF_KEY_EMOJI_SCALE.equals(key)) {
                 min = MIN_EMOJI_SCALE;
             }

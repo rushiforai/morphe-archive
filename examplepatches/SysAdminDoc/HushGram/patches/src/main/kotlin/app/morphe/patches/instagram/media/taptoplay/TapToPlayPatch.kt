@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
@@ -198,13 +199,10 @@ internal fun BytecodePatchContext.findPlayerHooks(): PlayerHooks {
     val internals = mutableListOf<Method>()
     val preparers = mutableListOf<Method>()
     val checkers = mutableListOf<Method>()
-    classDefForEach { classDef ->
-        classDef.methods.forEach { method ->
-            val strings = method.strings()
-            if (PLAY_INTERNAL in strings) internals += method
-            if (GROOT_PREPARE in strings) preparers += method
-            if (strings.containsAll(AUTOPLAY_CHECKER)) checkers += method
-        }
+    classesHolding(PLAY_INTERNAL).forEach { classDef -> classDef.methods.filterTo(internals) { PLAY_INTERNAL in it.strings() } }
+    classesHolding(GROOT_PREPARE).forEach { classDef -> classDef.methods.filterTo(preparers) { GROOT_PREPARE in it.strings() } }
+    classesHolding(*AUTOPLAY_CHECKER.toTypedArray()).forEach { classDef ->
+        classDef.methods.filterTo(checkers) { it.strings().containsAll(AUTOPLAY_CHECKER) }
     }
     val playInternal = internals.singleOrNull()
         ?: throw PatchException("$PATCH: expected one method holding \"$PLAY_INTERNAL\", found ${internals.size}")
@@ -275,7 +273,7 @@ internal fun BytecodePatchContext.findPlayerHooks(): PlayerHooks {
  */
 internal fun BytecodePatchContext.findPlayButtonClick(): PlayButtonClick {
     val binders = mutableListOf<Method>()
-    classDefForEach { classDef -> classDef.methods.filterTo(binders) { PLAY_BUTTON_BINDER in it.strings() } }
+    classesHolding(PLAY_BUTTON_BINDER).forEach { classDef -> classDef.methods.filterTo(binders) { PLAY_BUTTON_BINDER in it.strings() } }
     if (binders.isEmpty()) throw PatchException("$PATCH: no method holds \"$PLAY_BUTTON_BINDER\"")
     val shared = binders.map { binder -> binder.parameterTypes.map(Any::toString).toSet() }.reduce { all, next -> all intersect next }
     val states = shared.filter { classDefByOrNull(it)?.superclass == ENUM }

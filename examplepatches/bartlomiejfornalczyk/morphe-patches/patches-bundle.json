@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-02T22:29:29",
-  "description": "## [1.4.30](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.29...v1.4.30) (2026-10-02)\n\n### 🐛 Bug Fixes\n\n* bypass media provider test connection and inject match-all flag ([c6bdabb](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/c6bdabba5de6f88ed04ac2c483b8602dcfd24b93))",
-  "download_url": "https://github.com/bartlomiejfornalczyk/morphe-patches/releases/download/v1.4.30/patches-1.4.30.mpp",
+  "created_at": "2026-10-05T21:45:00",
+  "description": "## 1.0.0 (2026-10-05)\n\n* Initial release based on v1.4.37.",
+  "download_url": "https://github.com/bartlomiejfornalczyk/morphe-patches/releases/download/v1.0.0/patches-1.0.0.mpp",
   "signature_download_url": "",
-  "version": "1.4.30"
+  "version": "1.0.0"
 }

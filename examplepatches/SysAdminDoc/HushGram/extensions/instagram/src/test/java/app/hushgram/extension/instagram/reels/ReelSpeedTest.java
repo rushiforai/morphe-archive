@@ -30,7 +30,7 @@ import app.hushgram.extension.shared.settings.PauseForTests;
 
 /**
  * Keep the reel speed: a lock carries the speed the reel plays at to every next reel that isn't an
- * ad. Scrolling on and switching tabs keep it; sliding the lock off, the speed menu and a hold let go
+ * ad, and an ad plays at normal speed. Scrolling on and switching tabs keep it; sliding the lock off, the speed menu and a hold let go
  * of without a lock forget it. Instagram's reset of the reel's speed keeps the kept speed. Off,
  * paused or failing, every reel starts as Instagram starts it.
  */
@@ -203,13 +203,25 @@ public class ReelSpeedTest {
         assertEquals(0, reels.set.size());
     }
 
+    /**
+     * Instagram's reset on the scroll to an ad hands the ad's player the kept speed, as it does any
+     * reel's, so the ad is set back to normal before it plays. The speed stays kept for the next reel.
+     */
     @Test
-    public void anAdStartsAtInstagramsSpeed() {
+    public void anAdPlaysAtNormalSpeed() {
         lock(2f);
+        assertEquals("the reset on the scroll to the ad", 2f, ReelSpeed.resetSpeed(1f), 0f);
+        play(reels.ad(), reels.player("ad"));
+        assertEquals(List.of("ad 1.0"), reels.set);
+        assertEquals(2f, ReelSpeed.kept(), 0f);
+        playNext("reel");
+        assertEquals(List.of("ad 1.0", "reel 2.0"), reels.set);
+    }
+
+    @Test
+    public void withNothingKeptAnAdIsLeftAlone() {
         play(reels.ad(), reels.player("ad"));
         assertEquals(0, reels.set.size());
-        playNext("reel");
-        assertEquals(List.of("reel 2.0"), reels.set);
     }
 
     @Test
@@ -268,7 +280,7 @@ public class ReelSpeedTest {
         ReelSpeed.item(reels.ad());
         ReelSpeed.resuming(reels.player("ad"));
         ReelSpeed.resuming(reels.player("alone"));
-        assertEquals(List.of("alone 2.0"), reels.set);
+        assertEquals(List.of("ad 1.0", "alone 2.0"), reels.set);
     }
 
     /** Until the patch fills the stubs in, no reel is an ad and setting a speed does nothing. */

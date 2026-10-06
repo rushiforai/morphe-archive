@@ -4,6 +4,7 @@
  */
 package app.morphe.extension.facebook.settings;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -23,8 +24,11 @@ import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 
-/** An optional launcher entry for Facebook's public Saved route. Never evicts another shortcut. */
-final class SavedShortcut {
+/**
+ * An optional launcher entry for Facebook's public Saved route, and the Saved row the Menu gets
+ * beside the Hushfacebook settings row. Never evicts another shortcut.
+ */
+public final class SavedShortcut {
     static final String ID = "hushfacebook_saved";
     private static final AtomicBoolean queued = new AtomicBoolean();
     enum Result { OFF, PUBLISHED, NO_ROOM, UNAVAILABLE }
@@ -34,6 +38,36 @@ final class SavedShortcut {
     static Intent intent(Context context) {
         return new Intent(Intent.ACTION_VIEW, Uri.parse("fb://saved"))
                 .setPackage(context.getPackageName()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+    }
+
+    /** Whether the Saved row belongs in the Menu: the switch is on and this build opens the route itself. */
+    public static boolean wanted(Context context) {
+        return Utils.settingsReady() && Settings.SAVED_SHORTCUT.get() && destination(context) != null;
+    }
+
+    /**
+     * Opens Facebook's Saved screen from [context], inside the current task when it's an activity.
+     * False when this build has no Saved route of its own or Android refused to start it.
+     */
+    public static boolean open(Context context) {
+        try {
+            Intent route = intent(context);
+            ComponentName destination = destination(context);
+            if (destination == null) return false;
+            route.setComponent(destination);
+            if (context instanceof Activity) route.setFlags(route.getFlags() & ~Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(route);
+            return true;
+        } catch (RuntimeException failure) {
+            Logger.printException(() -> "Saved shortcut: could not open Saved", failure);
+            return false;
+        }
+    }
+
+    /** The activity of this package that takes the Saved route, or null. */
+    private static ComponentName destination(Context context) {
+        ComponentName destination = intent(context).resolveActivity(context.getPackageManager());
+        return destination != null && context.getPackageName().equals(destination.getPackageName()) ? destination : null;
     }
 
     static void refresh(Context context) {
@@ -70,8 +104,8 @@ final class SavedShortcut {
                 return Result.OFF;
             }
             Intent route = intent(context);
-            ComponentName destination = route.resolveActivity(context.getPackageManager());
-            if (destination == null || !context.getPackageName().equals(destination.getPackageName())) {
+            ComponentName destination = destination(context);
+            if (destination == null) {
                 manager.removeDynamicShortcuts(Collections.singletonList(ID));
                 return Result.UNAVAILABLE;
             }

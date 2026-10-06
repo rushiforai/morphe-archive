@@ -54,6 +54,10 @@ public final class SettingsStatus {
         return 0;
     }
 
+    public static boolean pureBlack() {
+        return false;
+    }
+
     public static boolean removeAdId() {
         return false;
     }

@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream
 import javax.xml.parsers.DocumentBuilderFactory
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -40,9 +41,31 @@ class ZaloCloneRewriteTest {
             ),
         )
         assertEquals(
+            "content://com.zing.zalo.clone.provider.InternalProvider",
+            rewriteZaloProviderUri(
+                "content://com.zing.zalo.provider.InternalProvider",
+                "com.zing.zalo.clone",
+            ),
+        )
+        assertEquals(
+            "com.zing.zalo.clone.provider",
+            rewriteZaloProviderUri("com.zing.zalo.provider", "com.zing.zalo.clone"),
+        )
+        assertEquals(
+            "android.resource://com.zing.zalo.clone/",
+            rewriteZaloProviderUri("android.resource://com.zing.zalo/", "com.zing.zalo.clone"),
+        )
+        assertEquals(
             "content://third.party.provider",
             rewriteZaloProviderUri("content://third.party.provider", "com.zing.zalo.clone"),
         )
+    }
+
+    @Test fun cloneIdentityRewriteCountsFailClosedOnDrift() {
+        validateProviderUriReplacementCounts(EXPECTED_CLONE_STRING_COUNTS)
+        assertFailsWith<IllegalStateException> {
+            validateProviderUriReplacementCounts(EXPECTED_CLONE_STRING_COUNTS - "com.zing.zalo.provider")
+        }
     }
 
     @Test fun rewritesOwnedManifestIdentitiesOnly() {

@@ -8,7 +8,6 @@ import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import app.template.patches.shared.Constants.COMPATIBILITY_GOOGLE_MAPS
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -172,28 +171,6 @@ val allowMorpheMusicPatch = bytecodePatch(
                     method.replaceInstruction(i + 2, "nop")
                 }
                 break
-            }
-        }
-
-
-        // 2e. Set MATCH_ALL (0x20000) flag in queryIntentServices call.
-        // Replace the redundant check-cast immediately preceding getPackageManager (3 instructions before queryIntentServices)
-        // with const/high16 v{flagsReg}, 0x2.
-        // This is a 1-for-1 instruction replacement, keeping the instruction count and switch table 100% aligned.
-        val queryIntentIndex = impl.instructions.indexOfFirst { insn ->
-            (insn as? ReferenceInstruction)?.reference?.let {
-                (it as? MethodReference)?.name == "queryIntentServices"
-            } == true
-        }
-        if (queryIntentIndex != -1) {
-            val invokeInsn = impl.instructions.elementAt(queryIntentIndex) as FiveRegisterInstruction
-            val flagsReg = invokeInsn.registerE
-            for (i in (queryIntentIndex - 1) downTo (queryIntentIndex - 5).coerceAtLeast(0)) {
-                val insn = impl.instructions.elementAt(i)
-                if (insn.opcode == Opcode.CHECK_CAST) {
-                    method.replaceInstruction(i, "const/high16 v$flagsReg, 0x2")
-                    break
-                }
             }
         }
 

@@ -6,7 +6,7 @@ from __future__ import annotations
 from typing import Any, Dict
 from pathlib import Path
 
-from harness.core.dex import DexIndex
+from harness.core.dex import DexIndex, find_contract_target
 from harness.reporting.reporter import PatchAuditResult, PatchStatus
 from harness.tiktok.contracts import TIKTOK_PATCH_CONTRACTS
 
@@ -19,7 +19,7 @@ class TikTokValidator:
 
     def audit_all_patches(self) -> Dict[str, PatchAuditResult]:
         results: Dict[str, PatchAuditResult] = {}
-        all_entries = self.apk_ctx.get_all_entry_names() if hasattr(self.apk_ctx, "get_all_entry_names") else []
+        all_entries = self.apk_ctx.get_all_entry_names()
 
         for contract in TIKTOK_PATCH_CONTRACTS:
             status = "VERIFIED"
@@ -38,18 +38,7 @@ class TikTokValidator:
                         details.append(f"Missing class `{cls_desc}`")
 
                 for req_str in contract.required_strings:
-                    if found_classes:
-                        # Scoped to required classes: check method name or referenced string
-                        matched_methods = [
-                            m for cls in found_classes for m in cls.methods
-                            if req_str == m.name or req_str in m.referenced_strings
-                        ]
-                    else:
-                        # Unscoped: check globally across all methods
-                        matched_methods = [
-                            m for m in self.dex_index.methods
-                            if req_str in m.name or req_str in m.referenced_strings
-                        ]
+                    matched_methods = find_contract_target(self.dex_index, found_classes, req_str)
 
                     if matched_methods:
                         details.append(f"Target `{req_str}` found ({len(matched_methods)} occurrence(s))")

@@ -1,0 +1,122 @@
+[
+  {
+    "request": 37,
+    "lang": "ar",
+    "from": 0,
+    "to": 24,
+    "text": "قبل 24 فبراير، لم تكن بحاجة إلى البحث كثيرًا على الإنترنت للعثور على أشخاص يدّعون أن روسيا تمتلك ثاني أقوى جيش في العالم",
+    "source": "before february 24th you didn't have to go far on the internet to find people claiming that russia possessed the world's second most powerful military",
+    "start": 80,
+    "end": 7040,
+    "width": 1103,
+    "size": 58.0
+  },
+  {
+    "request": 39,
+    "lang": "ar",
+    "from": 98,
+    "to": 126,
+    "text": "وعلى الرغم من أنه من السهل الضحك على هذا النوع من السرديات، إلا أن الحقيقة تبقى أن هذه المقالات حصدت ملايين المشاهدات وجذبت الأنظار، وشكّلت الرأي العام.",
+    "source": "and while it's easy to laugh at these kind of narratives the fact remains that these sort of articles got millions of views and eyeballs they shaped public opinion",
+    "start": 28920,
+    "end": 36925,
+    "width": 1103,
+    "size": 58.0
+  },
+  {
+    "request": 39,
+    "lang": "ar",
+    "from": 127,
+    "to": 144,
+    "text": "وكل ما كنت أفكر فيه حقًا عند النظر إلى هذه المقالات، حتى قبل الغزو بوقت طويل، هو: ماذا عن الصين؟",
+    "source": "and all i could really think looking at these even long before the invasion was what about china",
+    "start": 36925,
+    "end": 42719,
+    "width": 1103,
+    "size": 58.0
+  },
+  {
+    "request": 39,
+    "lang": "ar",
+    "from": 145,
+    "to": 169,
+    "text": "لأنني أرى أن روسيا تقوم بعمل ممتاز في المبالغة في سمعتها الدولية وقدراتها العسكرية، بينما غالبًا ما يتم التقليل من شأن جهود التحديث في الصين.",
+    "source": "because while i feel like russia does a very good job of exaggerating its international reputation and military capabilities china's modernization efforts are often undersold",
+    "start": 42719,
+    "end": 51974,
+    "width": 1103,
+    "size": 58.0
+  },
+  {
+    "request": 39,
+    "lang": "ar",
+    "from": 170,
+    "to": 180,
+    "text": "الآن، بالطبع، هناك العديد من الأصوات المختلفة هناك.",
+    "source": "now of course there are lots of varied voices out there",
+    "start": 51974,
+    "end": 55348,
+    "width": 1103,
+    "size": 58.0
+  },
+  {
+    "request": 38,
+    "lang": "ar",
+    "from": 25,
+    "to": 41,
+    "text": "كان الإنترنت يغرق حرفياً في المقالات والفهارس التي وضعت جميعها روسيا بثقة في المركز الثاني",
+    "source": "the internet was practically drowning in articles and indexes all of which confidently put russia in second",
+    "start": 7040,
+    "end": 12160,
+    "width": 1103,
+    "size": 58.0
+  },
+  {
+    "request": 38,
+    "lang": "ar",
+    "from": 42,
+    "to": 52,
+    "text": "بل إن هناك القليل منها التي وضعت روسيا في المركز الأول",
+    "source": "heck there are even a few that put russia in first",
+    "start": 12160,
+    "end": 15160,
+    "width": 1103,
+    "size": 58.0
+  },
+  {
+    "request": 38,
+    "lang": "ar",
+    "from": 53,
+    "to": 72,
+    "text": "والتي كُتبت على الأرجح من قبل أشخاص اعتقدوا أن الحكم النهائي للقوة العسكرية ظل حجم أسطول الدبابات في البلاد",
+    "source": "presumably written by people who thought the ultimate arbiter of military strength remained the size of a country's tank fleet",
+    "start": 15160,
+    "end": 20732,
+    "width": 1103,
+    "size": 58.0
+  },
+  {
+    "request": 53,
+    "lang": "ja",
+    "from": 98,
+    "to": 126,
+    "text": "こうしたナラティブは笑って済ませがちですが、事実として、こうした記事は数百万の視聴と注目を集め、世論を形成しました",
+    "source": "and while it's easy to laugh at these kind of narratives the fact remains that these sort of articles got millions of views and eyeballs they shaped public opinion",
+    "start": 28920,
+    "end": 36925,
+    "width": 1103,
+    "size": 58.0
+  },
+  {
+    "request": 53,
+    "lang": "ja",
+    "from": 145,
+    "to": 169,
+    "text": "ロシアは国際的な評判と軍事能力を誇張するのが非常に上手いと感じる一方で、中国の近代化努力は過小評価されがちだからです",
+    "source": "because while i feel like russia does a very good job of exaggerating its international reputation and military capabilities china's modernization efforts are often undersold",
+    "start": 42719,
+    "end": 51974,
+    "width": 1103,
+    "size": 58.0
+  }
+]

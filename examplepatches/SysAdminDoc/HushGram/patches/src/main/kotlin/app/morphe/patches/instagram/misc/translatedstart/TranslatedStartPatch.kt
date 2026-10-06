@@ -13,6 +13,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesCalling
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.freeLocalsAt
 import app.morphe.patches.instagram.misc.extension.handleTargets
@@ -20,7 +21,6 @@ import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.extension.TargetCoverage
 import app.morphe.patches.instagram.misc.extension.writeTargetCoverage
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -66,8 +66,7 @@ val translatedStartPatch = bytecodePatch(
  */
 internal fun BytecodePatchContext.guardCodeProtection(coverage: (TargetCoverage) -> Unit = {}): Int {
     val callers = mutableListOf<Method>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesCalling(MPROTECT_EXEC_CODE.substringBefore("->"), MPROTECT_EXEC_CODE.substringAfter("->").substringBefore('(')).forEach { classDef ->
         classDef.methods.forEach { method ->
             if (method.implementation?.instructions?.any { it.callsCodeProtection() } == true) callers += method
         }

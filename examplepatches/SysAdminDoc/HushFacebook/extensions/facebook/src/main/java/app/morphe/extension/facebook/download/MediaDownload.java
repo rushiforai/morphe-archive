@@ -449,9 +449,18 @@ public final class MediaDownload {
      * {@link DashManifest#bestAudio} takes it only when the manifest offers no AAC-LC or HE-AAC, as
      * a 580 reel with AV1 pictures and four xHE-AAC tracks did, and some players can't play it (#14).
      */
-    private static String soundNote(DashManifest.Track audio) {
-        return audio != null && audio.codecs.trim().equals("mp4a.40.42")
-            ? ", the sound is xHE-AAC because the manifest offers no AAC-LC or HE-AAC, and some players can't play xHE-AAC"
+    private static String soundNote(DashManifest.Track audio, boolean reencode) {
+        if (audio == null || !AacReencode.isXhe(audio.codecs)) return "";
+        return reencode
+            ? ", the sound is xHE-AAC because the manifest offers no AAC-LC or HE-AAC, made AAC-LC for apps that turn xHE-AAC down"
+            : ", the sound is xHE-AAC because the manifest offers no AAC-LC or HE-AAC, and some players can't play xHE-AAC";
+    }
+
+    /** What the report adds to a DASH save line whose picture is made H.264 before the join. */
+    private static String pictureNote(DashManifest.Track video, boolean transcode) {
+        return transcode
+            ? ", the manifest offers no H.264, so the picture is made H.264 from " + video.codecs + " for apps that take "
+                + "only H.264"
             : "";
     }
 
@@ -670,7 +679,14 @@ public final class MediaDownload {
 
         String fallback = RenditionPicker.bestVideo(urls, quality);
         int fallbackQuality = fallback == null ? 0 : RenditionPicker.qualityOf(fallback);
-        DashManifest.Pick kept = DashManifest.pick(tracks, allowAv1, quality, compatible);
+        // With the switch on, a phone that can make xHE-AAC sound AAC-LC keeps the H.264 picture
+        // of a video that has no other sound, and one that can make VP9, AV1 or H.265 H.264 keeps
+        // the picture of a video that has no H.264 track (#77).
+        DashManifest.Pick converted = DashManifest.pick(tracks, allowAv1, quality, compatible,
+            compatible && AacReencode.available(), compatible ? VideoTranscode::canConvert : null);
+        // Converting takes a while, so it's only worth it for a picture better than the single file.
+        DashManifest.Pick kept = converted != null && converted.transcodeVideo
+            && !beatsFile(converted.video, fallback, fallbackQuality, quality) ? null : converted;
         DashManifest.Pick pick = kept;
         // What the switch off would pick: when that beats the single file and the kept pick
         // doesn't, the switch is why the single file is saved.
@@ -700,6 +716,8 @@ public final class MediaDownload {
 
         DashManifest.Track video = pick.video;
         DashManifest.Track audio = pick.audio;
+        boolean reencodeSound = pick.reencodeSound;
+        boolean transcodeVideo = pick.transcodeVideo;
         boolean keptCompatible = kept != null && compatible;
 
         if (!keptCompatible && !beatsFile(video, fallback, fallbackQuality, quality)) {
@@ -715,9 +733,11 @@ public final class MediaDownload {
         info(() -> "saving " + label + " from its DASH manifest: " + video
             + (audio == null ? ", no sound track" : " + " + audio)
             + ", instead of " + (fallback == null ? "nothing" : describe(fallback))
-            + qualityNote(quality) + compatibleNote(keptCompatible) + soundNote(audio) + belowNote(better));
+            + qualityNote(quality) + compatibleNote(keptCompatible) + pictureNote(video, transcodeVideo)
+            + soundNote(audio, reencodeSound) + belowNote(better));
 
-        Downloader.Result result = dashJob(application, video, audio, fallback, quality).run(writer, progress);
+        Downloader.Result result = dashJob(application, video, audio, transcodeVideo, reencodeSound, fallback, quality)
+            .run(writer, progress);
         boolean lower = better != null && noticeablyLower(picture(video, quality), better.shortSide());
         return result.ok() && lower ? result.lower() : result;
     }
@@ -770,15 +790,19 @@ public final class MediaDownload {
      * runs can't move what the fallback is judged against.
      */
     static Job dashJob(Context application, DashManifest.Track video, DashManifest.Track audio, String fallback) {
-        return dashJob(application, video, audio, fallback, quality());
+        return dashJob(application, video, audio, false, false, fallback, quality());
     }
 
-    /** As above, with [quality] already read by {@link #saveDash} rather than read again here. */
+    /**
+     * As above, with [quality] already read by {@link #saveDash} rather than read again here,
+     * [transcodeVideo] when [video] is to be made H.264 first, and [reencodeSound] when the
+     * xHE-AAC [audio] is to be made AAC-LC first.
+     */
     private static Job dashJob(Context application, DashManifest.Track video, DashManifest.Track audio,
-            String fallback, DownloadQuality quality) {
+            boolean transcodeVideo, boolean reencodeSound, String fallback, DownloadQuality quality) {
         return (writer, progress) -> {
-            Downloader.Result result = DashSave.save(application, video, audio, writer, policyFor(application), cap(),
-                progress);
+            Downloader.Result result = DashSave.save(application, video, audio, transcodeVideo, reencodeSound, writer,
+                policyFor(application), cap(), progress);
             if (result.ok() || fallback == null || result.status == Downloader.Status.CANCELLED) return result;
             // A failed gallery publication is terminal. A fallback can repair a fetch or join,
             // but mustn't start another fetch after this save's publication state has failed.

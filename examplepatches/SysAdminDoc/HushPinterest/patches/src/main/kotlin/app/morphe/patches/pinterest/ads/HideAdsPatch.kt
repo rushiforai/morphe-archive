@@ -7,25 +7,39 @@
 package app.morphe.patches.pinterest.ads
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.enableCapability
 import app.morphe.patches.pinterest.misc.extension.enableStatus
+import app.morphe.patches.pinterest.misc.extension.freeLocalsAt
 import app.morphe.patches.pinterest.misc.extension.patchLog
 import app.morphe.patches.pinterest.misc.extension.pinterestExtensionPatch
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
+import app.morphe.patches.pinterest.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
+import app.morphe.patches.pinterest.ui.mutable
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 
 private const val PATCH = "Hide ads"
 private const val ADS = "$EXTENSION_PACKAGE/ads/Ads;"
+
+/** The consent vendor Pinterest names when it starts Google's mobile ads SDK, an enum constant in both builds. */
+internal const val GOOGLE_MOBILE_ADS = "GOOGLE_MOBILE_ADS"
 
 /**
  * Takes promoted pins out of the home feed, search, related pins and boards, and folds away the
@@ -37,13 +51,18 @@ private const val ADS = "$EXTENSION_PACKAGE/ads/Ads;"
  * on, so it stays folded away however often Pinterest shows it again (the closeup's floating ad bar
  * shows itself on scroll). A build that renamed all four still gets the list filter, with a warning.
  *
+ * Pinterest's main screen also starts Google's mobile ads SDK for accounts in its GMA experiment.
+ * That launch step returns first while the switch is on, so the SDK never starts and Pinterest's own
+ * "started" check keeps every Google ad load, resume and pause path idle (2026-10-05, both builds).
+ *
  * Found by reading 14.25.0 (2026-10-02). The four views keep their names in 14.38.0.
  */
 @Suppress("unused")
 val hideAdsPatch = bytecodePatch(
     name = PATCH,
     description = "Removes promoted pins from the home feed, search, related pins and boards, and hides " +
-        "Pinterest's ad-only panels. Turn it off in HushPinterest settings at any time.",
+        "Pinterest's ad-only panels. Google's ad SDK isn't started when Pinterest opens. Turn it off in " +
+        "HushPinterest settings at any time.",
     default = true,
 ) {
     category("Ads")
@@ -54,6 +73,9 @@ val hideAdsPatch = bytecodePatch(
         requireStatusMethod("hideAds")
         requireStatusMethod("feedAds")
         requireStatusMethod("adViews")
+        requireStatusMethod("googleAds")
+        val googleAds = googleAdsStart()
+        val answer = googleAds?.freeLocalsAt(PATCH, 0, 1)?.single()
 
         if (feedListHoldersHooked > 0) enableCapability("feedAds")
 
@@ -77,8 +99,42 @@ val hideAdsPatch = bytecodePatch(
         if (folded > 0) enableCapability("adViews")
         else patchLog.warning("$PATCH: none of the ${AD_ONLY_VIEWS.size} ad-only views is in this build; the list filter still runs")
 
+        if (googleAds != null && answer != null) {
+            googleAds.addInstructionsWithLabels(0, """
+                invoke-static { }, $ADS->skipGoogleAds()Z
+                move-result v$answer
+                if-eqz v$answer, :hush_start_google_ads
+                return-void
+            """, ExternalLabel("hush_start_google_ads", googleAds.getInstruction(0)))
+            enableCapability("googleAds")
+        }
+
         enableStatus("hideAds")
     }
+}
+
+/**
+ * Pinterest's one launch step that starts Google's mobile ads SDK: the instance method, taking
+ * nothing, that names the [GOOGLE_MOBILE_ADS] consent vendor. Null, with a warning, unless exactly
+ * one method fits.
+ */
+private fun BytecodePatchContext.googleAdsStart(): MutableMethod? {
+    val starts = mutableListOf<Method>()
+    classDefForEach { owner ->
+        if (owner.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        owner.methods.filterTo(starts) { method ->
+            !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.parameterTypes.isEmpty() &&
+                method.implementation?.instructions?.any { instruction ->
+                    instruction.opcode == Opcode.SGET_OBJECT &&
+                        ((instruction as ReferenceInstruction).reference as FieldReference).let { it.name == GOOGLE_MOBILE_ADS && it.type == it.definingClass }
+                } == true
+        }
+    }
+    if (starts.size != 1) {
+        patchLog.warning("$PATCH: ${starts.size} launch steps start Google's ad SDK in this build instead of one, so it starts as usual")
+        return null
+    }
+    return mutable(starts.single())
 }
 
 /**

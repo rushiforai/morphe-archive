@@ -10,6 +10,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.zeldrisho.patches.shared.bytecode.clearBody
 import com.zeldrisho.patches.zalo.shared.Constants.COMPATIBILITY_ZALO
 
 private const val MAX_CONST16_REGISTER = 0xFF
@@ -89,17 +90,25 @@ private fun invokeRegisterAt(instruction: Instruction, registerIndex: Int): Int?
     else -> null
 }
 
-/** Enables the existing Google Drive photo-backup entry point. */
+/** Removes the local target-backup eligibility check, preserving all other backup logic. */
+internal fun forceMediaBackupEligible(method: app.morphe.patcher.util.proxy.mutableTypes.MutableMethod) {
+    method.clearBody()
+    method.addInstructions(0, "const/4 v0, 0x1\nreturn v0")
+}
+
+/** Enables the existing Google Drive photo-backup entry point for otherwise ineligible accounts. */
 @Suppress("unused")
 val enableZaloGoogleDriveMediaBackupPatch = bytecodePatch(
     name = "Enable Google Drive photo backup",
-    description = "Enables Zalo's existing Google Drive photo-backup option. " +
-        "It does not bypass Google authorization, server retention, encryption, or media exclusions.",
+    description = "Forces Zalo's media-backup feature flag on and bypasses its local Drive-account " +
+        "eligibility check to expose the existing photo-backup option. This optional patch does not " +
+        "bypass Google authorization, server retention, encryption, or media exclusions.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_ZALO)
 
     execute {
         enableMediaBackup(BackupConfiguration.method)
+        forceMediaBackupEligible(MediaBackupEligibility.method)
     }
 }

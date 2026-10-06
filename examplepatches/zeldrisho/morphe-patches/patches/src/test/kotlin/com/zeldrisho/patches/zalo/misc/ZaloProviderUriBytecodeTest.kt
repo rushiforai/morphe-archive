@@ -12,11 +12,37 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class ZaloProviderUriBytecodeTest {
+    @Test
+    fun rewritesCloneMainProcessNameAndPreservesRegister() {
+        val method = syntheticMutableMethod(
+            registerCount = 2,
+            instructions = listOf(
+                ImmutableInstruction21c(Opcode.CONST_STRING, 1, ImmutableStringReference(ORIGINAL_ZALO_PACKAGE)),
+                ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference("unrelated")),
+            ),
+        )
+
+        assertEquals(1, rewriteMainProcessPackageName(method, "com.zing.zalo.clone"))
+        val instructions = method.implementation!!.instructions.toList()
+        assertEquals(1, (instructions[0] as OneRegisterInstruction).registerA)
+        assertEquals(
+            "com.zing.zalo.clone",
+            (((instructions[0] as ReferenceInstruction).reference) as StringReference).string,
+        )
+        assertEquals(
+            "unrelated",
+            (((instructions[1] as ReferenceInstruction).reference) as StringReference).string,
+        )
+    }
+
     /** Checks owned URI substitutions, per-URI counts, and preservation of registers and unrelated code. */
     @Test
     fun rewritesOnlyOwnedProviderUriStringsAndPreservesDestinationRegisters() {
         val preferencesUri = "content://com.zing.zalo.db.preferencesprovider"
         val internalUri = "content://com.zing.zalo.provider.InternalProvider"
+        val remainingCloneStrings = EXPECTED_CLONE_STRING_COUNTS
+            .filterKeys { it != preferencesUri && it != internalUri }
+            .flatMap { (string, count) -> List(count) { string } }
         val method = syntheticMutableMethod(
             registerCount = 4,
             instructions = listOf(
@@ -24,7 +50,9 @@ class ZaloProviderUriBytecodeTest {
                 ImmutableInstruction21c(Opcode.CONST_STRING, 3, ImmutableStringReference("content://third.party.provider")),
                 ImmutableInstruction10x(Opcode.NOP),
                 ImmutableInstruction21c(Opcode.CONST_STRING, 1, ImmutableStringReference(internalUri)),
-            ),
+            ) + remainingCloneStrings.mapIndexed { index, string ->
+                ImmutableInstruction21c(Opcode.CONST_STRING, index % 4, ImmutableStringReference(string))
+            },
         )
 
         val counts = rewriteProviderUriStrings(method, "com.zing.zalo.clone")
@@ -56,7 +84,7 @@ class ZaloProviderUriBytecodeTest {
         val error = kotlin.test.assertFailsWith<IllegalStateException> {
             validateProviderUriReplacementCounts(mapOf("uri" to 0, "other" to 2))
         }
-        kotlin.test.assertTrue(error.message!!.contains("expected one reference per provider URI"))
+        kotlin.test.assertTrue(error.message!!.contains("expected clone identity string counts"))
     }
 
     /** Verifies that a method without bytecode reports zero provider URI replacements. */

@@ -78,6 +78,8 @@ class InjectionRegistersTest {
         method.requireLocals("Fixture", 1)
         assertEquals(listOf(1), method.freeLocalsAt("Fixture", 2, 1))
         assertEquals(listOf(1, 2, 3), method.freeLocalsAt("Fixture", 2, 3))
+        // The method is done with v1, but a hook that reads it there needs another scratch.
+        assertEquals(listOf(2), method.freeLocalsAt("Fixture", 2, 1, reads = listOf(1)))
         method.requireFreeAt("Fixture", 2, listOf(1, 2))
 
         val refused = assertThrows(PatchException::class.java) { method.requireFreeAt("Fixture", 2, listOf(0, 1)) }

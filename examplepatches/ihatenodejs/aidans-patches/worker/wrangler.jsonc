@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "aidans-patches-version-checker",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-02-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "triggers": {
+    "crons": ["0 6 * * *"]
+  },
+  "kv_namespaces": [
+    {
+      "binding": "PLAY_VERSIONS_KV",
+      "id": "5c62cbcdc49749368cc3daba5aa87759"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "worker.patch.p0ntus.com",
+      "custom_domain": true
+    }
+  ]
+}

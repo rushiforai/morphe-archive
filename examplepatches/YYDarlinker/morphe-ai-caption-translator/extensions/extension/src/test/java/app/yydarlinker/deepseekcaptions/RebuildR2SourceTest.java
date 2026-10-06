@@ -200,7 +200,7 @@ public class RebuildR2SourceTest {
     JSONObject p = RebuildProtocol.payload(s, RebuildContractTest.block(s), "zh-Hans", "");
     assertEquals(s.text(0, s.words.size() - 1), p.getString("source_text"));
     assertEquals(s.words.size(), p.getJSONArray("owned_tokens").length());
-    assertEquals("event-rebuild-r2.12", RebuildProtocol.VERSION);
+    assertEquals(app.yydarlinker.extension.BuildConfig.CAPTION_PATCH_VERSION, RebuildProtocol.VERSION);
   }
 
   @Test

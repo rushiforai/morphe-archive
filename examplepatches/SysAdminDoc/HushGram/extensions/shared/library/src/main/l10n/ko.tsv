@@ -274,6 +274,7 @@ Undo is available until %1$s. Restarting Instagram discards Undo.	%1$s까지 실
 No settings import to undo.	실행 취소할 설정 가져오기가 없습니다
 No document picker is available. Your settings haven't changed.	문서 선택기를 사용할 수 없습니다. 설정은 변경되지 않았습니다
 Couldn't use that settings file. Your settings haven't changed.	해당 설정 파일을 사용할 수 없습니다. 설정은 변경되지 않았습니다
+That's an overrides file, not a settings file. Turn on Allow importing overrides under Developer, then use Import overrides. Your settings haven't changed.	설정 파일이 아니라 재정의 파일입니다. 개발자에서 재정의 가져오기 허용을 켠 다음 재정의 가져오기를 사용하세요. 설정은 변경되지 않았습니다
 HushGram settings exported.	HushGram 설정을 내보냈습니다
 Couldn't export HushGram settings. Try another file.	HushGram 설정을 내보낼 수 없습니다. 다른 파일을 사용해 보세요
 Settings restored.	설정이 복원되었습니다

@@ -1,5 +1,6 @@
 package com.zeldrisho.patches.zalo
 
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction10x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
@@ -27,12 +28,25 @@ class CorePatchTransformationTest {
         ),
     )
 
-    /** Verifies that seen-status suppression leaves only a void return. */
+    /** Verifies seen=true is dropped while the false-seen ACK path falls through. */
     @Test
-    fun seenSuppressionReplacesWholeBodyWithReturnVoid() {
-        val target = method()
+    fun seenSuppressionBranchesOnSeenFlagAndPreservesAckPath() {
+        val target = syntheticMutableMethod(
+            definingClass = "Ls00/x;",
+            name = "e",
+            parameters = listOf("Ljava/util/List;", "Z", "I", "I", "Lf11/j0;"),
+            registerCount = 6,
+            instructions = listOf(
+                ImmutableInstruction10x(Opcode.NOP),
+                ImmutableInstruction10x(Opcode.RETURN_VOID),
+            ),
+            accessFlags = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value,
+        )
         suppressSeenStatus(target)
-        assertEquals(listOf(Opcode.RETURN_VOID), target.implementation!!.instructions.map { it.opcode })
+        assertEquals(
+            listOf(Opcode.IF_EQZ, Opcode.RETURN_VOID, Opcode.NOP, Opcode.NOP, Opcode.RETURN_VOID),
+            target.implementation!!.instructions.map { it.opcode },
+        )
     }
 
     /** Verifies that typing-status suppression leaves only a void return. */

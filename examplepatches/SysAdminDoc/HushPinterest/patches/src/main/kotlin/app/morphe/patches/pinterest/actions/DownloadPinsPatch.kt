@@ -36,7 +36,7 @@ val downloadPinsPatch = bytecodePatch(
     name = PATCH,
     description = "Downloads a pin or selected visible grid pins using original images and the highest-resolution MP4 Pinterest supplies. " +
         "Saves in Downloads on Android 10 or newer, or asks for a save location on Android 9. " +
-        "Turn it off in HushPinterest settings at any time.",
+        "The pin menu can also copy that media's link. Turn it off in HushPinterest settings at any time.",
     default = false,
 ) {
     category("Downloads")

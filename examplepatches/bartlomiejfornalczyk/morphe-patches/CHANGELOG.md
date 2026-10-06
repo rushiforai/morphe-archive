@@ -1,3 +1,51 @@
+## 1.0.0 (2026-10-05)
+
+### ✨ Initial Release
+
+* Initial release baseline based on v1.4.37 (YouTube Music & Google Maps media player integration).
+
+## [1.4.37](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.36...v1.4.37) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **music:** support 2-parameter onGetRoot variant in newer YouTube Music versions (v1.4.37) ([88aa0ae](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/88aa0aebb6f19dfc53a3dd89df4bd14305ba928b))
+
+## [1.4.36](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.35...v1.4.36) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **music:** bypass entitlement gate and session error state for media browser (v1.4.36) ([6a19ed8](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/6a19ed8ab2db500fceb188d6b81dd35f34630cbc))
+
+## [1.4.35](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.34...v1.4.35) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **music:** prevent VerifyError in AllowlistManager by safely replacing return values in-place (v1.4.35) ([a7a2f12](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/a7a2f12eb9653c3ee3ce07df46953b5f9075128b))
+
+## [1.4.34](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.33...v1.4.34) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* precisely isolate allowlist manager to prevent corrupting runtime checks ([5932aff](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/5932aff784a0424492a45528213c9e67ae2eeb04))
+
+## [1.4.33](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.32...v1.4.33) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* update allow external media browser connections patch with robust MusicBrowserService fingerprint ([6da0124](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/6da01247e2de849402f6b20acb2cbdf14c0800fa))
+
+## [1.4.32](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.31...v1.4.32) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* add allow external media browser connections patch for YouTube Music ([1204a42](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/1204a423000b606cfafb5859782a9a6af2aa9df5))
+
+## [1.4.31](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.30...v1.4.31) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* resolve crash on start by reverting queryIntentServices edit and securing verify fingerprint ([bda9d45](https://github.com/bartlomiejfornalczyk/morphe-patches/commit/bda9d45d5eff1a5b8bcd3f0754e2625711e01135))
+
 ## [1.4.30](https://github.com/bartlomiejfornalczyk/morphe-patches/compare/v1.4.29...v1.4.30) (2026-10-02)
 
 ### 🐛 Bug Fixes

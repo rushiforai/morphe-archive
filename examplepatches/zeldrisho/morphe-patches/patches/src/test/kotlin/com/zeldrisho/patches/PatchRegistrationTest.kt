@@ -31,7 +31,7 @@ class PatchRegistrationTest {
         assertTrue(zaloPackageOption.validator.invoke(zaloPackageOption, "org.example.clone"))
         assertFalse(zaloPackageOption.validator.invoke(zaloPackageOption, "not-valid"))
 
-        assertTrue(threadsAppNamePatch.default)
+        assertFalse(threadsAppNamePatch.default)
         assertEquals("Threads Morphe", threadsAppNamePatch.options.values.single { it.name == "appName" }.default)
         assertFalse(changeZaloAppNamePatch.default)
         assertEquals("Zalo Morphe", changeZaloAppNamePatch.options.values.single { it.name == "appName" }.default)

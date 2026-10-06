@@ -2,9 +2,37 @@
 
 Every HushPinterest release, newest first.
 
-## 0.0.4 (2026-10-03)
+## 0.0.4 (2026-10-05)
 
-Unreleased source changes. The published release remains 0.0.3.
+* **Tooling:** A hook can no longer borrow a register that its own call still reads, and the patch checks refuse a hook call that passes one register twice unless Pinterest's own call already did.
+
+* **Pinterest:** Hide navigation buttons keeps a hidden tab hidden when Pinterest rebuilds it, such as Search after you close a pin.
+
+* **Pinterest:** Download history offers Set as wallpaper for a finished image download on Android 10 and newer. It opens Android's own Set as options for the saved file, and HushPinterest needs no wallpaper permission.
+
+* **Pinterest:** New optional Original-quality images patch. With its switch on, Pinterest's image model hands back the original image ahead of the large size wherever Pinterest supplied one. It uses more data, so the switch starts off.
+
+* **Tooling:** The source census is refreshed for 2026-10-05. It records oyasumi's newer Pinterest patches, six more forks, two false matches and the five indexes that now list HushPinterest. Still no outside Pinterest code is adopted.
+
+* **Pinterest:** Hide navigation buttons has a third switch, Hide Search button, beside Create and Notifications. It starts off. Home and Profile always stay in the bottom bar.
+
+* **Pinterest:** With Download pins on, the pin menu has a Copy media link row under Download pin. It copies the address of the same original image or MP4 the download would save, read from the pin when you tap it, and it's only offered when Pinterest supplied one.
+
+* **Pinterest:** Hide ads now also keeps Google's mobile ads SDK from starting when Pinterest opens. Pinterest only starts it for accounts in its Google ads test, and with the SDK idle no Google ad is requested or shown. Turning Hide ads off or pausing HushPinterest lets it start again on the next launch.
+
+* **Pinterest:** New Hide save toasts patch. Saving a pin no longer pops up "Saved to" your board or the suggestion to follow the pin's creator, and the pin still saves as usual. Pick the patch in Morphe Manager, then turn on its switch on the Interface page. Turning it off or pausing HushPinterest brings the pop-ups back.
+
+* **Pinterest:** New Hide advertising ID patch, on by default. Pinterest and the ad and analytics code bundled in it read an all-zero ad ID with ad tracking limited, the answer Android gives after you delete your ad ID. Its switch is on the Privacy page, and turning it off or pausing HushPinterest hands back the real ID.
+
+* **Pinterest:** Disable analytics now also stops Bugsnag crash and session reports, and it keeps Pinterest from publishing recommendations to Google Engage (the Collections and similar Google surfaces). Engage gets the same "service not found" answer as a phone without it. The switch and Pause bring both back.
+
+* **Pinterest:** HushPinterest now builds on Morphe patcher 1.15.1, so it needs Morphe Manager 1.34.0 or newer. Manager 1.33.0 carries patcher 1.15.0 and asks for an update before it'll load the bundle.
+
+* **Pinterest:** System share sheet looks up how Pinterest closes its share sheet in each supported build, including 14.25.0 for Android 9, so the Share button at the top of a pin uses that build's own close step after handing the link to Android.
+
+* **Tooling:** The release receipt runs the resource table and injected code checks on every fixture it patches, the same ones as the patch verification script, including every class and member the injected code calls. Any finding stops the receipt.
+
+* **Tooling:** The fixture checks run on desktop CLI 1.18.1, which carries patcher 1.15.1. The patcher's new ARSCLib commit is pinned in the dependency verification metadata, with hashes matched against fresh downloads.
 
 * **Pinterest:** Choose up to 32 visible pins from a grid menu. Each selection uses Pinterest's supplied media, reports its queue or save result and appears in Download history. Android 9 opens one save picker at a time. Stopping leaves downloads already started alone.
 

@@ -15,7 +15,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(openxr_headers)
 
 add_library(gxr_controller_extrapolation SHARED src/controller_extrapolation_layer.cpp)
-target_link_libraries(gxr_controller_extrapolation PRIVATE OpenXR::headers log)
+target_link_libraries(gxr_controller_extrapolation PRIVATE OpenXR::headers log dl)
 target_compile_definitions(gxr_controller_extrapolation PRIVATE XR_USE_PLATFORM_ANDROID)
 target_link_options(gxr_controller_extrapolation PRIVATE
     -Wl,-z,max-page-size=16384 -Wl,--no-undefined -Wl,-s)

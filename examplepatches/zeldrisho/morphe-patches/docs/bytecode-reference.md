@@ -94,7 +94,7 @@ stable anchors over those names (see the
 | String constants | Kept as-is (unless DexGuard/string encryption) | `string(…)` / `strings` |
 | Literals, opcodes, call order | Logic flow preserved | `literal`, `opcode`, filter order |
 
-Check the level with `uvx apkid app.apk`:
+Install with `brew install apkid`, then check the level with `apkid app.apk`:
 
 | Output | Difficulty | Strategy |
 | ------ | ---------- | -------- |

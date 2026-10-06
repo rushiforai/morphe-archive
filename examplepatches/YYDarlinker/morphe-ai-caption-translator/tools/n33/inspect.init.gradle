@@ -1,0 +1,10 @@
+gradle.projectsEvaluated {
+ def project=gradle.rootProject.project(':patches')
+ project.tasks.register('inspectN33', JavaExec) {
+  dependsOn project.tasks.named('testClasses')
+  classpath=project.sourceSets.test.runtimeClasspath-project.sourceSets.main.output
+  mainClass='validation.N33InspectorKt'
+  maxHeapSize='3G'
+  args project.findProperty('n33.input'),project.findProperty('n33.output')
+ }
+}

@@ -11,7 +11,8 @@ object ScreenTranslateCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5722,
         targets = listOf(
-            AppTarget(version = "7.5.00112")
+            AppTarget(version = "7.5.00112"),
+            AppTarget(version = "v7.5.00112")
         )
     )
 }

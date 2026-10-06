@@ -1,19 +1,12 @@
 # Stylus
 
-A collection of font related [Morphe](https://morphe.software) patches.
+A collection of font-related [Morphe](https://morphe.software) patches to improve readability/accessibility.
 
-> [!WARNING]
+> [!NOTE]
 > **Experimental & AI-Assisted**  
 > These patches were created with AI assistance and have only been tested on my personal device. Please review the source code carefully and use them at your own risk.
 
 > [!IMPORTANT]
-> **Reddit patches moved to official Morphe Patches**  
-> Reddit font patches have been removed from Stylus and are now available in [MorpheApp/morphe-patches](https://github.com/MorpheApp/morphe-patches).
->
-> - If you already patched Reddit using Stylus, your install continues to work and nothing needs to change.
-> - For all future Reddit patching, use the official Morphe source.
-
-> [!NOTE]
 > **Telegram** dependency
 >
 > Telegram font patch needs the `Bypass integrity check` patch from - [Doom's Morphe Patches](https://github.com/rushiranpise/morphe-patches/blob/main/PATCHES.md#telegram-orgtelegrammessenger)
@@ -22,7 +15,7 @@ A collection of font related [Morphe](https://morphe.software) patches.
 ## 🩹 Patches list
 
 <!-- PATCHES_START -->
-> **[v1.6.0](https://github.com/ch3thanhs/stylus/releases/tag/v1.6.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;6 patches total
+> **[v1.7.0](https://github.com/ch3thanhs/stylus/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
 <summary>📦 GitHub&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
 <br>
@@ -63,6 +56,21 @@ A collection of font related [Morphe](https://morphe.software) patches.
 **🎯 Supported versions:**
 
 | 12.10.6 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Force system font (Telegram)](#force-system-font-telegram) | Renders the app using the device's system font instead of Telegram's bundled font. |  |
+
+</details>
+
+<details open>
+<summary>📦 Telegram (web version)&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 12.10.5 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

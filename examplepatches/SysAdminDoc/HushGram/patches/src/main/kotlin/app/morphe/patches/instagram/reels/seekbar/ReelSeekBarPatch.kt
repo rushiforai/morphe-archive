@@ -16,6 +16,7 @@ import app.morphe.patches.instagram.misc.extension.localRegisterCount
 import app.morphe.patches.instagram.misc.extension.markers
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.typesMarked
 import app.morphe.patches.instagram.misc.flags.FlagLoad
 import app.morphe.patches.instagram.misc.flags.answerFlagLoads
 import app.morphe.patches.instagram.misc.flags.findFlagLoads
@@ -315,8 +316,9 @@ internal fun BytecodePatchContext.applyReelSeekBar(sites: ReelSeekBarSites) {
 /** The one method outside the extension holding each marker; fails when a marker isn't held by exactly one. */
 private fun BytecodePatchContext.markedMethods(wanted: List<String>): Map<String, Method> {
     val found = wanted.associateWith { mutableListOf<Method>() }
+    val marked = typesMarked(*wanted.toTypedArray())
     classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        if (classDef.type !in marked) return@classDefForEach
         classDef.methods.forEach { method ->
             method.markers().toSet().forEach { marker -> found[marker]?.add(method) }
         }

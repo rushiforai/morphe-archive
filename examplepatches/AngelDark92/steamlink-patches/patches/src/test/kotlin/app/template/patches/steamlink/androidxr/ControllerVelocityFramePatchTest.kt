@@ -16,7 +16,7 @@ class ControllerVelocityFramePatchTest {
         assertContentEquals(byteArrayOf(0x7f, 0x45, 0x4c, 0x46), library.copyOfRange(0, 4))
         // extensions/controller-velocity-frame-layer, NDK 28.2.13676358, arm64-v8a, Release.
         assertEquals(
-            "dce59f7100d003a04efebece7e9ac156d7f4e408ac949c897c88dfa6f8e0ca89",
+            "52f36e28109d54468767afd979da11cc55696ee7b1adc784b67e7b08f221a69c",
             MessageDigest.getInstance("SHA-256").digest(library).joinToString("") { "%02x".format(it) },
         )
         val text = String(library, Charsets.ISO_8859_1)
@@ -26,6 +26,22 @@ class ControllerVelocityFramePatchTest {
         assertTrue("debug.gxr.velocity_frame" in text)
         assertTrue("debug.gxr.velocity_pitch_linear" in text)
         assertTrue("debug.gxr.velocity_pitch_angular" in text)
+        assertTrue("debug.gxr.velocity_frame.angular" in text)
+        // The bundled library reports the angular velocity local until a patch says otherwise.
+        assertFalse(library.angularVelocityWorld(CONTROLLER_VELOCITY_FRAME_CONFIG_MAGIC))
+    }
+
+    @Test
+    fun `each patch writes its base's angular velocity frame and nothing else`() {
+        val bundled = controllerVelocityFrameResource(CONTROLLER_VELOCITY_FRAME_LIBRARY)
+        val local = controllerVelocityFrameLibrary(angularWorld = false)
+        val world = controllerVelocityFrameLibrary(angularWorld = true)
+
+        assertContentEquals(bundled, local)
+        assertFalse(local.angularVelocityWorld(CONTROLLER_VELOCITY_FRAME_CONFIG_MAGIC))
+        assertTrue(world.angularVelocityWorld(CONTROLLER_VELOCITY_FRAME_CONFIG_MAGIC))
+        assertEquals(bundled.size, world.size)
+        assertEquals(1, bundled.indices.count { bundled[it] != world[it] })
     }
 
     @Test
@@ -53,31 +69,43 @@ class ControllerVelocityFramePatchTest {
     }
 
     @Test
-    fun `patch is opt-in and covers the legacy and native bases`() {
-        assertFalse(controllerVelocityFramePatch.default)
+    fun `patches are opt-in and split the legacy and native bases`() {
         assertEquals("Controller velocity frame (experimental)", controllerVelocityFramePatch.name)
-        assertTrue(controllerVelocityFramePatch.dependencies.isEmpty())
-
-        val compatibilities = controllerVelocityFramePatch.compatibility.orEmpty()
-        assertTrue(compatibilities.all { it.name == EXPERIMENTAL_COMPATIBILITY_NAME })
-        assertEquals(
-            listOf("2.0.20" to 5001712, "2.0.20" to 5001812, "2.0.21" to 5001968, "2.0.22" to 5002244,
-                "2.0.23" to 5002363),
-            compatibilities.map { it.targets.single() }.map { it.version to it.versionCodes!!.values.toSet().single() },
-        )
+        assertEquals("Controller velocity frame, 2.0.20 - 2.0.22 (experimental)", controllerVelocityFrameLegacyPatch.name)
+        mapOf(
+            controllerVelocityFramePatch to listOf("2.0.23" to 5002363),
+            controllerVelocityFrameLegacyPatch to listOf(
+                "2.0.20" to 5001712, "2.0.20" to 5001812, "2.0.21" to 5001968, "2.0.22" to 5002244,
+            ),
+        ).forEach { (patch, builds) ->
+            assertFalse(patch.default, patch.name)
+            assertTrue(patch.dependencies.isEmpty(), patch.name)
+            val compatibilities = patch.compatibility.orEmpty()
+            assertTrue(compatibilities.all { it.name == EXPERIMENTAL_COMPATIBILITY_NAME }, patch.name)
+            assertEquals(
+                builds,
+                compatibilities.map { it.targets.single() }.map { it.version to it.versionCodes!!.values.toSet().single() },
+                patch.name,
+            )
+        }
+        assertTrue("local to the streamed pose" in controllerVelocityFramePatch.description.orEmpty())
+        assertTrue("in the base space" in controllerVelocityFrameLegacyPatch.description.orEmpty())
         // Only the base the layer was measured on says so.
         assertEquals(
             listOf("2.0.23"),
-            compatibilities.map { it.targets.single() }
+            (controllerVelocityFramePatch.compatibility.orEmpty() + controllerVelocityFrameLegacyPatch.compatibility.orEmpty())
+                .map { it.targets.single() }
                 .filter { "not run on this base" !in it.description.orEmpty() }
                 .map { it.version },
         )
 
-        listOf("2.0.20" to "5001712", "2.0.20" to "5001812", "2.0.21" to "5001968", "2.0.22" to "5002244",
-            "2.0.23" to "5002363")
+        listOf("2.0.20" to "5001712", "2.0.20" to "5001812", "2.0.21" to "5001968", "2.0.22" to "5002244")
             .forEach { (version, versionCode) ->
-                assertTrue(isControllerVelocityFrameBuild(version, versionCode), "$version/$versionCode")
+                assertTrue(isControllerVelocityFrameLegacyBuild(version, versionCode), "$version/$versionCode")
+                assertFalse(isControllerVelocityFrameNativeBuild(version, versionCode), "$version/$versionCode")
             }
+        assertTrue(isControllerVelocityFrameNativeBuild("2.0.23", "5002363"))
+        assertFalse(isControllerVelocityFrameLegacyBuild("2.0.23", "5002363"))
         listOf("2.0.22" to "5002363", "2.0.23" to "5002322", "2.0.23" to "5002364", "2.0.20" to "5002244")
             .forEach { (version, versionCode) ->
                 assertFalse(isControllerVelocityFrameBuild(version, versionCode), "$version/$versionCode")

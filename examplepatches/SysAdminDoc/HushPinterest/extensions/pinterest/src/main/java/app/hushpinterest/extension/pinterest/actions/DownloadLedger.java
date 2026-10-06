@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
@@ -61,21 +62,35 @@ public final class DownloadLedger {
         private final int reason;
         // Read only from Android's current failed request. Never persisted or shown in history.
         private final PinMedia.Source source;
+        // The image type of a request Android finished. Read from Android, never persisted.
+        private final String image;
 
         private Job(long id, String pinId, long createdAt, State state, int reason, PinMedia.Source source) {
+            this(id, pinId, createdAt, state, reason, source, null);
+        }
+
+        private Job(long id, String pinId, long createdAt, State state, int reason, PinMedia.Source source, String image) {
             this.id = id;
             this.pinId = pinId;
             this.createdAt = createdAt;
             this.state = state;
             this.reason = reason;
             this.source = source;
+            this.image = image;
         }
 
         private Job with(State state, int reason, PinMedia.Source source) {
-            return new Job(id, pinId, createdAt, state, reason, source);
+            return with(state, reason, source, null);
+        }
+
+        private Job with(State state, int reason, PinMedia.Source source, String image) {
+            return new Job(id, pinId, createdAt, state, reason, source, image);
         }
 
         public boolean canRetry() { return state == State.FAILED && source != null; }
+
+        /** A finished image download Android's Set as options can take. */
+        public boolean canSetAs() { return state == State.COMPLETED && image != null; }
 
         public String pinUrl() { return "https://www.pinterest.com/pin/" + pinId + "/"; }
 
@@ -238,6 +253,57 @@ public final class DownloadLedger {
         return open(context, new Intent(DownloadManager.ACTION_VIEW_DOWNLOADS), L10n.t("Couldn't open Downloads."));
     }
 
+    private static String image(String mime) {
+        return mime != null && mime.toLowerCase(Locale.ROOT).startsWith("image/") ? mime : null;
+    }
+
+    /**
+     * Hands a finished image download to Android's own Set as options, where the system picker and
+     * its cropper set it as the wallpaper. Android is asked about the request again first, and only
+     * a finished image is handed over, by Android's own content address for that download with a
+     * read grant. Nothing is copied and no wallpaper permission is used.
+     */
+    public static boolean setAs(Context context, Job job) {
+        if (context == null || job == null || !job.canSetAs()) return false;
+        Context app = application(context);
+        String error = L10n.t("Couldn't open Set as. Check Downloads for the saved file.");
+        boolean scheduled = Utils.runOnBackgroundThread(() -> {
+            try {
+                if (!PinDownloads.active()) {
+                    Utils.showToastLong(L10n.t("Resume HushPinterest and turn on Download pins to use this."));
+                    return;
+                }
+                DownloadManager manager = (DownloadManager) app.getSystemService(Context.DOWNLOAD_SERVICE);
+                if (manager == null) throw new IllegalStateException("Download service unavailable");
+                String mime = null;
+                try (Cursor cursor = manager.query(new DownloadManager.Query().setFilterById(job.id))) {
+                    if (cursor != null && cursor.moveToFirst() && cursor.getInt(cursor.getColumnIndexOrThrow(
+                            DownloadManager.COLUMN_STATUS)) == DownloadManager.STATUS_SUCCESSFUL) {
+                        int type = cursor.getColumnIndex(DownloadManager.COLUMN_MEDIA_TYPE);
+                        mime = image(type < 0 ? null : cursor.getString(type));
+                    }
+                }
+                if (mime == null) {
+                    Utils.showToastLong(L10n.t("This download isn't a finished image anymore. Check Downloads."));
+                    return;
+                }
+                Uri file = manager.getUriForDownloadedFile(job.id);
+                if (file == null) throw new IllegalStateException("Finished image has no content URI");
+                Intent attach = new Intent(Intent.ACTION_ATTACH_DATA).setDataAndType(file, mime).putExtra("mimeType", mime)
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                Intent chooser = Intent.createChooser(attach, L10n.t("Set as"));
+                Utils.runOnMainThread(() -> {
+                    if (open(app, chooser, error)) HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "finished image handed to Set as");
+                });
+            } catch (RuntimeException failure) {
+                HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "set a finished image as", failure);
+                Utils.showToastLong(error);
+            }
+        });
+        if (!scheduled) Utils.showToastLong(error);
+        return scheduled;
+    }
+
     public static boolean reopenPin(Context context, Job job) {
         if (context == null || job == null) return false;
         return open(context, new Intent(Intent.ACTION_VIEW, Uri.parse(job.pinUrl()))
@@ -325,16 +391,16 @@ public final class DownloadLedger {
                 State state = state(cursor.getInt(statusColumn));
                 int reason = state == State.PAUSED || state == State.FAILED ? cursor.getInt(reasonColumn) : 0;
                 PinMedia.Source source = null;
+                String mime = mimeColumn < 0 ? null : cursor.getString(mimeColumn);
                 if (state == State.FAILED) {
                     String url = cursor.getString(sourceColumn);
                     source = PinMedia.sourceUrl(url, false);
                     if (source == null) source = PinMedia.sourceUrl(url, true);
                     // Our original request sets its MIME type. Don't reinterpret a video as
                     // an image, or guess a type when Android no longer has that contract.
-                    String mime = mimeColumn < 0 ? null : cursor.getString(mimeColumn);
                     if (source != null && !source.mime.equalsIgnoreCase(mime)) source = null;
                 }
-                results.put(id, job.with(state, reason, source));
+                results.put(id, job.with(state, reason, source, state == State.COMPLETED ? image(mime) : null));
             }
             return Collections.unmodifiableList(new ArrayList<>(results.values()));
         } catch (RuntimeException failure) {

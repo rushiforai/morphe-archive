@@ -30,15 +30,14 @@ original split APK → baksmali smali → fingerprint + patch → .mpp → Morph
 Check prerequisites without installing tools or changing the host:
 
 ```bash
-python3 scripts/doctor.py build      # Java 21+, Python, Gradle wrapper, pre-commit
-python3 scripts/doctor.py analysis   # plus APK recon/decompile tools
+python3 scripts/doctor.py build      # Java 21+, Python, Gradle wrapper
+python3 scripts/doctor.py analysis   # plus APK recon tools; baksmali is optional
 python3 scripts/doctor.py device     # Android CLI deployment capability
 ```
 
 Run from the repository root with the [configured toolchain](toolchain.md):
 
 ```bash
-pre-commit run --all-files --show-diff-on-failure
 python3 -m unittest discover -s scripts/tests -v
 ./gradlew verify --no-daemon
 ```
@@ -68,8 +67,10 @@ Successful verification still requires [real-APK and device validation](validati
 
 ## Code quality
 
-CI runs the same check-only commands above; hooks are optional. Generated metadata,
-build output, and local APK analysis are not formatting targets.
+CI runs the Python tests, Gradle verification, and pinned file checks. Local
+commit hooks also run file checks before commit; the pre-push hook runs
+`gradle-quality` for matching JVM files. Generated metadata, build output, and
+local APK analysis are not formatting targets.
 
 | Check | Configuration / scope |
 | --- | --- |
@@ -83,13 +84,13 @@ build output, and local APK analysis are not formatting targets.
 `qualityCheck` aggregates Spotless, detekt, and Android Lint. Reports live in
 `patches/build/reports/detekt/` and `extensions/*/build/reports/`.
 Gradle dependencies and CI action revisions are pinned for reproducible builds.
-CI runs the pinned `pre-commit/action` GitHub Action; Ruff and actionlint are
-provided by pinned, isolated hook environments, keeping their versions consistent
-locally and in CI. Other hook repositories and revisions remain pinned in
-`.pre-commit-config.yaml`; update them with `pre-commit autoupdate --freeze`,
-review the resolved commits, then run verification. A bare `pre-commit install`
-installs both configured hook types. Commits do not run Gradle or SDK builds;
-pushes with files matching the hook's pattern run `gradle-quality`.
+The configured Git hooks run the pinned Ruff and actionlint checks for matching
+files before commit; CI also runs these checks. Other hook repositories and
+revisions remain pinned in `.pre-commit-config.yaml`; update them with
+`pre-commit autoupdate --freeze`, then review the resolved commits.
+A bare `pre-commit install` installs both configured hook types. Commits do not
+run Gradle or SDK builds; pushes with files matching the hook's pattern run
+`gradle-quality`.
 Detekt **2.0.0-alpha.6**
 remains intentional: its compiler matches Morphe's Kotlin **2.4.10**; stable Detekt
 1.23.8 targets Kotlin 2.0.21 and is not a compatible drop-in. Recheck the
@@ -111,7 +112,7 @@ fetch the configured isolated hook environments.
 
 ```bash
 ./gradlew spotlessApply --no-daemon
-# Python checks are included in the pre-commit run above.
+# Python lint and format checks run through the configured commit hooks.
 ```
 
 Review the diff and rerun verification. Fix non-autoformattable naming/KDoc errors manually.

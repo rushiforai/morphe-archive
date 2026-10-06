@@ -1,0 +1,66 @@
+name: Deploy Website & Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'patches-list.json'
+      - 'patches-bundle.json'
+      - 'site/**'
+      - 'worker/**'
+      - '.github/workflows/deploy-site.yml'
+  workflow_dispatch:
+
+jobs:
+  build-and-verify:
+    name: Build & Verify Website
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_ENABLED: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Site Dependencies
+        working-directory: site
+        run: bun install --frozen-lockfile
+
+      - name: Verify Application Icons Present
+        working-directory: site
+        run: bun run check:icons
+
+      - name: Build Astro Static Site
+        working-directory: site
+        run: bun run build
+
+      - name: Install Worker Dependencies
+        working-directory: worker
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck Worker
+        working-directory: worker
+        run: bun run check
+
+      - name: Deploy to Cloudflare Pages (Production)
+        if: env.DEPLOY_ENABLED == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: site
+          command: pages deploy dist --project-name=aidans-patches
+
+      - name: Deploy Cloudflare Worker (Version Freshness Cron)
+        if: env.DEPLOY_ENABLED == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          command: deploy

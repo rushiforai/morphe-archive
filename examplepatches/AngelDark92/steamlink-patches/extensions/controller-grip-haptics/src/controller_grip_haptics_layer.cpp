@@ -35,6 +35,8 @@ constexpr transaction_code_t SERVICE_VIBRATE = 1;
 constexpr transaction_code_t SERVICE_STOP = 2;
 constexpr transaction_code_t SERVICE_PLAY = 3;
 constexpr int32_t VIBRATOR_MAIN = 1;
+// The HAL's device 2 is both controllers: one upload that both of them play.
+constexpr int32_t DEVICE_BOTH = 2;
 // The stock controller service does not send pulses shorter than 30 ms; the layer goes down to 10.
 constexpr int32_t MIN_DURATION_MS = 10;
 constexpr float MIN_AMPLITUDE = 0.1f;
@@ -77,10 +79,12 @@ constexpr int LOGGED_CALLS = 40;
 // thread sends the samples in short chunks, each continuing the phase of the one before, and a
 // new request only changes what is generated next, as in PSVR2Toolkit. The HAL needs about 14 ms
 // per chunk and handles both controllers in one queue: 10 ms chunks were dropped and rattled,
-// 20 ms ones play cleanly for one controller, so two vibrating controllers get chunks twice as
-// long. The default is 40 ms, the value used in games. Long waveforms are not sent: once the controller's buffer (about a second) is full they
-// queue up and play late. The HAL stop is not used here: it leaves that buffer as it was and
-// the next waveform does not play.
+// 20 ms ones play cleanly for one controller, so two controllers that vibrate differently get
+// chunks twice as long. Two controllers playing the same tone (crossed sabers in Beat Saber) get
+// one chunk sent to both at once instead. The default is 40 ms, the value used in games. Long
+// waveforms are not sent: once the controller's buffer (about a second) is full they queue up
+// and play late. The HAL stop is not used here: it leaves that buffer as it was and the next
+// waveform does not play.
 constexpr int32_t DEFAULT_CHUNK_MS = 40;
 constexpr float SAMPLE_RATE = 8000.0f;
 // The grip vibrator feels right around 100 Hz and shrill from about 150 Hz (HAL steps 2 and 3),
@@ -132,6 +136,7 @@ std::atomic<float> MAX_TONE_HZ{DEFAULT_MAX_TONE_HZ};
 std::atomic<float> DRIVE{1.0f};
 std::atomic<int> CLICK{CLICK_TONE};
 std::atomic<int32_t> CHUNK_MS{DEFAULT_CHUNK_MS};
+std::atomic<bool> SHARED{true};
 
 // What the generator plays for one controller. Peaks are in samples, lengths in samples left.
 struct Voice {
@@ -196,6 +201,8 @@ float readProperty(const char* name, float fallback) {
 //   debug.gxr.haptic.click  waveform mode, requests without a real frequency: 0 = a tone like any
 //                           other request (default), 1 = one push, 2 = push and pull
 //   debug.gxr.haptic.chunkms  waveform mode: chunk length in milliseconds for one controller (40)
+//   debug.gxr.haptic.shared  waveform mode: 1 = one chunk for both controllers when they play the
+//                           same tone (default), 0 = always a chunk per controller
 //   debug.gxr.haptic.streamms  pulse length for a vibration that keeps repeating
 int64_t monotonicNs() {
     timespec now{};
@@ -226,6 +233,7 @@ void refreshTuning() {
     CLICK.store(static_cast<int>(readProperty("debug.gxr.haptic.click", CLICK_TONE)));
     CHUNK_MS.store(
         static_cast<int32_t>(clamp(readProperty("debug.gxr.haptic.chunkms", DEFAULT_CHUNK_MS), 10.0f, 200.0f)));
+    SHARED.store(readProperty("debug.gxr.haptic.shared", 1.0f) != 0.0f);
     STREAM_PULSE.store(
         static_cast<int32_t>(readProperty("debug.gxr.haptic.streamms", DEFAULT_STREAM_PULSE_MS)));
 }
@@ -303,25 +311,42 @@ bool generate(Voice& voice, std::vector<int8_t>& samples) {
     return true;
 }
 
+// Both controllers play the same tone and nothing else, so one chunk can serve both.
+bool isSameTone(const Voice& left, const Voice& right) {
+    return left.toneLeft != 0 && right.toneLeft != 0 && left.clickLeft == 0 && right.clickLeft == 0 &&
+        left.hz == right.hz && std::fabs(left.peak - right.peak) < 1.0f;
+}
+
 void generatorLoop() {
     std::vector<int8_t> samples[2];
     int64_t next = 0;
     for (;;) {
         bool active[2]{};
         int32_t chunkMs = 0;
+        int shared = -1;
         {
             std::unique_lock<std::mutex> lock(VOICE_LOCK);
             VOICE_WAKE.wait(lock, [] { return isPlaying(VOICES[0]) || isPlaying(VOICES[1]); });
             const bool both = isPlaying(VOICES[0]) && isPlaying(VOICES[1]);
-            chunkMs = CHUNK_MS.load() * (both ? 2 : 1);
+            if (both && SHARED.load() && isSameTone(VOICES[0], VOICES[1])) {
+                // The chunk of the controller with more left to play is sent to both; the other
+                // one ends within this chunk.
+                shared = VOICES[0].toneLeft >= VOICES[1].toneLeft ? 0 : 1;
+                VOICES[1].phase = VOICES[0].phase;
+            }
+            chunkMs = CHUNK_MS.load() * (both && shared < 0 ? 2 : 1);
             for (int device = 0; device < 2; ++device) {
                 samples[device].assign(static_cast<size_t>(chunkMs * SAMPLE_RATE / 1000.0f), 0);
                 active[device] = generate(VOICES[device], samples[device]);
             }
         }
         AIBinder* service = SERVICE.load();
-        for (int device = 0; device < 2; ++device) {
-            if (active[device] && service) sendSamples(service, device, samples[device]);
+        if (shared >= 0) {
+            if (service) sendSamples(service, DEVICE_BOTH, samples[shared]);
+        } else {
+            for (int device = 0; device < 2; ++device) {
+                if (active[device] && service) sendSamples(service, device, samples[device]);
+            }
         }
         // Chunks follow each other exactly one chunk apart; after a silence the clock restarts.
         const int64_t nowNs = monotonicNs();
@@ -581,7 +606,7 @@ XrResult XRAPI_PTR layerCreateApiLayerInstance(
 
 }  // namespace
 
-extern "C" JNIEXPORT void JNICALL Java_gxr_haptic_HapticProvider_nativeSetBinder(
+extern "C" JNIEXPORT void JNICALL Java_gxr_haptic_HapticBridge_nativeSetBinder(
     JNIEnv* env,
     jclass,
     jobject binder

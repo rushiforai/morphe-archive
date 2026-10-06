@@ -2776,7 +2776,7 @@
      return-void
  .end method
  
-@@ -852,11 +693,20 @@
+@@ -852,11 +693,15 @@
  
      invoke-virtual {p0, v1}, Landroid/preference/PreferenceActivity;->setTheme(I)V
  
@@ -2788,12 +2788,7 @@
  
      invoke-virtual {p0, p1}, Landroid/preference/PreferenceActivity;->addPreferencesFromResource(I)V
 +
-+    const-string p1, "material_you_mode"
-+    invoke-virtual {p0, p1}, Landroid/preference/PreferenceActivity;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
-+    move-result-object p1
-+    new-instance v1, Le/e/a/DynamicTheme$Refresh;
-+    invoke-direct {v1, p0}, Le/e/a/DynamicTheme$Refresh;-><init>(Landroid/app/Activity;)V
-+    invoke-virtual {p1, v1}, Landroid/preference/Preference;->setOnPreferenceClickListener(Landroid/preference/Preference$OnPreferenceClickListener;)V
++    invoke-static {p0}, Le/e/a/ThemeChoice;->settings(Landroid/preference/PreferenceActivity;)V
  
      const p1, 0x7f0f0120
  
@@ -3815,7 +3810,7 @@
  
      invoke-virtual {v6, v7}, Landroid/widget/TextView;->setTextColor(I)V
  
-@@ -1926,6 +1926,9 @@
+@@ -1926,4 +1926,7 @@
      :goto_8
      invoke-virtual {v5, v11}, Landroid/widget/LinearLayout;->setVisibility(I)V
 
@@ -4251,7 +4246,7 @@
 +.end method
 --- /dev/null
 +++ b/smali/e/e/a/DynamicTheme.smali
-@@ -0,0 +1,340 @@
+@@ -0,0 +1,223 @@
 +.class public final Le/e/a/DynamicTheme;
 +.super Ljava/lang/Object;
 +.source "DynamicTheme.java"
@@ -4357,152 +4352,35 @@
 +.end method
 +
 +.method public static button(Landroid/widget/Button;)V
-+    .locals 7
-+    invoke-virtual {p0}, Landroid/widget/Button;->getContext()Landroid/content/Context;
-+    move-result-object v0
-+    sget v1, Landroid/os/Build$VERSION;->SDK_INT:I
-+    const/16 v2, 0x1f
-+    if-lt v1, v2, :button_done
-+    invoke-static {v0}, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
-+    move-result-object v1
-+    const-string v2, "material_you_mode"
-+    const/4 v3, 0x0
-+    invoke-interface {v1, v2, v3}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
-+    move-result v1
-+    if-eqz v1, :button_done
-+    invoke-static {v0}, Le/e/a/DynamicTheme;->isNight(Landroid/content/Context;)Z
-+    move-result v1
-+    if-eqz v1, :button_light
-+    const-string v2, "system_accent1_700"
-+    const-string v3, "system_neutral1_50"
-+    goto :button_colors
-+    :button_light
-+    const-string v2, "system_accent1_100"
-+    const-string v3, "system_neutral1_900"
-+    :button_colors
-+    invoke-virtual {v0}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
-+    move-result-object v0
-+    const-string v4, "color"
-+    const-string v5, "android"
-+    invoke-virtual {v0, v2, v4, v5}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
-+    move-result v2
-+    invoke-virtual {v0, v3, v4, v5}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
-+    move-result v3
-+    if-eqz v2, :button_done
-+    if-eqz v3, :button_done
-+    invoke-virtual {v0, v2}, Landroid/content/res/Resources;->getColor(I)I
-+    move-result v2
-+    invoke-static {v2}, Landroid/content/res/ColorStateList;->valueOf(I)Landroid/content/res/ColorStateList;
-+    move-result-object v2
-+    invoke-virtual {p0, v2}, Landroid/widget/Button;->setBackgroundTintList(Landroid/content/res/ColorStateList;)V
-+    invoke-virtual {v0, v3}, Landroid/content/res/Resources;->getColor(I)I
-+    move-result v3
-+    invoke-virtual {p0, v3}, Landroid/widget/Button;->setTextColor(I)V
-+    :button_done
++    .locals 1
++    invoke-static {p0}, Le/e/a/ThemeChoice;->button(Landroid/widget/Button;)V
 +    return-void
 +.end method
 +
 +.method public static apply(Landroid/app/Activity;)V
-+    .locals 6
-+
-+    sget v0, Landroid/os/Build$VERSION;->SDK_INT:I
-+    const/16 v1, 0x1f
-+    if-lt v0, v1, :done
-+
-+    invoke-static {p0}, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
-+    move-result-object v0
-+    const-string v1, "material_you_mode"
-+    const/4 v2, 0x0
-+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
-+    move-result v0
-+    if-eqz v0, :done
-+
-+    invoke-virtual {p0}, Landroid/app/Activity;->getResources()Landroid/content/res/Resources;
-+    move-result-object v0
-+    const-string v1, "MyThemeMaterialYou"
-+    const-string v2, "style"
-+    invoke-virtual {p0}, Landroid/app/Activity;->getPackageName()Ljava/lang/String;
-+    move-result-object v3
-+    invoke-virtual {v0, v1, v2, v3}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
-+    move-result v1
-+    if-eqz v1, :done
-+    invoke-virtual {p0, v1}, Landroid/app/Activity;->setTheme(I)V
-+
-+    :done
++    .locals 1
++    invoke-static {p0}, Le/e/a/ThemeChoice;->apply(Landroid/app/Activity;)V
 +    return-void
 +.end method
 +
 +.method public static isNight(Landroid/content/Context;)Z
-+    .locals 3
-+    sget v0, Landroid/os/Build$VERSION;->SDK_INT:I
-+    const/16 v1, 0x1f
-+    if-lt v0, v1, :false_value
-+    invoke-static {p0}, Landroid/preference/PreferenceManager;->getDefaultSharedPreferences(Landroid/content/Context;)Landroid/content/SharedPreferences;
-+    move-result-object v0
-+    const-string v1, "material_you_mode"
-+    const/4 v2, 0x0
-+    invoke-interface {v0, v1, v2}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
++    .locals 1
++    invoke-static {p0}, Le/e/a/ThemeChoice;->isNight(Landroid/content/Context;)Z
 +    move-result v0
-+    if-eqz v0, :false_value
-+    invoke-virtual {p0}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
-+    move-result-object v0
-+    invoke-virtual {v0}, Landroid/content/res/Resources;->getConfiguration()Landroid/content/res/Configuration;
-+    move-result-object v0
-+    iget v0, v0, Landroid/content/res/Configuration;->uiMode:I
-+    and-int/lit8 v0, v0, 0x30
-+    const/16 v1, 0x20
-+    if-ne v0, v1, :false_value
-+    const/4 v0, 0x1
-+    return v0
-+    :false_value
-+    const/4 v0, 0x0
 +    return v0
 +.end method
 +
 +.method public static background(Landroid/view/View;)V
-+    .locals 5
-+    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;
-+    move-result-object v0
-+    invoke-static {v0}, Le/e/a/DynamicTheme;->isNight(Landroid/content/Context;)Z
-+    move-result v1
-+    if-eqz v1, :light
-+    invoke-virtual {v0}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
-+    move-result-object v1
-+    const-string v2, "system_neutral1_900"
-+    const-string v3, "color"
-+    const-string v4, "android"
-+    invoke-virtual {v1, v2, v3, v4}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
-+    move-result v2
-+    invoke-virtual {v1, v2}, Landroid/content/res/Resources;->getColor(I)I
-+    move-result v1
-+    invoke-virtual {p0, v1}, Landroid/view/View;->setBackgroundColor(I)V
-+    return-void
-+    :light
-+    const/4 v1, -0x1
-+    invoke-virtual {p0, v1}, Landroid/view/View;->setBackgroundColor(I)V
++    .locals 1
++    invoke-static {p0}, Le/e/a/ThemeChoice;->background(Landroid/view/View;)V
 +    return-void
 +.end method
 +
 +.method public static textColor(Landroid/view/View;)I
-+    .locals 5
-+    invoke-virtual {p0}, Landroid/view/View;->getContext()Landroid/content/Context;
-+    move-result-object v0
-+    invoke-static {v0}, Le/e/a/DynamicTheme;->isNight(Landroid/content/Context;)Z
-+    move-result v1
-+    if-eqz v1, :black
-+    invoke-virtual {v0}, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
-+    move-result-object v1
-+    const-string v2, "system_neutral1_50"
-+    const-string v3, "color"
-+    const-string v4, "android"
-+    invoke-virtual {v1, v2, v3, v4}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
-+    move-result v2
-+    invoke-virtual {v1, v2}, Landroid/content/res/Resources;->getColor(I)I
-+    move-result v1
-+    return v1
-+    :black
-+    const/high16 v1, -0x1000000
-+    return v1
++    .locals 1
++    invoke-static {p0}, Le/e/a/ThemeChoice;->textColor(Landroid/view/View;)I
++    move-result v0
++    return v0
 +.end method
 +
 +.method public static labelBackground(Landroid/view/View;)I
@@ -8060,7 +7938,7 @@
  # direct methods
 --- a/smali/e/e/a/d0.smali
 +++ b/smali/e/e/a/d0.smali
-@@ -7753,6 +7753,8 @@
+@@ -7753,3 +7753,5 @@
 
      invoke-direct {v10, v11}, Lorg/json/JSONObject;-><init>(Ljava/lang/String;)V
 
@@ -8069,3 +7947,59 @@
      invoke-virtual {v10, v5}, Lorg/json/JSONObject;->has(Ljava/lang/String;)Z
 
      move-result v11
+
+--- a/smali/androidx/viewpager/widget/ViewPager.smali
++++ b/smali/androidx/viewpager/widget/ViewPager.smali
+@@ -557,0 +558,11 @@
++    # Restored menu fragments must use the current player's callbacks.
++    instance-of v5, v1, Le/e/a/k3;
++    if-eqz v5, :restored_menu_bound
++    instance-of v5, v4, Lcom/sauzask/nicoid/NicoidVideoPlayerMenuFragment;
++    if-eqz v5, :restored_menu_bound
++    check-cast v1, Le/e/a/k3;
++    check-cast v4, Lcom/sauzask/nicoid/NicoidVideoPlayerMenuFragment;
++    iget-object v5, v1, Le/e/a/k3;->k:Le/e/a/l3/g;
++    iput-object v5, v4, Lcom/sauzask/nicoid/NicoidVideoPlayerMenuFragment;->a0:Le/e/a/l3/g;
++    :restored_menu_bound
++
+
+--- /dev/null
++++ b/res/values/theme-choice.xml
+@@ -0,0 +1,37 @@
++<?xml version="1.0" encoding="utf-8"?>
++<resources>
++    <style name="MyThemeLight" parent="@style/Theme.AppCompat.Light">
++        <item name="colorPrimary">@color/theme_colorPrimary</item>
++        <item name="colorPrimaryDark">@color/theme_colorPrimaryDark</item>
++        <item name="colorAccent">@color/theme_colorAccent</item>
++        <item name="android:colorAccent">@color/theme_colorAccent</item>
++        <item name="android:colorBackground">#ffffffff</item>
++        <item name="android:windowBackground">#ffffffff</item>
++        <item name="android:textColorPrimary">#ff202124</item>
++        <item name="android:textColorSecondary">#ff595959</item>
++        <item name="android:textColorHint">#ff666a73</item>
++        <item name="android:statusBarColor">@color/theme_colorPrimaryDark</item>
++        <item name="android:navigationBarColor">#ffffffff</item>
++        <item name="android:windowLightStatusBar">true</item>
++        <item name="android:windowLightNavigationBar">true</item>
++        <item name="nicoidSurface">#ffe7e7e7</item>
++        <item name="nicoidSurfacePressed">#ffdadada</item>
++    </style>
++    <style name="MyThemeDark" parent="@style/Theme.AppCompat">
++        <item name="colorPrimary">#ff202b30</item>
++        <item name="colorPrimaryDark">#ff191b20</item>
++        <item name="colorAccent">@color/theme_colorAccent</item>
++        <item name="android:colorAccent">@color/theme_colorAccent</item>
++        <item name="android:colorBackground">#ff191b20</item>
++        <item name="android:windowBackground">#ff191b20</item>
++        <item name="android:textColorPrimary">#ffeeeeee</item>
++        <item name="android:textColorSecondary">#ffcccccc</item>
++        <item name="android:textColorHint">#ffb7bac3</item>
++        <item name="android:statusBarColor">#ff191b20</item>
++        <item name="android:navigationBarColor">#ff191b20</item>
++        <item name="android:windowLightStatusBar">false</item>
++        <item name="android:windowLightNavigationBar">false</item>
++        <item name="nicoidSurface">#ff303238</item>
++        <item name="nicoidSurfacePressed">#ff464950</item>
++    </style>
++</resources>

@@ -14,9 +14,11 @@ import android.view.ViewTreeObserver;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.feed.VideoOverlayHider;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import java.lang.ref.WeakReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class RememberClearDisplayPatch {
     // Not BooleanSupplier and Consumer: java.util.function arrived at API 24 and D8 cannot
@@ -29,7 +31,7 @@ public final class RememberClearDisplayPatch {
 
     /** Where a clear display change is delivered. */
     interface ClearEvent {
-        void accept(boolean clear);
+        boolean accept(boolean clear);
     }
 
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
@@ -39,7 +41,21 @@ public final class RememberClearDisplayPatch {
     private static volatile long generation;
     private static boolean applied;
     private static boolean manuallyChanged;
-    private static boolean posting;
+    private static volatile boolean awaitingNative;
+    private static WeakReference<Object> currentController = new WeakReference<>(null);
+    private static WeakReference<Object> currentModel = new WeakReference<>(null);
+    private static Condition activeCondition;
+    private static String activeId;
+    private static final AtomicBoolean progressQueued = new AtomicBoolean();
+    private static Object nativeEvent;
+    private static Object nativeCell;
+    private static boolean nativeWanted;
+    private static boolean nativeApplied;
+    private static long nativeGeneration;
+    private static String nativeId;
+    private static Object nativeController;
+    private static Object nativeModel;
+    private static Condition nativeCondition;
     /**
      * Whether the app is in clear display right now. The persisted setting cannot answer
      * this: {@link #rememberClearDisplayEvent} is the only thing that writes it and it
@@ -114,22 +130,44 @@ public final class RememberClearDisplayPatch {
             if (!(activity instanceof Activity) || ((Activity) activity).isFinishing()
                     || ((Activity) activity).isDestroyed()) return;
             observeWindow(((Activity) activity).getWindow().getDecorView());
-            String id = videoId(player);
+            Object aweme = readCurrentAweme(player);
+            if (currentController.get() != player || currentModel.get() != aweme) {
+                cancel();
+                applied = false;
+                currentController = new WeakReference<>(player);
+            }
+            WeakReference<Object> model = new WeakReference<>(aweme);
+            currentModel = model;
+            String id = Reflect.string(model.get(), "getAid", "aid");
             firstFrame(id, () -> {
                 Object live = owner.get();
                 Object context = Reflect.readField(live, "activity");
-                return live != null && id != null && id.equals(videoId(live))
+                Object item = model.get();
+                return live != null && currentController.get() == live && item != null
+                        && item == readCurrentAweme(live) && id != null
+                        && id.equals(Reflect.string(item, "getAid", "aid"))
                         && context instanceof Activity && !((Activity) context).isFinishing()
                         && !((Activity) context).isDestroyed() && ((Activity) context).hasWindowFocus();
             }, RememberClearDisplayPatch::postClear);
         });
     }
 
-    private static String videoId(Object controller) {
-        return Reflect.string(readCurrentAweme(controller), "getAid", "aid");
+    /** Native progress can arrive after the first frame's panel has become eligible. */
+    public static void onPlaybackProgress(Object controller, String id) {
+        if (!awaitingNative || !progressQueued.compareAndSet(false, true)) return;
+        long observed = generation;
+        MAIN.post(() -> {
+            progressQueued.set(false);
+            if (observed != generation || !awaitingNative || pending != null || applied || manuallyChanged
+                    || controller == null || currentController.get() != controller
+                    || id == null || !id.equals(currentId) || !Settings.AUTOMATIC_CLEAR_DISPLAY.get()) return;
+            if (onFocus != null) onFocus.run();
+        });
     }
 
     static void firstFrame(String id, Condition stillCurrent, ClearEvent event) {
+        activeId = id;
+        activeCondition = stillCurrent;
         if (!observingPreferences) {
             Setting.preferences.preferences.registerOnSharedPreferenceChangeListener(PREFERENCES);
             observingPreferences = true;
@@ -180,10 +218,12 @@ public final class RememberClearDisplayPatch {
                 if (emit(event, true)) {
                     applied = true;
                     automaticHidden = true;
-                }
+                    awaitingNative = false;
+                } else if (attempt == generation) awaitingNative = true;
             }
         };
-        MAIN.postDelayed(pending, Math.max(0, Math.min(30000, Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.get())));
+        MAIN.postDelayed(pending, awaitingNative ? 0
+                : Math.max(0, Math.min(30000, Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.get())));
     }
 
     /**
@@ -219,7 +259,16 @@ public final class RememberClearDisplayPatch {
         clearNow = false;
         hushfeedCleared = false;
         automaticHidden = false;
-        posting = false;
+        currentController.clear();
+        currentModel.clear();
+        activeCondition = null;
+        activeId = null;
+        nativeEvent = null;
+        nativeCell = null;
+        nativeController = null;
+        nativeModel = null;
+        nativeCondition = null;
+        progressQueued.set(false);
     }
 
     /** Whether the controls are hidden right now, automatically or by the user. */
@@ -229,23 +278,36 @@ public final class RememberClearDisplayPatch {
 
     private static boolean emit(ClearEvent event, boolean clear) {
         long dispatch = generation;
-        boolean wasPosting = posting;
-        posting = true;
         try {
-            event.accept(clear);
+            boolean accepted = event.accept(clear);
             if (dispatch != generation) return false;
-            clearNow = clear;
-            hushfeedCleared = clear;
-            automaticHidden = false;
-            return true;
+            if (clear && !accepted) return false;
+            if (clearNow != clear) {
+                clearNow = clear;
+                MAIN.post(VideoOverlayHider::refresh);
+            }
+            // Withdrawing our auxiliary hiding is safe even if TikTok already exited and
+            // skipped its native no-op. That is not an acknowledgment of a native transition.
+            if (accepted || !clear) {
+                hushfeedCleared = clear;
+                automaticHidden = false;
+            }
+            return accepted;
         } catch (RuntimeException error) {
             Logger.printException(() -> "Could not change clear display", error);
             return false;
-        } finally { posting = wasPosting; }
+        } finally {
+            nativeEvent = null;
+            nativeCell = null;
+            nativeController = null;
+            nativeModel = null;
+            nativeCondition = null;
+        }
     }
 
     static void cancel() {
         generation++;
+        awaitingNative = false;
         if (pending != null) MAIN.removeCallbacks(pending);
         pending = null;
     }
@@ -256,8 +318,11 @@ public final class RememberClearDisplayPatch {
         Object type = Reflect.readField(event, "LIZIZ");
         if (!(clear instanceof Boolean) || !(type instanceof Integer)) return;
         if ((Integer) type == 3 || (Integer) type == 9) return;
-        clearNow = (Boolean) clear;
-        if (posting) return;
+        if (event == nativeEvent) return;
+        if (clearNow != (Boolean) clear) {
+            clearNow = (Boolean) clear;
+            MAIN.post(VideoOverlayHider::refresh);
+        }
         // TikTok's own change: from here the state is the user's, not this patch's.
         hushfeedCleared = false;
         // TikTok's own change: the state is TikTok's or the user's from here.
@@ -277,5 +342,47 @@ public final class RememberClearDisplayPatch {
 
     // Resolved from native first-frame code and clear-display event at patch time.
     private static Object readCurrentAweme(Object controller) { return null; }
-    private static void postClear(boolean clear) { }
+    private static boolean postClear(boolean clear) { return false; }
+
+    static void beginNativeDispatch(Object event, boolean clear) {
+        nativeEvent = event;
+        nativeCell = null;
+        nativeWanted = clear;
+        nativeApplied = false;
+        nativeGeneration = generation;
+        nativeId = activeId;
+        nativeController = currentController.get();
+        nativeModel = currentModel.get();
+        nativeCondition = activeCondition;
+    }
+
+    // Resolves the panel's exact PlayerController at patch time.
+    public static void onNativePanelApply(Object event, Object cell, Object panel) { }
+
+    /** Called only at the panel's current-holder apply, never its adjacent-cell refresh. */
+    public static void beforeNativeApply(Object event, Object cell, Object controller) {
+        if (event != nativeEvent || controller != nativeController || !nativeDispatchCurrent()) return;
+        if (nativeModel == Reflect.invoke(cell, "getAweme")) {
+            if (nativeCell != cell) nativeApplied = false;
+            nativeCell = cell;
+        }
+    }
+
+    /** Reached only after the native cell updated its controls and published completion. */
+    public static void onNativeApplied(Object cell, boolean clear) {
+        if (nativeDispatchCurrent() && cell == nativeCell && nativeWanted == clear
+                && nativeModel == Reflect.invoke(cell, "getAweme")) nativeApplied = true;
+    }
+
+    static boolean finishNativeDispatch() {
+        return nativeDispatchCurrent() && nativeApplied && nativeCell != null
+                && nativeModel == Reflect.invoke(nativeCell, "getAweme");
+    }
+
+    private static boolean nativeDispatchCurrent() {
+        return nativeEvent != null && nativeGeneration == generation && nativeId != null
+                && nativeId.equals(activeId) && nativeController != null
+                && nativeController == currentController.get() && nativeModel != null
+                && nativeModel == currentModel.get() && nativeCondition != null && nativeCondition.holds();
+    }
 }

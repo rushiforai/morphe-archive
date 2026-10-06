@@ -20,10 +20,13 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
 
+      - name: Check regexes for Android
+        run: python3 .github/scripts/check_android_regex.py
+
       - name: Run tests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :patches:test --no-daemon
+        run: ./gradlew :patches:test :extensions:extension:test :extensions:extension:checkstyle --no-daemon
 
       - name: Verify project compiles
         env:

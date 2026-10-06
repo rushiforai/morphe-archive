@@ -1,129 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cap_age_close" formatted="false">" सेकंड पहले)"</string>
+    <string name="cap_age_open" formatted="false">"(लगभग %1$s"</string>
     <string name="cap_ai_title" formatted="false">"AI उपशीर्षक अनुवाद"</string>
-    <string name="cap_enable_ai" formatted="false">"AI उपशीर्षक अनुवाद चालू करें"</string>
-    <string name="cap_api_config" formatted="false">"API सेटिंग"</string>
     <string name="cap_api_address" formatted="false">"API पता"</string>
+    <string name="cap_api_config" formatted="false">"API सेटिंग"</string>
+    <string name="cap_api_config_error" formatted="false">"कैप्शन API कॉन्फ़िगरेशन त्रुटि: %1$s"</string>
     <string name="cap_api_key" formatted="false">"API कुंजी"</string>
-    <string name="cap_model" formatted="false">"मॉडल"</string>
-    <string name="cap_test_api" formatted="false">"API जाँचें"</string>
-    <string name="cap_translation" formatted="false">"अनुवाद"</string>
-    <string name="cap_translation_requirements" formatted="false">"अनुवाद निर्देश"</string>
-    <string name="cap_style" formatted="false">"उपशीर्षक शैली"</string>
-    <string name="cap_size" formatted="false">"उपशीर्षक आकार"</string>
-    <string name="cap_opacity" formatted="false">"पृष्ठभूमि की अपारदर्शिता"</string>
-    <string name="cap_reset_position" formatted="false">"स्थिति रीसेट करें"</string>
-    <string name="cap_cache_diagnostics" formatted="false">"कैश और निदान"</string>
-    <string name="cap_clear_cache" formatted="false">"उपशीर्षक कैश साफ़ करें"</string>
-    <string name="cap_delete_key" formatted="false">"API कुंजी मिटाएँ"</string>
-    <string name="cap_text_debug" formatted="false">"उपशीर्षक पाठ डीबगिंग"</string>
-    <string name="cap_diagnostics" formatted="false">"उपशीर्षक निदान"</string>
-    <string name="cap_clear_diagnostics" formatted="false">"निदान साफ़ करें"</string>
-    <string name="cap_preview" formatted="false">"उपशीर्षक पूर्वावलोकन"</string>
-    <string name="cap_landscape" formatted="false">"लैंडस्केप"</string>
-    <string name="cap_portrait" formatted="false">"पोर्ट्रेट"</string>
-    <string name="cap_to_landscape" formatted="false">"लैंडस्केप में बदलें"</string>
-    <string name="cap_to_portrait" formatted="false">"पोर्ट्रेट में बदलें"</string>
-    <string name="cap_refresh" formatted="false">"रीफ़्रेश"</string>
-    <string name="cap_copy" formatted="false">"कॉपी"</string>
-    <string name="cap_expand" formatted="false">"विस्तार करें"</string>
-    <string name="cap_collapse" formatted="false">"समेटें"</string>
-    <string name="cap_cancel" formatted="false">"रद्द करें"</string>
-    <string name="cap_delete" formatted="false">"मिटाएँ"</string>
-    <string name="cap_saved" formatted="false">"अपने आप सहेजा गया"</string>
+    <string name="cap_api_test_failed" formatted="false">"API परीक्षण विफल: %1$s"</string>
+    <string name="cap_api_test_ok" formatted="false">"API उपलब्ध: %1$s"</string>
+    <string name="cap_api_test_retry_hint" formatted="false">"सहेजी गई कॉन्फ़िगरेशन से कनेक्शन जाँचें"</string>
+    <string name="cap_audit_api" formatted="false">"API: %1$s प्रयास · %2$s सफल (2xx) · %3$s विफल · आंतरिक पुनःप्रयास %4$s"</string>
+    <string name="cap_audit_api_call_many" formatted="false">"%1$s API कॉल · "</string>
+    <string name="cap_audit_api_call_one" formatted="false">"%1$s API कॉल · "</string>
+    <string name="cap_audit_boundary" formatted="false">"सीमा पुनर्जाँच: %1$s बार चला (प्रति पेज अधिकतम एक बार) · %2$s अनुरोध भेजे · %3$s परमाणु पुनःप्राप्त"</string>
+    <string name="cap_audit_bucket_background" formatted="false">"पृष्ठभूमि प्रीफ़ेच"</string>
+    <string name="cap_audit_bucket_background_alt" formatted="false">"सीमा पुनर्जाँच"</string>
+    <string name="cap_audit_bucket_background_block" formatted="false">"ब्लॉक (फ़ॉलबैक)"</string>
+    <string name="cap_audit_bucket_background_page" formatted="false">"पेज विलय"</string>
+    <string name="cap_audit_bucket_display" formatted="false">"डिस्प्ले विभाजन"</string>
+    <string name="cap_audit_bucket_priority" formatted="false">"वर्तमान प्राथमिकता"</string>
+    <string name="cap_audit_bucket_priority_current" formatted="false">"वर्तमान एंकर"</string>
+    <string name="cap_audit_bucket_priority_gap_rescue" formatted="false">"अंतराल बचाव"</string>
+    <string name="cap_audit_bucket_progress" formatted="false">"पेज विलय की प्रगति: %2$s पेज अनुरोधों से %1$s निश्चित ब्लॉक पूरे हुए (%3$s ब्लॉक/अनुरोध; 1.0 से कम का अर्थ है बिना प्रगति के बार-बार अनुरोध)"</string>
+    <string name="cap_audit_bucket_unit_background" formatted="false">"समय एंकर / पृष्ठभूमि बैच"</string>
+    <string name="cap_audit_bucket_unit_realtime" formatted="false">"समय एंकर / वर्तमान बैच"</string>
+    <string name="cap_audit_by_purpose" formatted="false">"उद्देश्य के अनुसार अनुरोध:"</string>
+    <string name="cap_audit_cache_known" formatted="false">"इनपुट कैश: हिट %1$s / मिस %2$s · हिट दर %3$s"</string>
+    <string name="cap_audit_cache_unknown" formatted="false">"इनपुट कैश: प्रदाता ने पहचानने योग्य हिट/मिस विवरण नहीं दिया"</string>
+    <string name="cap_audit_char_ratio" formatted="false">"वर्ण एक्सपोज़र अनुपात %1$s"</string>
+    <string name="cap_audit_circuit_breakers" formatted="false">"स्थानीय सर्किट ब्रेकर %1$s"</string>
+    <string name="cap_audit_core_contextual_unit" formatted="false">"कोर: कॉन्टेक्स्ट इकाई v1"</string>
+    <string name="cap_audit_core_event_rebuild" formatted="false">"कोर: इवेंट पुनर्निर्माण / %1$s"</string>
+    <string name="cap_audit_core_semantic_ledger" formatted="false">"कोर: सिमैंटिक लेजर v2"</string>
+    <string name="cap_audit_current_engine" formatted="false">"वर्तमान इंजन: %1$s"</string>
+    <string name="cap_audit_current_model" formatted="false">"वर्तमान मॉडल: %1$s"</string>
+    <string name="cap_audit_disk_cache" formatted="false">"अनुरोध-ब्लॉक डिस्क कैश: लुकअप %1$s · हिट ब्लॉक %2$s · छूटी इकाइयाँ %3$s"</string>
+    <string name="cap_audit_display_handoff" formatted="false">"AI को सौंपे गए %1$s बार (AI कॉल %2$s · उपयोग सहित %3$s · विफलताएँ %4$s)"</string>
+    <string name="cap_audit_display_local" formatted="false">"डिस्प्ले विभाजन: स्थानीय शून्य-टोकन सफलताएँ %1$s बार"</string>
+    <string name="cap_audit_display_whole" formatted="false">"पूरे वाक्य रखे गए %1$s बार"</string>
+    <string name="cap_audit_efficiency" formatted="false">"%1$s दक्षता: %2$s कोर परमाणु जोड़े · प्रति परमाणु इनपुट %3$s टोक · प्रति परमाणु कैश-मिस इनपुट %4$s टोक"</string>
+    <string name="cap_audit_estimate" formatted="false">"V4 Flash के लिए वर्तमान प्रदाता अनुमान: %1$s"</string>
+    <string name="cap_audit_failure_breakdown" formatted="false">"विफलता विवरण: 429 %1$s · 5xx %2$s · अन्य 4xx %3$s · टाइमआउट %4$s · नेटवर्क %5$s · रद्द/बाधित %6$s · अन्य %7$s"</string>
+    <string name="cap_audit_focus_misses" formatted="false">"फ़ोकस मिस %1$s"</string>
+    <string name="cap_audit_legacy_engine" formatted="false">"पुराना संगतता इंजन"</string>
+    <string name="cap_audit_logical_request_many" formatted="false">"%1$s तार्किक अनुरोध / "</string>
+    <string name="cap_audit_logical_request_one" formatted="false">"%1$s तार्किक अनुरोध / "</string>
+    <string name="cap_audit_no_usage" formatted="false">"टोकन लागत ऑडिट: अभी कोई API उपयोग नहीं। उपयोग, कैश हिट, अनुरोध का उद्देश्य और प्रति मिनट देखने की लागत देखने के लिए AI कैप्शन चलाएँ।"</string>
+    <string name="cap_audit_no_usage_note" formatted="false">"नोट: %1$s 2xx उत्तरों में उपयोग नहीं था; इनके लिए केवल गिनती ज्ञात है, सटीक टोकन नहीं।"</string>
+    <string name="cap_audit_page_fallback" formatted="false">"पेज फ़ॉलबैक: %1$s कैश पेज विफलता सीमा से अधिक; ब्लॉक अनुरोधों पर वापस"</string>
+    <string name="cap_audit_per_minute" formatted="false">"प्रति देखने का मिनट %1$s टोकन"</string>
+    <string name="cap_audit_priced_subset" formatted="false">"(केवल वे उत्तर जो अंतर्निहित V4 Flash दरों पर गिने गए)"</string>
+    <string name="cap_audit_request_blocks" formatted="false">"अनुरोध ब्लॉक: लक्ष्य %1$s ब्लॉक · केवल-पढ़ने योग्य संदर्भ %2$s अनुभाग · प्रति ब्लॉक संदर्भ अनुभाग %3$s"</string>
+    <string name="cap_audit_request_body" formatted="false">"अनुरोध बॉडी: कुल %1$s बाइट · औसतन %2$s बाइट प्रति API प्रयास"</string>
+    <string name="cap_audit_semantic_window" formatted="false">"अर्थ विंडो: कोर %1$s परमाणु · उजागर %2$s परमाणु · संदर्भ एक्सपोज़र अनुपात %3$s"</string>
+    <string name="cap_audit_structural" formatted="false">"संरचनात्मक और नियतात्मक जाँच: स्वीकृत / अस्वीकृत (अर्थ-आधारित स्वीकृति नहीं): %1$s / %2$s (%3$s)"</string>
+    <string name="cap_audit_sunk" formatted="false">"भेजे गए पर न पढ़े गए अनुरोध: %1$s अनुरोध · %2$s बाइट। प्रदाता की प्रोसेसिंग और बिलिंग अज्ञात है; नीचे के टोकन और लागत योग इस उपयोग को छोड़ देते हैं, इसलिए वास्तविक खर्च तय नहीं किया जा सकता।"</string>
+    <string name="cap_audit_title" formatted="false">"टोकन लागत ऑडिट (पिछले रीसेट के बाद से)"</string>
+    <string name="cap_audit_tok" formatted="false">"%1$s टोक"</string>
+    <string name="cap_audit_tok_per_minute" formatted="false">"प्रति देखने का मिनट %1$s टोक"</string>
+    <string name="cap_audit_tokens" formatted="false">"टोकन: %1$s = इनपुट %2$s + आउटपुट %3$s"</string>
+    <string name="cap_audit_video" formatted="false">"वर्तमान वीडियो: %1$s सेकंड देखा · %2$s टोकन"</string>
+    <string name="cap_audit_viewed" formatted="false">"%1$s सेकंड देखा · %2$s टोक"</string>
     <string name="cap_autosave" formatted="false">"बदलाव अपने आप सहेजे जाते हैं"</string>
-    <string name="cap_enter_key" formatted="false">"API कुंजी दर्ज करें"</string>
-    <string name="cap_key_saved" formatted="false">"एन्क्रिप्ट करके सहेजी गई; बदलने के लिए दर्ज करें"</string>
-    <string name="cap_model_hint" formatted="false">"मॉडल चुनें या उसका ID दर्ज करें"</string>
-    <string name="cap_preview_hint" formatted="false">"दिशा बदलने के लिए चित्र पर टैप करें; शैली तुरंत दिखती है"</string>
-    <string name="cap_size_hint" formatted="false">"सापेक्ष आकार 8–15, वीडियो के साथ बदलता है"</string>
-    <string name="cap_opacity_hint" formatted="false">"0% पारदर्शी, 100% अपारदर्शी; छोड़ने पर सहेजें"</string>
-    <string name="cap_diagnostic_hint" formatted="false">"निदान रिकॉर्ड देखने और कॉपी करने के लिए विस्तार करें"</string>
-    <string name="cap_use_youtube" formatted="false">"YouTube इस्तेमाल करें"</string>
-    <string name="cap_use_ai" formatted="false">"AI इस्तेमाल करें"</string>
-    <string name="cap_on" formatted="false">"चालू"</string>
-    <string name="cap_off" formatted="false">"बंद"</string>
-    <string name="cap_configure_api" formatted="false">"AI अनुवाद चालू करने से पहले API सेट करें"</string>
-    <string name="cap_switch_failed" formatted="false">"बदल नहीं सके; पिछला मोड बहाल किया गया"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"कैश और निदान"</string>
+    <string name="cap_cancel" formatted="false">"रद्द करें"</string>
+    <string name="cap_caption_translating" formatted="false">"अनुवाद हो रहा है…"</string>
     <string name="cap_choose_translation" formatted="false">"उपशीर्षक मेन्यू में अपने आप अनुवाद की भाषा चुनें"</string>
-    <string name="cap_message_7b7480271fa5" formatted="false">"बंद होने पर YouTube अपने उपशीर्षक दिखाता है"</string>
-    <string name="cap_message_1cc3c4b0aab0" formatted="false">"मूल उपशीर्षक सीधे चलते हैं; AI अनुवाद के लिए API कुंजी चाहिए"</string>
-    <string name="cap_message_2c107e436145" formatted="false">"चालू है; AI उपशीर्षक के लिए अपने आप अनुवाद की भाषा चुनें"</string>
-    <string name="cap_message_ea9ebe26591a" formatted="false">"निदान में मूल और अनूदित पाठ जोड़ें; केवल समस्या की जाँच के लिए चालू करें"</string>
-    <string name="cap_message_f496dd228d0b" formatted="false">"मूल या अनूदित उपशीर्षक पाठ रिकॉर्ड न करें"</string>
-    <string name="cap_message_261f1c6f0fde" formatted="false">"जाँच के लिए पाठ रिकॉर्ड करें; डिफ़ॉल्ट रूप से बंद"</string>
-    <string name="cap_message_92561907fadc" formatted="false">"सहेजी गई सेटिंग से कनेक्शन जाँचें"</string>
-    <string name="cap_message_33c08bcbc79b" formatted="false">"केवल अपने आप अनुवाद में API उपयोग होता है; मूल उपशीर्षक नहीं बदलते"</string>
-    <string name="cap_message_fd1ada5395a0" formatted="false">"ऊर्ध्वाधर स्थिति रीसेट करें, आकार और पृष्ठभूमि बनाए रखें"</string>
+    <string name="cap_clear_cache" formatted="false">"उपशीर्षक कैश साफ़ करें"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"निदान साफ़ करें"</string>
+    <string name="cap_clear_diagnostics_confirm" formatted="false">"स्थानीय डायग्नॉस्टिक रिकॉर्ड साफ़ करें? API सेटिंग और अनुवाद कैश साफ़ नहीं होंगे।"</string>
+    <string name="cap_collapse" formatted="false">"समेटें"</string>
+    <string name="cap_configure_api" formatted="false">"AI अनुवाद चालू करने से पहले API सेट करें"</string>
+    <string name="cap_copy" formatted="false">"कॉपी"</string>
+    <string name="cap_copy_part_done" formatted="false">"भाग %1$s / %2$s कॉपी हो गया; बाकी के लिए फिर सहेजें दबाएँ"</string>
+    <string name="cap_copy_part_failed" formatted="false">"भाग %1$s कॉपी नहीं हो सका"</string>
+    <string name="cap_copy_part_label" formatted="false">"भाग %1$s / %2$s कॉपी करें"</string>
+    <string name="cap_copy_parts_title" formatted="false">"Android 9 और उससे नीचे: पूरा डायग्नॉस्टिक्स भागों में कॉपी करें"</string>
+    <string name="cap_default_prompt" formatted="false">"लक्षित भाषा में स्वाभाविक अभिव्यक्ति के साथ निष्ठापूर्वक और संक्षेप में अनुवाद करें। नाम, शब्दावली, संख्याएँ, लहजा और आवश्यक विराम चिह्न सुरक्षित रखें। मूल में न दी गई व्याख्याएँ न जोड़ें।"</string>
+    <string name="cap_delete" formatted="false">"मिटाएँ"</string>
+    <string name="cap_delete_key" formatted="false">"API कुंजी मिटाएँ"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"निदान रिकॉर्ड देखने और कॉपी करने के लिए विस्तार करें"</string>
+    <string name="cap_diagnostics" formatted="false">"उपशीर्षक निदान"</string>
+    <string name="cap_diagnostics_hint" formatted="false">"लंबे परीक्षणों के लिए टेक्स्ट डिबगिंग चालू करें; पूरा डायग्नॉस्टिक्स सहेजें अंतिम 24 घंटे के रिकॉर्ड निर्यात करता है (16 MiB की सीमा)। नीचे केवल हाल की गतिविधि का सारांश है।"</string>
+    <string name="cap_display_debug" formatted="false">"टेक्स्ट डिबगिंग: %1$s"</string>
+    <string name="cap_enable_ai" formatted="false">"AI उपशीर्षक अनुवाद चालू करें"</string>
+    <string name="cap_engine" formatted="false">"इंजन"</string>
+    <string name="cap_engine_event_rebuild" formatted="false">"इवेंट पुनर्निर्माण"</string>
+    <string name="cap_enter_key" formatted="false">"API कुंजी दर्ज करें"</string>
+    <string name="cap_expand" formatted="false">"विस्तार करें"</string>
+    <string name="cap_flyout_summary" formatted="false">"प्लेयर मेन्यू में शॉर्टकट दिखाएँ। छिपाने से AI उपशीर्षक बंद नहीं होते; मेन्यू दोबारा खोलने पर लागू होगा।"</string>
+    <string name="cap_flyout_title" formatted="false">"सामान्य वीडियो मेन्यू में AI उपशीर्षक स्विच"</string>
+    <string name="cap_keep_last_valid" formatted="false">"; पिछला मान्य मान बनाए रखा गया"</string>
+    <string name="cap_key_saved" formatted="false">"एन्क्रिप्ट करके सहेजी गई; बदलने के लिए दर्ज करें"</string>
+    <string name="cap_label_separator" formatted="false">"%1$s: "</string>
+    <string name="cap_landscape" formatted="false">"लैंडस्केप"</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"अपने आप अनुवाद"</string>
     <string name="cap_message_10d1b374429d" formatted="false">"संपादन के दौरान दिखती है; बंद करने पर साफ़ होती है और एन्क्रिप्ट करके सहेजी जाती है"</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"मॉडल सूची अपडेट हुई"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"मूल उपशीर्षक सीधे चलते हैं; AI अनुवाद के लिए API कुंजी चाहिए"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"API कुंजी मिटाएँ?"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"जाँच के लिए पाठ रिकॉर्ड करें; डिफ़ॉल्ट रूप से बंद"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"चालू है; AI उपशीर्षक के लिए अपने आप अनुवाद की भाषा चुनें"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"मॉडल लोड नहीं हुए; ID खुद दर्ज करें: "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"हाल की घटनाएँ: "</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"केवल अपने आप अनुवाद में API उपयोग होता है; मूल उपशीर्षक नहीं बदलते"</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" सेकंड पहले)"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"मूल उपशीर्षक (अनुवाद API के बिना)"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API उपलब्ध: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"नवीनतम चरण: "</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"मॉडल सूची लोड हो रही है…"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"जाँच जारी है…"</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"API कुंजी मिटाई गई"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"केवल इस डिवाइस की एन्क्रिप्ट की गई API कुंजी हटेगी। अन्य सेटिंग नहीं बदलेंगी।"</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"निदान पढ़ नहीं सके: "</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"बंद होने पर YouTube अपने उपशीर्षक दिखाता है"</string>
     <string name="cap_message_7da9039cc193" formatted="false">"API कुंजी एक ही पंक्ति में होनी चाहिए"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"अभी अनुवाद अनुरोध नहीं है। API सेट करें, अपने आप अनुवाद की भाषा चुनें और निदान रीफ़्रेश करें।"</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"; पिछला मान्य मान बनाए रखा गया"</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"मोड: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"API जाँच विफल: "</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"निदान कॉपी हुआ"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"निदान साफ़ हुआ"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"सहेजी गई सेटिंग से कनेक्शन जाँचें"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"अज्ञात सेटिंग"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"उपशीर्षक स्थिति रीसेट हुई"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"मॉडल सहेज नहीं सके"</string>
     <string name="cap_message_bafa7b1ca6cb" formatted="false">"API पता https:// या http:// से शुरू होना चाहिए"</string>
     <string name="cap_message_bbbcd9c8bf80" formatted="false">"अपने आप सहेज नहीं सके"</string>
-    <string name="cap_message_b795d97808e8" formatted="false">"मॉडल सहेज नहीं सके"</string>
-    <string name="cap_message_9a6606c64f5f" formatted="false">"अज्ञात सेटिंग"</string>
-    <string name="cap_message_8500e82ca181" formatted="false">"; पिछला मान्य मान बनाए रखा गया"</string>
-    <string name="cap_message_a25bd037963d" formatted="false">"उपशीर्षक स्थिति रीसेट हुई"</string>
-    <string name="cap_message_e8b2177e1cd3" formatted="false">"उपशीर्षक कैश साफ़ हुआ"</string>
-    <string name="cap_message_1f328bc723d4" formatted="false">"API कुंजी मिटाएँ?"</string>
-    <string name="cap_message_6ec744dcc83a" formatted="false">"केवल इस डिवाइस की एन्क्रिप्ट की गई API कुंजी हटेगी। अन्य सेटिंग नहीं बदलेंगी।"</string>
-    <string name="cap_message_574dd3f1ccfe" formatted="false">"API कुंजी मिटाई गई"</string>
-    <string name="cap_message_8bfb437edfc4" formatted="false">"निदान साफ़ हुआ"</string>
-    <string name="cap_message_896c4b51d7e9" formatted="false">"निदान कॉपी हुआ"</string>
-    <string name="cap_message_49562bf14c82" formatted="false">"जाँच जारी है…"</string>
-    <string name="cap_message_3a1185c1dc9f" formatted="false">"API उपलब्ध: "</string>
-    <string name="cap_message_88ce10e8f20b" formatted="false">"API जाँच विफल: "</string>
-    <string name="cap_message_ec966cf35a63" formatted="false">"मॉडल सूची रीफ़्रेश हो रही है…"</string>
-    <string name="cap_message_462efc3e98ef" formatted="false">"मॉडल सूची लोड हो रही है…"</string>
-    <string name="cap_message_2d61f9891514" formatted="false">"मॉडल लोड नहीं हुए; ID खुद दर्ज करें: "</string>
-    <string name="cap_message_17ea5266e7a5" formatted="false">"मॉडल सूची अपडेट हुई"</string>
-    <string name="cap_message_7e7bfd29c71d" formatted="false">"अभी अनुवाद अनुरोध नहीं है। API सेट करें, अपने आप अनुवाद की भाषा चुनें और निदान रीफ़्रेश करें।"</string>
-    <string name="cap_message_dd0fb9f395bc" formatted="false">"इंजन: "</string>
-    <string name="cap_message_8736a99d18f2" formatted="false">"मोड: "</string>
-    <string name="cap_message_0825b4b0cb7d" formatted="false">"अपने आप अनुवाद"</string>
-    <string name="cap_message_375e0f929195" formatted="false">"मूल उपशीर्षक (अनुवाद API के बिना)"</string>
-    <string name="cap_message_c46b062d22ba" formatted="false">"पाठ डीबगिंग: "</string>
-    <string name="cap_message_44feb4d98d48" formatted="false">"नवीनतम चरण: "</string>
-    <string name="cap_message_dedc85cbb813" formatted="false">"समय संदर्भ और त्रुटियाँ (समय सहित): "</string>
-    <string name="cap_message_30070c30d85c" formatted="false">"हाल की घटनाएँ: "</string>
-    <string name="cap_message_75a885d3b526" formatted="false">"निदान पढ़ नहीं सके: "</string>
     <string name="cap_message_c34848823d86" formatted="false">" (लगभग "</string>
-    <string name="cap_message_33cc168ccb4e" formatted="false">" सेकंड पहले)"</string>
-    <string name="cap_mode_pending" formatted="false">"मोड सहेजा गया। इस वीडियो के उपशीर्षक तैयार होने पर यह लागू होगा।"</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"पाठ डीबगिंग: "</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"इंजन: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"समय संदर्भ और त्रुटियाँ (समय सहित): "</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"उपशीर्षक कैश साफ़ हुआ"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"निदान में मूल और अनूदित पाठ जोड़ें; केवल समस्या की जाँच के लिए चालू करें"</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"मॉडल सूची रीफ़्रेश हो रही है…"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"मूल या अनूदित उपशीर्षक पाठ रिकॉर्ड न करें"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"ऊर्ध्वाधर स्थिति रीसेट करें, आकार और पृष्ठभूमि बनाए रखें"</string>
+    <string name="cap_mode" formatted="false">"मोड"</string>
+    <string name="cap_mode_auto_translate" formatted="false">"अपने आप अनुवाद"</string>
     <string name="cap_mode_off_pending" formatted="false">"AI बंद है। मूल ट्रैक तैयार होने पर YouTube के उपशीर्षक फिर से दिखेंगे।"</string>
-    <string name="cap_flyout_title" formatted="false">"सामान्य वीडियो मेन्यू में AI उपशीर्षक स्विच"</string>
-    <string name="cap_flyout_summary" formatted="false">"प्लेयर मेन्यू में शॉर्टकट दिखाएँ। छिपाने से AI उपशीर्षक बंद नहीं होते; मेन्यू दोबारा खोलने पर लागू होगा।"</string>
-    <string name="cap_shorts_flyout_title" formatted="false">"Shorts मेन्यू में AI उपशीर्षक स्विच"</string>
-    <string name="cap_profiles_title" formatted="false">"API प्रोफ़ाइल"</string>
-    <string name="cap_profile_default" formatted="false">"मूल कॉन्फ़िगरेशन"</string>
-    <string name="cap_profile_name" formatted="false">"प्रोफ़ाइल नाम"</string>
-    <string name="cap_profile_rename" formatted="false">"नाम बदलें"</string>
+    <string name="cap_mode_original" formatted="false">"मूल उपशीर्षक (अनुवाद API के बिना)"</string>
+    <string name="cap_mode_pending" formatted="false">"मोड सहेजा गया। इस वीडियो के उपशीर्षक तैयार होने पर यह लागू होगा।"</string>
+    <string name="cap_model" formatted="false">"मॉडल"</string>
+    <string name="cap_model_hint" formatted="false">"मॉडल चुनें या उसका ID दर्ज करें"</string>
+    <string name="cap_model_hint_key_first" formatted="false">"पहले API Key भरें; मॉडल भी टाइप किया जा सकता है"</string>
+    <string name="cap_model_hint_manual_only" formatted="false">"नीचे की सूची से चुनें या मॉडल ID टाइप करें"</string>
+    <string name="cap_model_hint_retry" formatted="false">"फिर से आज़माने के लिए रीफ़्रेश दबाएँ, या मॉडल ID टाइप करें"</string>
+    <string name="cap_model_list_updated" formatted="false">"मॉडल सूची अपडेट हुई"</string>
+    <string name="cap_model_load_failed" formatted="false">"मॉडल लोड नहीं हो सके; मैन्युअल रूप से भरें: %1$s"</string>
+    <string name="cap_model_loading_auto" formatted="false">"मॉडल सूची लाई जा रही है…"</string>
+    <string name="cap_model_loading_refresh" formatted="false">"मॉडल सूची फिर से लाई जा रही है…"</string>
+    <string name="cap_model_pick_or_type" formatted="false">"मॉडल चुनें या उसका ID टाइप करें"</string>
+    <string name="cap_model_save_failed" formatted="false">"मॉडल सहेजा नहीं जा सका"</string>
+    <string name="cap_model_saved" formatted="false">"मॉडल स्वतः सहेजा गया"</string>
+    <string name="cap_no_request_yet" formatted="false">"अभी अनुवाद अनुरोध नहीं है। API सेट करें, अपने आप अनुवाद की भाषा चुनें और निदान रीफ़्रेश करें।"</string>
+    <string name="cap_off" formatted="false">"बंद"</string>
+    <string name="cap_on" formatted="false">"चालू"</string>
+    <string name="cap_opacity" formatted="false">"पृष्ठभूमि की अपारदर्शिता"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% पारदर्शी, 100% अपारदर्शी; छोड़ने पर सहेजें"</string>
+    <string name="cap_preview" formatted="false">"लैंडस्केप फ़ुल-स्क्रीन पूर्वावलोकन"</string>
+    <string name="cap_preview_hint" formatted="false">"शैली पूर्वावलोकन (पूर्ण स्क्रीन)"</string>
+    <string name="cap_preview_sample" formatted="false">"दुनिया बड़ी है। चलिए साथ देखें।"</string>
     <string name="cap_profile_add" formatted="false">"प्रोफ़ाइल जोड़ें"</string>
-    <string name="cap_profiles_summary" formatted="false">"वर्तमान प्रोफ़ाइल प्रबंधित करें"</string>
-    <string name="cap_profile_name_error" formatted="false">"1–60 अक्षरों का नाम दर्ज करें"</string>
-    <string name="cap_profile_limit" formatted="false">"अधिकतम 30 प्रोफ़ाइल सहेजी जा सकती हैं"</string>
-    <string name="cap_profile_invalid_edits" formatted="false">"प्रोफ़ाइल बदलने से पहले अधूरे फ़ील्ड सुधारें"</string>
     <string name="cap_profile_add_failed" formatted="false">"प्रोफ़ाइल नहीं जुड़ सकी। फ़ील्ड और 30 प्रोफ़ाइल की सीमा जाँचें।"</string>
-    <string name="cap_profile_manage" formatted="false">"वर्तमान प्रोफ़ाइल प्रबंधित करें"</string>
-    <string name="cap_profile_close" formatted="false">"बंद करें"</string>
-    <string name="cap_profile_save" formatted="false">"सहेजें"</string>
-    <string name="cap_profile_current" formatted="false">"वर्तमान प्रोफ़ाइल"</string>
-    <string name="cap_profile_delete" formatted="false">"प्रोफ़ाइल मिटाएँ"</string>
     <string name="cap_profile_clear_key" formatted="false">"इस प्रोफ़ाइल की API कुंजी साफ़ करें"</string>
-    <string name="cap_profile_keep_one" formatted="false">"कम से कम एक प्रोफ़ाइल रखें। उसकी API कुंजी साफ़ कर सकते हैं।"</string>
-    <string name="cap_profile_new_summary" formatted="false">"नई प्रोफ़ाइल में डिफ़ॉल्ट अनुवाद निर्देश होते हैं, पर कुंजी और मॉडल नहीं। बनाने के बाद सेटिंग में फ़ील्ड भरें।"</string>
-    <string name="cap_profile_delete_summary" formatted="false">"इस प्रोफ़ाइल का पता, मॉडल, अनुवाद निर्देश और एन्क्रिप्टेड कुंजी इस डिवाइस से मिटाता है। अन्य प्रोफ़ाइल और उपशीर्षक सेटिंग रहती हैं। सक्रिय प्रोफ़ाइल हटने पर पहली बची प्रोफ़ाइल सक्रिय होगी। यह वापस नहीं हो सकता।"</string>
     <string name="cap_profile_clear_key_summary" formatted="false">"केवल इस प्रोफ़ाइल की सहेजी कुंजी और बिना सहेजी कुंजी प्रविष्टि साफ़ करता है। पता, मॉडल, निर्देश और अन्य प्रोफ़ाइल बने रहते हैं। प्रदाता की ओर से कुंजी रद्द नहीं होती।"</string>
-    <string name="cap_prompt_summary" formatted="false">"इस प्रोफ़ाइल में सहेजा जाता है। खाली करने पर इंटरफ़ेस की भाषा में डिफ़ॉल्ट निर्देश लौटेंगे। आपके बदलाव सुरक्षित रहेंगे।"</string>
-    <string name="cap_default_prompt" formatted="false">"लक्षित भाषा में स्वाभाविक अभिव्यक्ति के साथ निष्ठापूर्वक और संक्षेप में अनुवाद करें। नाम, शब्दावली, संख्याएँ, लहजा और आवश्यक विराम चिह्न सुरक्षित रखें। मूल में न दी गई व्याख्याएँ न जोड़ें।"</string>
-    <string name="cap_profile_more" formatted="false">"प्रोफ़ाइल विकल्प"</string>
+    <string name="cap_profile_close" formatted="false">"बंद करें"</string>
     <string name="cap_profile_collapse" formatted="false">"विकल्प समेटें"</string>
-    <string name="cap_profile_finish_name" formatted="false">"पहले नाम का बदलाव सहेजें या रद्द करें।"</string>
-    <string name="cap_profile_delete_inline" formatted="false">"इस प्रोफ़ाइल और डिवाइस पर सहेजी कुंजी को मिटाएँ? अन्य प्रोफ़ाइल सुरक्षित रहेंगी। यह वापस नहीं हो सकता।"</string>
-    <string name="cap_profile_delete_switch" formatted="false">"मिटाने के बाद सक्रिय करें:"</string>
-    <string name="cap_profile_keep" formatted="false">"प्रोफ़ाइल रखें"</string>
     <string name="cap_profile_confirm_delete" formatted="false">"मिटाने की पुष्टि करें"</string>
+    <string name="cap_profile_current" formatted="false">"वर्तमान प्रोफ़ाइल"</string>
+    <string name="cap_profile_default" formatted="false">"मूल कॉन्फ़िगरेशन"</string>
+    <string name="cap_profile_delete" formatted="false">"प्रोफ़ाइल मिटाएँ"</string>
+    <string name="cap_profile_delete_inline" formatted="false">"इस प्रोफ़ाइल और डिवाइस पर सहेजी कुंजी को मिटाएँ? अन्य प्रोफ़ाइल सुरक्षित रहेंगी। यह वापस नहीं हो सकता।"</string>
+    <string name="cap_profile_delete_summary" formatted="false">"इस प्रोफ़ाइल का पता, मॉडल, अनुवाद निर्देश और एन्क्रिप्टेड कुंजी इस डिवाइस से मिटाता है। अन्य प्रोफ़ाइल और उपशीर्षक सेटिंग रहती हैं। सक्रिय प्रोफ़ाइल हटने पर पहली बची प्रोफ़ाइल सक्रिय होगी। यह वापस नहीं हो सकता।"</string>
+    <string name="cap_profile_delete_switch" formatted="false">"मिटाने के बाद सक्रिय करें:"</string>
+    <string name="cap_profile_finish_name" formatted="false">"पहले नाम का बदलाव सहेजें या रद्द करें।"</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"प्रोफ़ाइल बदलने से पहले अधूरे फ़ील्ड सुधारें"</string>
+    <string name="cap_profile_keep" formatted="false">"प्रोफ़ाइल रखें"</string>
+    <string name="cap_profile_keep_one" formatted="false">"कम से कम एक प्रोफ़ाइल रखें। उसकी API कुंजी साफ़ कर सकते हैं।"</string>
+    <string name="cap_profile_limit" formatted="false">"अधिकतम 30 प्रोफ़ाइल सहेजी जा सकती हैं"</string>
+    <string name="cap_profile_manage" formatted="false">"वर्तमान प्रोफ़ाइल प्रबंधित करें"</string>
+    <string name="cap_profile_more" formatted="false">"प्रोफ़ाइल विकल्प"</string>
+    <string name="cap_profile_name" formatted="false">"प्रोफ़ाइल नाम"</string>
+    <string name="cap_profile_name_error" formatted="false">"1–60 अक्षरों का नाम दर्ज करें"</string>
+    <string name="cap_profile_new_summary" formatted="false">"नई प्रोफ़ाइल में डिफ़ॉल्ट अनुवाद निर्देश होते हैं, पर कुंजी और मॉडल नहीं। बनाने के बाद सेटिंग में फ़ील्ड भरें।"</string>
+    <string name="cap_profile_rename" formatted="false">"नाम बदलें"</string>
+    <string name="cap_profile_save" formatted="false">"सहेजें"</string>
+    <string name="cap_profiles_summary" formatted="false">"वर्तमान प्रोफ़ाइल प्रबंधित करें"</string>
+    <string name="cap_profiles_title" formatted="false">"API प्रोफ़ाइल"</string>
+    <string name="cap_prompt_summary" formatted="false">"इस प्रोफ़ाइल में सहेजा जाता है। खाली करने पर इंटरफ़ेस की भाषा में डिफ़ॉल्ट निर्देश लौटेंगे। आपके बदलाव सुरक्षित रहेंगे।"</string>
+    <string name="cap_quality_outcome" formatted="false">"स्थानीय जाँच: स्वीकार / अस्वीकार (गुणवत्ता)"</string>
+    <string name="cap_recent_trace" formatted="false">"हाल की घटनाएँ: "</string>
+    <string name="cap_refresh" formatted="false">"रीफ़्रेश"</string>
+    <string name="cap_reset_position" formatted="false">"स्थिति रीसेट करें"</string>
+    <string name="cap_save_diagnostics" formatted="false">"पूरा डायग्नॉस्टिक्स सहेजें"</string>
+    <string name="cap_save_failed" formatted="false">"सहेजना विफल: %1$s"</string>
+    <string name="cap_save_ok" formatted="false">"Download/%1$s में सहेजा गया"</string>
+    <string name="cap_saved" formatted="false">"अपने आप सहेजा गया"</string>
+    <string name="cap_selected_suffix" formatted="false">"चयनित"</string>
+    <string name="cap_shorts_flyout_summary" formatted="false">"Shorts पॉप-अप मेनू में शॉर्टकट दिखाएँ। इसे छिपाने से AI कैप्शन बंद नहीं होते; मेनू दोबारा खोलने पर लागू होता है।"</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Shorts मेन्यू में AI उपशीर्षक स्विच"</string>
+    <string name="cap_size" formatted="false">"अक्षर आकार"</string>
+    <string name="cap_size_hint" formatted="false">"मानक: वीडियो विवरण 44.5px · पूर्ण स्क्रीन 55.5px"</string>
+    <string name="cap_size_tier_hint" formatted="false">"%1$s: वीडियो विवरण %2$spx · पूर्ण स्क्रीन %3$spx"</string>
+    <string name="cap_size_tier_l" formatted="false">"बड़ा"</string>
+    <string name="cap_size_tier_s" formatted="false">"छोटा"</string>
+    <string name="cap_size_tier_standard" formatted="false">"मानक"</string>
+    <string name="cap_size_tier_xl" formatted="false">"अधिकतम"</string>
+    <string name="cap_size_tier_xs" formatted="false">"न्यून"</string>
     <string name="cap_source_retry" formatted="false">"उपशीर्षक कनेक्शन टूट गया। फिर कोशिश की जा रही है…"</string>
     <string name="cap_source_unavailable" formatted="false">"मूल उपशीर्षक उपलब्ध नहीं हैं। उपशीर्षक ट्रैक फिर चुनें।"</string>
-    <string name="cap_caption_overflow" formatted="false">"उपशीर्षक बहुत लंबा है — मूल पाठ उपलब्ध नहीं"</string>
-    <string name="cap_quality_outcome" formatted="false">"स्थानीय जाँच: स्वीकार / अस्वीकार (गुणवत्ता)"</string>
+    <string name="cap_style" formatted="false">"उपशीर्षक शैली"</string>
+    <string name="cap_switch_failed" formatted="false">"बदल नहीं सके; पिछला मोड बहाल किया गया"</string>
+    <string name="cap_test_api" formatted="false">"API जाँचें"</string>
+    <string name="cap_text_debug" formatted="false">"उपशीर्षक पाठ डीबगिंग"</string>
+    <string name="cap_timing_decisions" formatted="false">"समय संदर्भ और त्रुटियाँ (समय सहित): "</string>
+    <string name="cap_translation" formatted="false">"अनुवाद"</string>
+    <string name="cap_translation_requirements" formatted="false">"अनुवाद निर्देश"</string>
+    <string name="cap_use_ai" formatted="false">"AI इस्तेमाल करें"</string>
+    <string name="cap_use_youtube" formatted="false">"YouTube इस्तेमाल करें"</string>
+    <string name="cap_ai_quick_toggle_on" formatted="false">"AI उपशीर्षक अनुवाद · चालू"</string>
+    <string name="cap_ai_quick_toggle_off" formatted="false">"AI उपशीर्षक अनुवाद · बंद"</string>
+    <string name="cap_ai_summary" formatted="false">"सक्षम करने के बाद, YouTube की ‘अपने-आप अनुवाद करें’ सूची में भाषा चुनें। आपकी कॉन्फ़िगर की गई AI सेवा सबटाइटल का रीयल-टाइम अनुवाद करेगी।"</string>
+    <string name="cap_languages_title" formatted="false">"अपने-आप अनुवाद की भाषाएँ"</string>
+    <string name="cap_languages_summary" formatted="false">"चुनी गई भाषाओं को YouTube की ‘अपने-आप अनुवाद करें’ भाषा सूची में जोड़ें। आप एक साथ कई भाषाएँ चुन सकते हैं।"</string>
+    <string name="cap_languages_count" formatted="false">"%1$d भाषाएँ चुनी गईं"</string>
+    <string name="cap_languages_save" formatted="false">"सहेजें"</string>
+    <string name="cap_languages_existing" formatted="false">"पहले से उपलब्ध"</string>
+    <string name="cap_languages_new" formatted="false">"जोड़ी गई"</string>
+    <string name="cap_languages_unavailable" formatted="false">"उपलब्ध नहीं"</string>
+    <string name="cap_languages_empty" formatted="false">"कोई भाषा नहीं चुनी गई; मूल मेन्यू नहीं बदलेगा"</string>
+    <string name="cap_languages_entry" formatted="false">"%1$s · %2$s"</string>
+    <string name="cap_model_empty" formatted="false">"मॉडल ID खाली नहीं हो सकता"</string>
+    <string name="cap_api_address_invalid" formatted="false">"मान्य HTTP(S) OpenAI-संगत बेस URL दर्ज करें। इसमें उपयोगकर्ता नाम, पासवर्ड या फ़्रैगमेंट न हो।"</string>
+    <string name="cap_language_zh_hans" formatted="false">"चीनी (सरलीकृत)"</string>
+    <string name="cap_language_zh_hant" formatted="false">"चीनी (पारंपरिक)"</string>
+    <string name="cap_paste" formatted="false">"चिपकाएँ"</string>
+    <string name="cap_select_all" formatted="false">"सभी चुनें"</string>
+    <string name="cap_value_retained" formatted="false">"%1$s; पिछला मान्य मान रखा गया है"</string>
+    <string name="cap_model_ids_empty" formatted="false">"एंडपॉइंट ने चुनने योग्य मॉडल ID नहीं लौटाए"</string>
+    <string name="cap_diagnostics_loading" formatted="false">"निदान लोड हो रहा है…"</string>
 </resources>

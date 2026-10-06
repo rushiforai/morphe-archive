@@ -1,129 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cap_age_close" formatted="false">" 秒前）"</string>
+    <string name="cap_age_open" formatted="false">"（约 %1$s"</string>
     <string name="cap_ai_title" formatted="false">"AI 字幕翻译"</string>
-    <string name="cap_enable_ai" formatted="false">"启用 AI 字幕翻译"</string>
-    <string name="cap_api_config" formatted="false">"API 配置"</string>
     <string name="cap_api_address" formatted="false">"API 地址"</string>
+    <string name="cap_api_config" formatted="false">"API 配置"</string>
+    <string name="cap_api_config_error" formatted="false">"字幕 API 配置错误：%1$s"</string>
     <string name="cap_api_key" formatted="false">"API Key"</string>
-    <string name="cap_model" formatted="false">"模型"</string>
-    <string name="cap_test_api" formatted="false">"测试 API"</string>
-    <string name="cap_translation" formatted="false">"翻译"</string>
-    <string name="cap_translation_requirements" formatted="false">"翻译要求"</string>
-    <string name="cap_style" formatted="false">"字幕样式"</string>
-    <string name="cap_size" formatted="false">"字幕大小"</string>
-    <string name="cap_opacity" formatted="false">"背景不透明度"</string>
-    <string name="cap_reset_position" formatted="false">"恢复字幕默认位置"</string>
-    <string name="cap_cache_diagnostics" formatted="false">"缓存与诊断"</string>
-    <string name="cap_clear_cache" formatted="false">"清除字幕缓存"</string>
-    <string name="cap_delete_key" formatted="false">"删除 API Key"</string>
-    <string name="cap_text_debug" formatted="false">"显示文本调试"</string>
-    <string name="cap_diagnostics" formatted="false">"字幕诊断"</string>
-    <string name="cap_clear_diagnostics" formatted="false">"清空诊断记录"</string>
-    <string name="cap_preview" formatted="false">"字幕预览"</string>
-    <string name="cap_landscape" formatted="false">"横屏"</string>
-    <string name="cap_portrait" formatted="false">"竖屏"</string>
-    <string name="cap_to_landscape" formatted="false">"切换为横屏"</string>
-    <string name="cap_to_portrait" formatted="false">"切换为竖屏"</string>
-    <string name="cap_refresh" formatted="false">"刷新"</string>
-    <string name="cap_copy" formatted="false">"复制"</string>
-    <string name="cap_expand" formatted="false">"展开"</string>
-    <string name="cap_collapse" formatted="false">"收起"</string>
-    <string name="cap_cancel" formatted="false">"取消"</string>
-    <string name="cap_delete" formatted="false">"删除"</string>
-    <string name="cap_saved" formatted="false">"已自动保存"</string>
+    <string name="cap_api_test_failed" formatted="false">"API 测试失败：%1$s"</string>
+    <string name="cap_api_test_ok" formatted="false">"API 可用：%1$s"</string>
+    <string name="cap_api_test_retry_hint" formatted="false">"使用当前已自动保存的配置测试连接"</string>
+    <string name="cap_audit_api" formatted="false">"API：%1$s 次尝试 · %2$s 次成功（2xx）· %3$s 次失败 · 内部重试 %4$s"</string>
+    <string name="cap_audit_api_call_many" formatted="false">"%1$s 次 API 调用 · "</string>
+    <string name="cap_audit_api_call_one" formatted="false">"%1$s 次 API 调用 · "</string>
+    <string name="cap_audit_boundary" formatted="false">"边界复核：触发 %1$s 次（每页至多一次）· 发送 %2$s 次请求 · 回收 %3$s 个词元"</string>
+    <string name="cap_audit_bucket_background" formatted="false">"后台预取"</string>
+    <string name="cap_audit_bucket_background_alt" formatted="false">"边界复核"</string>
+    <string name="cap_audit_bucket_background_block" formatted="false">"块请求（回退）"</string>
+    <string name="cap_audit_bucket_background_page" formatted="false">"分页合并"</string>
+    <string name="cap_audit_bucket_display" formatted="false">"显示切分"</string>
+    <string name="cap_audit_bucket_priority" formatted="false">"当前优先"</string>
+    <string name="cap_audit_bucket_priority_current" formatted="false">"当前锚点"</string>
+    <string name="cap_audit_bucket_priority_gap_rescue" formatted="false">"空档补救"</string>
+    <string name="cap_audit_bucket_progress" formatted="false">"分页合并进度：%2$s 次分页请求完成 %1$s 个固定块（%3$s 块/请求；小于 1.0 表示反复请求且无进展）"</string>
+    <string name="cap_audit_bucket_unit_background" formatted="false">"时间锚点 / 后台批"</string>
+    <string name="cap_audit_bucket_unit_realtime" formatted="false">"时间锚点 / 当前批"</string>
+    <string name="cap_audit_by_purpose" formatted="false">"按用途统计请求："</string>
+    <string name="cap_audit_cache_known" formatted="false">"输入缓存：命中 %1$s / 未命中 %2$s · 命中率 %3$s"</string>
+    <string name="cap_audit_cache_unknown" formatted="false">"输入缓存：提供商未返回可识别的命中/未命中明细"</string>
+    <string name="cap_audit_char_ratio" formatted="false">"字符暴露比 %1$s"</string>
+    <string name="cap_audit_circuit_breakers" formatted="false">"本地熔断 %1$s"</string>
+    <string name="cap_audit_core_contextual_unit" formatted="false">"核心：上下文单元 v1"</string>
+    <string name="cap_audit_core_event_rebuild" formatted="false">"核心：事件重建 / %1$s"</string>
+    <string name="cap_audit_core_semantic_ledger" formatted="false">"核心：语义账本 v2"</string>
+    <string name="cap_audit_current_engine" formatted="false">"当前引擎：%1$s"</string>
+    <string name="cap_audit_current_model" formatted="false">"当前模型：%1$s"</string>
+    <string name="cap_audit_disk_cache" formatted="false">"请求块磁盘缓存：查询 %1$s 次 · 命中块 %2$s · 未命中单元 %3$s"</string>
+    <string name="cap_audit_display_handoff" formatted="false">"移交 AI %1$s 次（AI 调用 %2$s · 含用量 %3$s · 失败 %4$s）"</string>
+    <string name="cap_audit_display_local" formatted="false">"显示切分：本地零 token 成功 %1$s 次"</string>
+    <string name="cap_audit_display_whole" formatted="false">"整句保留 %1$s 次"</string>
+    <string name="cap_audit_efficiency" formatted="false">"%1$s 效率：新增 %2$s 个核心词元 · 每词元输入 %3$s token · 每词元缓存未命中输入 %4$s token"</string>
+    <string name="cap_audit_estimate" formatted="false">"V4 Flash 按当前提供商估算：%1$s"</string>
+    <string name="cap_audit_failure_breakdown" formatted="false">"失败明细：429 %1$s · 5xx %2$s · 其他 4xx %3$s · 超时 %4$s · 网络 %5$s · 取消/中断 %6$s · 其他 %7$s"</string>
+    <string name="cap_audit_focus_misses" formatted="false">"焦点未命中 %1$s"</string>
+    <string name="cap_audit_legacy_engine" formatted="false">"旧版兼容引擎"</string>
+    <string name="cap_audit_logical_request_many" formatted="false">"%1$s 次逻辑请求 / "</string>
+    <string name="cap_audit_logical_request_one" formatted="false">"%1$s 次逻辑请求 / "</string>
+    <string name="cap_audit_no_usage" formatted="false">"Token 成本审计：尚无 API 用量。播放 AI 字幕后可查看用量、缓存命中、请求用途与每分钟观看成本。"</string>
+    <string name="cap_audit_no_usage_note" formatted="false">"注意：%1$s 个 2xx 响应没有用量；这些请求只能确知次数，无法确知 token 数。"</string>
+    <string name="cap_audit_page_fallback" formatted="false">"分页回退：%1$s 个缓存页超过失败阈值；改回块请求"</string>
+    <string name="cap_audit_per_minute" formatted="false">"每观看分钟 %1$s token"</string>
+    <string name="cap_audit_priced_subset" formatted="false">"（仅计入按内置 V4 Flash 价目计价的响应）"</string>
+    <string name="cap_audit_request_blocks" formatted="false">"请求块：目标 %1$s 块 · 只读上下文 %2$s 段 · 上下文段/块 %3$s"</string>
+    <string name="cap_audit_request_body" formatted="false">"请求体：合计 %1$s 字节 · 平均每次 API 尝试 %2$s 字节"</string>
+    <string name="cap_audit_semantic_window" formatted="false">"语义窗口：核心 %1$s 个词元 · 暴露 %2$s 个词元 · 上下文暴露比 %3$s"</string>
+    <string name="cap_audit_structural" formatted="false">"结构与确定性检查：接受 / 拒绝（非语义验收）：%1$s / %2$s（%3$s）"</string>
+    <string name="cap_audit_sunk" formatted="false">"已发送但未读取的请求：%1$s 次 · %2$s 字节。提供商是否处理与计费未知；下方 token 与成本合计不含这部分用量，故无法确定实际支出。"</string>
+    <string name="cap_audit_title" formatted="false">"Token 成本审计（自上次重置起）"</string>
+    <string name="cap_audit_tok" formatted="false">"%1$s token"</string>
+    <string name="cap_audit_tok_per_minute" formatted="false">"每观看分钟 %1$s token"</string>
+    <string name="cap_audit_tokens" formatted="false">"Token：%1$s = 输入 %2$s + 输出 %3$s"</string>
+    <string name="cap_audit_video" formatted="false">"本视频：已观看 %1$s 秒 · %2$s token"</string>
+    <string name="cap_audit_viewed" formatted="false">"已观看 %1$s 秒 · %2$s token"</string>
     <string name="cap_autosave" formatted="false">"修改后自动保存"</string>
-    <string name="cap_enter_key" formatted="false">"请输入 API Key"</string>
-    <string name="cap_key_saved" formatted="false">"已加密保存；输入可替换"</string>
-    <string name="cap_model_hint" formatted="false">"选择模型或输入模型 ID"</string>
-    <string name="cap_preview_hint" formatted="false">"点按画面切换方向，样式实时预览"</string>
-    <string name="cap_size_hint" formatted="false">"相对字号 8–15，随画面比例缩放"</string>
-    <string name="cap_opacity_hint" formatted="false">"0% 为透明，100% 为不透明；松手保存"</string>
-    <string name="cap_diagnostic_hint" formatted="false">"展开查看并复制诊断记录"</string>
-    <string name="cap_use_youtube" formatted="false">"使用 YouTube"</string>
-    <string name="cap_use_ai" formatted="false">"使用 AI"</string>
-    <string name="cap_on" formatted="false">"开启"</string>
-    <string name="cap_off" formatted="false">"关闭"</string>
-    <string name="cap_configure_api" formatted="false">"请先配置 API，再启用 AI 翻译"</string>
-    <string name="cap_switch_failed" formatted="false">"切换失败，已恢复原来的模式"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"缓存与诊断"</string>
+    <string name="cap_cancel" formatted="false">"取消"</string>
+    <string name="cap_caption_translating" formatted="false">"翻译中…"</string>
     <string name="cap_choose_translation" formatted="false">"请在字幕菜单选择自动翻译语言"</string>
-    <string name="cap_message_7b7480271fa5" formatted="false">"关闭后使用 YouTube 原生字幕显示"</string>
-    <string name="cap_message_1cc3c4b0aab0" formatted="false">"原字幕可直接显示；自动翻译需填写 API Key"</string>
-    <string name="cap_message_2c107e436145" formatted="false">"已启用；从自动翻译选择任意语言即可启动 AI 字幕"</string>
-    <string name="cap_message_ea9ebe26591a" formatted="false">"诊断中记录字幕原文与译文，仅建议排查时开启"</string>
-    <string name="cap_message_f496dd228d0b" formatted="false">"关闭时不记录字幕原文与译文"</string>
-    <string name="cap_message_261f1c6f0fde" formatted="false">"排查时记录字幕原文与译文，默认关闭"</string>
-    <string name="cap_message_92561907fadc" formatted="false">"使用当前已自动保存的配置测试连接"</string>
-    <string name="cap_message_33c08bcbc79b" formatted="false">"仅自动翻译模式调用 API；原字幕原文显示"</string>
-    <string name="cap_message_fd1ada5395a0" formatted="false">"恢复竖直位置，保留字号和背景设置"</string>
+    <string name="cap_clear_cache" formatted="false">"清除字幕缓存"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"清空诊断记录"</string>
+    <string name="cap_clear_diagnostics_confirm" formatted="false">"清空本地诊断记录？不会清除 API 设置或翻译缓存。"</string>
+    <string name="cap_collapse" formatted="false">"收起"</string>
+    <string name="cap_configure_api" formatted="false">"请先配置 API，再启用 AI 翻译"</string>
+    <string name="cap_copy" formatted="false">"复制"</string>
+    <string name="cap_copy_part_done" formatted="false">"已复制第 %1$s / %2$s 部分；再次保存可选择其余部分"</string>
+    <string name="cap_copy_part_failed" formatted="false">"无法复制第 %1$s 部分"</string>
+    <string name="cap_copy_part_label" formatted="false">"复制第 %1$s / %2$s 部分"</string>
+    <string name="cap_copy_parts_title" formatted="false">"Android 9 及以下：分段复制完整诊断"</string>
+    <string name="cap_default_prompt" formatted="false">"忠实、自然、简洁；优先符合目标语言的母语表达习惯；保留人名、专有名词、数字、语气和必要的标点；不要增加原文没有的解释。"</string>
+    <string name="cap_delete" formatted="false">"删除"</string>
+    <string name="cap_delete_key" formatted="false">"删除 API Key"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"展开查看并复制诊断记录"</string>
+    <string name="cap_diagnostics" formatted="false">"字幕诊断"</string>
+    <string name="cap_diagnostics_hint" formatted="false">"长时间测试请开启显示文本调试；保存完整诊断可导出最近 24 小时记录（容量上限 16 MiB）。下方仅显示最近摘要。"</string>
+    <string name="cap_display_debug" formatted="false">"显示文本调试：%1$s"</string>
+    <string name="cap_enable_ai" formatted="false">"启用 AI 字幕翻译"</string>
+    <string name="cap_engine" formatted="false">"引擎"</string>
+    <string name="cap_engine_event_rebuild" formatted="false">"事件重建"</string>
+    <string name="cap_enter_key" formatted="false">"请输入 API Key"</string>
+    <string name="cap_expand" formatted="false">"展开"</string>
+    <string name="cap_flyout_summary" formatted="false">"在播放器弹出菜单中显示快捷开关；隐藏不关闭 AI 字幕，下次打开菜单生效"</string>
+    <string name="cap_flyout_title" formatted="false">"普通视频弹出菜单中的 AI 字幕开关"</string>
+    <string name="cap_keep_last_valid" formatted="false">"；保留上次有效值"</string>
+    <string name="cap_key_saved" formatted="false">"已加密保存；输入可替换"</string>
+    <string name="cap_label_separator" formatted="false">"%1$s："</string>
+    <string name="cap_landscape" formatted="false">"横屏"</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"自动翻译"</string>
     <string name="cap_message_10d1b374429d" formatted="false">"编辑时可见；关闭页面清空，加密保存"</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"列表已更新"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"原字幕可直接显示；自动翻译需填写 API Key"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"删除 API Key？"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"排查时记录字幕原文与译文，默认关闭"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"已启用；从自动翻译选择任意语言即可启动 AI 字幕"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"获取失败，可手动输入："</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"最近链路："</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"仅自动翻译模式调用 API；原字幕原文显示"</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" 秒前）"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"原字幕（零翻译 API）"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API 可用："</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"最近阶段："</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"正在自动获取模型列表…"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"测试中…"</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"API Key 已删除"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"只删除本机加密保存的 API Key，不修改其他设置。"</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"读取诊断状态失败："</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"关闭后使用 YouTube 原生字幕显示"</string>
     <string name="cap_message_7da9039cc193" formatted="false">"API Key 应为单行"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"尚未捕获到自动翻译请求。启用并填写 API Key 后，播放视频并从“自动翻译”选择任意目标语言，再回来点“刷新诊断”。"</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"；保留上次有效值"</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"当前模式："</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"API 测试失败："</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"诊断已复制"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"诊断记录已清空"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"使用当前已自动保存的配置测试连接"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"未知设置项"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"字幕已恢复水平居中的默认位置"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"模型自动保存失败"</string>
     <string name="cap_message_bafa7b1ca6cb" formatted="false">"API 地址必须以 https:// 或 http:// 开头"</string>
     <string name="cap_message_bbbcd9c8bf80" formatted="false">"自动保存失败"</string>
-    <string name="cap_message_b795d97808e8" formatted="false">"模型自动保存失败"</string>
-    <string name="cap_message_9a6606c64f5f" formatted="false">"未知设置项"</string>
-    <string name="cap_message_8500e82ca181" formatted="false">"；保留上次有效值"</string>
-    <string name="cap_message_a25bd037963d" formatted="false">"字幕已恢复水平居中的默认位置"</string>
-    <string name="cap_message_e8b2177e1cd3" formatted="false">"字幕缓存已清除"</string>
-    <string name="cap_message_1f328bc723d4" formatted="false">"删除 API Key？"</string>
-    <string name="cap_message_6ec744dcc83a" formatted="false">"只删除本机加密保存的 API Key，不修改其他设置。"</string>
-    <string name="cap_message_574dd3f1ccfe" formatted="false">"API Key 已删除"</string>
-    <string name="cap_message_8bfb437edfc4" formatted="false">"诊断记录已清空"</string>
-    <string name="cap_message_896c4b51d7e9" formatted="false">"诊断已复制"</string>
-    <string name="cap_message_49562bf14c82" formatted="false">"测试中…"</string>
-    <string name="cap_message_3a1185c1dc9f" formatted="false">"API 可用："</string>
-    <string name="cap_message_88ce10e8f20b" formatted="false">"API 测试失败："</string>
-    <string name="cap_message_ec966cf35a63" formatted="false">"正在重新获取模型列表…"</string>
-    <string name="cap_message_462efc3e98ef" formatted="false">"正在自动获取模型列表…"</string>
-    <string name="cap_message_2d61f9891514" formatted="false">"获取失败，可手动输入："</string>
-    <string name="cap_message_17ea5266e7a5" formatted="false">"列表已更新"</string>
-    <string name="cap_message_7e7bfd29c71d" formatted="false">"尚未捕获到自动翻译请求。启用并填写 API Key 后，播放视频并从“自动翻译”选择任意目标语言，再回来点“刷新诊断”。"</string>
-    <string name="cap_message_dd0fb9f395bc" formatted="false">"引擎："</string>
-    <string name="cap_message_8736a99d18f2" formatted="false">"当前模式："</string>
-    <string name="cap_message_0825b4b0cb7d" formatted="false">"自动翻译"</string>
-    <string name="cap_message_375e0f929195" formatted="false">"原字幕（零翻译 API）"</string>
-    <string name="cap_message_c46b062d22ba" formatted="false">"显示文本调试："</string>
-    <string name="cap_message_44feb4d98d48" formatted="false">"最近阶段："</string>
-    <string name="cap_message_dedc85cbb813" formatted="false">"时间参照与异常（独立保留，含时间戳）："</string>
-    <string name="cap_message_30070c30d85c" formatted="false">"最近链路："</string>
-    <string name="cap_message_75a885d3b526" formatted="false">"读取诊断状态失败："</string>
     <string name="cap_message_c34848823d86" formatted="false">"（约 "</string>
-    <string name="cap_message_33cc168ccb4e" formatted="false">" 秒前）"</string>
-    <string name="cap_mode_pending" formatted="false">"已保存模式，将在当前视频字幕就绪后生效。"</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"显示文本调试："</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"引擎："</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"时间参照与异常（独立保留，含时间戳）："</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"字幕缓存已清除"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"诊断中记录字幕原文与译文，仅建议排查时开启"</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"正在重新获取模型列表…"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"关闭时不记录字幕原文与译文"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"恢复竖直位置，保留字号和背景设置"</string>
+    <string name="cap_mode" formatted="false">"当前模式"</string>
+    <string name="cap_mode_auto_translate" formatted="false">"自动翻译"</string>
     <string name="cap_mode_off_pending" formatted="false">"AI 已关闭，原生字幕将在轨道就绪后恢复。"</string>
-    <string name="cap_flyout_title" formatted="false">"普通视频弹出菜单中的 AI 字幕开关"</string>
-    <string name="cap_flyout_summary" formatted="false">"在播放器弹出菜单中显示快捷开关；隐藏不关闭 AI 字幕，下次打开菜单生效"</string>
-    <string name="cap_shorts_flyout_title" formatted="false">"Shorts 弹出菜单中的 AI 字幕开关"</string>
-    <string name="cap_profiles_title" formatted="false">"API 配置方案"</string>
-    <string name="cap_profile_default" formatted="false">"原有配置"</string>
-    <string name="cap_profile_name" formatted="false">"方案名称"</string>
-    <string name="cap_profile_rename" formatted="false">"重命名"</string>
+    <string name="cap_mode_original" formatted="false">"原字幕（零翻译 API）"</string>
+    <string name="cap_mode_pending" formatted="false">"已保存模式，将在当前视频字幕就绪后生效。"</string>
+    <string name="cap_model" formatted="false">"模型"</string>
+    <string name="cap_model_hint" formatted="false">"选择模型或输入模型 ID"</string>
+    <string name="cap_model_hint_key_first" formatted="false">"请先填写 API Key；模型也可手动输入"</string>
+    <string name="cap_model_hint_manual_only" formatted="false">"可从下方选择，也可手动输入模型 ID"</string>
+    <string name="cap_model_hint_retry" formatted="false">"可点“刷新”重试，或直接输入模型 ID"</string>
+    <string name="cap_model_list_updated" formatted="false">"列表已更新"</string>
+    <string name="cap_model_load_failed" formatted="false">"获取失败，可手动输入：%1$s"</string>
+    <string name="cap_model_loading_auto" formatted="false">"正在自动获取模型列表…"</string>
+    <string name="cap_model_loading_refresh" formatted="false">"正在重新获取模型列表…"</string>
+    <string name="cap_model_pick_or_type" formatted="false">"可选择模型或直接输入 ID"</string>
+    <string name="cap_model_save_failed" formatted="false">"模型自动保存失败"</string>
+    <string name="cap_model_saved" formatted="false">"模型已自动保存"</string>
+    <string name="cap_no_request_yet" formatted="false">"尚未捕获到自动翻译请求。启用并填写 API Key 后，播放视频并从“自动翻译”选择任意目标语言，再回来点“刷新诊断”。"</string>
+    <string name="cap_off" formatted="false">"关闭"</string>
+    <string name="cap_on" formatted="false">"开启"</string>
+    <string name="cap_opacity" formatted="false">"背景不透明度"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% 为透明，100% 为不透明；松手保存"</string>
+    <string name="cap_preview" formatted="false">"横屏全屏预览"</string>
+    <string name="cap_preview_hint" formatted="false">"样式预览（全屏）"</string>
+    <string name="cap_preview_sample" formatted="false">"世界很大，一起看看。"</string>
     <string name="cap_profile_add" formatted="false">"新增方案"</string>
-    <string name="cap_profiles_summary" formatted="false">"管理当前方案"</string>
-    <string name="cap_profile_name_error" formatted="false">"请输入 1–60 个字符的方案名称"</string>
-    <string name="cap_profile_limit" formatted="false">"最多可保存 30 套配置方案"</string>
-    <string name="cap_profile_invalid_edits" formatted="false">"请先修正当前未完成的输入，再切换方案"</string>
     <string name="cap_profile_add_failed" formatted="false">"无法新增方案，请检查输入及 30 套方案上限。"</string>
-    <string name="cap_profile_manage" formatted="false">"管理当前方案"</string>
-    <string name="cap_profile_close" formatted="false">"关闭"</string>
-    <string name="cap_profile_save" formatted="false">"保存"</string>
-    <string name="cap_profile_current" formatted="false">"当前方案"</string>
-    <string name="cap_profile_delete" formatted="false">"删除方案"</string>
     <string name="cap_profile_clear_key" formatted="false">"清除本方案的 API Key"</string>
-    <string name="cap_profile_keep_one" formatted="false">"至少保留一套方案；如不再使用，可清除其 API Key。"</string>
-    <string name="cap_profile_new_summary" formatted="false">"新方案自带默认翻译要求，不复制密钥和模型。创建后在设置页面补全相关字段。"</string>
-    <string name="cap_profile_delete_summary" formatted="false">"从本机删除此方案的地址、模型、翻译要求和加密密钥，保留其他方案及字幕设置。若删除当前方案，将启用剩余的第一套方案。此操作无法撤销。"</string>
     <string name="cap_profile_clear_key_summary" formatted="false">"仅清除此方案已保存及尚未保存的密钥输入，保留地址、模型和翻译要求；其他方案不受影响。此操作不会在服务商处注销密钥。"</string>
-    <string name="cap_prompt_summary" formatted="false">"仅用于当前方案。清空后恢复默认要求；默认文本随界面语言切换，自定义内容保持不变。"</string>
-    <string name="cap_default_prompt" formatted="false">"忠实、自然、简洁；优先符合目标语言的母语表达习惯；保留人名、专有名词、数字、语气和必要的标点；不要增加原文没有的解释。"</string>
-    <string name="cap_profile_more" formatted="false">"方案操作"</string>
+    <string name="cap_profile_close" formatted="false">"关闭"</string>
     <string name="cap_profile_collapse" formatted="false">"收起操作"</string>
-    <string name="cap_profile_finish_name" formatted="false">"请先保存或取消名称修改。"</string>
-    <string name="cap_profile_delete_inline" formatted="false">"删除此方案及其本机保存的密钥？其他方案不受影响，此操作无法撤销。"</string>
-    <string name="cap_profile_delete_switch" formatted="false">"删除后将启用："</string>
-    <string name="cap_profile_keep" formatted="false">"保留方案"</string>
     <string name="cap_profile_confirm_delete" formatted="false">"确认删除"</string>
+    <string name="cap_profile_current" formatted="false">"当前方案"</string>
+    <string name="cap_profile_default" formatted="false">"原有配置"</string>
+    <string name="cap_profile_delete" formatted="false">"删除方案"</string>
+    <string name="cap_profile_delete_inline" formatted="false">"删除此方案及其本机保存的密钥？其他方案不受影响，此操作无法撤销。"</string>
+    <string name="cap_profile_delete_summary" formatted="false">"从本机删除此方案的地址、模型、翻译要求和加密密钥，保留其他方案及字幕设置。若删除当前方案，将启用剩余的第一套方案。此操作无法撤销。"</string>
+    <string name="cap_profile_delete_switch" formatted="false">"删除后将启用："</string>
+    <string name="cap_profile_finish_name" formatted="false">"请先保存或取消名称修改。"</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"请先修正当前未完成的输入，再切换方案"</string>
+    <string name="cap_profile_keep" formatted="false">"保留方案"</string>
+    <string name="cap_profile_keep_one" formatted="false">"至少保留一套方案；如不再使用，可清除其 API Key。"</string>
+    <string name="cap_profile_limit" formatted="false">"最多可保存 30 套配置方案"</string>
+    <string name="cap_profile_manage" formatted="false">"管理当前方案"</string>
+    <string name="cap_profile_more" formatted="false">"方案操作"</string>
+    <string name="cap_profile_name" formatted="false">"方案名称"</string>
+    <string name="cap_profile_name_error" formatted="false">"请输入 1–60 个字符的方案名称"</string>
+    <string name="cap_profile_new_summary" formatted="false">"新方案自带默认翻译要求，不复制密钥和模型。创建后在设置页面补全相关字段。"</string>
+    <string name="cap_profile_rename" formatted="false">"重命名"</string>
+    <string name="cap_profile_save" formatted="false">"保存"</string>
+    <string name="cap_profiles_summary" formatted="false">"管理当前方案"</string>
+    <string name="cap_profiles_title" formatted="false">"API 配置方案"</string>
+    <string name="cap_prompt_summary" formatted="false">"仅用于当前方案。清空后恢复默认要求；默认文本随界面语言切换，自定义内容保持不变。"</string>
+    <string name="cap_quality_outcome" formatted="false">"本地校验：接受 / 拒绝（其中质量问题）"</string>
+    <string name="cap_recent_trace" formatted="false">"最近链路："</string>
+    <string name="cap_refresh" formatted="false">"刷新"</string>
+    <string name="cap_reset_position" formatted="false">"恢复字幕默认位置"</string>
+    <string name="cap_save_diagnostics" formatted="false">"保存完整诊断"</string>
+    <string name="cap_save_failed" formatted="false">"保存失败：%1$s"</string>
+    <string name="cap_save_ok" formatted="false">"已保存到 Download/%1$s"</string>
+    <string name="cap_saved" formatted="false">"已自动保存"</string>
+    <string name="cap_selected_suffix" formatted="false">"已选择"</string>
+    <string name="cap_shorts_flyout_summary" formatted="false">"在 Shorts 弹出菜单中显示快捷开关；隐藏不关闭 AI 字幕，下次打开菜单生效"</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Shorts 弹出菜单中的 AI 字幕开关"</string>
+    <string name="cap_size" formatted="false">"字号"</string>
+    <string name="cap_size_hint" formatted="false">"标准：详情页 44.5px · 全屏 55.5px"</string>
+    <string name="cap_size_tier_hint" formatted="false">"%1$s：详情页 %2$spx · 全屏 %3$spx"</string>
+    <string name="cap_size_tier_l" formatted="false">"大"</string>
+    <string name="cap_size_tier_s" formatted="false">"小"</string>
+    <string name="cap_size_tier_standard" formatted="false">"标准"</string>
+    <string name="cap_size_tier_xl" formatted="false">"超大"</string>
+    <string name="cap_size_tier_xs" formatted="false">"超小"</string>
     <string name="cap_source_retry" formatted="false">"字幕连接中断，正在自动重试…"</string>
     <string name="cap_source_unavailable" formatted="false">"暂时无法获取原字幕，请重新选择字幕轨道。"</string>
-    <string name="cap_caption_overflow" formatted="false">"字幕过长，原文暂不可用"</string>
-    <string name="cap_quality_outcome" formatted="false">"本地校验：接受 / 拒绝（其中质量问题）"</string>
+    <string name="cap_style" formatted="false">"字幕样式"</string>
+    <string name="cap_switch_failed" formatted="false">"切换失败，已恢复原来的模式"</string>
+    <string name="cap_test_api" formatted="false">"测试 API"</string>
+    <string name="cap_text_debug" formatted="false">"显示文本调试"</string>
+    <string name="cap_timing_decisions" formatted="false">"时间参照与异常（独立保留，含时间戳）："</string>
+    <string name="cap_translation" formatted="false">"翻译"</string>
+    <string name="cap_translation_requirements" formatted="false">"翻译要求"</string>
+    <string name="cap_use_ai" formatted="false">"使用 AI"</string>
+    <string name="cap_use_youtube" formatted="false">"使用 YouTube"</string>
+    <string name="cap_ai_quick_toggle_on" formatted="false">"AI 字幕翻译 · 开启"</string>
+    <string name="cap_ai_quick_toggle_off" formatted="false">"AI 字幕翻译 · 关闭"</string>
+    <string name="cap_ai_summary" formatted="false">"启用后，在 YouTube 的“自动翻译”语言列表中选择目标语言，即可使用已配置的 AI 服务实时翻译视频字幕。"</string>
+    <string name="cap_languages_title" formatted="false">"自动翻译语言"</string>
+    <string name="cap_languages_summary" formatted="false">"将所选语言添加到 YouTube 的“自动翻译”语言列表，可同时选择多种语言。"</string>
+    <string name="cap_languages_count" formatted="false">"已选 %1$d 种语言"</string>
+    <string name="cap_languages_save" formatted="false">"保存"</string>
+    <string name="cap_languages_existing" formatted="false">"已存在"</string>
+    <string name="cap_languages_new" formatted="false">"新增"</string>
+    <string name="cap_languages_unavailable" formatted="false">"不可用"</string>
+    <string name="cap_languages_empty" formatted="false">"未选择语言；保留原生菜单"</string>
+    <string name="cap_languages_entry" formatted="false">"%1$s · %2$s"</string>
+    <string name="cap_model_empty" formatted="false">"模型 ID 不能为空"</string>
+    <string name="cap_api_address_invalid" formatted="false">"请输入有效的 HTTP(S) OpenAI 兼容接口地址，不要包含用户名、密码或片段标记。"</string>
+    <string name="cap_language_zh_hans" formatted="false">"中文（简体）"</string>
+    <string name="cap_language_zh_hant" formatted="false">"中文（繁体）"</string>
+    <string name="cap_paste" formatted="false">"粘贴"</string>
+    <string name="cap_select_all" formatted="false">"全选"</string>
+    <string name="cap_value_retained" formatted="false">"%1$s；保留上次有效值"</string>
+    <string name="cap_model_ids_empty" formatted="false">"接口没有返回可选择的模型 ID"</string>
+    <string name="cap_diagnostics_loading" formatted="false">"正在读取诊断…"</string>
 </resources>

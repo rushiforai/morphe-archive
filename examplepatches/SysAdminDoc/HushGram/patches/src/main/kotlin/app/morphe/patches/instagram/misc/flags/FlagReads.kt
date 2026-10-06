@@ -9,7 +9,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLa
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.smali.ExternalLabel
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
+import app.morphe.patches.instagram.misc.extension.classesLoading
 import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -44,8 +44,9 @@ internal class FlagRead(
  */
 internal fun BytecodePatchContext.findFlagReads(patch: String, flags: List<Long>): List<FlagRead> {
     val reads = mutableListOf<FlagRead>()
+    val loading = flags.flatMapTo(HashSet()) { flag -> classesLoading(flag).map { it.type } }
     classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        if (classDef.type !in loading) return@classDefForEach
         classDef.methods.forEach { method ->
             val code = method.implementation?.instructions?.toList() ?: return@forEach
             code.forEachIndexed { index, instruction ->
@@ -134,8 +135,9 @@ private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
 internal fun BytecodePatchContext.findFlagLoads(patch: String, flag: Long, answer: String): List<FlagLoad> {
     require(answer == "Z" || answer == "J") { "a flag is read as Z or J, not $answer" }
     val loads = mutableListOf<FlagLoad>()
+    val loading = classesLoading(flag).mapTo(HashSet()) { it.type }
     classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        if (classDef.type !in loading) return@classDefForEach
         classDef.methods.forEach { method ->
             val code = method.implementation?.instructions?.toList() ?: return@forEach
             val at = code.indices.filter {

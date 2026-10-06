@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/Freeman022026/rustore-privacy-patches/compare/v1.1.12...v1.2.0) (2026-10-05)
+
+- Added RuStore 1.111.0.3 support.
+- Added remote and cached network policy blocking.
+- Fixed device identifiers, gaming profile and background updates.
+
 ## [1.1.12](https://github.com/Freeman022026/rustore-privacy-patches/compare/v1.1.11...v1.1.12) (2026-09-11)
 
 ### 🐛 Bug Fixes

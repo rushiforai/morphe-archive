@@ -15,6 +15,7 @@ import android.media.MediaExtractor;
 import android.media.MediaFormat;
 import android.media.MediaMuxer;
 import android.os.Build;
+import android.os.SystemClock;
 
 import java.io.File;
 import java.io.IOException;
@@ -121,8 +122,29 @@ final class DashSave {
         long maxBytes,
         Downloader.Progress progress
     ) {
+        return save(application, video, audio, false, false, sink, policy, maxBytes, progress);
+    }
+
+    /**
+     * As above. With [transcodeVideo], the fetched [video] is made H.264 ({@link VideoTranscode}),
+     * and with [reencodeSound], the fetched [audio] is made AAC-LC ({@link AacReencode}), before
+     * the join. A conversion that fails fails the save, and the caller's single file follows.
+     */
+    static Downloader.Result save(
+        Context application,
+        DashManifest.Track video,
+        DashManifest.Track audio,
+        boolean transcodeVideo,
+        boolean reencodeSound,
+        Downloader.Sink sink,
+        MediaUrlPolicy policy,
+        long maxBytes,
+        Downloader.Progress progress
+    ) {
         File videoFile = null;
         File audioFile = null;
+        File picture = null;
+        File sound = null;
         File joined = null;
 
         try {
@@ -142,6 +164,53 @@ final class DashSave {
                 if (!result.ok()) return result;
             }
 
+            // What the join writes: H.264 once the picture is converted.
+            String pictureCodecs = video.codecs;
+            if (transcodeVideo) {
+                if (progress.cancelled()) return Downloader.Result.fail(Downloader.Status.CANCELLED, "cancelled before the conversion");
+                progress.joining();
+                picture = File.createTempFile("picture", ".mp4", folder);
+                // H.264 at the bitrate VideoTranscode picks runs several times the VP9 or AV1 it came from.
+                long room = Math.min(maxBytes, Math.max(videoFile.length() * 6, 32L << 20));
+                if (reserve(picture, room) < room) {
+                    return Downloader.Result.fail(Downloader.Status.WRITE_ERROR, "not enough free space to convert the picture");
+                }
+                long started = SystemClock.uptimeMillis();
+                if (!VideoTranscode.transcode(videoFile, picture, video.bandwidth, progress)) {
+                    return Downloader.Result.fail(Downloader.Status.CANCELLED, "cancelled during the conversion");
+                }
+                long took = SystemClock.uptimeMillis() - started;
+                File made = picture;
+                holdTo(made, made.length());
+                MediaDownload.info(() -> "made the " + video.codecs + " picture H.264 in " + took + " ms (" + made.length()
+                    + " bytes)");
+                videoFile = discard(videoFile);
+                videoFile = picture;
+                picture = null;
+                pictureCodecs = "avc1";
+            }
+
+            if (audioFile != null && reencodeSound) {
+                if (progress.cancelled()) return Downloader.Result.fail(Downloader.Status.CANCELLED, "cancelled before the re-encode");
+                sound = File.createTempFile("sound", ".m4a", folder);
+                // AAC-LC at its bitrate is about the size of what came in, often less.
+                long room = Math.max(audioFile.length() * 3, 4L << 20);
+                if (reserve(sound, room) < room) {
+                    return Downloader.Result.fail(Downloader.Status.WRITE_ERROR, "not enough free space to re-encode the sound");
+                }
+                long started = SystemClock.uptimeMillis();
+                if (!AacReencode.reencode(audioFile, sound, progress)) {
+                    return Downloader.Result.fail(Downloader.Status.CANCELLED, "cancelled during the re-encode");
+                }
+                long took = SystemClock.uptimeMillis() - started;
+                File made = sound;
+                holdTo(made, made.length());
+                MediaDownload.info(() -> "made the xHE-AAC sound AAC-LC in " + took + " ms (" + made.length() + " bytes)");
+                audioFile = discard(audioFile);
+                audioFile = sound;
+                sound = null;
+            }
+
             if (progress.cancelled()) return Downloader.Result.fail(Downloader.Status.CANCELLED, "cancelled before the join");
             joined = File.createTempFile("joined", ".mp4", folder);
             // The joined file is about the size of the two tracks, with boxes of its own on top.
@@ -150,9 +219,9 @@ final class DashSave {
             if (reserve(joined, room) < room) {
                 return Downloader.Result.fail(Downloader.Status.WRITE_ERROR, "not enough free space to join the tracks");
             }
-            boolean own = ownWriter(video.codecs, Build.VERSION.SDK_INT);
+            boolean own = ownWriter(pictureCodecs, Build.VERSION.SDK_INT);
             if (own) {
-                String codec = video.codecs.startsWith("vp09") ? "VP9" : "AV1 before Android 14";
+                String codec = pictureCodecs.startsWith("vp09") ? "VP9" : "AV1 before Android 14";
                 MediaDownload.info(() -> "joining the tracks without MediaMuxer, which can't write " + codec
                     + " into an MP4");
             }
@@ -185,6 +254,8 @@ final class DashSave {
         } finally {
             discard(videoFile);
             discard(audioFile);
+            discard(picture);
+            discard(sound);
             discard(joined);
         }
     }

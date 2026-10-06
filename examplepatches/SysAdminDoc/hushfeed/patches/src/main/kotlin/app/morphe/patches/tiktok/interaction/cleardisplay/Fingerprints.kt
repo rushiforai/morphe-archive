@@ -13,6 +13,13 @@ internal object OnClearDisplayEventFingerprint : Fingerprint(
     },
 )
 
+internal object ClearDisplayCellFingerprint : Fingerprint(
+    definingClass = "/feed/adapter/VideoViewCell;",
+    returnType = "V",
+    parameters = listOf("Z", "Z"),
+    strings = listOf("exit_clearmode", "scene_key_", "event_enter_clear_mode"),
+)
+
 /**
  * The body R8 outlined from PlayerController.onRenderFirstFrame: the static method on the same
  * class taking the controller and the render event. onRenderFirstFrame keeps its name, so the
@@ -53,4 +60,3 @@ internal object ClearModeLogStateFingerprint : Fingerprint(
         "I",
     ),
 )
-

@@ -69,7 +69,8 @@ Sezzle incorporates advertising networks, survey offerwalls, and behavioral anal
 |---|---|---|
 | **AppLovin MAX** | `com.applovin.reactnative.AppLovinMAXPackage`, `AppLovinMAXAdView`, `AppLovinSdk` | Fullscreen interstitials, banners, and app-open ads. |
 | **Google Mobile Ads (AdMob)** | `io.invertase.googlemobileads.ReactNativeGoogleMobileAdsPackage`, `MobileAds` | Banner ads and fullscreen interstitial units. |
-| **Rokt Marketing** | `com.rokt.roktsdk.*`, `RoktLayoutView`, `MPRoktModule` | E-commerce transaction confirmation offers and popups. |
+| **Rokt Marketing** | `com.rokt.roktsdk.*`, `RoktLayoutView`, `MPRoktModule`, `MPRoktModuleImpl` | E-commerce transaction confirmation offers and popups. |
+| **Thanks Platform** | `https://thanks.is`, `useShowThanks`, `ThanksWidget`, `ThanksBlock` | Post-payment rewards and sweepstakes offer modals ("Your payment earned you 5 rewards" / "Your payment comes with 5 rewards"). |
 | **Adjoe (Playtime)** | `io.adjoe.sdk.reactnative.RNPlaytimeSdkPackage`, `Playtime` | Playtime rewards offerwalls and time-based tracking. |
 | **InBrain Surveys** | `com.inbrain.rn.InBrainSurveysPackage`, `InBrainSurveysModule` | Paid market research and survey offerwalls. |
 | **AppsFlyer** | `com.appsflyer.reactnative.RNAppsFlyerModule`, `AppsFlyerLib` | Attribution, install referral, and campaign analytics. |
@@ -87,7 +88,7 @@ Sezzle incorporates advertising networks, survey offerwalls, and behavioral anal
 
 See [Sezzle Patch Specifications](patches.md) for full technical implementation details.
 
-1. **`Remove Ads and Tracking` (`bytecodePatch`):** Neutralizes all 13 advertising and tracking SDK entry points at the Dalvik layer and zeros the AAID.
+1. **`Remove Ads and Tracking` (`bytecodePatch`) with companion `Remove Ads and Tracking from JS Bundle` (`rawResourcePatch`):** Neutralizes advertising and tracking SDKs at the Dalvik layer and strips Thanks network and Rokt post-payment offers in Hermes bytecode via `dependsOn`.
 2. **`Clean Authentication` (`rawResourcePatch`):** Restricts login to Google SSO and unmounts unavailable phone SMS controls.
 3. **`Unlock Custom App Icons` (`rawResourcePatch`):** Unlocks launcher icon variants without a Premium subscription.
 4. **`Enable App Debugging` (`resourcePatch`):** Adds `android:debuggable="true"` to `AndroidManifest.xml`.

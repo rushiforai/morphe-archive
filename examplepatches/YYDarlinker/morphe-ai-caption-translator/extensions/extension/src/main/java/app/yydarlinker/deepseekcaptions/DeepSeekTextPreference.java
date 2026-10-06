@@ -24,7 +24,7 @@ import android.widget.TextView;
  * keeps every setting on the page itself: there is no editor dialog and no page-level Save button.</p>
  */
 @SuppressWarnings("deprecation")
-public class DeepSeekTextPreference extends android.preference.Preference implements ApiProfiles.Editor {
+public class DeepSeekTextPreference extends CaptionSettingPreference implements ApiProfiles.Editor {
     static final String KEY_BASE_URL = "deepseek_caption_base_url";
     static final String KEY_API_KEY = "deepseek_caption_api_key";
     static final String KEY_PROMPT = "deepseek_caption_prompt";
@@ -40,6 +40,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
     private View boundView;
     private long boundRevision=-1;
     private String boundDefaultPrompt="";
+    private boolean defaultDisplay,programmaticText,userEdited;
 
     public DeepSeekTextPreference(Context context) {
         super(context);
@@ -77,7 +78,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
         // Android groups rows of the same Preference subclass into one recycle pool. These rows
         // contain different editors (URL/key/prompt), so only reuse this exact field's view.
         String key = getKey();
-        View safeView = boundView != null && (boundView.getParent()==null || boundView.getParent()==parent) && boundRevision==ApiProfiles.revision() && (!KEY_PROMPT.equals(key) || boundDefaultPrompt.equals(DeepSeekConfig.defaultPrompt(getContext()))) && boundProfile.equals(ApiProfiles.active(getContext())) && key != null && (key+boundProfile).equals(boundView.getTag())
+        View safeView = boundView != null && (boundView.getParent()==null || boundView.getParent()==parent) && boundRevision==ApiProfiles.revision() && boundProfile.equals(ApiProfiles.active(getContext())) && key != null && (key+boundProfile).equals(boundView.getTag())
                 ? boundView
                 : null;
         View bound=super.getView(safeView,parent);
@@ -94,7 +95,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
         cancelPendingSave();
         boundProfile=ApiProfiles.active(getContext());
         boundRevision=ApiProfiles.revision();
-        boundDefaultPrompt=DeepSeekConfig.defaultPrompt(getContext());
+        boundDefaultPrompt=DeepSeekConfig.displayDefaultPrompt(getContext());
         Context context = getContext();
         if (parent instanceof ListView) {
             ((ListView) parent).setItemsCanFocus(true);
@@ -108,13 +109,13 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
         CaptionSettingsStyle.row(root);
 
         TextView title = new TextView(context);
-        title.setText(getTitle());
+        uiText(title,()->String.valueOf(getTitle()));
         CaptionSettingsStyle.title(title);
         title.setPadding(0,0,0,dp(8));
         root.addView(title, matchWrap());
 
         editor = new InlineCaptionEditor(context);
-        editor.setId(android.R.id.edit);
+        editor.setId(CaptionEditorIds.forKey(getKey()));
         editor.setFocusableInTouchMode(true);
         CaptionSettingsStyle.editor(editor);
         configureEditor(editor);
@@ -124,6 +125,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
             editor.setSelection(initial.length());
         }
         lastCommitted = KEY_API_KEY.equals(getKey()) ? "" : initial.trim();
+        userEdited=false;
         root.addView(editor, matchWrap());
         editor.setLongClickable(true);
 
@@ -141,7 +143,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
             @Override public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override public void afterTextChanged(Editable value) {
-                if(createdEditor==editor&&createdProfile.equals(ApiProfiles.active(getContext())))scheduleSave(value == null ? "" : value.toString());
+                if(!programmaticText&&createdEditor==editor&&createdProfile.equals(ApiProfiles.active(getContext()))){userEdited=true;scheduleSave(value == null ? "" : value.toString());}
             }
         });
         editor.setOnFocusChangeListener((view, hasFocus) -> {
@@ -149,8 +151,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
             if (!hasFocus) {
                 String text=editor.getText().toString();commitNow(text,true);
                 if(KEY_PROMPT.equals(getKey()) && text.trim().isEmpty()){
-                    String defaults=DeepSeekConfig.defaultPrompt(getContext());
-                    lastCommitted=defaults.trim();editor.setText(defaults);cancelPendingSave();
+                    showDefaultPrompt();
                 }
                 // Do not clear text on transient focus loss from Android action mode / keyboard.
             }
@@ -188,7 +189,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
             ((InlineCaptionEditor)value).sensitive(true);
             value.setImeOptions(EditorInfo.IME_ACTION_DONE|EditorInfo.IME_FLAG_NO_PERSONALIZED_LEARNING);
             boolean saved = SecureApiKey.hasSavedValue(getContext());
-            value.setHint(CaptionStrings.localize(getContext(), saved ? "已加密保存；输入可替换" : "请输入 API Key"));
+            uiHint(value,saved?"key_saved":"enter_key");
         } else if (KEY_PROMPT.equals(key)) {
             value.setSingleLine(false);
             value.setMinLines(3);
@@ -198,6 +199,8 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
                     InputType.TYPE_TEXT_FLAG_MULTI_LINE |
                     InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
             value.setImeOptions(EditorInfo.IME_FLAG_NO_ENTER_ACTION);
+            CaptionTextResolver.direction(value,false);
+            uiHint(value,"default_prompt");
         } else if (KEY_BASE_URL.equals(key)) {
             value.setSingleLine(true);
             value.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
@@ -213,7 +216,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
         if(KEY_API_KEY.equals(getKey()))return "";
         DeepSeekConfig.Snapshot current = DeepSeekConfig.load(getContext());
         if (KEY_BASE_URL.equals(getKey())) return current.baseUrl;
-        if (KEY_PROMPT.equals(getKey())) return current.prompt;
+        if (KEY_PROMPT.equals(getKey())) {defaultDisplay="program_default".equals(current.preferenceProvenance);return defaultDisplay?DeepSeekConfig.displayDefaultPrompt(getContext()):current.prompt;}
         return "";
     }
 
@@ -230,6 +233,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
 
     private void commit(String raw, boolean reportInvalid) {
         if(boundRevision!=ApiProfiles.revision() || !boundProfile.equals(ApiProfiles.active(getContext())))return;
+        if(KEY_PROMPT.equals(getKey())&&!userEdited)return;
         String value = raw == null ? "" : raw.trim();
         if (value.equals(lastCommitted)) return;
         if (KEY_API_KEY.equals(getKey()) && value.isEmpty()) return;
@@ -240,6 +244,7 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
         try {
             saveValue(value);
             lastCommitted = value;
+            if(KEY_PROMPT.equals(getKey())){defaultDisplay="program_default".equals(DeepSeekConfig.load(getContext()).preferenceProvenance);userEdited=false;}
             if (editor != null) editor.setError(null);
             updateState(true, null);
             if (KEY_BASE_URL.equals(getKey()) || KEY_API_KEY.equals(getKey())) {
@@ -272,34 +277,46 @@ public class DeepSeekTextPreference extends android.preference.Preference implem
     private void updateState(boolean justSaved, String error) {
         if (state == null) return;
         if (error != null) {
-            state.setText(CaptionStrings.localize(getContext(), error + "；保留上次有效值"));
+            uiText(state,()->String.format(java.util.Locale.ROOT,CaptionStrings.settings(getContext(),"value_retained"),CaptionStrings.localize(getContext(),error)));
             state.setAlpha(1f);
             return;
         }
 
         if (KEY_API_KEY.equals(getKey())) {
-            state.setText(CaptionStrings.localize(getContext(), !SecureApiKey.hasSavedValue(getContext())
-                    ? "编辑时可见；关闭页面清空，加密保存"
-                    : (justSaved ? "已自动加密保存" : "已加密保存，不回显原 Key")));
+            uiText(state,!SecureApiKey.hasSavedValue(getContext())?"message_10d1b374429d":(justSaved?"saved":"key_saved"));
+            if(editor!=null)uiHint(editor,SecureApiKey.hasSavedValue(getContext())?"key_saved":"enter_key");
         } else {
             CharSequence summary = getSummary();
             // XML summaries are already localized. Re-translating their Chinese prefixes duplicates text.
-            state.setText(justSaved ? CaptionStrings.localize(getContext(), "已自动保存") :
-                    (summary == null || summary.length() == 0 ? CaptionStrings.localize(getContext(),"修改后自动保存") : summary));
+            if(justSaved)uiText(state,"saved");
+            else uiText(state,()->getSummary()==null||getSummary().length()==0?CaptionStrings.settings(getContext(),"autosave"):getSummary().toString());
         }
         state.setAlpha(1f);
     }
 
     @Override public boolean flushProfile(){
         if(editor==null||boundRevision!=ApiProfiles.revision()||!boundProfile.equals(ApiProfiles.active(getContext())))return true;
+        if(KEY_PROMPT.equals(getKey())&&!userEdited)return true;
         String value=editor.getText().toString().trim();commitNow(value,true);
         return value.equals(lastCommitted) || (KEY_API_KEY.equals(getKey())&&value.isEmpty());
     }
     @Override public void profileChanged(){
         cancelPendingSave();
         boundProfile="";boundView=null;lastCommitted="";
-        if(editor!=null){editor.setText("");editor.clearFocus();}
+        userEdited=false;defaultDisplay=false;
+        if(editor!=null){programmaticText=true;try{editor.setText("");editor.clearFocus();}finally{programmaticText=false;}}
         notifyChanged();
+    }
+
+    private void showDefaultPrompt(){
+        if(editor==null)return;
+        cancelPendingSave();programmaticText=true;
+        try{boundDefaultPrompt=DeepSeekConfig.displayDefaultPrompt(getContext());editor.setText(boundDefaultPrompt);lastCommitted=boundDefaultPrompt.trim();defaultDisplay=true;userEdited=false;}
+        finally{programmaticText=false;}
+    }
+    @Override protected void refreshDynamicText(){
+        if(KEY_PROMPT.equals(getKey())&&defaultDisplay&&!userEdited&&boundProfile.equals(ApiProfiles.active(getContext()))
+                &&!boundDefaultPrompt.equals(DeepSeekConfig.displayDefaultPrompt(getContext())))showDefaultPrompt();
     }
 
     private void cancelPendingSave() {

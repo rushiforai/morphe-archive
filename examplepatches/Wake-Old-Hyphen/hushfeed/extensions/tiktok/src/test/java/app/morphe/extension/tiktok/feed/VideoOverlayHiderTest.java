@@ -10,6 +10,7 @@ import android.app.Activity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
@@ -851,6 +852,153 @@ public class VideoOverlayHiderTest {
         }
     }
 
+    @Test
+    public void clearDisplayHidesFollowingStoriesOutsideTheCellsAndRestoresNativeVisibility() {
+        int storyId = 0x7f0a0b10;
+        int cellId = 0x7f0a0b11;
+        VideoOverlayHider.resolveForTests("47.0.3:wq0", storyId);
+        VideoOverlayHider.resolveForTests("view_rootview", cellId);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout root = new FrameLayout(activity);
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(cellId);
+            root.addView(cell);
+            FrameLayout stories = new FrameLayout(activity);
+            stories.setId(storyId);
+            stories.setAlpha(0.6f);
+            stories.setClickable(true);
+            root.addView(stories);
+            activity.setContentView(root);
+
+            for (int visibility : new int[]{View.VISIBLE, View.INVISIBLE, View.GONE}) {
+                stories.setVisibility(visibility);
+                app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                        .rememberClearDisplayEvent(new ClearEvent(true, 1));
+                Settings.CLEAR_DISPLAY.save(false);
+                VideoOverlayHider.applyTo(activity);
+                assertEquals(View.GONE, stories.getVisibility());
+                if (visibility == View.VISIBLE) {
+                    stories.setVisibility(View.VISIBLE);
+                    VideoOverlayHider.applyTo(activity);
+                    assertEquals(View.GONE, stories.getVisibility());
+                }
+                app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                        .rememberClearDisplayEvent(new ClearEvent(false, 1));
+                VideoOverlayHider.applyTo(activity);
+                assertEquals(visibility, stories.getVisibility());
+                assertEquals(0.6f, stories.getAlpha(), 0f);
+                assertTrue(stories.isClickable());
+            }
+        } finally {
+            VideoOverlayHider.resolveForTests("view_rootview", 0);
+        }
+    }
+
+    @Test
+    public void nativeClearExitRestoresFollowingStoriesWithoutAnotherLayout() {
+        int storyId = 0x7f0a0b10;
+        VideoOverlayHider.resolveForTests("47.0.3:wq0", storyId);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout root = new FrameLayout(activity);
+            View stories = new View(activity);
+            stories.setId(storyId);
+            root.addView(stories);
+            activity.setContentView(root);
+            VideoOverlayHider.install(activity);
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(true, 0));
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, stories.getVisibility());
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 2));
+            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+            assertEquals(View.VISIBLE, stories.getVisibility());
+        }
+    }
+
+    @Test
+    public void aStoryViewerCoveringTheMainActivityRestoresTheStoryCount() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout root = new FrameLayout(activity);
+            View stories = new View(activity);
+            stories.setId(0x7f0a0b10);
+            root.addView(stories);
+            View viewer = new View(activity);
+            viewer.setId(0x7f0a0b13);
+            viewer.setVisibility(View.GONE);
+            root.addView(viewer, new FrameLayout.LayoutParams(400, 600));
+            activity.setContentView(root);
+            VideoOverlayHider.resolveForTests("47.0.3:wq0", stories.getId());
+            app.morphe.extension.tiktok.blockauthor.FeedVisibility.resolveForTests(
+                    activity.getPackageName(), "vp_story_collection", viewer.getId());
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(true, 1));
+
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, stories.getVisibility());
+            viewer.setVisibility(View.VISIBLE);
+            assertTrue(app.morphe.extension.tiktok.blockauthor.FeedVisibility.isStoryVisible(activity));
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.VISIBLE, stories.getVisibility());
+            assertEquals(View.VISIBLE, viewer.getVisibility());
+
+            viewer.setVisibility(View.GONE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, stories.getVisibility());
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 1));
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.VISIBLE, stories.getVisibility());
+        }
+    }
+
+    @Test
+    public void pauseRestoresTheClearDisplayChromeAndDetailPagesKeepTheirStoryControls() {
+        int storyId = 0x7f0a0b10;
+        int tabStripId = 0x7f0a0b12;
+        VideoOverlayHider.resolveForTests("47.0.3:wq0", storyId);
+        VideoOverlayHider.resolveForTests("47.0.3:uvy", tabStripId);
+        try (var main = Robolectric.buildActivity(Activity.class).setup();
+             var detail = Robolectric.buildActivity(
+                     com.ss.android.ugc.aweme.detail.ui.DetailActivity.class).setup()) {
+            Utils.setContext(main.get());
+            FrameLayout root = new FrameLayout(main.get());
+            View stories = new View(main.get());
+            stories.setId(storyId);
+            root.addView(stories);
+            View tabs = new View(main.get());
+            tabs.setId(tabStripId);
+            root.addView(tabs);
+            main.get().setContentView(root);
+            View detailStories = new View(detail.get());
+            detailStories.setId(storyId);
+            detail.get().setContentView(detailStories);
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(true, 1));
+
+            VideoOverlayHider.applyTo(main.get());
+            app.morphe.extension.shared.settings.PausedProcess.set(true);
+            VideoOverlayHider.applyTo(main.get());
+            assertEquals(View.VISIBLE, stories.getVisibility());
+            assertEquals(View.VISIBLE, tabs.getVisibility());
+            app.morphe.extension.shared.settings.PausedProcess.set(false);
+            VideoOverlayHider.applyTo(detail.get());
+            assertEquals(View.VISIBLE, detailStories.getVisibility());
+        } finally {
+            app.morphe.extension.shared.settings.PausedProcess.set(false);
+        }
+    }
+
     /**
      * A video opened from a creator's grid plays in TikTok's detail pager, a second activity with
      * the same cell and the same right column ids (#47). The hides follow it there as it comes to
@@ -1106,6 +1254,231 @@ public class VideoOverlayHiderTest {
 
             VideoOverlayHider.setStatusBarHidden(detail.get(), false);
             assertTrue(VideoOverlayHider.rehideAllowed(detailDecor, now));
+        }
+    }
+
+    /**
+     * Clear display has its own bar at the bottom: a close button and a pause and speed pill
+     * over a progress bar (#97). They go only while TikTok shows that bar, because the progress
+     * bar shares its id with the one TikTok draws outside Clear display, and they come back the
+     * moment TikTok takes the bar down, under Pause, or with the switch off.
+     */
+    @Test
+    public void theClearDisplayControlsGoOnlyWhileTikTokShowsThem() {
+        int exitId = 0x7f0a0c01;
+        int playbackId = 0x7f0a0c02;
+        int seekBarId = 0x7f0a0c03;
+        VideoOverlayHider.resolveForTests("47.0.3:e9j", exitId);
+        VideoOverlayHider.resolveForTests("47.0.3:l6h", playbackId);
+        VideoOverlayHider.resolveForTests("video_seek_bar", seekBarId);
+        Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(true);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout root = new FrameLayout(activity);
+            FrameLayout clearBar = new FrameLayout(activity);
+            View exit = new View(activity);
+            exit.setId(exitId);
+            clearBar.addView(exit);
+            LinearLayout playback = new LinearLayout(activity);
+            playback.setId(playbackId);
+            clearBar.addView(playback);
+            root.addView(clearBar);
+            View seekBar = new View(activity);
+            seekBar.setId(seekBarId);
+            root.addView(seekBar);
+            activity.setContentView(root);
+
+            clearBar.setVisibility(View.GONE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the progress bar outside Clear display was taken",
+                    View.VISIBLE, seekBar.getVisibility());
+
+            clearBar.setVisibility(View.VISIBLE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, exit.getVisibility());
+            assertEquals(View.GONE, playback.getVisibility());
+            assertEquals(View.GONE, seekBar.getVisibility());
+
+            // Restore display: TikTok takes its bar down and everything is TikTok's again.
+            clearBar.setVisibility(View.GONE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.VISIBLE, exit.getVisibility());
+            assertEquals(View.VISIBLE, playback.getVisibility());
+            assertEquals(View.VISIBLE, seekBar.getVisibility());
+
+            clearBar.setVisibility(View.VISIBLE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, seekBar.getVisibility());
+            app.morphe.extension.shared.settings.PausedProcess.set(true);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.VISIBLE, exit.getVisibility());
+            assertEquals(View.VISIBLE, seekBar.getVisibility());
+            app.morphe.extension.shared.settings.PausedProcess.set(false);
+
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, playback.getVisibility());
+            Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.VISIBLE, exit.getVisibility());
+            assertEquals(View.VISIBLE, playback.getVisibility());
+            assertEquals(View.VISIBLE, seekBar.getVisibility());
+        } finally {
+            app.morphe.extension.shared.settings.PausedProcess.set(false);
+            Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(false);
+        }
+    }
+
+    /**
+     * A photo post in Clear display has only a close button at the bottom right, inside the
+     * cell, and TikTok takes it and its parent away as Clear display ends. It goes with the other
+     * controls, and when it's put back after TikTok's exit it stays inside the hidden parent,
+     * where it can't be seen or tapped.
+     */
+    @Test
+    public void aPhotoPostsClearDisplayCloseButtonGoesToo() {
+        int photoExitId = 0x7f0a0c04;
+        VideoOverlayHider.resolveForTests("47.0.3:uxv", photoExitId);
+        VideoOverlayHider.resolveForTests("view_rootview", CELL_ID);
+        Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(true);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout root = new FrameLayout(activity);
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(CELL_ID);
+            FrameLayout exitArea = new FrameLayout(activity);
+            RelativeLayout photoExit = new RelativeLayout(activity);
+            photoExit.setId(photoExitId);
+            exitArea.addView(photoExit);
+            cell.addView(exitArea);
+            root.addView(cell);
+            activity.setContentView(root);
+
+            exitArea.setVisibility(View.GONE);
+            photoExit.setVisibility(View.GONE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, photoExit.getVisibility());
+
+            exitArea.setVisibility(View.VISIBLE);
+            photoExit.setVisibility(View.VISIBLE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, photoExit.getVisibility());
+
+            // Restore display: TikTok hides both. Ours comes back inside a parent that stays gone.
+            exitArea.setVisibility(View.GONE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.VISIBLE, photoExit.getVisibility());
+            assertFalse(photoExit.isShown());
+
+            exitArea.setVisibility(View.VISIBLE);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, photoExit.getVisibility());
+            Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertTrue(photoExit.isShown());
+        } finally {
+            Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(false);
+            VideoOverlayHider.resolveForTests("view_rootview", 0);
+        }
+    }
+
+    /**
+     * A window in the default cutout mode is kept below the punch hole while its status bar is
+     * hidden, which left a black strip over opened videos on Android 14 and older (#97). The
+     * window draws behind the cutout while this class has the bar away and gets its own mode
+     * back after. A mode TikTok picked is left as it is.
+     */
+    @Test
+    @Config(sdk = 34)
+    public void aHiddenStatusBarLetsTheVideoUnderTheCutout() {
+        int defaultMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
+        int shortEdges = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        int never = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_NEVER;
+        try (var main = Robolectric.buildActivity(Activity.class).setup();
+             var detail = Robolectric.buildActivity(Activity.class).setup()) {
+            android.view.Window window = detail.get().getWindow();
+            assertEquals(defaultMode, window.getAttributes().layoutInDisplayCutoutMode);
+
+            VideoOverlayHider.setStatusBarHidden(detail.get(), true);
+            assertEquals(shortEdges, window.getAttributes().layoutInDisplayCutoutMode);
+            VideoOverlayHider.setStatusBarHidden(detail.get(), true);
+            assertEquals(shortEdges, window.getAttributes().layoutInDisplayCutoutMode);
+            assertEquals("the other window was changed", defaultMode,
+                    main.get().getWindow().getAttributes().layoutInDisplayCutoutMode);
+
+            // A page change puts the default back while the bar is still away.
+            android.view.WindowManager.LayoutParams attributes = window.getAttributes();
+            attributes.layoutInDisplayCutoutMode = defaultMode;
+            window.setAttributes(attributes);
+            VideoOverlayHider.setStatusBarHidden(detail.get(), true);
+            assertEquals(shortEdges, window.getAttributes().layoutInDisplayCutoutMode);
+
+            VideoOverlayHider.setStatusBarHidden(detail.get(), false);
+            assertEquals(defaultMode, window.getAttributes().layoutInDisplayCutoutMode);
+
+            attributes = window.getAttributes();
+            attributes.layoutInDisplayCutoutMode = never;
+            window.setAttributes(attributes);
+            VideoOverlayHider.setStatusBarHidden(detail.get(), true);
+            assertEquals(never, window.getAttributes().layoutInDisplayCutoutMode);
+            VideoOverlayHider.setStatusBarHidden(detail.get(), false);
+            assertEquals(never, window.getAttributes().layoutInDisplayCutoutMode);
+        }
+    }
+
+    /**
+     * On a tall screen TikTok keeps a blank as tall as the status bar above the video. With the
+     * bar hidden that blank was a black strip over every video (#97), so it goes with the bar and
+     * comes back, invisible as TikTok left it, when the switch is off.
+     */
+    @Test
+    public void theBlankAboveTheVideoGoesWithTheStatusBar() {
+        int spacerId = 0x7f0a0c11;
+        VideoOverlayHider.resolveForTests("47.0.3:duc", spacerId);
+        VideoOverlayHider.resolveForTests("view_rootview", CELL_ID);
+        Settings.HIDE_STATUS_BAR.save(true);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            FrameLayout root = new FrameLayout(activity);
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(CELL_ID);
+            LinearLayout area = new LinearLayout(activity);
+            area.setOrientation(LinearLayout.VERTICAL);
+            View spacer = new View(activity);
+            spacer.setId(spacerId);
+            spacer.setVisibility(View.INVISIBLE);
+            area.addView(spacer, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, 136));
+            area.addView(new View(activity), new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f));
+            cell.addView(area);
+            root.addView(cell);
+            activity.setContentView(root);
+
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.GONE, spacer.getVisibility());
+
+            Settings.HIDE_STATUS_BAR.save(false);
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.INVISIBLE, spacer.getVisibility());
+        } finally {
+            Settings.HIDE_STATUS_BAR.save(false);
+            VideoOverlayHider.resolveForTests("view_rootview", 0);
+        }
+    }
+
+    /** Android 15 already draws TikTok's default-mode windows behind the cutout. */
+    @Test
+    @Config(sdk = 35)
+    public void theCutoutModeIsLeftAloneOnAndroid15AndUp() {
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            android.view.Window window = controller.get().getWindow();
+            int before = window.getAttributes().layoutInDisplayCutoutMode;
+            VideoOverlayHider.setStatusBarHidden(controller.get(), true);
+            assertEquals(before, window.getAttributes().layoutInDisplayCutoutMode);
+            VideoOverlayHider.setStatusBarHidden(controller.get(), false);
+            assertEquals(before, window.getAttributes().layoutInDisplayCutoutMode);
         }
     }
 }

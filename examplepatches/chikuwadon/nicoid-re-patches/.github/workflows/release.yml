@@ -58,6 +58,10 @@ jobs:
         run: |
           javac -d /tmp/nicoid-cookie-tests extensions/extension/src/main/java/e/e/a/ManualCookie.java porting/tests/ManualCookieTest.java
           java -cp /tmp/nicoid-cookie-tests e.e.a.ManualCookieTest
+      - name: Check theme selection policies
+        run: |
+          javac -d /tmp/nicoid-theme-tests extensions/extension/src/main/java/e/e/a/ThemeRules.java porting/tests/ThemeRulesTest.java
+          java -cp /tmp/nicoid-theme-tests e.e.a.ThemeRulesTest
       - name: Validate bundled Android manifest
         run: python3 porting/tests/VerifyManifest.py patches/src/main/resources/nicoid/resources.zip
       - name: Install dependencies

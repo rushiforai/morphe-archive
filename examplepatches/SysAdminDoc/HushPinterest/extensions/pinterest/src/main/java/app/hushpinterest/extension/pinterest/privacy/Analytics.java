@@ -64,10 +64,21 @@ public final class Analytics {
         return true;
     }
 
-    /** Injected only into AppsFlyer's transport, including a tracker already started before a toggle. */
+    /** Injected only into AppsFlyer's and Bugsnag's transports, including a tracker already started before a toggle. */
     public static URLConnection openConnection(URL url) throws IOException {
         if (!blockUpload()) return url.openConnection();
         return new QuietConnection(url);
+    }
+
+    /**
+     * Placed between the Engage client's service read and its null test. A null answer takes the
+     * SDK's own "service not found" refusal, the same path a device without Engage takes.
+     */
+    public static Object engageService(Object service) {
+        HookStatus.invoked(FamilyNames.DISABLE_ANALYTICS);
+        if (service == null || !active()) return service;
+        HookStatus.counted(FamilyNames.DISABLE_ANALYTICS, "Google Engage call refused");
+        return null;
     }
 
     /** A completed local response lets SDK callbacks finish without scheduling network retries. */

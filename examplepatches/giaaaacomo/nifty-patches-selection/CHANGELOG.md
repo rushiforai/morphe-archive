@@ -1,3 +1,15 @@
+## [0.3.1](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.3.0...v0.3.1) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **samsung:** load the packaged extension directly ([#18](https://github.com/giaaaacomo/nifty-patches-selection/issues/18)) ([e7d72ef](https://github.com/giaaaacomo/nifty-patches-selection/commit/e7d72ef95b21bdb41b8f65dcf5a00f2fe0da937c))
+
+## [0.3.1-dev.1](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.3.0...v0.3.1-dev.1) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **samsung:** load the packaged extension directly ([#18](https://github.com/giaaaacomo/nifty-patches-selection/issues/18)) ([e7d72ef](https://github.com/giaaaacomo/nifty-patches-selection/commit/e7d72ef95b21bdb41b8f65dcf5a00f2fe0da937c))
+
 ## [0.3.0](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.2.5...v0.3.0) (2026-06-29)
 
 ### ✨ New Features

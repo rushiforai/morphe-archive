@@ -133,6 +133,7 @@ Importing settings	Importando as configurações
 Licenses	Licenças
 Link expired. Reopen the item and try again	Link expirado. Reabra o item e tente novamente
 Links	Links
+Privacy	Privacidade
 Material You theme	Tema Material You
 News feed	Feed de notícias
 No screenshot watching for ads, and no reports of which apps you install.	Sem monitoramento de capturas de tela de anúncios e sem relatórios sobre quais aplicativos você instala.
@@ -239,7 +240,7 @@ There's no diagnostic data to put back.	Não há dados de diagnóstico para rest
 They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	Eles são escolhidos no Morphe Manager quando você aplica os patches, e a pausa não os desativa. Aplique os patches novamente para alterá-los.
 This phone has no file picker, so there's no way to choose a file here.	Este dispositivo não tem seletor de arquivos, então não é possível escolher um arquivo aqui.
 Try again, or go back to Facebook.	Tente novamente ou volte para o Facebook.
-The switch takes effect when Facebook restarts.	A opção entra em vigor quando o Facebook for reiniciado.
+A change shows the next time you pull down to refresh.	A mudança aparece na próxima vez que você puxar para baixo para atualizar.
 Use the system font	Usar a fonte do sistema
 Use the phone's emoji	Usar os emojis do celular
 Version	Versão
@@ -292,6 +293,12 @@ Stop update prompts	Parar os avisos de atualização
 Facebook stops asking you to update through Meta App Manager and stops having it look for one. Chat promotions aimed at older versions go too. A patched build can't install Meta's updates anyway.	O Facebook deixa de pedir atualizações pelo Meta App Manager e de fazê-lo procurar por elas. As promoções de chat destinadas a versões antigas também desaparecem. Uma versão com patch não consegue instalar as atualizações da Meta de qualquer forma.
 Reels and Watch videos that Facebook's own detection marks as made with AI, starting with the next batch Facebook loads. One that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real account yet.	Reels e vídeos do Watch que a detecção do próprio Facebook marca como gerados por IA, a partir do próximo lote carregado pelo Facebook. Um vídeo que apenas o autor marcou como IA continua aparecendo. Esta opção vem desativada por padrão porque ainda não foi testada com uma conta real.
 Don't send reel watch history	Não enviar o histórico de Reels assistidos
+Hold back analytics uploads	Segurar envios de análises
+Facebook stops uploading its app analytics in the background and skips its on-device learning jobs. Restart Facebook after changing it.	O Facebook para de enviar as análises do app em segundo plano e pula as tarefas de aprendizado no aparelho. Reinicie o Facebook depois de mudar isso.
+Allow screenshots	Permitir capturas de tela
+Screenshots and screen recordings show the pages Facebook blocks them on. A page that's already open changes when you open it again.	Capturas e gravações de tela mostram as páginas em que o Facebook as bloqueia. Uma página que já está aberta muda quando você a abre de novo.
+Block screenshot detection	Bloquear a detecção de capturas
+Facebook doesn't notice when you take a screenshot or record the screen, so nothing it does in response happens.	O Facebook não percebe quando você tira uma captura ou grava a tela, então nada do que ele faria em resposta acontece.
 Stop sending watched-reel lists to Facebook. It uses them to rank your feed, so watched reels may return.	Deixa de enviar ao Facebook as listas de Reels assistidos. Ele as usa para classificar seu feed, então Reels já assistidos podem voltar a aparecer.
 the rename of the shared permissions	a renomeação das permissões compartilhadas
 Room for Meta's apps	Espaço para os apps da Meta
@@ -363,11 +370,15 @@ Block "People you may know"	Bloquear “Pessoas que você talvez conheça”
 Friend suggestions stop showing up in your notifications. Friend requests still come through.	As sugestões de amizade deixam de aparecer nas notificações. As solicitações de amizade continuam chegando.
 Block nearby and weather notifications	Bloquear notificações de lugares próximos e do tempo
 Alerts about places near you and about the weather stop.	Alertas sobre lugares próximos e sobre o clima deixam de aparecer.
+Block account setup reminders	Bloquear lembretes de configuração da conta
+Reminders to finish setting up a Facebook account stop. Login and security alerts still come through.	Os lembretes para terminar de configurar uma conta do Facebook deixam de aparecer. Alertas de login e de segurança continuam chegando.
 What always comes through	O que sempre chega
 Messages, friend requests, comments, mentions, calls and login alerts, and any kind Hushfacebook doesn't know. Android's own settings for Facebook's notification categories work too, since Facebook drops a notification whose category you turned off. Facebook's server decides which categories you get, though, so they may not split these kinds out.	Mensagens, solicitações de amizade, comentários, menções, chamadas e alertas de login, além de qualquer tipo de notificação que o Hushfacebook não conheça. As configurações do Android para as categorias de notificação do Facebook também funcionam, pois o Facebook descarta uma notificação cuja categoria você desativou. No entanto, o servidor do Facebook decide quais categorias você recebe, então esses tipos podem não aparecer separados.
 Hide suggested stories	Ocultar Stories sugeridos
 Keep friends and followed Pages in the Stories tray. Applies when Facebook next loads the tray.	Mantém amigos e Páginas que você segue na bandeja de Stories. A alteração será aplicada na próxima vez que o Facebook carregar a bandeja.
 Hide sponsored Marketplace listings	Ocultar anúncios patrocinados do Marketplace
+Block Instant Games ads	Bloquear anúncios do Instant Games
+Games you play in Facebook get no ads. A game asking for one hears there's none to show, so rewarded ads give no reward.	Os jogos que você joga no Facebook não recebem anúncios. Quando um jogo pede um, ele fica sabendo que não há nenhum, então anúncios com recompensa não dão recompensa.
 Ads and boosted listings in Marketplace's feed and search results. The other listings stay.	Propagandas e anúncios impulsionados no feed e nos resultados de busca do Marketplace. Os demais anúncios permanecem.
 Hide posts with words you choose	Ocultar publicações com palavras que você escolher
 Posts whose text has a word or phrase from your list below. A post with a word from your keep list stays, and so does a post with no text. Your words only leave the phone in a settings file you export.	Publicações cujo texto contém uma palavra ou frase da lista abaixo. Uma publicação com uma palavra da lista para manter permanece, assim como uma publicação sem texto. Suas palavras só saem do dispositivo em um arquivo de configurações que você exportar.
@@ -400,8 +411,10 @@ Writing	Escrita
 Tag suggestions only after @	Sugestões de marcação só depois de @
 Type @ before Facebook suggests someone to tag in posts or comments. Your text stays unchanged.	Digite @ para o Facebook sugerir quem marcar em publicações ou comentários. Seu texto não é alterado.
 Resume long videos	Retomar vídeos longos
-Resume videos over two minutes where you left off. Seek to start elsewhere. Reels, live videos and ads start as usual.	Retoma vídeos com mais de dois minutos de onde você parou. Arraste a barra de progresso para começar em outro ponto. Reels, vídeos ao vivo e anúncios começam normalmente.
+Resume videos over two minutes where you left off, in the feed or full screen. Seek to start elsewhere. Short reels, live videos and ads start as usual.	Retoma vídeos com mais de dois minutos de onde você parou, no feed ou em tela cheia. Arraste a barra de progresso para começar em outro ponto. Reels curtos, vídeos ao vivo e anúncios começam normalmente.
 Also hide posts labelled as AI	Ocultar também publicações marcadas como IA
+Hide Meta AI in the feed	Ocultar a Meta AI no feed
+The Meta AI cards Facebook adds to the feed between posts. People's posts stay, whatever they say about AI.	Os cartões da Meta AI que o Facebook coloca no feed entre as publicações. As publicações das pessoas ficam, não importa o que digam sobre IA.
 Posts whose creator marked them as made with AI. Facebook puts its AI label next to the name on these as well as on the posts its detection found, and with this on, both kinds go. It's off by default because it hasn't been tested on a real feed yet.	Publicações que o autor marcou como geradas por IA. O Facebook coloca o rótulo de IA ao lado do nome nessas publicações e também nas que a detecção dele encontrou, e com esta opção ativada os dois tipos são ocultados. Esta opção vem desativada por padrão porque ainda não foi testada em um feed real.
 Return to regular Facebook	Voltar ao Facebook normal
 Restore the normal tabs at the next restart. Your other settings stay saved.	Restaura as abas normais ao reiniciar. Suas outras configurações são mantidas.
@@ -535,6 +548,14 @@ answered	respondeu
 failed (%1$s)	falhou (%1$s)
 # context: switch title under Reels and Watch; the dot is the tab bar's new-item badge
 Hide the Reels tab dot	Ocultar o ponto da aba Reels
+Hide the Feeds tab	Ocultar a aba Feeds
+Hide the Friends tab	Ocultar a aba Amigos
+Hide the Marketplace tab	Ocultar a aba Marketplace
+Hide the Groups tab	Ocultar a aba Grupos
+Hide the Gaming tab	Ocultar a aba Jogos
+Hide the Events tab	Ocultar a aba Eventos
+Takes the tab off the tab bar. Its page stays in the Menu. Restart Facebook after changing it.	Tira a aba da barra de abas. A página dela continua no Menu. Reinicie o Facebook depois de mudar.
+Facebook opens on Home while Hide tabs keeps %1$s off the tab bar. Your choice stays saved.	O Facebook abre no Início enquanto Ocultar abas mantém %1$s fora da barra de abas. Sua escolha continua salva.
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Sem ponto nem contagem de novidades na aba Reels, chamada Vídeo em algumas contas. As outras abas mantêm os seus.
 # context: title of the overview row under the status card when the build lacks one patch Morphe Manager selects by default
@@ -639,6 +660,7 @@ The Feeds tab will open on %1$s.	A aba Feeds vai abrir em %1$s.
 Saved	Salvos
 Saved shortcut	Atalho para Salvos
 Adds Saved to Facebook's icon menu when there's room. Existing shortcuts stay.	Adiciona Salvos ao menu do ícone do Facebook quando há espaço. Os atalhos existentes ficam.
+Adds Saved to Facebook's icon menu when there's room, and a Saved row at the end of Settings and privacy in the Menu. Existing shortcuts stay.	Adiciona Salvos ao menu do ícone do Facebook quando há espaço, e uma linha Salvos no fim de Configurações e privacidade no Menu. Os atalhos existentes ficam.
 Your launcher has no room for another shortcut.	Seu launcher não tem espaço para outro atalho.
 Saved isn't available in this build.	Salvos não está disponível nesta versão.
 # context: The optional matching mode for both post word lists.
@@ -654,3 +676,15 @@ Build %1$s (modified)	Build %1$s (modificada)
 Build %1$s (source known)	Build %1$s (origem conhecida)
 Build %1$s (source unknown)	Build %1$s (origem desconhecida)
 Tap Resume, then restart Facebook.	Toque em Retomar e reinicie o Facebook.
+Turn off haptics	Desativar a vibração tátil
+No short vibrations on Facebook's own taps and gestures. The keyboard and your phone's own haptics stay.	Sem vibrações curtas nos toques e gestos do próprio Facebook. O teclado e a vibração tátil do seu celular continuam.
+Turn off screen transitions	Desativar as transições de tela
+Tabs, the Menu and screens that open over Facebook show at once, without the slide between them. Swiping between tabs stays.	As abas, o Menu e as telas que abrem sobre o Facebook aparecem na hora, sem o deslize entre elas. Deslizar entre as abas continua.
+# context: switch title under Playback; Android's own name for the floating video window
+Picture-in-picture	Picture-in-picture
+# context: summary of that switch
+A playing reel keeps going in a small window when you leave Facebook. Android 12 or later.	Um reel em reprodução continua em uma janela pequena quando você sai do Facebook. Android 12 ou mais recente.
+# context: switch title under Playback; HDR is the high-contrast video and photo format some screens show brighter than everything else
+Turn off HDR brightness	Desativar o brilho HDR
+# context: summary of that switch
+HDR videos and photos stay at your screen's usual brightness instead of turning it up to full. They keep their resolution.	Vídeos e fotos HDR ficam no brilho de sempre da sua tela em vez de aumentá-lo ao máximo. Eles mantêm a resolução.

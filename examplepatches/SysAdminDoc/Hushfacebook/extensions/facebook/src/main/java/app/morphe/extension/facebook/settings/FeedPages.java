@@ -130,7 +130,7 @@ final class FeedPages {
                 // one of them. The hook is asked then and not again, so a change waits for a restart.
                 feed.addPreference(toggle(context, Settings.HIDE_TOP_STORIES_TRAY,
                         L10n.t("The row of stories at the top of the feed, Create story included.") + " "
-                                + L10n.t("The switch takes effect when Facebook restarts.")));
+                                + L10n.t("A change shows the next time you pull down to refresh.")));
                 feed.addPreference(toggle(context, Settings.HIDE_STORIES_BETWEEN_POSTS,
                         L10n.t("Rows, large tiles and viewers of Stories between posts, starting with the next "
                                 + "feed Facebook loads. The top Stories tray has its own switch.")));
@@ -177,6 +177,9 @@ final class FeedPages {
                                 + "the name on these as well as on the posts its detection found, and with this on, "
                                 + "both kinds go. It's off by default because it hasn't been tested on a real feed "
                                 + "yet.")));
+                feed.addPreference(toggle(context, Settings.HIDE_META_AI_FEED_UNITS,
+                        L10n.t("The Meta AI cards Facebook adds to the feed between posts. People's posts stay, "
+                                + "whatever they say about AI.")));
             }
             if (build.contains(PatchFamily.POST_WORDS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_POSTS_WITH_WORDS,

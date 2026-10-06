@@ -287,6 +287,12 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
             }
         }
 
+        if (build.contains(PatchFamily.PURE_BLACK)) {
+            PreferenceCategory appearance = category(screen, L10n.t("Appearance"));
+            appearance.addPreference(toggle(context, Settings.PURE_BLACK, L10n.t("Pure black dark mode"),
+                    L10n.t("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.")));
+        }
+
         // In every build: Android checks Threads' links against Meta's signing key, which no
         // re-signed build has, whatever its patches.
         PreferenceCategory links = category(screen, L10n.t("Links"));

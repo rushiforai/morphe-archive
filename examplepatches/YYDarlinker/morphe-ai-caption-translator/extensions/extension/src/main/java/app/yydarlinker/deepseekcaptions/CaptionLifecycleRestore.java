@@ -56,7 +56,7 @@ final class CaptionLifecycleRestore {
                         CaptionDiagnostics.mark(
                                 activity,
                                 "LIFECYCLE_CAPTION_RESTORE_ARMED",
-                                "播放器恢复，短时保护当前 AI 字幕轨"
+                                "Player resumed; temporarily protecting the current AI caption track"
                         );
                     }
                     pausedWithVisibleAi = false;
@@ -97,7 +97,8 @@ final class CaptionLifecycleRestore {
             CaptionDiagnostics.mark(
                     activity,
                     "PLAYER_TRANSITION_CAPTION_GUARD",
-                    "播放器形态切换，锁定当前 AI 字幕轨，忽略瞬时原生字幕回写"
+                    "Player layout transition; holding the current AI caption track and ignoring transient native-caption updates",
+                    CaptionCredentialRef.NONE
             );
         }
     }

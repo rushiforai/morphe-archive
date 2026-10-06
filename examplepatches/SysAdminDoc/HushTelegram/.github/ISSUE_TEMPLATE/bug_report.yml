@@ -17,7 +17,7 @@ body:
     attributes:
       label: HushTelegram and Telegram versions
       description: Long-press the Telegram icon and tap HushTelegram, or open Telegram's App info page and tap Additional settings in the app. Then open More settings, then About, and copy the Version line.
-      placeholder: HushTelegram 0.0.8 on Telegram 12.10.6
+      placeholder: HushTelegram 0.0.9 on Telegram 12.10.6
     validations:
       required: true
   - type: input
@@ -41,7 +41,7 @@ body:
     attributes:
       label: Its version
       description: Morphe Manager shows its version in its own settings. If you picked "Something else", name the program too.
-      placeholder: Morphe Manager 1.33.0
+      placeholder: Morphe Manager 1.34.0
     validations:
       required: true
   - type: dropdown

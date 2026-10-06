@@ -20,7 +20,7 @@ if (-not $Root) { $Root = Split-Path -Parent $PSScriptRoot }
 $Java = Resolve-Java -Explicit $Java
 if (-not $FixtureDir) { $FixtureDir = $env:HUSHTELEGRAM_FIXTURE_DIR }
 if (-not $FixtureDir) { $FixtureDir = Join-Path $Root 'fixtures' }
-$fixtures = @('telegram-web-12.10.6-71129.apk', 'telegram-beta-12.10.7-71159.apk') |
+$fixtures = @('telegram-web-12.10.6-71129.apk', 'telegram-beta-12.10.7-71179.apk') |
     ForEach-Object { Join-Path $FixtureDir $_ }
 foreach ($fixturePath in $fixtures) {
     if (-not (Test-Path -LiteralPath $fixturePath -PathType Leaf)) { throw "Missing read-only native fixture: $fixturePath" }

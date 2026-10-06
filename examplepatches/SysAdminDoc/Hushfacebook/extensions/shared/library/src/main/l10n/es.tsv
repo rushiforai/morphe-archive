@@ -133,6 +133,7 @@ Importing settings	Importando la configuración
 Licenses	Licencias
 Link expired. Reopen the item and try again	El enlace expiró. Vuelve a abrir el contenido e inténtalo de nuevo
 Links	Enlaces
+Privacy	Privacidad
 Material You theme	Tema Material You
 News feed	Feed
 No screenshot watching for ads, and no reports of which apps you install.	Sin vigilancia de capturas de pantalla para anuncios ni informes sobre las apps que instalas.
@@ -246,7 +247,7 @@ There's no diagnostic data to put back.	No hay datos de diagnóstico que restaur
 They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	Se eligen en Morphe Manager al parchear, y Pausar no los desactiva. Vuelve a parchear para cambiarlos.
 This phone has no file picker, so there's no way to choose a file here.	Este teléfono no tiene selector de archivos, así que aquí no hay forma de elegir un archivo.
 Try again, or go back to Facebook.	Inténtalo de nuevo o vuelve a Facebook.
-The switch takes effect when Facebook restarts.	El interruptor surte efecto cuando Facebook se reinicie.
+A change shows the next time you pull down to refresh.	El cambio se ve la próxima vez que deslices hacia abajo para actualizar.
 Use the system font	Usar la fuente del sistema
 Use the phone's emoji	Usar los emojis del teléfono
 Version	Versión
@@ -299,6 +300,12 @@ Stop update prompts	Detener los avisos de actualización
 Facebook stops asking you to update through Meta App Manager and stops having it look for one. Chat promotions aimed at older versions go too. A patched build can't install Meta's updates anyway.	Facebook deja de pedirte que actualices a través de Meta App Manager y deja de hacer que busque una actualización. Las promociones de chat dirigidas a versiones antiguas también desaparecen. Una versión parcheada no puede instalar las actualizaciones de Meta de todos modos.
 Reels and Watch videos that Facebook's own detection marks as made with AI, starting with the next batch Facebook loads. One that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real account yet.	Reels y videos de Watch que la detección propia de Facebook marca como creados con IA, a partir de la próxima tanda que cargue Facebook. Uno que solo su autor etiquetó como IA se mantiene. Este interruptor viene desactivado porque todavía no se probó con una cuenta real.
 Don't send reel watch history	No enviar el historial de reels vistos
+Hold back analytics uploads	Retener las subidas de analíticas
+Facebook stops uploading its app analytics in the background and skips its on-device learning jobs. Restart Facebook after changing it.	Facebook deja de subir sus analíticas de la app en segundo plano y omite sus tareas de aprendizaje en el dispositivo. Reinicia Facebook después de cambiarlo.
+Allow screenshots	Permitir capturas de pantalla
+Screenshots and screen recordings show the pages Facebook blocks them on. A page that's already open changes when you open it again.	Las capturas y grabaciones de pantalla muestran las páginas en las que Facebook las bloquea. Una página que ya está abierta cambia cuando la vuelves a abrir.
+Block screenshot detection	Bloquear la detección de capturas
+Facebook doesn't notice when you take a screenshot or record the screen, so nothing it does in response happens.	Facebook no nota cuando haces una captura o grabas la pantalla, así que no pasa nada de lo que haría en respuesta.
 Stop sending watched-reel lists to Facebook. It uses them to rank your feed, so watched reels may return.	Deja de enviar listas de reels vistos a Facebook. Las usa para ordenar tu feed, así que pueden repetirse reels.
 the rename of the shared permissions	el cambio de nombre de los permisos compartidos
 Room for Meta's apps	Espacio para las apps de Meta
@@ -429,6 +436,8 @@ Friend suggestions stop showing up in your notifications. Friend requests still 
 Block nearby and weather notifications	Bloquear notificaciones de lugares cercanos y del clima
 # context: summary of that switch
 Alerts about places near you and about the weather stop.	Dejan de llegar los avisos sobre lugares cercanos y sobre el clima.
+Block account setup reminders	Bloquear recordatorios de configuración de la cuenta
+Reminders to finish setting up a Facebook account stop. Login and security alerts still come through.	Dejan de llegar los recordatorios para terminar de configurar una cuenta de Facebook. Las alertas de inicio de sesión y de seguridad siguen llegando.
 # context: title of a note under Notifications, below the switches; what no switch there blocks
 What always comes through	Lo que siempre llega
 # context: text of that note; Android's own settings are the phone's per-app notification categories, which Facebook's server defines
@@ -439,6 +448,8 @@ Hide suggested stories	Ocultar historias sugeridas
 Keep friends and followed Pages in the Stories tray. Applies when Facebook next loads the tray.	Mantén amigos y páginas seguidas en la bandeja de historias. Se aplica cuando Facebook vuelve a cargarla.
 # context: switch title under Marketplace; the ads Facebook puts between the things people sell in Marketplace's feed
 Hide sponsored Marketplace listings	Ocultar artículos publicitarios de Marketplace
+Block Instant Games ads	Bloquear anuncios de Instant Games
+Games you play in Facebook get no ads. A game asking for one hears there's none to show, so rewarded ads give no reward.	Los juegos que juegas en Facebook no reciben anuncios. Si un juego pide uno, se le dice que no hay ninguno, así que los anuncios con recompensa no dan recompensa.
 # context: summary of that switch; a boosted listing is one its seller paid Facebook to show to more people
 Ads and boosted listings in Marketplace's feed and search results. The other listings stay.	Anuncios y artículos promocionados en el feed y en los resultados de búsqueda de Marketplace. Los demás artículos se quedan.
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
@@ -498,9 +509,11 @@ Type @ before Facebook suggests someone to tag in posts or comments. Your text s
 # context: switch title under Playback; on, a long video you left partway starts again where you left it
 Resume long videos	Reanudar videos largos
 # context: summary of that switch; the seek bar is the bar under a video you drag to move through it; Reels is Facebook's name for its short videos
-Resume videos over two minutes where you left off. Seek to start elsewhere. Reels, live videos and ads start as usual.	Reanuda vídeos de más de dos minutos donde los dejaste. Usa la barra para cambiar el inicio. Reels, directos y anuncios empiezan como siempre.
+Resume videos over two minutes where you left off, in the feed or full screen. Seek to start elsewhere. Short reels, live videos and ads start as usual.	Reanuda vídeos de más de dos minutos donde los dejaste, en el feed o a pantalla completa. Usa la barra para cambiar el inicio. Reels cortos, directos y anuncios empiezan como siempre.
 # context: switch title under News feed, right below Hide AI-detected posts; on, posts their creator labelled as AI go too
 Also hide posts labelled as AI	Ocultar también publicaciones etiquetadas como IA
+Hide Meta AI in the feed	Ocultar Meta AI en el feed
+The Meta AI cards Facebook adds to the feed between posts. People's posts stay, whatever they say about AI.	Las tarjetas de Meta AI que Facebook añade al feed entre publicaciones. Las publicaciones de las personas se quedan, digan lo que digan sobre la IA.
 # context: summary of that switch; the AI label is the one Facebook shows next to the poster's name on such posts
 Posts whose creator marked them as made with AI. Facebook puts its AI label next to the name on these as well as on the posts its detection found, and with this on, both kinds go. It's off by default because it hasn't been tested on a real feed yet.	Publicaciones que su autor marcó como creadas con IA. Facebook pone su etiqueta de IA junto al nombre en estas y también en las que encontró su propia detección, y con este interruptor activado se ocultan las dos. Viene desactivado porque todavía no se probó en un feed real.
 Return to regular Facebook	Volver a Facebook normal
@@ -641,6 +654,14 @@ answered	respondió
 failed (%1$s)	falló (%1$s)
 # context: switch title under Reels and Watch; the dot is the tab bar's new-item badge
 Hide the Reels tab dot	Ocultar el punto de la pestaña Reels
+Hide the Feeds tab	Ocultar la pestaña Feeds
+Hide the Friends tab	Ocultar la pestaña Amigos
+Hide the Marketplace tab	Ocultar la pestaña Marketplace
+Hide the Groups tab	Ocultar la pestaña Grupos
+Hide the Gaming tab	Ocultar la pestaña Videojuegos
+Hide the Events tab	Ocultar la pestaña Eventos
+Takes the tab off the tab bar. Its page stays in the Menu. Restart Facebook after changing it.	Quita la pestaña de la barra de pestañas. Su página sigue en el Menú. Reinicia Facebook después de cambiarlo.
+Facebook opens on Home while Hide tabs keeps %1$s off the tab bar. Your choice stays saved.	Facebook se abre en Inicio mientras Ocultar pestañas mantenga %1$s fuera de la barra de pestañas. Tu elección queda guardada.
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Sin punto ni recuento de novedades en la pestaña Reels, llamada Video en algunas cuentas. Las demás pestañas conservan los suyos.
 # context: title of the overview row under the status card when the build lacks one patch Morphe Manager selects by default
@@ -745,6 +766,7 @@ The Feeds tab will open on %1$s.	La pestaña Feeds se abrirá en %1$s.
 Saved	Guardado
 Saved shortcut	Acceso directo a Guardado
 Adds Saved to Facebook's icon menu when there's room. Existing shortcuts stay.	Añade Guardado al menú del icono de Facebook si hay espacio. Los accesos directos existentes se conservan.
+Adds Saved to Facebook's icon menu when there's room, and a Saved row at the end of Settings and privacy in the Menu. Existing shortcuts stay.	Añade Guardado al menú del icono de Facebook si hay espacio, y una fila Guardado al final de Configuración y privacidad en el Menú. Los accesos directos existentes se conservan.
 Your launcher has no room for another shortcut.	Tu lanzador no tiene espacio para otro acceso directo.
 Saved isn't available in this build.	Guardado no está disponible en esta versión.
 # context: The optional matching mode for both post word lists.
@@ -760,3 +782,15 @@ Build %1$s (modified)	Compilación %1$s (modificada)
 Build %1$s (source known)	Compilación %1$s (origen conocido)
 Build %1$s (source unknown)	Compilación %1$s (origen desconocido)
 Tap Resume, then restart Facebook.	Toca Reanudar y luego reinicia Facebook.
+Turn off haptics	Desactivar la vibración háptica
+No short vibrations on Facebook's own taps and gestures. The keyboard and your phone's own haptics stay.	Sin vibraciones cortas en los toques y gestos propios de Facebook. El teclado y la vibración háptica de tu teléfono se mantienen.
+Turn off screen transitions	Desactivar las transiciones de pantalla
+Tabs, the Menu and screens that open over Facebook show at once, without the slide between them. Swiping between tabs stays.	Las pestañas, el menú y las pantallas que se abren sobre Facebook aparecen al instante, sin el deslizamiento entre ellas. Deslizar entre pestañas se mantiene.
+# context: switch title under Playback; Android's own name for the floating video window
+Picture-in-picture	Imagen en imagen
+# context: summary of that switch
+A playing reel keeps going in a small window when you leave Facebook. Android 12 or later.	Un reel en reproducción sigue en una ventana pequeña cuando sales de Facebook. Android 12 o posterior.
+# context: switch title under Playback; HDR is the high-contrast video and photo format some screens show brighter than everything else
+Turn off HDR brightness	Desactivar el brillo HDR
+# context: summary of that switch
+HDR videos and photos stay at your screen's usual brightness instead of turning it up to full. They keep their resolution.	Los vídeos y las fotos HDR se quedan en el brillo habitual de tu pantalla en lugar de subirlo al máximo. Mantienen su resolución.

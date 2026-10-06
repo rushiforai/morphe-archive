@@ -86,6 +86,18 @@ public final class Ads {
     }
 
     /**
+     * Injected at the start of Pinterest's launch step that starts Google's mobile ads SDK. True
+     * returns before it asks for consent or starts the SDK, so Pinterest's own "started" check keeps
+     * every Google ad load idle. Never throws.
+     */
+    public static boolean skipGoogleAds() {
+        HookStatus.invoked(FamilyNames.HIDE_ADS);
+        if (!active()) return false;
+        HookStatus.counted(FamilyNames.HIDE_ADS, "Google ad SDK start skipped");
+        return true;
+    }
+
+    /**
      * Injected at the start of {@code setVisibility} in each view Pinterest only builds for an ad.
      * Returns GONE while the switch is on, so the view stays folded away however often Pinterest
      * shows it again, and the visibility Pinterest asked for otherwise. Never throws.

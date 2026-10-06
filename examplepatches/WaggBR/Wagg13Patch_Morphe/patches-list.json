@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "patches": [
     {
       "name": "Enable Premium",
@@ -29,21 +29,133 @@
       "options": []
     },
     {
-      "name": "Tinder Unlimited Rewind",
-      "description": "Enables unlimited rewinds (only). Every other premium feature depends on Tinder's servers and cannot be unlocked by a patch.",
+      "name": "Hide live room notice",
+      "description": "Removes the 'healthy live streaming' notice shown in every live chat.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
         {
-          "packageName": "com.tinder",
-          "name": "Tinder",
+          "packageName": "com.guochao.faceshow",
+          "name": null,
           "description": null,
           "apkFileType": null,
           "appIconColor": null,
           "signatures": null,
           "targets": [
             {
-              "version": "17.34.1",
+              "version": "3.2.90",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Instants Mod",
+      "description": "Support for posting photos from the gallery to Instants via the gallery icon on the home screen.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch",
+        "BytecodePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.moonshot",
+          "name": "Instagram Instants",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#E1306C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "444.0.0.45.108",
+              "versionCodes": {
+                "ARM64_V8A": 44501396
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Story mention indicator",
+      "description": "Shows an \"@N mention\" pill in the story header when the story mentions someone. Tap it to list and open the mentioned profiles.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.instagram.android",
+          "name": "Instagram",
+          "description": null,
+          "apkFileType": "APKM",
+          "appIconColor": "#FC483C",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "439.0.0.37.89",
+              "versionCodes": {
+                "ARM64_V8A": 384510827
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Tinder Remove Ads",
+      "description": "Remove os anúncios exibidos entre os perfis do deck de swipe.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinder",
+          "name": null,
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Tinder Unlimited Rewind",
+      "description": "Bypasses the paywall check and enables unlimited REWIND on FREE accounts.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.tinder",
+          "name": null,
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": null,
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,
@@ -77,6 +189,34 @@
             },
             {
               "version": "1.4.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock SVIP",
+      "description": "Unlocks SVIP features, blocks purchase flow and Unity Ads.",
+      "default": true,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.guochao.faceshow",
+          "name": null,
+          "description": null,
+          "apkFileType": null,
+          "appIconColor": null,
+          "signatures": null,
+          "targets": [
+            {
+              "version": "3.2.90",
               "versionCodes": null,
               "isExperimental": false,
               "minSdk": null,

@@ -159,6 +159,7 @@ Promoted and AI-labeled pins	Reklamlı ve yapay zeka etiketli pinler
 Promoted pins	Reklamlı pinler
 Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Reklamlı pinler gösterilmeden önce ana akıştan, aramadan, ilgili pinlerden ve panolardan çıkar; yalnızca reklam içeren paneller kapalı kalır.
 ad-only views	yalnızca reklam görünümleri
+Google ad SDK start	Google reklam SDK'sının başlatılması
 promoted pins in lists	listelerdeki reklamlı pinler
 Privacy	Gizlilik
 Pin actions	Pin işlemleri
@@ -172,6 +173,8 @@ Analytics launch tasks	Analiz başlatma görevleri
 Analytics uploads	Analiz veri gönderimi
 Strip link tracking	Bağlantı takibini kaldır
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Kopyalanan ve paylaşılan bağlantılardan bilinen takip parametrelerini kaldırır. Kısa bağlantılar Pinterest tarafından oluşturulduğu gibi kalır.
+Hide advertising ID	Reklam kimliğini gizle
+Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest ve içindeki reklam ve takip kodu, reklam takibi sınırlı olarak tamamı sıfır bir reklam kimliği okur. Reklam kimliğini Android ayarlarından silmişsin gibi olur.
 Download pins	Pinleri indir
 Open links in your browser	Bağlantıları tarayıcında aç
 Open pin Visit links and profile websites in your browser.	Pinlerin Ziyaret et bağlantılarını ve profil web sitelerini tarayıcında aç.
@@ -182,6 +185,7 @@ Hide search history	Arama geçmişini gizle
 Hide navigation buttons	Gezinme düğmelerini gizle
 Hide Create button	Oluştur düğmesini gizle
 Hide Notifications button	Bildirimler düğmesini gizle
+Hide Search button	Ara düğmesini gizle
 Hide header buttons	Başlık düğmelerini gizle
 Filter pin menu	Pin menüsünü filtrele
 Hide collage menu items	Kolaj menü öğelerini gizle
@@ -237,6 +241,12 @@ Pin %s	Pin %s
 Retry download	İndirmeyi yeniden dene
 Starts a new download. Android manages it.	Yeni bir indirme başlatır. Android bunu yönetir.
 Open pin	Pini aç
+Set as wallpaper	Duvar kağıdı yap
+Opens Android's Set as options for this saved image.	Bu kayıtlı görsel için Android'in Farklı ayarla seçeneklerini açar.
+Set as	Farklı ayarla
+Couldn't open Set as. Check Downloads for the saved file.	Farklı ayarla açılamadı. Kayıtlı dosya için İndirilenler'e bak.
+This download isn't a finished image anymore. Check Downloads.	Bu indirme artık tamamlanmış bir görsel değil. İndirilenler'e bak.
+Resume HushPinterest and turn on Download pins to use this.	Bunu kullanmak için HushPinterest'i sürdür ve Pin indirmeyi aç.
 Remove from history	Geçmişten kaldır
 Removes this history entry. Files and active downloads are kept.	Bu geçmiş kaydını kaldırır. Dosyalar ve etkin indirmeler korunur.
 Open Downloads	İndirilenler'i aç
@@ -260,6 +270,10 @@ Only unfinished saves are listed. Check your chosen location before saving again
 Pin saved. Check Pending saves if its history remains.	Pin kaydedildi. Geçmiş kaydı kalırsa Bekleyen kaydetmeler bölümünü kontrol edin.
 Download unavailable	İndirme kullanılamıyor
 Supplied media details	Sağlanan medya ayrıntıları
+Copy media link	Medya bağlantısını kopyala
+Media link	Medya bağlantısı
+Media link copied.	Medya bağlantısı kopyalandı.
+Couldn't copy the media link. Open the pin again and try again.	Medya bağlantısı kopyalanamadı. Pin'i yeniden açıp tekrar dene.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Bu ayrıntılar Pinterest'in sağladığı medya adresinden ve meta verilerden gelir. Dosya incelenmedi.
 Supplied width: %s	Sağlanan genişlik: %s
 Supplied height: %s	Sağlanan yükseklik: %s
@@ -301,12 +315,17 @@ Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still
 Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Son arama satırlarını ve kaydırmalı listeleri sonraki düzen veya görünürlük güncellemesinde gizler. Hesabın arama geçmişini silmez.
 Hides Create in the bottom bar on its next layout.	Alt çubuktaki Oluştur düğmesini sonraki düzen güncellemesinde gizler.
 Hides Notifications in the bottom bar on its next layout.	Alt çubuktaki Bildirimler düğmesini sonraki düzen güncellemesinde gizler.
+Hides Search in the bottom bar on its next layout.	Alt çubuktaki Ara düğmesini sonraki düzen güncellemesinde gizler.
 Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Üst çubuğun sonundaki simgeleri sonraki düzen güncellemesinde gizler. Geri, metin işlemleri ve hesap kontrolleri kullanılabilir kalır.
 Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Kolaja ekle ve Kolajı remiksle öğelerini gizler. Mevcut bir menü değişmez.
 Hides Search image in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Görsel ara öğesini gizler. Mevcut bir menü değişmez.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Pin tanıt öğesini gizler. Mevcut bir menü değişmez.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Pinlerin altındaki yorum panellerini ve önizlemelerini sonraki düzen veya görünürlük güncellemesinde gizler. Kimlerin yorum yapabileceğini değiştirmez.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Yeni oluşturulan isteğe bağlı e-posta doğrulama hatırlatmalarını kapatır. Açık bir hatırlatma değişmez. Doğrulama ve oturum açma kontrolleri geçerliliğini korur.
+Hide save toasts	Kaydetme bildirimlerini gizle
+Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Bir Pin kaydettiğinde artık panona "Kaydedildi" uyarısı ya da oluşturan kişiyi takip etme önerisi çıkmaz. Pin yine kaydedilir.
+Original-quality images	Orijinal kalitede görseller
+Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Pinterest sağladığında büyük boyut yerine orijinal görseli seçer. Daha fazla veri kullanır. Ekrandaki görseller yeniden yüklendiğinde değişir.
 Save media	Medyayı kaydet
 Recent searches autocomplete	Son aramalarda otomatik tamamlama
 Activity alerts	Etkinlik uyarıları

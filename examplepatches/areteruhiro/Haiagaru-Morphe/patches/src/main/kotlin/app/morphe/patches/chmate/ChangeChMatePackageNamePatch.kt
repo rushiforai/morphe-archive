@@ -43,7 +43,7 @@ val changeChMatePackageNamePatch = resourcePatch(
         key = "packageName",
         default = DEFAULT_PACKAGE_NAME,
         title = "Package name",
-        description = "Package name for the separate Haiagaru installation.",
+        description = "Choose a valid Android package name. ChMate's package-dependent startup values are adjusted during patching.",
         required = true,
     ) { value ->
         value != null && value.matches(Regex("^[a-z]\\w*(\\.[a-z]\\w*)+$"))
@@ -73,7 +73,7 @@ val changeChMatePackageNamePatch = resourcePatch(
     dependsOn(bytecodePatch {
         execute {
             val newPackageName = packageNameOption.value!!
-            patchPackageNameLengthInputs()
+            patchPackageNameDerivedObfuscationInputs()
             patchSelfNavigationIntents()
             classDefForEach { classDef ->
                 if (classDef.type.startsWith("Lapp/morphe/extension/")) {
@@ -288,13 +288,25 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchSelfNavigationInt
     }
 }
 
-private fun app.morphe.patcher.patch.BytecodePatchContext.patchPackageNameLengthInputs() {
+/**
+ * ChMate derives obfuscation keys from fixed characters and the length of its
+ * original application ID. Keep those key inputs stable after renaming the
+ * package; ordinary getPackageName() calls remain untouched.
+ */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchPackageNameDerivedObfuscationInputs() {
     classDefForEach { classDef ->
         if (classDef.type.startsWith("Lapp/morphe/extension/")) return@classDefForEach
 
         val mutableClass by lazy { mutableClassDefBy(classDef) }
         classDef.methods.forEach { method ->
             val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            val decodesClassNames = instructions.any { instruction ->
+                val reference = (instruction as? ReferenceInstruction)?.reference
+                    as? MethodReference ?: return@any false
+                reference.definingClass == "Ljava/lang/Class;"
+                    && reference.name == "forName"
+                    && reference.parameterTypes == listOf("Ljava/lang/String;")
+            }
             val matches = instructions.indices.mapNotNull { index ->
                 val packageCall = (instructions[index] as? ReferenceInstruction)?.reference
                     as? MethodReference ?: return@mapNotNull null
@@ -308,23 +320,32 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPackageNameLength
                     ?.takeIf { it.opcode == Opcode.MOVE_RESULT_OBJECT }
                     as? OneRegisterInstruction ?: return@mapNotNull null
                 val resultRegister = moveResult.registerA
-                val feedsLength = instructions.subList(
+                val feedsObfuscationInput = instructions.subList(
                     index + 2,
                     minOf(index + 7, instructions.size),
                 ).any { instruction ->
                     val reference = (instruction as? ReferenceInstruction)?.reference
                         as? MethodReference ?: return@any false
-                    reference.definingClass == "Ljava/lang/String;"
-                        && reference.name == "length"
-                        && reference.returnType == "I"
-                        && reference.parameterTypes.isEmpty()
-                        && when (instruction) {
-                            is FiveRegisterInstruction -> instruction.registerC == resultRegister
-                            is RegisterRangeInstruction -> instruction.startRegister == resultRegister
-                            else -> false
-                        }
+                    if (reference.definingClass != "Ljava/lang/String;") return@any false
+                    val receiverRegister = when (instruction) {
+                        is FiveRegisterInstruction -> instruction.registerC
+                        is RegisterRangeInstruction -> instruction.startRegister
+                        else -> return@any false
+                    }
+                    if (receiverRegister != resultRegister) return@any false
+                    when (reference.name) {
+                        "length" -> reference.returnType == "I"
+                            && reference.parameterTypes.isEmpty()
+                        "codePointAt" -> decodesClassNames
+                            && reference.returnType == "I"
+                            && reference.parameterTypes == listOf("I")
+                        "charAt" -> decodesClassNames
+                            && reference.returnType == "C"
+                            && reference.parameterTypes == listOf("I")
+                        else -> false
+                    }
                 }
-                if (feedsLength) index + 1 to resultRegister else null
+                if (feedsObfuscationInput) index + 1 to resultRegister else null
             }
 
             if (matches.isEmpty()) return@forEach

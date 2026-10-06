@@ -12,7 +12,9 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction22c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableFieldReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.zeldrisho.patches.testing.syntheticMutableMethod
@@ -223,6 +225,19 @@ class MicroGMethodRewriteTest {
                 ImmutableInstruction21c(Opcode.CONST_STRING, 2, ImmutableStringReference("com.google")),
             ),
         )
+        val oauthPackageRead = immutableMethod(
+            "Lo9/a;",
+            "g",
+            listOf("Landroid/content/Context;", "Landroid/os/Bundle;"),
+            instructions = listOf(
+                ImmutableInstruction22c(
+                    Opcode.IGET_OBJECT,
+                    0,
+                    1,
+                    ImmutableFieldReference("Landroid/content/pm/ApplicationInfo;", "packageName", "Ljava/lang/String;"),
+                ),
+            ),
+        )
         val accountType = immutableMethod(
             "Lcom/zing/zalo/ui/backuprestore/drive/ManageGoogleAccountView;",
             "readType",
@@ -264,7 +279,7 @@ class MicroGMethodRewriteTest {
             emptyList(),
         )
         val classes = listOf(
-            classDef("Lo9/a;", binding),
+            classDef("Lo9/a;", binding, oauthPackageRead),
             classDef("Lcom/zing/zalo/ui/backuprestore/drive/ManageGoogleAccountView;", accountType, pickerTwo),
             classDef(syncType, pickerOne, refresh),
             classDef(ZALO_LAUNCHER_CLASS, launcher),
@@ -277,6 +292,13 @@ class MicroGMethodRewriteTest {
         assertEquals(
             listOf(MICROG_PACKAGE, MICROG_ACCOUNT_TYPE),
             strings(mutableClasses.getValue(classes.first()).methods.first()),
+        )
+        val packageReadInstruction = mutableClasses.getValue(classes.first()).methods.last()
+            .implementation!!.instructions.single()
+        assertEquals(Opcode.IGET_OBJECT, packageReadInstruction.opcode)
+        assertEquals(
+            "packageName",
+            ((packageReadInstruction as ReferenceInstruction).reference as com.android.tools.smali.dexlib2.iface.reference.FieldReference).name,
         )
     }
 

@@ -190,3 +190,6 @@ Tap to see which.	Toque para ver quais.
 %1$d default patches aren't in this build	%1$d patches padrão não fazem parte desta versão
 Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Não faz parte desta versão: %1$s. O Morphe Manager o seleciona por padrão. Selecione-o e aplique os patches novamente para ter o que ele faz.
 Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Não fazem parte desta versão: %1$s. O Morphe Manager os seleciona por padrão. Selecione-os e aplique os patches novamente para ter o que eles fazem.
+Appearance	Aparência
+Pure black dark mode	Modo escuro preto puro
+Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	O modo escuro usa preto em vez de cinza-escuro. Ative o modo escuro no Threads para vê-lo.

@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "delivered_date": "2026-10-05",
+  "repository": "E:/Projects/morphe-caption-v2",
+  "source_commit": "6319fd69900b1f08b231b14161713021d0fb616d",
+  "delivery_commit": "6319fd69900b1f08b231b14161713021d0fb616d",
+  "source_anchor": "anchor/n36-6319fd6",
+  "artifacts": [
+    {
+      "kind": "mpp",
+      "path": "E:/Projects/morphe-caption-v2/build/local-test/patches-1.3.5-本地测试包-n36.mpp",
+      "bytes": 1276197,
+      "sha256": "A7F391CC0CC6EB14564C2B8ACAD685C3798AE6B5A2A4A54411E841E71AB5E558"
+    },
+    {
+      "kind": "mpe",
+      "path": "E:/Projects/morphe-caption-v2/build/local-test/extension-1.3.5-本地测试包-n36.mpe",
+      "bytes": 3113144,
+      "sha256": "A8EB1C8D034D9A6CC35F06CD93544BCE445E8E7C6728B66A05E46F76D8E6F1C2"
+    },
+    {
+      "kind": "apk",
+      "path": "E:/Projects/morphe-caption-v2/build/n36-composition-final/YouTube-21.16.256-本地测试包-n36-unsigned.apk",
+      "bytes": 198253159,
+      "sha256": "E13E864FB92044F75359518F81F2BD5856B9E699070BA3A82D00B27131492374"
+    }
+  ],
+  "official_input": {
+    "path": "E:/Projects/morphe-caption-v2/patches-1.45.0.mpp",
+    "bytes": 11039984,
+    "sha256": "DBA660DF61D95131A22242CABE9C44B4B04861B7BA6EBEFFE91C4B3647D55B93"
+  },
+  "host_evidence": {
+    "before": {
+      "root": "E:/Projects/morphe-caption-v2/.verification/n36/host-n35-before",
+      "input": "N35 delivery DEX"
+    },
+    "after": {
+      "root": "E:/Projects/morphe-caption-v2/.verification/n36/host-n36-after-2",
+      "input": "N36 unsigned APK above"
+    }
+  },
+  "protected_packages_unchanged": true,
+  "composition_evidence": "E:/Projects/morphe-caption-v2/.verification/n36/composition-final-01",
+  "final_checks": "E:/Projects/morphe-caption-v2/.verification/n36/final-checks.json",
+  "baseline_n35_completion_head": "013cc93b266b339ad05dea11b1bd29177cbcbffe",
+  "open_issue": "RebuildIntegrationTest.n24BlockedOldFocusStillLeavesTheSecondSlotForTheNewLanding fails only when run in the same JVM as other test classes (expected 2 calls, observed 4); it passes when its class runs alone. No assertion was relaxed to hide it."
+}

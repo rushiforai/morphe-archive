@@ -5,6 +5,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patches.shared.ANDROID_XML_NAMESPACE
 import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.sharedExtensionPatch
 import app.morphe.patches.shared.clearTryBlocks
@@ -12,7 +13,6 @@ import java.io.File
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
-private const val ANDROID_XML_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private const val DEVELOPER_SETTINGS_FRAGMENT = "com.google.android.apps.inputmethod.latin.preference.DeveloperSettingsFragment"
 
 private val gboardSeekBarEnhancementsPatch = bytecodePatch(
@@ -95,6 +95,7 @@ val gboardSettingsMenuPatch = resourcePatch(
         gboardSeekBarEnhancementsPatch,
         gboardCoreIntegrityPatch,
         gboardDecoupleHapticsPatch,
+        gboardModernHapticsPatch,
         gboardAaptWorkaroundPatch,
     )
 
@@ -480,6 +481,16 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
             dependency = Constants.GboardPrefs.KEY_CLIPBOARD_GRID_LAYOUT,
         )
     )
+    clipboardCategory.appendChild(
+        createSeekBar(
+            doc = doc,
+            key = Constants.GboardPrefs.KEY_CLIPBOARD_CHAR_LIMIT,
+            title = "Clip Character Limit",
+            summary = "Maximum characters stored per text clip, in thousands (default: 20k). Restart Gboard to apply",
+            defaultValue = Constants.GboardPrefs.DEFAULT_CLIPBOARD_CHAR_LIMIT_K,
+            max = Constants.GboardPrefs.MAX_CLIPBOARD_CHAR_LIMIT_K,
+        )
+    )
     root.appendChild(clipboardCategory)
 
     // 4. Haptics & Vibration
@@ -493,6 +504,15 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
             key = Constants.GboardPrefs.KEY_DECOUPLE_TOUCH_FEEDBACK,
             title = "Independent Keyboard Vibration",
             summary = "Keep keyboard vibration active even when Android's system Touch feedback and gesture haptics are disabled",
+            defaultValue = "true",
+        )
+    )
+    hapticsCategory.appendChild(
+        createSwitch(
+            doc = doc,
+            key = Constants.GboardPrefs.KEY_MODERN_HAPTICS,
+            title = "Modern Keypress Haptics",
+            summary = "Use Android haptic primitives (crisp tick) for keypresses instead of a plain buzz. Strength slider becomes intensity. Restart Gboard to apply",
             defaultValue = "true",
         )
     )

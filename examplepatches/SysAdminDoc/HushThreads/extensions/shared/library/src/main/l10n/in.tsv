@@ -193,3 +193,6 @@ Tap to see which.	Ketuk untuk melihat yang mana.
 %1$d default patches aren't in this build	%1$d tambalan default tidak ada di build ini
 Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Tidak ada di build ini: %1$s. Morphe Manager memilihnya secara default. Pilih tambalan itu lalu tambal ulang untuk mendapatkan fungsinya.
 Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Tidak ada di build ini: %1$s. Morphe Manager memilihnya secara default. Pilih tambalan itu lalu tambal ulang untuk mendapatkan fungsinya.
+Appearance	Tampilan
+Pure black dark mode	Mode gelap hitam pekat
+Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	Mode gelap memakai warna hitam, bukan abu-abu gelap. Aktifkan mode gelap di Threads untuk melihatnya.

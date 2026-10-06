@@ -11,7 +11,7 @@ object ZArchiverCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5722,
         targets = listOf(
-            AppTarget(version = "1.2.1")
+            AppTarget(version = "1.0.10")
         )
     )
 }

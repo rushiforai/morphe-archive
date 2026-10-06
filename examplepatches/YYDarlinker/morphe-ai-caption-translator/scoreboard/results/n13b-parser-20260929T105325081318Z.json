@@ -1,0 +1,11 @@
+{
+  "production_parser_verified": true,
+  "semantic_blocked": false,
+  "raw_archive": "live-n13b-block17-20260929T105325081318Z.json",
+  "deng_as_reduction_subject": false,
+  "success_criterion_met": false,
+  "repair_issues": [],
+  "subject_predicate_same_event": true,
+  "raw_sha256": "4a677fe635e0cf98da67f1278c48765c4d8ebdfd14e39425758c6ad48e3de95a",
+  "review_risks": 0
+}

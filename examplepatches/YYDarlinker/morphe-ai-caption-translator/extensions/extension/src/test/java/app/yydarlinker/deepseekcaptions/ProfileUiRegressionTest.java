@@ -96,7 +96,7 @@ public class ProfileUiRegressionTest {
     @Test public void confirmedDeleteDiscardsInvalidPendingEditsInsteadOfTrappingTheUser(){
         String b=ApiProfiles.create(a,"B","https://b.example");ApiProfiles.select(a,b);
         DeepSeekTextPreference p=new DeepSeekTextPreference(a);p.setKey(DeepSeekTextPreference.KEY_BASE_URL);
-        EditText input=p.getView(null,new LinearLayout(a)).findViewById(android.R.id.edit);input.setText("unfinished address");
+        EditText input=CaptionEditorIds.editorIn(p.getView(null,new LinearLayout(a)));input.setText("unfinished address");
         open();manage();click("profile_delete");click("profile_confirm_delete");
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(java.time.Duration.ofSeconds(2));
         assertEquals("default",ApiProfiles.active(a));assertFalse(ApiProfiles.list(a).containsKey(b));assertTrue(ApiProfiles.values(a,b).getAll().isEmpty());
@@ -110,19 +110,19 @@ public class ProfileUiRegressionTest {
         assertFalse(a.getSharedPreferences("deepseek_caption_secret",0).contains("api_key_ciphertext"));assertEquals(b,ApiProfiles.active(a));
     }
     @Test public void deletingLegacyPreservesGlobalPreferencesAndCannotResurrectOnRelaunch(){
-        DeepSeekConfig.saveEnabled(a,true);DeepSeekConfig.saveCaptionTextSize(a,20);DeepSeekConfig.saveFlyoutMenuEnabled(a,false);
+        DeepSeekConfig.saveEnabled(a,true);DeepSeekConfig.saveCaptionSizeTier(a,3);DeepSeekConfig.saveFlyoutMenuEnabled(a,false);
         DeepSeekConfig.savePrompt(a,"old custom");DeepSeekConfig.saveBaseUrl(a,"https://old.example");
         String b=ApiProfiles.create(a,"B","https://b.example");
         a.getSharedPreferences("deepseek_caption_secret",0).edit().putString("api_key_ciphertext","A").putString("api_key_ciphertext_"+b,"B").apply();
         ApiProfiles.delete(a,"default");
-        assertEquals(b,ApiProfiles.active(a));assertTrue(DeepSeekConfig.enabled(a));assertEquals(15,DeepSeekConfig.load(a).captionTextSize);
+        assertEquals(b,ApiProfiles.active(a));assertTrue(DeepSeekConfig.enabled(a));assertEquals(3,DeepSeekConfig.load(a).captionSizeTier);
         assertFalse(DeepSeekConfig.flyoutMenuEnabled(a));assertFalse(ApiProfiles.values(a,"default").contains("prompt"));
         assertFalse(ApiProfiles.list(a.getApplicationContext()).containsKey("default"));assertTrue(SecureApiKey.hasSavedValue(a));
     }
     @Test public void newProfilePromptIsEditableAndStoredSeparately(){
         String b=ApiProfiles.create(a,"B","https://b.example");ApiProfiles.select(a,b);
         DeepSeekTextPreference p=new DeepSeekTextPreference(a);p.setKey(DeepSeekTextPreference.KEY_PROMPT);
-        EditText editor=p.getView(null,new LinearLayout(a)).findViewById(android.R.id.edit);
+        EditText editor=CaptionEditorIds.editorIn(p.getView(null,new LinearLayout(a)));
         assertEquals(DeepSeekConfig.defaultPrompt(a),editor.getText().toString());assertTrue(editor.isEnabled());assertTrue(editor.isFocusableInTouchMode());
         editor.setText("Keep technical names unchanged.");assertTrue(p.flushProfile());
         assertEquals("Keep technical names unchanged.",ApiProfiles.values(a,b).getString("prompt",""));
@@ -130,8 +130,8 @@ public class ProfileUiRegressionTest {
     }
     @Test public void scrollRecreationCommitsUnsavedPromptAndNeverReusesAnotherPreferenceInstance(){
         DeepSeekTextPreference p=new DeepSeekTextPreference(a);p.setKey(DeepSeekTextPreference.KEY_PROMPT);
-        View old=p.getView(null,new LinearLayout(a));((EditText)old.findViewById(android.R.id.edit)).setText("pending");
-        View fresh=p.getView(null,new LinearLayout(a));assertEquals("pending",((EditText)fresh.findViewById(android.R.id.edit)).getText().toString());
+        View old=p.getView(null,new LinearLayout(a));CaptionEditorIds.editorIn(old).setText("pending");
+        View fresh=p.getView(null,new LinearLayout(a));assertEquals("pending",CaptionEditorIds.editorIn(fresh).getText().toString());
         DeepSeekTextPreference other=new DeepSeekTextPreference(a);other.setKey(DeepSeekTextPreference.KEY_PROMPT);
         assertNotSame(fresh,other.getView(fresh,new LinearLayout(a)));
     }
@@ -161,15 +161,15 @@ public class ProfileUiRegressionTest {
         LinearLayout parent=new LinearLayout(a);View old=p.getView(null,parent);
         ApiProfiles.unregister(p); // Scrolled off the screen: it no longer receives notifications.
         String b=ApiProfiles.create(a,"B","https://b.example");ApiProfiles.select(a,b);ApiProfiles.select(a,"default");
-        ((EditText)old.findViewById(android.R.id.edit)).setText("stale delayed edit");assertTrue(p.flushProfile());
+        CaptionEditorIds.editorIn(old).setText("stale delayed edit");assertTrue(p.flushProfile());
         assertEquals(DeepSeekConfig.defaultPrompt(a),DeepSeekConfig.load(a).prompt);
         View fresh=p.getView(old,parent);assertNotSame(old,fresh);
-        assertEquals(DeepSeekConfig.defaultPrompt(a),((EditText)fresh.findViewById(android.R.id.edit)).getText().toString());
+        assertEquals(DeepSeekConfig.defaultPrompt(a),CaptionEditorIds.editorIn(fresh).getText().toString());
     }
     @Test public void staleFinishedActivityCannotBlockCurrentProfileSwitch(){
         Activity old=Robolectric.buildActivity(Activity.class).setup().get();
         DeepSeekTextPreference p=new DeepSeekTextPreference(old);p.setKey(DeepSeekTextPreference.KEY_BASE_URL);
-        ((EditText)p.getView(null,new LinearLayout(old)).findViewById(android.R.id.edit)).setText("unfinished");old.finish();
+        CaptionEditorIds.editorIn(p.getView(null,new LinearLayout(old))).setText("unfinished");old.finish();
         String b=ApiProfiles.create(a,"B","https://b.example");assertTrue(ApiProfiles.select(a,b));
     }
     @Test public void promptPasteIsNotInterceptedByMorpheBreadcrumbCopy(){
@@ -178,7 +178,7 @@ public class ProfileUiRegressionTest {
     @Test public void inactiveDeleteLeavesCurrentEditorAndSettingsIntact(){
         String b=ApiProfiles.create(a,"B","https://b.example");
         DeepSeekTextPreference p=new DeepSeekTextPreference(a);p.setKey(DeepSeekTextPreference.KEY_PROMPT);
-        EditText input=p.getView(null,new LinearLayout(a)).findViewById(android.R.id.edit);input.setText("editing current");
+        EditText input=CaptionEditorIds.editorIn(p.getView(null,new LinearLayout(a)));input.setText("editing current");
         ApiProfiles.delete(a,b);assertEquals("editing current",input.getText().toString());assertTrue(p.flushProfile());
         assertEquals("editing current",DeepSeekConfig.load(a).prompt);
     }
@@ -188,8 +188,8 @@ public class ProfileUiRegressionTest {
         LinearLayout parent=new LinearLayout(a);View old=p.getView(null,parent);
         Configuration config=new Configuration(a.getResources().getConfiguration());config.setLocales(new LocaleList(Locale.JAPAN));
         a.getResources().updateConfiguration(config,a.getResources().getDisplayMetrics());
-        View fresh=p.getView(old,parent);assertNotSame(old,fresh);
-        assertEquals(DeepSeekConfig.defaultPrompt(a),((EditText)fresh.findViewById(android.R.id.edit)).getText().toString());
+        View fresh=p.getView(old,parent);assertSame(old,fresh);
+        assertEquals(DeepSeekConfig.displayDefaultPrompt(a),CaptionEditorIds.editorIn(fresh).getText().toString());
         assertFalse(ApiProfiles.values(a).contains("prompt"));
     }
 
@@ -219,8 +219,8 @@ public class ProfileUiRegressionTest {
     @Test public void keyboardRelayoutPreservesFocusedEditorEvenWithoutConvertView(){
         LinearLayout parent=new LinearLayout(a);DeepSeekTextPreference p=new DeepSeekTextPreference(a);p.setKey(DeepSeekTextPreference.KEY_PROMPT);
         View row=p.getView(null,parent);parent.addView(row);a.setContentView(parent);
-        EditText editor=row.findViewById(android.R.id.edit);editor.requestFocus();editor.setSelection(3);idle();
-        View rebound=p.getView(null,parent);assertSame(row,rebound);assertSame(editor,rebound.findViewById(android.R.id.edit));
+        EditText editor=CaptionEditorIds.editorIn(row);editor.requestFocus();editor.setSelection(3);idle();
+        View rebound=p.getView(null,parent);assertSame(row,rebound);assertSame(editor,CaptionEditorIds.editorIn(rebound));
         assertTrue(editor.hasFocus());assertEquals(3,editor.getSelectionStart());
         DeepSeekModelPreference model=new DeepSeekModelPreference(a);model.setKey(DeepSeekModelPreference.KEY_MODEL);
         View modelRow=model.getView(null,parent);assertSame(modelRow,model.getView(null,parent));

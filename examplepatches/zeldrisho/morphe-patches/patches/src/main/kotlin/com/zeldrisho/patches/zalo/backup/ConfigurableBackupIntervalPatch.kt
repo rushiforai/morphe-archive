@@ -86,6 +86,12 @@ private fun hasAccountSpecificKey(
         prefixFlowsToKey(instructions, prefixIndex, getterIndex, prefixRegister, keyRegister)
 }
 
+/**
+ * Recognizes a StringBuilder seeded or appended with [prefixRegister] whose string result
+ * reaches [keyRegister]. Scans strictly between the zero-based [prefixIndex] and [getterIndex],
+ * returning false when no supported pattern is found.
+ */
+@Suppress("CyclomaticComplexMethod", "LoopWithTooManyJumpStatements")
 private fun prefixFlowsToKey(
     instructions: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>,
     prefixIndex: Int,
@@ -94,23 +100,34 @@ private fun prefixFlowsToKey(
     keyRegister: Int,
 ): Boolean {
     var builderRegister: Int? = null
-    var prefixAppended = false
+    var prefixInBuilder = false
     for (index in prefixIndex + 1 until getterIndex) {
         val instruction = instructions[index]
+        val constructor = stringBuilderConstructorReference(instruction)
+        if (constructor != null) {
+            val receiver = invokeRegisterAt(instruction, 0)
+            val argument = invokeRegisterAt(instruction, 1)
+            if (argument == prefixRegister) {
+                builderRegister = receiver
+                prefixInBuilder = receiver != null
+            } else if (receiver == builderRegister) {
+                prefixInBuilder = false
+            }
+            continue
+        }
+
         val reference = stringBuilderReference(instruction) ?: continue
         if (isStringAppend(reference)) {
             val receiver = invokeRegisterAt(instruction, 0)
             val argument = invokeRegisterAt(instruction, 1)
-            val resultRegister = moveResultObjectRegister(instructions, index)
-            if (resultRegister != null) {
-                if (argument == prefixRegister) {
-                    prefixAppended = true
-                    builderRegister = resultRegister
-                } else if (prefixAppended && receiver == builderRegister) {
-                    builderRegister = resultRegister
-                }
+            if (argument == prefixRegister) {
+                builderRegister = receiver
+                prefixInBuilder = receiver != null
+            } else if (prefixInBuilder && receiver == builderRegister) {
+                // StringBuilder.append mutates the receiver; its returned builder may be ignored.
+                builderRegister = moveResultObjectRegister(instructions, index) ?: receiver
             }
-        } else if (prefixAppended && isGetterKeyConstruction(
+        } else if (prefixInBuilder && isGetterKeyConstruction(
                 instructions,
                 index,
                 instruction,
@@ -123,6 +140,16 @@ private fun prefixFlowsToKey(
         }
     }
     return false
+}
+
+/** Returns the reference for a direct StringBuilder(String) constructor call, or null otherwise. */
+private fun stringBuilderConstructorReference(instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction): MethodReference? {
+    if (instruction.opcode !in setOf(Opcode.INVOKE_DIRECT, Opcode.INVOKE_DIRECT_RANGE)) return null
+    val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+    return reference?.takeIf {
+        it.definingClass == "Ljava/lang/StringBuilder;" && it.name == "<init>" &&
+            it.parameterTypes == listOf("Ljava/lang/String;") && it.returnType == "V"
+    }
 }
 
 private fun stringBuilderReference(instruction: com.android.tools.smali.dexlib2.iface.instruction.Instruction): MethodReference? {

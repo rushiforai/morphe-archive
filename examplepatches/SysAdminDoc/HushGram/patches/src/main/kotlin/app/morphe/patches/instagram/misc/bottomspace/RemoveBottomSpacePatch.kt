@@ -9,10 +9,10 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -75,8 +75,7 @@ internal class GuessedNavigationBar(val type: String, val name: String, val para
  */
 internal fun BytecodePatchContext.findGuessedNavigationBar(): GuessedNavigationBar {
     val listeners = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(SHOW_NAVIGATION_BAR, NAVIGATION_BAR_NOT_FOUND).forEach { classDef ->
         classDef.methods.filter { it.holdsString(SHOW_NAVIGATION_BAR) && it.holdsString(NAVIGATION_BAR_NOT_FOUND) }
             .forEach { listeners += classDef.type to it }
     }

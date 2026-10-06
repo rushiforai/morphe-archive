@@ -17,6 +17,7 @@ import app.morphe.patches.instagram.misc.extension.parameterRegister
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.extension.requireLocals
 import app.morphe.patches.instagram.misc.extension.requireParameterIntact
+import app.morphe.patches.instagram.misc.extension.typesMarked
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -69,7 +70,9 @@ val cleanUpReelsPatch = bytecodePatch(
 internal fun BytecodePatchContext.hideReelParts() {
     val wanted = CLEANUP_MARKERS.toSet()
     val found = mutableMapOf<String, MutableList<Method>>()
+    val marked = typesMarked(*CLEANUP_MARKERS.toTypedArray())
     classDefForEach { classDef ->
+        if (classDef.type !in marked) return@classDefForEach
         classDef.methods.forEach { method ->
             method.markers().filter { it in wanted }.distinct().forEach { found.getOrPut(it) { mutableListOf() } += method }
         }

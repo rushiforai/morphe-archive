@@ -249,6 +249,7 @@
         "extensions/instagram/src/main/java/app/hushgram/extension/instagram/settings/SettingsScreenRow.java",
         "patches/src/main/kotlin/app/morphe/patches/instagram/download/**",
         "patches/src/main/kotlin/app/morphe/patches/instagram/misc/extension/PurgeMarkers.kt",
+        "patches/src/main/kotlin/app/morphe/patches/instagram/misc/extension/ClassIndex.kt",
         "scripts/audit-dependencies.ps1",
         "scripts/VerifyGradleWrapper.java",
         "scripts/test-gradle-wrapper.ps1",

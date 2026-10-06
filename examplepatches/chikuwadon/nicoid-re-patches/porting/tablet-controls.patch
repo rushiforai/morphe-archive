@@ -1,0 +1,31 @@
+--- a/smali/com/sauzask/nicoid/NicoidVideoFragment.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoFragment.smali
+@@ -5830,6 +5830,8 @@
+     move-exception p1
+ 
+     invoke-virtual {p1}, Ljava/lang/Exception;->printStackTrace()V
++
++    invoke-static {p0}, Le/e/a/FullscreenControls;->update(Ljava/lang/Object;)V
+ 
+     :goto_b
+     return-void
+--- a/smali/com/sauzask/nicoid/NicoidVideoInfoFragment.smali
++++ b/smali/com/sauzask/nicoid/NicoidVideoInfoFragment.smali
+@@ -862,6 +862,8 @@
+ 
+     invoke-static {v14, v15}, Le/e/a/PlayerIcons;->background(Landroid/view/View;I)V
+ 
++    invoke-static {v14, v11}, Le/e/a/TagDictionary;->apply(Landroid/widget/Button;Lorg/json/JSONObject;)V
++
+     invoke-virtual {v11, v2}, Lorg/json/JSONObject;->has(Ljava/lang/String;)Z
+ 
+     move-result v15
+@@ -892,7 +894,7 @@
+     move-object v11, v8
+ 
+     :goto_8
+-    invoke-virtual {v14, v3, v3, v11, v3}, Landroid/widget/Button;->setCompoundDrawablesWithIntrinsicBounds(Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;)V
++    nop
+ 
+     const/16 v11, 0xa
+ 

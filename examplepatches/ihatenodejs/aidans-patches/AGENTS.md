@@ -76,6 +76,22 @@ Patches operate across six distinct architectural layers depending on target app
   - **AfterShip**: Directly patches machine code instructions in `libandroidsig-lib.so` (neutralizing `checkApkSha`).
   - **Canvas Student**: Rewrites ELF64 program headers in `libandroidx.graphics.path.so`, `libdatastore_shared_counter.so`, and `libpspdfkit.so` to replace non-16 KB aligned `PT_GNU_RELRO` segments with `PT_NULL`.
   - **Blackjack**: Patches ARM64 instructions in `libil2cpp.so` across `OpenShop`, `CheckUpdateToVersion` (custom 192-byte input hook), `BlackjackAds`, `PlayerData.get_AdsDisabled`, `AdManager`, and 6 telemetry SDKs.
+
+### 7. Cross-Layer Coordination & `dependsOn` Invariant
+Morphe enforces strict type invariance on patch execution contexts (`Patch<T>`):
+- `bytecodePatch` executes in `BytecodePatchContext`, which exclusively mutates Dalvik/Smali DEX ASTs. In `bytecodePatch`-only runs (`STRIP_FAST` mode), Morphe skips raw resource decoding entirely and only swaps modified DEX files into the APK—raw APK assets in `assets/` are **never staged or repacked**.
+- `rawResourcePatch` executes in `ResourcePatchContext`, which decodes the APK in raw mode, tracks asset files accessed via `get(...)`, and repackages modified assets (Hermes bytecode, ELF shared libraries, web bundles) into the final output APK.
+
+**Rule:** When a feature requires changes across multiple architectural layers (e.g., Dalvik bytecode + embedded Hermes bytecode, or Dalvik bytecode + native `.so` ELF binaries, or Dalvik bytecode + asset fonts), the modifications **CANNOT** be merged into a single `bytecodePatch`. Attempting to modify asset files from inside a `bytecodePatch` will silently fail to repackage the asset in the output APK.
+
+Instead, define a companion `rawResourcePatch` (or `resourcePatch`) and link it to the primary user-facing patch via `dependsOn(...)`:
+- **Fizz**: `replaceEmojiFontWithIosPatch` (`bytecodePatch`) $\rightarrow$ `dependsOn(replaceEmojiFontWithIosResourcePatch)` (`rawResourcePatch`)
+- **Blackjack**: `addCustomChipStorePatch` (`bytecodePatch`) $\rightarrow$ `dependsOn(patchChipStoreResourcePatch)` (`rawResourcePatch`)
+- **AfterShip**: `removeLoginPatch` (`bytecodePatch`) $\rightarrow$ `dependsOn(bypassSignatureCheckResourcePatch)` (`rawResourcePatch`)
+- **Sezzle**: `suppressUpdatesAndIntegrityPatch` (`bytecodePatch`) $\rightarrow$ `dependsOn(suppressHermesUpdatesAndIntegrityPatch)` (`rawResourcePatch`)
+- **Sezzle**: `removeAdsAndTrackingPatch` (`bytecodePatch`) $\rightarrow$ `dependsOn(removeAdsAndTrackingFromJsBundlePatch)` (`rawResourcePatch`)
+
+When `dependsOn` is declared, selecting the user-facing patch automatically triggers the companion patch and causes Morphe's resource encoder to decode, patch, and repackage the raw assets.
 ### Data Flow
 1. **Build Time**: Gradle builds `:extensions:extension` into `.mpe`, compiles Kotlin patch definitions into `.mpp`, and executes `PatchListGeneratorKt` to emit `patches-list.json`.
 2. **Patch Time (Morphe CLI / Desktop)**: Morphe unzips the target APK/APKM/XAPK, validates package/version compatibility, modifies Dalvik bytecode, merges `.mpe` classes into DEX, applies XML DOM edits, edits raw resources/ELF binaries/Hermes bundles, updates hashes, and repacks/signs the output APK.
@@ -116,8 +132,8 @@ Patches operate across six distinct architectural layers depending on target app
 │       │   ├── navigate360/               # Navigate360 Student patch implementations (2 patches)
 │       │   │   ├── shared/                # Navigate360 constants & compatibility
 │       │   │   └── tracking/              # RemoveTrackingAndTelemetryPatch, RemoveWebTrackingAndTelemetryPatch
-│       │   ├── sezzle/                    # Sezzle patch implementations (14 patches)
-│       │   │   ├── ads/                   # HideBannerAdsPatch (13 SDKs neutralized)
+│       │   ├── sezzle/                    # Sezzle patch implementations (15 patches)
+│       │   │   ├── ads/                   # HideBannerAdsPatch (13 SDKs neutralized, Thanks/Rokt post-payment offers)
 │       │   │   ├── auth/                  # CleanAuthenticationPatch
 │       │   │   ├── compatibility/         # PageSizeCompatibilityPatch
 │       │   │   ├── customization/         # UnlockCustomAppIconsPatch
@@ -325,7 +341,7 @@ Keep bytecode injection logic reusable and safe:
 | `.releaserc` | Semantic-release configuration managing version bumps, changelog bundling, and backmerges. |
 | `.github/workflows/release.yml` | CI/CD release workflow with Java 21, build provenance attestation, and fallback build checks. |
 | `docs/sezzle/architecture.md` | Architecture and reverse engineering specification for Sezzle v5.3.9. |
-| `docs/sezzle/patches.md` | Patch specifications for all 16 Sezzle patches across navigation, security, and features. |
+| `docs/sezzle/patches.md` | Patch specifications for all 15 Sezzle patches across navigation, security, and features. |
 | `docs/sezzle/hidden_feature_flags.md` | Catalog of Sezzle hidden feature flags, cohorts, and debugger hooks. |
 | `docs/sidelineswap/architecture.md` | Reverse engineering specification for SidelineSwap architecture and telemetry. |
 | `docs/sidelineswap/patches.md` | Patch specification for SidelineSwap tracking neutralization and brand color customization. |

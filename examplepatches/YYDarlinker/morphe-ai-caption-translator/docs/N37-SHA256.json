@@ -1,0 +1,135 @@
+{
+  "version": 1,
+  "title": "N37 local tested delivery — physical-phone after pending",
+  "generated_at": "2026-10-05T14:38:57+08:00",
+  "timezone": "Asia/Shanghai",
+  "source_commit": "98ac1a16440f64d8b1e095d0f4496cae7cdcece9",
+  "source_anchor": "anchor/n37-98ac1a1",
+  "delivery_anchor": "anchor/n37-final",
+  "baseline_product": "6319fd69900b1f08b231b14161713021d0fb616d",
+  "baseline_delivery": "3bf88d2c0047bb1ecd88f4389ec42627bc219aa9",
+  "artifacts": [
+    {
+      "kind": "mpp",
+      "path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\patches-1.3.5-本地测试包-n37.mpp",
+      "bytes": 1283677,
+      "sha256": "A4D50BCF9C045318EF17F7AD5D86463B3F89ACD207E02EE71F69DD5ABC2BAA31",
+      "candidate_path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\patches-1.3.5-local-n37-candidate-04.mpp",
+      "output_path": "C:\\Users\\14776\\Documents\\Codex\\2026-10-05\\files-pasted-by-the-user-n37\\outputs\\patches-1.3.5-本地测试包-n37.mpp"
+    },
+    {
+      "kind": "mpe",
+      "path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\extension-1.3.5-本地测试包-n37.mpe",
+      "bytes": 3135748,
+      "sha256": "5445055CDF8992C792B0FFC72961D5D5320EA25E2907BE97408EB4DAB29776AE",
+      "candidate_path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\extension-1.3.5-local-n37-candidate-04.mpe",
+      "output_path": "C:\\Users\\14776\\Documents\\Codex\\2026-10-05\\files-pasted-by-the-user-n37\\outputs\\extension-1.3.5-本地测试包-n37.mpe"
+    },
+    {
+      "kind": "apk",
+      "path": "E:\\Projects\\morphe-caption-v2\\build\\n37-composition-final\\YouTube-21.16.256-本地测试包-n37-unsigned.apk",
+      "bytes": 198261990,
+      "sha256": "B6CC3D0AC0DC9E6CFAD1298EA5409CFD0D2871C0E4112CC3685319D5CA3B5118",
+      "candidate_path": "E:\\Projects\\morphe-caption-v2\\.verification\\n37\\composition-candidate-04\\patched-unsigned.apk",
+      "output_path": "C:\\Users\\14776\\Documents\\Codex\\2026-10-05\\files-pasted-by-the-user-n37\\outputs\\YouTube-21.16.256-本地测试包-n37-unsigned.apk"
+    }
+  ],
+  "validation": {
+    "status": "PASS",
+    "source_commit": "98ac1a16440f64d8b1e095d0f4496cae7cdcece9",
+    "artifacts": [
+      {
+        "kind": "mpp",
+        "path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\patches-1.3.5-local-n37-candidate-04.mpp",
+        "bytes": 1283677,
+        "sha256": "A4D50BCF9C045318EF17F7AD5D86463B3F89ACD207E02EE71F69DD5ABC2BAA31"
+      },
+      {
+        "kind": "mpe",
+        "path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\extension-1.3.5-local-n37-candidate-04.mpe",
+        "bytes": 3135748,
+        "sha256": "5445055CDF8992C792B0FFC72961D5D5320EA25E2907BE97408EB4DAB29776AE"
+      },
+      {
+        "kind": "apk",
+        "path": "E:\\Projects\\morphe-caption-v2\\.verification\\n37\\composition-candidate-04\\patched-unsigned.apk",
+        "bytes": 198261990,
+        "sha256": "B6CC3D0AC0DC9E6CFAD1298EA5409CFD0D2871C0E4112CC3685319D5CA3B5118"
+      }
+    ],
+    "test_input_sha": "501a9342e5811927f4689cf494b211bcd561fdd90231f1641ccbb9a90c5a10a2",
+    "tests": {
+      "tests": 727,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "retained_n36_cases": 716,
+    "new_cases": 11,
+    "build_input_digest": "579960cb1b4c737465439621eb3f94d7867e3b93c69e13d05dea0f0f2414d8e1",
+    "composition": [
+      {
+        "path": "E:\\Projects\\morphe-caption-v2\\.verification\\n37\\composition-ai-only-01.log",
+        "sha256": "B67D0AAFC86BB60F348DF12BBB3E2A80712637240EA792904F7B2FAE67E03E6E",
+        "marker": "STRUCTURE_PASS AI caption translator"
+      },
+      {
+        "path": "E:\\Projects\\morphe-caption-v2\\.verification\\n37\\composition-remember-only-02.log",
+        "sha256": "D7DBC09B4F4EFD0BBE2E025078D658BA8111C7D8C9080DCE1D0F08B2E437CCF0",
+        "marker": "STRUCTURE_PASS Remember caption selection"
+      },
+      {
+        "path": "E:\\Projects\\morphe-caption-v2\\.verification\\n37\\composition-candidate-04.log",
+        "sha256": "5AF9FF800CAD71B71F53EF86F9362DA81B0E6BE3C08D26BB3CBA9B4CBCD975F0",
+        "marker": "COMPOSITION_PASS AI caption translator, Remember caption selection"
+      }
+    ],
+    "dex_audits": [
+      {
+        "kind": "apk",
+        "report_sha256": "F90B1CBBA519CE44ACFCCDC2E3E827338A13026EE7654BA458710469A7EFC0D4",
+        "log_sha256": "87E245B5AC39C0970820C479CDC1813380FAD80B12690D557D5F0E7885D6B144",
+        "exit": 0,
+        "n27_observer_required": false
+      },
+      {
+        "kind": "mpp",
+        "report_sha256": "D488F32512CAF660BEBB0BA52922BD1C9E1F5A47F5507A063FFC25A10852141C",
+        "log_sha256": "1E62B0708F0F616ED86ADD0D5C60CC43283223EA746665C9A07995A661D4D0D2",
+        "exit": 0,
+        "n27_observer_required": false
+      },
+      {
+        "kind": "mpe",
+        "report_sha256": "F4887F52165953022DD8C4ACC5505CE55514AFB814E7B231C23A96C0FE5443D1",
+        "log_sha256": "6E56FA9A299AF1187169460B29E6D7C4C9EC9B24555163B6C8B5303F115D6ECE",
+        "exit": 0,
+        "n27_observer_required": false
+      }
+    ],
+    "official_methods_unchanged": 39,
+    "localization_keys": 241,
+    "localization_pairs": 3374,
+    "root_dexes": 11,
+    "native_ime_commands": 52,
+    "native_profile_roundtrip": true,
+    "native_matrix_cases": 12,
+    "native_backlog_ms": 14999,
+    "ui_evidence_reuse_only_changed_player_hooks": [
+      "extensions\\extension\\src\\main\\java\\app\\yydarlinker\\deepseekcaptions\\DeepSeekCaptionHook.java",
+      "extensions\\extension\\src\\main\\java\\app\\yydarlinker\\deepseekcaptions\\DeepSeekCaptionHookV2.java"
+    ],
+    "frozen_counts": {
+      "通过": 4,
+      "失败": 4,
+      "未验证": 4
+    },
+    "physical_phone_written": false,
+    "formal_apk_unsigned": true
+  },
+  "formal_unsigned": true,
+  "physical_phone_written": false,
+  "physical_phone_after": "pending user 3–5 minute check",
+  "rollback_script": "E:/Projects/morphe-caption-v2/docs/N37-RESTORE-N36.ps1",
+  "rollback_run": false
+}

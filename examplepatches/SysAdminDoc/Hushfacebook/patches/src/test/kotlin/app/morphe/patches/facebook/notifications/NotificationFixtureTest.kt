@@ -47,6 +47,13 @@ class NotificationFixtureTest {
     private val constantName = Regex("[A-Z][A-Z0-9_]*")
 
     /**
+     * Kinds the extension blocks that Facebook's server sends but NotificationType doesn't name
+     * (NotificationKinds.SERVER_ONLY), each read off a report's Notification kinds counter: issue
+     * #57's account setup reminder. Every other blockable kind must be a constant.
+     */
+    private val serverOnly = setOf("FB_REGISTRATION_REMINDER")
+
+    /**
      * Kinds that must always post, each a constant on both builds: messages, friend requests,
      * comments and mentions on your content, and the login and security alerts.
      */
@@ -73,7 +80,7 @@ class NotificationFixtureTest {
     /** The kinds the extension's switches can block, read from the dex the bundle carries. */
     private fun extensionKinds(): Set<String> {
         val kinds = ExtensionDex.classDef(kindsClass).methods.flatMap(::literals).filter { constantName.matches(it) }.toSet()
-        assertEquals("kinds the extension can block: $kinds", 12, kinds.size)
+        assertEquals("kinds the extension can block: $kinds", 13, kinds.size)
         return kinds
     }
 
@@ -82,6 +89,7 @@ class NotificationFixtureTest {
         val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
         val kinds = extensionKinds()
         assertEquals("a kind that must always post can be blocked", emptySet<String>(), kinds.intersect(alwaysPost.toSet()))
+        assertTrue("server-only kinds the extension doesn't block", kinds.containsAll(serverOnly))
         val checked = mutableSetOf<String>()
         for (version in versions) {
             for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
@@ -116,7 +124,7 @@ class NotificationFixtureTest {
                 val constants = constantNames(classes.getValue(notificationType))
                 assertTrue("$name: only ${constants.size} NotificationType constants", constants.size >= 400)
                 assertEquals("$name: kinds the extension blocks that aren't NotificationType constants",
-                    emptySet<String>(), kinds - constants)
+                    emptySet<String>(), kinds - constants - serverOnly)
                 assertEquals("$name: kinds that always post that aren't NotificationType constants",
                     emptySet<String>(), alwaysPost.toSet() - constants)
 

@@ -114,6 +114,46 @@ public class OverrideExchangeTest {
         }
     }
 
+    /** Instagram's own file: no envelope, empty names, an experiment section. */
+    @Test public void instagramsOwnFileIsHeldToTheSchemaByIndexGivenNamesAndType() throws Exception {
+        OverrideExchange.Snapshot current = snapshot(NATIVE);
+        assertEquals(3, OverrideExchange.validate(bytes(
+                "{\"123:\":[\"0: : false\",\"1: : 7\",\"2: text: a: b\"],\"_qe_overrides_\":[]}"), current));
+        assertEquals(1, OverrideExchange.validate(bytes("{\"123:config\":[\"3: : 0.5\"]}"), current));
+        assertEquals(0, OverrideExchange.validate(bytes("{}"), current));
+        String[] refusedFiles = {
+                "{\"123:other\":[\"0: : true\"]}", "{\"123:\":[\"0: unknown: true\"]}", "{\"123:\":[\"0: : 1\"]}",
+                "{\"123:\":[\"9: : true\"]}", "{\"999:\":[\"0: : true\"]}", "{\"_qe_overrides_\":[\"7: : true\"]}",
+                "{\"_qe_overrides_\":{}}", "{\"other\":[]}", "{\"123:\":true}",
+        };
+        for (String file : refusedFiles) refused(() -> OverrideExchange.validate(bytes(file), current));
+    }
+
+    /**
+     * Instagram writes its store with empty names and may keep experiment overrides beside them. An
+     * import never changes those, so a document may carry the store's own, as its export and a
+     * restore point do, but no others.
+     */
+    @Test public void aStoreWithEmptyNamesAndExperimentsStillCaptures() throws Exception {
+        byte[] store = bytes("{\"123:\":[\"0: : true\"],\"_qe_overrides_\":[\"kept as it is\"]}");
+        OverrideExchange.Snapshot current = snapshot(store);
+        assertEquals(1, OverrideExchange.validate(bytes("{\"123:\":[\"0: : true\"]}"), current));
+        assertEquals(1, OverrideExchange.validate(OverrideExchange.export(current), current));
+        assertEquals(1, OverrideExchange.validate(store, current));
+        refused(() -> OverrideExchange.validate(bytes("{\"123:\":[\"0: : true\"],\"_qe_overrides_\":[\"another\"]}"), current));
+    }
+
+    @Test public void overridesFilesAreToldApartFromEverythingElse() throws Exception {
+        assertTrue(OverrideExchange.isOverridesFile(OverrideExchange.export(snapshot(NATIVE))));
+        assertTrue(OverrideExchange.isOverridesFile(NATIVE));
+        assertTrue(OverrideExchange.isOverridesFile(bytes("{\"70831:\":[\"15: : true\"],\"_qe_overrides_\":[]}")));
+        for (String other : new String[] {"{\"project\":\"HushGram\",\"schema\":1,\"settings\":{}}", "{}",
+                "{\"_qe_overrides_\":[]}", "{\"70831:\":[],\"hushgram_hide_ads\":[]}", "{\"70831:\":{}}", "[]", "not json"}) {
+            assertFalse(other, OverrideExchange.isOverridesFile(bytes(other)));
+        }
+        assertFalse(OverrideExchange.isOverridesFile(null));
+    }
+
     @Test public void readsAreBoundedAndZeroProgressCannotLoop() throws Exception {
         assertArrayEquals(NATIVE, OverrideExchange.read(new ByteArrayInputStream(NATIVE)));
         refused(() -> OverrideExchange.read(new ByteArrayInputStream(new byte[OverrideExchange.MAX_BYTES + 1])));

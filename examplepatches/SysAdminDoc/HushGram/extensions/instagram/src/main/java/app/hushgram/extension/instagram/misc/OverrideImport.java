@@ -34,7 +34,8 @@ import app.hushgram.extension.shared.Utils;
  * editor writes, one parameter at a time.
  *
  * <p>Nothing reaches the native table while Allow importing overrides is off or HushGram is
- * paused, or until the document matches this exact build, schema and session, every changed
+ * paused, or until the document fits this session's schema (a HushGram export this exact build and
+ * schema, Instagram's own file each override's config, index, given names and type), every changed
  * parameter's type agrees with Instagram's own decoder, the store's file reads the same twice a
  * settle window apart, and a last capture right before the first write still sees the same
  * manager, store and bytes. The previous overrides are saved first, outside the native store, under
@@ -98,7 +99,11 @@ public final class OverrideImport {
         NotAllowed() { super("Override import is off"); }
     }
 
-    static final int MAX_CHANGES = 512;
+    /**
+     * Bounds the typed writes one import or its rollback makes. A document holds at most 4096
+     * overrides, and Instagram's own file from a phone with many set can hold a few thousand.
+     */
+    static final int MAX_CHANGES = 4096;
     static final String DIRECTORY = "hushgram-overrides";
     private static final String NULL = "__NULL_VALUE__";
     private static final long POLL_MILLIS = 50;

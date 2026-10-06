@@ -6,7 +6,7 @@ Specifies target classes, fingerprints, required invariants, and forbidden regre
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Callable, List, Optional, Tuple
+from typing import List
 
 from harness.core.fingerprints import FingerprintQuery
 
@@ -420,7 +420,7 @@ def get_all_gboard_contracts() -> List[GboardPatchContract]:
             patch_id="gboard_locale_slimmer",
             name="Locale Resource Slimmer",
             description="Strips unselected language translation directories from res/.",
-            source_file="patches/src/main/kotlin/app/morphe/patches/shared/LocaleResourceSlimmerPatch.kt",
+            source_file="patches/src/main/kotlin/app/morphe/patches/universal/LocaleResourceSlimmerPatch.kt",
             queries=[],
             semantic_invariants=[
                 "Preserves base fallback resources with no language qualifiers",

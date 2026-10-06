@@ -89,9 +89,9 @@ class StoriesTrayAdaptersTest {
     fun `the patch and the extension agree on the hook and the adapter numbers`() {
         val text = File(RepoFiles.root,
             "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/FeedFilter.java").readText()
-        assertTrue("the extension has no public static boolean hideStoriesTray(int)",
-            Regex("""public static boolean hideStoriesTray\(int \w+\)""").containsMatchIn(text))
-        assertTrue(HIDE_STORIES_TRAY.endsWith("/feed/FeedFilter;->hideStoriesTray(I)Z"))
+        assertTrue("the extension has no public static int storiesTrayCount(Object, int, int)",
+            Regex("""public static int storiesTrayCount\(Object \w+, int \w+, int \w+\)""").containsMatchIn(text))
+        assertTrue(STORIES_TRAY_COUNT.endsWith("/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I"))
         assertTrue("LEGACY_TRAY differs", text.contains("public static final int LEGACY_TRAY = $LEGACY_TRAY;"))
         assertTrue("UNIFIED_TRAY differs", text.contains("public static final int UNIFIED_TRAY = $UNIFIED_TRAY;"))
     }
@@ -147,14 +147,18 @@ class StoriesTrayAdaptersTest {
 
     /** The settings row and the README tell the same story about when the switch acts. */
     @Test
-    fun `the settings row and the README both say the switch waits for a restart`() {
+    fun `the settings row and the README both say a change shows on the next refresh`() {
         val row = File(RepoFiles.root,
             "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/FeedPages.java")
             .readText()
         val readme = File(RepoFiles.root, "README.md").readText()
-        assertTrue("the row doesn't say the switch waits for a restart",
+        assertTrue("the row doesn't say a change shows on the next refresh",
+            row.contains("\"A change shows the next time you pull down to refresh.\""))
+        assertFalse("the row still says the switch waits for a restart",
             row.contains("\"The switch takes effect when Facebook restarts.\""))
-        assertTrue("the README doesn't say the switch waits for a restart",
+        assertTrue("the README doesn't say a change shows on the next refresh",
+            readme.contains("The Stories tray switch shows the next time you pull the feed down to refresh"))
+        assertFalse("the README still says the switch waits for a restart",
             readme.contains("so that switch takes effect when Facebook restarts"))
         assertFalse("the README still says the tray comes back when you return to the feed",
             readme.contains("such as when you come back to it"))

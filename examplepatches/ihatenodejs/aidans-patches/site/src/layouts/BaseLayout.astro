@@ -1,0 +1,58 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title?: string;
+  description?: string;
+  currentPath?: string;
+}
+
+const {
+  title = "Aidan's Morphe Patches",
+  description = "Minimal technical frontend and live freshness catalog for bytecode, resource, and Hermes binary patches.",
+  currentPath = '/',
+} = Astro.props;
+
+const canonicalUrl = new URL(currentPath, Astro.site || 'https://aidans-patches.pages.dev').href;
+---
+
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- Canonical & SEO -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="/favicon.svg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+  </head>
+  <body class="bg-[#050505] text-[#ededed] font-sans antialiased selection:bg-white/20 selection:text-white">
+    <!-- Centered Content Rail with subtle vertical border rails -->
+    <div class="min-h-screen flex flex-col max-w-5xl mx-auto border-x border-white/[0.08] relative bg-[#050505] shadow-2xl">
+      <Header currentPath={currentPath} />
+
+      <main class="flex-grow">
+        <slot />
+      </main>
+
+      <Footer />
+    </div>
+  </body>
+</html>

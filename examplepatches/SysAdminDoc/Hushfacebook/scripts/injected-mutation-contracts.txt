@@ -31,11 +31,10 @@ first-call Lapp/morphe/extension/facebook/feed/RecommendationLabel;->recommendat
 # first call leaves the extension. Left unfilled it answers its marker, and the Reels rule keeps
 # every reel with nothing but a Hook status line to say why.
 first-call Lapp/morphe/extension/facebook/feed/GenAiReelFilter;->transparencyAttribution(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object; outside Lapp/morphe/extension/
-# The Stories tray patch asks the extension first thing in both of the feed's tray adapters: the
-# classic one, holding its trace name, and the unified one, holding its create-adapter start and stop
-# names and "tofu". The tray controller's constructor holds the start and stop names too.
-start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z holding NewsFeedAdapterConfiguration.addStoriesAdapter
-start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z holding stories_tray_create_adapter_start stories_tray_create_adapter_stop tofu
+# The Stories tray patch gives each of the feed's two tray adapter classes, the classic and the
+# unified one, a getItemCount() of its own that asks the extension with Facebook's count. No other
+# method calls it, and neither class gets two.
+count-call Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I in getItemCount 2
 # The reels patch fills the showcase stub with the story type accessor of the one class whose
 # getTypeName() answers ShowcaseFeedUnit, a class Redex renames, so the rule names it by that type.
 first-call Lapp/morphe/extension/facebook/feed/ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named ShowcaseFeedUnit
@@ -111,3 +110,12 @@ sole-call Lapp/morphe/extension/facebook/reels/ReelWatchHistory;->send(Ljava/uti
 # first thing in it, so the Reels tab's count can read none. Left out, the dot stays; anywhere
 # else, the count it answers isn't the tab bar's.
 start-call Lapp/morphe/extension/facebook/navigation/ReelsTabDot;->clear(Ljava/lang/Object;)Z in static (Lcom/facebook/auth/usersession/FbUserSession;*Lcom/facebook/navigation/tabbar/state/model/TabTag;I)I holding FbMainTabActivityJewelController.getTrackedCountWithLogging
+# Hide tabs and Hide the Reels tab leave a tab a switch took off the bar still configured, and three
+# places Facebook decides a link is a tab look in the configured tabs. The startActivity lookup is
+# the one static method that takes an Intent and an FbUserSession, returns a TabTag and loads the
+# launch URI's extra; the Friends link's switch and the target_tab_id check are each the one method
+# of a kept helper loading their string. Each asks the extension once, so a hidden tab's page opens
+# on its own screen. Left out, the Menu shortcut or link switches to the missing tab and nothing opens.
+once-call Lapp/morphe/extension/facebook/navigation/TabBarFilter;->launchedTab(Ljava/lang/Object;)Ljava/lang/Object; in static (Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;)Lcom/facebook/navigation/tabbar/state/model/TabTag; holding extra_launch_uri
+once-call Lapp/morphe/extension/facebook/navigation/TabBarFilter;->friendsTab(Ljava/lang/Object;)Ljava/lang/Object; in instance (Landroid/content/Context;Landroid/content/Intent;*)Landroid/content/Intent; holding DEEPLINK
+once-call Lapp/morphe/extension/facebook/navigation/TabBarFilter;->configuresTab(ZLjava/lang/Object;)Z in instance (Landroid/content/Context;Landroid/content/Intent;*)Landroid/content/Intent; holding target_tab_id

@@ -172,7 +172,7 @@ public class SupportReportTest {
         for (boolean paused : new boolean[]{false, true}) {
             if (paused) PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
             for (String report : bothExports()) {
-                assertTrue(report, report.contains("\nHide ads coverage: promoted pins in lists; missing: ad-only views\n"));
+                assertTrue(report, report.contains("\nHide ads coverage: promoted pins in lists; missing: ad-only views, Google ad SDK start\n"));
                 assertTrue(report, report.contains("\nHide AI-labeled pins coverage: none; missing: AI-labeled pins in lists\n"));
                 assertTrue(report, report.contains("\ndebug_logging: off\n"));
                 assertFalse(report, report.contains("[SELECTED EVENTS]"));

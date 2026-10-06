@@ -51,7 +51,8 @@ object MediaBrowserSubscribeFingerprint : Fingerprint(
 object MediaProviderVerifyFingerprint : Fingerprint(
     returnType = "V",
     custom = { method, classDef ->
-        classDef.fields.any { it.type == "Lamph;" } &&
+        classDef.interfaces.contains("Lamrb;") &&
+            classDef.fields.any { it.type == "Lamph;" } &&
             classDef.fields.any { it.type == "Ljava/util/concurrent/atomic/AtomicBoolean;" } &&
             method.name == "a" && method.parameters.size == 1
     }

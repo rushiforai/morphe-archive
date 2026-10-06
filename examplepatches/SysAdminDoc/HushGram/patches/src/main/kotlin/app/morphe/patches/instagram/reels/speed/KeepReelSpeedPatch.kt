@@ -17,6 +17,7 @@ import app.morphe.patches.instagram.misc.extension.parameterRegister
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.extension.requireParameterIntact
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.typesMarked
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
@@ -141,7 +142,9 @@ internal class ReelSpeedHooks(
 internal fun BytecodePatchContext.findReelSpeedHooks(): ReelSpeedHooks {
     val wanted = setOf(SET_PLAYBACK_SPEED, MAYBE_RESUME_PLAYER, LOCK_UP_BEGIN, RESET, FAST_PLAY_NUX)
     val marked = mutableMapOf<String, MutableList<Method>>()
+    val holders = typesMarked(*wanted.toTypedArray())
     classDefForEach { classDef ->
+        if (classDef.type !in holders) return@classDefForEach
         classDef.methods.forEach { method ->
             method.markers().filter { it in wanted }.distinct().forEach { marked.getOrPut(it) { mutableListOf() } += method }
         }

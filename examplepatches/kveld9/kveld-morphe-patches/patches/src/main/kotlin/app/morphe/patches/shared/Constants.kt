@@ -125,6 +125,7 @@ object Constants {
     const val TIKTOK_EXTENSION_SPOTIFY_AUTH_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSpotifyAuthHook;"
     const val TIKTOK_EXTENSION_SEEN_VIDEO_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokSeenVideoHook;"
     const val TIKTOK_EXTENSION_FONT_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokFontHook;"
+    const val TIKTOK_EXTENSION_POPUP_HOOK = "Lcom/kveld9/morphe/extension/tiktok/TikTokPopupHook;"
     const val BRAVE_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/BraveExtension;"
     const val CHROMIUM_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/ChromiumExtension;"
     const val GBOARD_EXTENSION_CLASS = "Lcom/kveld9/morphe/extension/gboard/GboardExtension;"
@@ -158,12 +159,14 @@ object Constants {
         const val KEY_CLIPBOARD_UNPINNED_LIMIT = "morphe_clipboard_unpinned_limit"
         const val KEY_CLIPBOARD_GRID_LAYOUT = "morphe_clipboard_grid_layout"
         const val KEY_CLIPBOARD_GRID_COLUMNS = "morphe_clipboard_grid_columns"
+        const val KEY_CLIPBOARD_CHAR_LIMIT = "morphe_clipboard_char_limit"
         const val KEY_GRAMMAR_CHECKER = "morphe_grammar_checker"
         const val KEY_BLUETOOTH_MIC = "morphe_bluetooth_mic"
         const val KEY_FORCE_INCOGNITO = "morphe_force_incognito"
         const val KEY_HIDE_INCOGNITO_ICON = "morphe_hide_incognito_icon"
         const val KEY_VOICE_INCOGNITO = "morphe_voice_typing_incognito"
         const val KEY_DECOUPLE_TOUCH_FEEDBACK = "morphe_decouple_touch_feedback"
+        const val KEY_MODERN_HAPTICS = "morphe_modern_haptics"
 
         const val MIN_BOTTOM_PADDING = 0
         const val MAX_BOTTOM_PADDING = 150
@@ -184,6 +187,11 @@ object Constants {
         const val MIN_CLIPBOARD_GRID_COLUMNS = 1
         const val MAX_CLIPBOARD_GRID_COLUMNS = 3
         const val DEFAULT_CLIPBOARD_GRID_COLUMNS = 2
+
+        // Thousands of characters per text clip; Gboard ships text_clip_item_char_limit = 20000.
+        const val MIN_CLIPBOARD_CHAR_LIMIT_K = 5
+        const val MAX_CLIPBOARD_CHAR_LIMIT_K = 200
+        const val DEFAULT_CLIPBOARD_CHAR_LIMIT_K = 20
 
         const val MIN_EMOJI_SCALE = 50
         const val MAX_EMOJI_SCALE = 150

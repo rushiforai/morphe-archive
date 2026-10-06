@@ -5,7 +5,6 @@
 Workflow **VK Video auto build** каждые 6 часов проверяет:
 
 - RuStore;
-- Google Play через gplaydl;
 - APKPure через apkeep.
 
 Каждый кандидат проверяется по package и оригинальному сертификату VK. Из прошедших проверку выбирается APK с максимальным подтверждённым `versionCode`. При одинаковом `versionCode` источник используется только как tie-breaker.

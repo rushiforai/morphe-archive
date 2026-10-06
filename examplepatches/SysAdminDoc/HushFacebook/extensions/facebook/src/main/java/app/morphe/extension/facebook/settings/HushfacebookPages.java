@@ -31,6 +31,7 @@ import android.widget.TextView;
 
 import java.util.Set;
 
+import app.morphe.extension.facebook.navigation.HiddenTabs;
 import app.morphe.extension.facebook.coexist.MessengerLinkCheck;
 import app.morphe.extension.facebook.settings.SettingsRows.BackupRow;
 import app.morphe.extension.facebook.settings.SettingsRows.ClearRow;
@@ -73,11 +74,13 @@ final class HushfacebookPages {
         ReleaseCheck.watch(page);
     }
 
-    /** Appearance: the font, the emoji, where the tab bar goes and dark mode. */
+    /** Appearance: the font, the emoji, where the tab bar goes, dark mode, haptics and screen transitions. */
     static void appearance(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
         if (build.contains(PatchFamily.SYSTEM_FONT) || build.contains(PatchFamily.SYSTEM_EMOJI)
-                || build.contains(PatchFamily.BOTTOM_TAB_BAR) || build.contains(PatchFamily.FORCE_DARK_MODE)) {
+                || build.contains(PatchFamily.BOTTOM_TAB_BAR) || build.contains(PatchFamily.FORCE_DARK_MODE)
+                || build.contains(PatchFamily.HIDDEN_TABS) || build.contains(PatchFamily.HAPTICS)
+                || build.contains(PatchFamily.SCREEN_TRANSITIONS)) {
             PreferenceCategory appearance = category(screen, L10n.t("Appearance"));
             if (build.contains(PatchFamily.SYSTEM_FONT)) {
                 appearance.addPreference(toggle(context, Settings.USE_SYSTEM_FONT,
@@ -102,11 +105,30 @@ final class HushfacebookPages {
                         L10n.t("Put Facebook's tab bar at the bottom of the screen on accounts that have it at the top. "
                                 + "Restart Facebook after changing it.")));
             }
+            if (build.contains(PatchFamily.HIDDEN_TABS)) {
+                // Facebook builds the tab bar once, so a change waits for a restart.
+                for (HiddenTabs.Tab tab : HiddenTabs.Tab.values()) {
+                    appearance.addPreference(toggle(context, tab.setting(),
+                            L10n.t("Takes the tab off the tab bar. Its page stays in the Menu. Restart Facebook after "
+                                    + "changing it.")));
+                }
+            }
             if (build.contains(PatchFamily.FORCE_DARK_MODE)) {
                 // Facebook asks for dark mode as each screen applies its theme, so a change shows fully after a restart.
                 appearance.addPreference(toggle(context, Settings.FORCE_DARK_MODE,
                         L10n.t("Keep Facebook in dark mode whatever its own setting says, for tablets where Facebook's "
                                 + "settings have no Dark mode. Restart Facebook after changing it.")));
+            }
+            if (build.contains(PatchFamily.HAPTICS)) {
+                appearance.addPreference(toggle(context, Settings.TURN_OFF_HAPTICS,
+                        L10n.t("No short vibrations on Facebook's own taps and gestures. The keyboard and your "
+                                + "phone's own haptics stay.")));
+            }
+            if (build.contains(PatchFamily.SCREEN_TRANSITIONS)) {
+                // Asked at each tap and each screen change, so a change shows from the next one.
+                appearance.addPreference(toggle(context, Settings.TURN_OFF_SCREEN_TRANSITIONS,
+                        L10n.t("Tabs, the Menu and screens that open over Facebook show at once, without the slide "
+                                + "between them. Swiping between tabs stays.")));
             }
         }
     }

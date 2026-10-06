@@ -1,3 +1,41 @@
+## [1.3.1](https://github.com/ihatenodejs/aidans-patches/compare/v1.3.0...v1.3.1) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **ci:** allow release workflow to create backmerge PRs ([8bc1992](https://github.com/ihatenodejs/aidans-patches/commit/8bc1992dc6904a73ad205adc858db1847ff7afe3))
+
+## [1.3.1-dev.1](https://github.com/ihatenodejs/aidans-patches/compare/v1.3.0...v1.3.1-dev.1) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **ci:** allow release workflow to create backmerge PRs ([8bc1992](https://github.com/ihatenodejs/aidans-patches/commit/8bc1992dc6904a73ad205adc858db1847ff7afe3))
+
+## [1.3.0](https://github.com/ihatenodejs/aidans-patches/compare/v1.2.0...v1.3.0) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* add semantic-release-backmerge plugin ([234cab1](https://github.com/ihatenodejs/aidans-patches/commit/234cab18dcce7c2eb3493ea0ceec0b001eaacac1))
+* **release:** rollback incorrect version, implement @kilianpaquier/semantic-release-backmerge ([7df1007](https://github.com/ihatenodejs/aidans-patches/commit/7df1007579ff01f896aaee32bd791acb6e9c0bc6))
+* **site:** fixed status data and deployment safeguards ([f4f1e77](https://github.com/ihatenodejs/aidans-patches/commit/f4f1e77a0e5577e72bf9d23964c97ac14021bcc9))
+
+### ✨ New Features
+
+* **sezzle:** added js bundle patch to remove ads and tracking ([a5c9937](https://github.com/ihatenodejs/aidans-patches/commit/a5c993787b66b2da0c9b6a37dafe6a7263b6ec0e))
+* **site:** added documentation and showcase website ([4fba928](https://github.com/ihatenodejs/aidans-patches/commit/4fba9284c3a663680f2324b70210e50ba379a9b2))
+* **site:** added live status polling and dynamic patch counts ([e1907ab](https://github.com/ihatenodejs/aidans-patches/commit/e1907ab24c827a4d8b490fbf5b6449353b494877))
+* **worker:** added custom domain route and refresh authorization ([1acbd40](https://github.com/ihatenodejs/aidans-patches/commit/1acbd40067e180d51b7526de8ea96b401cf99823))
+
+## [1.3.0-dev.1](https://github.com/ihatenodejs/aidans-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* add semantic-release-backmerge plugin ([234cab1](https://github.com/ihatenodejs/aidans-patches/commit/234cab18dcce7c2eb3493ea0ceec0b001eaacac1))
+* **release:** rollback incorrect version, implement @kilianpaquier/semantic-release-backmerge ([7df1007](https://github.com/ihatenodejs/aidans-patches/commit/7df1007579ff01f896aaee32bd791acb6e9c0bc6))
+
+### ✨ New Features
+
+* **sezzle:** added js bundle patch to remove ads and tracking ([a5c9937](https://github.com/ihatenodejs/aidans-patches/commit/a5c993787b66b2da0c9b6a37dafe6a7263b6ec0e))
+
 ## [1.2.0](https://github.com/ihatenodejs/aidans-patches/compare/v1.1.0...v1.2.0) (2026-10-03)
 
 ### 🐛 Bug Fixes

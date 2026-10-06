@@ -10,13 +10,13 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.instagram.feed.filterParsedFeedItems
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.flags.FlagRead
 import app.morphe.patches.instagram.misc.flags.answerFlagReads
 import app.morphe.patches.instagram.misc.flags.findFlagReads
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
@@ -124,8 +124,7 @@ internal class HookSite(
  */
 internal fun BytecodePatchContext.findFollowUpBarCheck(): HookSite {
     val setups = mutableListOf<Pair<ClassDef, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(*FOLLOW_UP_SETUP.toTypedArray()).forEach { classDef ->
         classDef.methods.forEach { method ->
             if (method.strings().containsAll(FOLLOW_UP_SETUP)) setups += classDef to method
         }
@@ -171,8 +170,7 @@ internal fun BytecodePatchContext.dropFollowUpBar(check: HookSite) = passThrough
  */
 internal fun BytecodePatchContext.findHomeButtonNames(): HookSite {
     val setups = mutableListOf<Pair<ClassDef, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(*HOME_BAR_SETUP.toTypedArray()).forEach { classDef ->
         classDef.methods.forEach { method ->
             if (method.strings().containsAll(HOME_BAR_SETUP)) setups += classDef to method
         }

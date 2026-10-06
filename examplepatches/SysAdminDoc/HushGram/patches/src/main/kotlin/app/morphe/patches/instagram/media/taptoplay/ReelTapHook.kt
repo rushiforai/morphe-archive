@@ -12,6 +12,7 @@ import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
 import app.morphe.patches.instagram.misc.extension.markers
 import app.morphe.patches.instagram.misc.extension.requireThisIntact
+import app.morphe.patches.instagram.misc.extension.typesMarked
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -158,7 +159,9 @@ internal fun BytecodePatchContext.findReelTap(): ReelTap {
     fun refuse(detail: String): Nothing = throw PatchException("$PATCH: the Reels tap: $detail")
     val taps = mutableListOf<Method>()
     val pauses = mutableListOf<Method>()
+    val marked = typesMarked(TOGGLE_PAUSE, PAUSE_CURRENT_PLAYER)
     classDefForEach { classDef ->
+        if (classDef.type !in marked) return@classDefForEach
         classDef.methods.forEach { method ->
             val markers = method.markers()
             if (TOGGLE_PAUSE in markers) taps += method

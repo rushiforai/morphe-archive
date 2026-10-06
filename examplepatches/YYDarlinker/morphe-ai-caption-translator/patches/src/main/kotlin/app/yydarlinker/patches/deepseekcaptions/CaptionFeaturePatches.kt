@@ -18,17 +18,6 @@ internal val captionSupportPatch = bytecodePatch {
 }
 
 @Suppress("unused")
-val simplifiedCaptionLanguagePatch=bytecodePatch(
-    name="Add Simplified Chinese to auto-translate",
-    description="Adds Simplified Chinese using the app's localized language ordering. Works with native YouTube captions without AI.",
-    default=false,
-) {
-    compatibleWith(YOUTUBE)
-    dependsOn(captionSupportPatch)
-    execute { CaptionFeatures.simplified=true }
-}
-
-@Suppress("unused")
 val rememberCaptionSelectionPatch=bytecodePatch(
     name="Remember caption selection",
     description="Remembers caption language, source/translation mode and on/off selection across videos for this app session, with or without AI.",

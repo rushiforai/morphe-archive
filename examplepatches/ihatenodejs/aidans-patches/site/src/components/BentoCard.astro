@@ -1,0 +1,39 @@
+---
+interface Props {
+  title?: string;
+  badge?: string;
+  className?: string;
+  withCrosshair?: boolean;
+}
+
+const { title, badge, className = '', withCrosshair = false } = Astro.props;
+---
+
+<div class={`relative bg-[#080808] border border-white/[0.08] p-6 flex flex-col justify-between overflow-hidden group hover:border-white/[0.16] transition-colors ${className}`}>
+  {withCrosshair && (
+    <>
+      <span class="absolute -top-[5px] -left-[5px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+      <span class="absolute -top-[5px] -right-[5px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+      <span class="absolute -bottom-[5px] -left-[5px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+      <span class="absolute -bottom-[5px] -right-[5px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+    </>
+  )}
+
+  {(title || badge || Astro.slots.has('icon')) && (
+    <div class="flex items-center justify-between gap-4 mb-4">
+      {title && (
+        <h3 class="font-sans text-sm font-semibold tracking-tight text-white flex items-center gap-2.5">
+          <slot name="icon" />
+          <span>{title}</span>
+        </h3>
+      )}
+      {badge && (
+        <span class="font-mono text-[10px] uppercase tracking-wider text-zinc-400 bg-white/[0.04] border border-white/[0.08] px-2 py-0.5 rounded-sm">
+          {badge}
+        </span>
+      )}
+    </div>
+  )}
+
+  <slot />
+</div>

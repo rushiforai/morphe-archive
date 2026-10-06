@@ -11,6 +11,7 @@ import static org.junit.Assert.*;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Looper;
 import android.view.View;
@@ -74,8 +75,10 @@ public class PinMenuTest {
                 "url", "https://i.pinimg.com/originals/source.png", "width", 3000, "height", 2000))));
         PinDownloads.attach(host);
         PinDownloads.attach(host);
-        assertEquals(2, host.layout.getChildCount());
-        assertEquals("Download pin", ((TextView) host.layout.findViewWithTag(PinDownloads.ROW_TAG)).getText());
+        assertEquals(3, host.layout.getChildCount());
+        assertEquals("Download pin", ((TextView) host.layout.getChildAt(0)).getText());
+        assertEquals("Copy media link", ((TextView) host.layout.getChildAt(1)).getText());
+        assertEquals("Supplied media details", ((TextView) host.layout.getChildAt(2)).getText());
         assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
         String text = details();
         assertTrue(text, text.contains("Supplied width: 3000 pixels"));
@@ -162,6 +165,41 @@ public class PinMenuTest {
         assertNoDownload();
     }
 
+    @Test public void copyMediaLinkCopiesTheSelectedSuppliedMp4AndClosesTheMenu() {
+        Host host = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                "small", Map.of("url", "https://v.pinimg.com/small.mp4", "width", 640, "height", 360),
+                "large", Map.of("url", "https://v.pinimg.com/large.mp4", "width", 1920, "height", 1080),
+                "adaptive", Map.of("url", "https://v.pinimg.com/master.m3u8", "width", 3840, "height", 2160)))));
+        PinDownloads.attach(host);
+        assertTrue(host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("https://v.pinimg.com/large.mp4", String.valueOf(clipboard().getPrimaryClip().getItemAt(0).getText()));
+        assertEquals("Media link copied.", ShadowToast.getTextOfLatestToast());
+        assertEquals(1, host.dismissed);
+        assertNoDownload();
+    }
+
+    @Test public void copyMediaLinkReadsThePinAgainAndNeverCopiesAnUnsupportedLink() {
+        Map<String, Object> image = new HashMap<>();
+        image.put("url", "https://i.pinimg.com/originals/source.jpg");
+        Host host = host(Map.of("id", "123", "images", Map.of("orig", image)));
+        PinDownloads.attach(host);
+        image.put("url", "https://example.com/elsewhere.jpg");
+        assertTrue(host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse(clipboard().hasPrimaryClip());
+        assertEquals("The supplied media link isn't a supported public Pinterest link.", ShadowToast.getTextOfLatestToast());
+        assertEquals(0, host.dismissed);
+    }
+
+    @Test public void unavailablePinsGetNoCopyRow() {
+        Host host = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
+                "adaptive", Map.of("url", "https://v.pinimg.com/master.m3u8")))));
+        PinDownloads.attach(host);
+        assertEquals(1, host.layout.getChildCount());
+        assertNull(host.layout.findViewWithTag(PinDownloads.COPY_TAG));
+    }
+
     @Test public void switchingOffAfterMenuCreationPreventsDetailsAndDownloadClicks() {
         Host host = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
                 "url", "https://i.pinimg.com/originals/source.jpg"))));
@@ -169,7 +207,9 @@ public class PinMenuTest {
         Settings.DOWNLOAD_PINS.save(false);
         assertTrue(host.layout.findViewWithTag(PinDownloads.ROW_TAG).performClick());
         assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+        assertTrue(host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
         assertNull(ShadowAlertDialog.getLatestAlertDialog());
+        assertFalse(clipboard().hasPrimaryClip());
         assertEquals(0, host.dismissed);
         assertNoDownload();
     }
@@ -188,6 +228,10 @@ public class PinMenuTest {
     }
 
     private Host host(Object pin) { return new Host(pin, new LinearLayout(activity)); }
+
+    private ClipboardManager clipboard() {
+        return (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+    }
 
     private String details() {
         AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();

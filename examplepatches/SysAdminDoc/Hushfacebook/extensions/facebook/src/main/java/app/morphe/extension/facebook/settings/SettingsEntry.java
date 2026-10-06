@@ -43,6 +43,7 @@ import app.morphe.extension.facebook.download.SavedFileActions;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.media.ResumePlayback;
 import app.morphe.extension.facebook.media.TapToPlay;
+import app.morphe.extension.facebook.misc.ScreenTransitions;
 import app.morphe.extension.facebook.navigation.ReelsTab;
 
 /**
@@ -463,6 +464,8 @@ public final class SettingsEntry {
         public void onActivityResumed(Activity activity) {
             resumed = new WeakReference<>(activity);
             SavedFileActions.onResumed(activity);
+            ScreenTransitions.activityResumed(activity);
+            TapToPlay.activityResumed(activity);
             if (openPending) openWhenSettled(activity);
             relabelIfStale(activity);
             SavedShortcut.refresh(activity);
@@ -471,6 +474,7 @@ public final class SettingsEntry {
         @Override
         public void onActivityPaused(Activity activity) {
             SavedFileActions.onPaused(activity);
+            ScreenTransitions.activityPaused(activity);
             if (resumed != null && resumed.get() == activity) resumed = null;
             LastScreen.read(activity);
         }
@@ -478,6 +482,7 @@ public final class SettingsEntry {
         @Override
         public void onActivityCreated(Activity activity, Bundle state) {
             TapToPlay.activityCreated(activity, state);
+            ScreenTransitions.activityCreated(activity);
         }
 
         @Override public void onActivityStarted(Activity activity) { }

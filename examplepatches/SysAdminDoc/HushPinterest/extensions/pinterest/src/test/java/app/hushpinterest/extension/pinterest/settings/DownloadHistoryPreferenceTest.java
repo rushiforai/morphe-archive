@@ -201,9 +201,15 @@ public class DownloadHistoryPreferenceTest {
         ShadowLooper.idleMainLooper();
         status(id, DownloadManager.STATUS_SUCCESSFUL);
         choice = chooseJob(dialog, 0);
-        assertEquals(2, choice.getListView().getAdapter().getCount());
+        assertEquals(3, choice.getListView().getAdapter().getCount());
         assertTrue(message(choice).contains(text("Completed")));
         assertFalse(choice.getListView().getAdapter().getItem(0).toString().contains(text("Retry download")));
+        assertTrue(choice.getListView().getAdapter().getItem(0).toString().contains(text("Set as wallpaper")));
+        click(choice.getListView(), 0);
+        settleTwice();
+        Intent chooser = Shadows.shadowOf(app).getNextStartedActivity();
+        assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+        assertEquals(Intent.ACTION_ATTACH_DATA, ((Intent) chooser.getParcelableExtra(Intent.EXTRA_INTENT)).getAction());
     }
 
     @Test public void unsafeOrExpiredSourcesOfferReopeningWithoutRetry() throws Exception {
@@ -263,7 +269,7 @@ public class DownloadHistoryPreferenceTest {
         AlertDialog history = open();
         for (int i = 0; i < 2; i++) {
             AlertDialog choice = chooseJob(history, 0);
-            click(choice.getListView(), 1);
+            click(choice.getListView(), choice.getListView().getAdapter().getCount() - 1);
             settleTwice();
             assertFalse(choice.isShowing());
             assertSame("removal opened an extra dialog", choice, ShadowAlertDialog.getLatestAlertDialog());

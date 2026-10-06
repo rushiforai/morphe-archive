@@ -106,11 +106,11 @@
       "branches": [
         {
           "name": "main",
-          "commit": "e46686992675ea757590095ebd7eef059475f202"
+          "commit": "f18cb4d2d47a657fa20de7504867d3278a4e3b3f"
         },
         {
           "name": "dev",
-          "commit": "e46686992675ea757590095ebd7eef059475f202"
+          "commit": "f18cb4d2d47a657fa20de7504867d3278a4e3b3f"
         }
       ],
       "watchPaths": [
@@ -582,7 +582,9 @@
         "xat.king6969/revanced-patches",
         "XCossale/revanced-patches",
         "yonggamer/revanced-patches",
-        "zappybiby/revanced-patches"
+        "zappybiby/revanced-patches",
+        "chandler.bing/ecoscan-80488462-deletion_scheduled-87193458",
+        "rachel.green.r/ecoscan-80488462-deletion_scheduled-87246759"
       ],
       "contentHashes": [
         "002638f8f6f0681dc0903a439ccf7c2cf2234a3f",
@@ -974,11 +976,11 @@
       "branches": [
         {
           "name": "main",
-          "commit": "12d6cd17cd497d0647fe3f4f5c3a07b75bee4a4a"
+          "commit": "42978e147695e12a1a02d8c19f01a46e294e6adc"
         },
         {
           "name": "dev",
-          "commit": "432f243f07468e54cf1ca0d3d05c9e87828fbce7"
+          "commit": "42978e147695e12a1a02d8c19f01a46e294e6adc"
         }
       ],
       "watchPaths": [
@@ -1142,7 +1144,9 @@
         "vonxbailey/morphe-patches",
         "xypherose/morphe-patches",
         "zqtmx/morphe-patches",
-        "ZwehtetA/morphe-patches"
+        "ZwehtetA/morphe-patches",
+        "luciusrockwing/morphe-patches-fork",
+        "rahul9999xda/morphe-patches1"
       ],
       "contentHashes": [
         "188138d4dbcd77fd9877e2e321787a7b5b068660",
@@ -1398,19 +1402,7 @@
       "branches": [
         {
           "name": "root",
-          "commit": "9033a2eccc011a36a945a41eb47c90a18833b3a2"
-        },
-        {
-          "name": "nonroot",
-          "commit": "248dda171caddfc954a595d289e0cf1203f1d26d"
-        },
-        {
-          "name": "fix",
-          "commit": "ea28423bdb0e8480d2ff99568773a57bfeb7b413"
-        },
-        {
-          "name": "tiktok-split-apk",
-          "commit": "ea28423bdb0e8480d2ff99568773a57bfeb7b413"
+          "commit": "9a90bbbd010fa5e567ae3e5c0c164964f32eb14d"
         }
       ],
       "watchPaths": [
@@ -1427,7 +1419,7 @@
         "evidence": "https://github.com/gnadgnaoh/NexAlloy-XES/blob/7333cd8c93be223a8ec2804938449de4777be685/app/src/main/java/io/github/nexalloy/revanced/facebook/ad/HideFacebookAdsPatch.kt"
       },
       "disposition": "behavior-only",
-      "reason": "GPL-3.0 at the repository level, but its Facebook master patch says it ports every FacebookAppAdsRemover hook, and that code has no licence. The Facebook subtree is behavior-only until Loukious licenses it. The 2026-10-02 fix/tiktok-split-apk branches diverge from the removed sync-and-fix branch and change FacebookAdHelpers.kt and ad/Fingerprints.kt. The feature list is a branch union: Reels shopping hooks remain on root/nonroot, but were absent from sync-and-fix and remain absent from both new branches.",
+      "reason": "GPL-3.0 at the repository level, but its Facebook master patch says it ports every FacebookAppAdsRemover hook, and that code has no licence. The Facebook subtree is behavior-only until Loukious licenses it. The 2026-10-02 fix/tiktok-split-apk branches diverge from the removed sync-and-fix branch and change FacebookAdHelpers.kt and ad/Fingerprints.kt. The feature list is a branch union: Reels shopping hooks remain on root/nonroot, but were absent from sync-and-fix and remain absent from both new branches. On 2026-10-04 root moved Facebook onto a class-loader dex source behind a multidex gate, with the CSR sponsored slot queue, an ad-free session spoof, unseen story viewing, l.php unwrapping and screenshot allowing; nonroot, fix and tiktok-split-apk are gone, and the debug and new-seen branches share root Facebook head and carry Instagram work only.",
       "archived": false,
       "forks": [
         "49ronind/NexAlloy",
@@ -1983,7 +1975,7 @@
       "branches": [
         {
           "name": "main",
-          "commit": "118bd358da6ad45d5026e9bddd6662422caea67c"
+          "commit": "8176c9b37df1d59bd5188f8670b2259c1ac9f520"
         }
       ],
       "watchPaths": [
@@ -2145,8 +2137,19 @@
         "2bd1cddeb156279910e819840c29cb41a5d5dde5",
         "6750db0c04a60d2a5a3f33a98cca805dbba1afb7"
       ],
-      "mirrors": [],
-      "lastChecked": "2026-10-02"
+      "mirrors": [
+        {
+          "repository": "https://github.com/BlazeFTL/morphe-fb-lite",
+          "reason": "A copy of ToThangGTVT/morphe-fb-lite at its last commit d69c0d69, created 2026-10-03 under another account and not a GitHub fork. The original answers 404 since 2026-10-06.",
+          "blobs": []
+        }
+      ],
+      "lastChecked": "2026-10-02",
+      "availability": {
+        "status": "unavailable",
+        "reason": "The repository answered HTTP 404 on 2026-10-06 and the account lists no repository of that name. BlazeFTL/morphe-fb-lite, created 2026-10-03 and not a GitHub fork, holds the same main and dev commit d69c0d69, so it is recorded as a mirror rather than a rename.",
+        "evidence": "https://github.com/ToThangGTVT/morphe-fb-lite/commit/d69c0d6904a75f48256c7dede8559390b5e1e606"
+      }
     }
   ],
   "outOfScope": [

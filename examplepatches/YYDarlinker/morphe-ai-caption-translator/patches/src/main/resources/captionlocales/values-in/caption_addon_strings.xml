@@ -1,129 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cap_age_close" formatted="false">" detik lalu)"</string>
+    <string name="cap_age_open" formatted="false">"(sekitar %1$s"</string>
     <string name="cap_ai_title" formatted="false">"Terjemahan subtitel AI"</string>
-    <string name="cap_enable_ai" formatted="false">"Aktifkan terjemahan AI"</string>
-    <string name="cap_api_config" formatted="false">"Konfigurasi API"</string>
     <string name="cap_api_address" formatted="false">"Alamat API"</string>
+    <string name="cap_api_config" formatted="false">"Konfigurasi API"</string>
+    <string name="cap_api_config_error" formatted="false">"Kesalahan konfigurasi API subtitel: %1$s"</string>
     <string name="cap_api_key" formatted="false">"Kunci API"</string>
-    <string name="cap_model" formatted="false">"Model"</string>
-    <string name="cap_test_api" formatted="false">"Uji API"</string>
-    <string name="cap_translation" formatted="false">"Terjemahan"</string>
-    <string name="cap_translation_requirements" formatted="false">"Instruksi terjemahan"</string>
-    <string name="cap_style" formatted="false">"Gaya subtitel"</string>
-    <string name="cap_size" formatted="false">"Ukuran subtitel"</string>
-    <string name="cap_opacity" formatted="false">"Opasitas latar"</string>
-    <string name="cap_reset_position" formatted="false">"Reset posisi subtitel"</string>
-    <string name="cap_cache_diagnostics" formatted="false">"Cache dan diagnostik"</string>
-    <string name="cap_clear_cache" formatted="false">"Hapus cache subtitel"</string>
-    <string name="cap_delete_key" formatted="false">"Hapus kunci API"</string>
-    <string name="cap_text_debug" formatted="false">"Debug teks subtitel"</string>
-    <string name="cap_diagnostics" formatted="false">"Diagnostik subtitel"</string>
-    <string name="cap_clear_diagnostics" formatted="false">"Hapus diagnostik"</string>
-    <string name="cap_preview" formatted="false">"Pratinjau subtitel"</string>
-    <string name="cap_landscape" formatted="false">"Lanskap"</string>
-    <string name="cap_portrait" formatted="false">"Potret"</string>
-    <string name="cap_to_landscape" formatted="false">"Beralih ke lanskap"</string>
-    <string name="cap_to_portrait" formatted="false">"Beralih ke potret"</string>
-    <string name="cap_refresh" formatted="false">"Muat ulang"</string>
-    <string name="cap_copy" formatted="false">"Salin"</string>
-    <string name="cap_expand" formatted="false">"Perluas"</string>
-    <string name="cap_collapse" formatted="false">"Ciutkan"</string>
-    <string name="cap_cancel" formatted="false">"Batal"</string>
-    <string name="cap_delete" formatted="false">"Hapus"</string>
-    <string name="cap_saved" formatted="false">"Disimpan otomatis"</string>
+    <string name="cap_api_test_failed" formatted="false">"Uji API gagal: %1$s"</string>
+    <string name="cap_api_test_ok" formatted="false">"API tersedia: %1$s"</string>
+    <string name="cap_api_test_retry_hint" formatted="false">"Uji koneksi dengan konfigurasi tersimpan"</string>
+    <string name="cap_audit_api" formatted="false">"API: %1$s percobaan · %2$s berhasil (2xx) · %3$s gagal · percobaan ulang internal %4$s"</string>
+    <string name="cap_audit_api_call_many" formatted="false">"%1$s panggilan API · "</string>
+    <string name="cap_audit_api_call_one" formatted="false">"%1$s panggilan API · "</string>
+    <string name="cap_audit_boundary" formatted="false">"Pemeriksaan ulang batas: dipicu %1$s kali (maksimal sekali per halaman) · %2$s permintaan dikirim · %3$s atom dipulihkan"</string>
+    <string name="cap_audit_bucket_background" formatted="false">"Pramuat latar belakang"</string>
+    <string name="cap_audit_bucket_background_alt" formatted="false">"Pemeriksaan ulang batas"</string>
+    <string name="cap_audit_bucket_background_block" formatted="false">"Blok (fallback)"</string>
+    <string name="cap_audit_bucket_background_page" formatted="false">"Penggabungan halaman"</string>
+    <string name="cap_audit_bucket_display" formatted="false">"Pemotongan tampilan"</string>
+    <string name="cap_audit_bucket_priority" formatted="false">"Prioritas saat ini"</string>
+    <string name="cap_audit_bucket_priority_current" formatted="false">"Jangkar saat ini"</string>
+    <string name="cap_audit_bucket_priority_gap_rescue" formatted="false">"Penyelamatan celah"</string>
+    <string name="cap_audit_bucket_progress" formatted="false">"Kemajuan penggabungan halaman: %1$s blok tetap selesai oleh %2$s permintaan halaman (%3$s blok/permintaan; &lt;1,0 berarti permintaan berulang tanpa kemajuan)"</string>
+    <string name="cap_audit_bucket_unit_background" formatted="false">"Jangkar waktu / batch latar belakang"</string>
+    <string name="cap_audit_bucket_unit_realtime" formatted="false">"Jangkar waktu / batch saat ini"</string>
+    <string name="cap_audit_by_purpose" formatted="false">"Permintaan menurut tujuan:"</string>
+    <string name="cap_audit_cache_known" formatted="false">"Cache masukan: hit %1$s / luput %2$s · rasio hit %3$s"</string>
+    <string name="cap_audit_cache_unknown" formatted="false">"Cache masukan: penyedia tidak melaporkan rincian hit/luput yang dikenali"</string>
+    <string name="cap_audit_char_ratio" formatted="false">"rasio eksposur karakter %1$s"</string>
+    <string name="cap_audit_circuit_breakers" formatted="false">"pemutus sirkuit lokal %1$s"</string>
+    <string name="cap_audit_core_contextual_unit" formatted="false">"Inti: Unit Kontekstual v1"</string>
+    <string name="cap_audit_core_event_rebuild" formatted="false">"Inti: Pembangunan ulang peristiwa / %1$s"</string>
+    <string name="cap_audit_core_semantic_ledger" formatted="false">"Inti: Ledger Semantik v2"</string>
+    <string name="cap_audit_current_engine" formatted="false">"Mesin saat ini: %1$s"</string>
+    <string name="cap_audit_current_model" formatted="false">"Model saat ini: %1$s"</string>
+    <string name="cap_audit_disk_cache" formatted="false">"Cache disk blok permintaan: pencarian %1$s · blok kena %2$s · unit luput %3$s"</string>
+    <string name="cap_audit_display_handoff" formatted="false">"diserahkan ke AI %1$s kali (panggilan AI %2$s · dengan pemakaian %3$s · kegagalan %4$s)"</string>
+    <string name="cap_audit_display_local" formatted="false">"Pemotongan tampilan: %1$s keberhasilan lokal tanpa token"</string>
+    <string name="cap_audit_display_whole" formatted="false">"kalimat utuh dipertahankan %1$s kali"</string>
+    <string name="cap_audit_efficiency" formatted="false">"Efisiensi %1$s: %2$s atom inti ditambahkan · masukan per atom %3$s tok · masukan luput cache per atom %4$s tok"</string>
+    <string name="cap_audit_estimate" formatted="false">"Perkiraan penyedia saat ini untuk V4 Flash: %1$s"</string>
+    <string name="cap_audit_failure_breakdown" formatted="false">"Rincian kegagalan: 429 %1$s · 5xx %2$s · 4xx lain %3$s · waktu habis %4$s · jaringan %5$s · dibatalkan/terputus %6$s · lain-lain %7$s"</string>
+    <string name="cap_audit_focus_misses" formatted="false">"fokus luput %1$s"</string>
+    <string name="cap_audit_legacy_engine" formatted="false">"Mesin kompatibilitas lama"</string>
+    <string name="cap_audit_logical_request_many" formatted="false">"%1$s permintaan logis / "</string>
+    <string name="cap_audit_logical_request_one" formatted="false">"%1$s permintaan logis / "</string>
+    <string name="cap_audit_no_usage" formatted="false">"Audit biaya token: belum ada pemakaian API. Putar subtitel AI untuk melihat pemakaian, hit cache, tujuan permintaan, dan biaya per menit tonton."</string>
+    <string name="cap_audit_no_usage_note" formatted="false">"Catatan: %1$s respons 2xx tanpa pemakaian; untuk ini hanya jumlah yang diketahui, bukan token persisnya."</string>
+    <string name="cap_audit_page_fallback" formatted="false">"Fallback halaman: %1$s halaman cache melampaui ambang kegagalan; kembali ke permintaan blok"</string>
+    <string name="cap_audit_per_minute" formatted="false">"%1$s token per menit tonton"</string>
+    <string name="cap_audit_priced_subset" formatted="false">"(hanya respons yang dihitung dengan tarif V4 Flash bawaan)"</string>
+    <string name="cap_audit_request_blocks" formatted="false">"Blok permintaan: target %1$s blok · konteks hanya-baca %2$s bagian · bagian konteks per blok %3$s"</string>
+    <string name="cap_audit_request_body" formatted="false">"Badan permintaan: total %1$s byte · rata-rata %2$s byte per percobaan API"</string>
+    <string name="cap_audit_semantic_window" formatted="false">"Jendela semantik: inti %1$s atom · terekspos %2$s atom · rasio eksposur konteks %3$s"</string>
+    <string name="cap_audit_structural" formatted="false">"Pemeriksaan struktural dan deterministik: diterima / ditolak (bukan penerimaan semantik): %1$s / %2$s (%3$s)"</string>
+    <string name="cap_audit_sunk" formatted="false">"Permintaan terkirim tetapi tidak terbaca: %1$s permintaan · %2$s byte. Pemrosesan dan penagihan penyedia tidak diketahui; total token dan biaya di bawah mengecualikan pemakaian ini, jadi pengeluaran sebenarnya tidak dapat ditentukan."</string>
+    <string name="cap_audit_title" formatted="false">"Audit biaya token (sejak reset terakhir)"</string>
+    <string name="cap_audit_tok" formatted="false">"%1$s tok"</string>
+    <string name="cap_audit_tok_per_minute" formatted="false">"%1$s tok per menit tonton"</string>
+    <string name="cap_audit_tokens" formatted="false">"Token: %1$s = masukan %2$s + keluaran %3$s"</string>
+    <string name="cap_audit_video" formatted="false">"Video saat ini: ditonton %1$s dtk · %2$s token"</string>
+    <string name="cap_audit_viewed" formatted="false">"ditonton %1$s dtk · %2$s tok"</string>
     <string name="cap_autosave" formatted="false">"Perubahan disimpan otomatis"</string>
-    <string name="cap_enter_key" formatted="false">"Masukkan kunci API"</string>
-    <string name="cap_key_saved" formatted="false">"Disimpan terenkripsi; masukkan untuk mengganti"</string>
-    <string name="cap_model_hint" formatted="false">"Pilih model atau masukkan ID"</string>
-    <string name="cap_preview_hint" formatted="false">"Ketuk gambar untuk mengubah orientasi; gaya diperbarui langsung"</string>
-    <string name="cap_size_hint" formatted="false">"Ukuran relatif 8–15, mengikuti ukuran video"</string>
-    <string name="cap_opacity_hint" formatted="false">"0% transparan, 100% buram; disimpan saat dilepas"</string>
-    <string name="cap_diagnostic_hint" formatted="false">"Perluas untuk melihat dan menyalin diagnostik"</string>
-    <string name="cap_use_youtube" formatted="false">"Gunakan YouTube"</string>
-    <string name="cap_use_ai" formatted="false">"Gunakan AI"</string>
-    <string name="cap_on" formatted="false">"Aktif"</string>
-    <string name="cap_off" formatted="false">"Nonaktif"</string>
-    <string name="cap_configure_api" formatted="false">"Atur API sebelum mengaktifkan terjemahan AI"</string>
-    <string name="cap_switch_failed" formatted="false">"Gagal beralih; mode sebelumnya dipulihkan"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"Cache dan diagnostik"</string>
+    <string name="cap_cancel" formatted="false">"Batal"</string>
+    <string name="cap_caption_translating" formatted="false">"Menerjemahkan…"</string>
     <string name="cap_choose_translation" formatted="false">"Pilih bahasa terjemahan otomatis di menu subtitel"</string>
-    <string name="cap_message_7b7480271fa5" formatted="false">"Saat nonaktif, YouTube menampilkan subtitelnya sendiri"</string>
-    <string name="cap_message_1cc3c4b0aab0" formatted="false">"Subtitel asli langsung berfungsi; terjemahan AI memerlukan kunci API"</string>
-    <string name="cap_message_2c107e436145" formatted="false">"Aktif; pilih bahasa terjemahan otomatis untuk memakai AI"</string>
-    <string name="cap_message_ea9ebe26591a" formatted="false">"Sertakan teks asli dan terjemahan dalam diagnostik hanya untuk pemecahan masalah"</string>
-    <string name="cap_message_f496dd228d0b" formatted="false">"Jangan rekam teks asli atau terjemahan"</string>
-    <string name="cap_message_261f1c6f0fde" formatted="false">"Rekam teks untuk pemecahan masalah; nonaktif secara default"</string>
-    <string name="cap_message_92561907fadc" formatted="false">"Uji koneksi dengan konfigurasi tersimpan"</string>
-    <string name="cap_message_33c08bcbc79b" formatted="false">"Hanya terjemahan otomatis memakai API; subtitel asli tidak diterjemahkan"</string>
-    <string name="cap_message_fd1ada5395a0" formatted="false">"Reset posisi vertikal; pertahankan ukuran dan latar"</string>
+    <string name="cap_clear_cache" formatted="false">"Hapus cache subtitel"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"Hapus diagnostik"</string>
+    <string name="cap_clear_diagnostics_confirm" formatted="false">"Hapus catatan diagnostik lokal? Setelan API dan cache terjemahan tidak dihapus."</string>
+    <string name="cap_collapse" formatted="false">"Ciutkan"</string>
+    <string name="cap_configure_api" formatted="false">"Atur API sebelum mengaktifkan terjemahan AI"</string>
+    <string name="cap_copy" formatted="false">"Salin"</string>
+    <string name="cap_copy_part_done" formatted="false">"Bagian %1$s / %2$s disalin; ketuk Simpan lagi untuk sisanya"</string>
+    <string name="cap_copy_part_failed" formatted="false">"Tidak dapat menyalin bagian %1$s"</string>
+    <string name="cap_copy_part_label" formatted="false">"Salin bagian %1$s / %2$s"</string>
+    <string name="cap_copy_parts_title" formatted="false">"Android 9 dan di bawahnya: salin diagnostik lengkap per bagian"</string>
+    <string name="cap_default_prompt" formatted="false">"Terjemahkan secara setia, alami, dan ringkas ke bahasa tujuan dengan ungkapan penutur asli. Pertahankan nama, istilah, angka, nada, dan tanda baca yang diperlukan. Jangan tambahkan penjelasan yang tidak ada dalam sumber."</string>
+    <string name="cap_delete" formatted="false">"Hapus"</string>
+    <string name="cap_delete_key" formatted="false">"Hapus kunci API"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"Perluas untuk melihat dan menyalin diagnostik"</string>
+    <string name="cap_diagnostics" formatted="false">"Diagnostik subtitel"</string>
+    <string name="cap_diagnostics_hint" formatted="false">"Aktifkan debug teks untuk pengujian lama; Simpan diagnostik lengkap mengekspor 24 jam terakhir (batas 16 MiB). Ringkasan di bawah hanya menampilkan aktivitas terbaru."</string>
+    <string name="cap_display_debug" formatted="false">"Debug teks: %1$s"</string>
+    <string name="cap_enable_ai" formatted="false">"Aktifkan terjemahan AI"</string>
+    <string name="cap_engine" formatted="false">"Mesin"</string>
+    <string name="cap_engine_event_rebuild" formatted="false">"Pembangunan ulang peristiwa"</string>
+    <string name="cap_enter_key" formatted="false">"Masukkan kunci API"</string>
+    <string name="cap_expand" formatted="false">"Perluas"</string>
+    <string name="cap_flyout_summary" formatted="false">"Tampilkan pintasan di menu pemutar. Menyembunyikannya tidak mematikan subtitel AI; berlaku saat menu dibuka kembali."</string>
+    <string name="cap_flyout_title" formatted="false">"Sakelar subtitel AI di menu video biasa"</string>
+    <string name="cap_keep_last_valid" formatted="false">"; nilai valid terakhir dipertahankan"</string>
+    <string name="cap_key_saved" formatted="false">"Disimpan terenkripsi; masukkan untuk mengganti"</string>
+    <string name="cap_label_separator" formatted="false">"%1$s: "</string>
+    <string name="cap_landscape" formatted="false">"Lanskap"</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"Terjemahan otomatis"</string>
     <string name="cap_message_10d1b374429d" formatted="false">"Terlihat saat diedit, dikosongkan saat ditutup, dan disimpan terenkripsi"</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"Daftar model diperbarui"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"Subtitel asli langsung berfungsi; terjemahan AI memerlukan kunci API"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"Hapus kunci API?"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"Rekam teks untuk pemecahan masalah; nonaktif secara default"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"Aktif; pilih bahasa terjemahan otomatis untuk memakai AI"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"Gagal memuat model; masukkan ID secara manual: "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"Kejadian terbaru: "</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"Hanya terjemahan otomatis memakai API; subtitel asli tidak diterjemahkan"</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" detik lalu)"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"Subtitel asli (tanpa API terjemahan)"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API tersedia: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"Tahap terakhir: "</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"Memuat daftar model…"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"Menguji…"</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"Kunci API dihapus"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"Hanya menghapus kunci API terenkripsi pada perangkat ini. Setelan lain tidak berubah."</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"Gagal membaca diagnostik: "</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"Saat nonaktif, YouTube menampilkan subtitelnya sendiri"</string>
     <string name="cap_message_7da9039cc193" formatted="false">"Kunci API harus satu baris"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"Belum ada permintaan terjemahan. Atur API, pilih bahasa terjemahan otomatis, lalu muat ulang diagnostik."</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"; nilai valid terakhir dipertahankan"</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"Mode: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"Uji API gagal: "</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"Diagnostik disalin"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"Diagnostik dihapus"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"Uji koneksi dengan konfigurasi tersimpan"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"Setelan tidak dikenal"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"Posisi subtitel direset"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"Gagal menyimpan model"</string>
     <string name="cap_message_bafa7b1ca6cb" formatted="false">"Alamat API harus diawali https:// atau http://"</string>
     <string name="cap_message_bbbcd9c8bf80" formatted="false">"Gagal menyimpan otomatis"</string>
-    <string name="cap_message_b795d97808e8" formatted="false">"Gagal menyimpan model"</string>
-    <string name="cap_message_9a6606c64f5f" formatted="false">"Setelan tidak dikenal"</string>
-    <string name="cap_message_8500e82ca181" formatted="false">"; nilai valid terakhir dipertahankan"</string>
-    <string name="cap_message_a25bd037963d" formatted="false">"Posisi subtitel direset"</string>
-    <string name="cap_message_e8b2177e1cd3" formatted="false">"Cache subtitel dihapus"</string>
-    <string name="cap_message_1f328bc723d4" formatted="false">"Hapus kunci API?"</string>
-    <string name="cap_message_6ec744dcc83a" formatted="false">"Hanya menghapus kunci API terenkripsi pada perangkat ini. Setelan lain tidak berubah."</string>
-    <string name="cap_message_574dd3f1ccfe" formatted="false">"Kunci API dihapus"</string>
-    <string name="cap_message_8bfb437edfc4" formatted="false">"Diagnostik dihapus"</string>
-    <string name="cap_message_896c4b51d7e9" formatted="false">"Diagnostik disalin"</string>
-    <string name="cap_message_49562bf14c82" formatted="false">"Menguji…"</string>
-    <string name="cap_message_3a1185c1dc9f" formatted="false">"API tersedia: "</string>
-    <string name="cap_message_88ce10e8f20b" formatted="false">"Uji API gagal: "</string>
-    <string name="cap_message_ec966cf35a63" formatted="false">"Memperbarui daftar model…"</string>
-    <string name="cap_message_462efc3e98ef" formatted="false">"Memuat daftar model…"</string>
-    <string name="cap_message_2d61f9891514" formatted="false">"Gagal memuat model; masukkan ID secara manual: "</string>
-    <string name="cap_message_17ea5266e7a5" formatted="false">"Daftar model diperbarui"</string>
-    <string name="cap_message_7e7bfd29c71d" formatted="false">"Belum ada permintaan terjemahan. Atur API, pilih bahasa terjemahan otomatis, lalu muat ulang diagnostik."</string>
-    <string name="cap_message_dd0fb9f395bc" formatted="false">"Mesin: "</string>
-    <string name="cap_message_8736a99d18f2" formatted="false">"Mode: "</string>
-    <string name="cap_message_0825b4b0cb7d" formatted="false">"Terjemahan otomatis"</string>
-    <string name="cap_message_375e0f929195" formatted="false">"Subtitel asli (tanpa API terjemahan)"</string>
-    <string name="cap_message_c46b062d22ba" formatted="false">"Debug teks: "</string>
-    <string name="cap_message_44feb4d98d48" formatted="false">"Tahap terakhir: "</string>
-    <string name="cap_message_dedc85cbb813" formatted="false">"Referensi waktu dan kegagalan (dengan waktu): "</string>
-    <string name="cap_message_30070c30d85c" formatted="false">"Kejadian terbaru: "</string>
-    <string name="cap_message_75a885d3b526" formatted="false">"Gagal membaca diagnostik: "</string>
     <string name="cap_message_c34848823d86" formatted="false">" (sekitar "</string>
-    <string name="cap_message_33cc168ccb4e" formatted="false">" detik lalu)"</string>
-    <string name="cap_mode_pending" formatted="false">"Mode disimpan. Akan diterapkan saat subtitel video ini siap."</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"Debug teks: "</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"Mesin: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"Referensi waktu dan kegagalan (dengan waktu): "</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"Cache subtitel dihapus"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"Sertakan teks asli dan terjemahan dalam diagnostik hanya untuk pemecahan masalah"</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"Memperbarui daftar model…"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"Jangan rekam teks asli atau terjemahan"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"Reset posisi vertikal; pertahankan ukuran dan latar"</string>
+    <string name="cap_mode" formatted="false">"Mode"</string>
+    <string name="cap_mode_auto_translate" formatted="false">"Terjemahan otomatis"</string>
     <string name="cap_mode_off_pending" formatted="false">"AI dinonaktifkan. Subtitel YouTube akan dilanjutkan saat trek aslinya siap."</string>
-    <string name="cap_flyout_title" formatted="false">"Sakelar subtitel AI di menu video biasa"</string>
-    <string name="cap_flyout_summary" formatted="false">"Tampilkan pintasan di menu pemutar. Menyembunyikannya tidak mematikan subtitel AI; berlaku saat menu dibuka kembali."</string>
-    <string name="cap_shorts_flyout_title" formatted="false">"Sakelar subtitel AI di menu Shorts"</string>
-    <string name="cap_profiles_title" formatted="false">"Profil API"</string>
-    <string name="cap_profile_default" formatted="false">"Konfigurasi awal"</string>
-    <string name="cap_profile_name" formatted="false">"Nama profil"</string>
-    <string name="cap_profile_rename" formatted="false">"Ubah nama"</string>
+    <string name="cap_mode_original" formatted="false">"Subtitel asli (tanpa API terjemahan)"</string>
+    <string name="cap_mode_pending" formatted="false">"Mode disimpan. Akan diterapkan saat subtitel video ini siap."</string>
+    <string name="cap_model" formatted="false">"Model"</string>
+    <string name="cap_model_hint" formatted="false">"Pilih model atau masukkan ID"</string>
+    <string name="cap_model_hint_key_first" formatted="false">"Isi Kunci API dulu; model juga bisa diketik"</string>
+    <string name="cap_model_hint_manual_only" formatted="false">"Pilih dari daftar di bawah atau ketik ID model"</string>
+    <string name="cap_model_hint_retry" formatted="false">"Ketuk Muat ulang untuk mencoba lagi, atau ketik ID model"</string>
+    <string name="cap_model_list_updated" formatted="false">"Daftar model diperbarui"</string>
+    <string name="cap_model_load_failed" formatted="false">"Gagal memuat model; masukkan manual: %1$s"</string>
+    <string name="cap_model_loading_auto" formatted="false">"Memuat daftar model…"</string>
+    <string name="cap_model_loading_refresh" formatted="false">"Memuat ulang daftar model…"</string>
+    <string name="cap_model_pick_or_type" formatted="false">"Pilih model atau ketik ID-nya"</string>
+    <string name="cap_model_save_failed" formatted="false">"Gagal menyimpan model"</string>
+    <string name="cap_model_saved" formatted="false">"Model disimpan otomatis"</string>
+    <string name="cap_no_request_yet" formatted="false">"Belum ada permintaan terjemahan. Atur API, pilih bahasa terjemahan otomatis, lalu muat ulang diagnostik."</string>
+    <string name="cap_off" formatted="false">"Nonaktif"</string>
+    <string name="cap_on" formatted="false">"Aktif"</string>
+    <string name="cap_opacity" formatted="false">"Opasitas latar"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% transparan, 100% buram; disimpan saat dilepas"</string>
+    <string name="cap_preview" formatted="false">"Pratinjau layar penuh lanskap"</string>
+    <string name="cap_preview_hint" formatted="false">"Pratinjau gaya (layar penuh)"</string>
+    <string name="cap_preview_sample" formatted="false">"Dunia ini luas. Ayo jelajahi!"</string>
     <string name="cap_profile_add" formatted="false">"Tambah profil"</string>
-    <string name="cap_profiles_summary" formatted="false">"Kelola profil aktif"</string>
-    <string name="cap_profile_name_error" formatted="false">"Masukkan nama sepanjang 1–60 karakter"</string>
-    <string name="cap_profile_limit" formatted="false">"Maksimal 30 profil dapat disimpan"</string>
-    <string name="cap_profile_invalid_edits" formatted="false">"Perbaiki isian yang belum selesai sebelum berganti profil"</string>
     <string name="cap_profile_add_failed" formatted="false">"Tidak dapat menambah profil. Periksa isian dan batas 30 profil."</string>
-    <string name="cap_profile_manage" formatted="false">"Kelola profil aktif"</string>
-    <string name="cap_profile_close" formatted="false">"Tutup"</string>
-    <string name="cap_profile_save" formatted="false">"Simpan"</string>
-    <string name="cap_profile_current" formatted="false">"Profil aktif"</string>
-    <string name="cap_profile_delete" formatted="false">"Hapus profil"</string>
     <string name="cap_profile_clear_key" formatted="false">"Hapus kunci API profil ini"</string>
-    <string name="cap_profile_keep_one" formatted="false">"Sisakan setidaknya satu profil. Anda dapat menghapus kunci API-nya."</string>
-    <string name="cap_profile_new_summary" formatted="false">"Profil baru berisi instruksi terjemahan bawaan, tanpa kunci atau model. Lengkapi kolom pada halaman pengaturan."</string>
-    <string name="cap_profile_delete_summary" formatted="false">"Menghapus alamat, model, instruksi terjemahan, dan kunci terenkripsi profil ini dari perangkat. Profil lain dan pengaturan subtitle tetap ada. Jika aktif, profil pertama yang tersisa akan diaktifkan. Tidak dapat dibatalkan."</string>
     <string name="cap_profile_clear_key_summary" formatted="false">"Hanya menghapus kunci tersimpan dan masukan kunci yang belum disimpan pada profil ini. Alamat, model, instruksi, dan profil lain tetap ada. Kunci tidak dicabut di penyedia."</string>
-    <string name="cap_prompt_summary" formatted="false">"Disimpan untuk profil ini. Kosongkan untuk memulihkan instruksi bawaan sesuai bahasa antarmuka. Teks Anda tetap sama."</string>
-    <string name="cap_default_prompt" formatted="false">"Terjemahkan secara setia, alami, dan ringkas ke bahasa tujuan dengan ungkapan penutur asli. Pertahankan nama, istilah, angka, nada, dan tanda baca yang diperlukan. Jangan tambahkan penjelasan yang tidak ada dalam sumber."</string>
-    <string name="cap_profile_more" formatted="false">"Tindakan profil"</string>
+    <string name="cap_profile_close" formatted="false">"Tutup"</string>
     <string name="cap_profile_collapse" formatted="false">"Tutup tindakan"</string>
-    <string name="cap_profile_finish_name" formatted="false">"Simpan atau batalkan perubahan nama terlebih dahulu."</string>
-    <string name="cap_profile_delete_inline" formatted="false">"Hapus profil ini dan kunci tersimpannya dari perangkat? Profil lain tetap ada. Tidak dapat dibatalkan."</string>
-    <string name="cap_profile_delete_switch" formatted="false">"Setelah dihapus, aktifkan:"</string>
-    <string name="cap_profile_keep" formatted="false">"Pertahankan profil"</string>
     <string name="cap_profile_confirm_delete" formatted="false">"Konfirmasi hapus"</string>
+    <string name="cap_profile_current" formatted="false">"Profil aktif"</string>
+    <string name="cap_profile_default" formatted="false">"Konfigurasi awal"</string>
+    <string name="cap_profile_delete" formatted="false">"Hapus profil"</string>
+    <string name="cap_profile_delete_inline" formatted="false">"Hapus profil ini dan kunci tersimpannya dari perangkat? Profil lain tetap ada. Tidak dapat dibatalkan."</string>
+    <string name="cap_profile_delete_summary" formatted="false">"Menghapus alamat, model, instruksi terjemahan, dan kunci terenkripsi profil ini dari perangkat. Profil lain dan pengaturan subtitle tetap ada. Jika aktif, profil pertama yang tersisa akan diaktifkan. Tidak dapat dibatalkan."</string>
+    <string name="cap_profile_delete_switch" formatted="false">"Setelah dihapus, aktifkan:"</string>
+    <string name="cap_profile_finish_name" formatted="false">"Simpan atau batalkan perubahan nama terlebih dahulu."</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"Perbaiki isian yang belum selesai sebelum berganti profil"</string>
+    <string name="cap_profile_keep" formatted="false">"Pertahankan profil"</string>
+    <string name="cap_profile_keep_one" formatted="false">"Sisakan setidaknya satu profil. Anda dapat menghapus kunci API-nya."</string>
+    <string name="cap_profile_limit" formatted="false">"Maksimal 30 profil dapat disimpan"</string>
+    <string name="cap_profile_manage" formatted="false">"Kelola profil aktif"</string>
+    <string name="cap_profile_more" formatted="false">"Tindakan profil"</string>
+    <string name="cap_profile_name" formatted="false">"Nama profil"</string>
+    <string name="cap_profile_name_error" formatted="false">"Masukkan nama sepanjang 1–60 karakter"</string>
+    <string name="cap_profile_new_summary" formatted="false">"Profil baru berisi instruksi terjemahan bawaan, tanpa kunci atau model. Lengkapi kolom pada halaman pengaturan."</string>
+    <string name="cap_profile_rename" formatted="false">"Ubah nama"</string>
+    <string name="cap_profile_save" formatted="false">"Simpan"</string>
+    <string name="cap_profiles_summary" formatted="false">"Kelola profil aktif"</string>
+    <string name="cap_profiles_title" formatted="false">"Profil API"</string>
+    <string name="cap_prompt_summary" formatted="false">"Disimpan untuk profil ini. Kosongkan untuk memulihkan instruksi bawaan sesuai bahasa antarmuka. Teks Anda tetap sama."</string>
+    <string name="cap_quality_outcome" formatted="false">"Validasi lokal: diterima / ditolak (kualitas)"</string>
+    <string name="cap_recent_trace" formatted="false">"Kejadian terbaru: "</string>
+    <string name="cap_refresh" formatted="false">"Muat ulang"</string>
+    <string name="cap_reset_position" formatted="false">"Reset posisi subtitel"</string>
+    <string name="cap_save_diagnostics" formatted="false">"Simpan diagnostik lengkap"</string>
+    <string name="cap_save_failed" formatted="false">"Gagal menyimpan: %1$s"</string>
+    <string name="cap_save_ok" formatted="false">"Disimpan ke Download/%1$s"</string>
+    <string name="cap_saved" formatted="false">"Disimpan otomatis"</string>
+    <string name="cap_selected_suffix" formatted="false">"dipilih"</string>
+    <string name="cap_shorts_flyout_summary" formatted="false">"Tampilkan pintasan di menu pop-up Shorts. Menyembunyikannya tidak mematikan subtitel AI; berlaku saat menu dibuka lagi."</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Sakelar subtitel AI di menu Shorts"</string>
+    <string name="cap_size" formatted="false">"Ukuran huruf"</string>
+    <string name="cap_size_hint" formatted="false">"Standar: detail video 44.5px · layar penuh 55.5px"</string>
+    <string name="cap_size_tier_hint" formatted="false">"%1$s: detail video %2$spx · layar penuh %3$spx"</string>
+    <string name="cap_size_tier_l" formatted="false">"Besar"</string>
+    <string name="cap_size_tier_s" formatted="false">"Kecil"</string>
+    <string name="cap_size_tier_standard" formatted="false">"Normal"</string>
+    <string name="cap_size_tier_xl" formatted="false">"Terbesar"</string>
+    <string name="cap_size_tier_xs" formatted="false">"Terkecil"</string>
     <string name="cap_source_retry" formatted="false">"Koneksi subtitel terputus. Mencoba lagi…"</string>
     <string name="cap_source_unavailable" formatted="false">"Subtitel sumber tidak tersedia. Pilih kembali trek subtitel."</string>
-    <string name="cap_caption_overflow" formatted="false">"Subtitel terlalu panjang — teks asli tidak tersedia"</string>
-    <string name="cap_quality_outcome" formatted="false">"Validasi lokal: diterima / ditolak (kualitas)"</string>
+    <string name="cap_style" formatted="false">"Gaya subtitel"</string>
+    <string name="cap_switch_failed" formatted="false">"Gagal beralih; mode sebelumnya dipulihkan"</string>
+    <string name="cap_test_api" formatted="false">"Uji API"</string>
+    <string name="cap_text_debug" formatted="false">"Debug teks subtitel"</string>
+    <string name="cap_timing_decisions" formatted="false">"Referensi waktu dan kegagalan (dengan waktu): "</string>
+    <string name="cap_translation" formatted="false">"Terjemahan"</string>
+    <string name="cap_translation_requirements" formatted="false">"Instruksi terjemahan"</string>
+    <string name="cap_use_ai" formatted="false">"Gunakan AI"</string>
+    <string name="cap_use_youtube" formatted="false">"Gunakan YouTube"</string>
+    <string name="cap_ai_quick_toggle_on" formatted="false">"Terjemahan subtitel AI · Aktif"</string>
+    <string name="cap_ai_quick_toggle_off" formatted="false">"Terjemahan subtitel AI · Nonaktif"</string>
+    <string name="cap_ai_summary" formatted="false">"Setelah diaktifkan, pilih bahasa dalam daftar ‘Terjemahkan otomatis’ YouTube untuk menerjemahkan subtitel secara real time menggunakan layanan AI yang telah dikonfigurasi."</string>
+    <string name="cap_languages_title" formatted="false">"Bahasa terjemahan otomatis"</string>
+    <string name="cap_languages_summary" formatted="false">"Tambahkan bahasa yang dipilih ke daftar bahasa ‘Terjemahkan otomatis’ YouTube. Anda dapat memilih beberapa bahasa."</string>
+    <string name="cap_languages_count" formatted="false">"%1$d bahasa dipilih"</string>
+    <string name="cap_languages_save" formatted="false">"Simpan"</string>
+    <string name="cap_languages_existing" formatted="false">"Sudah tersedia"</string>
+    <string name="cap_languages_new" formatted="false">"Ditambahkan"</string>
+    <string name="cap_languages_unavailable" formatted="false">"Tidak tersedia"</string>
+    <string name="cap_languages_empty" formatted="false">"Tidak ada bahasa dipilih; menu asli tidak berubah"</string>
+    <string name="cap_languages_entry" formatted="false">"%1$s · %2$s"</string>
+    <string name="cap_model_empty" formatted="false">"ID model tidak boleh kosong"</string>
+    <string name="cap_api_address_invalid" formatted="false">"Masukkan URL dasar HTTP(S) yang valid dan kompatibel dengan OpenAI, tanpa kredensial tertanam atau fragmen."</string>
+    <string name="cap_language_zh_hans" formatted="false">"Tionghoa (Sederhana)"</string>
+    <string name="cap_language_zh_hant" formatted="false">"Tionghoa (Tradisional)"</string>
+    <string name="cap_paste" formatted="false">"Tempel"</string>
+    <string name="cap_select_all" formatted="false">"Pilih semua"</string>
+    <string name="cap_value_retained" formatted="false">"%1$s; nilai valid terakhir dipertahankan"</string>
+    <string name="cap_model_ids_empty" formatted="false">"Endpoint tidak mengembalikan ID model yang dapat dipilih"</string>
+    <string name="cap_diagnostics_loading" formatted="false">"Memuat diagnostik…"</string>
 </resources>

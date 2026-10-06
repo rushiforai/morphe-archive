@@ -83,7 +83,7 @@
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "python3 .github/scripts/normalize_release_metadata.py \"${nextRelease.version}\" && ./gradlew :extensions:extension:testDebugUnitTest :patches:buildAndroid :patches:generatePatchesList --no-daemon && python3 .github/scripts/validate_morphe_metadata.py \"${nextRelease.version}\" && python3 .github/scripts/verify_bundle.py \"${nextRelease.version}\""
+        "prepareCmd": "python3 .github/scripts/normalize_release_metadata.py \"${nextRelease.version}\" && ./gradlew :extensions:extension:testDebugUnitTest :patches:buildAndroid :patches:generatePatchesList --no-daemon && python3 .github/scripts/generate_patches_readme.py YYDarlinker/morphe-ai-caption-translator main patches-list.json README.md && python3 .github/scripts/validate_morphe_metadata.py \"${nextRelease.version}\" && python3 .github/scripts/verify_bundle.py \"${nextRelease.version}\""
       }
     ],
     [

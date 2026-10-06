@@ -76,7 +76,7 @@ import app.morphe.extension.shared.settings.StringSetting;
  */
 public final class SettingsBackup {
     /**
-     * Far more than a settings file needs: one is a few hundred bytes, or 62 KB at most with both
+     * Far more than a settings file needs: one is a few hundred bytes, or 63 KB at most with both
      * word lists filling the room they share.
      */
     public static final int MAX_BYTES = 64 * 1024;
@@ -108,6 +108,7 @@ public final class SettingsBackup {
             Settings.RETURN_REFRESH_NO_LIMIT,
             Settings.HIDE_AI_DETECTED_POSTS,
             Settings.HIDE_AI_LABELLED_POSTS,
+            Settings.HIDE_META_AI_FEED_UNITS,
             Settings.HIDE_AI_DETECTED_REELS,
             Settings.HIDE_POSTS_WITH_WORDS,
             Settings.POST_WORDS_WHOLE_WORDS,
@@ -125,11 +126,17 @@ public final class SettingsBackup {
             Settings.HIDE_SPONSORED_SEARCH_RESULTS,
             Settings.HIDE_SPONSORED_PROFILE_POSTS,
             Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS,
+            Settings.BLOCK_GAME_ADS,
             Settings.HIDE_AFFILIATE_LINKS,
             Settings.HIDE_REEL_CHIPS,
             Settings.HIDE_REEL_FOLLOW_BUTTON,
             Settings.HIDE_REEL_SOCIAL_FOOTER,
             Settings.DONT_SEND_REEL_WATCH_HISTORY,
+            Settings.HOLD_ANALYTICS_UPLOADS,
+            Settings.ALLOW_SCREENSHOTS,
+            Settings.TURN_OFF_HAPTICS,
+            Settings.TURN_OFF_SCREEN_TRANSITIONS,
+            Settings.BLOCK_SCREENSHOT_DETECTION,
             Settings.TURN_OFF_DOUBLE_TAP_LIKE,
             Settings.KEEP_REEL_SPEED,
             Settings.HOLD_REEL_FOR_2X,
@@ -138,6 +145,8 @@ public final class SettingsBackup {
             Settings.TAP_TO_PLAY,
             Settings.RESUME_LONG_VIDEOS,
             Settings.DEFAULT_PLAYBACK_QUALITY,
+            Settings.PICTURE_IN_PICTURE,
+            Settings.TURN_OFF_HDR_BRIGHTNESS,
             Settings.USE_SYSTEM_FONT,
             Settings.USE_SYSTEM_EMOJI,
             Settings.OPEN_LINKS_EXTERNALLY,
@@ -154,6 +163,12 @@ public final class SettingsBackup {
             Settings.MARKETPLACE_SKIP_FEED_PREFETCH,
             Settings.HIDE_REELS_TAB,
             Settings.HIDE_REELS_TAB_DOT,
+            Settings.HIDE_FEEDS_TAB,
+            Settings.HIDE_FRIENDS_TAB,
+            Settings.HIDE_MARKETPLACE_TAB,
+            Settings.HIDE_GROUPS_TAB,
+            Settings.HIDE_GAMING_TAB,
+            Settings.HIDE_EVENTS_TAB,
             Settings.BOTTOM_TAB_BAR,
             Settings.FORCE_DARK_MODE,
             Settings.HIDE_REEL_PROMPTS,
@@ -167,7 +182,8 @@ public final class SettingsBackup {
             Settings.BLOCK_BIRTHDAY_NOTIFICATIONS,
             Settings.BLOCK_HIGHLIGHT_NOTIFICATIONS,
             Settings.BLOCK_PEOPLE_YOU_MAY_KNOW_NOTIFICATIONS,
-            Settings.BLOCK_NEARBY_NOTIFICATIONS));
+            Settings.BLOCK_NEARBY_NOTIFICATIONS,
+            Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS));
 
     /**
      * The word filter's two lists, held in a file exactly as the settings row stores them: one

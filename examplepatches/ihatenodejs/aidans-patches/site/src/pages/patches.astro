@@ -1,0 +1,354 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PatchRow from '../components/PatchRow.astro';
+import { getApps, getPatches } from '../data/repo';
+const apps = getApps();
+const allPatches = getPatches();
+const totalPatches = allPatches.length;
+
+// Group patches by app
+const patchesByApp = apps.map((app) => ({
+  app,
+  patches: allPatches.filter((p) => p.compatibleAppIds.includes(app.id)),
+}));
+---
+
+<BaseLayout
+  title="Patches Catalog — Aidan's Morphe Patches"
+  description={`Browse all ${totalPatches} curated Android bytecode, resource, and Hermes binary patches with full option configuration and source references.`}
+  currentPath="/patches"
+>
+  <div class="px-4 sm:px-6 py-10 space-y-10">
+    <!-- Header Section -->
+    <div class="space-y-3">
+      <h1 class="font-sans text-3xl font-extrabold tracking-tight text-white">
+        Patch Catalog
+      </h1>
+      <p class="font-sans text-sm text-zinc-400 max-w-2xl leading-relaxed">
+        Search and filter through bytecode injections, telemetry blocks, custom resource overrides, and native ARM64 hooks. Expand any patch to inspect configurable parameters.
+      </p>
+    </div>
+
+    <!-- Filter & Search Controls Bar -->
+    <div id="filter-bar" class="border border-white/[0.08] bg-[#080808] p-4 rounded-sm space-y-4 sticky top-16 z-40 backdrop-blur-md bg-opacity-95">
+      <div class="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <!-- Search Input -->
+        <div class="relative flex-grow max-w-md">
+          <input
+            type="search"
+            id="search-input"
+            placeholder="Search patches, options, descriptions..."
+            class="w-full bg-zinc-950 border border-white/10 px-3.5 py-2 pl-9 text-xs font-mono text-white placeholder-zinc-500 rounded-sm focus:outline-none focus:border-white/30"
+          />
+          <svg class="w-4 h-4 text-zinc-500 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <!-- Filter Checkboxes -->
+        <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-zinc-400">
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-white transition-colors">
+            <input type="checkbox" id="filter-configurable" class="accent-blue-500 rounded cursor-pointer" />
+            <span>Configurable only</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer hover:text-white transition-colors">
+            <input type="checkbox" id="filter-default" class="accent-emerald-500 rounded cursor-pointer" />
+            <span>Default only</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- App Filter Pills -->
+      <div class="flex flex-wrap items-center gap-1.5 pt-2 border-t border-white/[0.06] text-xs font-mono">
+        <button
+          type="button"
+          data-app-filter="all"
+          class="app-filter-btn px-2.5 py-1 rounded-sm bg-white text-black font-semibold border border-white transition-colors"
+        >
+          All ({allPatches.length})
+        </button>
+        {apps.map((app) => (
+          <button
+            type="button"
+            data-app-filter={app.id}
+            class="app-filter-btn px-2.5 py-1 rounded-sm bg-zinc-950 text-zinc-400 border border-white/[0.08] hover:text-white hover:border-white/20 transition-colors flex items-center gap-1.5"
+          >
+            {app.iconUrl ? (
+              <Image
+                src={app.iconUrl}
+                alt=""
+                width={14}
+                height={14}
+                class="w-3.5 h-3.5 rounded-xs object-cover border border-white/10 shrink-0"
+                loading="eager"
+              />
+            ) : (
+              <span class="w-3.5 h-3.5 rounded-xs bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-[9px] text-zinc-400 shrink-0">
+                {app.name.charAt(0)}
+              </span>
+            )}
+            <span>{app.name}</span>
+            <span class="text-zinc-600 text-[10px]">({app.patchCount})</span>
+          </button>
+        ))}
+      </div>
+
+      <!-- Live Search Counter -->
+      <div id="filter-count" class="text-[11px] font-mono text-zinc-500 hidden">
+        Showing <span id="visible-count" class="text-zinc-300 font-bold">{allPatches.length}</span> <span id="visible-label">{allPatches.length === 1 ? 'patch' : 'patches'}</span>
+      </div>
+    </div>
+
+    <!-- Application Groups -->
+    <div class="space-y-12" id="catalog-container">
+      {patchesByApp.map(({ app, patches }, index) => (
+        <section
+          id={app.id}
+          data-app-section={app.id}
+          class="space-y-4 permalink-target"
+        >
+          <!-- App Header Strip -->
+          <div class="border border-white/[0.08] bg-[#070707] p-4 rounded-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+            {app.iconUrl ? (
+              <Image
+                src={app.iconUrl}
+                alt={app.name}
+                width={40}
+                height={40}
+                class="w-10 h-10 rounded-md object-cover border border-white/10 shrink-0"
+                loading={index === 0 ? "eager" : "lazy"}
+              />
+            ) : (
+              <div
+                class="w-10 h-10 rounded-sm flex items-center justify-center font-mono text-sm font-bold shrink-0"
+                style={`background-color: ${app.appIconColor}1a; color: ${app.appIconColor}; border: 1px solid ${app.appIconColor}40;`}
+              >
+                {app.name.charAt(0)}
+              </div>
+            )}
+
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="font-sans text-base font-bold text-white tracking-tight">
+                    {app.name}
+                  </h2>
+                  <span class="font-mono text-[10px] px-1.5 py-0.5 rounded-sm bg-white/[0.04] border border-white/[0.08] text-zinc-400">
+                    {app.apkFileType}
+                  </span>
+                </div>
+                <div class="font-mono text-xs text-zinc-500">
+                  {app.packageName}
+                </div>
+              </div>
+            </div>
+
+            <!-- App Meta Pills -->
+            <div class="flex flex-wrap items-center gap-2 font-mono text-[11px] text-zinc-400">
+              <span class="px-2 py-0.5 bg-zinc-950 border border-white/10 rounded-sm text-zinc-300">
+                Target: v{app.latestSupportedVersion}
+              </span>
+
+              {app.minSdk && (
+                <span class="px-2 py-0.5 bg-zinc-950 border border-white/10 rounded-sm text-zinc-400">
+                  Min API {app.minSdk}
+                </span>
+              )}
+
+              <a
+                href={app.playStoreUrl}
+                target="_blank"
+                rel="noreferrer"
+                class="px-2 py-0.5 bg-zinc-950 border border-white/10 rounded-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+              >
+                <span>Google Play</span>
+                <span class="text-zinc-600">&rarr;</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Patches Grid for this App -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 items-stretch">
+            {patches.map((patch) => (
+              <PatchRow patch={patch} appId={app.id} />
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+
+    <!-- Empty Results Fallback -->
+    <div id="no-results" class="hidden p-12 border border-white/[0.08] bg-[#070707] text-center space-y-2 rounded-sm font-mono text-xs text-zinc-500">
+      <div>No patches matched your search query or filters.</div>
+      <button
+        type="button"
+        id="clear-filters-btn"
+        class="text-zinc-300 hover:text-white underline mt-2"
+      >
+        Clear all filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Client-Side Instant Filtering Script (Pure vanilla JS, zero bundle overhead) -->
+  <script is:inline>
+    (function () {
+      const searchInput = document.getElementById('search-input');
+      const filterConfigurable = document.getElementById('filter-configurable');
+      const filterDefault = document.getElementById('filter-default');
+      const filterBtns = document.querySelectorAll('.app-filter-btn');
+      const patchCards = document.querySelectorAll('[data-patch-card]');
+      const appSections = document.querySelectorAll('[data-app-section]');
+      const filterCountEl = document.getElementById('filter-count');
+      const visibleCountEl = document.getElementById('visible-count');
+      const noResultsEl = document.getElementById('no-results');
+      const clearBtn = document.getElementById('clear-filters-btn');
+
+      let activeAppFilter = 'all';
+
+      function applyFilters() {
+        const query = (searchInput?.value || '').toLowerCase().trim();
+        const configurableOnly = filterConfigurable?.checked || false;
+        const defaultOnly = filterDefault?.checked || false;
+
+        let visibleCount = 0;
+        const visibleApps = new Set();
+
+        patchCards.forEach((card) => {
+          const name = card.getAttribute('data-patch-name') || '';
+          const desc = card.getAttribute('data-patch-desc') || '';
+          const appId = card.getAttribute('data-app-id') || '';
+          const isDefault = card.getAttribute('data-is-default') === 'true';
+          const hasOptions = card.getAttribute('data-has-options') === 'true';
+
+          let matches = true;
+
+          if (activeAppFilter !== 'all' && appId !== activeAppFilter) {
+            matches = false;
+          }
+
+          if (configurableOnly && !hasOptions) {
+            matches = false;
+          }
+
+          if (defaultOnly && !isDefault) {
+            matches = false;
+          }
+
+          if (query && !name.includes(query) && !desc.includes(query)) {
+            matches = false;
+          }
+
+          if (matches) {
+            card.style.display = '';
+            visibleCount++;
+            visibleApps.add(appId);
+          } else {
+            card.style.display = 'none';
+          }
+        });
+
+        // Hide or show app sections based on visible patches
+        appSections.forEach((sec) => {
+          const secAppId = sec.getAttribute('data-app-section');
+          if (visibleApps.has(secAppId)) {
+            sec.style.display = '';
+          } else {
+            sec.style.display = 'none';
+          }
+        });
+
+        // Update counter & empty state
+        if (visibleCountEl) visibleCountEl.textContent = String(visibleCount);
+        const visibleLabelEl = document.getElementById('visible-label');
+        if (visibleLabelEl) visibleLabelEl.textContent = visibleCount === 1 ? 'patch' : 'patches';
+        if (filterCountEl) {
+          filterCountEl.classList.toggle('hidden', query === '' && !configurableOnly && !defaultOnly && activeAppFilter === 'all');
+        }
+        if (noResultsEl) {
+          noResultsEl.classList.toggle('hidden', visibleCount > 0);
+        }
+      }
+
+      // App button filtering
+      filterBtns.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const target = btn.getAttribute('data-app-filter') || 'all';
+          activeAppFilter = target;
+
+          filterBtns.forEach((b) => {
+            b.classList.remove('bg-white', 'text-black', 'font-semibold');
+            b.classList.add('bg-zinc-950', 'text-zinc-400');
+          });
+
+          btn.classList.add('bg-white', 'text-black', 'font-semibold');
+          btn.classList.remove('bg-zinc-950', 'text-zinc-400');
+
+          applyFilters();
+        });
+      });
+
+      searchInput?.addEventListener('input', applyFilters);
+      filterConfigurable?.addEventListener('change', applyFilters);
+      filterDefault?.addEventListener('change', applyFilters);
+
+      clearBtn?.addEventListener('click', () => {
+        if (searchInput) searchInput.value = '';
+        if (filterConfigurable) filterConfigurable.checked = false;
+        if (filterDefault) filterDefault.checked = false;
+        activeAppFilter = 'all';
+
+        filterBtns.forEach((b) => {
+          const isAll = b.getAttribute('data-app-filter') === 'all';
+          b.classList.toggle('bg-white', isAll);
+          b.classList.toggle('text-black', isAll);
+          b.classList.toggle('font-semibold', isAll);
+          b.classList.toggle('bg-zinc-950', !isAll);
+          b.classList.toggle('text-zinc-400', !isAll);
+        });
+
+        applyFilters();
+      });
+
+      function updateScrollMargin() {
+        const filterBar = document.getElementById('filter-bar');
+        if (filterBar) {
+          // Sticky filter bar sits at top: 64px (top-16)
+          // Desired gap between bottom of filter bar and target is 16px (1rem / space-y-4)
+          // so the space above the app header matches the space below it
+          const filterHeight = filterBar.offsetHeight;
+          const offset = 64 + filterHeight + 16;
+          document.documentElement.style.setProperty('--scroll-target-offset', offset + 'px');
+        }
+      }
+      updateScrollMargin();
+      window.addEventListener('resize', updateScrollMargin);
+
+      // Handle direct anchor links on initial page load and hash changes
+      function scrollToTarget() {
+        if (!window.location.hash) return;
+        const hash = window.location.hash.substring(1);
+        const targetEl = document.getElementById(hash);
+        if (targetEl) {
+          updateScrollMargin();
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+
+      if (window.location.hash) {
+        setTimeout(scrollToTarget, 60);
+      }
+      window.addEventListener('hashchange', scrollToTarget);
+    })();
+  </script>
+
+  <style is:global>
+    :root {
+      --scroll-target-offset: 231px;
+    }
+    .permalink-target {
+      scroll-margin-top: var(--scroll-target-offset, 231px);
+    }
+  </style>
+</BaseLayout>

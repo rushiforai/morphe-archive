@@ -72,7 +72,7 @@ class DownloadVideoHookTest {
     /** The hooks the patch writes are in the extension the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(OFFER_VIDEO, SAVE_VIDEO, ALLOW_VIDEO, OFFER_ALL, SAVE_ALL, ALL_OPTION)) {
+        for (hook in listOf(OFFER_VIDEO, SAVE_VIDEO, ALLOW_VIDEO, OFFER_ALL, SAVE_ALL, ALL_OPTION, OWN_POST)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -97,7 +97,71 @@ class DownloadVideoHookTest {
         assertEquals("anyone else's first row follows", "$state->other:Ljava/lang/Object;", code[offer + 1].referenceText())
         val owner = code.indexOfFirst { it.referenceText() == mine }
         assertEquals("the owner check's jump", offer, code.target(owner + 2))
-        assertEquals("two separate actions in the builder", 2, code.count { it.referenceText()?.startsWith("Lapp/hushgram/") == true })
+        assertEquals("four separate actions in the builder", 4, code.count { it.referenceText()?.startsWith("Lapp/hushgram/") == true })
+    }
+
+    /**
+     * Your own post's download check hands its answer and the menu's state to ownPost(), which
+     * answers in the same register before the branch to the Download row reads it (#57).
+     */
+    @Test
+    fun yourOwnPostsCheckAsksOwnPost() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryVideo()
+
+        val code = context.method(lambda, "invoke").code()
+        val checked = code.indexOfFirst { it.referenceText() == check }
+        assertEquals("the check's answer", Opcode.MOVE_RESULT, code[checked + 1].opcode)
+        val own = code[checked + 2] as Instruction35c
+        assertEquals(OWN_POST, own.referenceText())
+        assertEquals("ownPost()'s arguments: the answer, then the state", listOf(1, 0), listOf(own.registerC, own.registerD))
+        assertEquals(Opcode.MOVE_RESULT, code[checked + 3].opcode)
+        assertEquals("the answer goes back where the branch reads it", 1, (code[checked + 3] as OneRegisterInstruction).registerA)
+        assertEquals("the branch to the Download row", Opcode.IF_EQZ, code[checked + 4].opcode)
+        assertEquals("one ownPost() call", 1, code.count { it.referenceText() == OWN_POST })
+    }
+
+    /**
+     * Past the check's yes, the menu state's flag that sends Instagram's download to the share
+     * sheet goes to ownPostRow() with the state, and its answer goes back where the branch to the
+     * Download row reads it (#57).
+     */
+    @Test
+    fun yourOwnPostsShareSheetFlagAsksOwnPostRow() {
+        val context = PatchContexts.of(classes())
+
+        context.offerDownloadOnEveryVideo()
+
+        val code = context.method(lambda, "invoke").code()
+        val flagged = code.indexOfFirst { it.referenceText() == "$state->flagged:Z" }
+        val row = code[flagged + 1] as Instruction35c
+        assertEquals(OWN_POST_ROW, row.referenceText())
+        assertEquals("ownPostRow()'s arguments: the flag, then the state", listOf(1, 0), listOf(row.registerC, row.registerD))
+        assertEquals(Opcode.MOVE_RESULT, code[flagged + 2].opcode)
+        assertEquals("the answer goes back where the branch reads it", 1, (code[flagged + 2] as OneRegisterInstruction).registerA)
+        val branch = flagged + 4
+        assertEquals("the branch to the Download row", Opcode.IF_EQZ, code[branch].opcode)
+        assertEquals(DOWNLOAD, code[code.target(branch)].referenceText())
+        assertEquals("one ownPostRow() call", 1, code.count { it.referenceText() == OWN_POST_ROW })
+    }
+
+    /** A flag whose 0 doesn't lead to the Download row isn't the one that moves it, and nothing changes. */
+    @Test
+    fun aShareSheetFlagThatSkipsTheRowFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(flagSkipsRow = true))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryVideo() }
+        assertTrue(failure.message!!, failure.message!!.contains("doesn't jump ahead to the Download row"))
+        assertUntouched(context)
+    }
+
+    /** A check handed a post that isn't the menu state's can't be answered for that post, and nothing changes. */
+    @Test
+    fun anOwnCheckOfAnotherPostFailsBeforeAnythingChanges() {
+        val context = PatchContexts.of(classes(ownPostFromState = false))
+        val failure = assertThrows(PatchException::class.java) { context.offerDownloadOnEveryVideo() }
+        assertTrue(failure.message!!, failure.message!!.contains("doesn't read the post it checks"))
+        assertUntouched(context)
     }
 
     /**
@@ -388,6 +452,13 @@ class DownloadVideoHookTest {
                 val code = context.method(builders.single().definingClass, builders.single().name, builders.single().parameterTypes.map(Any::toString)).code()
                 assertEquals("${bundle.name}: offer() calls", 1, code.count { it.referenceText() == OFFER_VIDEO })
                 assertEquals("${bundle.name}: Save all offered once", 1, code.count { it.referenceText() == OFFER_ALL })
+                val own = code.indexOfFirst { it.referenceText() == OWN_POST }
+                assertEquals("${bundle.name}: ownPost() calls", 1, code.count { it.referenceText() == OWN_POST })
+                assertEquals("${bundle.name}: ownPost() takes the download check's answer", Opcode.MOVE_RESULT, code[own - 1].opcode)
+                assertTrue("${bundle.name}: right after the check", code[own - 2].referenceText()!!.contains(";->") &&
+                    classes.any { classDef -> classDef.methods.any { ELIGIBLE_MARKER in it.markers() && code[own - 2].referenceText() == "${classDef.type}->${it.name}(${it.parameterTypes.joinToString("")})Z" } })
+                assertEquals("${bundle.name}: its answer replaces the check's", (code[own - 1] as OneRegisterInstruction).registerA,
+                    (code[own + 1] as OneRegisterInstruction).registerA)
                 val offer = code.indexOfFirst { it.referenceText() == OFFER_VIDEO }
                 assertTrue("${bundle.name}: offer() follows the Download row's jump", code[offer - 1].opcode.name.startsWith("goto"))
                 assertTrue("${bundle.name}: a jump reaches offer()", code.indices.any { it < offer && code[it].opcode == Opcode.IF_EQZ && code.target(it) == offer })
@@ -451,6 +522,8 @@ class DownloadVideoHookTest {
         menuHoldsItem: Boolean = true,
         stateCasts: Int = 1,
         branchBeforeStateCast: Boolean = false,
+        ownPostFromState: Boolean = true,
+        flagSkipsRow: Boolean = false,
         optionEnum: Boolean = true,
         optionInitializesIcon: Boolean = true,
     ): List<ClassDef> {
@@ -493,14 +566,14 @@ class DownloadVideoHookTest {
             invoke-static { v1 }, $mine
             move-result v1
             if-eqz v1, :others
-            iget-object v12, v0, $state->media:$MEDIA
+            ${if (ownPostFromState) "iget-object v12, v0, $state->media:$MEDIA" else "const/4 v12, 0x0"}
             const/4 v2, 0x0
             invoke-virtual { v2, v2, v12 }, $check
             move-result v1
             if-eqz v1, ${if (lateJump) ":others" else ":mine"}
             iget-boolean v1, v0, $state->flagged:Z
             const/4 v5, 0x0
-            if-eqz v1, :row
+            if-eqz v1, ${if (flagSkipsRow) ":mine" else ":row"}
             const-wide v6, 0x81034200060c62L
             invoke-static { v2, v6, v7 }, $flag
             move-result v1

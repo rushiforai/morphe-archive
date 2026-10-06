@@ -1,20 +1,21 @@
 ![HushTelegram. Keep the chat. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.0.8-2AABEE" alt="Version 0.0.8">
+  <img src="https://img.shields.io/badge/version-0.0.9-2AABEE" alt="Version 0.0.9">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Telegram-12.10.6-2AABEE" alt="Telegram 12.10.6">
-  <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.33.0%2B-8A2BE2" alt="For Morphe Manager 1.33.0 or newer">
+  <img src="https://img.shields.io/badge/for-Morphe%20Manager%201.34.0%2B-8A2BE2" alt="For Morphe Manager 1.34.0 or newer">
 </p>
 
 # <img src="assets/icon.png" width="36" alt=""> HushTelegram
 
 HushTelegram is a Morphe patch bundle for Android that takes the sponsored messages out of Telegram and keeps a few things on your phone that Telegram would otherwise send home.
 
-The latest release is [v0.0.8](https://github.com/SysAdminDoc/HushTelegram/releases/tag/v0.0.8), with 22 patches. They're built for Telegram 12.10.6 and the official beta 12.10.7, and on a signed-in phone Hide ads took a live search ad off the screen. See [the before and after](#hide-ads-before-and-after).
+The latest release is [v0.0.9](https://github.com/SysAdminDoc/HushTelegram/releases/tag/v0.0.9), with 25 patches. They're built for Telegram 12.10.6 and the official beta 12.10.7, and on a signed-in phone Hide ads took a live search ad off the screen. See [the before and after](#hide-ads-before-and-after).
 
-v0.0.8 adds official beta support, a Firebase certificate-header repair and a switch that stops a pull at the bottom of a channel from opening the next unread one. Two optional patches take your own registered Telegram API credentials and Google Maps key when you patch. With its own registered API ID, a Samsung phone that Telegram had turned away signed in normally.
+v0.0.9 fixes push registration on slower phones and follows telegram.org's rebuilt beta, build 71179. HushTelegram settings now open from a row in Telegram's own Settings. Plain-text paste and copyable user and chat IDs are new switches, off until you turn them on, and so is one that stops double-tap reactions. Two optional patches take your own registered Telegram API credentials and Google Maps key when you patch. With its own registered API ID, a Samsung phone that Telegram had turned away signed in normally.
+
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushTelegram) | [Download a release](https://github.com/SysAdminDoc/HushTelegram/releases/latest) | [Browse the patches](#patches)
 
@@ -33,7 +34,7 @@ This project has no connection to Telegram or to the Morphe project. Neither end
 
 HushTelegram patches the Telegram you download from [telegram.org](https://telegram.org/android), package `org.telegram.messenger.web`, version 12.10.6 (version code 71129). That APK carries every phone architecture, and it's the build each patch is checked against. Morphe Manager warns about other builds.
 
-Since v0.0.8 it also targets the [official beta](https://telegram.org/dl/android/apk-public-beta), package `org.telegram.messenger.beta`, version 12.10.7 (version code 71159). Its vendor signer and native patch targets are checked on their own.
+Since v0.0.8 it also targets the [official beta](https://telegram.org/dl/android/apk-public-beta), package `org.telegram.messenger.beta`, version 12.10.7 (version code 71179). Its vendor signer and native patch targets are checked on their own.
 
 The other Telegram, `org.telegram.messenger`, shares nearly all its code with this one. Support for it is planned once it has its own checked build.
 
@@ -43,7 +44,7 @@ Changed Premium report builders are refused before the patch changes any code.
 
 ## Install
 
-1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.33.0 or newer.
+1. Install [Morphe Manager](https://github.com/MorpheApp/morphe-manager) 1.34.0 or newer.
 2. Add HushTelegram as a patch source: https://morphe.software/add-source?github=SysAdminDoc%2FHushTelegram
 3. Get Telegram 12.10.6 from [telegram.org/android](https://telegram.org/android) by tapping Download Telegram. Skip the Google Play link, which installs a different package. The download saves as plain `Telegram.apk`, with no version in its name.
 4. In Morphe Manager, pick that file, keep the default patch selection or change it, and patch.
@@ -101,19 +102,21 @@ The same search on the same phone, first with Hide ads off, then on. Telegram pi
 
 ## Settings
 
-Open Telegram's Settings and tap HushTelegram settings. You can also long-press the Telegram icon and tap HushTelegram, or open Telegram's App info page and tap Additional settings in the app, which Samsung phones call Configure in Telegram. The launcher and App-info entries remain available if the native settings surface is absent.
+Open Telegram's Settings and tap HushTelegram settings. You can also long-press the Telegram icon on your home screen or app drawer and tap HushTelegram, or open Telegram's App info page and tap Additional settings in the app, which Samsung phones call Configure in Telegram. Those two stay available too, so there's a way in even when the Settings row isn't there.
+
+On v0.0.8 there's no row in Telegram's Settings, so use the long-press or App info.
 
 More settings has separate pages for Pause, Settings backup and Diagnostics. Search finds each control by its name or page. Your saved switches and backup files work as before.
 
 <p><img src="assets/settings-overview.png" width="320" alt="HushTelegram settings with search, Pause, and rows for Chats, Privacy and More settings that say what each page holds"><img src="assets/settings-chats.png" width="320" alt="The Chats page with Hide ads and Hide Stories turned on"></p>
 
-v0.0.8 adds a Notifications page and the channel-pull switch. Both are shown below.
+v0.0.8 added a Notifications page and the channel-pull switch. Both are shown below.
 
 <p><img src="assets/settings-notifications.png" width="320" alt="Notifications settings with the local notification status and the Firebase push registration repair switch"><img src="assets/settings-channel-pull.png" width="320" alt="Chats settings with Stop pull to next channel turned on"></p>
 
 ## Notifications on a patched Telegram
 
-Telegram's push notifications go through Google's Firebase. Its Android API key checks the package and certificate header, so a re-signed build can get `API_KEY_ANDROID_APP_BLOCKED` before it receives a push token. Repair Firebase push registration fixes only that header on Firebase Installations requests from the declared web and beta packages. It preserves Android's package signatures and TLS checks.
+Telegram's push notifications go through Google's Firebase. Its Android API key checks the package and certificate header, so a re-signed build can get `API_KEY_ANDROID_APP_BLOCKED` before it receives a push token. Repair Firebase push registration fixes only that header on Firebase Installations requests from the declared web and beta packages. It preserves Android's package signatures and TLS checks. Firebase starts its first request while Telegram is still starting up, so on slower phones that request now waits for HushTelegram's settings (up to 10 seconds) instead of going out with the re-signed header.
 
 The Notifications page also shows what this phone knows about push. It says whether notifications are allowed and whether Telegram has saved a push token, then counts your signed-in accounts and how many of them Telegram has confirmed for push. It only reads what's already on the phone. It doesn't send anything, and it can't tell you whether a notification will actually arrive. The diagnostic report carries the same facts, without the token itself.
 
@@ -124,6 +127,16 @@ The location picker uses a separate Google Maps credential, restricted to the in
 ## Your Telegram account
 
 Sign-in can fail with `API_ID_PUBLISHED_FLOOD`, which means Telegram rejected the API ID bundled with the app. Register your own app at [Telegram's developer portal](https://my.telegram.org/apps), then select Use registered Telegram API credentials and supply both `apiId` and `apiHash` when patching. This changes the shared app credentials used by native initialization, phone and passkey login. You can install the result as an update over your current HushTelegram build. On its first start it introduces itself to Telegram with your ID, so login codes are requested under your app instead of the bundled one. Changing from one registered API ID to another also refreshes that connection identity, while keeping saved account keys and the app version intact. Telegram still decides which login methods are available. Keep any existing signed-in installation.
+
+Filling in the form at my.telegram.org/apps:
+
+1. Sign in with your phone number. The code for the portal arrives as a message in Telegram, not by SMS.
+2. **App title:** plain words, for example `My HushTelegram`.
+3. **Short name:** 5 to 32 letters and numbers only, for example `myhushtg1`. Spaces, underscores, dashes and other symbols here are what usually cause "Incorrect app name!".
+4. **Platform:** Android. URL and Description can stay empty.
+5. Tap Create application, then copy `App api_id` and `App api_hash` into the patch's `apiId` and `apiHash` options.
+
+If the page shows a bare "ERROR" instead, turn off any VPN or ad blocker and try again in a private browser window. When the patched app asks for a login code, it usually shows up as a message in Telegram on another phone or app where you're already signed in, so keep that one signed in until the patched app finishes.
 
 Credential options are compiled into the APK and recorded in the patching result report. Keep both private. These two patches have no runtime switch, and Pause doesn't change their credentials. Updating with the retained signing key preserves the installed app's data.
 

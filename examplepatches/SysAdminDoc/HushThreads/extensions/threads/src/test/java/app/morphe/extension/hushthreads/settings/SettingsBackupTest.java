@@ -181,7 +181,7 @@ public class SettingsBackupTest {
                 Collections.emptyList(), notSwitches);
         assertEquals(Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS, Settings.BLOCK_RETURN_REFRESH,
                 Settings.RETURN_REFRESH_NO_LIMIT, Settings.DISABLE_VIDEO_AUTOPLAY, Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY,
-                Settings.DISABLE_ANALYTICS), SettingsBackup.ALLOWLIST);
+                Settings.DISABLE_ANALYTICS, Settings.PURE_BLACK), SettingsBackup.ALLOWLIST);
     }
 
     @Test

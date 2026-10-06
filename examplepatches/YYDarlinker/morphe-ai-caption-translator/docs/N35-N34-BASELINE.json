@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "prepared_date": "2026-10-04",
+  "repository": "E:/Projects/morphe-caption-v2",
+  "source_commit": "26edf555c8956e12a4b0448b72aef34597141409",
+  "delivery_commit": "bfe5a0a83beba8c645ca1d88d06d962c1db8f1dd",
+  "source_anchor": "anchor/n34-26edf55",
+  "backup_anchor": "backup/pre-n35-n34-bfe5a0a",
+  "artifacts": [
+    {
+      "path": "E:/Projects/morphe-caption-v2/build/local-test/patches-1.3.5-本地测试包-n34.mpp",
+      "bytes": 1254604,
+      "sha256": "EFBB62E81FA430365FD1B1F1856F915439DAD475CB56884509B4DC224A0C7195"
+    },
+    {
+      "path": "E:/Projects/morphe-caption-v2/build/local-test/extension-1.3.5-本地测试包-n34.mpe",
+      "bytes": 3066504,
+      "sha256": "84743177DAAEC8DEF9D539A6E2655D7BDE92A2FABA4885FDEEE5194D23FD3FF1"
+    },
+    {
+      "path": "E:/Projects/morphe-caption-v2/build/n34-composition-final/YouTube-21.16.256-本地测试包-n34-unsigned.apk",
+      "bytes": 198231898,
+      "sha256": "859D5D74F52E3AFDB9A72973E01A038A7DBE7D142A3DC743867EABD188390FF7"
+    }
+  ],
+  "official_input": {
+    "path": "E:/Projects/morphe-caption-v2/patches-1.45.0.mpp",
+    "bytes": 11039984,
+    "sha256": "DBA660DF61D95131A22242CABE9C44B4B04861B7BA6EBEFFE91C4B3647D55B93"
+  },
+  "source_tree_protection": "All tracked non-doc files equal N34 source commit; docs updates preserved on rollback",
+  "physical_phone_changes_allowed": false
+}

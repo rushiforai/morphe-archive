@@ -15,7 +15,7 @@ If you have requests feel free to message me via hevalomevalo@gmail.com
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.0](https://github.com/heval99/Heval-Morphe-Patches/releases/tag/v1.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;42 patches total
+> **[v1.8.0](https://github.com/heval99/Heval-Morphe-Patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;41 patches total
 
 **📦 Sofascore** (5)
 - Block marketing notifications
@@ -67,9 +67,6 @@ If you have requests feel free to message me via hevalomevalo@gmail.com
 - Enable Premium
 
 **📦 WiFi Analyzer** (1)
-- Disable ads
-
-**📦 Zedge** (1)
 - Disable ads
 
 **📦 Saphe Link** (2)

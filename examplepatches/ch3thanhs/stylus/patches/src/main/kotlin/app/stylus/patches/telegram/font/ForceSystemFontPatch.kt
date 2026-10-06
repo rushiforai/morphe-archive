@@ -5,6 +5,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
 import app.stylus.patches.telegram.shared.Constants.COMPATIBILITY_TELEGRAM
+import app.stylus.patches.telegram.shared.Constants.COMPATIBILITY_TELEGRAM_WEB
 import org.w3c.dom.Element
 
 private const val EXTENSION_CLASS =
@@ -27,7 +28,10 @@ private val forceSystemFontTelegramXmlPatch = resourcePatch(
             "Android system sans-serif family.",
     default = true,
 ) {
-    compatibleWith(COMPATIBILITY_TELEGRAM)
+    compatibleWith(
+    COMPATIBILITY_TELEGRAM,
+    COMPATIBILITY_TELEGRAM_WEB,
+)
 
     execute {
         val resDir = get("res")
@@ -141,7 +145,10 @@ val forceSystemFontTelegramPatch = bytecodePatch(
 ) {
     category("Font")
 
-    compatibleWith(COMPATIBILITY_TELEGRAM)
+    compatibleWith(
+    COMPATIBILITY_TELEGRAM,
+    COMPATIBILITY_TELEGRAM_WEB,
+)
 
     dependsOn(forceSystemFontTelegramXmlPatch)
 

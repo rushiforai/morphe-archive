@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 import zipfile
+from contextlib import redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -132,6 +133,7 @@ class ExtractSmaliTest(unittest.TestCase):
                     extract_smali.subprocess, "run", side_effect=fake_baksmali
                 ),
                 mock.patch.object(sys, "argv", [str(SCRIPT), str(bundle)]),
+                redirect_stdout(io.StringIO()),
             ):
                 extract_smali.main()
             self.assertEqual(
@@ -165,6 +167,7 @@ class ExtractSmaliTest(unittest.TestCase):
                     extract_smali.subprocess, "run", side_effect=fake_baksmali
                 ),
                 mock.patch.object(sys, "argv", [str(SCRIPT), str(bundle)]),
+                redirect_stdout(io.StringIO()),
             ):
                 extract_smali.main()
 

@@ -201,14 +201,23 @@ public final class DownloadHistoryPreference extends DialogPreference {
             boolean retry = job.canRetry() && retryEnabled();
             List<CharSequence> names = new ArrayList<>();
             List<CharSequence> details = new ArrayList<>();
+            List<Runnable> actions = new ArrayList<>();
             if (retry) {
                 names.add(L10n.t(getContext(), "Retry download"));
                 details.add(L10n.t(getContext(), "Starts a new download. Android manages it."));
+                actions.add(() -> change(job.id, true));
+            }
+            if (job.canSetAs() && retryEnabled()) {
+                names.add(L10n.t(getContext(), "Set as wallpaper"));
+                details.add(L10n.t(getContext(), "Opens Android's Set as options for this saved image."));
+                actions.add(() -> DownloadLedger.setAs(getContext(), job));
             }
             names.add(L10n.t(getContext(), "Open pin"));
             details.add(L10n.t(getContext(), "Open the pin again to get a fresh download link."));
+            actions.add(() -> DownloadLedger.reopenPin(getContext(), job));
             names.add(L10n.t(getContext(), "Remove from history"));
             details.add(L10n.t(getContext(), "Removes this history entry. Files and active downloads are kept."));
+            actions.add(() -> change(job.id, false));
 
             LinearLayout header = new LinearLayout(getContext());
             header.setOrientation(LinearLayout.VERTICAL);
@@ -237,9 +246,7 @@ public final class DownloadHistoryPreference extends DialogPreference {
                         .setAdapter(new ChoiceCards(ScreenColors.DEFAULT, names.toArray(new CharSequence[0]),
                                 details.toArray(new CharSequence[0])), (choice, position) -> {
                             if (!alive() || busy || jobDialog != choice) return;
-                            if (retry && position == 0) change(job.id, true);
-                            else if (position == (retry ? 1 : 0)) DownloadLedger.reopenPin(getContext(), job);
-                            else change(job.id, false);
+                            if (position >= 0 && position < actions.size()) actions.get(position).run();
                         })
                         .setPositiveButton(L10n.t(getContext(), "Open Downloads"), (choice, which) -> {
                             if (alive() && jobDialog == choice) DownloadLedger.openDownloads(getContext());

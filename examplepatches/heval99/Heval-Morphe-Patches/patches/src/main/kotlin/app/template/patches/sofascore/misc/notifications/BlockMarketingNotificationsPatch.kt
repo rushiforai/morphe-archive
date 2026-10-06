@@ -7,7 +7,10 @@ import app.template.patches.shared.Constants.COMPATIBILITY_SOFASCORE
 @Suppress("unused")
 val blockMarketingNotificationsPatch = bytecodePatch(
     name = "Block marketing notifications",
-    description = "Blocks promotional and marketing prompts and modals."
+    description = "Blocks promotional and marketing prompts and modals. " +
+        "Note: this only affects in-app promo sheets. Match-alert push delivery on " +
+        "re-signed builds needs working push delivery - use MicroG integration + " +
+        "signature spoofing where Play Services is absent (issue #25)."
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 

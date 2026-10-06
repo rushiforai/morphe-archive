@@ -1,3 +1,38 @@
+## [1.8.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.7.0...v1.8.0) (2026-10-05)
+
+### ⚠ BREAKING CHANGES
+
+* **zedge:** remove Disable ads patch, PairIP shield (issue #29)
+
+### 🐛 Bug Fixes
+
+* **sofascore:** remove Block marketing notifications patch (issue [#25](https://github.com/heval99/Heval-Morphe-Patches/issues/25)) ([fffeab7](https://github.com/heval99/Heval-Morphe-Patches/commit/fffeab758abb8cf27ee8fbfb9f657502d8974dc9))
+* **zedge:** remove Disable ads patch, PairIP shield (issue [#29](https://github.com/heval99/Heval-Morphe-Patches/issues/29)) ([d71f075](https://github.com/heval99/Heval-Morphe-Patches/commit/d71f07538d3f63ce61f26ebdf710acf3f7bb2106))
+
+### ✨ New Features
+
+* **sofascore:** restore Block marketing notifications with push-delivery note (issue [#25](https://github.com/heval99/Heval-Morphe-Patches/issues/25)) ([2f7643b](https://github.com/heval99/Heval-Morphe-Patches/commit/2f7643b0a6ceacf40596e4d3c532d166d09deb5e))
+
+## [1.8.0-dev.1](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.7.1-dev.1...v1.8.0-dev.1) (2026-10-05)
+
+### ⚠ BREAKING CHANGES
+
+* **zedge:** remove Disable ads patch, PairIP shield (issue #29)
+
+### 🐛 Bug Fixes
+
+* **zedge:** remove Disable ads patch, PairIP shield (issue [#29](https://github.com/heval99/Heval-Morphe-Patches/issues/29)) ([d71f075](https://github.com/heval99/Heval-Morphe-Patches/commit/d71f07538d3f63ce61f26ebdf710acf3f7bb2106))
+
+### ✨ New Features
+
+* **sofascore:** restore Block marketing notifications with push-delivery note (issue [#25](https://github.com/heval99/Heval-Morphe-Patches/issues/25)) ([2f7643b](https://github.com/heval99/Heval-Morphe-Patches/commit/2f7643b0a6ceacf40596e4d3c532d166d09deb5e))
+
+## [1.7.1-dev.1](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.7.0...v1.7.1-dev.1) (2026-10-03)
+
+### 🐛 Bug Fixes
+
+* **sofascore:** remove Block marketing notifications patch (issue [#25](https://github.com/heval99/Heval-Morphe-Patches/issues/25)) ([fffeab7](https://github.com/heval99/Heval-Morphe-Patches/commit/fffeab758abb8cf27ee8fbfb9f657502d8974dc9))
+
 ## [1.7.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.6.0...v1.7.0) (2026-10-03)
 
 ### ⚠ BREAKING CHANGES

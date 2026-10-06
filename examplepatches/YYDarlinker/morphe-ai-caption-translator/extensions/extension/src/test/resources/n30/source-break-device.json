@@ -1,0 +1,298 @@
+{
+  "evidence_source": "caption-diagnostics-1.3.5-20261002-224950.txt",
+  "evidence_sha256": "34F7C61084349A079D7D6C433BDAC992CF28CB8755466C5DB5BBF3548FF203F2",
+  "block": "b7_354_387",
+  "source_breaks_before": [
+    381
+  ],
+  "words": [
+    {
+      "id": 354,
+      "text": "All",
+      "start": 112140,
+      "end": 112555,
+      "cue": 50,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 355,
+      "text": "right,",
+      "start": 112555,
+      "end": 112970,
+      "cue": 50,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 356,
+      "text": "I'll",
+      "start": 113184,
+      "end": 113478,
+      "cue": 51,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 357,
+      "text": "bite!",
+      "start": 113478,
+      "end": 113773,
+      "cue": 51,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 358,
+      "text": "So",
+      "start": 113773,
+      "end": 114068,
+      "cue": 51,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 359,
+      "text": "I",
+      "start": 114068,
+      "end": 114363,
+      "cue": 51,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 360,
+      "text": "said,",
+      "start": 114363,
+      "end": 114657,
+      "cue": 51,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 361,
+      "text": "yes,",
+      "start": 114657,
+      "end": 114952,
+      "cue": 51,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 362,
+      "text": "it",
+      "start": 114952,
+      "end": 115247,
+      "cue": 51,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 363,
+      "text": "showed",
+      "start": 115247,
+      "end": 115542,
+      "cue": 51,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 364,
+      "text": "up...",
+      "start": 115542,
+      "end": 115837,
+      "cue": 51,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 365,
+      "text": "And",
+      "start": 115919,
+      "end": 116204,
+      "cue": 52,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 366,
+      "text": "here",
+      "start": 116204,
+      "end": 116489,
+      "cue": 52,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 367,
+      "text": "it",
+      "start": 116489,
+      "end": 116774,
+      "cue": 52,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 368,
+      "text": "is...",
+      "start": 116774,
+      "end": 117060,
+      "cue": 52,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 369,
+      "text": "This",
+      "start": 117142,
+      "end": 117456,
+      "cue": 53,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 370,
+      "text": "is",
+      "start": 117456,
+      "end": 117771,
+      "cue": 53,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 371,
+      "text": "a",
+      "start": 117771,
+      "end": 118085,
+      "cue": 53,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 372,
+      "text": "big...",
+      "start": 118085,
+      "end": 118400,
+      "cue": 53,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 373,
+      "text": "premium",
+      "start": 118400,
+      "end": 118715,
+      "cue": 53,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 374,
+      "text": "smartphone",
+      "start": 118917,
+      "end": 119316,
+      "cue": 54,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 375,
+      "text": "with",
+      "start": 119316,
+      "end": 119716,
+      "cue": 54,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 376,
+      "text": "a",
+      "start": 119716,
+      "end": 120115,
+      "cue": 54,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 377,
+      "text": "6.7-",
+      "start": 120115,
+      "end": 120515,
+      "cue": 54,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 378,
+      "text": "inch",
+      "start": 120515,
+      "end": 120914,
+      "cue": 54,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 379,
+      "text": "display...",
+      "start": 120914,
+      "end": 121314,
+      "cue": 54,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 380,
+      "text": "and",
+      "start": 121314,
+      "end": 121714,
+      "cue": 54,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 381,
+      "text": "zero",
+      "start": 122436,
+      "end": 123207,
+      "cue": 55,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 382,
+      "text": "bezels,",
+      "start": 123207,
+      "end": 123978,
+      "cue": 55,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 383,
+      "text": "corner-to-corner,",
+      "start": 123978,
+      "end": 124749,
+      "cue": 55,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 384,
+      "text": "edge-to-edge,",
+      "start": 124749,
+      "end": 125520,
+      "cue": 55,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 385,
+      "text": "nothing",
+      "start": 125722,
+      "end": 126188,
+      "cue": 56,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 386,
+      "text": "but",
+      "start": 126188,
+      "end": 126654,
+      "cue": 56,
+      "precision": "ESTIMATED"
+    },
+    {
+      "id": 387,
+      "text": "display.",
+      "start": 126654,
+      "end": 127120,
+      "cue": 56,
+      "precision": "ESTIMATED"
+    }
+  ],
+  "responses": [
+    {
+      "request": 14,
+      "response": "{\n\"block\": \"b7_354_387\",\n\"events\": [\n{\n\"from\": 354,\n\"to\": 364,\n\"source\": \"All right, I'll bite! So I said, yes, it showed up...\",\n\"text\": \"好吧，我入局了！所以我说，是的，它出现了……\"\n},\n{\n\"from\": 365,\n\"to\": 368,\n\"source\": \"And here it is...\",\n\"text\": \"而这就是它……\"\n},\n{\n\"from\": 369,\n\"to\": 379,\n\"source\": \"This is a big... premium smartphone with a 6.7- inch display...\",\n\"text\": \"这是一部大尺寸……高端智能手机，配有6.7英寸显示屏……\"\n},\n{\n\"from\": 380,\n\"to\": 387,\n\"source\": \"and zero bezels, corner-to-corner, edge-to-edge, nothing but display.\",\n\"text\": \"且零边框，角对角，边对边，全是显示屏。\"\n}\n]\n}"
+    },
+    {
+      "request": 15,
+      "response": "{\n  \"block\": \"b7_354_387\",\n  \"events\": [\n    {\n      \"from\": 354,\n      \"to\": 357,\n      \"source\": \"All right, I'll bite!\",\n      \"text\": \"好吧，我入坑了！\"\n    },\n    {\n      \"from\": 358,\n      \"to\": 364,\n      \"source\": \"So I said, yes, it showed up...\",\n      \"text\": \"所以我说，是的，它出现了……\"\n    },\n    {\n      \"from\": 365,\n      \"to\": 368,\n      \"source\": \"And here it is...\",\n      \"text\": \"它就在这儿……\"\n    },\n    {\n      \"from\": 369,\n      \"to\": 374,\n      \"source\": \"This is a big... premium smartphone\",\n      \"text\": \"这是一部大尺寸的……高端智能手机\"\n    },\n    {\n      \"from\": 375,\n      \"to\": 379,\n      \"source\": \"with a 6.7- inch display...\",\n      \"text\": \"配备6.7英寸显示屏……\"\n    },\n    {\n      \"from\": 380,\n      \"to\": 387,\n      \"source\": \"and zero bezels, corner-to-corner, edge-to-edge, nothing but display.\",\n      \"text\": \"且零边框，从角到角，从边到边，全是屏幕。\"\n    }\n  ]\n}"
+    },
+    {
+      "request": 16,
+      "response": "{\n  \"block\": \"b7_354_387\",\n  \"events\": [\n    {\n      \"from\": 354,\n      \"to\": 357,\n      \"source\": \"All right, I'll bite!\",\n      \"text\": \"好吧，我入坑了！\"\n    },\n    {\n      \"from\": 358,\n      \"to\": 364,\n      \"source\": \"So I said, yes, it showed up...\",\n      \"text\": \"所以我说，是的，它出现了……\"\n    },\n    {\n      \"from\": 365,\n      \"to\": 368,\n      \"source\": \"And here it is...\",\n      \"text\": \"它就在这儿……\"\n    },\n    {\n      \"from\": 369,\n      \"to\": 379,\n      \"source\": \"This is a big... premium smartphone with a 6.7- inch display...\",\n      \"text\": \"这是一部大……高端智能手机，配有6.7英寸显示屏……\"\n    },\n    {\n      \"from\": 380,\n      \"to\": 387,\n      \"source\": \"and zero bezels, corner-to-corner, edge-to-edge, nothing but display.\",\n      \"text\": \"零边框，从角到角，从边到边，全是屏幕。\"\n    }\n  ]\n}"
+    }
+  ],
+  "before_fallback_start_ms": 112140,
+  "before_fallback_end_ms": 127282
+}

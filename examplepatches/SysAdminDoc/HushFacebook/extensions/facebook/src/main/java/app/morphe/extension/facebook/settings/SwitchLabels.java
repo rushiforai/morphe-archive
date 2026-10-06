@@ -37,6 +37,7 @@ final class SwitchLabels {
         if (setting == Settings.RETURN_REFRESH_NO_LIMIT) return L10n.t("No time limit");
         if (setting == Settings.HIDE_AI_DETECTED_POSTS) return L10n.t("Hide AI-detected posts");
         if (setting == Settings.HIDE_AI_LABELLED_POSTS) return L10n.t("Also hide posts labelled as AI");
+        if (setting == Settings.HIDE_META_AI_FEED_UNITS) return L10n.t("Hide Meta AI in the feed");
         if (setting == Settings.HIDE_POSTS_WITH_WORDS) return L10n.t("Hide posts with words you choose");
         if (setting == Settings.POST_WORDS_WHOLE_WORDS) return L10n.t("Match whole words");
         if (setting == Settings.HIDE_SPONSORED_STORIES) return L10n.t("Hide sponsored stories");
@@ -50,6 +51,12 @@ final class SwitchLabels {
         if (setting == Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT) return L10n.t("Tag suggestions only after @");
         if (setting == Settings.HIDE_REELS_TAB) return L10n.t("Hide the Reels tab");
         if (setting == Settings.HIDE_REELS_TAB_DOT) return L10n.t("Hide the Reels tab dot");
+        if (setting == Settings.HIDE_FEEDS_TAB) return L10n.t("Hide the Feeds tab");
+        if (setting == Settings.HIDE_FRIENDS_TAB) return L10n.t("Hide the Friends tab");
+        if (setting == Settings.HIDE_MARKETPLACE_TAB) return L10n.t("Hide the Marketplace tab");
+        if (setting == Settings.HIDE_GROUPS_TAB) return L10n.t("Hide the Groups tab");
+        if (setting == Settings.HIDE_GAMING_TAB) return L10n.t("Hide the Gaming tab");
+        if (setting == Settings.HIDE_EVENTS_TAB) return L10n.t("Hide the Events tab");
         if (setting == Settings.HIDE_REEL_PROMPTS) return L10n.t("Hide reel interest prompts");
         if (setting == Settings.HIDE_SPONSORED_REELS) return L10n.t("Hide sponsored reels");
         if (setting == Settings.HIDE_AI_DETECTED_REELS) return L10n.t("Hide AI-detected reels and videos");
@@ -57,6 +64,11 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_REEL_FOLLOW_BUTTON) return L10n.t("Hide the Follow button on reels");
         if (setting == Settings.HIDE_REEL_SOCIAL_FOOTER) return L10n.t("Hide comment and reaction previews");
         if (setting == Settings.DONT_SEND_REEL_WATCH_HISTORY) return L10n.t("Don't send reel watch history");
+        if (setting == Settings.HOLD_ANALYTICS_UPLOADS) return L10n.t("Hold back analytics uploads");
+        if (setting == Settings.ALLOW_SCREENSHOTS) return L10n.t("Allow screenshots");
+        if (setting == Settings.TURN_OFF_HAPTICS) return L10n.t("Turn off haptics");
+        if (setting == Settings.TURN_OFF_SCREEN_TRANSITIONS) return L10n.t("Turn off screen transitions");
+        if (setting == Settings.BLOCK_SCREENSHOT_DETECTION) return L10n.t("Block screenshot detection");
         if (setting == Settings.TURN_OFF_DOUBLE_TAP_LIKE) return L10n.t("Turn off double tap to like");
         if (setting == Settings.KEEP_REEL_SPEED) return L10n.t("Keep the reel speed");
         if (setting == Settings.HOLD_REEL_FOR_2X) return L10n.t("Hold a reel for 2x");
@@ -64,6 +76,8 @@ final class SwitchLabels {
         if (setting == Settings.TAP_TO_PLAY) return L10n.t("Tap to play");
         if (setting == Settings.RESUME_LONG_VIDEOS) return L10n.t("Resume long videos");
         if (setting == Settings.DEFAULT_PLAYBACK_QUALITY) return L10n.t("Default playback quality");
+        if (setting == Settings.PICTURE_IN_PICTURE) return L10n.t("Picture-in-picture");
+        if (setting == Settings.TURN_OFF_HDR_BRIGHTNESS) return L10n.t("Turn off HDR brightness");
         if (setting == Settings.DOWNLOAD_VIDEOS) return L10n.t("Download feed and Watch videos");
         if (setting == Settings.DOWNLOAD_COMPATIBLE) return L10n.t("Save videos other apps can open");
         if (setting == Settings.HIDE_GET_MESSENGER_CARD) return L10n.t("Hide the Get Messenger card");
@@ -74,12 +88,14 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_META_AI_IN_SEARCH) return L10n.t("Hide Meta AI in search");
         if (setting == Settings.HIDE_SPONSORED_SEARCH_RESULTS) return L10n.t("Hide sponsored search results");
         if (setting == Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS) return L10n.t("Hide sponsored Marketplace listings");
+        if (setting == Settings.BLOCK_GAME_ADS) return L10n.t("Block Instant Games ads");
         if (setting == Settings.BLOCK_TRENDING_VIDEO_NOTIFICATIONS) return L10n.t("Block trending video notifications");
         if (setting == Settings.BLOCK_MEMORY_NOTIFICATIONS) return L10n.t("Block memory notifications");
         if (setting == Settings.BLOCK_BIRTHDAY_NOTIFICATIONS) return L10n.t("Block birthday notifications");
         if (setting == Settings.BLOCK_HIGHLIGHT_NOTIFICATIONS) return L10n.t("Block group and Page highlights");
         if (setting == Settings.BLOCK_PEOPLE_YOU_MAY_KNOW_NOTIFICATIONS) return L10n.t("Block \"People you may know\"");
         if (setting == Settings.BLOCK_NEARBY_NOTIFICATIONS) return L10n.t("Block nearby and weather notifications");
+        if (setting == Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS) return L10n.t("Block account setup reminders");
         if (setting == Settings.OPEN_LINKS_EXTERNALLY) return L10n.t("Open links in your browser");
         if (setting == Settings.SANITIZE_SHARING_LINKS) return L10n.t("Remove tracking from shared links");
         if (setting == Settings.STOP_UPDATE_PROMPTS) return L10n.t("Stop update prompts");

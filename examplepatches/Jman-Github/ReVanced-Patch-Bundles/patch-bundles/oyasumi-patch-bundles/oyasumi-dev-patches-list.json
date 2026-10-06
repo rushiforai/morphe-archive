@@ -1,5 +1,5 @@
 {
-    "version": "v0.6.0-dev.23",
+    "version": "v0.6.0-dev.25",
     "patches": [
         {
             "category": null,
@@ -185,6 +185,38 @@
             "dependencies": [],
             "description": "Skip ADM's automatic rating prompt. The menu item that opens the same dialog on request is left intact.",
             "name": "Disable rating prompts",
+            "options": []
+        },
+        {
+            "category": null,
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "name": "Pinterest",
+                    "packageName": "com.pinterest",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "14.38.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 14388010,
+                                "ARMEABI_V7A": 14388010,
+                                "X86": 14388010,
+                                "X86_64": 14388010
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "14.38.0"
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Load the original full-resolution asset for pin images instead of the 736x rendition, at the cost of considerably more data.",
+            "name": "Force original image download",
             "options": []
         },
         {

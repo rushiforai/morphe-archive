@@ -32,6 +32,9 @@ public final class OverrideExchange {
     public static final int MAX_BYTES = 512 * 1024;
     private static final int MAX_PARAMETERS = 65536, MAX_OVERRIDES = 4096;
     private static final String HOST = "com.instagram.android";
+    /** Instagram's own section for experiment overrides, beside the config ones. No typed writer reaches it. */
+    private static final String EXPERIMENTS = "_qe_overrides_";
+    private static final String LABEL = "[1-9][0-9]{0,6}:[^:]*";
     private static final SettingsJson.Limits LIMITS = new SettingsJson.Limits(5, 16384, 10000, MAX_OVERRIDES, MAX_BYTES);
     private OverrideExchange() {}
 
@@ -51,6 +54,8 @@ public final class OverrideExchange {
         private final Map<Long, Parameter> parameters = new TreeMap<>();
         private final Map<Integer, String> configs = new HashMap<>();
         private final String overrides;
+        /** The store's experiment section as it reads, "[]" when it has none. */
+        private final String experiments;
         /** Set by capture only: the resolved store, its manager and its bytes (null when absent). */
         File file;
         Object manager;
@@ -82,8 +87,10 @@ public final class OverrideExchange {
                 for (byte value : digest.digest()) identity.append(String.format(java.util.Locale.ROOT, "%02x", value & 255));
                 hash = identity.toString();
                 JSONObject nativeValues = parse(nativeBytes);
-                checkOverrides(nativeValues, this, null);
+                checkOverrides(nativeValues, this, null, false);
                 overrides = nativeValues.toString();
+                JSONArray held = nativeValues.optJSONArray(EXPERIMENTS);
+                experiments = held == null ? "[]" : held.toString();
             } catch (Exception failure) { throw invalid(); }
         }
     }
@@ -139,11 +146,17 @@ public final class OverrideExchange {
         return validated(file, snapshot, null);
     }
 
-    /** {@link #validate}, also collecting each override's value by parameter key into values. */
+    /**
+     * {@link #validate}, also collecting each override's value by parameter key into values. A
+     * HushGram export has to match this build and schema exactly. Instagram's own mc_overrides.json
+     * names neither, and often no config or parameter either, so each of its overrides is held to
+     * this build's schema by its config and index, by any name it does give, and by its value's type.
+     */
     static int validated(byte[] file, Snapshot snapshot, Map<Long, String> values) throws IOException {
         if (snapshot == null) throw invalid();
         try {
             JSONObject root = parse(file);
+            if (!root.has("project")) return checkOverrides(root, snapshot, values, true);
             if (root.length() != 5 || !"HushGram-overrides".equals(root.get("project")) || !(root.get("format") instanceof Integer)
                     || root.getInt("format") != 1 || !(root.get("host") instanceof JSONObject) || !(root.get("schema") instanceof JSONObject)
                     || !(root.get("overrides") instanceof JSONObject)) throw invalid();
@@ -152,8 +165,29 @@ public final class OverrideExchange {
                     || !(host.get("code") instanceof Integer || host.get("code") instanceof Long) || host.getLong("code") != snapshot.code
                     || schema.length() != 2 || !snapshot.hash.equals(schema.get("sha256")) || !(schema.get("parameters") instanceof Integer)
                     || schema.getInt("parameters") != snapshot.parameters.size()) throw invalid();
-            return checkOverrides(root.getJSONObject("overrides"), snapshot, values);
+            return checkOverrides(root.getJSONObject("overrides"), snapshot, values, true);
         } catch (JSONException | IllegalArgumentException failure) { throw invalid(); }
+    }
+
+    /**
+     * Whether a file is an overrides document, a HushGram export or Instagram's own file, so a
+     * settings import handed one can say which import it belongs to. Nothing is checked against a
+     * schema here.
+     */
+    public static boolean isOverridesFile(byte[] file) {
+        if (file == null) return false;
+        try {
+            JSONObject root = parse(file);
+            if (root.has("project")) return "HushGram-overrides".equals(root.opt("project"));
+            boolean config = false;
+            for (java.util.Iterator<String> keys = root.keys(); keys.hasNext();) {
+                String label = keys.next();
+                if (!(root.get(label) instanceof JSONArray)) return false;
+                if (label.matches(LABEL)) config = true;
+                else if (!EXPERIMENTS.equals(label)) return false;
+            }
+            return config;
+        } catch (Exception failure) { return false; }
     }
 
     public static byte[] read(InputStream input) throws IOException {
@@ -172,7 +206,7 @@ public final class OverrideExchange {
     /** The native file's override values by parameter key, checked the same way an export is. */
     static Map<Long, String> values(byte[] nativeBytes, Snapshot snapshot) throws IOException {
         Map<Long, String> values = new TreeMap<>();
-        try { checkOverrides(parse(nativeBytes), snapshot, values); }
+        try { checkOverrides(parse(nativeBytes), snapshot, values, false); }
         catch (JSONException | RuntimeException failure) { throw invalid(); }
         return values;
     }
@@ -188,15 +222,30 @@ public final class OverrideExchange {
         catch (Exception failure) { throw invalid(); }
     }
 
-    private static int checkOverrides(JSONObject values, Snapshot snapshot, Map<Long, String> collected)
+    /**
+     * Checks every override against the schema, by config and index, by its value's type, and by
+     * its names wherever they aren't empty. Instagram writes its own file with empty names. Its
+     * experiment section has no typed writer and an import never changes it, so a document may hold
+     * one only when it's empty or the same as the store's, as in an export or a restore point; any
+     * other is refused rather than imported in part.
+     */
+    private static int checkOverrides(JSONObject values, Snapshot snapshot, Map<Long, String> collected, boolean document)
             throws IOException, JSONException {
         Set<Long> seen = new HashSet<>();
         for (java.util.Iterator<String> keys = values.keys(); keys.hasNext();) {
             String label = keys.next();
+            if (EXPERIMENTS.equals(label)) {
+                if (!(values.get(label) instanceof JSONArray)) throw invalid();
+                JSONArray experiments = values.getJSONArray(label);
+                if (document && experiments.length() > 0 && !experiments.toString().equals(snapshot.experiments)) throw invalid();
+                continue;
+            }
+            if (!label.matches(LABEL)) throw invalid();
             int colon = label.indexOf(':');
-            if (colon <= 0 || !label.substring(0, colon).matches("[1-9][0-9]{0,6}")) throw invalid();
             int config = Integer.parseInt(label.substring(0, colon));
-            if (!label.substring(colon + 1).equals(snapshot.configs.get(config)) || !(values.get(label) instanceof JSONArray)) throw invalid();
+            String configName = label.substring(colon + 1);
+            if (!snapshot.configs.containsKey(config) || !configName.isEmpty() && !configName.equals(snapshot.configs.get(config))
+                    || !(values.get(label) instanceof JSONArray)) throw invalid();
             JSONArray parameters = values.getJSONArray(label);
             for (int i = 0; i < parameters.length(); i++) {
                 if (!(parameters.get(i) instanceof String)) throw invalid();
@@ -206,7 +255,8 @@ public final class OverrideExchange {
                 int index = Integer.parseInt(parts[0]);
                 if (index >= 0x4000) throw invalid();
                 Parameter parameter = snapshot.parameters.get(key(config, index));
-                if (parameter == null || !parameter.name.equals(parts[1]) || !seen.add(key(config, index)) || seen.size() > MAX_OVERRIDES) throw invalid();
+                if (parameter == null || !parts[1].isEmpty() && !parameter.name.equals(parts[1])
+                        || !seen.add(key(config, index)) || seen.size() > MAX_OVERRIDES) throw invalid();
                 String value = parts[2];
                 if (collected != null) collected.put(key(config, index), value);
                 if ("__NULL_VALUE__".equals(value)) continue;

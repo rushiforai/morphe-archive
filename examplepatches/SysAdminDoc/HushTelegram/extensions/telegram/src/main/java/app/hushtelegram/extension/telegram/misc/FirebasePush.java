@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import app.hushtelegram.extension.shared.L10n;
+import app.hushtelegram.extension.shared.Logger;
 import app.hushtelegram.extension.shared.Utils;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
 import app.hushtelegram.extension.telegram.settings.FamilyNames;
@@ -112,11 +113,28 @@ public final class FirebasePush {
                 : Collections.emptyList();
     }
 
+    /**
+     * How long a request may wait for settings. Firebase's init provider starts FCM's eager token
+     * sync before Application.onCreate hands over the context, so on a slow phone the first
+     * Installations request reaches this hook first. Answering stock there sent the re-signed
+     * certificate, Firebase refused the installation, and no push token came for the whole
+     * process. The wait holds only Firebase's own worker thread.
+     */
+    static long startupWaitMillis = 10_000L;
+
     /** Injected just before Firebase adds X-Android-Cert. Does not connect or mutate the connection. */
     public static String certificateHeader(URLConnection connection, String original) {
         HookStatus.invoked(FamilyNames.REPAIR_FIREBASE_PUSH);
         try {
-            if (!Utils.settingsReady() || !Settings.REPAIR_FIREBASE_PUSH.get() || connection == null) return original;
+            if (!Utils.settingsReady()) {
+                if (!Utils.awaitSettingsReady(startupWaitMillis)) {
+                    HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH, "requests before app start");
+                    return original;
+                }
+                HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH, "requests held for app start");
+                Logger.printInfo(() -> "Firebase Installations request held until app start");
+            }
+            if (!Settings.REPAIR_FIREBASE_PUSH.get() || connection == null) return original;
             URL url = connection.getURL();
             if (url == null || !"https".equalsIgnoreCase(url.getProtocol())
                     || !"firebaseinstallations.googleapis.com".equalsIgnoreCase(url.getHost())

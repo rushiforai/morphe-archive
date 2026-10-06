@@ -22,7 +22,13 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.MethodImplementation
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.value.ArrayEncodedValue
 import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
@@ -59,7 +65,7 @@ class PrivacyFixtureTest {
             val classes = read(build)
             val services = classes.flatMap { it.methods }.filter { it.telemetryPath() != null }
             assertEquals(build.name, TELEMETRY_PATHS, services.mapNotNull { it.telemetryPath() }.toSet())
-            val coreUrlCalls = classes.filterNot { it.type.startsWith("Lcom/appsflyer/") }.flatMap { owner ->
+            val coreUrlCalls = classes.filterNot { it.type.startsWith("Lcom/appsflyer/") || it.type.startsWith("Lcom/bugsnag/") }.flatMap { owner ->
                 owner.methods.filter { method -> method.implementation?.instructions?.any {
                     it.callReference()?.identity() == URL_CALL
                 } == true }.map { it.identity() }
@@ -100,12 +106,31 @@ class PrivacyFixtureTest {
                     it.callReference()?.identity() == URL_CALL
                 })
             }
-            for (owner in classes.filter { it.type.startsWith("Lcom/appsflyer/") }) {
+            val vendors = classes.filter { it.type.startsWith("Lcom/appsflyer/") || it.type.startsWith("Lcom/bugsnag/") }
+            assertTrue("${build.name}: no Bugsnag transport", vendors.any { it.type.startsWith("Lcom/bugsnag/") })
+            for (owner in vendors) {
                 for (method in context.mutableClassDefBy(owner.type).methods) {
-                    assertFalse("${build.name}: AppsFlyer still opens a URL in ${method.identity()}",
+                    assertFalse("${build.name}: ${owner.type} still opens a URL in ${method.identity()}",
                         method.implementation?.instructions?.any { it.callReference()?.identity() == URL_CALL } == true)
                 }
             }
+            // Engage's gateway passes its service through the hook right before the SDK's own null test.
+            val client = classes.single { owner -> owner.methods.any { it.name == "<clinit>" && ENGAGE_BIND in it.strings() } }
+            val gateways = context.mutableClassDefBy(client.type).methods.filter { method ->
+                method.implementation?.instructions?.any { it.callReference()?.identity() == ENGAGE_HOOK } == true }
+            assertEquals(build.name, 1, gateways.size)
+            val body = gateways.single().implementation!!.instructions.toList()
+            val at = body.indexOfFirst { it.callReference()?.identity() == ENGAGE_HOOK }
+            val read = body[at - 1] as TwoRegisterInstruction
+            val service = (read as ReferenceInstruction).reference as FieldReference
+            assertEquals(build.name, Opcode.IGET_OBJECT, body[at - 1].opcode)
+            assertEquals(build.name, listOf(Opcode.MOVE_RESULT_OBJECT, Opcode.CHECK_CAST, Opcode.IF_NEZ, Opcode.NEW_INSTANCE),
+                body.subList(at + 1, at + 5).map { it.opcode })
+            assertEquals(build.name, listOf(read.registerA, read.registerA, read.registerA),
+                body.subList(at + 1, at + 4).map { (it as OneRegisterInstruction).registerA })
+            assertEquals(build.name, service.type, ((body[at + 2] as ReferenceInstruction).reference as TypeReference).type)
+            assertEquals(build.name, "Lcom/google/android/engage/service/AppEngageException;",
+                ((body[at + 4] as ReferenceInstruction).reference as TypeReference).type)
         }
     }
 
@@ -195,6 +220,11 @@ class PrivacyFixtureTest {
             "missing endpoint" to classes.map { owner -> if (owner.type != endpoint.definingClass) owner else
                 copyClass(owner, owner.methods.filterNot { it.identity() == endpoint.identity() }) },
             "missing AppsFlyer transport" to classes.filterNot { it.type.startsWith("Lcom/appsflyer/") },
+            "missing Bugsnag transport" to classes.filterNot { it.type.startsWith("Lcom/bugsnag/") },
+            "missing Engage client" to classes.filterNot { owner -> owner.methods.any { it.name == "<clinit>" && ENGAGE_BIND in it.strings() } },
+            "Engage gateway without its null test" to classes.map { owner ->
+                if (owner.methods.none { it.name == "<clinit>" && ENGAGE_BIND in it.strings() }) owner
+                else copyClass(owner, owner.methods.map { method -> withoutEngageNullTest(method) }) },
             "missing task enum" to classes.filterNot { it.type == tags.type },
             "missing scheduler" to classes.filterNot { it.type == schedulerOwner.type },
             "scheduler without locals" to classes.map { owner -> if (owner.type != schedulerOwner.type) owner else
@@ -208,6 +238,8 @@ class PrivacyFixtureTest {
             copyClass(owner, owner.methods.filterNot { it.name == "disableAnalytics" }) }
         cases["missing runtime transport hook"] = classes + extension.map { owner -> if (owner.type != ANALYTICS) owner else
             copyClass(owner, owner.methods.filterNot { it.name == "openConnection" }) }
+        cases["missing Engage hook"] = classes + extension.map { owner -> if (owner.type != ANALYTICS) owner else
+            copyClass(owner, owner.methods.filterNot { it.name == "engageService" }) }
         val caller = classes.flatMap { it.methods }.first { method -> method.implementation?.instructions?.any {
             it.callReference()?.identity() == endpoint.identity() } == true }
         val instructions = caller.implementation!!.instructions.toList()
@@ -285,6 +317,21 @@ class PrivacyFixtureTest {
         }
     }
 
+    /** Turns the gateway's null test into a constant, so no method keeps the read, test and refusal shape. */
+    private fun withoutEngageNullTest(method: Method): Method {
+        val instructions = method.implementation?.instructions?.toList() ?: return method
+        val test = instructions.indices.firstOrNull { at -> instructions[at].opcode == Opcode.IF_NEZ &&
+            (instructions.getOrNull(at + 1) as? ReferenceInstruction)?.reference?.toString() ==
+            "Lcom/google/android/engage/service/AppEngageException;" } ?: return method
+        val replaced = instructions.mapIndexed { at, instruction -> if (at == test) ImmutableInstruction21s(Opcode.CONST_16,
+            (instruction as OneRegisterInstruction).registerA, 0) else instruction }
+        return copyMethod(method, implementation = ImmutableMethodImplementation(method.implementation!!.registerCount, replaced,
+            method.implementation!!.tryBlocks, method.implementation!!.debugItems))
+    }
+
+    private fun Method.strings(): List<String> = implementation?.instructions?.mapNotNull {
+        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }.orEmpty()
+
     private fun copyClass(owner: ClassDef, methods: Iterable<Method>, accessFlags: Int = owner.accessFlags) = ImmutableClassDef(owner.type, accessFlags,
         owner.superclass, owner.interfaces, owner.sourceFile, owner.annotations, owner.fields, methods)
 
@@ -330,6 +377,7 @@ class PrivacyFixtureTest {
                     selected[owner.type] = ImmutableClassDef.of(owner)
                 }
                 if (owner.superclass == "Lcom/pinterest/api/adapter/coroutine/NetworkResponse;" ||
+                    owner.methods.any { it.name == "<clinit>" && ENGAGE_BIND in it.strings() } ||
                     owner.methods.any { method -> method.implementation?.instructions?.any { instruction ->
                         val call = instruction.callReference()?.identity()
                         call == URL_CALL || call in OUTGOING_LINK_CALLS
@@ -357,5 +405,6 @@ class PrivacyFixtureTest {
 
     private companion object {
         const val URL_CALL = "Ljava/net/URL;->openConnection()Ljava/net/URLConnection;"
+        const val ENGAGE_HOOK = "$ANALYTICS->engageService(Ljava/lang/Object;)Ljava/lang/Object;"
     }
 }

@@ -7,7 +7,8 @@ import android.widget.Toast;
 
 /** Immediate utility actions shown as ordinary items inside the nested Morphe settings screen. */
 @SuppressWarnings("deprecation")
-public final class DeepSeekActionPreference extends android.preference.Preference {
+public final class DeepSeekActionPreference extends CaptionSettingPreference {
+    private boolean testing,hasResult;
     static final String KEY_TEST = "deepseek_caption_test_api";
     static final String KEY_RESET_POSITION = "deepseek_caption_reset_position";
     static final String KEY_CLEAR_CACHE = "deepseek_caption_clear_cache";
@@ -55,17 +56,17 @@ public final class DeepSeekActionPreference extends android.preference.Preferenc
         } else if (KEY_RESET_POSITION.equals(key)) {
             DeepSeekConfig.resetCaptionPositions(context);
             CaptionOverlay.refreshStyle(context);
-            toast("字幕已恢复水平居中的默认位置");
+            toast(CaptionStrings.settings(context,"message_a25bd037963d"));
         } else if (KEY_CLEAR_CACHE.equals(key)) {
             DiskCaptionCache.clear(context);
             RebuildCache.clear(context);
             SourceCaptionCache.clear(context);
-            toast("字幕缓存已清除");
+            toast(CaptionStrings.settings(context,"message_e8b2177e1cd3"));
         } else if (KEY_DELETE_KEY.equals(key)) {
             new ApiProfilesPreference(context).clearCurrentKey();
         } else if (KEY_CLEAR_DIAGNOSTICS.equals(key)) {
             CaptionDiagnostics.clear(context);
-            toast("诊断记录已清空");
+            toast(CaptionStrings.settings(context,"message_8bfb437edfc4"));
         }
     }
 
@@ -75,31 +76,36 @@ public final class DeepSeekActionPreference extends android.preference.Preferenc
         }
         DeepSeekConfig.Snapshot config = DeepSeekConfig.load(getContext());
         if (config.apiKey.isEmpty()) {
-            toast("请先填写 API Key");
+            toast(CaptionStrings.settings(getContext(),"enter_key"));
             return;
         }
         final String testedProfile=ApiProfiles.active(getContext());
+        testing=true;
         setEnabled(false);
-        setSummary(CaptionStrings.localize(getContext(), "测试中…"));
+        setSummary(CaptionStrings.settings(getContext(), "message_49562bf14c82"));
         new Thread(() -> {
             String result;
+            // Success is tracked as a flag, never inferred from the rendered text: the sentence is
+            // localized, so matching it would only work in one language.
+            boolean available;
             try {
                 String translated = ContextualBatchApiClient.test(config);
-                result = "API 可用：" + translated;
+                available = true;
+                result = translated;
             } catch (Throwable error) {
                 String detail = error.getMessage();
-                result = "API 测试失败：" +
-                        (detail == null || detail.trim().isEmpty()
-                                ? error.getClass().getSimpleName()
-                                : detail);
+                available = false;
+                result = detail == null || detail.trim().isEmpty()?error.getClass().getSimpleName():detail;
             }
             final String message = result;
+            final boolean ok = available;
             postToUi(() -> {
+                testing=false;hasResult=true;
                 setEnabled(true);
-                setSummary(CaptionStrings.localize(getContext(), "使用当前已自动保存的配置测试连接"));
+                setSummary(CaptionStrings.settings(getContext(), "api_test_retry_hint"));
                 if(!testedProfile.equals(ApiProfiles.active(getContext())))return;
-                if(message.startsWith("API 可用：")) DynamicCaptionController.refreshConfiguration(getContext());
-                toast(message);
+                if(ok) DynamicCaptionController.refreshConfiguration(getContext());
+                toast(String.format(java.util.Locale.ROOT,CaptionStrings.settings(getContext(),ok?"api_test_ok":"api_test_failed"),message));
             });
         }, "DeepSeekCaptionApiTest").start();
     }
@@ -108,8 +114,10 @@ public final class DeepSeekActionPreference extends android.preference.Preferenc
         android.os.Handler handler = new android.os.Handler(android.os.Looper.getMainLooper());
         handler.post(action);
     }
+    @Override protected void refreshDynamicText(){if(KEY_TEST.equals(getKey())&&(testing||hasResult))setSummary(CaptionStrings.settings(getContext(),testing?"message_49562bf14c82":"api_test_retry_hint"));}
 
+    /** The label is already fully resolved and localized by the caller; re-localizing it would mangle it. */
     private void toast(String text) {
-        Toast.makeText(getContext(), CaptionStrings.localize(getContext(),text), Toast.LENGTH_LONG).show();
+        Toast.makeText(getContext(), text, Toast.LENGTH_LONG).show();
     }
 }

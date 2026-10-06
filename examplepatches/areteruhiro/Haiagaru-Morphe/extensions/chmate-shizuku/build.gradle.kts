@@ -9,6 +9,12 @@ configure<ApplicationExtension> {
     namespace = "app.morphe.extension.chmate.shizuku"
     compileSdk = 36
 
+    buildTypes {
+        getByName("release") {
+            proguardFiles("proguard-rules.pro")
+        }
+    }
+
     buildFeatures {
         aidl = true
     }

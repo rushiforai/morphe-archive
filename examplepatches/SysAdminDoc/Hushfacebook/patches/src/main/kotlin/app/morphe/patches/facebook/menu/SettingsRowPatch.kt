@@ -48,8 +48,8 @@ private const val COPY_OF = "$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMM
 @Suppress("unused")
 val hushfacebookInTheMenuPatch = bytecodePatch(
     name = "Hushfacebook in the Menu",
-    description = "Adds a Hushfacebook settings row to Facebook's Menu, at the end of Settings and privacy. " +
-        "The logo long press and the launcher shortcut still open the settings too.",
+    description = "Adds a Hushfacebook settings row to Facebook's Menu, at the end of Settings and privacy, " +
+        "with a Saved row above it while the Saved shortcut switch is on. The logo long press and the launcher shortcut still open the settings too.",
     default = true,
 ) {
     category("Interface")

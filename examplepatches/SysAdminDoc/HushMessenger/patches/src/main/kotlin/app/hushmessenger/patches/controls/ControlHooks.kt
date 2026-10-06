@@ -438,6 +438,32 @@ internal fun MutableMethod.injectFeatureSwitch(key: String) {
     """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(0)))
 }
 
+/**
+ * A plugin composite asks each gate when it counts and lists its plugins, again when it registers their listeners and
+ * again when it removes them, so Messenger caches the first answer in the composite. An enabled switch stores Messenger's
+ * own disabled marker there before answering false. An answer already cached, ours or Messenger's, stands until the
+ * next composite reads the switch again, so a switch, Pause or safe-mode change can't split one composite's calls.
+ */
+internal fun MutableMethod.injectPluginGate(key: String) {
+    validatePluginGate()
+    val code = implementation!!.instructions
+    val owner = (code.first() as TwoRegisterInstruction).registerB
+    val cache = (code.first() as ReferenceInstruction).reference
+    val disabled = (code[code.size - 4] as ReferenceInstruction).reference
+    addInstructionsWithLabels(0, """
+        iget-object v0, v$owner, $cache
+        if-nez v0, :stock_behavior
+        const-string v0, "$key"
+        invoke-static {v0}, $SETTINGS->enabled(Ljava/lang/String;)Z
+        move-result v0
+        if-eqz v0, :stock_behavior
+        sget-object v0, $disabled
+        iput-object v0, v$owner, $cache
+        const/4 v0, 0x0
+        return v0
+    """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(0)))
+}
+
 /** The notes tip launcher: an instance suspend call whose result is whether it showed a sheet. */
 internal fun MutableMethod.validateNotesTips() {
     validateScratch()

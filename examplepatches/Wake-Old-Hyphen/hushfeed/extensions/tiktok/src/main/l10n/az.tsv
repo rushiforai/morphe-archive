@@ -1486,6 +1486,8 @@ Show only LIVEs with this many people watching.	Yalnız bu qədər adamın izlə
 LIVE followers range	LIVE izləyən aralığı
 Show only LIVEs from creators with this many followers.	Yalnız bu qədər izləyicisi olan yaradıcıların LIVE-larını göstərin.
 Hide the comment bar on opened videos	Açılmış videolarda şərh panelini gizlədin
+Hide the Clear display controls	Təmiz ekran idarəetmələrini gizlədin
+While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.	Təmiz ekran açıq olanda aşağıdakı irəliləmə zolağını, bağlama düyməsini, fasilə və sürət düymələrini də gizlədin. Təmiz ekrandan çıxmaq üçün videonu basıb saxlayın və Ekranı bərpa et düyməsinə toxunun.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Video ekranı aşağıya qədər doldursun deyə, profildən, heşteqdən, səsdən və ya axtarışdan açdığınız videolardan Add comment panelini çıxarın. Sağdakı şərh düyməsi yenə də şərhləri açır.
 Build details	Build təfərrüatları
 Copy or save patch-time choices and build identity.	Yamaq zamanı seçimləri və build kimliyini kopyalayın və ya saxlayın.

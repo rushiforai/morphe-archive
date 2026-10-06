@@ -273,6 +273,7 @@ Undo is available until %1$s. Restarting Instagram discards Undo.	%1$s saatine k
 No settings import to undo.	Geri alınacak ayar içe aktarma işlemi yok.
 No document picker is available. Your settings haven't changed.	Belge seçici kullanılamıyor. Ayarlarınız değişmedi.
 Couldn't use that settings file. Your settings haven't changed.	Bu ayar dosyası kullanılamadı. Ayarlarınız değişmedi.
+That's an overrides file, not a settings file. Turn on Allow importing overrides under Developer, then use Import overrides. Your settings haven't changed.	Bu bir ayar dosyası değil, geçersiz kılma dosyası. Geliştirici altında Geçersiz kılmaları içe aktarmaya izin ver seçeneğini açın, ardından Geçersiz kılmaları içe aktar'ı kullanın. Ayarlarınız değişmedi.
 HushGram settings exported.	HushGram ayarları dışa aktarıldı.
 Couldn't export HushGram settings. Try another file.	HushGram ayarları dışa aktarılamadı. Başka bir dosya deneyin.
 Settings restored.	Ayarlar geri yüklendi.

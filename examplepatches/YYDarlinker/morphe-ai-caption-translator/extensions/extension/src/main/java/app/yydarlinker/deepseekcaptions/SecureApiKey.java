@@ -95,6 +95,15 @@ final class SecureApiKey {
         synchronized(ApiProfiles.LOCK){clear(context, ApiProfiles.active(context));}
     }
 
+    /**
+     * Opaque credential reference for the diagnostics writer. It never returns the key itself and is
+     * only used to decide whether a queued record may be redacted with the currently readable key.
+     */
+    static CaptionCredentialRef credentialRef(Context context) {
+        String key = load(context);
+        return key.isEmpty() ? CaptionCredentialRef.NONE : CaptionCredentialRef.of(key);
+    }
+
     static void clear(Context context, String id) {
         synchronized (ApiProfiles.LOCK) {
             prefs(context).edit().remove(valueKey(id)).remove(valueKey(id)+"_origin").apply();

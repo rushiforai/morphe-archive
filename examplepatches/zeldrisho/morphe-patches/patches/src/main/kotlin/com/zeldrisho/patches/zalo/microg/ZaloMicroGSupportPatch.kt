@@ -101,7 +101,13 @@ internal fun rewriteMicroGClasses(
             total.launchCheck + count.launchCheck,
         )
     }
-    validateMicroGReplacementCounts(total.binding, total.accountType, total.accountPicker, total.accountRefresh, total.launchCheck)
+    validateMicroGReplacementCounts(
+        total.binding,
+        total.accountType,
+        total.accountPicker,
+        total.accountRefresh,
+        total.launchCheck,
+    )
     return total
 }
 
@@ -153,8 +159,8 @@ val zaloMicroGSupportPatch = bytecodePatch(
     name = "microG Drive support",
     description = "Adds Zalo launch/provider checks and redirects Google Drive account " +
         "selection and token binding to microG-RE (app.revanced / " +
-        "app.revanced.android.gms). Initial photo restore and the complete backup/restore " +
-        "cycle were device-validated on Zalo 26.08.01.",
+        "app.revanced.android.gms). Preserves the clone's actual caller identity; " +
+        "MicroG manifest metadata supplies the upstream Zalo identity.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_ZALO)

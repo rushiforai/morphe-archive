@@ -289,6 +289,7 @@ tasks {
         description = "Generate current-source patch metadata in an isolated build directory"
         dependsOn("classes", "buildAndroid")
         val output = layout.buildDirectory.file("verification/patches-list.json")
+        inputs.property("patchesVersion", project.version)
         outputs.file(output)
         doFirst { output.get().asFile.parentFile.mkdirs() }
         classpath = sourceSets["main"].runtimeClasspath + patchListGeneratorClasspath

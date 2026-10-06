@@ -297,11 +297,12 @@ public class RebuildContractTest {
   }
 
   @Test
-  public void paragraphCannotBeMadeReady() throws Exception {
+  public void acceptedParagraphKeepsReviewRiskButRemainsDisplayable() throws Exception {
     RebuildSource s = source(String.join(" ", Collections.nCopies(30, "word")), 400);
     String text = String.join("", Collections.nCopies(70, "字")) + "。第二句。";
     RebuildProtocol.Plan p=RebuildProtocol.parse(reply(block(s), new JSONArray().put(event(0,29,text))),s,block(s));
-    assertTrue(RebuildReview.blocked(p,p.events.get(0)));
+    assertTrue(p.issues.stream().anyMatch(issue -> issue.code.equals("paragraph") && issue.repair));
+    assertFalse(RebuildReview.blocked(p,p.events.get(0)));
   }
 
   @Test
@@ -356,7 +357,10 @@ public class RebuildContractTest {
       w.add(
           new RebuildSource.Word(
               x.text, x.start + 100, x.end + 100, x.cue, RebuildSource.Precision.NATIVE));
-    RebuildSource b = a.align(new RebuildSource(w));
+    assertSame("already native source must never be retimed",a,a.align(new RebuildSource(w)));
+    List<RebuildSource.Word> estimated=new ArrayList<>();
+    for(RebuildSource.Word word:a.words)estimated.add(new RebuildSource.Word(word.text,word.start,word.end,word.cue,RebuildSource.Precision.ESTIMATED));
+    RebuildSource b = new RebuildSource(estimated).align(new RebuildSource(w));
     assertEquals(100, b.words.get(0).start);
     assertEquals(RebuildSource.Precision.ALIGNED, b.words.get(0).precision);
   }

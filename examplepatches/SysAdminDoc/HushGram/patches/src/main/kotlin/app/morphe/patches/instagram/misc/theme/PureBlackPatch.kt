@@ -55,8 +55,15 @@ internal const val PURE_BLACK_COLOR = "@color/bds_black"
 /** The dark theme's two palettes. The patch fails unless both change. */
 internal val DARK_PALETTES = listOf("IgdsPrismGrayOverridesDark", "IgdsPrismSemanticColorsExperimentDark")
 
-/** The Compose palette Instagram's newer screens draw from, a kept name. */
-internal const val COMPOSE_PALETTE = "Lcom/instagram/compose/core/theme/BasePrismColors;"
+/**
+ * The Compose palettes Instagram's newer screens draw from, kept names. Prism's first one names
+ * [PRISM_BLACK] BLACK; its second, which the Direct inbox and Activity screens read, names it
+ * GRAY_1600. The patch fails unless both change.
+ */
+internal val COMPOSE_PALETTES = listOf(
+    "Lcom/instagram/compose/core/theme/BasePrismColors;",
+    "Lcom/instagram/compose/core/theme/BasePrismColorsV2;",
+)
 
 /**
  * Points each of [BLACK_BACKGROUNDS] that a style in one decoded styles.xml sets to
@@ -87,13 +94,13 @@ internal fun isPrismBlack(instruction: Instruction): Boolean = when (instruction
 }
 
 /**
- * Loads [PURE_BLACK] where Instagram's Compose palette loads [PRISM_BLACK], with the same opcode
- * into the same register, and answers the methods it changed.
+ * Loads [PURE_BLACK] where Instagram's Compose palettes load [PRISM_BLACK], with the same opcode
+ * into the same register, and answers the methods it changed. Other owners of the literal (tab
+ * tints, light theme text) stay.
  */
 internal fun BytecodePatchContext.blackenLiterals(): List<String> {
     val found = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type != COMPOSE_PALETTE) return@classDefForEach
+    COMPOSE_PALETTES.mapNotNull { classDefByOrNull(it) }.forEach { classDef ->
         classDef.methods.forEach { method ->
             if (method.implementation?.instructions?.any(::isPrismBlack) == true) found += classDef.type to method
         }
@@ -165,8 +172,9 @@ val pureBlackPatch = bytecodePatch(
     execute {
         requireStatusMethod("pureBlack")
         val changed = blackenLiterals()
-        if (changed.none { it.startsWith("$COMPOSE_PALETTE->") }) {
-            throw PatchException("$PATCH: $COMPOSE_PALETTE no longer loads #%08x".format(PRISM_BLACK))
+        val missing = COMPOSE_PALETTES.filter { palette -> changed.none { it.startsWith("$palette->") } }
+        if (missing.isNotEmpty()) {
+            throw PatchException("$PATCH: ${missing.joinToString()} no longer load #%08x".format(PRISM_BLACK))
         }
         enableStatus("pureBlack")
     }

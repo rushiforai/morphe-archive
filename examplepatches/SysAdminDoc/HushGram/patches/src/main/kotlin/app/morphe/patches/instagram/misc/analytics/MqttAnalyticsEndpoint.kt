@@ -5,6 +5,7 @@
 package app.morphe.patches.instagram.misc.analytics
 
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -35,7 +36,7 @@ internal val MQTT_SETTINGS_STRINGS = listOf("php_sandbox_host_name", "mqtt-mini.
  */
 internal fun BytecodePatchContext.wrapMqttAnalyticsEndpoint(endpoint: String): String? {
     val constructors = mutableListOf<Method>()
-    classDefForEach { classDef ->
+    classesHolding(*MQTT_SETTINGS_STRINGS.toTypedArray()).forEach { classDef ->
         classDef.methods.forEach { method ->
             if (method.name == "<init>" && method.parameterTypes.map(Any::toString) == listOf("Lorg/json/JSONObject;") &&
                 MQTT_SETTINGS_STRINGS.all { it in method.strings() }

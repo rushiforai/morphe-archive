@@ -10,6 +10,8 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DownloadManager;
 import android.app.Fragment;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -42,6 +44,7 @@ public final class PinDownloads {
 
     static final String ROW_TAG = "hushpinterest_download_pin";
     private static final String DETAILS_TAG = "hushpinterest_pin_media_details";
+    static final String COPY_TAG = "hushpinterest_copy_media_link";
     private static final String SAVE_TAG = "hushpinterest_save_pin";
     private static final AtomicBoolean SAVING = new AtomicBoolean();
 
@@ -119,6 +122,22 @@ public final class PinDownloads {
                     details.setOnClickListener(ignored -> { if (active()) showDetails(media); });
                     layout.addView(details, 1);
                 }
+                String copyTitle = L10n.t("Copy media link");
+                View copy = menuRow(layout, copyTitle);
+                if (copy != null) {
+                    copy.setTag(COPY_TAG);
+                    copy.setFocusable(true);
+                    copy.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
+                    copy.setContentDescription(copyTitle);
+                    copy.setOnClickListener(ignored -> {
+                        try {
+                            if (copyLink(pin, layout.getContext())) dismissMenu(controller);
+                        } catch (Throwable failure) {
+                            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "dismiss copy menu", failure);
+                        }
+                    });
+                    layout.addView(copy, 1);
+                }
             }
             HookStatus.counted(FamilyNames.DOWNLOAD_PINS, supported ? "download row added to pin menu" : "download explanation added to pin menu");
         } catch (Throwable failure) {
@@ -161,6 +180,32 @@ public final class PinDownloads {
 
     static boolean start(Object pin, Context context) {
         return start(pin, context, null);
+    }
+
+    /**
+     * Copies the address of the media the Download row would save, read from the pin again: only a
+     * supplied original image or MP4 on Pinterest's media host, never a guessed or resized one.
+     */
+    static boolean copyLink(Object pin, Context context) {
+        if (!active()) return false;
+        try {
+            PinMedia.Resolution media = PinMedia.resolve(pin);
+            if (media == null || context == null) return false;
+            if (media.source == null) {
+                Utils.showToastLong(refusalMessage(media.refusal));
+                return false;
+            }
+            ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+            clipboard.setPrimaryClip(ClipData.newPlainText(L10n.t("Media link"), media.source.url));
+            HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "media link copied");
+            // Android 13 and newer show their own confirmation for every copy.
+            if (Build.VERSION.SDK_INT < 33) Utils.showToastShort(L10n.t("Media link copied."));
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "copy media link", failure);
+            Utils.showToastLong(L10n.t("Couldn't copy the media link. Open the pin again and try again."));
+            return false;
+        }
     }
 
     enum Result { QUEUED, QUEUED_UNTRACKED, SAVED, SKIPPED, UNSUPPORTED, FAILED }

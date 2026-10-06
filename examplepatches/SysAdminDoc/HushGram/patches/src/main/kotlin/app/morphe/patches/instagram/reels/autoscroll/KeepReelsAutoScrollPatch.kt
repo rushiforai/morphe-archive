@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.filterEveryBooleanReturn
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
@@ -17,6 +18,7 @@ import app.morphe.patches.instagram.misc.extension.jumpTargets
 import app.morphe.patches.instagram.misc.extension.markers
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.misc.extension.typesMarked
 import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -169,8 +171,9 @@ internal class MemoryRead(val method: MethodSite, val index: Int, val register: 
 internal fun BytecodePatchContext.findReelAutoScroll(): ReelAutoScrollSites {
     val marked = mutableMapOf<String, MutableList<Method>>()
     val preferenceClasses = mutableListOf<ClassDef>()
+    val holders = typesMarked(IS_AUTOSCROLL_ACTIVE, AUTOSCROLL_MODE_CLICK) + classesHolding(AUTOSCROLL_PREFERENCE).map { it.type }
     classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+        if (classDef.type !in holders) return@classDefForEach
         classDef.methods.forEach { method ->
             method.markers().filter { it == IS_AUTOSCROLL_ACTIVE || it == AUTOSCROLL_MODE_CLICK }.distinct()
                 .forEach { marked.getOrPut(it) { mutableListOf() } += method }

@@ -8,12 +8,12 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
 import app.morphe.patches.instagram.misc.flags.answerFlagReads
 import app.morphe.patches.instagram.misc.flags.findFlagReads
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -101,8 +101,7 @@ internal class SavedFeedReturn(
  */
 internal fun BytecodePatchContext.findSavedFeedReturn(): SavedFeedReturn {
     val holders = mutableListOf<Pair<String, List<Method>>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(SAVED_FEED_KEY).forEach { classDef ->
         if (classDef.methods.any { it.name == "<init>" && SAVED_FEED_KEY in it.strings() }) {
             holders += classDef.type to classDef.methods.toList()
         }
@@ -157,8 +156,7 @@ internal class PickerFreeze(val type: String, val name: String, val parameters: 
 internal fun BytecodePatchContext.findPickerFreeze(saved: SavedFeedReturn): PickerFreeze {
     val getter = "${saved.type}->${saved.name}()Ljava/lang/String;"
     val pickers = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(FEED_PICKER).forEach { classDef ->
         classDef.methods.filter { FEED_PICKER in it.strings() && it.calls(getter) > 0 }.forEach { pickers += classDef.type to it }
     }
     val (type, picker) = pickers.singleOrNull()

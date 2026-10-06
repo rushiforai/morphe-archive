@@ -9,6 +9,32 @@ import java.util.Locale;
 public final class KyodemoRouting {
     private KyodemoRouting() {}
 
+    /** Strip only execution parameters, without decoding Shift_JIS search values. */
+    public static String analysisResultUrl(String url) {
+        if (url == null) return null;
+        try {
+            URI uri = URI.create(url);
+            if (!"https".equalsIgnoreCase(uri.getScheme())
+                    || !"www.kyodemo.net".equalsIgnoreCase(uri.getHost())
+                    || !uri.getPath().matches("/sdemo/b/[A-Za-z0-9_-]+/")) return null;
+            String raw = uri.getRawQuery();
+            if (raw == null) return null;
+            boolean analysis = false;
+            StringBuilder query = new StringBuilder();
+            for (String part : raw.split("&")) {
+                if (part.equals("fetch=a")) analysis = true;
+                // c identifies the site's generated analysis; keep it.
+                if (part.startsWith("fetch=")) continue;
+                if (query.length() > 0) query.append('&');
+                query.append(part);
+            }
+            return analysis ? "https://www.kyodemo.net" + uri.getRawPath()
+                    + (query.length() == 0 ? "" : "?" + query) : null;
+        } catch (IllegalArgumentException invalid) {
+            return null;
+        }
+    }
+
     public static String boardSlug(String sourceHost, String board) {
         if (sourceHost == null || board == null || board.isEmpty()) return null;
         String prefix = prefixForHost(sourceHost.toLowerCase(Locale.ROOT));
@@ -71,36 +97,72 @@ public final class KyodemoRouting {
 
     public static String wacchoiSearchUrl(String host, String board, String wacchoi) {
         if (wacchoi == null) return null;
-        String value = stripWacchoiLabel(wacchoi);
-        java.util.regex.Matcher token = wacchoiTokenMatcher(value);
-        if (token.matches()) {
+        String edgeSlip = edgeWacchoiInText(wacchoi);
+        if (edgeSlip != null) {
+            String slug = boardSlug(host, board);
+            return slug == null ? null : "https://www.kyodemo.net/sdemo/b/" + slug
+                    + "/?bs=hi&k=" + encode(edgeSlip);
+        }
+        String labeled = labeledWacchoiInText(wacchoi);
+        String value = labeled == null ? wacchoi.trim() : labeled;
+        if (!value.isEmpty() && value.length() <= 512
+                && value.chars().noneMatch(Character::isISOControl)) {
             // Match the site's Shift_JIS form: the label is required to
             // distinguish a SLIP from an ID. Keep both halves of the token.
             String slug = boardSlug(host, board);
             if (slug == null) return null;
             try {
+                String query = labeled != null || value.indexOf(' ') >= 0 ? value : "ﾜｯﾁｮｲ " + value;
+                // Never replace unencodable characters with '?'. Keep the legacy
+                // encoding for ordinary SLIPs, and preserve Unicode with UTF-8.
+                String charset = java.nio.charset.Charset.forName("Shift_JIS").newEncoder().canEncode(query)
+                        ? "Shift_JIS" : "UTF-8";
                 return "https://www.kyodemo.net/sdemo/b/" + slug + "/?bs=hi&k="
-                        + URLEncoder.encode("ﾜｯﾁｮｲ " + value.replaceAll("[‐‑–—]", "-"), "Shift_JIS");
+                        + URLEncoder.encode(query, charset);
             } catch (UnsupportedEncodingException impossible) {
                 throw new AssertionError(impossible);
             }
         }
-        if (value.isEmpty() || value.length() > 80) return null;
-        return idSearchUrl(host, board, value, null, null);
+        return null;
     }
 
     public static boolean isWacchoiToken(String query) {
-        return query != null && wacchoiTokenMatcher(stripWacchoiLabel(query)).matches();
+        return query != null && (edgeWacchoiInText(query) != null
+                || labeledWacchoiInText(query) != null
+                || query.trim().equals(bareWacchoiInText(query.trim())));
     }
 
-    private static String stripWacchoiLabel(String value) {
-        return value.trim().replaceFirst(
-                "(?i)^(?:ﾜｯﾁｮｲw?|ワッチョイ)\\s*[:：]?\\s*", "");
+    /** Preserve the selected poster's carrier label, case and token verbatim. */
+    public static String labeledWacchoiInText(String text) {
+        if (text == null) return null;
+        java.util.regex.Matcher match = java.util.regex.Pattern.compile(
+                "(?:[\\uFF66-\\uFF9F\\u30A0-\\u30FF]+|ﾜｯﾁｮｲ)[^\\s()\\[\\]<>]*[ \\t]+"
+                        + "[^\\s()\\[\\]<>]+").matcher(text);
+        return match.find() ? match.group() : null;
     }
 
-    private static java.util.regex.Matcher wacchoiTokenMatcher(String value) {
-        return java.util.regex.Pattern.compile(
-                "(?i)^([a-z0-9]{4})[-‐‑–—][a-z0-9]{4,}$").matcher(value);
+    /** Edge's level is part of Kyodemo's indexed name, not a replaceable SLIP label. */
+    public static String edgeWacchoiInText(String text) {
+        if (text == null) return null;
+        java.util.regex.Matcher match = java.util.regex.Pattern.compile(
+                "(?i)(?<![a-z0-9])(L[0-9]+)[ \\t]+([^\\s()\\[\\]<>]+)")
+                .matcher(text);
+        return match.find() ? match.group() : null;
+    }
+
+    /** A parsed token may omit its carrier label; use the same broad syntax in every menu. */
+    public static String bareWacchoiInText(String text) {
+        if (text == null) return null;
+        java.util.regex.Matcher match = java.util.regex.Pattern.compile(
+                "[^\\s()\\[\\]<>]+[-‐‑–—][^\\s()\\[\\]<>]+").matcher(text);
+        while (match.find()) {
+            String token = match.group();
+            // URLs, date headers and explicitly labeled IDs are not SLIPs.
+            if (token.contains("://") || token.startsWith("ID:") || token.startsWith("BE:")
+                    || token.matches("[0-9]{4}-[0-9]{2}-[0-9]{2}")) continue;
+            return token;
+        }
+        return null;
     }
 
     /** Restores a result link for the current board to its original ChMate URL. */

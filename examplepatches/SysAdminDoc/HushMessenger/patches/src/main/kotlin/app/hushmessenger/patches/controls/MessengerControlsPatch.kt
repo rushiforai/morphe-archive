@@ -172,7 +172,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "typing_mailbox" -> method.injectOutgoingTyping()
             "anonymous_stories" -> method.injectStorySeen()
             "growth_notes" -> method.injectNotesTips()
-            else -> method.injectFeatureSwitch(key)
+            else -> if (hook in pluginGates) method.injectPluginGate(key) else method.injectFeatureSwitch(key)
         }
     }
 }

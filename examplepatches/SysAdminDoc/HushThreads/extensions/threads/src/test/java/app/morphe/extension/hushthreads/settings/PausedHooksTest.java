@@ -38,6 +38,7 @@ import app.morphe.extension.hushthreads.feed.VideoAutoplay;
 import app.morphe.extension.hushthreads.misc.Analytics;
 import app.morphe.extension.hushthreads.misc.ExternalBrowser;
 import app.morphe.extension.hushthreads.misc.LinkCleaner;
+import app.morphe.extension.hushthreads.theme.PureBlack;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
@@ -142,6 +143,9 @@ public class PausedHooksTest {
             String upload = "https://graph.threads.net/logging_client_events";
             return !upload.equals(Analytics.endpoint(upload));
         }));
+        // Threads' dark gray background comes back black.
+        probes.put(PatchFamily.PURE_BLACK, Collections.singletonList(
+                () -> PureBlack.color(0xff101010L << 32) == 0xff00000000000000L));
         return probes;
     }
 

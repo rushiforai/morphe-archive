@@ -6,6 +6,7 @@
  */
 package app.morphe.patches.pinterest.privacy
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -35,6 +36,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.CallSiteReference
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodProtoReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.value.ArrayEncodedValue
@@ -48,6 +50,9 @@ private const val PATCH = "Disable analytics"
 internal const val ANALYTICS = "$EXTENSION_PACKAGE/privacy/Analytics;"
 internal const val FIREBASE_DEACTIVATED = "firebase_analytics_collection_deactivated"
 private const val NETWORK_RESPONSE = "Lcom/pinterest/api/adapter/coroutine/NetworkResponse;"
+private const val URL_CALL = "Ljava/net/URL;->openConnection()Ljava/net/URLConnection;"
+internal const val ENGAGE_BIND = "com.google.android.engage.BIND_APP_ENGAGE_SERVICE"
+private const val ENGAGE_UNAVAILABLE = "Lcom/google/android/engage/service/AppEngageException;"
 
 /** Whitelist from the API annotations in both declared original APKs. */
 internal val TELEMETRY_PATHS = setOf(
@@ -86,7 +91,8 @@ internal val disableFirebaseAnalyticsManifestPatch = resourcePatch {
 @Suppress("unused")
 val disableAnalyticsPatch = bytecodePatch(
     name = PATCH,
-    description = "Stops Pinterest's usage-event and performance uploads and AppsFlyer tracking. " +
+    description = "Stops Pinterest's usage-event and performance uploads, AppsFlyer tracking, Bugsnag " +
+        "crash reports and the recommendations Pinterest publishes to Google Engage. " +
         "A switch and Pause restore those runtime paths. Firebase Analytics is disabled in the " +
         "manifest and stays disabled until you patch again without this patch. Sign-in, pin requests " +
         "and Firebase push components are preserved.",
@@ -126,6 +132,7 @@ private fun BytecodePatchContext.analyticsPlan(): AnalyticsPlan {
         Triple("blockUpload", emptyList(), "Z"),
         Triple("blockTask", listOf("Ljava/lang/Object;"), "Z"),
         Triple("openConnection", listOf("Ljava/net/URL;"), "Ljava/net/URLConnection;"),
+        Triple("engageService", listOf("Ljava/lang/Object;"), "Ljava/lang/Object;"),
     )) {
         val hook = extension.methods.singleOrNull {
             it.name == name && it.parameterTypes.map { p -> p.toString() } == parameters && it.returnType == response }
@@ -162,20 +169,20 @@ private fun BytecodePatchContext.analyticsPlan(): AnalyticsPlan {
         services.none { it.telemetryPath() == path && uploads.counts.getOrDefault(it.identity(), 0) > 0 }
     }
     if (missing.isNotEmpty()) throw PatchException("$PATCH: no callable telemetry endpoints for ${missing.joinToString()}")
-    // AppsFlyer's transport keeps its package in both APKs. Only its own URL calls are changed.
-    val sdk = planPrivacyCalls(mapOf(
-        "Ljava/net/URL;->openConnection()Ljava/net/URLConnection;" to
-            "$ANALYTICS->openConnection(Ljava/net/URL;)Ljava/net/URLConnection;",
-    )) { it.startsWith("Lcom/appsflyer/") }
+    // AppsFlyer and Bugsnag keep their packages in both APKs. Only their own URL calls are changed.
+    val transport = mapOf(URL_CALL to "$ANALYTICS->openConnection(Ljava/net/URL;)Ljava/net/URLConnection;")
+    val sdk = planPrivacyCalls(transport) { it.startsWith("Lcom/appsflyer/") }
     if (sdk.counts.values.sum() == 0) throw PatchException("$PATCH: AppsFlyer's URL transport wasn't found")
-    val edits = uploads.edits + sdk.edits + analyticsTaskEdit()
+    val crashes = planPrivacyCalls(transport) { it.startsWith("Lcom/bugsnag/") }
+    if (crashes.counts.values.sum() == 0) throw PatchException("$PATCH: Bugsnag's URL transport wasn't found")
+    val edits = uploads.edits + sdk.edits + crashes.edits + analyticsTaskEdit() + engageGatewayEdit()
     if (edits.map { it.original }.distinct().size != edits.size) {
         throw PatchException("$PATCH: analytics hooks overlap in one method")
     }
     return AnalyticsPlan(wrappers.toList(), edits.toList())
 }
 
-/** Check the three runtime hooks before any wrapper or class-pool mutation is retained. */
+/** Check the runtime hooks before any wrapper or class-pool mutation is retained. */
 private fun Method.requireAnalyticsHookBody() {
     val body = implementation!!
     val frame = body.registerCount
@@ -490,4 +497,52 @@ private fun BytecodePatchContext.analyticsTaskEdit(): PrivacyMethodEdit {
         ExternalLabel("hush_original_task", method.getInstruction(0)),
     )
     return PrivacyMethodEdit(identity, ImmutableMethod.of(method))
+}
+
+private data class EngageServiceCheck(val test: Int, val register: Int, val type: String)
+
+/**
+ * Every Engage call goes through one client method that reads the bound service and refuses with
+ * Engage's own exception when it is missing. The hook sits between that read and its null test.
+ */
+private fun BytecodePatchContext.engageGatewayEdit(): PrivacyMethodEdit {
+    val clients = mutableListOf<ClassDef>()
+    classDefForEach { owner ->
+        if (owner.methods.any { it.name == "<clinit>" && ENGAGE_BIND in it.strings() }) clients += owner
+    }
+    val client = clients.singleOrNull() ?: throw PatchException("$PATCH: no unique Google Engage service client")
+    val gateways = client.methods.mapNotNull { method -> method.engageServiceCheck()?.let { method to it } }
+    val (gateway, check) = gateways.singleOrNull() ?: throw PatchException("$PATCH: no unique Google Engage service gateway")
+    val method = ImmutableMethod.of(gateway).toMutable()
+    method.addInstructions(
+        check.test,
+        """
+            invoke-static { v${check.register} }, $ANALYTICS->engageService(Ljava/lang/Object;)Ljava/lang/Object;
+            move-result-object v${check.register}
+            check-cast v${check.register}, ${check.type}
+        """,
+    )
+    return PrivacyMethodEdit(gateway.identity(), ImmutableMethod.of(method))
+}
+
+/** An instance read of the service field, its null test, then Engage's unavailable exception. */
+private fun Method.engageServiceCheck(): EngageServiceCheck? {
+    if (returnType != "Lcom/google/android/gms/tasks/Task;" || AccessFlags.STATIC.isSet(accessFlags)) return null
+    val body = implementation ?: return null
+    val receiver = body.registerCount - parameterTypes.sumOf { if (it.toString() in setOf("J", "D")) 2 else 1 } - 1
+    val instructions = body.instructions.toList()
+    val reads = instructions.indices.filter { at ->
+        val read = instructions[at]
+        val test = instructions.getOrNull(at + 1)
+        val refusal = instructions.getOrNull(at + 2)
+        read.opcode == Opcode.IGET_OBJECT && (read as TwoRegisterInstruction).registerB == receiver &&
+            test?.opcode == Opcode.IF_NEZ && (test as OneRegisterInstruction).registerA == read.registerA &&
+            refusal?.opcode == Opcode.NEW_INSTANCE && (refusal as ReferenceInstruction).reference.toString() == ENGAGE_UNAVAILABLE
+    }
+    val at = reads.singleOrNull() ?: return null
+    val register = (instructions[at] as TwoRegisterInstruction).registerA
+    val field = (instructions[at] as ReferenceInstruction).reference as FieldReference
+    // The hook call uses the four-bit register form.
+    if (register > 15 || !field.type.startsWith('L')) return null
+    return EngageServiceCheck(at + 1, register, field.type)
 }

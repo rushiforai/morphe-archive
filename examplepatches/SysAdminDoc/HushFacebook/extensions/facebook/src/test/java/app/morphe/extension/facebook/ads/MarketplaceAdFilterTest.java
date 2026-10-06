@@ -108,6 +108,38 @@ public class MarketplaceAdFilterTest {
         assertEquals(FamilyNames.SPONSORED_MARKETPLACE + ": invoked 1, 1 found, 0 missing", statusLine());
     }
 
+    /** A video ad that reaches Marketplace's feed isn't drawn, and the report counts it. */
+    @Test
+    public void aVideoAdIsntDrawn() {
+        assertTrue(MarketplaceAdFilter.hidesVideoAd());
+        assertEquals(MarketplaceAdFilter.ROUTE + ": 1 lists, 1 items, 1 removed. Last reason: "
+                + MarketplaceAdFilter.NOT_DRAWN + ". Removed: " + MarketplaceAdFilter.NOT_DRAWN + " 1. Kinds: "
+                + MarketplaceAdFilter.VIDEO_AD + " 1", counterLine());
+        assertEquals(FamilyNames.SPONSORED_MARKETPLACE + ": invoked 1, 1 found, 0 missing", statusLine());
+    }
+
+    /** Off or paused, Facebook draws its video ad, and the report still shows one came. */
+    @Test
+    public void offOrPausedAVideoAdIsDrawn() {
+        Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS.save(false);
+        assertFalse(MarketplaceAdFilter.hidesVideoAd());
+        assertEquals(MarketplaceAdFilter.ROUTE + ": 1 lists, 1 items, 0 removed. Kinds: "
+                + MarketplaceAdFilter.VIDEO_AD + " 1", counterLine());
+        Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS.resetToDefault();
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse(MarketplaceAdFilter.hidesVideoAd());
+        PauseForTests.resume();
+        assertTrue(MarketplaceAdFilter.hidesVideoAd());
+    }
+
+    /** Without the patch in the build, a video ad is drawn and nothing is counted. */
+    @Test
+    public void withoutThePatchAVideoAdIsDrawn() {
+        MarketplaceAdFilterForTests.inBuild(Boolean.FALSE);
+        assertFalse(MarketplaceAdFilter.hidesVideoAd());
+        assertNull(counterLine());
+    }
+
     /** Every one of Facebook's four ads-only queries is held back, and counted as that. */
     @Test
     public void theAdsOnlyQueriesDontGoOut() {

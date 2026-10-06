@@ -51,6 +51,13 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * as an ad, goes too. That's the test Facebook's own Reels code makes before it shows a promotion
  * over a reel. The item's story getter and the story's accessor are Redex names, so the patch fills
  * in {@link #isReelItem}, {@link #itemStory} and {@link #sponsoredData}.
+ *
+ * <p>The ads that reach a page come out of Facebook's Reels and Watch ad pool (VideoHomeSponsoredPool),
+ * which the Reels tab's story loader asks for an ad whenever a slot comes up. A report from a 581
+ * phone still seeing reel ads on 0.7.1 (#47) logged that loader's page with one ad item, dropped
+ * here, so by then the pool had already marked the ad as used and logged its position.
+ * {@link #holdPoolAd} answers before the pool hands anything out, the same no-ad answer the pool gives
+ * itself when no slot is free.
  */
 public final class ReelsAdFilter {
 
@@ -62,6 +69,12 @@ public final class ReelsAdFilter {
     /** The diagnostic counter routes, one per level the patch filters. */
     static final String SECTIONS_ROUTE = "Reels sections";
     static final String PAGES_ROUTE = "Reels pages";
+
+    /** What the diagnostic report counts each time the ad pool is held to no ad. */
+    static final String POOL_HELD = "Reels ad pool held to no ad";
+
+    /** Whether the first hold of this process has been logged. */
+    private static volatile boolean poolHoldLogged;
 
     /**
      * What an item counts as. The first two come off the page: an item of the ad class, and an item
@@ -235,6 +248,25 @@ public final class ReelsAdFilter {
             line.append(kind.getKey()).append(' ').append(kind.getValue());
         }
         return line.append(')').toString();
+    }
+
+    /**
+     * Injection point, asked first thing in each vend of Facebook's Reels and Watch ad pool: true makes
+     * the vend answer null, as it does when no slot is free, so the loader takes the next organic reel
+     * and the ad stays in the pool unused. Off, or asked before the settings are ready, the pool works
+     * as Facebook wrote it. Never throws.
+     */
+    public static boolean holdPoolAd() {
+        HookStatus.invoked(FamilyNames.SPONSORED_REELS);
+        if (!switchedOn()) return false;
+
+        HookStatus.counted(FamilyNames.SPONSORED_REELS, POOL_HELD);
+        if (!poolHoldLogged) {
+            poolHoldLogged = true;
+            Logger.diagnosticDebug(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
+                    () -> "the Reels ad pool was asked for an ad and held to none");
+        }
+        return true;
     }
 
     /**

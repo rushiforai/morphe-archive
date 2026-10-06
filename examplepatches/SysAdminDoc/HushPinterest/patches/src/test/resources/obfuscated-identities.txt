@@ -4,7 +4,3 @@
 # that is not listed here, and on a line here that no longer matches the code, so this list can
 # only shrink. The patches resolve every such class while patching, which is why this list is
 # empty.
-# System share has to invoke Pinterest's inherited close-sheet method after Android takes over
-# the live closeup share button. The verifier checks that this remains a no-argument void call
-# on the matched fragment instance.
-patches/src/main/kotlin/app/morphe/patches/pinterest/actions/SystemSharePatch.kt|Lxu1/f;

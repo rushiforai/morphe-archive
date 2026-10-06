@@ -17,11 +17,13 @@ import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
+import android.view.WindowManager;
 
 import app.morphe.extension.shared.GlobalLayoutHook;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.HushfeedPause;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
 import app.morphe.extension.tiktok.navigation.NavigationTabsFilter;
@@ -98,14 +100,34 @@ public final class VideoOverlayHider {
     private static final String[] ACTION_BAR_IDS = {"47.0.3:liy", "47.1.3:llj", "47.1.4:llj"};
     private static final String[] SURVEY_IDS = {"47.0.3:f7u", "47.1.3:f98", "47.1.4:f98"};
     private static final String[] TAB_STRIP_IDS = {"47.0.3:uvy", "47.1.3:uzf", "47.1.4:uzf"};
+    /** The story-count button is a sibling of the main feed, outside its tab strip and cells. */
+    private static final String[] FOLLOWING_STORY_IDS = {"47.0.3:wq0", "47.1.3:wtr", "47.1.4:wtr"};
+    /**
+     * The bar TikTok shows only while Clear display is on: its round close button and the
+     * pause and speed pill beside it, with the progress bar above them (#97). The main feed keeps
+     * them in its seek bar mask and an opened video in its pager column, outside the cells on both.
+     */
+    private static final String[] CLEAR_EXIT_IDS = {"47.0.3:e9j", "47.1.3:e_5", "47.1.4:e_5"};
+    private static final String[] CLEAR_PLAYBACK_IDS = {"47.0.3:l6h", "47.1.3:l83", "47.1.4:l83"};
+    private static final String[] CLEAR_SEEK_BAR_IDS = {"video_seek_bar"};
+    /**
+     * A photo post's Clear display has no such bar, only this close button at the bottom right,
+     * inside the cell. TikTok takes it and its parent away as Clear display ends.
+     */
+    private static final String[] CLEAR_PHOTO_EXIT_IDS = {"47.0.3:uxv", "47.1.3:v1c", "47.1.4:v1c"};
+    /**
+     * The blank TikTok keeps above the video on tall screens, as tall as the status bar, so the
+     * bar never covers the picture. With the bar hidden it's only a black strip (#97).
+     */
+    private static final String[] STATUS_BAR_SPACER_IDS = {"47.0.3:duc", "47.1.3:dux", "47.1.4:dux"};
     private static final String[] DETAIL_COMMENT_BAR_IDS = {"47.0.3:qo4", "47.1.3:qqw", "47.1.4:qqw"};
     private static final String[] DETAIL_COMMENT_STRIP_IDS = {"47.0.3:cn8", "47.1.3:cnk", "47.1.4:cnk"};
     /**
      * The feed cell root. Furniture is only hidden underneath one: Hide feed surveys used to
      * take every survey card id in the window, and on the profile that is the Favorites tab's whole
      * page, which showed as an empty tab (a Galaxy S25, 2026-09-16, found by restoring the
-     * settings one group at a time). The tab strip sits above the cells and is the one
-     * target that stays window-wide. A build that renames the cell root falls back to the
+     * settings one group at a time). The tab strip and Following story button sit outside
+     * the cells and stay window-wide. A build that renames the cell root falls back to the
      * whole window, and the hook status names the miss.
      */
     private static final String CELL_ROOT_ID = "view_rootview";
@@ -190,10 +212,17 @@ public final class VideoOverlayHider {
     private static final int TAB_STRIP_TARGET = 4;
     private static final int DETAIL_COMMENT_BAR_TARGET = 5;
     private static final int DETAIL_COMMENT_STRIP_TARGET = 6;
-    private static final int RAIL_TARGET_START = 7;
+    private static final int FOLLOWING_STORY_TARGET = 7;
+    private static final int CLEAR_EXIT_TARGET = 8;
+    private static final int CLEAR_PLAYBACK_TARGET = 9;
+    private static final int CLEAR_SEEK_BAR_TARGET = 10;
+    private static final int RAIL_TARGET_START = 11;
     private static final int COUNT_ROW_TARGET_START = RAIL_TARGET_START + RAIL_BUTTON_IDS.length;
     private static final int COUNT_TEXT_TARGET_START = COUNT_ROW_TARGET_START
             + RAIL_COUNT_ROW_IDS.length;
+    private static final int STATUS_BAR_SPACER_TARGET = COUNT_TEXT_TARGET_START
+            + RAIL_COUNT_TEXT_IDS.length;
+    private static final int CLEAR_PHOTO_EXIT_TARGET = STATUS_BAR_SPACER_TARGET + 1;
     private static final String[][] TRAVERSAL_TARGET_IDS = traversalTargetIds();
     private static final int LOGICAL_TARGET_COUNT = TRAVERSAL_TARGET_IDS.length;
     private static final int TRAVERSAL_TARGET_COUNT = candidateCount(TRAVERSAL_TARGET_IDS);
@@ -230,6 +259,8 @@ public final class VideoOverlayHider {
      * back the wrong one's bar (#50).
      */
     private static final Map<View, Long> STATUS_BAR_HIDDEN_AT = new WeakHashMap<>();
+    /** Decor views of the windows this class let draw behind the cutout; see drawIntoCutout. */
+    private static final Map<View, Boolean> CUTOUT_OPENED = new WeakHashMap<>();
     private static final GlobalLayoutHook LAYOUT_HOOK = new GlobalLayoutHook();
 
     private VideoOverlayHider() {
@@ -255,7 +286,7 @@ public final class VideoOverlayHider {
                 Logger.printInfo(() -> "Video overlay hider found no content view to watch");
                 return;
             }
-            boolean installed = LAYOUT_HOOK.install(root, VideoOverlayHider::apply);
+            boolean installed = LAYOUT_HOOK.install(root, VideoOverlayHider::refresh);
             activityReference = new WeakReference<>(activity);
             LiveStatusBar.follow(activity);
             follow(activity.getApplication());
@@ -289,7 +320,8 @@ public final class VideoOverlayHider {
         });
     }
 
-    private static void apply() {
+    /** Refreshes the current window on the main thread, including state changes without a layout. */
+    public static void refresh() {
         Activity activity = activityReference.get();
         if (activity == null) {
             LAYOUT_HOOK.detach();
@@ -338,9 +370,14 @@ public final class VideoOverlayHider {
             // the first swipe. Following the live state keeps it away until the tap that ends
             // the mode. The persisted setting cannot be used here: the automatic path never
             // writes it, so it would answer false for exactly the case this is meant to fix.
-            boolean tabStrip = !detailPager && RememberClearDisplayPatch.isClearDisplayNow();
+            boolean tabStrip = !detailPager && !HushfeedPause.isPaused()
+                    && RememberClearDisplayPatch.isClearDisplayNow();
             // The comment bar is the detail pager's own; the main feed has the tabs there.
             boolean detailCommentBar = detailPager && Settings.HIDE_DETAIL_COMMENT_BAR.get();
+            // Asked for here and confirmed after the walk by TikTok's own bar being on screen,
+            // which it shows only in Clear display; see gateClearControls.
+            boolean clearControls = !HushfeedPause.isPaused() && Settings.HIDE_CLEAR_DISPLAY_CONTROLS.get();
+            boolean statusBar = Settings.HIDE_STATUS_BAR.get();
             boolean counts = Settings.HIDE_RAIL_COUNTS.get();
             boolean[] rail = TRAVERSAL.rail;
             updateRailButtonsWanted(rail);
@@ -358,8 +395,8 @@ public final class VideoOverlayHider {
             } catch (NumberFormatException ignored) {
             }
             touchScale = Math.min(MAX_TOUCH_SCALE, Math.max(1f, touchScale));
-            if (caption || music || actionBar || surveys || tabStrip || detailCommentBar || anyRail
-                    || !HIDDEN_HERE.isEmpty() || touchScale != 1f || scaledLastPass) {
+            if (caption || music || actionBar || surveys || tabStrip || detailCommentBar || clearControls
+                    || statusBar || anyRail || !HIDDEN_HERE.isEmpty() || touchScale != 1f || scaledLastPass) {
                 ViewGroup root = activity.findViewById(android.R.id.content);
                 int[] ids = TRAVERSAL.ids;
                 boolean[] hidden = TRAVERSAL.hidden;
@@ -369,8 +406,14 @@ public final class VideoOverlayHider {
                 wanted[ACTION_BAR_TARGET] = actionBar;
                 wanted[SURVEY_TARGET] = surveys;
                 wanted[TAB_STRIP_TARGET] = tabStrip;
+                wanted[FOLLOWING_STORY_TARGET] = tabStrip && !FeedVisibility.isStoryVisible(activity);
                 wanted[DETAIL_COMMENT_BAR_TARGET] = detailCommentBar;
                 wanted[DETAIL_COMMENT_STRIP_TARGET] = detailCommentBar;
+                wanted[CLEAR_EXIT_TARGET] = clearControls;
+                wanted[CLEAR_PLAYBACK_TARGET] = clearControls;
+                wanted[CLEAR_SEEK_BAR_TARGET] = clearControls;
+                wanted[CLEAR_PHOTO_EXIT_TARGET] = clearControls;
+                wanted[STATUS_BAR_SPACER_TARGET] = statusBar;
                 for (int i = 0; i < RAIL_BUTTON_IDS.length; i++) {
                     wanted[RAIL_TARGET_START + i] = rail[i];
                 }
@@ -407,6 +450,7 @@ public final class VideoOverlayHider {
                     }
                     selectCurrentTargets(found, TRAVERSAL.selected);
                     pairDetailCommentBar(hidden, TRAVERSAL.selected);
+                    gateClearControls(hidden, found, TRAVERSAL.selected);
                     applySelectedTargets(ids, hidden, found, TRAVERSAL.selected,
                             touchScale != 1f);
                     // The size goes on the icon inside each button, not the button. The slots
@@ -447,7 +491,7 @@ public final class VideoOverlayHider {
                 }
             }
 
-            setStatusBarHidden(activity, Settings.HIDE_STATUS_BAR.get());
+            setStatusBarHidden(activity, statusBar);
         } catch (Throwable ex) {
             Logger.printException(() -> "Video overlay hider failed", ex);
         }
@@ -569,13 +613,16 @@ public final class VideoOverlayHider {
     }
 
     private static String[][] traversalTargetIds() {
-        String[][] targets = new String[RAIL_TARGET_START + RAIL_BUTTON_IDS.length
-                + RAIL_COUNT_ROW_IDS.length + RAIL_COUNT_TEXT_IDS.length][];
+        String[][] targets = new String[CLEAR_PHOTO_EXIT_TARGET + 1][];
         targets[CAPTION_TARGET] = CAPTION_IDS;
         targets[MUSIC_TARGET] = MUSIC_IDS;
         targets[ACTION_BAR_TARGET] = ACTION_BAR_IDS;
         targets[SURVEY_TARGET] = SURVEY_IDS;
         targets[TAB_STRIP_TARGET] = TAB_STRIP_IDS;
+        targets[FOLLOWING_STORY_TARGET] = FOLLOWING_STORY_IDS;
+        targets[CLEAR_EXIT_TARGET] = CLEAR_EXIT_IDS;
+        targets[CLEAR_PLAYBACK_TARGET] = CLEAR_PLAYBACK_IDS;
+        targets[CLEAR_SEEK_BAR_TARGET] = CLEAR_SEEK_BAR_IDS;
         targets[DETAIL_COMMENT_BAR_TARGET] = DETAIL_COMMENT_BAR_IDS;
         targets[DETAIL_COMMENT_STRIP_TARGET] = DETAIL_COMMENT_STRIP_IDS;
         for (int i = 0; i < RAIL_BUTTON_IDS.length; i++) {
@@ -585,10 +632,15 @@ public final class VideoOverlayHider {
             targets[COUNT_ROW_TARGET_START + i] = RAIL_COUNT_ROW_IDS[i];
             targets[COUNT_TEXT_TARGET_START + i] = RAIL_COUNT_TEXT_IDS[i];
         }
+        targets[STATUS_BAR_SPACER_TARGET] = STATUS_BAR_SPACER_IDS;
+        targets[CLEAR_PHOTO_EXIT_TARGET] = CLEAR_PHOTO_EXIT_IDS;
         return targets;
     }
 
-    /** The tab strip above the cells and the detail pager's comment bar below them. */
+    /**
+     * Main-feed tabs and story count, the Clear display controls, and the detail pager's comment
+     * bar are outside the cells.
+     */
     private static boolean outsideCells(int target) {
         return target >= TAB_STRIP_TARGET && target < RAIL_TARGET_START;
     }
@@ -632,6 +684,34 @@ public final class VideoOverlayHider {
         boolean strip = selected[DETAIL_COMMENT_STRIP_TARGET] >= 0;
         if (bar && !strip) hidden[firstCandidate(DETAIL_COMMENT_BAR_TARGET)] = false;
         if (strip && !bar) hidden[firstCandidate(DETAIL_COMMENT_STRIP_TARGET)] = false;
+    }
+
+    /**
+     * The Clear display controls go only while TikTok's own clear-mode bar is on screen, which is
+     * the one signal that holds for the main feed and an opened video alike. The progress bar
+     * shares its id with the one TikTok shows outside Clear display, so without this the switch
+     * would take that away too; and when TikTok takes the bar down, all three come back.
+     */
+    private static void gateClearControls(boolean[] hidden, List<List<View>> found, int[] selected) {
+        // A photo's close button carries its own signal: TikTok shows its parent only in Clear
+        // display. Put back once that parent is gone, the button stays out of sight and out of reach.
+        int photoExit = selected[CLEAR_PHOTO_EXIT_TARGET];
+        if (photoExit < 0 || !anyParentShown(found.get(photoExit))) {
+            hidden[firstCandidate(CLEAR_PHOTO_EXIT_TARGET)] = false;
+        }
+        int exit = selected[CLEAR_EXIT_TARGET];
+        if (exit >= 0 && anyParentShown(found.get(exit))) return;
+        hidden[firstCandidate(CLEAR_EXIT_TARGET)] = false;
+        hidden[firstCandidate(CLEAR_PLAYBACK_TARGET)] = false;
+        hidden[firstCandidate(CLEAR_SEEK_BAR_TARGET)] = false;
+    }
+
+    private static boolean anyParentShown(List<View> views) {
+        for (View view : views) {
+            android.view.ViewParent parent = view.getParent();
+            if (parent instanceof View && ((View) parent).isShown()) return true;
+        }
+        return false;
     }
 
     /** Chooses the newest candidate that actually occurs in the current hierarchy. */
@@ -790,6 +870,8 @@ public final class VideoOverlayHider {
         }
         View decor = window.getDecorView();
         if (hidden) {
+            // Every pass, so a page that puts the default mode back is opened up again.
+            if (STATUS_BAR_HIDDEN_AT.containsKey(decor)) drawIntoCutout(window, decor);
             if (isStatusBarHidden(decor)) {
                 return;
             }
@@ -809,8 +891,10 @@ public final class VideoOverlayHider {
                 decor.setSystemUiVisibility(decor.getSystemUiVisibility() | LEGACY_STATUS_BAR_FLAGS);
             }
             STATUS_BAR_HIDDEN_AT.put(decor, now);
+            drawIntoCutout(window, decor);
             return;
         }
+        restoreCutoutMode(window, decor);
         if (STATUS_BAR_HIDDEN_AT.remove(decor) != null) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 WindowInsetsController controller = decor.getWindowInsetsController();
@@ -821,6 +905,36 @@ public final class VideoOverlayHider {
                 decor.setSystemUiVisibility(decor.getSystemUiVisibility() & ~LEGACY_STATUS_BAR_FLAGS);
             }
         }
+    }
+
+    /**
+     * Lets a window whose status bar this class hid draw behind the display cutout. A window in
+     * the default cutout mode is kept below a punch hole or notch whenever its status bar is
+     * hidden, which left a black strip across the top of opened videos (#97). Android 15 and up
+     * treat the default as drawing there for TikTok, whose theme doesn't opt out of edge to
+     * edge, so those are left alone. A mode TikTok chose itself is left alone too.
+     */
+    static void drawIntoCutout(Window window, View decor) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.P || Build.VERSION.SDK_INT >= 35) return;
+        WindowManager.LayoutParams attributes = window.getAttributes();
+        if (attributes.layoutInDisplayCutoutMode
+                != WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT) return;
+        CUTOUT_OPENED.put(decor, Boolean.TRUE);
+        attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES;
+        window.setAttributes(attributes);
+    }
+
+    /**
+     * Gives a window this class let draw behind the cutout its default mode back, unless TikTok
+     * has set a mode of its own on it since.
+     */
+    static void restoreCutoutMode(Window window, View decor) {
+        if (CUTOUT_OPENED.remove(decor) == null || Build.VERSION.SDK_INT < Build.VERSION_CODES.P) return;
+        WindowManager.LayoutParams attributes = window.getAttributes();
+        if (attributes.layoutInDisplayCutoutMode
+                != WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES) return;
+        attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_DEFAULT;
+        window.setAttributes(attributes);
     }
 
     /**

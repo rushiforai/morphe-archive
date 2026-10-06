@@ -10,6 +10,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -119,8 +120,7 @@ internal fun prepareStubs(stubs: List<Method>, bodies: List<Pair<Int, String>>, 
  */
 internal fun BytecodePatchContext.findOverrideWriter(model: String): OverrideWriter {
     val puts = mutableListOf<Method>()
-    classDefForEach { clazz ->
-        if (clazz.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    classesHolding(DEBUG_STORE, PUT_FAILURE).forEach { clazz ->
         clazz.methods.filterTo(puts) { it.texts().containsAll(listOf(DEBUG_STORE, PUT_FAILURE)) }
     }
     val put = puts.only("typed override put")
@@ -200,8 +200,7 @@ internal fun BytecodePatchContext.findOverrideWriter(model: String): OverrideWri
         writerRefuse("native manager gate doesn't check the native manager")
     }
     var gateUsers = 0
-    classDefForEach { clazz ->
-        if (clazz.type.startsWith(EXTENSION_PACKAGE)) return@classDefForEach
+    classesHolding(RUNTIME_NOT_READY).forEach { clazz ->
         gateUsers += clazz.methods.count { method ->
             RUNTIME_NOT_READY in method.texts() && method.implementation!!.instructions.any { it.reference()?.toString() == gate.toString() }
         }

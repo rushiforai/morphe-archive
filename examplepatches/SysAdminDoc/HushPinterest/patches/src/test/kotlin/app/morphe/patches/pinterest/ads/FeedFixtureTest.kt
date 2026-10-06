@@ -14,10 +14,12 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patches.pinterest.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import java.io.File
@@ -52,7 +54,14 @@ class FeedFixtureTest {
             }
             assertEquals("${build.name} warnings", emptyList<String>(), warnings)
             assertEquals(build.name, 3, feedListHoldersHooked)
-            for (flag in listOf("hideAds", "feedAds", "adViews", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping")) assertFlag(context, flag)
+            for (flag in listOf("hideAds", "feedAds", "adViews", "googleAds", "hideAiPins", "feedAiPins", "hideShopping", "feedShopping")) assertFlag(context, flag)
+            val start = classes.flatMap { it.methods }.single { method -> !AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes.isEmpty() && method.returnType == "V" &&
+                method.implementation?.instructions?.any { ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == GOOGLE_MOBILE_ADS } == true }
+            val guarded = context.mutableClassDefBy(start.definingClass).methods.single { it.name == start.name && it.parameterTypes.isEmpty() }
+                .implementation!!.instructions.toList()
+            assertEquals("${build.name}: Google ad SDK start", "$EXTENSION_PACKAGE/ads/Ads;->skipGoogleAds()Z",
+                (guarded[0] as ReferenceInstruction).reference.toString())
+            assertEquals(build.name, listOf(Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID), guarded.subList(1, 4).map { it.opcode })
 
             val filter = "$EXTENSION_PACKAGE/ads/FeedFilter;->filter(Ljava/util/List;)Ljava/util/List;"
             for (holder in holders.values.flatten()) {
@@ -92,7 +101,9 @@ class FeedFixtureTest {
                 }
                 val matched = literals.filter { it in written }
                 matched.forEach { holders.getOrPut(it) { mutableListOf() } += classDef.type }
-                if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS) wanted[classDef.type] = ImmutableClassDef.of(classDef)
+                val googleAds = classDef.methods.any { method -> method.implementation?.instructions?.any {
+                    ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == GOOGLE_MOBILE_ADS } == true }
+                if (matched.isNotEmpty() || classDef.type in AD_ONLY_VIEWS || googleAds) wanted[classDef.type] = ImmutableClassDef.of(classDef)
             }
         }
         var above = wanted.values.mapNotNull { it.superclass }.toSet() - wanted.keys

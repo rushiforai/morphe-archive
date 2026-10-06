@@ -1,0 +1,73 @@
+---
+import { getRepositoryStats } from '../data/repo';
+
+const stats = getRepositoryStats();
+---
+
+<footer class="w-full border-t border-white/[0.08] bg-[#050505] text-zinc-400 text-xs">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 py-12 space-y-8">
+    <!-- Top Grid of Links -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-xs">
+      <div>
+        <h4 class="font-mono text-[11px] text-zinc-500 uppercase tracking-wider mb-3">Project</h4>
+        <ul class="space-y-2">
+          <li><a href="/patches" class="hover:text-white transition-colors">Patch Catalog</a></li>
+          <li><a href="/status" class="hover:text-white transition-colors">Version Freshness</a></li>
+          <li><a href="https://github.com/ihatenodejs/aidans-patches/releases" target="_blank" rel="noreferrer" class="hover:text-white transition-colors">Releases &amp; Changelog</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-mono text-[11px] text-zinc-500 uppercase tracking-wider mb-3">Data</h4>
+        <ul class="space-y-2">
+          <li><a href="https://raw.githubusercontent.com/ihatenodejs/aidans-patches/main/patches-list.json" target="_blank" rel="noreferrer" class="hover:text-white transition-colors">Patches</a></li>
+          <li><a href="https://raw.githubusercontent.com/ihatenodejs/aidans-patches/main/patches-bundle.json" target="_blank" rel="noreferrer" class="hover:text-white transition-colors">Release Info</a></li>
+          <li><a href="/api/status" target="_blank" rel="noreferrer" class="hover:text-white transition-colors">Version Data</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-mono text-[11px] text-zinc-500 uppercase tracking-wider mb-3">Source</h4>
+        <ul class="space-y-2">
+          <li><a href="https://github.com/ihatenodejs/aidans-patches" target="_blank" rel="noreferrer" class="hover:text-white transition-colors">GitHub Repository</a></li>
+          <li><a href="https://github.com/ihatenodejs/aidans-patches/tree/main/docs" target="_blank" rel="noreferrer" class="hover:text-white transition-colors">Documentation</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="font-mono text-[11px] text-zinc-500 uppercase tracking-wider mb-3">Status</h4>
+        <div class="space-y-1 font-mono text-[11px] text-zinc-500">
+          <div>Bundle: <span class="text-zinc-300">v{stats.bundleVersion}</span></div>
+          <div>Patches: <span class="text-zinc-300">{stats.totalPatchesCount} active</span></div>
+          <div>Apps: <span class="text-zinc-300">{stats.supportedAppsCount} apps</span></div>
+          <div>License: <a href="https://github.com/ihatenodejs/aidans-patches/blob/main/LICENSE" target="_blank" rel="noreferrer" class="text-zinc-300 hover:text-white underline">WTFPL</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Legal Disclaimer Notice (Concise with full disclosure details) -->
+    <div class="p-4 border border-white/[0.08] bg-zinc-950/60 rounded-sm space-y-3">
+      <div class="flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500/80"></span>
+        <h5 class="font-mono text-[11px] text-zinc-300 uppercase tracking-wider">Disclaimer &amp; Personal Use Notice</h5>
+      </div>
+      <p class="text-[11px] leading-relaxed text-zinc-400">
+        These patches are provided strictly for educational, research, and personal-use purposes. They are not affiliated with, endorsed by, or supported by Morphe or any third-party application, service, financial institution, brokerage, exchange, or vendor affected by them. Use of these patches is entirely at your own risk.
+      </p>
+      <details class="text-[11px] text-zinc-500 cursor-pointer group">
+        <summary class="font-mono text-zinc-400 hover:text-zinc-200 transition-colors select-none">
+          View full legal disclosure and warranty exclusion
+        </summary>
+        <div class="mt-2 pt-2 border-t border-white/[0.06] space-y-2 text-[10px] leading-relaxed text-zinc-400 font-mono">
+          <p>
+            Do not rely on these patches for financial, investment, trading, banking, accounting, or other financial decisions. The author makes no representation regarding the accuracy, completeness, reliability, availability, or correctness of any information displayed or affected by these patches.
+          </p>
+          <p>
+            TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, THE SOFTWARE AND PATCHES ARE PROVIDED “AS IS” AND “AS AVAILABLE,” WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. IN NO EVENT SHALL THE AUTHOR OR COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, LOSS, DAMAGE, OR OTHER LIABILITY, INCLUDING WITHOUT LIMITATION FINANCIAL LOSSES, TRADING LOSSES, LOSS OF FUNDS, LOSS OF DATA, ACCOUNT RESTRICTIONS OR TERMINATION, FAILED OR UNINTENDED TRANSACTIONS, OR OTHER DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES.
+          </p>
+        </div>
+      </details>
+    </div>
+
+  </div>
+</footer>

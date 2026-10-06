@@ -218,6 +218,8 @@ internal fun Method.liveAcrossInjection(index: Int, targets: Collection<Int> = e
  * write without changing what the method goes on to read: no parameter, and nothing
  * [liveAcrossInjection] finds live. Throws naming [what] when there aren't that many.
  *
+ * @param reads registers the inserted code itself reads. The method may be done with them, but a
+ *        scratch write there would replace the value before the hook reads it.
  * @param highest the highest register the code's operands can name, v15 for an `invoke` or an
  *        `iget`, v255 for a `move-result` or an `if-eqz`
  */
@@ -227,8 +229,9 @@ internal fun Method.freeLocalsAt(
     count: Int,
     targets: Collection<Int> = emptyList(),
     highest: Int = 15,
+    reads: Collection<Int> = emptyList(),
 ): List<Int> {
-    val live = liveAcrossInjection(index, targets)
+    val live = liveAcrossInjection(index, targets) + reads
     val free = (0 until minOf(localRegisterCount(), highest + 1)).filter { it !in live }
     if (free.size < count) {
         throw PatchException(

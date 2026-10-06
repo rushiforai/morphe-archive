@@ -266,6 +266,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Disable analytics"), L10n.t("Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch."), SettingsIcons.BLOCK);
             patchToggle(privacy, context, build, PatchFamily.STRIP_LINK_TRACKING, Settings.STRIP_LINK_TRACKING,
                     L10n.t("Strip link tracking"), L10n.t("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them."), SettingsIcons.LINKS);
+            patchToggle(privacy, context, build, PatchFamily.HIDE_ADVERTISING_ID, Settings.HIDE_ADVERTISING_ID,
+                    L10n.t("Hide advertising ID"), L10n.t("Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings."), SettingsIcons.BLOCK);
         }
 
         if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) {
@@ -292,6 +294,8 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Hide Create button"), L10n.t("Hides Create in the bottom bar on its next layout."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_NOTIFICATIONS,
                     L10n.t("Hide Notifications button"), L10n.t("Hides Notifications in the bottom bar on its next layout."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_SEARCH,
+                    L10n.t("Hide Search button"), L10n.t("Hides Search in the bottom bar on its next layout."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.HIDE_HEADER_BUTTONS, Settings.HIDE_HEADER_BUTTONS,
                     L10n.t("Hide header buttons"),
                     L10n.t("Hides trailing header icons on their next layout. Back, text actions and account controls stay available."), SettingsIcons.BLOCK);
@@ -310,6 +314,12 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(ui, context, build, PatchFamily.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER,
                     L10n.t("Quiet email reminders"),
                     L10n.t("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply."), SettingsIcons.BELL);
+            patchToggle(ui, context, build, PatchFamily.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS,
+                    L10n.t("Hide save toasts"),
+                    L10n.t("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
+            patchToggle(ui, context, build, PatchFamily.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES,
+                    L10n.t("Original-quality images"),
+                    L10n.t("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload."), SettingsIcons.FEED);
         }
 
         // In every build: a patched Pinterest isn't verified for its own links, so Android opens them

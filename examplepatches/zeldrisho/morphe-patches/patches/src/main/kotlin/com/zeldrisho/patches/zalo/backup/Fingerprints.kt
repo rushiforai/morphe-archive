@@ -14,6 +14,15 @@ internal object BackupScheduler : Fingerprint(
     parameters = listOf("I"),
 )
 
+/** Checks whether a target backup has eligible Google Drive account metadata. */
+internal object MediaBackupEligibility : Fingerprint(
+    definingClass = "Lmm/k;",
+    name = "m",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.FINAL),
+    returnType = "Z",
+    parameters = listOf("Lcom/zing/zalo/data/backuprestore/model/TargetBackupInfo;"),
+)
+
 /** Parses the server backup configuration for Zalo 26.08.01. */
 internal object BackupConfiguration : Fingerprint(
     definingClass = "Lnl/c;",

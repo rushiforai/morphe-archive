@@ -97,13 +97,21 @@ def package_section(label, targets, tbl):
 {versions_section}{tbl}"""
 
 
-def build_content():
+def build_content(expanded=True):
     """Build the full generated patches section."""
     lines = [
         f"Current bundle: [v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver}) "
         f"on `{branch}`.",
         "",
     ]
+
+    if not expanded:
+        for entry in by_pkg.values():
+            supported = versions_list(entry["targets"])
+            if supported:
+                lines.append(f"Supported {entry['name']} versions: {supported}")
+        lines.extend(["", f"{total} selectable patches."])
+        return "\n".join(lines)
 
     # One section per app, in the order they appear in the JSON
     for pkg, entry in by_pkg.items():
@@ -148,7 +156,7 @@ if not marker_match or END_MARKER not in readme:
 
 actual_start = marker_match.group(0)
 
-generated = build_content()
+generated = build_content(expanded="EXPANDED" in actual_start)
 
 # Replace template links if present
 readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")

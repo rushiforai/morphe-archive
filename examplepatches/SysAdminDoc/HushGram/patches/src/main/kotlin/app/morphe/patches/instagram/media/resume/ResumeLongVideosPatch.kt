@@ -12,6 +12,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.media.taptoplay.PLAY_INTERNAL
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
@@ -146,12 +147,9 @@ internal fun BytecodePatchContext.resumeLongVideos() {
 internal fun BytecodePatchContext.findResumePlayer(): ResumePlayer {
     val internals = mutableListOf<Method>()
     val dumps = mutableListOf<Method>()
-    classDefForEach { classDef ->
-        classDef.methods.forEach { method ->
-            val strings = method.strings()
-            if (PLAY_INTERNAL in strings) internals += method
-            if (strings.containsAll(SOURCE_DUMP)) dumps += method
-        }
+    classesHolding(PLAY_INTERNAL).forEach { classDef -> classDef.methods.filterTo(internals) { PLAY_INTERNAL in it.strings() } }
+    classesHolding(*SOURCE_DUMP.toTypedArray()).forEach { classDef ->
+        classDef.methods.filterTo(dumps) { it.strings().containsAll(SOURCE_DUMP) }
     }
     val playInternal = internals.singleOrNull()
         ?: throw PatchException("$PATCH: expected one method holding \"$PLAY_INTERNAL\", found ${internals.size}")

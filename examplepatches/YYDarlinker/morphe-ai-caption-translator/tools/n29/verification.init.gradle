@@ -1,0 +1,30 @@
+gradle.projectsEvaluated {
+ def p=gradle.rootProject.project(':patches')
+ p.tasks.register('probeN29Official', JavaExec) {
+  dependsOn p.tasks.named('testClasses')
+  classpath=p.sourceSets.test.runtimeClasspath-p.sourceSets.main.output
+  mainClass='validation.N29OfficialProbeKt'
+  maxHeapSize='3G'
+  args p.findProperty('n29.input')
+ }
+}
+gradle.projectsEvaluated {
+ def p=gradle.rootProject.project(':patches')
+ p.tasks.register('testN29OfficialCc', JavaExec) {
+  dependsOn p.tasks.named('testClasses')
+  classpath=p.sourceSets.test.runtimeClasspath-p.sourceSets.main.output
+  mainClass='validation.N29OfficialCcRegressionKt'
+  maxHeapSize='3G'
+  args p.findProperty('n29.input'),p.findProperty('n29.report')
+ }
+}
+gradle.projectsEvaluated {
+ def p=gradle.rootProject.project(':patches')
+ p.tasks.register('createN29MissingHook', JavaExec) {
+  dependsOn p.tasks.named('testClasses')
+  classpath=p.sourceSets.test.runtimeClasspath-p.sourceSets.main.output
+  mainClass='validation.N29MissingHookFixtureKt'
+  maxHeapSize='3G'
+  args p.findProperty('n29.input'),p.findProperty('n29.output')
+ }
+}

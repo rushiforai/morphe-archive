@@ -35,11 +35,15 @@ public final class DeepSeekCaptionHookV2 {
     }
 
     public static void onPlayerType(Enum<?> playerType) {
-        DeepSeekCaptionHook.onPlayerType(playerType);
+        if(DeepSeekCaptionHook.deferPlayerNotification(playerType,true))return;
+        boolean outer=DeepSeekCaptionHook.deliveringOuterPlayerNotification;
+        DeepSeekCaptionHook.deliveringOuterPlayerNotification=true;
+        try { DeepSeekCaptionHook.onPlayerType(playerType); }
+        finally { DeepSeekCaptionHook.deliveringOuterPlayerNotification=outer; }
         // YouTube can rebuild subtitle windows during fullscreen/miniplayer transitions while the
         // previous renderer View remains attached. Force one player-local recheck; the existing
         // transition guard still owns the visual animation and this adds no independent timer.
-        CaptionMusicSuppressor.forceNativeRendererScan();
+        CaptionMusicSuppressor.requestNativeRendererScanAfterTransition();
         CaptionMusicSuppressor.kick();
     }
 
@@ -89,8 +93,8 @@ public final class DeepSeekCaptionHookV2 {
                 CaptionDiagnostics.mark(
                         context,
                         "VIDEO_DEFAULT_AI_RESTORED",
-                        "切换到新视频后恢复默认 AI 字幕" +
-                                (target == null ? "" : "；目标 " + target.promptLabel())
+                        "Default AI captions restored after switching videos" +
+                                (target == null ? "" : ";target=" + target.promptLabel())
                 );
             }
         }

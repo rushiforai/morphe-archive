@@ -1,3 +1,18 @@
+## 1.6.3 (2026-10-05)
+
+### ✨ New Features
+
+* **nicoid:** Choose Light mode, Dark mode, or Material You from theme settings.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore playback controls in landscape tablet mode. (#26)
+
+### 🔧 Improvements
+
+* **nicoid:** Increase playback-control sizes and spacing in tablet mode.
+* **nicoid:** Remove the encyclopedia indicator from video tags because article-existence information is unreliable.
+
 ## 1.6.2 (2026-10-05)
 
 ### 🐛 Bug Fixes

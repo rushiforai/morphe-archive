@@ -34,7 +34,7 @@ import app.morphe.extension.shared.settings.BooleanSetting;
  * {@link #block} first thing in the one method that goes on to post the notification, and a yes
  * returns before anything is posted.
  *
- * <p>Only the kinds in {@link #KINDS} can go, each under one of six switches, and every switch
+ * <p>Only the kinds in {@link #KINDS} can go, each under one of seven switches, and every switch
  * starts off. Messages, friend requests, comments, mentions, calls and login alerts are none of
  * them. The type is matched by Facebook's own constant names, never by a title or a line of text,
  * so it works in any language. It fails open: an unknown or unreadable type, a switch that's off, a
@@ -43,18 +43,27 @@ import app.morphe.extension.shared.settings.BooleanSetting;
 public final class NotificationKinds {
     /** One switch's worth of notification kinds. The setting is looked up only once settings are ready. */
     enum Group {
-        TRENDING_VIDEOS("Trending videos"),
-        MEMORIES("Memories"),
-        BIRTHDAYS("Birthdays"),
-        HIGHLIGHTS("Highlights"),
-        PEOPLE_YOU_MAY_KNOW("People you may know"),
-        NEARBY("Nearby and weather");
+        TRENDING_VIDEOS("Trending videos", true),
+        MEMORIES("Memories", true),
+        BIRTHDAYS("Birthdays", true),
+        HIGHLIGHTS("Highlights", false),
+        PEOPLE_YOU_MAY_KNOW("People you may know", true),
+        NEARBY("Nearby and weather", false),
+        ACCOUNT_SETUP("Account setup reminders", false);
 
         /** What a blocked notification of this group is counted under. */
         final String counted;
 
-        Group(String counted) {
+        /**
+         * Whether Marketplace only's quiet notifications take this group out too. It quiets only
+         * entertainment, memories, birthdays and friend suggestions: digests and nearby-place alerts
+         * can be useful to someone buying or selling, and account reminders are no kind of feed.
+         */
+        final boolean marketplaceQuiets;
+
+        Group(String counted, boolean marketplaceQuiets) {
             this.counted = counted;
+            this.marketplaceQuiets = marketplaceQuiets;
         }
 
         /** The switch that blocks this group. Loads Settings, so only after {@link Utils#settingsReady}. */
@@ -71,16 +80,19 @@ public final class NotificationKinds {
                 case PEOPLE_YOU_MAY_KNOW:
                     return Settings.BLOCK_PEOPLE_YOU_MAY_KNOW_NOTIFICATIONS;
                 case NEARBY:
-                default:
                     return Settings.BLOCK_NEARBY_NOTIFICATIONS;
+                case ACCOUNT_SETUP:
+                default:
+                    return Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS;
             }
         }
     }
 
     /**
      * The notification kinds a switch can block, by Facebook's constant name, and the switch's
-     * group. Every name is a constant of NotificationType on both builds the bundle declares; the
-     * patch's fixture test reads them from this class's dex and holds them to that.
+     * group. Every name is a constant of NotificationType on every build the bundle declares, except
+     * the kinds in {@link #SERVER_ONLY}; the patch's fixture test reads them from this class's dex
+     * and holds them to that.
      */
     static final Map<String, Group> KINDS;
 
@@ -104,8 +116,17 @@ public final class NotificationKinds {
         kinds.put("PLACE_FEED_NEARBY", Group.NEARBY);
         kinds.put("NEAR_SAVED_PLACE", Group.NEARBY);
         kinds.put("WEATHER_NOWCAST", Group.NEARBY);
+        // "Finish setting up your account", sent again and again to a phone that's signed in.
+        kinds.put("FB_REGISTRATION_REMINDER", Group.ACCOUNT_SETUP);
         KINDS = Collections.unmodifiableMap(kinds);
     }
+
+    /**
+     * Kinds Facebook's server sends that its NotificationType doesn't name, so Facebook files them
+     * under a generic kind. Each was read off a report's Notification kinds counter, which counts
+     * the type as the payload carried it. They're matched the same way as every other kind.
+     */
+    static final Set<String> SERVER_ONLY = Collections.singleton("FB_REGISTRATION_REMINDER");
 
     /** The diagnostic counter route: every notification asked about by kind, and the ones blocked. */
     static final String ROUTE = "Notification kinds";
@@ -149,10 +170,8 @@ public final class NotificationKinds {
             if (kind == null) return false;
             Group group = KINDS.get(kind);
             // Ready first: Settings loads every switch, and it can't before the context is set.
-            // Digests and nearby-place alerts can be useful to someone buying or selling. The
-            // mode only quiets entertainment, memories, birthdays and friend suggestions.
             boolean block = group != null && Utils.settingsReady() && (group.setting().get()
-                    || (group != Group.HIGHLIGHTS && group != Group.NEARBY && MarketplaceOnly.quietNotifications()));
+                    || (group.marketplaceQuiets && MarketplaceOnly.quietNotifications()));
             if (block) FeedFilterCounters.removed(ROUTE, 1, group.counted);
             log(kind, block);
             return block;

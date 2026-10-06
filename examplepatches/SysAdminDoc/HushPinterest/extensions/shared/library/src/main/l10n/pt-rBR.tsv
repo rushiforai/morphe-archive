@@ -156,6 +156,7 @@ Promoted and AI-labeled pins	Pins promovidos e com selo de IA
 Promoted pins	Pins promovidos
 Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Os pins promovidos saem do feed inicial, da busca, dos pins relacionados e dos quadros antes de serem exibidos, e os painéis que só têm anúncios ficam recolhidos.
 ad-only views	telas só de anúncios
+Google ad SDK start	início do SDK de anúncios do Google
 promoted pins in lists	pins promovidos nas listas
 Privacy	Privacidade
 Pin actions	Ações do Pin
@@ -169,6 +170,8 @@ Analytics launch tasks	Inicialização dos serviços de análise
 Analytics uploads	Envios de análises
 Strip link tracking	Remover rastreamento de links
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Remove parâmetros de rastreamento conhecidos dos links copiados e compartilhados. Os links curtos permanecem como o Pinterest os criou.
+Hide advertising ID	Ocultar ID de publicidade
+Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	O Pinterest e o código de anúncios e rastreamento dentro dele leem um ID de publicidade todo em zeros, com o rastreamento de anúncios limitado, como se você tivesse apagado seu ID de publicidade nas configurações do Android.
 Download pins	Baixar Pins
 Open links in your browser	Abrir links no seu navegador
 Open pin Visit links and profile websites in your browser.	Abra links de Visitar dos Pins e sites de perfis no seu navegador.
@@ -179,6 +182,7 @@ Hide search history	Ocultar histórico de pesquisa
 Hide navigation buttons	Ocultar botões de navegação
 Hide Create button	Ocultar botão Criar
 Hide Notifications button	Ocultar botão Notificações
+Hide Search button	Ocultar botão Pesquisar
 Hide header buttons	Ocultar botões do cabeçalho
 Filter pin menu	Filtrar menu do Pin
 Hide collage menu items	Ocultar opções de colagem
@@ -234,6 +238,12 @@ Pin %s	Pin %s
 Retry download	Tentar baixar novamente
 Starts a new download. Android manages it.	Inicia um novo download. O Android o gerencia.
 Open pin	Abrir pin
+Set as wallpaper	Definir como plano de fundo
+Opens Android's Set as options for this saved image.	Abre as opções Definir como do Android para esta imagem salva.
+Set as	Definir como
+Couldn't open Set as. Check Downloads for the saved file.	Não foi possível abrir Definir como. Procure o arquivo salvo em Downloads.
+This download isn't a finished image anymore. Check Downloads.	Este download não é mais uma imagem concluída. Confira Downloads.
+Resume HushPinterest and turn on Download pins to use this.	Retome o HushPinterest e ative Baixar Pins para usar isto.
 Remove from history	Remover do histórico
 Removes this history entry. Files and active downloads are kept.	Remove esta entrada do histórico. Os arquivos e downloads ativos são mantidos.
 Open Downloads	Abrir Downloads
@@ -257,6 +267,10 @@ Only unfinished saves are listed. Check your chosen location before saving again
 Pin saved. Check Pending saves if its history remains.	Pin salvo. Confira Salvamentos pendentes se o histórico ainda aparecer.
 Download unavailable	Download indisponível
 Supplied media details	Detalhes da mídia fornecida
+Copy media link	Copiar link da mídia
+Media link	Link da mídia
+Media link copied.	Link da mídia copiado.
+Couldn't copy the media link. Open the pin again and try again.	Não foi possível copiar o link da mídia. Abra o Pin de novo e tente outra vez.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Estes detalhes vêm da URL da mídia e dos metadados fornecidos pelo Pinterest. O arquivo não foi inspecionado.
 Supplied width: %s	Largura fornecida: %s
 Supplied height: %s	Altura fornecida: %s
@@ -298,12 +312,17 @@ Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still
 Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Oculta linhas e carrosséis de pesquisas recentes na próxima atualização de layout ou visibilidade. Não apaga o histórico da conta.
 Hides Create in the bottom bar on its next layout.	Oculta Criar na barra inferior na próxima atualização de layout.
 Hides Notifications in the bottom bar on its next layout.	Oculta Notificações na barra inferior na próxima atualização de layout.
+Hides Search in the bottom bar on its next layout.	Oculta Pesquisar na barra inferior na próxima atualização de layout.
 Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Oculta os ícones no fim do cabeçalho na próxima atualização de layout. Voltar, ações de texto e controles da conta continuam disponíveis.
 Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Oculta Adicionar à colagem e Remixar colagem nos menus de Pin recém-criados. Um menu existente não muda.
 Hides Search image in newly created pin menus. An existing menu won't change.	Oculta Buscar imagem nos menus de Pin recém-criados. Um menu existente não muda.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Oculta Promover Pin nos menus de Pin recém-criados. Um menu existente não muda.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Oculta painéis e prévias de comentários abaixo dos Pins na próxima atualização de layout ou visibilidade. Não muda quem pode comentar.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Dispensa lembretes opcionais de confirmação de e-mail recém-criados. Um lembrete aberto não muda. As verificações de confirmação e login continuam valendo.
+Hide save toasts	Ocultar avisos ao salvar
+Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Salvar um Pin não mostra mais "Salvo em" sua pasta nem a sugestão de seguir quem o criou. O Pin continua salvo.
+Original-quality images	Imagens em qualidade original
+Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Escolhe a imagem original antes do tamanho grande quando o Pinterest a fornece. Usa mais dados. Imagens já exibidas mudam quando forem recarregadas.
 Save media	Salvar mídia
 Recent searches autocomplete	Preenchimento automático de pesquisas recentes
 Activity alerts	Alertas de atividade

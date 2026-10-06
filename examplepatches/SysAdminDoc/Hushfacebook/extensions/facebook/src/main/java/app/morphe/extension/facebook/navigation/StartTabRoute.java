@@ -44,7 +44,8 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * it. The intent it was started with isn't touched, since Facebook's start-up prediction can be
  * reading it on another thread; all that prediction decides is what to fetch early. While
  * {@link MarketplaceOnly} is on, the tab is Marketplace, whatever the chosen tab and its switch, and
- * a chosen Reels tab that {@link ReelsTab} keeps off the bar is asked for as Home.
+ * a chosen Reels tab that {@link ReelsTab} keeps off the bar, or a tab {@link HiddenTabs} keeps off it,
+ * is asked for as Home.
  *
  * <p>On a cold start Facebook's own start-up would still drop the request twice. It replaces the
  * intent of a start another app sent, a launcher included, with a copy that keeps no tab, and its
@@ -155,8 +156,10 @@ public final class StartTabRoute {
             boolean marketplaceOnly = MarketplaceOnly.on();
             if (!marketplaceOnly && !Settings.OPEN_ON_CHOSEN_TAB.get()) return;
             StartTab chosen = marketplaceOnly ? StartTab.MARKETPLACE : Settings.START_TAB.get();
-            // A Reels tab Hide the Reels tab keeps off the bar isn't there to open.
-            StartTab tab = chosen == StartTab.VIDEO && ReelsTab.offTheBar() ? StartTab.HOME : chosen;
+            // A Reels tab Hide the Reels tab keeps off the bar isn't there to open, nor one Hide tabs keeps off.
+            String keptOff = chosen == StartTab.VIDEO && ReelsTab.offTheBar() ? FamilyNames.REELS_TAB
+                    : HiddenTabs.offTheBar(chosen) ? FamilyNames.HIDDEN_TABS : null;
+            StartTab tab = keptOff != null ? StartTab.HOME : chosen;
             Intent intent = activity.getIntent();
             String leftAlone = whyLeftAlone(intent, savedState);
             if (leftAlone != null) {
@@ -165,7 +168,7 @@ public final class StartTabRoute {
             }
             activity.setIntent(routed(intent, tab));
             if (tab != chosen) {
-                debug(() -> "Hide the Reels tab keeps " + chosen.fileValue + " off the tab bar, so asked for "
+                debug(() -> keptOff + " keeps " + chosen.fileValue + " off the tab bar, so asked for "
                         + tab.fileValue + " instead.");
             }
             debug(() -> "asked Facebook to open on " + tab.fileValue + " (tab " + tab.tabId + "). " + describe(intent));

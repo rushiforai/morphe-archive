@@ -1,0 +1,139 @@
+{
+  "source": "N15r captured-events.json; unchanged N17a pagination; Robolectric SDK28 StaticLayout",
+  "corpus_sha256": "1f6b08c80c3fce7b419062adf60f44d94f65151609a56c6922d6f303c6479810",
+  "prompt_sha256": "d841cf104e07cb2330f3143c538981979f8ba062dc6582c322f6dc8460ad0379",
+  "hard_constraints": {
+    "max_lines": 2,
+    "minimum_page_ms": 1200,
+    "max_cps": 8,
+    "minimum_display_half_cells": 16
+  },
+  "portrait": {
+    "layout_sha256": "335b5c1097ff2d3fd9427c06c27aca8b6657a69fedd7ed401ffb60c92220732c",
+    "width_px": 1163,
+    "glyph_height_target_px": 25.6,
+    "glyph_height_measured_px": 25.5,
+    "text_size_em_px": 26.033897399902344,
+    "font_metrics_height_px": 30.508474349975586,
+    "font_metrics_top_bottom_px": 34.550846099853516,
+    "events": 540,
+    "pages": 791,
+    "fallback_events": 0,
+    "documented_original_fallback_word_ids": 108,
+    "accepted_chinese_word_ids": 9576,
+    "one_line_percent": 100.0,
+    "12_to_18_percent": 41.8,
+    "2_to_3_5_s_percent": 40.2,
+    "both_soft_bands_percent": 26.7,
+    "length_median": 16,
+    "length_p10": 10,
+    "length_p90": 27,
+    "length_min": 5,
+    "length_max": 41,
+    "duration_median_s": 3.484,
+    "duration_p10_s": 1.986,
+    "duration_p90_s": 6.269,
+    "duration_min_s": 1.337,
+    "duration_max_s": 11.633,
+    "cps_median": 4.51,
+    "cps_p90": 6.03,
+    "length_distribution": {
+      "below_12": {
+        "pages": 152,
+        "percent": 19.2
+      },
+      "12_to_18": {
+        "pages": 331,
+        "percent": 41.8
+      },
+      "above_18": {
+        "pages": 308,
+        "percent": 38.9
+      }
+    },
+    "duration_distribution": {
+      "below_2_s": {
+        "pages": 82,
+        "percent": 10.4
+      },
+      "2_to_3_5_s": {
+        "pages": 318,
+        "percent": 40.2
+      },
+      "above_3_5_s": {
+        "pages": 391,
+        "percent": 49.4
+      }
+    },
+    "hard_constraint_violations": 0,
+    "hard_violation_counts_by_reason": {},
+    "hard_violation_details": []
+  },
+  "landscape": {
+    "layout_sha256": "ac7f3269ca7fb5911c0d1be1036d5a374a6e37c32caf5dc432820f0127070f85",
+    "width_px": 2042,
+    "glyph_height_target_px": 55.5,
+    "glyph_height_measured_px": 55.5,
+    "text_size_em_px": 59.26271057128906,
+    "font_metrics_height_px": 69.448486328125,
+    "font_metrics_top_bottom_px": 78.6504135131836,
+    "events": 540,
+    "pages": 791,
+    "fallback_events": 0,
+    "documented_original_fallback_word_ids": 108,
+    "accepted_chinese_word_ids": 9576,
+    "one_line_percent": 99.2,
+    "12_to_18_percent": 41.8,
+    "2_to_3_5_s_percent": 40.2,
+    "both_soft_bands_percent": 26.7,
+    "length_median": 16,
+    "length_p10": 10,
+    "length_p90": 27,
+    "length_min": 5,
+    "length_max": 41,
+    "duration_median_s": 3.484,
+    "duration_p10_s": 1.986,
+    "duration_p90_s": 6.269,
+    "duration_min_s": 1.337,
+    "duration_max_s": 11.633,
+    "cps_median": 4.51,
+    "cps_p90": 6.03,
+    "length_distribution": {
+      "below_12": {
+        "pages": 152,
+        "percent": 19.2
+      },
+      "12_to_18": {
+        "pages": 331,
+        "percent": 41.8
+      },
+      "above_18": {
+        "pages": 308,
+        "percent": 38.9
+      }
+    },
+    "duration_distribution": {
+      "below_2_s": {
+        "pages": 82,
+        "percent": 10.4
+      },
+      "2_to_3_5_s": {
+        "pages": 318,
+        "percent": 40.2
+      },
+      "above_3_5_s": {
+        "pages": 391,
+        "percent": 49.4
+      }
+    },
+    "hard_constraint_violations": 0,
+    "hard_violation_counts_by_reason": {},
+    "hard_violation_details": []
+  },
+  "page_count_delta_landscape_minus_portrait": 0,
+  "events_with_changed_page_count": 0,
+  "changed_page_counts": [],
+  "api_calls": 0,
+  "api_tokens": 0,
+  "note": "Viewport widths are caption layout boxes (1163/2042px), not screen widths. Glyph targets (25.6/55.5px) use the runtime font solver; em and FontMetrics height are separate measurements. This SDK28 desktop proxy is not phone glyph verification. Page lengths include punctuation; soft bands stay 12–18 code points and 2–3.5s. The 108 documented original fallback word IDs belong to the captured failed block, outside the 540 accepted-event layout-fallback count. Historical results are preserved."
+}

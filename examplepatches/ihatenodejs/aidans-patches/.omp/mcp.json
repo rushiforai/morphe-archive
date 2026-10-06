@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "cloudflare": { "type": "http", "url": "https://mcp.cloudflare.com/mcp", "enabled": true },
+    "cloudflare-docs": { "type": "http", "url": "https://docs.mcp.cloudflare.com/mcp", "enabled": true },
+    "cloudflare-bindings": { "type": "http", "url": "https://bindings.mcp.cloudflare.com/mcp", "enabled": true },
+    "cloudflare-builds": { "type": "http", "url": "https://builds.mcp.cloudflare.com/mcp", "enabled": true },
+    "cloudflare-observability": { "type": "http", "url": "https://observability.mcp.cloudflare.com/mcp", "enabled": true }
+  }
+}

@@ -310,6 +310,12 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.",
                     Settings.HIDE_DETAIL_COMMENT_BAR
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the Clear display controls",
+                    "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.",
+                    Settings.HIDE_CLEAR_DISPLAY_CONTROLS
+            ));
         }
         // Feed filter rows that hide things drawn around a video rather than videos.
         // They were the tail of the Feed filter page under "Feed elements", a page about

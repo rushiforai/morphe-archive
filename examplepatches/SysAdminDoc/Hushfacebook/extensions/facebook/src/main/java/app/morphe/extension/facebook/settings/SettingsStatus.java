@@ -78,6 +78,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean gameAds() {
+        return false;
+    }
+
     public static boolean affiliateLinks() {
         return false;
     }
@@ -118,6 +122,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean pictureInPicture() {
+        return false;
+    }
+
+    public static boolean turnOffHdrBrightness() {
+        return false;
+    }
+
     public static boolean systemFont() {
         return false;
     }
@@ -131,6 +143,26 @@ public final class SettingsStatus {
     }
 
     public static boolean adTelemetry() {
+        return false;
+    }
+
+    public static boolean analyticsUploads() {
+        return false;
+    }
+
+    public static boolean allowScreenshots() {
+        return false;
+    }
+
+    public static boolean turnOffHaptics() {
+        return false;
+    }
+
+    public static boolean turnOffScreenTransitions() {
+        return false;
+    }
+
+    public static boolean screenshotDetection() {
         return false;
     }
 
@@ -195,6 +227,10 @@ public final class SettingsStatus {
     }
 
     public static boolean reelsTabDot() {
+        return false;
+    }
+
+    public static boolean hiddenTabs() {
         return false;
     }
 

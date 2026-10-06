@@ -1,3 +1,57 @@
+## [1.41.9](https://github.com/legendsciber/morphe-patches/compare/v1.41.8...v1.41.9) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** escape dollar sign in lambda method name ([1de504b](https://github.com/legendsciber/morphe-patches/commit/1de504b80f9aa762f5c3ba3c42e80a2b844f8643))
+* **hillclimb:** log via android.util.Log since game logging is disabled in release ([aa197ec](https://github.com/legendsciber/morphe-patches/commit/aa197ece367186c7f6d1899fa40c30b9cef349a4))
+* **hillclimb:** use openAdmobAdInspector as log donor instead of lambda ([cacb0fd](https://github.com/legendsciber/morphe-patches/commit/cacb0fdbfebdd8269f00f1ea682485e0feda3130))
+
+## [1.41.8](https://github.com/legendsciber/morphe-patches/compare/v1.41.7...v1.41.8) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** revert rewarded interstitial gate, it broke working video rewards ([7c931cf](https://github.com/legendsciber/morphe-patches/commit/7c931cfed26f9f0495c56a06c1d46ee6cf195f3f))
+* **hillclimb:** trace which rewarded ad path the engine actually requests ([14243b1](https://github.com/legendsciber/morphe-patches/commit/14243b1f5edc94470be7426fe6316ec17e39d5b6))
+
+## [1.41.7](https://github.com/legendsciber/morphe-patches/compare/v1.41.6...v1.41.7) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** report rewarded interstitial as loaded to open the reward gate ([e9f08fe](https://github.com/legendsciber/morphe-patches/commit/e9f08fefa28f74d271d2f5010f3ae38a120897b7))
+
+## [1.41.6](https://github.com/legendsciber/morphe-patches/compare/v1.41.5...v1.41.6) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** drop unsupported register count manipulation ([bc3696a](https://github.com/legendsciber/morphe-patches/commit/bc3696a1a3553e4be4da1b5b272be9bd359a62f8))
+* **hillclimb:** set register count through MethodImplementation interface ([7d1be2c](https://github.com/legendsciber/morphe-patches/commit/7d1be2cb04804d4f9753bee9abf0cc0cff61ba16))
+
+## [1.41.5](https://github.com/legendsciber/morphe-patches/compare/v1.41.4...v1.41.5) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** grow register count before injecting boolean argument ([8edcf5b](https://github.com/legendsciber/morphe-patches/commit/8edcf5b3a337356c8e65678c08df107317ce3f83))
+* **hillclimb:** null-safe register count increase ([cc8083c](https://github.com/legendsciber/morphe-patches/commit/cc8083c043c588d15b758ceaac8836cd30b8b9c6))
+* **hillclimb:** use register-free callbacks to stop VerifyError crash ([9f068d8](https://github.com/legendsciber/morphe-patches/commit/9f068d846459c4c37c0f16baea24229625c127b0))
+
+## [1.41.4](https://github.com/legendsciber/morphe-patches/compare/v1.41.3...v1.41.4) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** also grant rewards on the empty rewarded-interstitial path ([d3aabe0](https://github.com/legendsciber/morphe-patches/commit/d3aabe01bc9d9f7d5458eb8711719bfbda3fd2b7))
+
+## [1.41.3](https://github.com/legendsciber/morphe-patches/compare/v1.41.2...v1.41.3) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** convert instant rewards patch to smali, drop file comments ([ac14346](https://github.com/legendsciber/morphe-patches/commit/ac143461f5a861781ab9b7b7710d4ae8662760bc))
+
+## [1.41.2](https://github.com/legendsciber/morphe-patches/compare/v1.41.1...v1.41.2) (2026-10-05)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** restore validated smali free store patch for 1.72.2 ([44a6e0c](https://github.com/legendsciber/morphe-patches/commit/44a6e0c0bd3f27825a99946272768cf440fd9c07))
+
 ## [1.41.1](https://github.com/legendsciber/morphe-patches/compare/v1.41.0...v1.41.1) (2026-10-05)
 
 ### 🐛 Bug Fixes

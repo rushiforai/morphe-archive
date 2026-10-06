@@ -72,7 +72,8 @@ val hideAiDetectedPostsPatch = bytecodePatch(
     name = "Hide AI-detected posts",
     description = "Removes feed posts that Facebook's own detection marked as made with AI, and the reels " +
         "and Watch videos it flagged the same way. A third switch also removes posts their creator " +
-        "labelled as AI. Every switch starts off, so turn them on in Hushfacebook's settings.",
+        "labelled as AI, and a fourth takes out the Meta AI cards Facebook adds between posts. That one " +
+        "starts on. The others start off, so turn them on in Hushfacebook's settings.",
     default = true,
 ) {
     category("Feed")

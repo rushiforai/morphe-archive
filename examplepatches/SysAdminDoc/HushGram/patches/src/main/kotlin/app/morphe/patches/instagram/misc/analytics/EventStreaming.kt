@@ -5,6 +5,7 @@
 package app.morphe.patches.instagram.misc.analytics
 
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -35,12 +36,13 @@ internal val STREAM_STEP_STRINGS = listOf("event.streaming.eligible", "stream_is
 internal fun BytecodePatchContext.keepEventsOffTheStream(hook: String): String? {
     val settings = mutableListOf<String>()
     val steps = mutableListOf<Method>()
-    classDefForEach { classDef ->
+    classesHolding(*EVENT_SETTINGS_STRINGS.toTypedArray()).forEach { classDef ->
         classDef.methods.forEach { method ->
-            val strings = method.strings()
-            if (method.name == "<init>" && strings.containsAll(EVENT_SETTINGS_STRINGS)) settings += classDef.type
-            if (strings.containsAll(STREAM_STEP_STRINGS)) steps += method
+            if (method.name == "<init>" && method.strings().containsAll(EVENT_SETTINGS_STRINGS)) settings += classDef.type
         }
+    }
+    classesHolding(*STREAM_STEP_STRINGS.toTypedArray()).forEach { classDef ->
+        classDef.methods.filterTo(steps) { it.strings().containsAll(STREAM_STEP_STRINGS) }
     }
     val config = settings.distinct().singleOrNull()
         ?: return "expected one class whose constructor holds $EVENT_SETTINGS_STRINGS, found ${settings.distinct().size}"

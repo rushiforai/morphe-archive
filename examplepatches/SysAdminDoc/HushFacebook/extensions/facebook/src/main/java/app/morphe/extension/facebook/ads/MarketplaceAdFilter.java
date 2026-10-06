@@ -43,6 +43,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *       reports that to Relay as a request it couldn't make, its own error path.
  * </ul>
  *
+ * <p>A video ad that reaches the feed anyway isn't drawn: the two native components that draw one
+ * ask {@link #hidesVideoAd} first, and draw nothing on a yes.
+ *
  * <p>Nothing else in a body changes: every other byte of it goes out as Facebook wrote it. Requests
  * of other surfaces aren't read past their tracking name.
  *
@@ -101,6 +104,10 @@ public final class MarketplaceAdFilter {
     /** What the counter says was done to a request. */
     static final String HELD_BACK = "ads-only query held back";
     static final String SKIPPED = "feed query asked to skip ads";
+
+    /** What the counter calls a video ad in Marketplace's feed, and what it says when one isn't drawn. */
+    static final String VIDEO_AD = "video ad";
+    static final String NOT_DRAWN = "video ad not drawn";
 
     /** What names a Marketplace search query, and what names the ones whose answers carry no results. */
     static final String SEARCH = "Search";
@@ -187,6 +194,31 @@ public final class MarketplaceAdFilter {
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, "Marketplace request", failure);
             return body;
+        }
+    }
+
+    /**
+     * Injection point, first thing in each of the two Litho components that draw a video ad in
+     * Marketplace's feed. Answers true to have the component draw nothing, before it asks for the
+     * ad's video. Never throws.
+     */
+    public static boolean hidesVideoAd() {
+        try {
+            if (!inBuild()) return false;
+            HookStatus.invoked(FamilyNames.SPONSORED_MARKETPLACE);
+            HookStatus.bound(FamilyNames.SPONSORED_MARKETPLACE, "Marketplace video ad");
+            FeedFilterCounters.sawList(ROUTE, 1);
+            FeedFilterCounters.sawKind(ROUTE, VIDEO_AD);
+            if (!switchedOn()) {
+                log("drew a video ad, the switch is off.");
+                return false;
+            }
+            FeedFilterCounters.removed(ROUTE, 1, NOT_DRAWN);
+            log("didn't draw a video ad.");
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SPONSORED_MARKETPLACE, "Marketplace video ad", failure);
+            return false;
         }
     }
 

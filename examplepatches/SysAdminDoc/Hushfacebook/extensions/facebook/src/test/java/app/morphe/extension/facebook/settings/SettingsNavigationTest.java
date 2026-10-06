@@ -91,7 +91,7 @@ public class SettingsNavigationTest {
     @Test public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
         assertEquals(9, list().getCount());
-        assertEquals(19, page.sections().size());
+        assertEquals(20, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
             assertTrue(page.navigation.open(section));
@@ -787,8 +787,9 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.TAP_TO_PLAY.key));
         recreate();
         assertTrue(contains(Settings.TAP_TO_PLAY.key));
-        // Playback: Tap to play, Resume long videos, Default playback quality and its Playback quality list.
-        assertEquals(4, list().getCount());
+        // Playback: Tap to play, Resume long videos, Default playback quality and its Playback quality list, Picture-in-picture,
+        // Turn off HDR brightness.
+        assertEquals(6, list().getCount());
         page.navigation.back();
         findSearch(dialog.getView()).setText("other apps");
         recreate();
@@ -803,7 +804,7 @@ public class SettingsNavigationTest {
         assertEquals(9, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
-        assertEquals(13, list().getCount());
+        assertEquals(14, list().getCount());
         dialog.getDialog().onBackPressed();
         assertEquals(9, list().getCount());
         dialog.getDialog().onBackPressed();

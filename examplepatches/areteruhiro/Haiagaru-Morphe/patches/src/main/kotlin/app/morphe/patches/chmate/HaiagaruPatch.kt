@@ -431,7 +431,7 @@ private fun BytecodePatchContext.patchEdgeArchiveToolbar(
         throw PatchException("板のスレ一覧ツールバーを特定できません: $versionName")
     }
     threadToolbarMethods.forEach { method ->
-        mutableClassDefBy(threadListClass).findMutableMethodOf(method).wrapModelReturns()
+        mutableClassDefBy(threadListClass).findMutableMethodOf(method).wrapModelReturns(includeMarkAllRead = true)
     }
 
     // BoardList2Activity displays board categories through its own fragment.
@@ -601,6 +601,16 @@ private fun BytecodePatchContext.patchQuickFilterToolbar(version: String) {
         filterBinding.addInstructionsWithLabels(constructorReturn, """
             invoke-static/range {p0 .. p0}, Lapp/morphe/extension/chmate/QuickFilterToolbar;->hideLegacyFilterRow(Ljava/lang/Object;)V
         """.trimIndent())
+        val rows = mutableClassDefBy("Lo/m9ExternalSyntheticLambda1;").methods.single {
+            it.name == "getView" && it.returnType == "Landroid/view/View;"
+        }
+        rows.implementation!!.instructions.withIndex()
+            .filter { it.value.opcode == Opcode.RETURN_OBJECT }.asReversed().forEach { (index, instruction) ->
+                val register = (instruction as OneRegisterInstruction).registerA
+                rows.addInstructionsWithLabels(index, """
+                    invoke-static/range {v$register .. v$register}, Lapp/morphe/extension/chmate/QuickFilterToolbar;->prepareLegacyFilterRow(Landroid/view/View;)V
+                """.trimIndent())
+            }
         return
     }
     if (version !in setOf("0.8.10.226 dev", "0.8.10.241", "0.8.10.242 dev", "0.8.10.243 dev")) return
@@ -642,6 +652,37 @@ private fun BytecodePatchContext.patchQuickFilterToolbar(version: String) {
         if-eqz v0, :original_filter_dispatch
         return v0
     """.trimIndent(), ExternalLabel("original_filter_dispatch", first))
+    val filterContainer = when (version) {
+        "0.8.10.226 dev" -> "Lo/listener\$setContentView;" to "Lo/m2a;"
+        "0.8.10.241" -> "Lo/getRemoteResource;" to "Lo/getBCode;"
+        "0.8.10.242 dev" -> "Lo/zzacr;" to "Lo/r7ExternalSyntheticLambda0;"
+        else -> null
+    }
+    if (filterContainer != null) {
+        val (adapterType, viewType) = filterContainer
+        var hooks = 0
+        mutableClassDefBy(adapterType).methods.forEach { method ->
+            val sites = method.implementation?.instructions?.withIndex()?.filter {
+                val ref = (it.value as? ReferenceInstruction)?.reference as? MethodReference
+                ref?.definingClass == viewType && ref.name == "setContent" && ref.returnType == "V"
+            }.orEmpty()
+            sites.asReversed().forEach { (index, instruction) ->
+                val receiver = when (instruction) {
+                    is FiveRegisterInstruction -> instruction.registerC
+                    is RegisterRangeInstruction -> instruction.startRegister
+                    else -> error("Unsupported filter setContent invocation: $version")
+                }
+                method.addInstructionsWithLabels(index + 1, """
+                    invoke-static/range {v$receiver .. v$receiver}, Lapp/morphe/extension/chmate/QuickFilterToolbar;->prepareFilterRow(Landroid/view/View;)V
+                """.trimIndent())
+                hooks++
+            }
+        }
+        check(hooks == 1) { "$version filter container anchor count=$hooks" }
+        // Keep Compose initialization and state subscriptions active. Only the
+        // dedicated row's measured height changes, with its original height restored on OFF.
+        return
+    }
     val quickFilterComposeRow = when (version) {
         "0.8.10.226 dev" -> "Lo/writeWindowUpdateLaterokhttp;" to "Lo/Ff11;"
         "0.8.10.241" -> "Lo/getRewardItem;" to "Lo/zzagp;"
@@ -847,6 +888,19 @@ private val haiagaruBytecodePatch = bytecodePatch {
 
     execute {
         val profile = profileFor(packageMetadata.versionName)
+
+        val readManager = when (packageMetadata.versionName) {
+            "0.8.10.241" -> "Lo/hLn11;"
+            "0.8.10.242 dev" -> "Lo/VN21;"
+            else -> null
+        }
+        readManager?.let { type ->
+            mutableClassDefBy(type).methods.single {
+                it.name == "<init>" && it.parameters.isEmpty()
+            }.addBeforeEveryReturn(
+                "invoke-static/range { p0 .. p0 }, $EXTENSION->captureReadCountManager(Ljava/lang/Object;)V"
+            )
+        }
 
         patchEdgeArchiveToolbar(profile, packageMetadata.versionName)
         patchQuickFilterToolbar(packageMetadata.versionName)
@@ -1158,6 +1212,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
             patchProgrammableNgModern("Lo/RewardedInterstitialAdLoadCallback;", "a", "a")
         }
         patchTabletThreadHeaderAdSpace(packageMetadata.versionName)
+        patchStringReplacement()
         patchShortThreadTopAlignment(packageMetadata.versionName)
         when (packageMetadata.versionName) {
             "0.8.10.191 dev" -> {
@@ -1661,113 +1716,71 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchWacchoiLongPressM
 }
 
 /**
- * ChMate 191 builds its response long-press popup from a Menu inflated inside
- * the legacy ResListFragment callback, then dispatches MenuItems carrying an
- * Intent directly. Add the same board-aware action at that inflation point.
+ * ChMate 191 builds the response popup in pa.Wx_. Inject immediately before
+ * the selected response's menu is measured; its normal click handler already
+ * dispatches MenuItems carrying an Intent.
  */
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyWacchoiLongPressMenu() {
-    val owner = "Lo/r8lambdaTb_p0z6z2AqSZIga1YhmAVmiTPk;"
-    val candidates = mutableClassDefBy(owner).methods.filter { method ->
-        method.name == "e"
-            && method.returnType == "Z"
-            && method.parameters.map(CharSequence::toString) == listOf(
-                "I",
-                "Ljava/lang/Object;",
+    val owner = "Lo/pa;"
+    // Name/SLIP long presses use c(Response, boolean, boolean), independently
+    // of the response-body popup in Wx_. Preserve the exact selected response.
+    val nameMenu = mutableClassDefBy(owner).methods.single {
+        it.name == "c" && it.returnType == "V" &&
+            it.parameters.map(CharSequence::toString) == listOf(
+                "Lo/processAdDisplayErrorPostbackForUserError;", "Z", "Z",
             )
-            && method.implementation?.instructions?.withIndex()?.any { indexed ->
-                val index = indexed.index
-                val instruction = indexed.value
-                val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-                reference?.definingClass == "Landroid/view/MenuInflater;"
-                    && reference.name == "inflate"
-                    && reference.parameterTypes.map(CharSequence::toString) == listOf(
-                        "I",
-                        "Landroid/view/Menu;",
-                    )
-                    && method.implementation!!.instructions.subList(maxOf(0, index - 3), index)
-                        .any { (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f0e0006 }
-            } == true
     }
-    check(candidates.size == 1) {
-        "Expected one ChMate 191 response long-press menu callback, found ${candidates.size}"
+    val nameAnchors = nameMenu.implementation!!.instructions.withIndex().filter {
+        val reference = (it.value as? ReferenceInstruction)?.reference as? MethodReference
+        reference?.definingClass == "Lo/setExtraParameter;" && reference.name == "Td_"
     }
-
-    val callback = candidates.single()
-    val implementation = callback.implementation!!
-    val instructions = implementation.instructions.toList()
-    val parameterWords = 1 + callback.parameters.sumOf { parameter ->
-        if (parameter.type == "J" || parameter.type == "D") 2 else 1
+    check(nameAnchors.size == 1) { "191 name/SLIP menu anchor changed" }
+    val nameAnchor = nameAnchors.single()
+    val nameMenuRegister = (nameAnchor.value as FiveRegisterInstruction).registerC
+    nameMenu.addInstructionsWithLabels(nameAnchor.index, """
+        invoke-static {p0, v$nameMenuRegister, p1}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendLegacyForResponse(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+    """.trimIndent())
+    val callback = mutableClassDefBy(owner).methods.single { method ->
+        method.name == "Wx_"
+            && method.returnType == "V"
+            && method.parameters.map(CharSequence::toString) == listOf(
+                "Landroid/widget/ListView;", "Landroid/view/View;", "I", "J",
+            )
     }
-    val firstParameterRegister = implementation.registerCount - parameterWords
-    val receiverRegister = firstParameterRegister
-    val targetRegister = firstParameterRegister + 2
-    val receiverLocal = instructions.mapIndexedNotNull { _, instruction ->
-        if (instruction.opcode !in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)) {
-            return@mapIndexedNotNull null
-        }
-        val move = instruction as? TwoRegisterInstruction ?: return@mapIndexedNotNull null
-        if (move.registerB == receiverRegister) move.registerA else null
-    }.firstOrNull()
-    val targetLocal = instructions.mapIndexedNotNull { _, instruction ->
-        if (instruction.opcode !in setOf(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16)) {
-            return@mapIndexedNotNull null
-        }
-        val move = instruction as? TwoRegisterInstruction ?: return@mapIndexedNotNull null
-        if (move.registerB == targetRegister) move.registerA else null
-    }.firstOrNull()
-    check(receiverLocal != null && targetLocal != null && receiverLocal < 16 && targetLocal < 16) {
-        "ChMate 191 long-press callback register aliases changed"
-    }
-
-    val menuInflate = instructions.mapIndexedNotNull { index, instruction ->
+    val instructions = callback.implementation?.instructions?.toList()
+        ?: error("ChMate 191 response long-press method has no implementation")
+    val menuSizes = instructions.mapIndexedNotNull { index, instruction ->
         val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
-        if (reference?.definingClass != "Landroid/view/MenuInflater;"
-            || reference.name != "inflate"
-            || instructions.subList(maxOf(0, index - 3), index)
-                .none { (it as? NarrowLiteralInstruction)?.narrowLiteral == 0x7f0e0006 }) {
-            return@mapIndexedNotNull null
-        }
-        val registers = when (instruction) {
-            is FiveRegisterInstruction -> when (instruction.registerCount) {
-                3 -> listOf(instruction.registerC, instruction.registerD, instruction.registerE)
-                4 -> listOf(instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF)
-                5 -> listOf(instruction.registerC, instruction.registerD, instruction.registerE,
-                    instruction.registerF, instruction.registerG)
-                else -> emptyList()
-            }
-            is RegisterRangeInstruction -> (instruction.startRegister until
-                    instruction.startRegister + instruction.registerCount).toList()
-            else -> emptyList()
-        }
-        if (registers.size != 3) return@mapIndexedNotNull null
-        index to registers.last()
+        if (reference?.definingClass == "Lo/m6fExternalSyntheticLambda0;"
+            && reference.name == "size" && reference.returnType == "I"
+        ) index to (instruction as? FiveRegisterInstruction)?.registerC else null
     }
-    check(menuInflate.size == 1) { "ChMate 191 response menu inflater anchor changed" }
-    val (inflateIndex, menuRegister) = menuInflate.single()
-    check(menuRegister < 16) { "ChMate 191 response Menu register cannot use invoke-static" }
-
-    val mutableCallback = mutableClassDefBy(owner).findMutableMethodOf(callback)
-    mutableCallback.addInstructionsWithLabels(
-        inflateIndex + 1,
+    check(menuSizes.size == 1 && menuSizes.single().second != null) {
+        "ChMate 191 selected-response menu anchor changed"
+    }
+    val (menuIndex, menuRegister) = menuSizes.single()
+    val responseCalls = instructions.take(menuIndex).mapIndexedNotNull { index, instruction ->
+        val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        if (reference?.definingClass == owner && reference.name == "c"
+            && reference.parameterTypes.map(CharSequence::toString) ==
+                listOf("Lo/processAdDisplayErrorPostbackForUserError;")
+            && reference.returnType == "Ljava/lang/String;"
+        ) index to (instruction as? FiveRegisterInstruction)?.registerD else null
+    }
+    check(responseCalls.size == 1 && responseCalls.single().second != null) {
+        "ChMate 191 selected response register changed"
+    }
+    val responseRegister = responseCalls.single().second!!
+    check(menuRegister!! < 16 && responseRegister < 16) {
+        "ChMate 191 response menu registers cannot use invoke-static"
+    }
+    mutableClassDefBy(owner).findMutableMethodOf(callback).addInstructionsWithLabels(
+        menuIndex,
         """
-            invoke-static { v$receiverLocal, v$menuRegister, v$targetLocal }, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendLegacyForView(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
+            invoke-static {p0, v$menuRegister, v$responseRegister}, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->appendLegacyForResponse(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)V
         """.trimIndent(),
     )
-    // Legacy popup selection forwards MenuItem.getItemId() and the MenuItem
-    // to e(ILjava/lang/Object;). Handle only our new ID and let every existing
-    // branch keep its original dispatch behavior.
-    mutableCallback.addInstructionsWithLabels(
-        0,
-        """
-            invoke-static/range { p0 .. p2 }, Lapp/morphe/extension/chmate/WacchoiLongPressMenu;->dispatchLegacyMenuItem(Ljava/lang/Object;ILjava/lang/Object;)Z
-            move-result v0
-            if-eqz v0, :legacy_wacchoi_continue
-            const/4 v0, 0x1
-            return v0
-        """.trimIndent(),
-        ExternalLabel("legacy_wacchoi_continue", instructions.first()),
-    )
-    println("Wacchoi response-menu hook: legacy ChMate 191 Menu inflation")
+    println("Wacchoi response-menu hook: selected ChMate 191 response")
 }
 
 /**
@@ -2037,21 +2050,24 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchTabletThreadHeade
 private fun app.morphe.patcher.patch.BytecodePatchContext.patchShortThreadTopAlignment(
     version: String,
 ) {
-    val setter = when (version) {
-        "0.8.10.241" -> "d"
-        "0.8.10.242 dev" -> "e"
-        "0.8.10.243 dev" -> "a"
+    val layout = when (version) {
+        "0.8.10.241" -> "b"
+        "0.8.10.242 dev", "0.8.10.243 dev" -> "c"
         else -> return
     }
     val method = mutableClassDefBy("Landroidx/recyclerview/widget/LinearLayoutManager;")
         .methods.single { candidate ->
-            candidate.name == setter && candidate.returnType == "V"
-                && candidate.parameters.map(CharSequence::toString) == listOf("Z")
+            candidate.name == layout && candidate.returnType == "V"
+                && candidate.parameters.size == 2
+                && candidate.parameters.all { it.type.startsWith("Landroidx/recyclerview/widget/RecyclerView${'$'}") }
         }
-    method.addInstructionsWithLabels(0, """
-        invoke-static {p0, p1}, $EXTENSION->threadListStackFromEnd(Ljava/lang/Object;Z)Z
-        move-result p1
-    """.trimIndent())
+    method.implementation!!.instructions.withIndex()
+        .filter { it.value.opcode == Opcode.RETURN_VOID }.map { it.index }.asReversed()
+        .forEach { index ->
+            method.addInstructionsWithLabels(index, """
+                invoke-static/range {p0 .. p0}, $EXTENSION->alignShortThreadAfterLayout(Ljava/lang/Object;)V
+            """.trimIndent())
+        }
 }
 
 /**
@@ -2751,7 +2767,7 @@ private fun Document.addOpenUrlFilter(
 @Suppress("unused")
 val haiagaruPatch = resourcePatch(
     name = "Haiagaru",
-    description = "Ports the Haiagaru ChMate module, including its in-app settings.",
+    description = "Haiagaruの機能とアプリ内設定を追加します。ChMate 0.8.10.243 devは一部機能が未実装のため非推奨です（パッチ適用は可能）。",
 ) {
     compatibleWith(chMateCompatibility)
     dependsOn(haiagaruBytecodePatch)
@@ -3102,6 +3118,15 @@ val haiagaruPatch = resourcePatch(
                     "@android:style/Theme.Material.Light.NoActionBar",
                 )
             })
+            if (packageMetadata.versionName != "0.8.10.243 dev") {
+                application.appendChild(document.createElement("activity").apply {
+                    setAttributeNS(ANDROID_XML_NAMESPACE, "android:name",
+                        "app.morphe.extension.chmate.ReplacementSettingsActivity")
+                    setAttributeNS(ANDROID_XML_NAMESPACE, "android:exported", "false")
+                    setAttributeNS(ANDROID_XML_NAMESPACE, "android:theme",
+                        "@android:style/Theme.Material.Light.NoActionBar")
+                })
+            }
 
             // Keep the archive page in the same lightweight WebView activity as
             // the checker.  It is declared even when the optional Hissi viewer
@@ -4053,8 +4078,10 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyThreadListA
                 "Landroid/view/ViewGroup;",
             )
     }
-    val instructions = method.implementation?.instructions
-        ?: error("ChMate 191 response adapter has no implementation")
+    // QuickFilterToolbar may already have inserted a call before the return.
+    // Never infer a Kotlin assertion from the number of tail instructions.
+    val instructions = method.implementation?.instructions?.toList()
+        ?: error("ChMate response adapter has no implementation")
     val bindIndex = instructions.indices.single { index ->
         val reference = (instructions[index] as? ReferenceInstruction)?.reference
             as? MethodReference ?: return@single false
@@ -4064,23 +4091,17 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyThreadListA
             && resultTail.contains(Opcode.RETURN_OBJECT)
     }
 
-    // Keep p1 as the original adapter position and move the returned row to p2;
-    // the parent argument is no longer needed after the bind call.
+    val resultRegister = (instructions[bindIndex + 1] as OneRegisterInstruction).registerA
+    // Intercept the View while p1 still holds the adapter position, then restore
+    // the original destination. Preserve both the 191 filter hook and 226
+    // assertion, including their argument registers.
     method.replaceInstruction(bindIndex + 1, "move-result-object p2")
-    val returnIndex = (bindIndex + 2 until minOf(bindIndex + 5, instructions.size))
-        .single { instructions[it].opcode == Opcode.RETURN_OBJECT }
-    if (returnIndex != bindIndex + 2) {
-        // 226 inserts Kotlin's non-null assertion between the bind and return.
-        method.replaceInstruction(
-            bindIndex + 2,
-            "invoke-static {p2, v0}, Lo/fsYhp;->e(Ljava/lang/Object;Ljava/lang/String;)V",
-        )
-    }
-    method.replaceInstruction(returnIndex, "return-object p2")
-    method.addInstruction(
-        returnIndex,
-        "invoke-static {p2, p0, p1}, " +
-            "$EXTENSION->hideLegacyThreadListAd(Landroid/view/View;Landroid/widget/BaseAdapter;I)V",
+    method.addInstructionsWithLabels(
+        bindIndex + 2,
+        """
+            invoke-static {p2, p0, p1}, $EXTENSION->hideLegacyThreadListAd(Landroid/view/View;Landroid/widget/BaseAdapter;I)V
+            move-object/from16 v$resultRegister, p2
+        """.trimIndent(),
     )
 }
 

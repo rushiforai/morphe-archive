@@ -18,6 +18,7 @@ import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.freeLocalsAt
 import app.morphe.patches.facebook.misc.extension.liveAcrossInjection
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.findMutableMethodOf
@@ -28,7 +29,8 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 /**
  * Keeps the ads out of Marketplace's feed and its search results: the feed's query asks Facebook's
  * servers to skip them, the queries that fetch only ads aren't sent, and the ads that come back
- * among search results are taken out of the answer before JavaScript sees it. See
+ * among search results are taken out of the answer before JavaScript sees it. A video ad that
+ * comes back anyway isn't drawn (MarketplaceVideoAdAnchors.kt). See
  * MarketplaceRequestAnchors.kt and MarketplaceResponseAnchors.kt for where the requests and their
  * answers pass through Java, and the extension's MarketplaceAdFilter for what it changes.
  */
@@ -37,7 +39,8 @@ val hideSponsoredMarketplaceListingsPatch = bytecodePatch(
     name = "Hide sponsored Marketplace listings",
     description = "Removes the ads and boosted listings from Marketplace's feed and search results. The feed's request " +
         "asks Facebook to leave them out and the requests that fetch only ads don't go out. Ads that come back among " +
-        "search results are taken out before Marketplace shows them. The listings people post stay.",
+        "search results are taken out before Marketplace shows them, and a video ad that reaches the feed anyway " +
+        "isn't drawn. The listings people post stay.",
     default = true,
 ) {
     category("Ads")
@@ -92,6 +95,19 @@ val hideSponsoredMarketplaceListingsPatch = bytecodePatch(
         val mutableCallbacks = mutableClassDefBy(CALLBACKS)
         mutableCallbacks.findMutableMethodOf(end.method).handTheRestOver(end, piece.emitter)
         handOffs.forEach { mutableCallbacks.findMutableMethodOf(it.method).handTheTextOver(it, tracking) }
+
+        // A video ad that reaches the feed anyway isn't drawn. A build without one of its two drawers
+        // goes on without that one: the requests above are what keep the ads out.
+        VideoAdDrawer.entries.forEach { drawer ->
+            val found = classDefByStrings(drawer.strings.first(), StringComparisonType.EQUALS)
+                .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+                .flatMap { owner -> owner.methods.filter { draws(it, drawer) } }
+            val method = found.singleOrNull() ?: return@forEach patchLog.warning(
+                "$PATCH: found ${found.size} Marketplace video ad drawers holding ${drawer.strings}, not one, so " +
+                    "a video ad there is drawn.",
+            )
+            mutableClassDefBy(method.definingClass).findMutableMethodOf(method).drawNothingWhenHidden()
+        }
         enableStatus("sponsoredMarketplace")
     }
 }

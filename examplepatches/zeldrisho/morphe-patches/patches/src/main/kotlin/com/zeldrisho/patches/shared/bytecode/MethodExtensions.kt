@@ -27,9 +27,8 @@ import java.lang.reflect.ParameterizedType
  * boolean/enum return value immediately before a return), and only on methods
  * that don't already use that register for an object reference elsewhere.
  *
- * Ported from doom-patches `app.template.patches.shared.MethodExtensions`
- * (itself derived from ReVanced/BiliRoamingX patterns) so patches can
- * safely no-op methods with try-blocks.
+ * The cleanup is implemented locally against Morphe's mutable-method API so patches can
+ * safely no-op methods with try-blocks. Re-check its reflective dexlib2 layout when changing it.
  */
 fun MutableMethod.clearBody() {
     val impl = implementation ?: return

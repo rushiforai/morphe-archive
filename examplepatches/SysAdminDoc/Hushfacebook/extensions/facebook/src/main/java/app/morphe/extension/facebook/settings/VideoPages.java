@@ -136,7 +136,8 @@ final class VideoPages {
     static void playback(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
         if (build.contains(PatchFamily.TAP_TO_PLAY) || build.contains(PatchFamily.RESUME_LONG_VIDEOS)
-                || build.contains(PatchFamily.PLAYBACK_QUALITY)) {
+                || build.contains(PatchFamily.PLAYBACK_QUALITY) || build.contains(PatchFamily.PICTURE_IN_PICTURE)
+                || build.contains(PatchFamily.HDR_BRIGHTNESS)) {
             PreferenceCategory playback = category(screen, L10n.t("Playback"));
             if (build.contains(PatchFamily.TAP_TO_PLAY)) {
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY,
@@ -144,12 +145,22 @@ final class VideoPages {
             }
             if (build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
                 playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS,
-                        L10n.t("Resume videos over two minutes where you left off. Seek to start elsewhere. Reels, live videos and ads start as usual.")));
+                        L10n.t("Resume videos over two minutes where you left off, in the feed or full screen. Seek to start elsewhere. Short reels, live videos and ads start as usual.")));
             }
             if (build.contains(PatchFamily.PLAYBACK_QUALITY)) {
                 playback.addPreference(toggle(context, Settings.DEFAULT_PLAYBACK_QUALITY,
                         L10n.t("Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.")));
                 playback.addPreference(playbackQualityRow(context));
+            }
+            if (build.contains(PatchFamily.PICTURE_IN_PICTURE)) {
+                playback.addPreference(toggle(context, Settings.PICTURE_IN_PICTURE,
+                        L10n.t("A playing reel keeps going in a small window when you leave Facebook. Android 12 or later.")));
+            }
+            if (build.contains(PatchFamily.HDR_BRIGHTNESS)) {
+                // Asked as each screen comes to the front, so a change shows from the next one.
+                playback.addPreference(toggle(context, Settings.TURN_OFF_HDR_BRIGHTNESS,
+                        L10n.t("HDR videos and photos stay at your screen's usual brightness instead of turning it up to "
+                                + "full. They keep their resolution.")));
             }
         }
     }

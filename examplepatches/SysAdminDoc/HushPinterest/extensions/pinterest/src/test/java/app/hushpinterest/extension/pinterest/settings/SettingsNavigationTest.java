@@ -524,6 +524,7 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_SEARCH_HISTORY.key, "recent-search rows and carousels", "next layout or visibility update", "doesn't delete account history");
         summaryContains(Settings.HIDE_NAV_CREATE.key, "Create in the bottom bar", "next layout");
         summaryContains(Settings.HIDE_NAV_NOTIFICATIONS.key, "Notifications in the bottom bar", "next layout");
+        summaryContains(Settings.HIDE_NAV_SEARCH.key, "Search in the bottom bar", "next layout");
         summaryContains(Settings.HIDE_HEADER_BUTTONS.key, "trailing header icons", "next layout", "account controls stay available");
         summaryContains(Settings.HIDE_PIN_MENU_COLLAGE.key, "Add to collage and Remix collage", "newly created pin menus", "existing menu won't change");
         summaryContains(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, "Search image", "newly created pin menus", "existing menu won't change");

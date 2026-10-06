@@ -4,7 +4,7 @@ import app.morphe.patcher.patch.resourcePatch
 import com.zeldrisho.patches.zalo.shared.Constants.COMPATIBILITY_ZALO
 import org.w3c.dom.Element
 
-/** Injects package visibility and signature metadata, without duplicating existing entries. */
+/** Injects package visibility and original Zalo identity metadata without duplicating entries. */
 internal fun injectMicroGManifest(doc: org.w3c.dom.Document) {
     val manifest = doc.documentElement
     val app = doc.getElementsByTagName("application").item(0) as Element
@@ -22,22 +22,27 @@ internal fun injectMicroGManifest(doc: org.w3c.dom.Document) {
             doc.createElement("package").apply { setAttribute("android:name", MICROG_PACKAGE) },
         )
     }
-    if ((0 until app.childNodes.length).none { index ->
-            val node = app.childNodes.item(index) as? Element
-            node?.tagName == "meta-data" &&
-                node.getAttribute("android:name") == "app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE"
+    val spoofedIdentityMetadata = listOf(
+        "app.revanced.android.gms.SPOOFED_PACKAGE_NAME" to "com.zing.zalo",
+        "app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE" to STOCK_VNG_CERT_HEX,
+    )
+    spoofedIdentityMetadata.forEach { (name, value) ->
+        if ((0 until app.childNodes.length).none { index ->
+                val node = app.childNodes.item(index) as? Element
+                node?.tagName == "meta-data" && node.getAttribute("android:name") == name
+            }
+        ) {
+            app.appendChild(
+                doc.createElement("meta-data").apply {
+                    setAttribute("android:name", name)
+                    setAttribute("android:value", value)
+                },
+            )
         }
-    ) {
-        app.appendChild(
-            doc.createElement("meta-data").apply {
-                setAttribute("android:name", "app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE")
-                setAttribute("android:value", STOCK_VNG_CERT_HEX)
-            },
-        )
     }
 }
 
-/** Injects microG certificate metadata and package visibility into the manifest. */
+/** Injects MicroG package visibility and original Zalo package/certificate identity metadata. */
 val zaloMicroGManifestPatch = resourcePatch {
     compatibleWith(COMPATIBILITY_ZALO)
 

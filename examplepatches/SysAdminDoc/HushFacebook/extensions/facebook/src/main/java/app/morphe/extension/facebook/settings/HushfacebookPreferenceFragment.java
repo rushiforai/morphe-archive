@@ -49,6 +49,7 @@ import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
+import app.morphe.extension.facebook.navigation.HiddenTabs;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
 import app.morphe.extension.facebook.navigation.MarketplaceOnly;
@@ -297,6 +298,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         AppPages.marketplace(this, screen, context, build);
         AppPages.notifications(this, screen, context, build);
         AppPages.links(this, screen, context, build);
+        AppPages.privacy(this, screen, context, build);
         HushfacebookPages.updates(this, screen, context, build);
         HushfacebookPages.appearance(this, screen, context, build);
         HushfacebookPages.patched(this, screen, context, build);
@@ -976,6 +978,11 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         if (tab == StartTab.VIDEO && Settings.HIDE_REELS_TAB.savedValue() && PatchFamily.REELS_TAB.inBuild()) {
             return L10n.t("Facebook opens on Home while Hide the Reels tab is on, since Video is off the tab bar. "
                     + "Your choice stays saved.");
+        }
+        HiddenTabs.Tab hidden = HiddenTabs.Tab.forStart(tab);
+        if (hidden != null && hidden.setting().savedValue() && PatchFamily.HIDDEN_TABS.inBuild()) {
+            return L10n.f("Facebook opens on Home while Hide tabs keeps %1$s off the tab bar. Your choice stays saved.",
+                    tabLabel(tab));
         }
         return L10n.f("Facebook opens on %1$s. If your tab bar doesn't have it, Facebook opens on Home.",
                 tabLabel(tab));

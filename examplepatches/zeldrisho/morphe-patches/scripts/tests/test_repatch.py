@@ -5,6 +5,7 @@ import json
 import os
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from scripts.tests.repatch_test_support import RepatchTestSupport
 
@@ -16,6 +17,19 @@ SPEC.loader.exec_module(REPATCH)
 
 class RepatchTest(RepatchTestSupport):
     """Regression assertions for bundle discovery, signing options, and errors."""
+
+    def test_aapt_timeout_is_treated_as_unreadable_package(self):
+        with (
+            patch.object(REPATCH.shutil, "which", return_value="/usr/bin/aapt"),
+            patch.object(
+                REPATCH.subprocess,
+                "run",
+                side_effect=REPATCH.subprocess.TimeoutExpired("aapt", 10),
+            ) as run,
+        ):
+            self.assertIsNone(REPATCH.read_apk_package(Path("input.apk")))
+
+        self.assertEqual(run.call_args.kwargs["timeout"], 10)
 
     def test_download_url_validation(self):
         """Reject non-HTTPS and non-GitHub destinations."""
@@ -34,6 +48,16 @@ class RepatchTest(RepatchTestSupport):
         ):
             with self.subTest(url=url):
                 self.assertEqual(REPATCH.validate_download_url(url), url)
+
+    def test_patch_name_aliases_are_canonicalized_for_required_patch_checks(self):
+        self.assertEqual(
+            REPATCH.canonical_patch_name("Change package name"),
+            "Change Zalo package name",
+        )
+        self.assertEqual(
+            REPATCH.canonical_patch_name("Change Zalo package name"),
+            "Change Zalo package name",
+        )
 
     def test_redirect_handler_exposes_redirects(self):
         """Ensure redirects are returned for validation instead of followed implicitly."""
@@ -59,6 +83,8 @@ class RepatchTest(RepatchTestSupport):
         self.assertTrue(patches["Hide ads"]["enabled"])
         self.assertFalse(patches["Change package name"]["enabled"])
         self.assertTrue(self.output.is_file())
+        self.assertIn(f"✅ Patched APK: {self.output}", result.stdout)
+        self.assertNotIn("Install:", result.stdout)
         self.assertFalse(Path(args[args.index("-t") + 1]).parent.exists())
 
     def test_signing_and_rename_overrides(self):
@@ -69,6 +95,7 @@ class RepatchTest(RepatchTestSupport):
             KEYSTORE_ENTRY_PASSWORD="entry pass=word",
             APP_NAME="Threads Test",
             PACKAGE_NAME="com.example.threads",
+            FAKE_BADGING_PACKAGE="com.example.threads",
         )
         self.assertEqual(result.returncode, 0, result.stderr)
         args = self.calls()[1][1]
@@ -89,6 +116,83 @@ class RepatchTest(RepatchTestSupport):
             patches["Change package name"]["options"]["packageName"],
             "com.example.threads",
         )
+
+    def test_expected_package_does_not_filter_source_patch_compatibility(self):
+        result = self.run_helper(
+            "--expected-package",
+            "com.example.clone",
+            FAKE_BADGING_PACKAGE="com.example.clone",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        options_args = self.calls()[0][1]
+        self.assertNotIn("-f", options_args)
+
+    def test_source_package_filters_options_independently_of_expected_output(self):
+        result = self.run_helper(
+            "--expected-package",
+            "com.example.clone",
+            SOURCE_PACKAGE_NAME="com.example.app",
+            FAKE_BADGING_PACKAGE="com.example.clone",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        options_args = self.calls()[0][1]
+        self.assertIn("-f", options_args)
+        self.assertEqual(options_args[options_args.index("-f") + 1], "com.example.app")
+
+    def test_expected_package_manifest_guard_accepts_matching_clone(self):
+        result = self.run_helper(
+            PACKAGE_NAME="com.example.clone",
+            FAKE_BADGING_PACKAGE="com.example.clone",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(self.output.is_file())
+        self.assertIn("✅ Patched APK", result.stdout)
+
+    def test_expected_package_manifest_mismatch_quarantines_output(self):
+        result = self.run_helper(
+            "--expected-package",
+            "com.example.expected",
+            FAKE_BADGING_PACKAGE="com.example.wrong",
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("output package mismatch", result.stderr)
+        self.assertFalse(self.output.exists())
+        self.assertTrue(Path(str(self.output) + ".invalid").exists())
+        self.assertNotIn("✅ Patched APK", result.stdout)
+
+    def test_skipped_required_clone_rename_quarantines_output(self):
+        result = self.run_helper(
+            PACKAGE_NAME="com.example.clone",
+            FAKE_BADGING_PACKAGE="com.example.clone",
+            FAKE_PATCH_OUTPUT="INFO: Skipping disabled: Change package name",
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("required patch(es) skipped", result.stderr)
+        self.assertFalse(self.output.exists())
+        self.assertTrue(Path(str(self.output) + ".invalid").exists())
+        self.assertNotIn("✅ Patched APK", result.stdout)
+
+    def test_options_file_mismatch_and_optional_disabled_patch_are_nonfatal(self):
+        result = self.run_helper(
+            FAKE_PATCH_OUTPUT=(
+                "WARNING: Options file is out of date for the patch bundle\\n"
+                "INFO: Skipping disabled: Optional patch"
+            )
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(self.output.is_file())
+        self.assertIn("✅ Patched APK", result.stdout)
+
+    def test_required_patch_not_applied_quarantines_output(self):
+        result = self.run_helper(
+            PACKAGE_NAME="com.example.clone",
+            FAKE_BADGING_PACKAGE="com.example.clone",
+            FAKE_OMIT_APPLIED="Change package name",
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("required patch(es) not applied", result.stderr)
+        self.assertFalse(self.output.exists())
+        self.assertTrue(Path(str(self.output) + ".invalid").exists())
 
     def test_newest_local_bundle_excludes_documentation(self):
         """Verify the script selects the newest .mpp bundle while excluding javadoc and sources artifacts."""
@@ -160,8 +264,33 @@ class RepatchTest(RepatchTestSupport):
         args = self.calls()[1][1]
         self.assertFalse(Path(args[args.index("-t") + 1]).parent.exists())
 
+    def install_morphe_command(self):
+        """Provide a PATH launcher backed by the existing fake Java harness."""
+        command = self.root / "bin/morphe"
+        command.write_text('#!/bin/sh\nexec java -jar "path-command.jar" "$@"\n')
+        command.chmod(0o755)
+
+    def test_morphe_command_preferred_over_legacy_jar(self):
+        """Use Morphe on PATH even when a legacy JAR is present."""
+        self.install_morphe_command()
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(Path(self.env["JAR_CAPTURE"]).read_text(), "path-command.jar")
+        self.assertEqual(
+            [call[0] for call in self.calls()], ["options-create", "patch"]
+        )
+
+    def test_morphe_command_without_legacy_jar(self):
+        """A normal command installation needs no manually downloaded JAR."""
+        self.install_morphe_command()
+        self.share_jar.unlink()
+        result = self.run_helper()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(self.output.is_file())
+
     def test_jar_flag_overrides_discovery(self):
         """Verify --jar <path> beats the share-dir JAR for manual testing."""
+        self.install_morphe_command()
         override = self.root / "manual-test-all.jar"
         override.touch()
         os.utime(self.share_jar, (300, 300))
@@ -205,16 +334,42 @@ class RepatchTest(RepatchTestSupport):
         self.share_jar.unlink()
         result = self.run_helper()
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("Morphe JAR not found", result.stderr)
+        self.assertIn("Morphe not found", result.stderr)
+        self.assertIn("brew install morphe", result.stderr)
         self.assertIn("~/.local/share/morphe/", result.stderr)
         self.assertIn("--jar", result.stderr)
         self.assertFalse(Path(self.env["CALLS"]).exists())
 
-    def test_keystore_standard_location_fallback(self):
-        """Verify an imported keystore in the data dir is picked up automatically."""
+    def test_morphe_data_dir_keystore_is_discovered_with_default_credentials(self):
+        """Prefer the selected Morphe data-dir key and apply the shared-key defaults."""
+        data = self.root / "selected-morphe-data"
+        data.mkdir()
+        key = data / "morphe.keystore"
+        key.touch()
+        (data / "imported.keystore").touch()
+        result = self.run_helper(KEYSTORE=None, MORPHE_DATA_DIR=str(data))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        args = self.calls()[1][1]
+        self.assertFalse(any(a.startswith("--keystore") for a in args), args)
+
+    def test_homebrew_data_dir_keystore_is_discovered(self):
+        """Find the Morphe default key beneath HOMEBREW_PREFIX/var/morphe."""
+        prefix = self.root / "homebrew"
+        data = prefix / "var/morphe"
+        data.mkdir(parents=True)
+        key = data / "morphe.keystore"
+        key.touch()
+        result = self.run_helper(KEYSTORE=None, HOMEBREW_PREFIX=str(prefix))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse(
+            any(a.startswith("--keystore") for a in self.calls()[1][1]),
+            self.calls()[1][1],
+        )
+
+    def test_legacy_keystore_location_fallback(self):
+        """Retain legacy imported-key discovery when no active Morphe data dir exists."""
         data = self.home / ".local/share/morphe/morphe-data"
         data.mkdir(parents=True)
-        (data / "morphe.keystore").touch()
         imported = data / "imported.keystore"
         imported.touch()
         result = self.run_helper(KEYSTORE=None)

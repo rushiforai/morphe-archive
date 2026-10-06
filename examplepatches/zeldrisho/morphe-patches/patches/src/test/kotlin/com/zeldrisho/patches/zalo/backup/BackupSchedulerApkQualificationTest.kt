@@ -30,6 +30,26 @@ class BackupSchedulerApkQualificationTest {
             .newInstance(config, metadata)
     }
 
+    /** Checks the unique Drive eligibility predicate in ZALO_TEST_APK, skipping when unset. */
+    @Test
+    fun matchesUniqueMediaBackupEligibilityInPinnedApk() {
+        val path = System.getenv("ZALO_TEST_APK")
+        assumeTrue("Set ZALO_TEST_APK to the pinned Zalo base APK", !path.isNullOrBlank())
+        val container = DexFileFactory.loadDexContainer(File(path!!), Opcodes.getDefault())
+        val eligibilityClass = container.dexEntryNames.asSequence()
+            .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+            .single { it.type == "Lmm/k;" }
+        with(context()) {
+            MediaBackupEligibility.clearMatch()
+            val match = MediaBackupEligibility.matchAll(eligibilityClass, 1..1).single()
+            assertEquals("m", match.originalMethod.name)
+            assertEquals(
+                listOf("Lcom/zing/zalo/data/backuprestore/model/TargetBackupInfo;"),
+                match.originalMethod.parameterTypes,
+            )
+        }
+    }
+
     /** Checks the unique scheduler signature in ZALO_TEST_APK, skipping when the input is unset. */
     @Test
     fun matchesUniqueNativeSchedulerInPinnedApk() {

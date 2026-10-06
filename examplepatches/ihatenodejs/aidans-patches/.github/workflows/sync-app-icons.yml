@@ -1,0 +1,95 @@
+name: Sync Application Icons
+
+on:
+  schedule:
+    # Run every Sunday at 00:00 UTC
+    - cron: '0 0 * * 0'
+  push:
+    branches:
+      - dev
+      - main
+    paths:
+      - 'patches-list.json'
+  workflow_dispatch:
+    inputs:
+      force_sync_all:
+        description: 'Force re-download and check all app icons from Google Play'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-icons:
+    name: Check & Sync App Icons
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Fast gate check: on push events, exit immediately if all icons already exist
+      - name: Check for missing icons
+        id: gate
+        if: github.event_name == 'push' && !inputs.force_sync_all
+        run: |
+          python3 .github/scripts/sync_app_icons.py --check-only
+
+      - name: Install dependencies
+        if: github.event_name != 'push' || steps.gate.outputs.has_missing == 'true' || inputs.force_sync_all
+        run: |
+          pip install --no-cache-dir Pillow
+
+      - name: Run Icon Sync
+        id: sync
+        if: github.event_name != 'push' || steps.gate.outputs.has_missing == 'true' || inputs.force_sync_all
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && [ "${{ inputs.force_sync_all }}" != "true" ]; then
+            python3 .github/scripts/sync_app_icons.py --download-missing
+          else
+            python3 .github/scripts/sync_app_icons.py --sync-all
+          fi
+
+      - name: Create or update Pull Request
+        if: steps.sync.outputs.changes_detected == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_BRANCH: chore/update-app-icons
+          TARGET_BRANCH: dev
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$SOURCE_BRANCH"
+          git add site/public/icons/ site/src/data/icons.ts
+          git commit -m "chore(icons): sync application icons from Google Play"
+          git push --force "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" "$SOURCE_BRANCH"
+
+          if gh pr list --base "$TARGET_BRANCH" --head "$SOURCE_BRANCH" --json number | jq -e '. | length > 0' >/dev/null; then
+            echo "Pull request already exists; pushed updated commit to $SOURCE_BRANCH."
+            exit 0
+          fi
+
+          gh pr create \
+            --base "$TARGET_BRANCH" \
+            --head "$SOURCE_BRANCH" \
+            --title "chore(icons): sync application icons from Google Play" \
+            --body "$(cat <<'EOF'
+          ## Summary
+          Automated update of cached application icons in `site/public/icons/` from Google Play.
+
+          ${{ steps.sync.outputs.summary }}
+
+          - Cached at: `site/public/icons/<package>.png`
+          - Resolution: 128x128 PNG (optimized)
+          - PR Target: `dev`
+          EOF
+          )"

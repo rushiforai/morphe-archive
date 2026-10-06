@@ -14,8 +14,9 @@ internal const val CONTROLLER_EXTRAPOLATION_MANIFEST =
 
 private data class ControllerExtrapolationBuild(val version: String, val versionCode: Int, val measured: Boolean)
 
-// The layer edits no Steam Link code and hooks only the runtime's own library, so it does not
-// depend on the base. Its effect was measured on 5002363 only.
+// The layer edits no Steam Link code: it hooks the runtime's own library and wraps xrLocateSpace
+// for VRLink's controller pose action, which every base creates under the same name, so it does
+// not depend on the base. Its effect was measured on 5002363 only.
 private val CONTROLLER_EXTRAPOLATION_BUILDS = listOf(
     ControllerExtrapolationBuild("2.0.20", 5001712, measured = false),
     ControllerExtrapolationBuild("2.0.20", 5001812, measured = false),
@@ -37,7 +38,7 @@ internal fun controllerExtrapolationResource(name: String): ByteArray =
 @Suppress("unused")
 val controllerPoseExtrapolationPatch = rawResourcePatch(
     name = "Controller pose extrapolation (experimental)",
-    description = "Makes the Galaxy XR runtime extrapolate controller poses to the time VRLink requests. Stock, the runtime returns one controller sample per display frame, so 3 of VRLink's 4 pose sends per frame repeat it. Adds an OpenXR API layer; no Steam Link code is changed.",
+    description = "Makes the Galaxy XR runtime extrapolate controller poses to the time VRLink requests. Stock, the runtime returns one controller sample per display frame, so 3 of VRLink's 4 pose sends per frame repeat it. Also filters jitter out of the streamed controller pose: strongly at rest, barely in fast motion. Adds an OpenXR API layer; no Steam Link code is changed.",
     default = false,
 ) {
     category(PatchCategories.EXPERIMENTS)

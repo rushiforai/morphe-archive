@@ -27,6 +27,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -247,14 +248,12 @@ class HolidayLookFixtureTest {
                     mutable.accessFlags = mutable.accessFlags or AccessFlags.STATIC.value
                 },
                 "title forwarding argument" to { context, _, logo ->
-                    val setter = context.mutableClassDefBy(logo.bar.definingClass).methods.single { it.name == "I" &&
-                        it.parameterTypes.firstOrNull()?.toString() == "Ljava/lang/CharSequence;" }
+                    val setter = titleSetter(context, logo)
                     val reference = setter.instructions()[17].reference()
                     setter.replaceInstruction(17, "invoke-virtual {v2, v6}, $reference")
                 },
                 "title forwarding branch" to { context, _, logo ->
-                    val setter = context.mutableClassDefBy(logo.bar.definingClass).methods.single { it.name == "I" &&
-                        it.parameterTypes.firstOrNull()?.toString() == "Ljava/lang/CharSequence;" }
+                    val setter = titleSetter(context, logo)
                     val original = setter.getInstruction(7) as BuilderOffsetInstruction
                     setter.replaceInstruction(7, BuilderInstruction21t(Opcode.IF_NEZ, 2, original.target))
                 },
@@ -445,6 +444,14 @@ class HolidayLookFixtureTest {
         val HOOK = listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.CONST_4, Opcode.IF_NE, Opcode.SPUT_BOOLEAN,
             Opcode.SGET_OBJECT, Opcode.IF_NEZ, Opcode.GOTO, Opcode.CONST_4, Opcode.SPUT_OBJECT, Opcode.SPUT_BOOLEAN,
             Opcode.CONST_WIDE_16, Opcode.SPUT_WIDE, Opcode.NOP)
+    }
+
+    /** The chat list's own call names the setter; R8 renames it between builds (I, then G). */
+    private fun titleSetter(context: BytecodePatchContext, logo: HolidayLogoSites): MutableMethod {
+        val call = (logo.create.instructions()[logo.registerAt + 5] as ReferenceInstruction).reference as MethodReference
+        return context.mutableClassDefBy(logo.bar.definingClass).methods.single { it.name == call.name &&
+            it.parameterTypes.map(CharSequence::toString) == call.parameterTypes.map(CharSequence::toString) &&
+            it.returnType == call.returnType }
     }
 
     private fun Method.instructions(): List<Instruction> = implementation?.instructions?.toList().orEmpty()

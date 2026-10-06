@@ -10,6 +10,9 @@ public final class UiStrings {
     // 0 = Japanese, 1 = English, 2 = Traditional Chinese; -1 follows the device locale.
     private static volatile int selectedLanguage = -1;
     static {
+        TEXT.put("テーマ", new String[]{"Theme", "主題"});
+        TEXT.put("ライトモード", new String[]{"Light mode", "淺色模式"});
+        TEXT.put("ダークモード", new String[]{"Dark mode", "深色模式"});
         TEXT.put("再生速度変更", new String[]{"Change playback speed", "變更播放速度"});
         TEXT.put("スワイプで音量調整", new String[]{"Swipe to adjust volume", "滑動調整音量"});
         TEXT.put("上下スワイプで音量を調整します。輝度調整もONの場合は動画の右側で操作します", new String[]{"Swipe vertically to adjust volume. When brightness gestures are also enabled, use the right side of the video.", "上下滑動調整音量。若同時啟用亮度調整，請在影片右側操作。"});

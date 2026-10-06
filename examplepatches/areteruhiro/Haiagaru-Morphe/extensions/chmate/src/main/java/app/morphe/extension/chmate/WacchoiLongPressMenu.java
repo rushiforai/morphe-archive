@@ -5,9 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -21,10 +18,6 @@ import java.util.regex.Pattern;
 /** Adds a board-aware Wacchoi search action to ChMate's response long-press menu. */
 public final class WacchoiLongPressMenu {
     private static final int ITEM_ID = 75;
-    private static final Pattern LABELED_TOKEN = Pattern.compile(
-            "(?i)(?:ﾜｯﾁｮｲw?|ワッチョイ|ﾜｯﾁｮｲ)\\s*[:：]?\\s*([a-z0-9]{4}[-‐‑–—][a-z0-9]{4,})");
-    private static final Pattern TOKEN = Pattern.compile(
-            "(?i)(?<![a-z0-9])([a-z0-9]{4}[-‐‑–—][a-z0-9]{4,})(?![a-z0-9])");
     private static final ThreadLocal<Object> ACTIVE_DIALOG = new ThreadLocal<>();
 
     private WacchoiLongPressMenu() {}
@@ -103,27 +96,20 @@ public final class WacchoiLongPressMenu {
         append(menu, dialogFragment, parent, context);
     }
 
-    /** Adds the action to ChMate 191's legacy ListView response menu. */
-    public static void appendLegacyForView(Object fragmentObject, Object menuObject,
-            Object targetObject) {
-        if (!(menuObject instanceof Menu) || fragmentObject == null) return;
+    /** Adds the action using ChMate 191's selected response, not a recycled row view. */
+    public static void appendLegacyForResponse(Object fragmentObject, Object menuObject,
+            Object responseObject) {
+        if (!(menuObject instanceof Menu) || fragmentObject == null || responseObject == null) return;
         Menu menu = (Menu) menuObject;
         if (menu.findItem(ITEM_ID) != null) return;
-        Object fragment = fragmentObject;
-        SearchContext context = findContextFromLegacyRow(fragment, targetObject);
-        append(menu, fragment, fragment, context);
-    }
-
-    /** Handles the added item in 191, whose popup callback does not dispatch MenuItem intents. */
-    public static boolean dispatchLegacyMenuItem(Object fragmentObject, int itemId,
-            Object itemObject) {
-        if (itemId != ITEM_ID || !(itemObject instanceof MenuItem) || fragmentObject == null) return false;
-        Intent intent = ((MenuItem) itemObject).getIntent();
-        if (intent == null) return false;
-        Object activity = invokeNoArg(fragmentObject, "getActivity");
-        if (!(activity instanceof Context)) return false;
-        ((Context) activity).startActivity(intent);
-        return true;
+        SearchContext found = new SearchContext();
+        // 191 stores the displayed name in n and the date/SLIP text in q.
+        // Do not search the response body: a quoted Wacchoi belongs to a
+        // different poster and must not become this menu's query.
+        found.query = queryInText(stringField(responseObject, "n"));
+        if (found.query == null) found.query = queryInText(stringField(responseObject, "q"));
+        readBoard(fieldValue(fragmentObject, "W"), found);
+        append(menu, fragmentObject, fragmentObject, found);
     }
 
     private static void append(Menu menu, Object dialogOrFragment, Object parent,
@@ -180,19 +166,33 @@ public final class WacchoiLongPressMenu {
             selectedResponse = fieldValue(target, "c");
         }
         if (selectedResponse != null) {
-            readTokenFromFields(selectedResponse, found);
-            if (found.query == null) visit(selectedResponse, 0, seen, found, true);
+            String selectedType = selectedResponse.getClass().getName();
+            if (selectedType.equals("o.BouncyCastleSocketAdapterCompanion")) {
+                // 226: m is the name, t is the date/SLIP, d is the body.
+                found.query = queryInText(stringField(selectedResponse, "m"));
+                if (found.query == null) found.query = queryInText(stringField(selectedResponse, "t"));
+            } else if (selectedType.equals("o.setDislikeWidth")) {
+                // 241: n is the name, p is the date/SLIP, g is the body.
+                found.query = queryInText(stringField(selectedResponse, "n"));
+                if (found.query == null) found.query = queryInText(stringField(selectedResponse, "p"));
+            } else {
+                readTokenFromFields(selectedResponse, found);
+                if (found.query == null) visit(selectedResponse, 0, seen, found, true);
+            }
         }
         // Some releases keep the selected response in the dialog's arguments
         // or view-model rather than the list fragment. Search that first so a
         // neighboring loaded row cannot supply the query accidentally.
-        if (found.query == null) visit(dialogFragment, 0, seen, found, true);
+        if (found.query == null && selectedResponse == null) {
+            visit(dialogFragment, 0, seen, found, true);
+        }
         if (found.query == null || found.host == null || found.board == null) {
             Object arguments = invokeNoArg(dialogFragment, "getArguments");
             if (arguments instanceof Bundle) {
                 Bundle bundle = (Bundle) arguments;
                 for (String key : bundle.keySet()) {
-                    visit(bundle.get(key), 0, seen, found, found.query == null);
+                    visit(bundle.get(key), 0, seen, found,
+                            found.query == null && selectedResponse == null);
                     if (found.isComplete()) break;
                 }
             }
@@ -205,71 +205,6 @@ public final class WacchoiLongPressMenu {
             visit(activity, 0, seen, found, false);
         }
         return found.query == null || found.host == null || found.board == null ? null : found;
-    }
-
-    private static SearchContext findContextFromLegacyRow(Object fragment, Object targetObject) {
-        Set<Object> seen = Collections.newSetFromMap(new IdentityHashMap<>());
-        SearchContext found = new SearchContext();
-        if (targetObject instanceof View) {
-            readVisibleText((View) targetObject, found, 0);
-            Object tag = ((View) targetObject).getTag();
-            if (found.query == null) visit(tag, 0, seen, found, true);
-        }
-        // The board is held on the legacy list fragment. Never fall back to
-        // another loaded post's token when the selected row has no Wacchoi.
-        visitForBoard(fragment, 0, seen, found);
-        return found.query == null || found.host == null || found.board == null ? null : found;
-    }
-
-    private static void readVisibleText(View view, SearchContext found, int depth) {
-        if (view == null || depth > 8 || found.query != null) return;
-        if (view instanceof TextView) {
-            String text = String.valueOf(((TextView) view).getText());
-            found.query = queryInText(text);
-            if (found.query != null) return;
-        }
-        CharSequence description = view.getContentDescription();
-        if (description != null) found.query = queryInText(description.toString());
-        if (found.query != null) return;
-        if (view instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) view;
-            for (int i = 0; i < group.getChildCount() && found.query == null; i++) {
-                readVisibleText(group.getChildAt(i), found, depth + 1);
-            }
-        }
-    }
-
-    private static void visitForBoard(Object value, int depth, Set<Object> seen,
-            SearchContext found) {
-        if (value == null || depth > 5 || !seen.add(value)) return;
-        Class<?> type = value.getClass();
-        if (!(type.getName().startsWith("jp.syoboi.a2chMate.")
-                || type.getName().startsWith("o."))) return;
-        if (type.getName().endsWith("BBSUrlInfo")) readBoard(value, found);
-        if (found.host != null && found.board != null) return;
-        for (Class<?> current = type; current != null && current != Object.class;
-                current = current.getSuperclass()) {
-            for (Field field : current.getDeclaredFields()) {
-                if (Modifier.isStatic(field.getModifiers()) || field.getType().isPrimitive()) continue;
-                try {
-                    field.setAccessible(true);
-                    Object child = field.get(value);
-                    if (child instanceof Iterable<?>) {
-                        for (Object item : (Iterable<?>) child) {
-                            visitForBoard(item, depth + 1, seen, found);
-                        }
-                    } else if (child != null && child.getClass().isArray()) {
-                        int length = Math.min(java.lang.reflect.Array.getLength(child), 32);
-                        for (int i = 0; i < length; i++) {
-                            visitForBoard(java.lang.reflect.Array.get(child, i), depth + 1, seen, found);
-                        }
-                    } else {
-                        visitForBoard(child, depth + 1, seen, found);
-                    }
-                    if (found.host != null && found.board != null) return;
-                } catch (Throwable ignored) { }
-            }
-        }
     }
 
     private static Object fieldValue(Object target, String name) {
@@ -334,6 +269,7 @@ public final class WacchoiLongPressMenu {
     }
 
     private static void readBoard(Object value, SearchContext found) {
+        if (value == null) return;
         String[] hostFields = {"f", "e", "b", "c", "i", "j"};
         String[] boardFields = {"g", "f", "c", "b", "j", "i"};
         for (String field : hostFields) {
@@ -418,16 +354,21 @@ public final class WacchoiLongPressMenu {
                     }
                     String text = raw == null ? null : raw.toString();
                     if (text == null) continue;
-                    Matcher labeled = LABELED_TOKEN.matcher(text);
-                    if (labeled.find()) {
-                        found.query = normalize(labeled.group(1));
+                    String edgeSlip = KyodemoRouting.edgeWacchoiInText(text);
+                    if (edgeSlip != null) {
+                        found.query = edgeSlip;
+                        return;
+                    }
+                    String labeled = KyodemoRouting.labeledWacchoiInText(text);
+                    if (labeled != null) {
+                        found.query = labeled;
                         return;
                     }
                     // ChMate stores the already-parsed token without its label
                     // in some versions; only accept a standalone token then.
-                    Matcher token = TOKEN.matcher(text);
-                    if (token.find()) {
-                        found.query = normalize(token.group(1));
+                    String token = KyodemoRouting.bareWacchoiInText(text);
+                    if (token != null) {
+                        found.query = token;
                         return;
                     }
                 } catch (Throwable ignored) { }
@@ -437,15 +378,11 @@ public final class WacchoiLongPressMenu {
 
     private static String queryInText(String text) {
         if (text == null || text.isEmpty()) return null;
-        Matcher labeled = LABELED_TOKEN.matcher(text);
-        if (labeled.find()) return normalize(labeled.group(1));
-        Matcher token = TOKEN.matcher(text);
-        return token.find() ? normalize(token.group(1)) : null;
-    }
-
-    private static String normalize(String value) {
-        return value == null ? null : value.replace('‐', '-').replace('‑', '-')
-                .replace('–', '-').replace('—', '-');
+        String edgeSlip = KyodemoRouting.edgeWacchoiInText(text);
+        if (edgeSlip != null) return edgeSlip;
+        String labeled = KyodemoRouting.labeledWacchoiInText(text);
+        if (labeled != null) return labeled;
+        return KyodemoRouting.bareWacchoiInText(text);
     }
 
     private static Object invokeNoArg(Object target, String name) {

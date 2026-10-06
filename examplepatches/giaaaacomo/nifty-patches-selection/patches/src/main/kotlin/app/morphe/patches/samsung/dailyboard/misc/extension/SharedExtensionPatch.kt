@@ -6,6 +6,8 @@
  */
 package app.morphe.patches.samsung.dailyboard.misc.extension
 
-import app.morphe.patches.all.misc.extension.sharedExtensionPatch
+import app.morphe.patcher.patch.bytecodePatch
 
-val sharedExtensionPatch = sharedExtensionPatch(listOf("samsung"))
+val sharedExtensionPatch = bytecodePatch {
+    extendWith("extensions/samsung.mpe")
+}

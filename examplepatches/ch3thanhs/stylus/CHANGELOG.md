@@ -1,3 +1,15 @@
+## [1.7.0](https://github.com/ch3thanhs/stylus/compare/v1.6.0...v1.7.0) (2026-10-06)
+
+### ✨ New Features
+
+* **telegram-web:** add support for telegram web ([2a0be5c](https://github.com/ch3thanhs/stylus/commit/2a0be5c0fadd5d492937a556d0f8c2dd8cb228c1)), closes [#32](https://github.com/ch3thanhs/stylus/issues/32)
+
+## [1.7.0-dev.1](https://github.com/ch3thanhs/stylus/compare/v1.6.0...v1.7.0-dev.1) (2026-10-06)
+
+### ✨ New Features
+
+* **telegram-web:** add support for telegram web ([2a0be5c](https://github.com/ch3thanhs/stylus/commit/2a0be5c0fadd5d492937a556d0f8c2dd8cb228c1)), closes [#32](https://github.com/ch3thanhs/stylus/issues/32)
+
 ## [1.6.0](https://github.com/ch3thanhs/stylus/compare/v1.5.4...v1.6.0) (2026-10-04)
 
 ### 🐛 Bug Fixes

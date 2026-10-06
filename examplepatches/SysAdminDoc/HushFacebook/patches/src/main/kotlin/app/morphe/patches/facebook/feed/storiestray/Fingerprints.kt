@@ -61,10 +61,10 @@ internal fun unifiedTrayAdapters(configuration: ClassDef): List<Method> = config
  * method returns first thing when a field of its own class, the list it built last time, is
  * already set, and that field is cleared only when the feed's view goes (read from 577 and 580,
  * 2026-09-26). So the tray adapters are asked once per feed view, on the resume that follows its
- * creation, and never again on a pull to refresh or a later resume. That's why the settings row
- * and the README say the switch takes effect when Facebook restarts, and why [buildsListOnce] is
- * pinned on every declared build: a Facebook that starts rebuilding the list makes that wording
- * wrong, and the fixture test says so.
+ * creation, and never again on a pull to refresh or a later resume. That's why the patch hides
+ * the tray through its adapters' counts, which the feed reads on every change, and not where the
+ * adapters are built, and why [buildsListOnce] is pinned on every declared build: a Facebook that
+ * starts rebuilding the list would say so in the fixture test.
  */
 internal const val CREATE_ADAPTER = "NewsFeedAdapterConfiguration.createAdapter"
 

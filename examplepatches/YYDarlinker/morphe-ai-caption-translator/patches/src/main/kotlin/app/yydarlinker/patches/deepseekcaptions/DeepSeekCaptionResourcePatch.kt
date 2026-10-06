@@ -2,12 +2,40 @@ package app.yydarlinker.patches.deepseekcaptions
 
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.resourcePatch
+import org.w3c.dom.Document
 import org.w3c.dom.Element
 import java.io.File
 
 private const val LEGACY_PREF_KEY = "morphe_deepseek_caption_translator"
 private const val LEGACY_PREF_CLASS = "app.yydarlinker.deepseekcaptions.DeepSeekCaptionPreference"
-private const val PREF_KEY = "morphe_settings_screen_13_ai_captions"
+/**
+ * Navigation key of the AI caption screen. N26 moved the screen from the Morphe settings root into the
+ * Morphe video page, so only this outer navigation key changed; every preference key inside the screen
+ * (and therefore every stored value) is untouched and no user data is migrated.
+ *
+ * The `__ai_captions` suffix is what puts the entry directly under "Voice over translation": the video
+ * page is a sort-by-key group, and the Morphe host orders a group's children with
+ * `Collator.compare(childKeyA, childKeyB)` using the app language's collator. `morphe_vot_screen` is a
+ * strict prefix of this key, so the collator places this entry immediately after it and before any
+ * other key on the page, in every supported interface language.
+ */
+private const val PREF_KEY = "morphe_vot_screen__ai_captions"
+/**
+ * The pre-N26 top-level navigation key. It is kept only as a removal alias: an entry still carrying it
+ * (an older build of this patch, or resources left behind by one) is deleted, so the settings tree can
+ * never show the AI screen twice and no stale link survives the move.
+ */
+private const val LEGACY_NAV_KEY = "morphe_settings_screen_13_ai_captions"
+/**
+ * The verified Morphe video settings page. The Morphe host names a sort-by-key group by appending
+ * `_sort_by_key` to the screen key, so this is the key to look for in the delivered resources. It is
+ * matched literally rather than by title text or by any other key containing "video": binding by
+ * structure is what the patch contract below relies on.
+ */
+private const val VIDEO_PARENT_KEY = "morphe_settings_screen_12_video_sort_by_key"
+/** The verified voice-over-translation sub-screen; the AI screen is placed immediately after it. */
+private const val NARRATION_KEY = "morphe_vot_screen"
+private const val ANDROID_KEY_ATTRIBUTE = "android:key"
 private const val ENABLED_PREF_CLASS =
     "app.yydarlinker.deepseekcaptions.DeepSeekEnabledPreference"
 private const val TEXT_PREF_CLASS =
@@ -130,160 +158,238 @@ internal val deepSeekCaptionResourcePatch = resourcePatch(
         }
 
         fun Element.addCategory(title: String): Element {
-            val category = ownerDocument.createElement("PreferenceCategory")
+            val category = ownerDocument.createElement("app.yydarlinker.deepseekcaptions.CaptionSettingCategory")
             category.setAttribute("android:title", captionResourceTitle(title))
             appendChild(category)
             return category
         }
 
-        fun addPreferenceScreen(path: String, icon: String? = null): Boolean {
+        /** Every element of the document, outermost first. */
+        fun Document.elements(): List<Element> {
+            val nodes = getElementsByTagName("*")
+            return (0 until nodes.length).mapNotNull { nodes.item(it) as? Element }
+        }
+
+        fun Element.childByKey(key: String): Element? =
+            (0 until childNodes.length)
+                .mapNotNull { childNodes.item(it) as? Element }
+                .firstOrNull { it.getAttribute(ANDROID_KEY_ATTRIBUTE) == key }
+
+        /**
+         * Delete every entry this patch owns that must not survive: the original all-in-one dialog, the
+         * legacy navigation key, and any earlier copy of the current screen (which is what makes a
+         * second run of the assembly idempotent).
+         */
+        fun Document.removeOwnEntries() {
+            for (node in elements()) {
+                val key = node.getAttribute(ANDROID_KEY_ATTRIBUTE)
+                if (node.tagName == LEGACY_PREF_CLASS ||
+                    key == LEGACY_PREF_KEY ||
+                    key == LEGACY_NAV_KEY ||
+                    key == PREF_KEY
+                ) {
+                    node.parentNode?.removeChild(node)
+                }
+            }
+        }
+
+        /** The AI caption screen itself, with the N25 content and its order left untouched. */
+        fun buildPreferenceScreen(document: Document): Element {
+            val screen = document.createElement("PreferenceScreen")
+            screen.setAttribute("android:key", PREF_KEY)
+            screen.setAttribute("android:title", "@string/cap_ai_title")
+            screen.setAttribute("android:summary", "@string/cap_ai_summary")
+            screen.setAttribute("android:singleLineTitle", "false")
+            // The entry renders as an ordinary sub-screen row of the page it sits on, exactly like the
+            // narration row next to it: no icon, no icon layout, and no reserved icon space. Every one of
+            // the 25 nested sub-screens the host ships is attribute-free in the same way, so this matches
+            // the page rather than adding a second, custom row style.
+
+            screen.addPreference(
+                ENABLED_PREF_CLASS,
+                "deepseek_caption_enabled",
+                "启用 AI 字幕翻译",
+            )
+
+            screen.addPreference(
+                "app.yydarlinker.deepseekcaptions.CaptionLanguagesPreference",
+                "deepseek_caption_languages",
+                "自动翻译语言",
+                "选择要加入 YouTube 自动翻译菜单的语言",
+            ).setAttribute("android:order", "1")
+            screen.childByKey("deepseek_caption_enabled")?.setAttribute("android:order", "0")
+
+            screen.addPreference(
+                "app.yydarlinker.deepseekcaptions.CaptionFlyoutPreference",
+                "deepseek_caption_flyout_menu",
+                "普通视频弹出菜单中的 AI 字幕开关",
+                "在播放器弹出菜单中显示快捷开关；隐藏不关闭 AI 字幕，下次打开菜单生效",
+            )
+
+            screen.addPreference(
+                "app.yydarlinker.deepseekcaptions.CaptionShortsFlyoutPreference",
+                "deepseek_caption_shorts_flyout_menu",
+                "Shorts 弹出菜单中的 AI 字幕开关",
+                "在播放器弹出菜单中显示快捷开关；隐藏不关闭 AI 字幕，下次打开菜单生效",
+            )
+
+            screen.addCategory("API 配置").apply {
+                addPreference("app.yydarlinker.deepseekcaptions.ApiProfilesPreference",
+                    "deepseek_caption_profiles", "API 配置方案")
+                addPreference(
+                    TEXT_PREF_CLASS,
+                    "deepseek_caption_base_url",
+                    "API 地址",
+                    "填写兼容接口地址，停止输入后自动保存",
+                )
+                addPreference(
+                    "app.yydarlinker.deepseekcaptions.ApiKeyPreference",
+                    "deepseek_caption_api_key",
+                    "API Key",
+                )
+                addPreference(
+                    MODEL_PREF_CLASS,
+                    "deepseek_caption_model",
+                    "模型",
+                    "自动获取可用模型，也支持手动输入",
+                )
+                addPreference(
+                    ACTION_PREF_CLASS,
+                    "deepseek_caption_test_api",
+                    "测试 API",
+                    "使用当前已自动保存的配置测试连接",
+                )
+                addPreference(
+                    ACTION_PREF_CLASS,
+                    "deepseek_caption_delete_key",
+                    "清除本方案的 API Key",
+                )
+            }
+
+            screen.addCategory("翻译").apply {
+                addPreference(
+                    TEXT_PREF_CLASS,
+                    "deepseek_caption_prompt",
+                    "翻译要求",
+                    "各方案独立保存；清空恢复随界面语言变化的默认要求",
+                )
+            }
+
+            screen.addCategory("字幕样式").apply {
+                addPreference("app.yydarlinker.deepseekcaptions.SubtitleStylePreview",
+                    "deepseek_caption_style_preview", "字幕预览")
+                addPreference(
+                    SLIDER_PREF_CLASS,
+                    "deepseek_caption_text_size",
+                    "字幕大小",
+                    "相对字号 8–15；13sp 为舒适基准，随画面比例缩放",
+                )
+                addPreference(
+                    SLIDER_PREF_CLASS,
+                    "deepseek_caption_background_opacity",
+                    "背景不透明度",
+                    "0% 为透明，100% 为不透明；松手保存",
+                )
+                addPreference(
+                    ACTION_PREF_CLASS,
+                    "deepseek_caption_reset_position",
+                    "恢复字幕默认位置",
+                    "恢复竖直位置，保留字号和背景设置",
+                )
+            }
+
+            screen.addCategory("缓存与诊断").apply {
+                addPreference(
+                    ACTION_PREF_CLASS,
+                    "deepseek_caption_clear_cache",
+                    "清除字幕缓存",
+                )
+                addPreference(
+                    DISPLAY_TEXT_DEBUG_PREF_CLASS,
+                    "deepseek_caption_display_text_debug",
+                    "显示文本调试",
+                    "排查时记录字幕原文与译文，默认关闭",
+                )
+                addPreference(
+                    DIAGNOSTICS_PREF_CLASS,
+                    "deepseek_caption_diagnostics",
+                    "字幕诊断",
+                    "展开查看，可手动刷新或复制",
+                )
+            }
+            var order = 0
+            for (node in (0 until screen.childNodes.length).mapNotNull { screen.childNodes.item(it) as? Element }) {
+                node.setAttribute("android:order", (order++).toString())
+                node.setAttribute("android:iconSpaceReserved", "false")
+            }
+            return screen
+        }
+
+        /**
+         * Assemble the entry into a Morphe settings resource, inside the video page.
+         *
+         * The screen is placed only after the video page has been proven to exist exactly once. A resource
+         * that carries Morphe settings but no unambiguous video page is a structural binding failure, and
+         * quietly falling back to a root entry (or to the stock YouTube settings list) would leave the
+         * feature somewhere the user was never told to look, so that case throws instead.
+         */
+        fun addMorphePreferenceScreen(path: String): Boolean {
+            val file = get(path, copy = false)
+            if (!file.exists()) return false
+
+            document(path).use { document ->
+                val videoParents = document.elements()
+                    .filter { it.getAttribute(ANDROID_KEY_ATTRIBUTE) == VIDEO_PARENT_KEY }
+                if (videoParents.size != 1) {
+                    throw PatchException(
+                        "$path declares ${videoParents.size} '$VIDEO_PARENT_KEY' screens, expected exactly " +
+                                "one. The AI caption screen belongs to the Morphe video page, so that page " +
+                                "must be present and unambiguous; the entry is never moved to the settings root."
+                    )
+                }
+                val videoParent = videoParents.single()
+
+                // Nothing is removed until the destination is known, so a failed lookup cannot damage the
+                // resource it was looking at.
+                document.removeOwnEntries()
+
+                val screen = buildPreferenceScreen(document)
+                val narration = videoParent.childByKey(NARRATION_KEY)
+                if (narration != null) {
+                    // Immediately after "Voice over translation". The host orders this sort-by-key page with
+                    // the app language's collator, and PREF_KEY is that key plus a suffix, so the two rows
+                    // also stay adjacent after the host re-assigns their order.
+                    videoParent.insertBefore(screen, narration.nextSibling)
+                } else {
+                    // The narration patch is not selected: the entry simply takes its sorted place on the
+                    // page. No dependency on the narration patch is introduced and the root is not used.
+                    videoParent.appendChild(screen)
+                }
+            }
+            return true
+        }
+
+        /** Last-resort placement for a host with no Morphe settings at all: the stock YouTube list. */
+        fun addStockPreferenceScreen(path: String): Boolean {
             val file = get(path, copy = false)
             if (!file.exists()) return false
 
             document(path).use { document ->
                 val root = document.documentElement ?: return false
-
-                // Remove both the old all-in-one dialog entry and any earlier copy of this screen.
-                val nodes = document.getElementsByTagName("*")
-                for (i in nodes.length - 1 downTo 0) {
-                    val node = nodes.item(i)
-                    if (node is Element &&
-                        (node.tagName == LEGACY_PREF_CLASS ||
-                            node.getAttribute("android:key") == LEGACY_PREF_KEY ||
-                            node.getAttribute("android:key") == PREF_KEY)
-                    ) {
-                        node.parentNode?.removeChild(node)
-                    }
-                }
-
-                val screen = document.createElement("PreferenceScreen")
-                screen.setAttribute("android:key", PREF_KEY)
-                screen.setAttribute("android:title", "@string/cap_ai_title")
-                screen.setAttribute("android:summary", "@string/cap_autosave")
-                icon?.let {
-                    screen.setAttribute("android:icon", "@drawable/$it")
-                    screen.setAttribute("app:iconSpaceReserved", "true")
-                    screen.setAttribute("android:layout", "@layout/preference_with_icon")
-                }
-
-                screen.addPreference(
-                    ENABLED_PREF_CLASS,
-                    "deepseek_caption_enabled",
-                    "启用 AI 字幕翻译",
-                )
-
-                screen.addPreference(
-                    "app.yydarlinker.deepseekcaptions.CaptionFlyoutPreference",
-                    "deepseek_caption_flyout_menu",
-                    "普通视频弹出菜单中的 AI 字幕开关",
-                    "在播放器弹出菜单中显示快捷开关；隐藏不关闭 AI 字幕，下次打开菜单生效",
-                )
-
-                screen.addPreference(
-                    "app.yydarlinker.deepseekcaptions.CaptionShortsFlyoutPreference",
-                    "deepseek_caption_shorts_flyout_menu",
-                    "Shorts 弹出菜单中的 AI 字幕开关",
-                    "在播放器弹出菜单中显示快捷开关；隐藏不关闭 AI 字幕，下次打开菜单生效",
-                )
-
-                screen.addCategory("API 配置").apply {
-                    addPreference("app.yydarlinker.deepseekcaptions.ApiProfilesPreference",
-                        "deepseek_caption_profiles", "API 配置方案")
-                    addPreference(
-                        TEXT_PREF_CLASS,
-                        "deepseek_caption_base_url",
-                        "API 地址",
-                        "填写兼容接口地址，停止输入后自动保存",
-                    )
-                    addPreference(
-                        "app.yydarlinker.deepseekcaptions.ApiKeyPreference",
-                        "deepseek_caption_api_key",
-                        "API Key",
-                    )
-                    addPreference(
-                        MODEL_PREF_CLASS,
-                        "deepseek_caption_model",
-                        "模型",
-                        "自动获取可用模型，也支持手动输入",
-                    )
-                    addPreference(
-                        ACTION_PREF_CLASS,
-                        "deepseek_caption_test_api",
-                        "测试 API",
-                        "使用当前已自动保存的配置测试连接",
-                    )
-                    addPreference(
-                        ACTION_PREF_CLASS,
-                        "deepseek_caption_delete_key",
-                        "清除本方案的 API Key",
-                    )
-                }
-
-                screen.addCategory("翻译").apply {
-                    addPreference(
-                        TEXT_PREF_CLASS,
-                        "deepseek_caption_prompt",
-                        "翻译要求",
-                        "各方案独立保存；清空恢复随界面语言变化的默认要求",
-                    )
-                }
-
-                screen.addCategory("字幕样式").apply {
-                    addPreference("app.yydarlinker.deepseekcaptions.SubtitleStylePreview",
-                        "deepseek_caption_style_preview", "字幕预览")
-                    addPreference(
-                        SLIDER_PREF_CLASS,
-                        "deepseek_caption_text_size",
-                        "字幕大小",
-                        "相对字号 8–15；13sp 为舒适基准，随画面比例缩放",
-                    )
-                    addPreference(
-                        SLIDER_PREF_CLASS,
-                        "deepseek_caption_background_opacity",
-                        "背景不透明度",
-                        "0% 为透明，100% 为不透明；松手保存",
-                    )
-                    addPreference(
-                        ACTION_PREF_CLASS,
-                        "deepseek_caption_reset_position",
-                        "恢复字幕默认位置",
-                        "恢复竖直位置，保留字号和背景设置",
-                    )
-                }
-
-                screen.addCategory("缓存与诊断").apply {
-                    addPreference(
-                        ACTION_PREF_CLASS,
-                        "deepseek_caption_clear_cache",
-                        "清除字幕缓存",
-                    )
-                    addPreference(
-                        DISPLAY_TEXT_DEBUG_PREF_CLASS,
-                        "deepseek_caption_display_text_debug",
-                        "显示文本调试",
-                        "排查时记录字幕原文与译文，默认关闭",
-                    )
-                    addPreference(
-                        DIAGNOSTICS_PREF_CLASS,
-                        "deepseek_caption_diagnostics",
-                        "字幕诊断",
-                        "展开查看，可手动刷新或复制",
-                    )
-                }
-                root.appendChild(screen)
+                document.removeOwnEntries()
+                root.appendChild(buildPreferenceScreen(document))
             }
             return true
         }
 
         var morpheSettingsFound = false
-        morpheSettingsFound =
-            addPreferenceScreen("res/xml/morphe_prefs.xml") || morpheSettingsFound
-        morpheSettingsFound =
-            addPreferenceScreen("res/xml/morphe_prefs_icons.xml", ICON_NAME) ||
-                morpheSettingsFound
-        morpheSettingsFound =
-            addPreferenceScreen("res/xml/morphe_prefs_icons_bold.xml", ICON_BOLD_NAME) ||
-                morpheSettingsFound
+        listOf(
+            "res/xml/morphe_prefs.xml",
+            "res/xml/morphe_prefs_icons.xml",
+            "res/xml/morphe_prefs_icons_bold.xml",
+        ).forEach { path ->
+            morpheSettingsFound = addMorphePreferenceScreen(path) || morpheSettingsFound
+        }
 
         if (!morpheSettingsFound) {
             var stockSettingsFound = false
@@ -291,7 +397,7 @@ internal val deepSeekCaptionResourcePatch = resourcePatch(
                 "res/xml/settings_fragment.xml",
                 "res/xml/settings_fragment_cairo.xml",
             ).forEach { path ->
-                stockSettingsFound = addPreferenceScreen(path) || stockSettingsFound
+                stockSettingsFound = addStockPreferenceScreen(path) || stockSettingsFound
             }
             if (!stockSettingsFound) {
                 throw PatchException(

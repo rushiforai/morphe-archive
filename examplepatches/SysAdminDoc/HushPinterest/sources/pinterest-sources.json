@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "note": "Public sources reviewed for com.pinterest, with pinned commits, licenses and dispositions. scripts/pinterest-sources.ps1 validates schema version 1, scripts/audit-pinterest-sources.ps1 reports changes, and a local release needs a census from the last 14 days. docs/sources.md is the readable version. The 2026-10-03 native-source review did not refresh the full 2026-10-02 census. On 2026-10-03, GitHub repository search for pinterest org:Xposed-Modules-Repo returned 0. Indexed code searches for \"com.pinterest\" IXposedHookLoadPackage and \"com.pinterest\" XposedHelpers returned 1 and 4 files respectively, all from this project's audit or ktlint build catalogs. All three responses reported incomplete_results=false. No Pinterest hook implementation was identified in those results. These query results do not establish global absence of Xposed or LSPosed modules.",
+  "note": "Public sources reviewed for com.pinterest, with pinned commits, licenses and dispositions. scripts/pinterest-sources.ps1 validates schema version 1, scripts/audit-pinterest-sources.ps1 reports changes, and a local release needs a census from the last 14 days. docs/sources.md is the readable version. The 2026-10-05 audit settled every change it found since 2026-10-02 and restamped the census. GitLab code search was skipped that day because no GitLab token was available, and the census records the skip. On 2026-10-03, GitHub repository search for pinterest org:Xposed-Modules-Repo returned 0. Indexed code searches for \"com.pinterest\" IXposedHookLoadPackage and \"com.pinterest\" XposedHelpers returned 1 and 4 files respectively, all from this project's audit or ktlint build catalogs. All three responses reported incomplete_results=false. No Pinterest hook implementation was identified in those results. These query results do not establish global absence of Xposed or LSPosed modules. No code from any outside Pinterest source has been adopted.",
   "census": {
-    "checkedAt": "2026-10-02",
-    "skipped": []
+    "checkedAt": "2026-10-05",
+    "skipped": ["gitlab-code-search"]
   },
   "self": {
     "repository": "https://github.com/SysAdminDoc/HushPinterest"
@@ -20,8 +20,9 @@
       "name": "Morphe community directory",
       "url": "https://morphe-patches.software",
       "hushpinterest": {
-        "status": "not-listed",
-        "checked": "2026-10-02"
+        "status": "listed",
+        "url": "https://morphe-patches.software/data/bundles.json",
+        "checked": "2026-10-05"
       }
     },
     {
@@ -29,8 +30,9 @@
       "name": "Awesome Morphe",
       "url": "https://github.com/nvbangg/awesome-morphe",
       "hushpinterest": {
-        "status": "not-listed",
-        "checked": "2026-10-02"
+        "status": "listed",
+        "url": "https://github.com/nvbangg/awesome-morphe/blob/main/data/hashes.json",
+        "checked": "2026-10-05"
       }
     },
     {
@@ -38,8 +40,9 @@
       "name": "Morphe Patch Tracker",
       "url": "https://drnx64.github.io/morphe-track-patches/",
       "hushpinterest": {
-        "status": "not-listed",
-        "checked": "2026-10-02"
+        "status": "listed",
+        "url": "https://raw.githubusercontent.com/drnx64/morphe-track-patches/main/data/bundles.json",
+        "checked": "2026-10-05"
       }
     },
     {
@@ -47,8 +50,9 @@
       "name": "Jman's ReVanced Patch Bundles",
       "url": "https://github.com/Jman-Github/ReVanced-Patch-Bundles",
       "hushpinterest": {
-        "status": "not-listed",
-        "checked": "2026-10-02"
+        "status": "listed",
+        "url": "https://github.com/Jman-Github/ReVanced-Patch-Bundles/blob/bundles/patch-bundles/bundle-sources.json",
+        "checked": "2026-10-05"
       }
     },
     {
@@ -56,8 +60,9 @@
       "name": "Morphe Archive",
       "url": "https://rushiforai.github.io/morphe-archive/",
       "hushpinterest": {
-        "status": "not-listed",
-        "checked": "2026-10-02"
+        "status": "listed",
+        "url": "https://github.com/rushiforai/morphe-archive/blob/main/examplepatches/SysAdminDoc/HushPinterest/patches-list.json",
+        "checked": "2026-10-05"
       }
     }
   ],
@@ -130,7 +135,7 @@
       "forks": [],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "id": "soubryan",
@@ -178,6 +183,14 @@
         {
           "name": "main",
           "commit": "a33eb3af9a5529d64496e2409b3a5d5ea33e9ccf"
+        },
+        {
+          "name": "dependabot/github_actions/dev/actions/setup-node-7",
+          "commit": "822dbc4784d8550df35aa8733d1a43ddc520feee"
+        },
+        {
+          "name": "dependabot/npm_and_yarn/dev/semantic-release-25.0.7",
+          "commit": "822dbc4784d8550df35aa8733d1a43ddc520feee"
         }
       ],
       "watchPaths": [
@@ -191,7 +204,7 @@
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "Fourteen Pinterest patches, release v1.7.0 on 2026-08-09, with 14.25.0 (14258020) as its recommended build, the same one HushPinterest starts from. It pins the Pinterest signing certificate and anchors on Gson field names and Pinterest-owned class names. Nothing newer since August, and its open issue 10 reports push notifications broken after patching on 14.25.0, which we'll want to compare against. The Google login signature spoofing patch is off by default and isn't something HushPinterest will ship. Its two compiled-APK mirrors are recorded below. Nothing has been ported from it.",
+      "reason": "Fourteen Pinterest patches, release v1.7.0 on 2026-08-09, with 14.25.0 (14258020) as its recommended build, the same one HushPinterest starts from. It pins the Pinterest signing certificate and anchors on Gson field names and Pinterest-owned class names. Nothing newer since August, and its open issue 10 reports push notifications broken after patching on 14.25.0, which we'll want to compare against. The Google login signature spoofing patch is off by default and isn't something HushPinterest will ship. Its two compiled-APK mirrors are recorded below. Nothing has been ported from it. On 2026-10-05 the audit found two new branches, both Dependabot dependency bumps (setup-node and semantic-release). Dependabot cut both from an older dev commit (822dbc4784d8550df35aa8733d1a43ddc520feee, 2026-07-15, a Firebase services patch), so the Pinterest code they carry is that old dev work and nothing new. Both are pinned at that commit.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
@@ -207,7 +220,7 @@
           "blobs": []
         }
       ],
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "id": "oyasumi",
@@ -227,19 +240,24 @@
         "Disable AppsFlyer tracking",
         "Disable Google Engage",
         "Disable email confirmation dialog",
+        "Disable in-app share sheet",
+        "Download pin from long press",
+        "Force original image download",
+        "Hide Notifications nav button",
         "Hide Search nav button",
+        "Hide comments",
         "Morphe settings entry",
         "Morphe settings screen (label)",
         "Morphe settings screen (manifest)",
         "Neutralize advertising ID"
       ],
       "patchCounts": {
-        "com.pinterest": 8
+        "com.pinterest": 13
       },
       "branches": [
         {
           "name": "dev",
-          "commit": "6465d7af8460692b8eca63a18eb30a23aba73b59"
+          "commit": "4d6329b9c8a0dcbf7f00cc97cf2e8601224e8dba"
         }
       ],
       "watchPaths": [
@@ -248,17 +266,17 @@
       ],
       "license": {
         "spdx": "GPL-3.0",
-        "url": "https://github.com/dunecache/oyasumi-patches/blob/6465d7af8460692b8eca63a18eb30a23aba73b59/LICENSE",
+        "url": "https://github.com/dunecache/oyasumi-patches/blob/4d6329b9c8a0dcbf7f00cc97cf2e8601224e8dba/LICENSE",
         "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
       },
       "contaminatedBy": null,
       "disposition": "candidate",
-      "reason": "Pinterest work lives on the dev branch only. Reviewed dev 6465d7af8460692b8eca63a18eb30a23aba73b59, released as prerelease v0.6.0-dev.10 on 2026-10-03, lists eight patches for 14.38.0 (14388010). It now includes the settings entry and its extension activity, plus an optional Search navigation button patch. Stable v0.5.3, published 2026-09-30 from main f419de56016295da9adab0b6c1a3d9bc6efb0e44, lists no Pinterest patches. The version helper compares numeric components. Its code and settings changes have been studied, not adopted or exercised by HushPinterest.",
+      "reason": "Pinterest work lives on the dev branch only. Reviewed dev 4d6329b9c8a0dcbf7f00cc97cf2e8601224e8dba (moved on 2026-10-05 from 6465d7af8460692b8eca63a18eb30a23aba73b59), whose Pinterest code matches prerelease v0.6.0-dev.24 of 2026-10-05. It lists thirteen patches for 14.38.0 (14388010). Since the last review it added patches for hiding comments, a Download action in the pin menu, forcing original-size image downloads, hiding the Notifications navigation button and disabling the in-app share sheet, next to the settings entry, its extension activity and the optional Search navigation button patch. Stable v0.5.3, published 2026-09-30 from main f419de56016295da9adab0b6c1a3d9bc6efb0e44, lists no Pinterest patches. The version helper compares numeric components. Its code and settings changes have been studied, not adopted or exercised by HushPinterest.",
       "archived": false,
       "forks": [],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-10-03"
+      "lastChecked": "2026-10-05"
     },
     {
       "id": "mubelotix",
@@ -307,7 +325,7 @@
         "b0c3db70d418aa83bb88a7907b7ff5dcf53c0c76"
       ],
       "mirrors": [],
-      "lastChecked": "2026-10-03"
+      "lastChecked": "2026-10-05"
     },
     {
       "id": "insane96",
@@ -347,7 +365,7 @@
       "forks": [],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "id": "koi",
@@ -385,7 +403,7 @@
       "forks": [],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "id": "binarymend",
@@ -422,12 +440,17 @@
       },
       "contaminatedBy": null,
       "disposition": "rejected",
-      "reason": "A 150-star multi-app bundle (v1.3.1) whose Pinterest patches pin obfuscated names from 14.11.0 and haven't changed since April. None of those anchors will match 14.25.0 or anything after it. Its open issues (Google login broken after patching, links not opening in the default browser) are worth reading as warnings. Licensed, but there's nothing here to take.",
+      "reason": "A 150-star multi-app bundle (v1.3.1) whose Pinterest patches pin obfuscated names from 14.11.0 and haven't changed since April. None of those anchors will match 14.25.0 or anything after it. Its open issues (Google login broken after patching, links not opening in the default browser) are worth reading as warnings. Licensed, but there's nothing here to take. Four forks (ozeroztas, Foxlass, GET100PERCENT and niamwite) were recorded on 2026-10-05 as part of this lineage. None was reviewed as a source of its own.",
       "archived": false,
-      "forks": [],
+      "forks": [
+        "ozeroztas/morphe-patches",
+        "Foxlass/morphe-patches",
+        "GET100PERCENT/morphe-patches",
+        "niamwite/morphe-patches"
+      ],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "id": "satanmerde",
@@ -462,44 +485,47 @@
       },
       "contaminatedBy": null,
       "disposition": "rejected",
-      "reason": "A large multi-app bundle (v1.36.0). Its three Pinterest patches are marked experimental and untested in its own README, and they scan every class for unobfuscated method names that don't exist in a minified Pinterest build (isCreatorToolsEnabled, canDownloadOriginalImage) or for generic SDK names like show and loadAd. They'd hook nothing or the wrong thing. No versions are declared. Its Unlock Creator & Pro Tools patch is also one HushPinterest wouldn't ship.",
+      "reason": "A large multi-app bundle (v1.36.0). Its three Pinterest patches are marked experimental and untested in its own README, and they scan every class for unobfuscated method names that don't exist in a minified Pinterest build (isCreatorToolsEnabled, canDownloadOriginalImage) or for generic SDK names like show and loadAd. They'd hook nothing or the wrong thing. No versions are declared. Its Unlock Creator & Pro Tools patch is also one HushPinterest wouldn't ship. Two forks (imsahilansarii and tikkamasalla) were recorded on 2026-10-05 as part of this lineage. Neither was reviewed as a source of its own.",
       "archived": false,
-      "forks": [],
+      "forks": [
+        "imsahilansarii/D-moniakPatches",
+        "tikkamasalla/D-moniakPatches"
+      ],
       "contentHashes": [],
       "mirrors": [],
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     }
   ],
   "outOfScope": [
     {
       "repository": "https://github.com/ReVanced/revanced-patches",
       "reason": "ReVanced's official bundle. GitHub blocked the repository (HTTP 451, a DMCA notice filed 2026-03-12), so its tree and history couldn't be read. Indirect evidence says it has no Pinterest patch: none of the 367 bundle patch lists tracked by Jman-Github/ReVanced-Patch-Bundles names com.pinterest apart from the five Morphe sources, and code search of its forks returns nothing. That's a gap in what we could verify, not a finding.",
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "repository": "https://github.com/anddea/revanced-patches",
       "reason": "A ReVanced fork. A git tree scan finds no path containing pinterest, and code search finds nothing (checked 2026-10-02).",
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "repository": "https://github.com/inotia00/revanced-patches",
       "reason": "A ReVanced fork, branch revanced-extended. A git tree scan finds no path containing pinterest, and code search finds nothing (checked 2026-10-02).",
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "repository": "https://github.com/crimera/piko",
       "reason": "A ReVanced fork for other apps. A git tree scan finds no path containing pinterest, and code search finds nothing (checked 2026-10-02).",
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "repository": "https://github.com/yashrajrocxx/Mophe-AutoBuilds",
       "reason": "Build automation that publishes ready-made patched APKs, including an arm64 build of browzomje's bundle at 14.34.0. It holds no patch code of its own. Its config is the evidence that anyone is distributing a patched Pinterest. Read at dda8c7d, not downloaded.",
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "repository": "https://github.com/netwxxt/block_pin_ads",
       "reason": "A mitmproxy script (GPL-3.0) that deletes any JSON object carrying an ad indicator key. Aimed at iOS but the API is shared, so it's evidence of the server's field names. It needs a trusted user certificate or a pinning bypass on Android, which a Morphe patch can't use.",
-      "lastChecked": "2026-10-02",
+      "lastChecked": "2026-10-05",
       "reference": {
         "kind": "historical",
         "branch": "main",
@@ -512,7 +538,7 @@
     {
       "repository": "https://github.com/authorisation/xterest",
       "reason": "An iOS Theos tweak (GPL-3.0), last touched 2024-10-02. It hooks PINPinNode and returns nil when the pin type is 2, which shows that Pinterest's own display type 2 means promoted on iOS. Not applicable to Android.",
-      "lastChecked": "2026-10-02",
+      "lastChecked": "2026-10-05",
       "reference": {
         "kind": "historical",
         "branch": "main",
@@ -525,22 +551,32 @@
     {
       "repository": "https://github.com/Angel2mp3/Pinterest-Power-Menu",
       "reason": "A web userscript (MIT). Its only use for the Android app is the set of labels Pinterest's web client puts on ads: Sponsored, Sponsored Content, Partner Content, Promoted. It has no hook for the app.",
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "repository": "https://github.com/goosetea04/pinterest-sponsor-blocker",
       "reason": "A web browser extension (MIT) that blocks sponsored pins on pinterest.com. Web only, nothing to take for the app beyond the same ad labels.",
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "repository": "https://github.com/x7007x/PinterestDownloader",
       "reason": "A Python library (MIT) that calls Pinterest's web resource endpoints without a key. A reference for media fields only: image sizes 236x, 474x, 736x and orig, and the video_list keys V_720P, V_HLSV4 and V_HLSV3_MOBILE, the same ones the app's model uses.",
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
     },
     {
       "repository": "https://github.com/motebaya/pindl-app",
       "reason": "A Flutter downloader app (MIT) built on the same web endpoints as x7007x/PinterestDownloader. A reference for media fields, not a patch source.",
-      "lastChecked": "2026-10-02"
+      "lastChecked": "2026-10-05"
+    },
+    {
+      "repository": "https://github.com/AuraFrameFxDev/AeGenesis",
+      "reason": "A repository that matched the code search for com.pinterest only because ktlint's Gradle group is com.pinterest in its version catalog. It has no Pinterest patch, hook or app code, so there's nothing to review (checked 2026-10-05).",
+      "lastChecked": "2026-10-05"
+    },
+    {
+      "repository": "https://github.com/AuraFrameFxDev/AuraOS-",
+      "reason": "A repository that matched the code search for com.pinterest only because ktlint's Gradle group is com.pinterest in its version catalog. It has no Pinterest patch, hook or app code, so there's nothing to review (checked 2026-10-05).",
+      "lastChecked": "2026-10-05"
     }
   ]
 }

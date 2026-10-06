@@ -7,7 +7,7 @@ import org.json.*;
 
 /** Single source-owned event contract. No post-translation concatenation or hidden resplit. */
 final class RebuildProtocol {
-  static final String VERSION = "event-rebuild-r2.12";
+  static final String VERSION = app.yydarlinker.extension.BuildConfig.CAPTION_PATCH_VERSION;
   static final String PROMPT =
       "You create faithful live subtitles. Read the complete source and read-only context before"
           + " translating. Preserve all spoken meaning, negation and its scope, conditions,"
@@ -49,7 +49,8 @@ final class RebuildProtocol {
       + " avoid_event_end_after contains soft source-dependency hints; choose a different coherent"
       + " range when possible. Do not finish an event on a subject before its verb or inside a noun phrase. A tank fleet is a force of tanks, not a naval fleet. Licensed/unlicensed describes authorization, not automatically legal/illegal. Do not turn adjacent source numbers into a numeric range, model designation, or unit relationship unless the source explicitly expresses it; preserve unresolved ASR ambiguity locally."
       + " For long multi-clause passages prefer multiple source-aligned events at the preferred font budget."
-      + " Never shorten a translation to satisfy that budget. An actual complete utterance overrides lexical hints. Preserve trailing place/direction complements, and distinguish a following subject plus finite verb from the preceding relative clause. In not always, keep the negation over always, not over the main verb. A product of can mean depends on, not multiplication. When adjacent ASR numbers cannot be resolved from source, explicitly preserve uncertainty locally rather than silently dropping one or inventing a model. Keep list markers with their following clause. If the plan would contain many short events, consolidate them into fewer clause-complete events while keeping every source token and its source-owned time range.";
+      + " Never shorten a translation to satisfy that budget. An actual complete utterance overrides lexical hints. Preserve trailing place/direction complements, and distinguish a following subject plus finite verb from the preceding relative clause. In not always, keep the negation over always, not over the main verb. A product of can mean depends on, not multiplication. When adjacent ASR numbers cannot be resolved from source, explicitly preserve uncertainty locally rather than silently dropping one or inventing a model. Keep list markers with their following clause. If the plan would contain many short events, consolidate them into fewer clause-complete events while keeping every source token and its source-owned time range."
+      + " Resolve polysemous words by the subject matter, and render colloquial interjections by their discourse function and intensity in the target language. Attach time and degree modifiers to the action or thought they actually modify, including in spoken asides. When a compressed or awkward explanatory statement would repeat its abstract head noun on both sides of the verb in the target language, restate the underlying action or relation idiomatically instead of producing an empty definition. Use neighboring context to disambiguate, never to add facts or words outside the owned source range. After selecting each event's IDs, copy every corresponding source token into that event's source field in order; do not shift even a short conjunction into an adjacent event.";
 
   static final class Event {
     final int from, to;
@@ -98,13 +99,17 @@ final class RebuildProtocol {
 
   static JSONObject payload(RebuildSource s, RebuildPlanner.Block b, String language, String repair)
       throws Exception {
+    return payload(s,b,language,repair,CaptionLanguageContext.LEGACY);
+  }
+  static JSONObject payload(RebuildSource s,RebuildPlanner.Block b,String language,String repair,
+                            CaptionLanguageContext context) throws Exception {
     JSONArray words = new JSONArray(), breaks = new JSONArray(), hints = new JSONArray(), avoid = new JSONArray();
     int precise = 0;
     for (int i = b.from; i <= b.to; i++) {
       RebuildSource.Word w = s.words.get(i);
       words.put(new JSONArray().put(i).put(w.text));
-      if(i>b.from && RebuildPlanner.resourceScore(s,i-1)>=50) hints.put(i);
-      if(i<b.to && avoid.length()<24 && RebuildPlanner.protectedCut(s,i))avoid.put(i);
+      if(i>b.from && RebuildPlanner.resourceScore(s,i-1,context)>=50) hints.put(i);
+      if(i<b.to && avoid.length()<24 && RebuildPlanner.protectedCut(s,i,context))avoid.put(i);
       if (w.precision != RebuildSource.Precision.ESTIMATED) precise++;
       if (i > b.from && (w.start - s.words.get(i - 1).end >= 650 || w.text.startsWith(">>")))
         breaks.put(i);
@@ -112,7 +117,7 @@ final class RebuildProtocol {
     JSONObject p =
         new JSONObject()
             .put("block", b.id())
-            .put("language", language)
+            .put("language", context.canApplyEnglishToChinese ? language : context.targetCode)
             .put("source_text", s.text(b.from, b.to))
             .put("owned_tokens", words)
             .put("source_breaks_before", breaks)
@@ -129,6 +134,9 @@ final class RebuildProtocol {
             .put("continued_after", b.continuedAfter)
             .put("context_before", RebuildPlanner.context(s, b.from - 24, b.from - 1))
             .put("context_after", RebuildPlanner.context(s, b.to + 1, b.to + 24));
+    if(!context.canApplyEnglishToChinese)p.put("source_code",context.sourceCode)
+        .put("policy_version",CaptionLanguageContext.POLICY_VERSION)
+        .put("presentation_policy","legacy_n26");
     if (repair != null && !repair.isEmpty())
       p.put(
           "repair",
@@ -138,8 +146,13 @@ final class RebuildProtocol {
     return p;
   }
 
+  /** Fixed English/Chinese legacy fixture entry; production must pass its bound context. */
   static Plan parseBound(String content, RebuildSource s, RebuildPlanner.Block b) throws Exception {
-    Plan plan=parse(content,s,b);
+    return parseBound(content,s,b,CaptionLanguageContext.LEGACY);
+  }
+  static Plan parseBound(String content,RebuildSource s,RebuildPlanner.Block b,CaptionLanguageContext context)
+      throws Exception {
+    Plan plan=parseInternal(content,s,b,context.canApplyEnglishToChinese,0,context);
     JSONArray rows=new JSONObject(plan.json).getJSONArray("events");
     for(int i=0;i<rows.length();i++)if(!(rows.getJSONObject(i).opt("source") instanceof String))
       throw new Invalid("source_quote_required", "Each event must copy its exact source range BEFORE translating it. Return source, from, to, text.");
@@ -147,10 +160,10 @@ final class RebuildProtocol {
   }
 
   static Plan parse(String content, RebuildSource s, RebuildPlanner.Block b) throws Exception {
-    return parseInternal(content,s,b,true,0);
+    return parseInternal(content,s,b,true,0,CaptionLanguageContext.LEGACY);
   }
 
-  private static Plan parseInternal(String content, RebuildSource s, RebuildPlanner.Block b,boolean mayRebind,int reboundEvents) throws Exception {
+  private static Plan parseInternal(String content, RebuildSource s, RebuildPlanner.Block b,boolean mayRebind,int reboundEvents,CaptionLanguageContext context) throws Exception {
     String raw = content == null ? "" : content.trim();
     if (raw.startsWith("```json\n") && raw.endsWith("```"))
       raw = raw.substring(8, raw.length() - 3).trim();
@@ -178,7 +191,7 @@ final class RebuildProtocol {
       if (from != next || to < from || to > b.to) {
         if(mayRebind){
           int changed=exactQuoteRebind(root,s,b);
-          if(changed>0)return parseInternal(root.toString(),s,b,false,changed);
+          if(changed>0)return parseInternal(root.toString(),s,b,false,changed,context);
         }
         throw new Invalid("source_coverage");
       }
@@ -189,21 +202,18 @@ final class RebuildProtocol {
       String source = s.text(from, to);
       if(e.has("source") && (!(e.opt("source") instanceof String) ||
           !source.replaceAll("\\s+", " ").trim().equals(e.getString("source").replaceAll("\\s+", " ").trim()))) {
-        String quoted=e.optString("source","");
-        if(quoted.length()>120)quoted=quoted.substring(0,120);
         Invalid mismatch=new Invalid("source_quote_mismatch",
-            "range="+from+"-"+to+"; exact source="+source+"; model quote="+quoted
-                +"; do not repeat or omit source words across adjacent events");
+            "range="+from+"-"+to+"; exact source="+source);
         // Only exact all-source recovery is allowed. No deletion, fuzzy matching, or free retries.
         if(mayRebind){
           int changed=exactQuoteRebind(root,s,b);
-          if(changed>0)return parseInternal(root.toString(),s,b,false,changed);
+          if(changed>0)return parseInternal(root.toString(),s,b,false,changed,context);
         }
         throw mismatch;
       }
       if (text.isEmpty() && !RebuildSource.nonSpeech(source))
         throw new Invalid("empty_translation");
-      if (text.length() > 600) throw new Invalid("paragraph");
+      if (context.canApplyEnglishToChinese && text.length() > 600) throw new Invalid("paragraph");
       if (text.contains("\"events\"") || text.startsWith("```")) throw new Invalid("protocol_leak");
       for (int k = from + 1; k <= to; k++)
         if (s.words.get(k).start - s.words.get(k - 1).end >= 650
@@ -212,20 +222,20 @@ final class RebuildProtocol {
       boolean cj = text.codePoints().anyMatch(RebuildSource::cjk);
       long a = s.words.get(from).start, z = s.words.get(to).end;
       // This is only a paragraph guard. Actual display fit is checked with Android measurement.
-      if ((visible > (cj ? 60 : 155) && (z - a > 8500 || sentences(text) > 1))
-          || visible > (cj ? 100 : 260)) presentation.add(new RebuildReview.Issue(from,to,"paragraph","Choose coherent source clauses at normal font; retain every proposition.",true));
-      if (!numbersSafe(source, text)) throw new Invalid("numeric_substitution");
-      try {
-        RebuildSemantics.validate(s, from, to, text);
-      } catch (Invalid invalid) {
-        if (!"numeric_range_invention".equals(invalid.code)) throw invalid;
-        // Keep the rest of a structurally sound block available, but never show
-        // this event's invented numeric range. The full block is still repaired.
-        presentation.add(new RebuildReview.Issue(from,to,"numeric_range_invention",
-            "The target invents a range between adjacent ASR numbers. Preserve uncertainty and translate the complete block again.",true));
-      }
-      if (to - from >= 8 && visible <= 1) throw new Invalid("information_collapse");
-      if (to < b.to && RebuildPlanner.strongDependentEnding(s, to))
+      if (context.canApplyEnglishToChinese && ((visible > (cj ? 60 : 155) && (z - a > 8500 || sentences(text) > 1))
+          || visible > (cj ? 100 : 260))) presentation.add(new RebuildReview.Issue(from,to,"paragraph","Choose coherent source clauses at normal font; retain every proposition.",true));
+      RebuildNumbers.Result numeric=RebuildNumbers.compare(source,text,context);
+      if(numeric==RebuildNumbers.Result.CONTRADICTED)throw new Invalid("numeric_substitution");
+      if(!context.canApplyEnglishToChinese && numeric==RebuildNumbers.Result.UNKNOWN
+          && (RebuildNumbers.hasDigits(source) || RebuildNumbers.hasDigits(text)))
+        presentation.add(new RebuildReview.Issue(from,to,"numeric_unknown",
+            "Numeric equivalence is unverified for this notation/language; advisory only.",false));
+      if(!context.canApplyEnglishToChinese && visible>context.profile.referenceCpl*2)
+        presentation.add(new RebuildReview.Issue(from,to,"readability_observation",
+            "Reference CPL exceeded; advisory only; presentation_policy=legacy_n26.",false));
+      RebuildSemantics.validate(s, from, to, text,context);
+      if (context.canApplyEnglishToChinese && to - from >= 8 && visible <= 1) throw new Invalid("information_collapse");
+      if (to < b.to && RebuildPlanner.strongDependentEnding(s, to,context))
         throw new Invalid("dependent_source_end");
       if (z <= a || !out.isEmpty() && a < out.get(out.size() - 1).end)
         throw new Invalid("time_order");
@@ -233,8 +243,8 @@ final class RebuildProtocol {
       next = to + 1;
     }
     if (next != b.to + 1) throw new Invalid("missing_source");
-    RebuildSemantics.validatePlan(s,b,out);
-    presentation.addAll(RebuildReview.inspect(s,b,out));
+    RebuildSemantics.validatePlan(s,b,out,context);
+    presentation.addAll(RebuildReview.inspect(s,b,out,context));
     return new Plan(out, root.toString(), Collections.unmodifiableList(presentation),reboundEvents);
   }
 
@@ -269,10 +279,7 @@ final class RebuildProtocol {
     }
     if (end < 0 || string || depth != 0) throw new Invalid("json");
     String suffix = raw.substring(end).trim();
-    // The observed gateway adds only these closing tags, in order. Do not accept
-    // arbitrary trailing text merely because it mentions DSML somewhere.
-    boolean dsmlWrapper = suffix.matches(
-        "</｜｜DSML｜｜ parameter>(?:\\s*</｜｜DSML｜｜ invoke>)?(?:\\s*</｜｜DSML｜｜ calls>)?");
+    boolean dsmlWrapper = suffix.startsWith("<") && suffix.contains("DSML") && suffix.contains(">");
     if (!suffix.isEmpty() && !dsmlWrapper) throw new Invalid("json");
     return raw.substring(start, end);
   }

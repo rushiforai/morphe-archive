@@ -1,0 +1,244 @@
+{
+  "layer": "n9_frozen_facts_plus_java_policy_mirror",
+  "input_sha256": {
+    "diagnostics": "13b1f29cdf6ea180dadb67bf91de6a7b085412fb132880d8cd07585cf5ac5171",
+    "srt": "b86a06b339d36d63fff0b75598b5df6c3c3eb80230863717e713ca542daae9c8"
+  },
+  "limits": [
+    "N9 raw word times are estimated from SRT cue order, not speech alignment.",
+    "Policy mirror predicts decisions; no new Android PRESENTED trace exists.",
+    "A13/A14 are additive to the immutable A01–A12 baseline."
+  ],
+  "frozen_token_audit": {
+    "total_tokens": 82521,
+    "input_tokens": 72128,
+    "output_tokens": 10393
+  },
+  "cases": {
+    "A13": {
+      "block": 1,
+      "words": [
+        25,
+        97
+      ],
+      "owned_ms": [
+        7040,
+        28920
+      ],
+      "event_words": [
+        73,
+        97
+      ],
+      "event_owned_ms": [
+        20732,
+        28920
+      ],
+      "failure": "semantic_anchor_leak",
+      "requests": [
+        3,
+        5
+      ],
+      "frozen_blackout_ms": [
+        7160,
+        28949
+      ],
+      "status": "未验证",
+      "display_evidence": "冻结状态已显示；新策略仅离线镜像，真机待验",
+      "source": "after all who cares how many nuclear aircraft carriers or stealth bombers the americans have if ivan's got 10 000 t-62s rusting in siberia somewhere",
+      "rejected_translation": "毕竟，如果伊万在西伯利亚某处有10000辆生锈的T-62坦克，谁还管美国人有多少核动力航母或隐形轰炸机呢？",
+      "accepted_translation": null,
+      "frozen": {
+        "blackout_duration_ms": 21789,
+        "fallback_begin_lines": [
+          210,
+          601,
+          616
+        ],
+        "fallback_end_lines": [
+          215,
+          611,
+          622
+        ],
+        "status_selected_lines": [
+          618
+        ],
+        "request_record_lines": [
+          629,
+          630
+        ],
+        "rejection_lines": [
+          202,
+          208
+        ],
+        "acceptance_lines": [],
+        "repair_no_progress_lines": [],
+        "review_warning_lines": []
+      },
+      "policy_mirror": {
+        "decision_at_blackout_onset": {
+          "decision": "source_cue",
+          "text": "[原文 / Original] the internet was practically drowning in",
+          "cue": 5,
+          "end_ms": 9040
+        },
+        "readable_source_ms_in_owned_window": 21880,
+        "status_only_ms_in_owned_window": 0,
+        "source_cue_intervals": [
+          {
+            "start_ms": 7040,
+            "end_ms": 9040,
+            "cue": 5,
+            "text": "[原文 / Original] the internet was practically drowning in"
+          },
+          {
+            "start_ms": 9040,
+            "end_ms": 10800,
+            "cue": 6,
+            "text": "[原文 / Original] articles and indexes all of which"
+          },
+          {
+            "start_ms": 10800,
+            "end_ms": 13280,
+            "cue": 7,
+            "text": "[原文 / Original] confidently put russia in second heck"
+          },
+          {
+            "start_ms": 13280,
+            "end_ms": 14880,
+            "cue": 8,
+            "text": "[原文 / Original] there are even a few that put russia in"
+          },
+          {
+            "start_ms": 14880,
+            "end_ms": 16560,
+            "cue": 9,
+            "text": "[原文 / Original] first presumably written by people who"
+          },
+          {
+            "start_ms": 16560,
+            "end_ms": 18240,
+            "cue": 10,
+            "text": "[原文 / Original] thought the ultimate arbiter of military"
+          },
+          {
+            "start_ms": 18240,
+            "end_ms": 19520,
+            "cue": 11,
+            "text": "[原文 / Original] strength remained the size of a"
+          },
+          {
+            "start_ms": 19520,
+            "end_ms": 21840,
+            "cue": 12,
+            "text": "[原文 / Original] country's tank fleet after all who cares"
+          },
+          {
+            "start_ms": 21840,
+            "end_ms": 23680,
+            "cue": 13,
+            "text": "[原文 / Original] how many nuclear aircraft carriers or"
+          },
+          {
+            "start_ms": 23680,
+            "end_ms": 25680,
+            "cue": 14,
+            "text": "[原文 / Original] stealth bombers the americans have if"
+          },
+          {
+            "start_ms": 25680,
+            "end_ms": 28320,
+            "cue": 15,
+            "text": "[原文 / Original] ivan's got 10 000 t-62s rusting in"
+          },
+          {
+            "start_ms": 28320,
+            "end_ms": 28920,
+            "cue": 16,
+            "text": "[原文 / Original] siberia somewhere and while it's easy to"
+          }
+        ],
+        "device_presented_verified": false,
+        "no_future_source_at_7160": true
+      }
+    },
+    "A14": {
+      "block": 17,
+      "words": [
+        1219,
+        1240
+      ],
+      "owned_ms": [
+        384639,
+        391744
+      ],
+      "failure": "event_review",
+      "requests": [
+        21,
+        22
+      ],
+      "frozen_blackout_ms": [
+        384647,
+        391748
+      ],
+      "status": "真风险已裁决；新版真机待验",
+      "display_evidence": "冻结旧状态已显示；N9 原文兜底仅离线镜像，真机待验",
+      "source": "foreign investment and the explosive economic growth that would follow deng reduced the share of gdp that was focused on the pla",
+      "rejected_translation": null,
+      "accepted_translation": "外资以及邓之后爆发的经济增长，降低了GDP中用于解放军的份额",
+      "frozen": {
+        "blackout_duration_ms": 7101,
+        "fallback_begin_lines": [
+          426
+        ],
+        "fallback_end_lines": [
+          432
+        ],
+        "status_selected_lines": [
+          428
+        ],
+        "request_record_lines": [
+          646,
+          647
+        ],
+        "rejection_lines": [],
+        "acceptance_lines": [
+          409,
+          417
+        ],
+        "repair_no_progress_lines": [
+          415
+        ],
+        "review_warning_lines": [
+          408,
+          416
+        ]
+      },
+      "policy_mirror": {
+        "decision_at_blackout_onset": {
+          "decision": "event_source",
+          "text": "[原文 / Original] foreign investment and the explosive economic growth that would follow deng reduced the share of gdp that was focused on the pla",
+          "end_ms": 391744
+        },
+        "readable_source_ms_in_owned_window": 7105,
+        "status_only_ms_in_owned_window": 0,
+        "source_cue_intervals": [
+          {
+            "start_ms": 384639,
+            "end_ms": 391744,
+            "cue": null,
+            "text": "[原文 / Original] foreign investment and the explosive economic growth that would follow deng reduced the share of gdp that was focused on the pla"
+          }
+        ],
+        "device_presented_verified": false
+      },
+      "review_adjudication": {
+        "decision": "keep_semantic_block",
+        "risk": "possible_subject_attachment",
+        "repair_candidate_risk": "dependent_boundary",
+        "accepted_translation_displayable": false,
+        "new_live_requests": 0,
+        "new_live_tokens": 0
+      }
+    }
+  }
+}

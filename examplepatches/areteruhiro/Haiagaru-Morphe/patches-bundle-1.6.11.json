@@ -1,0 +1,7 @@
+{
+  "created_at": "2026-10-05T20:57:05",
+  "description": "Haiagaru 1.6.11 pre-release: allow valid custom ChMate package names and stabilize startup class-name decoding; improve filter image actions and Hissi/Kyodemo inline styling. Android MPP.",
+  "download_url": "https://github.com/areteruhiro/Haiagaru-Morphe/releases/download/1.6.11/haiagaru_patches-1.6.11.mpp",
+  "signature_download_url": "",
+  "version": "1.6.11"
+}

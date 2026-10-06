@@ -4,6 +4,33 @@ import java.util.regex.*;
 import java.math.BigDecimal;
 /** High-confidence date equivalence; unrecognized language is unknown, not a contradiction. */
 final class RebuildNumbers {
+  enum Result { EQUIVALENT, CONTRADICTED, UNKNOWN }
+  static boolean hasDigits(String text) {
+    return text.codePoints().anyMatch(c -> Character.getType(c)==Character.DECIMAL_DIGIT_NUMBER);
+  }
+  /** Whole Unicode decimal integers only. Units, dates, grouping, signs and prose are unverified.
+   *  This intentionally sacrifices recall to avoid hard rejection based on foreign lexicons. */
+  private static String decimalInteger(String text) {
+    String value=text.trim();
+    if(value.isEmpty())return null;
+    StringBuilder digits=new StringBuilder();
+    for(int cp:value.codePoints().toArray()) {
+      if(Character.getType(cp)!=Character.DECIMAL_DIGIT_NUMBER)return null;
+      int digit=Character.digit(cp,10);
+      if(digit<0)return null;
+      digits.append((char)('0'+digit));
+    }
+    int first=0;
+    while(first+1<digits.length() && digits.charAt(first)=='0')first++;
+    return digits.substring(first);
+  }
+  static Result compare(String source,String target,CaptionLanguageContext context) {
+    if(context.canApplyEnglishToChinese)
+      return safe(source,target) ? Result.UNKNOWN : Result.CONTRADICTED;
+    String a=decimalInteger(source),b=decimalInteger(target);
+    if(a==null || b==null)return Result.UNKNOWN;
+    return a.equals(b) ? Result.EQUIVALENT : Result.CONTRADICTED;
+  }
   static final String MONTHS="january february march april may june july august september october november december";
   static final Pattern EN=Pattern.compile("(?i)\\b("+MONTHS.replace(" ","|")+")\\s+(\\d{1,2})(?:st|nd|rd|th)?\\b");
   static final Pattern ZH=Pattern.compile("(?<![0-9一二三四五六七八九十])([0-9]{1,2}|[一二三四五六七八九十]{1,3})月\\s*([0-9]{1,2}|[一二三四五六七八九十]{1,3})(?:日|号)");

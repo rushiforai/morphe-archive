@@ -1,0 +1,130 @@
+---
+// Clientless/interactive CSS mock configuration demonstrating real options from patches-list.json
+import { Image } from 'astro:assets';
+import { getAppIconUrl } from '../data/icons';
+import { getPatches } from '../data/repo';
+
+const sidelineIcon = getAppIconUrl('com.sidelineswap.android');
+const sezzleIcon = getAppIconUrl('com.sezzle.sezzlemobile');
+const totalOptions = getPatches().reduce((sum, p) => sum + p.options.length, 0);
+---
+
+<div class="border border-white/[0.08] bg-[#090909] p-6 relative overflow-hidden flex flex-col gap-6">
+  <!-- Corner crosshairs -->
+  <span class="absolute -top-[5px] -left-[4px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+  <span class="absolute -top-[5px] -right-[4px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+  <span class="absolute -bottom-[5px] -left-[4px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+  <span class="absolute -bottom-[5px] -right-[4px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+    <!-- Option Sample 1: Color Picker (SidelineSwap Change Brand Color) -->
+    <div class="p-4 bg-zinc-950/80 border border-white/[0.06] rounded-sm flex flex-col justify-between">
+      <div class="space-y-2">
+        <div class="flex items-center gap-2.5">
+          {sidelineIcon ? (
+            <Image
+              src={sidelineIcon}
+              alt="SidelineSwap"
+              width={24}
+              height={24}
+              class="w-6 h-6 rounded-md object-cover border border-white/10 shrink-0"
+              loading="lazy"
+            />
+          ) : (
+            <span class="w-6 h-6 rounded-md bg-emerald-950/50 border border-emerald-800/40 text-emerald-400 font-mono text-[10px] flex items-center justify-center">S</span>
+          )}
+          <span class="font-sans text-xs font-semibold text-white">Change Brand Color</span>
+        </div>
+        <p class="text-[11px] text-zinc-400">
+          Inject custom hexadecimal palette into XML layout resources.
+        </p>
+      </div>
+
+      <div class="space-y-2 pt-6">
+        <label for="mock-hex-input" class="block font-mono text-[10px] text-zinc-500 uppercase tracking-wider">PRIMARY COLOR</label>
+        <div class="flex items-center gap-2" id="color-picker-group">
+          <div class="w-6 h-6 rounded-sm border border-white/20 bg-[#1E88E5]" id="mock-swatch" title="Active Color"></div>
+          <input
+            type="text"
+            readonly
+            value="#1E88E5"
+            id="mock-hex-input"
+            class="bg-zinc-900 border border-white/10 px-2.5 py-1 text-xs font-mono text-zinc-200 rounded-sm w-28 focus:outline-none focus:border-white/30"
+          />
+          <div class="flex gap-1">
+            <button
+              type="button"
+              class="w-5 h-5 rounded-sm bg-[#1E88E5] border border-white/20 hover:scale-110 transition-transform"
+              onclick="document.getElementById('mock-hex-input').value = '#1E88E5'; document.getElementById('mock-swatch').style.backgroundColor = '#1E88E5';"
+              title="Material Blue"
+            ></button>
+            <button
+              type="button"
+              class="w-5 h-5 rounded-sm bg-[#02C874] border border-white/20 hover:scale-110 transition-transform"
+              onclick="document.getElementById('mock-hex-input').value = '#02C874'; document.getElementById('mock-swatch').style.backgroundColor = '#02C874';"
+              title="Sideline Emerald"
+            ></button>
+            <button
+              type="button"
+              class="w-5 h-5 rounded-sm bg-[#9C27B0] border border-white/20 hover:scale-110 transition-transform"
+              onclick="document.getElementById('mock-hex-input').value = '#9C27B0'; document.getElementById('mock-swatch').style.backgroundColor = '#9C27B0';"
+              title="Vibrant Purple"
+            ></button>
+            <button
+              type="button"
+              class="w-5 h-5 rounded-sm bg-[#000000] border border-white/20 hover:scale-110 transition-transform"
+              onclick="document.getElementById('mock-hex-input').value = '#000000'; document.getElementById('mock-swatch').style.backgroundColor = '#000000';"
+              title="Monochrome Black"
+            ></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Option Sample 2: Multi-Toggle Carousel (Sezzle Configure Shortcuts) -->
+    <div class="p-4 bg-zinc-950/80 border border-white/[0.06] rounded-sm flex flex-col justify-between">
+      <div class="space-y-2">
+        <div class="flex items-center gap-2.5">
+          {sezzleIcon ? (
+            <Image
+              src={sezzleIcon}
+              alt="Sezzle"
+              width={24}
+              height={24}
+              class="w-6 h-6 rounded-md object-cover border border-white/10 shrink-0"
+              loading="lazy"
+            />
+          ) : (
+            <span class="w-6 h-6 rounded-md bg-purple-950/50 border border-purple-800/40 text-purple-400 font-mono text-[10px] flex items-center justify-center">S</span>
+          )}
+          <span class="font-sans text-xs font-semibold text-white">Configure Shortcuts</span>
+        </div>
+        <p class="text-[11px] text-zinc-400">
+          Filter promotional items from the Your Shortcuts carousel.
+        </p>
+      </div>
+
+      <div class="space-y-1.5 pt-4 font-mono text-[11px]">
+        <label class="flex items-center justify-between p-1 hover:bg-white/[0.02] rounded cursor-pointer">
+          <span class="text-zinc-300">Hide Refer a Friend</span>
+          <input type="checkbox" checked class="accent-purple-500 rounded cursor-pointer" />
+        </label>
+        <label class="flex items-center justify-between p-1 hover:bg-white/[0.02] rounded cursor-pointer">
+          <span class="text-zinc-300">Hide Giveaway</span>
+          <input type="checkbox" checked class="accent-purple-500 rounded cursor-pointer" />
+        </label>
+        <label class="flex items-center justify-between p-1 hover:bg-white/[0.02] rounded cursor-pointer">
+          <span class="text-zinc-300">Hide Offers &amp; Rewards</span>
+          <input type="checkbox" checked class="accent-purple-500 rounded cursor-pointer" />
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex justify-end">
+    <a href="/patches" class="font-mono text-xs text-zinc-400 hover:text-white transition-colors leading-none flex items-center gap-1">
+      <span>Browse {totalOptions} options</span>
+      <span>&rarr;</span>
+    </a>
+  </div>
+</div>

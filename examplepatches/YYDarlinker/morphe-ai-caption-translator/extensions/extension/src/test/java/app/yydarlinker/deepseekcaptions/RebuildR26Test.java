@@ -74,10 +74,13 @@ public class RebuildR26Test {
   }
   @Test public void adjacentAsrDigitsCannotInventRange()throws Exception {
     RebuildSource s=RebuildContractTest.source("about 50 20 fifth generation aircraft",400);RebuildPlanner.Block b=RebuildContractTest.block(s);
-    RebuildProtocol.Plan plan=RebuildProtocol.parseBound(
-        RebuildContractTest.reply(b,new JSONArray().put(quoted(s,0,s.words.size()-1,"约50至20架五代战机"))),s,b);
-    assertTrue(plan.issues.stream().anyMatch(x->x.code.equals("numeric_range_invention")&&x.repair));
-    assertTrue("The invented range must never appear on screen",RebuildReview.blocked(plan,plan.events.get(0)));
+    try {
+      RebuildProtocol.parseBound(RebuildContractTest.reply(b,new JSONArray().put(
+          quoted(s,0,s.words.size()-1,"约50至20架五代战机"))),s,b);
+      fail("Published parser must reject this invented range");
+    } catch(RebuildProtocol.Invalid expected) {
+      assertEquals("numeric_range_invention",expected.code);
+    }
   }
   @Test public void authenticNumberRangeAndGroupedThousandsRemainValid()throws Exception {
     for(String raw:Arrays.asList("50 to 60 aircraft","10 000 tanks")){
@@ -100,14 +103,14 @@ public class RebuildR26Test {
     RebuildProtocol.parseBound(RebuildContractTest.reply(b,new JSONArray().put(quoted(s,0,0,"不" )).put(quoted(s,1,s.words.size()-2,"这就是我的同事")).put(quoted(s,s.words.size()-1,s.words.size()-1,"下一项"))),s,b);
   }
   @Test public void replayEveryCapturedResponseAndReportLimits()throws Exception {
-    JSONArray rows=fixture();RebuildSource s=source(rows);JSONObject results=new JSONObject();int rejected=0;
+    JSONArray rows=fixture();RebuildSource s=source(rows);JSONObject results=new JSONObject();int rejected=0,reviewed=0;
     for(int i=0;i<rows.length();i++){
       JSONObject r=rows.getJSONObject(i);String result="passes_local_checks_NOT_semantic_proof";
-      try{RebuildProtocol.Plan p=RebuildProtocol.parse(r.getJSONObject("response").toString(),s,block(r,s)); if(p.issues.stream().anyMatch(x->x.code.equals("paragraph"))){result="paragraph_quarantined_NOT_display_ready";rejected++;}}
+      try{RebuildProtocol.Plan p=RebuildProtocol.parse(r.getJSONObject("response").toString(),s,block(r,s)); if(p.issues.stream().anyMatch(x->x.code.equals("paragraph"))){result="paragraph_review_display_ready_NOT_semantic_proof";reviewed++;}}
       catch(RebuildProtocol.Invalid e){result=e.code;rejected++;}
       results.put("request_"+r.getInt("request"),result);
     }
-    assertEquals(31,rows.length());assertTrue(rejected>=4);
+    assertEquals(31,rows.length());assertTrue(rejected+reviewed>=4);
     System.out.println("R26_CAPTURE_REPLAY="+results);
   }
 }

@@ -44,6 +44,10 @@ object Constants {
             //     must NOT be killed: the login screen builds FB Login handlers and crashes
             //     with "SDK has not been initialized" without sdkInitialize() (issue #24,
             //     fixed 2026-09-30; verified on 26.09.14).
+            // The "Block marketing notifications" patch dismisses two in-app promo
+            // sheets only; it cannot affect push. Missing match alerts on re-signed
+            // builds traced to push delivery itself (issue #25): without Play Services,
+            // FCM registration needs MicroG integration + signature spoofing.
             //   - Block marketing notifications: PromotionModal / tennis promo bottom sheet
             //     onViewCreated dismiss the sheet before it renders.
             // The "Disable Play Integrity" patch was dropped: this build does not bundle the
@@ -544,21 +548,5 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x3F51B5,
         targets = listOf(AppTarget(version = "3.2.0.0_release_2", versionCode = 32001))
-    )
-
-    // Verified 2026-10-03 against net.zedge.android 9.38.3 (versionCode 93800300,
-    // APKPure universal). Ads run through a heavy mediation stack (GMA, AppLovin MAX,
-    // Meta Audience Network, InMobi, Vungle, Pangle, ironSource, Fyber, BidMachine via
-    // Etermax XMedia), so "Disable ads" hooks those stable library surfaces.
-    // No premium patch: the subscription is server-validated and 9.38.3 ships no local
-    // ad-free gate. A circulating "(Premium)" mod of this version grafts a whole newer
-    // net.zedge.subscription module (CheckAdFreeUseCase et al, absent from stock) and
-    // deletes ad SDK classes - neither technique ports to a bytecodePatch.
-    val COMPATIBILITY_ZEDGE = Compatibility(
-        name = "Zedge",
-        packageName = "net.zedge.android",
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0x673AB7,
-        targets = listOf(AppTarget(version = "9.38.3", versionCode = 93800300))
     )
 }

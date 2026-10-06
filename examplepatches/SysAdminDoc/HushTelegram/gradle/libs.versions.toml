@@ -1,11 +1,11 @@
 [versions]
 # Keep the patcher, fixture CLI and Manager floor together. Manager rejects a bundle built
-# against a newer patcher than it carries. These stable releases all carry patcher 1.15.0.
-morphe-patcher = "1.15.0"
-desktop-cli = "1.18.0"
+# against a newer patcher than it carries. These stable releases all carry patcher 1.15.1.
+morphe-patcher = "1.15.1"
+desktop-cli = "1.18.1"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
 # README's stated floor to this value.
-manager-floor = "1.33.0"
+manager-floor = "1.34.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official

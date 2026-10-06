@@ -30,6 +30,7 @@ public final class FamilyNames {
     public static final String HIDE_SHOPPING = "Hide shopping and product pins";
     public static final String DISABLE_ANALYTICS = "Disable analytics";
     public static final String STRIP_LINK_TRACKING = "Strip link tracking";
+    public static final String HIDE_ADVERTISING_ID = "Hide advertising ID";
     public static final String DOWNLOAD_PINS = "Download pins";
     public static final String EXTERNAL_BROWSER = "Open links in your browser";
     public static final String SYSTEM_SHARE = "System share sheet";
@@ -40,6 +41,8 @@ public final class FamilyNames {
     public static final String HIDE_PIN_MENU_ITEMS = "Filter pin menu";
     public static final String HIDE_COMMENTS = "Hide comments";
     public static final String QUIET_EMAIL_REMINDER = "Quiet email reminders";
+    public static final String HIDE_SAVE_TOASTS = "Hide save toasts";
+    public static final String ORIGINAL_IMAGES = "Original-quality images";
     public static final String DISABLE_UPDATE_NAG = "Disable update nag";
 
     private FamilyNames() {

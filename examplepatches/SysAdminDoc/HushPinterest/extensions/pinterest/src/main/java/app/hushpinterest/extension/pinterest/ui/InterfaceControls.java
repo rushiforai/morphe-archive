@@ -42,6 +42,9 @@ public final class InterfaceControls {
         if ("NOTIFICATIONS".equals(name)) {
             return UiHooks.enabled(FamilyNames.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_NOTIFICATIONS);
         }
+        if ("SEARCH".equals(name)) {
+            return UiHooks.enabled(FamilyNames.HIDE_NAVIGATION_BUTTONS, Settings.HIDE_NAV_SEARCH);
+        }
         return false;
     }
 

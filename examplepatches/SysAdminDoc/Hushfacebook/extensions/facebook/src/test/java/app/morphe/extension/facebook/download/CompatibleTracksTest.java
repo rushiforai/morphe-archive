@@ -17,6 +17,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -49,6 +50,101 @@ public class CompatibleTracksTest {
 
     private static final List<DashManifest.Track> ISSUE_11 = Arrays.asList(AV1_1080, H264_720, XHE_84, LC_64);
 
+    /**
+     * The tracks issue #77's story offered on a OnePlus 13 (Facebook 581, Android 17, 2026-10-04):
+     * VP9 from 360p to 1080p and four xHE-AAC sounds, no H.264 and no AAC-LC at all. Its single
+     * file was H.264 360 by 640, which is what the save took.
+     */
+    private static final DashManifest.Track VP9_1080 = video("vp09.00.40.08.00.02.02.05.00", 1080, 1920, 151_000, 1080);
+    private static final DashManifest.Track VP9_360 = video("vp09.00.21.08.00.02.02.05.00", 360, 640, 30_000, 360);
+    private static final DashManifest.Track VP9_540 = video("vp09.00.30.08.00.02.02.05.00", 540, 960, 67_000, 540);
+    private static final DashManifest.Track VP9_720 = video("vp09.00.31.08.00.02.02.05.00", 720, 1280, 110_000, 720);
+    private static final DashManifest.Track XHE_146 = audio("mp4a.40.42", 146_000);
+    private static final List<DashManifest.Track> ISSUE_77 = Arrays.asList(VP9_1080, VP9_360, VP9_540, VP9_720,
+            audio("mp4a.40.42", 45_000), audio("mp4a.40.42", 79_000), audio("mp4a.40.42", 123_000), XHE_146);
+
+    /**
+     * Issue #77: with the switch on, a manifest with no H.264 track has a pick when the phone can
+     * convert: its sharpest picture the phone can make H.264, within the quality setting, and its
+     * best xHE-AAC sound, both marked for converting. Without a converter, or with sound that
+     * can't be made AAC-LC, there's no pick and the save goes to the single file as before. An
+     * H.264 track always wins over converting, and the switch off never converts.
+     */
+    @Test
+    public void aStoryWithNoH264IsConvertedWhenThePhoneCan() {
+        DashManifest.Converter any = track -> true;
+        DashManifest.Pick picked = DashManifest.pick(ISSUE_77, true, DownloadQuality.BEST, true, true, any);
+        assertSame(VP9_1080, picked.video);
+        assertSame(XHE_146, picked.audio);
+        assertTrue(picked.transcodeVideo);
+        assertTrue(picked.reencodeSound);
+
+        assertSame("an encoder that won't take 1080 by 1920", VP9_720,
+                DashManifest.pick(ISSUE_77, true, DownloadQuality.BEST, true, true, track -> track.height <= 1280).video);
+        assertSame(VP9_720, DashManifest.pick(ISSUE_77, true, DownloadQuality.P720, true, true, any).video);
+        assertSame(VP9_360, DashManifest.pick(ISSUE_77, true, DownloadQuality.P480, true, true, any).video);
+        assertSame(VP9_360, DashManifest.pick(ISSUE_77, true, DownloadQuality.SMALLEST, true, true, any).video);
+
+        assertNull(DashManifest.pick(ISSUE_77, true, DownloadQuality.BEST, true, true, null));
+        assertNull(DashManifest.pick(ISSUE_77, true, DownloadQuality.BEST, true, true, track -> false));
+        assertNull("sound that can't be made AAC-LC", DashManifest.pick(ISSUE_77, true, DownloadQuality.BEST, true, false, any));
+        assertNull(DashManifest.pick(ISSUE_77, true, DownloadQuality.BEST, true));
+
+        DashManifest.Pick off = DashManifest.pick(ISSUE_77, true, DownloadQuality.BEST, false, true, any);
+        assertSame(VP9_1080, off.video);
+        assertFalse(off.transcodeVideo);
+        assertFalse(off.reencodeSound);
+
+        DashManifest.Pick withH264 = DashManifest.pick(ISSUE_11, true, DownloadQuality.BEST, true, true, any);
+        assertSame(H264_720, withH264.video);
+        assertSame(LC_64, withH264.audio);
+        assertFalse(withH264.transcodeVideo);
+
+        DashManifest.Pick silent = DashManifest.pick(Arrays.asList(VP9_720), true, DownloadQuality.BEST, true, true, any);
+        assertSame(VP9_720, silent.video);
+        assertNull(silent.audio);
+        assertTrue(silent.transcodeVideo);
+    }
+
+    /**
+     * Only 8-bit VP9, AV1 and H.265 pictures are ever offered for converting: a 10-bit one is HDR
+     * or made to look like it, and an 8-bit encoder would wash it out.
+     */
+    @Test
+    public void onlyEightBitPicturesAreOfferedForConverting() {
+        List<DashManifest.Track> asked = new ArrayList<>();
+        DashManifest.Track vp9Hdr = video("vp09.02.40.10.01.09.16.09.00", 1080, 1920, 900_000, 1080);
+        DashManifest.Track av1Hdr = video("av01.0.08M.10.0.110.09.16.09.0", 1080, 1920, 900_000, 1080);
+        DashManifest.Track hevc10 = video("hvc1.2.4.L120.B0", 1080, 1920, 900_000, 1080);
+        assertNull(DashManifest.pick(Arrays.asList(vp9Hdr, av1Hdr, hevc10, LC_64), true, DownloadQuality.BEST, true, true,
+                track -> asked.add(track)));
+        assertEquals(new ArrayList<DashManifest.Track>(), asked);
+
+        assertEquals("video/x-vnd.on2.vp9", VideoTranscode.sourceType(VP9_1080.codecs));
+        assertEquals("video/av01", VideoTranscode.sourceType(AV1_1080.codecs));
+        assertEquals("video/hevc", VideoTranscode.sourceType("hvc1.1.6.L93.B0"));
+        assertEquals("video/hevc", VideoTranscode.sourceType("hev1.1.6.L120.90"));
+        for (String codecs : Arrays.asList(vp9Hdr.codecs, av1Hdr.codecs, hevc10.codecs, "vp09.01.20.08.01", "av01.1.08M.08",
+                "avc1.64001f", "mp4a.40.42", "opus", "vp09", "vp09.00", "", "garbage")) {
+            assertNull(codecs, VideoTranscode.sourceType(codecs));
+        }
+        assertNull(VideoTranscode.sourceType(null));
+    }
+
+    /**
+     * The H.264 bitrate: three times the source's, or a modest rate for the frame size, whichever
+     * is more, within 1 and 8 Mbps. #77's 1080p story came at 151 kbps.
+     */
+    @Test
+    public void theH264BitrateFollowsTheSourceAndTheFrameSize() {
+        assertEquals(2_488_320, VideoTranscode.bitRate(1080, 1920, 30, 151_000));
+        assertEquals(1_105_920, VideoTranscode.bitRate(720, 1280, 30, 110_000));
+        assertEquals(VideoTranscode.MIN_BIT_RATE, VideoTranscode.bitRate(360, 640, 30, 30_000));
+        assertEquals(3_600_000, VideoTranscode.bitRate(720, 1280, 30, 1_200_000));
+        assertEquals(VideoTranscode.MAX_BIT_RATE, VideoTranscode.bitRate(1080, 1920, 60, 4_000_000));
+        assertEquals(VideoTranscode.MIN_BIT_RATE, VideoTranscode.bitRate(720, 1280, 0, 0));
+    }
+
     /** Safer sound must not cost the requested picture resolution (silent Gallery report #14). */
     @Test
     public void ordinarySavesPreferWidelySupportedAudioWithoutLoweringTheVideo() {
@@ -63,6 +159,35 @@ public class CompatibleTracksTest {
         // If xHE-AAC is the only sound, retain it instead of discarding the audio.
         assertSame(XHE_84, DashManifest.pick(Arrays.asList(AV1_1080, XHE_84), true,
                 DownloadQuality.BEST, false).audio);
+    }
+
+    /**
+     * A manifest whose only sound is xHE-AAC, as some stories' are. With the switch on, a phone that
+     * can make the sound AAC-LC keeps the H.264 picture and marks the sound for that; one that
+     * can't has no pick, and the save goes to Facebook's single file as before. The switch off, and
+     * a manifest with AAC-LC on offer, never re-encode.
+     */
+    @Test
+    public void xheOnlySoundIsMarkedForReencodingWhenThePhoneCan() {
+        List<DashManifest.Track> tracks = Arrays.asList(AV1_1080, H264_720, XHE_84);
+        DashManifest.Pick picked = DashManifest.pick(tracks, true, DownloadQuality.BEST, true, true);
+        assertSame(H264_720, picked.video);
+        assertSame(XHE_84, picked.audio);
+        assertTrue(picked.reencodeSound);
+        assertNull("a phone that can't re-encode got a pick", DashManifest.pick(tracks, true, DownloadQuality.BEST, true, false));
+        assertNull(DashManifest.pick(tracks, true, DownloadQuality.BEST, true));
+        assertFalse("the switch off re-encoded", DashManifest.pick(tracks, true, DownloadQuality.BEST, false, true).reencodeSound);
+
+        DashManifest.Pick withLc = DashManifest.pick(ISSUE_11, true, DownloadQuality.BEST, true, true);
+        assertSame(LC_64, withLc.audio);
+        assertFalse(withLc.reencodeSound);
+
+        DashManifest.Track xhe96 = audio("mp4a.40.42", 96_000);
+        assertSame(xhe96, DashManifest.pick(Arrays.asList(H264_720, XHE_84, xhe96), true, DownloadQuality.BEST, true, true).audio);
+        assertNull("no H.264 picture, still no pick",
+                DashManifest.pick(Arrays.asList(AV1_1080, XHE_84), true, DownloadQuality.BEST, true, true));
+        assertNull("opus isn't re-encoded", DashManifest.pick(Arrays.asList(H264_720, audio("opus", 96_000)),
+                true, DownloadQuality.BEST, true, true));
     }
 
     @Test

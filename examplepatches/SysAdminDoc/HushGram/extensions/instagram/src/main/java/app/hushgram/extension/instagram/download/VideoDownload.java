@@ -34,6 +34,9 @@ import app.hushgram.extension.shared.settings.BooleanSetting;
  *   <li>The short menu most of the feed opens shows only the rows whose option is on a fixed list,
  *       in the list's order. The method that makes the list hands it to {@link #allow}, which puts
  *       Download first with the switch on.
+ *   <li>Your own post gets Instagram's row through {@link #ownPost} and {@link #ownPostRow}
+ *       whenever a tap would save something, not only when Instagram allows its own download and
+ *       keeps it in this menu rather than the share sheet.
  *   <li>The menu's handler asks {@link #save} first when Download is tapped, which saves the video
  *       from the addresses its Media already holds, through {@link MediaSave}. A post without a
  *       video goes to Instagram's own download.
@@ -141,6 +144,55 @@ public final class VideoDownload {
         } catch (Throwable t) {
             HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "feed menu", t);
         }
+    }
+
+    /**
+     * Injected where the feed menu's builder asks Instagram whether your own post may be
+     * downloaded, which [eligible] answers. Instagram adds its Download row to your own post only
+     * on a yes, and a photo, or a video it doesn't allow downloads of, never gets one (#57).
+     * Answers 1 when the post, or the carousel page on screen, has something a tap would save
+     * with the switches as they are, and [eligible] otherwise. A tap then goes to {@link #save}.
+     * Never throws.
+     */
+    public static int ownPost(int eligible, Object menu) {
+        if (eligible != 0) return eligible;
+        try {
+            HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
+            if (menu == null || !videos() && !photos()) return eligible;
+            return own(eligible, what(shown(InstagramMedia.feedMenuMedia(menu), InstagramMedia.feedMenuItemState(menu))));
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "own post menu", t);
+            return eligible;
+        }
+    }
+
+    /** Instagram's answer [eligible] for your own post, or a yes when a tap would save [what]. */
+    static int own(int eligible, Save what) {
+        return eligible != 0 || what == Save.NONE ? eligible : 1;
+    }
+
+    /**
+     * Called on your own post's rows past the download check with [instagrams], the menu state's
+     * flag that, together with a server flag, moves Instagram's Download from this menu to the
+     * share sheet (#57). Instagram adds the row here only on a 0, so this answers 0 when the post,
+     * or the carousel page on screen, has something a tap would save, and [instagrams] otherwise.
+     * Never throws.
+     */
+    public static int ownPostRow(int instagrams, Object menu) {
+        if (instagrams == 0) return instagrams;
+        try {
+            HookStatus.invoked(FamilyNames.VIDEO_DOWNLOAD);
+            if (menu == null || !videos() && !photos()) return instagrams;
+            return row(instagrams, what(shown(InstagramMedia.feedMenuMedia(menu), InstagramMedia.feedMenuItemState(menu))));
+        } catch (Throwable t) {
+            HookStatus.threw(FamilyNames.VIDEO_DOWNLOAD, "own post row", t);
+            return instagrams;
+        }
+    }
+
+    /** Instagram's share sheet flag [instagrams] for your own post, or 0, which keeps the row in the menu, when a tap would save [what]. */
+    static int row(int instagrams, Save what) {
+        return what == Save.NONE ? instagrams : 0;
     }
 
     /**

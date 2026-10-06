@@ -19,6 +19,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
@@ -95,10 +96,11 @@ class StoriesTrayAdapterFixtureTest {
     }
 
     /**
-     * Why the switch waits for a restart: on every declared build, the one method holding the
-     * createAdapter trace name calls both tray adapters and returns first thing while the list it
-     * built before is still there. A build that rebuilds the list on a refresh fails here, and the
-     * settings row and README wording is the thing to revisit.
+     * Why the switch isn't where the adapters are built: on every declared build, the one method
+     * holding the createAdapter trace name calls both tray adapters and returns first thing while
+     * the list it built before is still there, so they're asked once per feed view. A build that
+     * rebuilds the list on a refresh fails here, and the simpler hook where they're built is the
+     * thing to revisit.
      */
     @Test
     fun `every declared build asks the tray adapters from a list it builds once per feed view`() {
@@ -112,9 +114,26 @@ class StoriesTrayAdapterFixtureTest {
         }
     }
 
-    /** The actual patch blocks run over each fixture's methods without compiling an APK. */
+    /** [types] and every superclass of theirs the bundle defines. */
+    private fun withSuperclasses(bundle: File, types: Set<String>): Collection<ClassDef> {
+        val found = mutableMapOf<String, ClassDef>()
+        var next = types
+        while (next.isNotEmpty()) {
+            val classes = FixtureDex.classes(bundle, next)
+            found += classes
+            next = classes.values.mapNotNull { it.superclass }.filter { it !in found }.toSet()
+        }
+        return found.values
+    }
+
+    /**
+     * The actual patch blocks run over each fixture's methods without compiling an APK: one feed
+     * guard, the tray adapter methods left as Facebook wrote them, and each tray adapter class, a
+     * final one inheriting a count and notifyDataSetChanged() (the patch checks both), given one
+     * count that asks the extension under its own kind.
+     */
     @Test
-    fun `every declared build keeps one feed guard and a separate guard on each top tray adapter`() {
+    fun `every declared build keeps one feed guard and gives each tray adapter a count of its own`() {
         val hideEdge = "Lapp/morphe/extension/facebook/feed/FeedFilter;->hideEdge(Ljava/lang/Object;Ljava/lang/Object;)Z"
         forEveryDeclaredBuild { bundle ->
             val adapters = trayAdapters(bundle)
@@ -122,8 +141,11 @@ class StoriesTrayAdapterFixtureTest {
                 { dex -> dex.stringSection.any { it == "addNewEdgeToCollection" } },
             ) { admittedAsFeedFunnel(it) }
             assertEquals("${bundle.name}: feed funnels", 1, funnels.size)
+            val trays = mapOf(adapters.classic.returnType to LEGACY_TRAY, adapters.unified.returnType to UNIFIED_TRAY)
+            assertEquals("${bundle.name}: one class for both trays", 2, trays.size)
             val classes = FixtureDex.classes(bundle, setOf(FEED_UNIT_EDGE, funnels.single().definingClass)).values +
-                FixtureDex.classesHolding(bundle, EDGE_SWAP_DROPPED) + adapters.configuration + status()
+                FixtureDex.classesHolding(bundle, EDGE_SWAP_DROPPED) + adapters.configuration +
+                withSuperclasses(bundle, trays.keys) + status()
             val context = PatchContexts.of(classes)
             AddNewEdgeToCollectionFingerprint.clearMatch()
             feedFilterHookPatch.execute(context)
@@ -136,13 +158,20 @@ class StoriesTrayAdapterFixtureTest {
                 it.name == "addNewEdgeToCollection" && it.parameterTypes == funnels.single().parameterTypes
             }
             assertEquals("${bundle.name}: feed guard count", 1, calls(feed, hideEdge))
-            val tray = context.mutableClassDefBy(adapters.configuration.type).methods
+            val configuration = context.mutableClassDefBy(adapters.configuration.type).methods
             for (adapter in listOf(adapters.classic, adapters.unified)) {
-                val patched = tray.single { it.name == adapter.name && it.parameterTypes == adapter.parameterTypes }
-                assertEquals("${bundle.name}: $adapter top guard count", 1, calls(patched, HIDE_STORIES_TRAY))
-                assertEquals("${bundle.name}: the tray adapter got a feed guard", 0, calls(patched, hideEdge))
+                val patched = configuration.single { it.name == adapter.name && it.parameterTypes == adapter.parameterTypes }
+                assertEquals("${bundle.name}: $adapter was changed", adapter.implementation!!.instructions.count(),
+                    patched.implementation!!.instructions.count())
             }
-            "one feed guard, one classic and one unified top-tray guard"
+            for ((type, kind) in trays) {
+                val counts = context.mutableClassDefBy(type).methods.filter { it.name == "getItemCount" && it.parameterTypes.isEmpty() }
+                assertEquals("${bundle.name}: $type counts", 1, counts.size)
+                assertEquals("${bundle.name}: $type count asks", 1, calls(counts.single(), STORIES_TRAY_COUNT))
+                assertEquals("${bundle.name}: $type kind", listOf(kind.toLong()),
+                    counts.single().implementation!!.instructions.mapNotNull { (it as? NarrowLiteralInstruction)?.wideLiteral })
+            }
+            "one feed guard, a classic and a unified tray count"
         }
     }
 

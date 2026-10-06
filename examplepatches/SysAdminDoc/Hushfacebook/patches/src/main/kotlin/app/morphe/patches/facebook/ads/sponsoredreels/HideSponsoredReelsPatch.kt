@@ -68,6 +68,11 @@ val hideSponsoredReelsPatch = bytecodePatch(
         listOf(pages.insertPage, pages.announcePage).forEach { it.filterPageFirst(adBase) }
         pages.addPage.filterSectionsFirst(adBase)
 
+        // The Reels tab's story loader draws those ads from Facebook's ad pool one slot at a time,
+        // and the pool marks each as used before a page holds it. Its vends answer no ad first:
+        // see ReelsAdPool.kt.
+        reelsAdPoolVends().forEach { it.holdPoolAdFirst() }
+
         // The client-side insert paths stay blocked. None of them fired in the logging run, but
         // they are what the app would use if a future release went back to inserting on the device,
         // and blocking them costs nothing.

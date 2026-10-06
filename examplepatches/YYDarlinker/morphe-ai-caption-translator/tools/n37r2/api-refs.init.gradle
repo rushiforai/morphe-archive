@@ -1,0 +1,11 @@
+gradle.projectsEvaluated {
+ def p=gradle.rootProject.project(':patches')
+ p.sourceSets.test.kotlin.srcDir(gradle.rootProject.file('tools/n37r2/auditor-src'))
+ p.tasks.register('auditN37R2ApiRefs',JavaExec) {
+  dependsOn p.tasks.named('testClasses')
+  classpath=p.sourceSets.test.runtimeClasspath-p.sourceSets.main.output
+  mainClass='validation.N37R2ApiRefsKt'
+  maxHeapSize='2G'
+  args p.findProperty('n37r2.input'),p.findProperty('n37r2.output')
+ }
+}

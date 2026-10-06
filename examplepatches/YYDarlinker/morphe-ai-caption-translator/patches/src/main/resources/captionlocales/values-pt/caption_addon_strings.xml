@@ -1,129 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cap_age_close" formatted="false">" segundos)"</string>
+    <string name="cap_age_open" formatted="false">"(há cerca de %1$s"</string>
     <string name="cap_ai_title" formatted="false">"Tradução de legendas com IA"</string>
-    <string name="cap_enable_ai" formatted="false">"Ativar tradução com IA"</string>
-    <string name="cap_api_config" formatted="false">"Configuração da API"</string>
     <string name="cap_api_address" formatted="false">"Endereço da API"</string>
+    <string name="cap_api_config" formatted="false">"Configuração da API"</string>
+    <string name="cap_api_config_error" formatted="false">"Erro de configuração da API de legendas: %1$s"</string>
     <string name="cap_api_key" formatted="false">"Chave da API"</string>
-    <string name="cap_model" formatted="false">"Modelo"</string>
-    <string name="cap_test_api" formatted="false">"Testar API"</string>
-    <string name="cap_translation" formatted="false">"Tradução"</string>
-    <string name="cap_translation_requirements" formatted="false">"Instruções de tradução"</string>
-    <string name="cap_style" formatted="false">"Estilo das legendas"</string>
-    <string name="cap_size" formatted="false">"Tamanho das legendas"</string>
-    <string name="cap_opacity" formatted="false">"Opacidade do fundo"</string>
-    <string name="cap_reset_position" formatted="false">"Restaurar posição"</string>
-    <string name="cap_cache_diagnostics" formatted="false">"Cache e diagnóstico"</string>
-    <string name="cap_clear_cache" formatted="false">"Limpar cache de legendas"</string>
-    <string name="cap_delete_key" formatted="false">"Excluir chave da API"</string>
-    <string name="cap_text_debug" formatted="false">"Depuração do texto"</string>
-    <string name="cap_diagnostics" formatted="false">"Diagnóstico de legendas"</string>
-    <string name="cap_clear_diagnostics" formatted="false">"Limpar diagnóstico"</string>
-    <string name="cap_preview" formatted="false">"Prévia das legendas"</string>
-    <string name="cap_landscape" formatted="false">"Paisagem"</string>
-    <string name="cap_portrait" formatted="false">"Retrato"</string>
-    <string name="cap_to_landscape" formatted="false">"Mudar para paisagem"</string>
-    <string name="cap_to_portrait" formatted="false">"Mudar para retrato"</string>
-    <string name="cap_refresh" formatted="false">"Atualizar"</string>
-    <string name="cap_copy" formatted="false">"Copiar"</string>
-    <string name="cap_expand" formatted="false">"Expandir"</string>
-    <string name="cap_collapse" formatted="false">"Recolher"</string>
-    <string name="cap_cancel" formatted="false">"Cancelar"</string>
-    <string name="cap_delete" formatted="false">"Excluir"</string>
-    <string name="cap_saved" formatted="false">"Salvo automaticamente"</string>
+    <string name="cap_api_test_failed" formatted="false">"Falha no teste da API: %1$s"</string>
+    <string name="cap_api_test_ok" formatted="false">"API disponível: %1$s"</string>
+    <string name="cap_api_test_retry_hint" formatted="false">"Testar a conexão com a configuração salva"</string>
+    <string name="cap_audit_api" formatted="false">"API: %1$s tentativas · %2$s bem-sucedidas (2xx) · %3$s falhas · repetições internas %4$s"</string>
+    <string name="cap_audit_api_call_many" formatted="false">"%1$s chamadas de API · "</string>
+    <string name="cap_audit_api_call_one" formatted="false">"%1$s chamada de API · "</string>
+    <string name="cap_audit_boundary" formatted="false">"Revisão de limites: acionada %1$s vezes (no máximo uma por página) · %2$s solicitações enviadas · %3$s átomos recuperados"</string>
+    <string name="cap_audit_bucket_background" formatted="false">"Pré-carregamento em segundo plano"</string>
+    <string name="cap_audit_bucket_background_alt" formatted="false">"Revisão de limites"</string>
+    <string name="cap_audit_bucket_background_block" formatted="false">"Bloco (recuo)"</string>
+    <string name="cap_audit_bucket_background_page" formatted="false">"Mesclagem de páginas"</string>
+    <string name="cap_audit_bucket_display" formatted="false">"Divisão de exibição"</string>
+    <string name="cap_audit_bucket_priority" formatted="false">"Prioridade atual"</string>
+    <string name="cap_audit_bucket_priority_current" formatted="false">"Âncora atual"</string>
+    <string name="cap_audit_bucket_priority_gap_rescue" formatted="false">"Resgate de lacunas"</string>
+    <string name="cap_audit_bucket_progress" formatted="false">"Progresso da mesclagem de páginas: %1$s blocos fixos concluídos por %2$s solicitações de página (%3$s blocos/solicitação; &lt;1,0 indica solicitações repetidas sem progresso)"</string>
+    <string name="cap_audit_bucket_unit_background" formatted="false">"Âncora de tempo / lote em segundo plano"</string>
+    <string name="cap_audit_bucket_unit_realtime" formatted="false">"Âncora de tempo / lote atual"</string>
+    <string name="cap_audit_by_purpose" formatted="false">"Solicitações por finalidade:"</string>
+    <string name="cap_audit_cache_known" formatted="false">"Cache de entrada: acertos %1$s / erros %2$s · taxa de acerto %3$s"</string>
+    <string name="cap_audit_cache_unknown" formatted="false">"Cache de entrada: o provedor não informou detalhes reconhecíveis de acerto/erro"</string>
+    <string name="cap_audit_char_ratio" formatted="false">"proporção de exposição de caracteres %1$s"</string>
+    <string name="cap_audit_circuit_breakers" formatted="false">"disjuntores locais %1$s"</string>
+    <string name="cap_audit_core_contextual_unit" formatted="false">"Núcleo: unidade contextual v1"</string>
+    <string name="cap_audit_core_event_rebuild" formatted="false">"Núcleo: reconstrução de eventos / %1$s"</string>
+    <string name="cap_audit_core_semantic_ledger" formatted="false">"Núcleo: registro semântico v2"</string>
+    <string name="cap_audit_current_engine" formatted="false">"Motor atual: %1$s"</string>
+    <string name="cap_audit_current_model" formatted="false">"Modelo atual: %1$s"</string>
+    <string name="cap_audit_disk_cache" formatted="false">"Cache em disco de blocos: consultas %1$s · blocos encontrados %2$s · unidades perdidas %3$s"</string>
+    <string name="cap_audit_display_handoff" formatted="false">"enviadas à IA %1$s vezes (chamadas à IA %2$s · com uso %3$s · falhas %4$s)"</string>
+    <string name="cap_audit_display_local" formatted="false">"Divisão de exibição: %1$s sucessos locais sem tokens"</string>
+    <string name="cap_audit_display_whole" formatted="false">"frases inteiras mantidas %1$s vezes"</string>
+    <string name="cap_audit_efficiency" formatted="false">"Eficiência de %1$s: %2$s átomos de núcleo adicionados · entrada por átomo %3$s tok · entrada com erro de cache por átomo %4$s tok"</string>
+    <string name="cap_audit_estimate" formatted="false">"Estimativa do provedor atual para V4 Flash: %1$s"</string>
+    <string name="cap_audit_failure_breakdown" formatted="false">"Detalhe das falhas: 429 %1$s · 5xx %2$s · outros 4xx %3$s · tempo esgotado %4$s · rede %5$s · canceladas/interrompidas %6$s · outras %7$s"</string>
+    <string name="cap_audit_focus_misses" formatted="false">"erros de foco %1$s"</string>
+    <string name="cap_audit_legacy_engine" formatted="false">"Motor de compatibilidade antigo"</string>
+    <string name="cap_audit_logical_request_many" formatted="false">"%1$s solicitações lógicas / "</string>
+    <string name="cap_audit_logical_request_one" formatted="false">"%1$s solicitação lógica / "</string>
+    <string name="cap_audit_no_usage" formatted="false">"Auditoria de custo de tokens: ainda sem uso da API. Reproduza legendas com IA para ver uso, acertos de cache, finalidade das solicitações e custo por minuto assistido."</string>
+    <string name="cap_audit_no_usage_note" formatted="false">"Observação: %1$s respostas 2xx sem uso; destas, só se conhecem as contagens, não os tokens exatos."</string>
+    <string name="cap_audit_page_fallback" formatted="false">"Recuo de páginas: %1$s páginas em cache excederam o limite de falhas; voltando a solicitações por bloco"</string>
+    <string name="cap_audit_per_minute" formatted="false">"%1$s tokens por minuto assistido"</string>
+    <string name="cap_audit_priced_subset" formatted="false">"(apenas respostas precificadas pelas tarifas internas do V4 Flash)"</string>
+    <string name="cap_audit_request_blocks" formatted="false">"Blocos de solicitação: alvo %1$s blocos · contexto somente leitura %2$s seções · seções de contexto por bloco %3$s"</string>
+    <string name="cap_audit_request_body" formatted="false">"Corpo da solicitação: total %1$s bytes · média %2$s bytes por tentativa de API"</string>
+    <string name="cap_audit_semantic_window" formatted="false">"Janela semântica: núcleo %1$s átomos · expostos %2$s átomos · proporção de exposição de contexto %3$s"</string>
+    <string name="cap_audit_structural" formatted="false">"Verificações estruturais e determinísticas: aceitas / rejeitadas (não é aceitação semântica): %1$s / %2$s (%3$s)"</string>
+    <string name="cap_audit_sunk" formatted="false">"Solicitações enviadas mas não lidas: %1$s solicitações · %2$s bytes. O processamento e a cobrança pelo provedor são desconhecidos; os totais de tokens e custo excluem esse uso, então o gasto real não pode ser determinado."</string>
+    <string name="cap_audit_title" formatted="false">"Auditoria de custo de tokens (desde a última redefinição)"</string>
+    <string name="cap_audit_tok" formatted="false">"%1$s tok"</string>
+    <string name="cap_audit_tok_per_minute" formatted="false">"%1$s tok por minuto assistido"</string>
+    <string name="cap_audit_tokens" formatted="false">"Tokens: %1$s = entrada %2$s + saída %3$s"</string>
+    <string name="cap_audit_video" formatted="false">"Vídeo atual: assistido %1$s s · %2$s tokens"</string>
+    <string name="cap_audit_viewed" formatted="false">"assistido %1$s s · %2$s tok"</string>
     <string name="cap_autosave" formatted="false">"As alterações são salvas automaticamente"</string>
-    <string name="cap_enter_key" formatted="false">"Insira a chave da API"</string>
-    <string name="cap_key_saved" formatted="false">"Armazenada com criptografia; digite para substituir"</string>
-    <string name="cap_model_hint" formatted="false">"Selecione um modelo ou insira seu ID"</string>
-    <string name="cap_preview_hint" formatted="false">"Toque na imagem para mudar a orientação; prévia em tempo real"</string>
-    <string name="cap_size_hint" formatted="false">"Tamanho relativo 8–15, proporcional ao vídeo"</string>
-    <string name="cap_opacity_hint" formatted="false">"0% transparente, 100% opaco; salvo ao soltar"</string>
-    <string name="cap_diagnostic_hint" formatted="false">"Expanda para consultar e copiar o diagnóstico"</string>
-    <string name="cap_use_youtube" formatted="false">"Usar YouTube"</string>
-    <string name="cap_use_ai" formatted="false">"Usar IA"</string>
-    <string name="cap_on" formatted="false">"Ativado"</string>
-    <string name="cap_off" formatted="false">"Desativado"</string>
-    <string name="cap_configure_api" formatted="false">"Configure a API antes de ativar a tradução com IA"</string>
-    <string name="cap_switch_failed" formatted="false">"Não foi possível mudar; modo anterior restaurado"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"Cache e diagnóstico"</string>
+    <string name="cap_cancel" formatted="false">"Cancelar"</string>
+    <string name="cap_caption_translating" formatted="false">"Traduzindo…"</string>
     <string name="cap_choose_translation" formatted="false">"Escolha um idioma de tradução automática no menu de legendas"</string>
-    <string name="cap_message_7b7480271fa5" formatted="false">"Quando desativado, o YouTube exibe suas próprias legendas"</string>
-    <string name="cap_message_1cc3c4b0aab0" formatted="false">"Legendas originais funcionam diretamente; a IA requer uma chave de API"</string>
-    <string name="cap_message_2c107e436145" formatted="false">"Ativado; escolha um idioma de tradução automática para usar IA"</string>
-    <string name="cap_message_ea9ebe26591a" formatted="false">"Incluir texto original e traduzido no diagnóstico; apenas para solução de problemas"</string>
-    <string name="cap_message_f496dd228d0b" formatted="false">"Não registrar texto original ou traduzido"</string>
-    <string name="cap_message_261f1c6f0fde" formatted="false">"Registrar texto para diagnóstico; desativado por padrão"</string>
-    <string name="cap_message_92561907fadc" formatted="false">"Testar conexão com a configuração salva"</string>
-    <string name="cap_message_33c08bcbc79b" formatted="false">"Somente a tradução automática usa a API; legendas originais não são traduzidas"</string>
-    <string name="cap_message_fd1ada5395a0" formatted="false">"Restaurar posição vertical; manter tamanho e fundo"</string>
+    <string name="cap_clear_cache" formatted="false">"Limpar cache de legendas"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"Limpar diagnóstico"</string>
+    <string name="cap_clear_diagnostics_confirm" formatted="false">"Limpar os registros de diagnóstico locais? As configurações de API e o cache de tradução não são limpos."</string>
+    <string name="cap_collapse" formatted="false">"Recolher"</string>
+    <string name="cap_configure_api" formatted="false">"Configure a API antes de ativar a tradução com IA"</string>
+    <string name="cap_copy" formatted="false">"Copiar"</string>
+    <string name="cap_copy_part_done" formatted="false">"Parte %1$s / %2$s copiada; toque em Salvar novamente para o restante"</string>
+    <string name="cap_copy_part_failed" formatted="false">"Não foi possível copiar a parte %1$s"</string>
+    <string name="cap_copy_part_label" formatted="false">"Copiar parte %1$s / %2$s"</string>
+    <string name="cap_copy_parts_title" formatted="false">"Android 9 e anteriores: copiar o diagnóstico completo em partes"</string>
+    <string name="cap_default_prompt" formatted="false">"Traduz de forma fiel, natural e concisa para o idioma de destino, usando expressões nativas. Preserva nomes, terminologia, números, tom e pontuação necessária. Não acrescentes explicações ausentes do original."</string>
+    <string name="cap_delete" formatted="false">"Excluir"</string>
+    <string name="cap_delete_key" formatted="false">"Excluir chave da API"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"Expanda para consultar e copiar o diagnóstico"</string>
+    <string name="cap_diagnostics" formatted="false">"Diagnóstico de legendas"</string>
+    <string name="cap_diagnostics_hint" formatted="false">"Ative a depuração de texto para testes longos; Salvar diagnóstico completo exporta as últimas 24 horas (limite de 16 MiB). O resumo abaixo mostra apenas a atividade recente."</string>
+    <string name="cap_display_debug" formatted="false">"Depuração de texto: %1$s"</string>
+    <string name="cap_enable_ai" formatted="false">"Ativar tradução com IA"</string>
+    <string name="cap_engine" formatted="false">"Mecanismo"</string>
+    <string name="cap_engine_event_rebuild" formatted="false">"Reconstrução de eventos"</string>
+    <string name="cap_enter_key" formatted="false">"Insira a chave da API"</string>
+    <string name="cap_expand" formatted="false">"Expandir"</string>
+    <string name="cap_flyout_summary" formatted="false">"Mostra o atalho no menu do leitor. Ocultá-lo não desativa as legendas IA; aplica-se ao reabrir o menu."</string>
+    <string name="cap_flyout_title" formatted="false">"Botão de legendas IA no menu de vídeos normais"</string>
+    <string name="cap_keep_last_valid" formatted="false">"; o último valor válido foi mantido"</string>
+    <string name="cap_key_saved" formatted="false">"Armazenada com criptografia; digite para substituir"</string>
+    <string name="cap_label_separator" formatted="false">"%1$s: "</string>
+    <string name="cap_landscape" formatted="false">"Paisagem"</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"Tradução automática"</string>
     <string name="cap_message_10d1b374429d" formatted="false">"Visível durante a edição; limpo ao fechar e salvo com criptografia"</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"Lista de modelos atualizada"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"Legendas originais funcionam diretamente; a IA requer uma chave de API"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"Excluir chave da API?"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"Registrar texto para diagnóstico; desativado por padrão"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"Ativado; escolha um idioma de tradução automática para usar IA"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"Não foi possível carregar modelos; insira manualmente: "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"Eventos recentes: "</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"Somente a tradução automática usa a API; legendas originais não são traduzidas"</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" segundos)"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"Legendas originais (sem API de tradução)"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API disponível: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"Última etapa: "</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"Carregando modelos…"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"Testando…"</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"Chave da API excluída"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"Remove apenas a chave criptografada deste dispositivo. As outras configurações não mudam."</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"Não foi possível ler o diagnóstico: "</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"Quando desativado, o YouTube exibe suas próprias legendas"</string>
     <string name="cap_message_7da9039cc193" formatted="false">"A chave da API deve ter apenas uma linha"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"Nenhuma solicitação ainda. Configure a API, escolha um idioma de tradução automática e atualize o diagnóstico."</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"; mantendo o último valor válido"</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"Modo: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"Falha no teste da API: "</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"Diagnóstico copiado"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"Diagnóstico limpo"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"Testar conexão com a configuração salva"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"Configuração desconhecida"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"Posição restaurada"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"Não foi possível salvar o modelo"</string>
     <string name="cap_message_bafa7b1ca6cb" formatted="false">"O endereço da API deve começar com https:// ou http://"</string>
     <string name="cap_message_bbbcd9c8bf80" formatted="false">"Não foi possível salvar automaticamente"</string>
-    <string name="cap_message_b795d97808e8" formatted="false">"Não foi possível salvar o modelo"</string>
-    <string name="cap_message_9a6606c64f5f" formatted="false">"Configuração desconhecida"</string>
-    <string name="cap_message_8500e82ca181" formatted="false">"; mantendo o último valor válido"</string>
-    <string name="cap_message_a25bd037963d" formatted="false">"Posição restaurada"</string>
-    <string name="cap_message_e8b2177e1cd3" formatted="false">"Cache de legendas limpo"</string>
-    <string name="cap_message_1f328bc723d4" formatted="false">"Excluir chave da API?"</string>
-    <string name="cap_message_6ec744dcc83a" formatted="false">"Remove apenas a chave criptografada deste dispositivo. As outras configurações não mudam."</string>
-    <string name="cap_message_574dd3f1ccfe" formatted="false">"Chave da API excluída"</string>
-    <string name="cap_message_8bfb437edfc4" formatted="false">"Diagnóstico limpo"</string>
-    <string name="cap_message_896c4b51d7e9" formatted="false">"Diagnóstico copiado"</string>
-    <string name="cap_message_49562bf14c82" formatted="false">"Testando…"</string>
-    <string name="cap_message_3a1185c1dc9f" formatted="false">"API disponível: "</string>
-    <string name="cap_message_88ce10e8f20b" formatted="false">"Falha no teste da API: "</string>
-    <string name="cap_message_ec966cf35a63" formatted="false">"Atualizando modelos…"</string>
-    <string name="cap_message_462efc3e98ef" formatted="false">"Carregando modelos…"</string>
-    <string name="cap_message_2d61f9891514" formatted="false">"Não foi possível carregar modelos; insira manualmente: "</string>
-    <string name="cap_message_17ea5266e7a5" formatted="false">"Lista de modelos atualizada"</string>
-    <string name="cap_message_7e7bfd29c71d" formatted="false">"Nenhuma solicitação ainda. Configure a API, escolha um idioma de tradução automática e atualize o diagnóstico."</string>
-    <string name="cap_message_dd0fb9f395bc" formatted="false">"Mecanismo: "</string>
-    <string name="cap_message_8736a99d18f2" formatted="false">"Modo: "</string>
-    <string name="cap_message_0825b4b0cb7d" formatted="false">"Tradução automática"</string>
-    <string name="cap_message_375e0f929195" formatted="false">"Legendas originais (sem API de tradução)"</string>
-    <string name="cap_message_c46b062d22ba" formatted="false">"Depuração do texto: "</string>
-    <string name="cap_message_44feb4d98d48" formatted="false">"Última etapa: "</string>
-    <string name="cap_message_dedc85cbb813" formatted="false">"Referências de tempo e falhas (com horário): "</string>
-    <string name="cap_message_30070c30d85c" formatted="false">"Eventos recentes: "</string>
-    <string name="cap_message_75a885d3b526" formatted="false">"Não foi possível ler o diagnóstico: "</string>
     <string name="cap_message_c34848823d86" formatted="false">" (há cerca de "</string>
-    <string name="cap_message_33cc168ccb4e" formatted="false">" segundos)"</string>
-    <string name="cap_mode_pending" formatted="false">"Modo salvo. Será aplicado quando as legendas deste vídeo estiverem prontas."</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"Depuração do texto: "</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"Mecanismo: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"Referências de tempo e falhas (com horário): "</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"Cache de legendas limpo"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"Incluir texto original e traduzido no diagnóstico; apenas para solução de problemas"</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"Atualizando modelos…"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"Não registrar texto original ou traduzido"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"Restaurar posição vertical; manter tamanho e fundo"</string>
+    <string name="cap_mode" formatted="false">"Modo"</string>
+    <string name="cap_mode_auto_translate" formatted="false">"Tradução automática"</string>
     <string name="cap_mode_off_pending" formatted="false">"IA desativada. As legendas do YouTube voltarão quando a faixa estiver pronta."</string>
-    <string name="cap_flyout_title" formatted="false">"Botão de legendas IA no menu de vídeos normais"</string>
-    <string name="cap_flyout_summary" formatted="false">"Mostra o atalho no menu do leitor. Ocultá-lo não desativa as legendas IA; aplica-se ao reabrir o menu."</string>
-    <string name="cap_shorts_flyout_title" formatted="false">"Botão de legendas IA no menu de Shorts"</string>
-    <string name="cap_profiles_title" formatted="false">"Perfis de API"</string>
-    <string name="cap_profile_default" formatted="false">"Configuração original"</string>
-    <string name="cap_profile_name" formatted="false">"Nome do perfil"</string>
-    <string name="cap_profile_rename" formatted="false">"Renomear"</string>
+    <string name="cap_mode_original" formatted="false">"Legendas originais (sem API de tradução)"</string>
+    <string name="cap_mode_pending" formatted="false">"Modo salvo. Será aplicado quando as legendas deste vídeo estiverem prontas."</string>
+    <string name="cap_model" formatted="false">"Modelo"</string>
+    <string name="cap_model_hint" formatted="false">"Selecione um modelo ou insira seu ID"</string>
+    <string name="cap_model_hint_key_first" formatted="false">"Informe primeiro a chave de API; o modelo também pode ser digitado"</string>
+    <string name="cap_model_hint_manual_only" formatted="false">"Escolha na lista ou digite um ID de modelo"</string>
+    <string name="cap_model_hint_retry" formatted="false">"Toque em Atualizar para tentar de novo, ou digite um ID"</string>
+    <string name="cap_model_list_updated" formatted="false">"Lista de modelos atualizada"</string>
+    <string name="cap_model_load_failed" formatted="false">"Não foi possível carregar modelos; digite um manualmente: %1$s"</string>
+    <string name="cap_model_loading_auto" formatted="false">"Carregando a lista de modelos…"</string>
+    <string name="cap_model_loading_refresh" formatted="false">"Atualizando a lista de modelos…"</string>
+    <string name="cap_model_pick_or_type" formatted="false">"Escolha um modelo ou digite o ID"</string>
+    <string name="cap_model_save_failed" formatted="false">"Não foi possível salvar o modelo"</string>
+    <string name="cap_model_saved" formatted="false">"Modelo salvo automaticamente"</string>
+    <string name="cap_no_request_yet" formatted="false">"Nenhuma solicitação ainda. Configure a API, escolha um idioma de tradução automática e atualize o diagnóstico."</string>
+    <string name="cap_off" formatted="false">"Desativado"</string>
+    <string name="cap_on" formatted="false">"Ativado"</string>
+    <string name="cap_opacity" formatted="false">"Opacidade do fundo"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% transparente, 100% opaco; salvo ao soltar"</string>
+    <string name="cap_preview" formatted="false">"Prévia em tela cheia horizontal"</string>
+    <string name="cap_preview_hint" formatted="false">"Prévia do estilo (tela cheia)"</string>
+    <string name="cap_preview_sample" formatted="false">"O mundo é grande. Vamos explorar!"</string>
     <string name="cap_profile_add" formatted="false">"Adicionar perfil"</string>
-    <string name="cap_profiles_summary" formatted="false">"Gerir perfil atual"</string>
-    <string name="cap_profile_name_error" formatted="false">"Introduza um nome de 1 a 60 caracteres"</string>
-    <string name="cap_profile_limit" formatted="false">"É possível guardar até 30 perfis"</string>
-    <string name="cap_profile_invalid_edits" formatted="false">"Corrija os campos incompletos antes de mudar de perfil"</string>
     <string name="cap_profile_add_failed" formatted="false">"Não foi possível adicionar o perfil. Verifique os campos e o limite de 30 perfis."</string>
-    <string name="cap_profile_manage" formatted="false">"Gerir perfil atual"</string>
-    <string name="cap_profile_close" formatted="false">"Fechar"</string>
-    <string name="cap_profile_save" formatted="false">"Guardar"</string>
-    <string name="cap_profile_current" formatted="false">"Perfil atual"</string>
-    <string name="cap_profile_delete" formatted="false">"Eliminar perfil"</string>
     <string name="cap_profile_clear_key" formatted="false">"Limpar a chave API deste perfil"</string>
-    <string name="cap_profile_keep_one" formatted="false">"Mantenha pelo menos um perfil. Pode limpar a respetiva chave API."</string>
-    <string name="cap_profile_new_summary" formatted="false">"Os novos perfis incluem instruções predefinidas, sem chave nem modelo. Preencha os campos nas definições."</string>
-    <string name="cap_profile_delete_summary" formatted="false">"Elimina deste dispositivo o endereço, o modelo, as instruções e a chave encriptada deste perfil. Mantém os outros perfis e as definições de legendas. Se estiver ativo, ativa o primeiro perfil restante. Não é possível anular."</string>
     <string name="cap_profile_clear_key_summary" formatted="false">"Limpa apenas a chave guardada e a entrada de chave não guardada deste perfil. Mantém o endereço, o modelo e as instruções. Não afeta outros perfis nem revoga a chave no fornecedor."</string>
-    <string name="cap_prompt_summary" formatted="false">"Guardado neste perfil. Limpe para repor as instruções predefinidas no idioma da interface. As suas alterações são mantidas."</string>
-    <string name="cap_default_prompt" formatted="false">"Traduz de forma fiel, natural e concisa para o idioma de destino, usando expressões nativas. Preserva nomes, terminologia, números, tom e pontuação necessária. Não acrescentes explicações ausentes do original."</string>
-    <string name="cap_profile_more" formatted="false">"Ações do perfil"</string>
+    <string name="cap_profile_close" formatted="false">"Fechar"</string>
     <string name="cap_profile_collapse" formatted="false">"Recolher ações"</string>
-    <string name="cap_profile_finish_name" formatted="false">"Guarde ou cancele primeiro a alteração do nome."</string>
-    <string name="cap_profile_delete_inline" formatted="false">"Eliminar este perfil e a sua chave guardada do dispositivo? Os outros perfis são mantidos. Não é possível anular."</string>
-    <string name="cap_profile_delete_switch" formatted="false">"Após eliminar, ativar:"</string>
-    <string name="cap_profile_keep" formatted="false">"Manter perfil"</string>
     <string name="cap_profile_confirm_delete" formatted="false">"Confirmar eliminação"</string>
+    <string name="cap_profile_current" formatted="false">"Perfil atual"</string>
+    <string name="cap_profile_default" formatted="false">"Configuração original"</string>
+    <string name="cap_profile_delete" formatted="false">"Eliminar perfil"</string>
+    <string name="cap_profile_delete_inline" formatted="false">"Eliminar este perfil e a sua chave guardada do dispositivo? Os outros perfis são mantidos. Não é possível anular."</string>
+    <string name="cap_profile_delete_summary" formatted="false">"Elimina deste dispositivo o endereço, o modelo, as instruções e a chave encriptada deste perfil. Mantém os outros perfis e as definições de legendas. Se estiver ativo, ativa o primeiro perfil restante. Não é possível anular."</string>
+    <string name="cap_profile_delete_switch" formatted="false">"Após eliminar, ativar:"</string>
+    <string name="cap_profile_finish_name" formatted="false">"Guarde ou cancele primeiro a alteração do nome."</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"Corrija os campos incompletos antes de mudar de perfil"</string>
+    <string name="cap_profile_keep" formatted="false">"Manter perfil"</string>
+    <string name="cap_profile_keep_one" formatted="false">"Mantenha pelo menos um perfil. Pode limpar a respetiva chave API."</string>
+    <string name="cap_profile_limit" formatted="false">"É possível guardar até 30 perfis"</string>
+    <string name="cap_profile_manage" formatted="false">"Gerir perfil atual"</string>
+    <string name="cap_profile_more" formatted="false">"Ações do perfil"</string>
+    <string name="cap_profile_name" formatted="false">"Nome do perfil"</string>
+    <string name="cap_profile_name_error" formatted="false">"Introduza um nome de 1 a 60 caracteres"</string>
+    <string name="cap_profile_new_summary" formatted="false">"Os novos perfis incluem instruções predefinidas, sem chave nem modelo. Preencha os campos nas definições."</string>
+    <string name="cap_profile_rename" formatted="false">"Renomear"</string>
+    <string name="cap_profile_save" formatted="false">"Guardar"</string>
+    <string name="cap_profiles_summary" formatted="false">"Gerir perfil atual"</string>
+    <string name="cap_profiles_title" formatted="false">"Perfis de API"</string>
+    <string name="cap_prompt_summary" formatted="false">"Guardado neste perfil. Limpe para repor as instruções predefinidas no idioma da interface. As suas alterações são mantidas."</string>
+    <string name="cap_quality_outcome" formatted="false">"Validação local: aceitos / rejeitados (qualidade)"</string>
+    <string name="cap_recent_trace" formatted="false">"Eventos recentes: "</string>
+    <string name="cap_refresh" formatted="false">"Atualizar"</string>
+    <string name="cap_reset_position" formatted="false">"Restaurar posição"</string>
+    <string name="cap_save_diagnostics" formatted="false">"Salvar diagnóstico completo"</string>
+    <string name="cap_save_failed" formatted="false">"Falha ao salvar: %1$s"</string>
+    <string name="cap_save_ok" formatted="false">"Salvo em Download/%1$s"</string>
+    <string name="cap_saved" formatted="false">"Salvo automaticamente"</string>
+    <string name="cap_selected_suffix" formatted="false">"selecionado"</string>
+    <string name="cap_shorts_flyout_summary" formatted="false">"Mostra o atalho no menu pop-up do Shorts. Ocultá-lo não desativa as legendas com IA; vale ao reabrir o menu."</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"Botão de legendas IA no menu de Shorts"</string>
+    <string name="cap_size" formatted="false">"Tamanho da fonte"</string>
+    <string name="cap_size_hint" formatted="false">"Padrão: detalhes 44.5px · tela cheia 55.5px"</string>
+    <string name="cap_size_tier_hint" formatted="false">"%1$s: detalhes %2$spx · tela cheia %3$spx"</string>
+    <string name="cap_size_tier_l" formatted="false">"Grande"</string>
+    <string name="cap_size_tier_s" formatted="false">"Pequeno"</string>
+    <string name="cap_size_tier_standard" formatted="false">"Normal"</string>
+    <string name="cap_size_tier_xl" formatted="false">"Máximo"</string>
+    <string name="cap_size_tier_xs" formatted="false">"Mínimo"</string>
     <string name="cap_source_retry" formatted="false">"Conexão das legendas interrompida. Tentando novamente…"</string>
     <string name="cap_source_unavailable" formatted="false">"Legendas de origem indisponíveis. Selecione a faixa novamente."</string>
-    <string name="cap_caption_overflow" formatted="false">"Legenda longa demais — original indisponível"</string>
-    <string name="cap_quality_outcome" formatted="false">"Validação local: aceitos / rejeitados (qualidade)"</string>
+    <string name="cap_style" formatted="false">"Estilo das legendas"</string>
+    <string name="cap_switch_failed" formatted="false">"Não foi possível mudar; modo anterior restaurado"</string>
+    <string name="cap_test_api" formatted="false">"Testar API"</string>
+    <string name="cap_text_debug" formatted="false">"Depuração do texto"</string>
+    <string name="cap_timing_decisions" formatted="false">"Referências de tempo e falhas (com horário): "</string>
+    <string name="cap_translation" formatted="false">"Tradução"</string>
+    <string name="cap_translation_requirements" formatted="false">"Instruções de tradução"</string>
+    <string name="cap_use_ai" formatted="false">"Usar IA"</string>
+    <string name="cap_use_youtube" formatted="false">"Usar YouTube"</string>
+    <string name="cap_ai_quick_toggle_on" formatted="false">"Tradução de legendas com IA · Ativada"</string>
+    <string name="cap_ai_quick_toggle_off" formatted="false">"Tradução de legendas com IA · Desativada"</string>
+    <string name="cap_ai_summary" formatted="false">"Depois de ativar, escolha um idioma na lista «Traduzir automaticamente» do YouTube para traduzir as legendas em tempo real com o serviço de IA configurado."</string>
+    <string name="cap_languages_title" formatted="false">"Idiomas de tradução automática"</string>
+    <string name="cap_languages_summary" formatted="false">"Adicione os idiomas selecionados à lista «Traduzir automaticamente» do YouTube. Pode selecionar vários idiomas."</string>
+    <string name="cap_languages_count" formatted="false">"%1$d idiomas selecionados"</string>
+    <string name="cap_languages_save" formatted="false">"Salvar"</string>
+    <string name="cap_languages_existing" formatted="false">"Já disponível"</string>
+    <string name="cap_languages_new" formatted="false">"Adicionado"</string>
+    <string name="cap_languages_unavailable" formatted="false">"Indisponível"</string>
+    <string name="cap_languages_empty" formatted="false">"Nenhum idioma selecionado; o menu nativo não muda"</string>
+    <string name="cap_languages_entry" formatted="false">"%1$s · %2$s"</string>
+    <string name="cap_model_empty" formatted="false">"O ID do modelo não pode estar vazio"</string>
+    <string name="cap_api_address_invalid" formatted="false">"Introduza um URL base HTTP(S) válido e compatível com OpenAI, sem credenciais incorporadas nem fragmentos."</string>
+    <string name="cap_language_zh_hans" formatted="false">"Chinês (simplificado)"</string>
+    <string name="cap_language_zh_hant" formatted="false">"Chinês (tradicional)"</string>
+    <string name="cap_paste" formatted="false">"Colar"</string>
+    <string name="cap_select_all" formatted="false">"Selecionar tudo"</string>
+    <string name="cap_value_retained" formatted="false">"%1$s; o último valor válido é mantido"</string>
+    <string name="cap_model_ids_empty" formatted="false">"O servidor não retornou IDs de modelos selecionáveis"</string>
+    <string name="cap_diagnostics_loading" formatted="false">"Carregando diagnóstico…"</string>
 </resources>

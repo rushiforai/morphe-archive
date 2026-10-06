@@ -25,10 +25,10 @@ import org.junit.Test
 class PatchCategoriesTest {
     /**
      * One name per group, and no more than fits on a phone screen without scrolling. Hushfacebook's
-     * Feed, Downloads and Interface come back when a Threads patch needs one.
+     * Downloads comes back when a Threads patch needs it.
      */
     private val taxonomy = setOf(
-        "Ads", "Feed", "Privacy", "Fixes", "Settings",
+        "Ads", "Feed", "Interface", "Privacy", "Fixes", "Settings",
     )
 
     private fun shippedPatches() = run {

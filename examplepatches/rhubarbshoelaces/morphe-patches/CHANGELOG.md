@@ -1,3 +1,10 @@
+## [1.0.13](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.12...v1.0.13) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* don't remove dark mode setting and add option for hybrid dark mode ([10599c1](https://github.com/rhubarbshoelaces/morphe-patches/commit/10599c1360f9deb1d73f3877e9b4e36f60410a86))
+* don't remove dark mode setting and add option for hybrid dark mode ([26b3e3e](https://github.com/rhubarbshoelaces/morphe-patches/commit/26b3e3ea7ca2e3f12cce581be32e673038d57bb9))
+
 ## [1.0.12](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.11...v1.0.12) (2026-10-01)
 
 ### 🐛 Bug Fixes

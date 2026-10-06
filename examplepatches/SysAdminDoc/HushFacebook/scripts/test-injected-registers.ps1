@@ -30,12 +30,15 @@
     the reel speed's hook deleted from the Reels menu's speed toast, or put after a branch there, and
     the GenAI reel stub left unfilled, filled with a call that stays in the extension, or calling
     Facebook's finder only after it has returned. Each start-call hook is also put first in a method
-    holding part of what its rule picks by (the tray controller, onPause, another method naming both
-    surfaces, a method holding the emoji provider's log tag alone, an instance method holding the
-    emoji pictures' base address, a method of the tap's shape holding one entry point, a method of
-    another shape holding "long_press", a static method holding the like's trace, a static method
-    holding "translationY", an instance method holding the toast's selector name), and one rule is
-    given two methods to choose from; all eleven fail naming the method the rule picks. The Follow hook is also put first in that other method as
+    holding part of what its rule picks by (onPause, another method naming both surfaces, a method
+    holding the emoji provider's log tag alone, an instance method holding the emoji pictures' base
+    address, a method of the tap's shape holding one entry point, a method of another shape holding
+    "long_press", a static method holding the like's trace, a static method holding "translationY",
+    an instance method holding the toast's selector name, another method of the jewel count's
+    shape), and one rule is given two methods to choose from; all eleven fail naming the method the
+    rule picks. The Stories tray's count call is left out of one tray class, made twice in the
+    other's count, or made in another of its methods, and each fails its count-call rule saying
+    which. The Follow hook is also put first in that other method as
     well as in the check. A register out of range fails as its own finding:
     named by a helper added to a host class, as the upper half of a long read from the last
     register, as a long an extension method writes there, and in the feed guard. Each of the five
@@ -57,8 +60,9 @@
     sole-call rule. The feed guard's call in the runnable that swaps an edge into the feed is left
     out, sent to another method of the runnable holding the first size of its log line with run()
     left alone, sent there as well as in run(), sent twice, and a second run() answers the rule, a
-    build each, each failing the once-call rule for its own reason; the contract file may hold no
-    other once-call rule.
+    build each, each failing the once-call rule for its own reason. Each of the tab links patch's
+    three calls is left out, a build each, failing its own once-call rule; the contract file may
+    hold no other once-call rules.
     The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
     fail with findings of its own category only, so a check that fires for the wrong reason fails
@@ -590,14 +594,13 @@ try {
             'Lcom/facebook/graphql/model/GraphQLStory;->A0X()Lfixture/Model; before its first return'))) `
             "The good build's $stub was not reported calling the story's accessor.`n$($good.Output -join "`n")"
     }
+    # The tray count rule finds one call in each tray class's count.
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        'storiesTrayCount(Ljava/lang/Object;II)I in getItemCount 2: 2 call sites, in ' +
+        'Lfixture/ClassicTray;->getItemCount()I, Lfixture/UnifiedTray;->getItemCount()I')) `
+        "The good build's tray counts were not reported, one in each tray class.`n$($good.Output -join "`n")"
     # Each start-call rule finds its one method among others holding part of what it names (the
-    # tray controller, the refresh controller's onPause, two other methods naming both surfaces),
-    # and the hook first there.
-    foreach ($adapter in @('NewsFeedAdapterConfiguration.addStoriesAdapter: first in Lfixture/Adapters;->addStoriesAdapter(',
-            'stories_tray_create_adapter_start stories_tray_create_adapter_stop tofu: first in Lfixture/Adapters;->addUnifiedTray(')) {
-        Assert-True (($good.Output -join "`n") -match [regex]::Escape("hideStoriesTray(I)Z holding $adapter")) `
-            "The good build's tray hook was not reported first in its adapter: $adapter`n$($good.Output -join "`n")"
-    }
+    # refresh controller's onPause, two other methods naming both surfaces), and the hook first there.
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
         'hidePreEofReels()Z holding PreEofIfuSectionAdapter: first in Lfixture/PreEof;->injectPreEofIfuEdge$fixture(')) `
         "The good build's reels hook was not reported first in the pre-EOF injector.`n$($good.Output -join "`n")"
@@ -711,19 +714,39 @@ try {
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
         "contract $watchRule`: in place of it on v2, v1 in $watchFlush")) `
         "The good build's watch-history hook was not reported in place of the executor call.`n$($good.Output -join "`n")"
-    # The feed guard asks the extension once in the runnable that swaps an edge into the feed. The
-    # contract file's one once-call rule is that guard, so a rule this suite builds no bad fixtures
-    # for can't pass on a count nobody checks.
+    # The feed guard asks the extension once in the runnable that swaps an edge into the feed, and
+    # the tab links patch asks it once in each of the three places Facebook looks a link's tab up in
+    # its configured tabs. The contract file's once-call rules are those four, so a rule this suite
+    # builds no bad fixtures for can't pass on a count nobody checks.
     $swapHook = 'Lapp/morphe/extension/facebook/feed/FeedFilter;->hideSwappedEdge(Ljava/lang/Object;Ljava/lang/Object;)Z'
     $swapRun = 'Lfixture/EdgeSwap;->run()V'
     $swapHeld = '"sizeBefore" and "sizeAfter" with the shape instance ()V'
     $swapRule = "once-call $swapHook in instance ()V holding sizeBefore sizeAfter"
+    $tabFilter = 'Lapp/morphe/extension/facebook/navigation/TabBarFilter;'
+    $tabTag = 'Lcom/facebook/navigation/tabbar/state/model/TabTag;'
+    $session = 'Lcom/facebook/auth/usersession/FbUserSession;'
+    $linkShape = '(Landroid/content/Context;Landroid/content/Intent;*)Landroid/content/Intent;'
+    $linkSite = "(Landroid/content/Context;Landroid/content/Intent;$session)Landroid/content/Intent;"
+    $tabLinkRules = [ordered]@{
+        ("once-call $tabFilter->launchedTab(Ljava/lang/Object;)Ljava/lang/Object; in static " +
+            "(Landroid/content/Intent;$session)$tabTag holding extra_launch_uri") =
+            "Lfixture/TabLinks;->launchTab(Landroid/content/Intent;$session)$tabTag"
+        "once-call $tabFilter->friendsTab(Ljava/lang/Object;)Ljava/lang/Object; in instance $linkShape holding DEEPLINK" =
+            "Lfixture/TabLinks;->friendsLink$linkSite"
+        "once-call $tabFilter->configuresTab(ZLjava/lang/Object;)Z in instance $linkShape holding target_tab_id" =
+            "Lfixture/TabLinks;->targetTabLink$linkSite"
+    }
     $onceCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*once-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    Assert-True ($onceCallRules.Count -eq 1 -and $onceCallRules[0] -ceq $swapRule) `
-        "The contract file's once-call rules are not the swap guard this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
+    $expectedOnceCalls = @($swapRule) + @($tabLinkRules.Keys)
+    Assert-True (($onceCallRules -join "`n") -ceq ($expectedOnceCalls -join "`n")) `
+        "The contract file's once-call rules are not the swap guard and tab links this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swapRule`: once in $swapRun")) `
         "The good build's swap guard was not reported once in the swap runnable.`n$($good.Output -join "`n")"
+    foreach ($rule in $tabLinkRules.Keys) {
+        Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $rule`: once in $($tabLinkRules[$rule])")) `
+            "The good build's tab link was not reported once in its method: $rule`n$($good.Output -join "`n")"
+    }
 
     $bad = [ordered]@{
         'bad-branch' = 'branch'
@@ -801,7 +824,7 @@ try {
         'bad-stub-other-class' = 'contract'
         'bad-stub-call-after-return' = 'contract'
         'bad-tray-hook-missing' = 'contract'
-        'bad-tray-hook-late' = 'contract'
+        'bad-tray-count-twice' = 'contract'
         'bad-preeof-hook-missing' = 'contract'
         'bad-preeof-hook-late' = 'contract'
         'bad-showcase-stub-not-filled' = 'contract'
@@ -827,6 +850,9 @@ try {
         'bad-reel-speed-hook-late' = 'contract'
         'bad-reels-tab-dot-hook-missing' = 'contract'
         'bad-reels-tab-dot-hook-late' = 'contract'
+        'bad-tab-links-launch-hook-missing' = 'contract'
+        'bad-tab-links-friends-hook-missing' = 'contract'
+        'bad-tab-links-check-hook-missing' = 'contract'
         'bad-logo-hook-missing' = 'contract'
         'bad-logo-hook-other-call' = 'contract'
         'bad-logo-hook-other-view' = 'contract'
@@ -995,10 +1021,12 @@ try {
     # two methods answer names both; a register out of range names the instruction, the register it
     # reaches and the count, in the method it sits in. Each FAIL line has to be one of these.
     $wrongPlace = [ordered]@{
-        'bad-tray-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z ' +
-            'is not called in Lfixture/Adapters;->addUnifiedTray(Ljava/lang/Object;)Ljava/lang/Object;, the one method holding ' +
-            '"stories_tray_create_adapter_start", "stories_tray_create_adapter_stop" and "tofu"; the host methods that call it: ' +
-            '*Lfixture/TrayController;->create(Ljava/lang/Object;)Ljava/lang/Object;*'))
+        'bad-tray-hook-missing' = @(('*contract: Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I ' +
+            'has 1 call sites, and must have exactly 2, each in getItemCount of a class of its own: Lfixture/ClassicTray;->getItemCount()I'))
+        'bad-tray-count-twice' = @(('*contract: Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I ' +
+            'is called more than once in one class''s getItemCount: Lfixture/ClassicTray;->getItemCount()I, Lfixture/ClassicTray;->getItemCount()I'))
+        'bad-tray-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I ' +
+            'is called from Lfixture/UnifiedTray;->countRows()I, not from getItemCount'))
         'bad-return-refresh-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/feed/ReturnRefresh;->skip()Z is not ' +
             'called in Lfixture/ReturnController;->resumeAfterBackground(Ljava/lang/Object;)V, the one method holding ' +
             '"FeedRefreshTriggerController" and "onRefresh"; the host methods that call it: Lfixture/ReturnController;->onPause()V'))
@@ -1104,6 +1132,11 @@ try {
             'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z in sometimes (I)Z holding tofu',
             'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z in static I)Z holding tofu',
             'start-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideStoriesTray(I)Z tofu holding tofu',
+            'count-call Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I in getItemCount',
+            'count-call Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I in getItemCount 0',
+            'count-call Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I in getItemCount two',
+            'count-call Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I on getItemCount 2',
+            'count-call storiesTrayCount in getItemCount 2',
             'first-call Lapp/morphe/extension/facebook/feed/ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named Lfixture/Showcase;',
             'first-call Lapp/morphe/extension/facebook/feed/ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named',
             'first-call storyType on-type-named ShowcaseFeedUnit',

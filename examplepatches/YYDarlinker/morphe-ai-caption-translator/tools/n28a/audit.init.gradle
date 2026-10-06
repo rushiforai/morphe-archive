@@ -1,0 +1,15 @@
+// Opt-in verification tasks; never changes the frozen product build configuration.
+gradle.projectsEvaluated {
+  def p = gradle.rootProject.project(':patches')
+  p.tasks.register('auditN28AFinal', JavaExec) {
+    dependsOn p.tasks.named('testClasses')
+    classpath = p.files(gradle.rootProject.file('.verification/n26-rollback/audit-tool/classes')) +
+        (p.sourceSets.test.runtimeClasspath - p.sourceSets.main.output - p.sourceSets.test.output)
+    mainClass = 'validation.FinalDexBranchAuditKt'
+    maxHeapSize = '6G'
+    ['input','report','require-ai','label'].each { key ->
+      def value=p.findProperty('n28aAudit.'+key)
+      if(value!=null)args('--'+key,value)
+    }
+  }
+}

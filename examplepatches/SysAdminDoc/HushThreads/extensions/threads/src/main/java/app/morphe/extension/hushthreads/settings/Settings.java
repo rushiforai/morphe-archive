@@ -75,6 +75,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushthreads_disable_analytics", TRUE);
 
     /**
+     * Dark mode's background is pure black instead of Threads' dark gray. Threads builds its colors
+     * once a start, so a change waits for a restart.
+     */
+    public static final BooleanSetting PURE_BLACK =
+            new BooleanSetting("hushthreads_pure_black", TRUE, true);
+
+    /**
      * Once a day, when Threads starts, ask api.github.com whether a newer HushThreads release is
      * out, and say so on the settings screen ({@link ReleaseCheck}). It's the settings entry's own
      * switch rather than a patch's, so every build has it ({@link PatchFamily#ENTRY_SWITCHES}). Off

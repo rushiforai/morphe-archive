@@ -1,0 +1,14 @@
+gradle.projectsEvaluated {
+ def project=gradle.rootProject.project(':patches')
+ project.sourceSets.test.kotlin.srcDir(gradle.rootProject.file('.verification/n33/auditor-src'))
+ project.tasks.register('auditN33Final', JavaExec) {
+  dependsOn project.tasks.named('testClasses')
+  classpath=project.sourceSets.test.runtimeClasspath-project.sourceSets.main.output
+  mainClass='validation.FinalDexBranchAuditKt'
+  maxHeapSize='6G'
+  ['input','report','require-ai','label'].each { key ->
+   def value=project.findProperty('n33Audit.'+key)
+   if(value!=null)args('--'+key,value)
+  }
+ }
+}

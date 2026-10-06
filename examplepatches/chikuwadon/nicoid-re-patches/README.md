@@ -21,7 +21,7 @@ SHA-256：`17fc6b46228af184437ade7e6f5573915bc655b86996307ff3270fdf35279cce`
 ## パッチ配布
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.6.2](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.6.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
+> **[v1.6.3](https://github.com/chikuwadon/nicoid-re-patches/releases/tag/v1.6.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`ブランチ&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件
 <details open>
 <summary>📦 nicoid&nbsp;&nbsp;•&nbsp;&nbsp;パッチ1件</summary>
 <br>
@@ -67,7 +67,7 @@ https://github.com/chikuwadon/nicoid-re-patches
 
 - Android 16に対応。
 - 現在のニコニコ動画の再生形式に対応。
-- ダークモードとMaterial Youテーマに対応。
+- ライトモード・ダークモード・Material Youからテーマを選択できるように。
 - 通常再生・ポップアップ再生時に、再生速度と画質を変更できるように。
 - 再生速度を0.1〜3.0倍、0.05倍刻みのスライダーで調整できるように。
 - デフォルトの再生速度も同じ範囲・刻みのスライダーで設定できるように。

@@ -12,7 +12,10 @@ final class DeepSeekConfig {
     private static final String BASE_URL = "base_url";
     private static final String MODEL = "model";
     private static final String PROMPT = "prompt";
-    private static final String CAPTION_TEXT_SIZE = "caption_text_size";
+    private static final String CAPTION_SIZE_TIER = "caption_size_tier";
+    // Upgrade only the immediately preceding continuous screen-width ratio setting.
+    // Earlier relative and absolute-sp preferences use different units and stay obsolete.
+    private static final String CAPTION_GLYPH_HEIGHT_RATIO_BPS = "caption_glyph_height_ratio_bps";
     private static final String BACKGROUND_OPACITY = "background_opacity";
     private static final String POSITION_PORTRAIT_Y = "position_portrait_y";
     private static final String POSITION_LANDSCAPE_Y = "position_landscape_y";
@@ -23,9 +26,6 @@ final class DeepSeekConfig {
             "忠实、自然、简洁地翻译成简体中文；优先符合中文表达习惯；保留人名、专有名词、数字、语气和必要的标点；不要增加原文没有的解释。";
     static final String DEFAULT_PROMPT =
             "忠实、自然、简洁；优先符合目标语言的母语表达习惯；保留人名、专有名词、数字、语气和必要的标点；不要增加原文没有的解释。";
-    static final int DEFAULT_CAPTION_TEXT_SIZE = 13;
-    static final int MIN_CAPTION_TEXT_SIZE = 8;
-    static final int MAX_CAPTION_TEXT_SIZE = 15;
     static final int DEFAULT_BACKGROUND_OPACITY = 70;
     static final boolean DEFAULT_CONTEXTUAL_UNIT_CORE = true;
     static final boolean DEFAULT_DISPLAY_TEXT_DEBUG = false;
@@ -45,7 +45,7 @@ final class DeepSeekConfig {
     static Snapshot displayStyle(Context context) {
         SharedPreferences p=prefs(context);
         return new Snapshot(p.getBoolean(ENABLED,false),"","","",
-            clampTextSize(p.getInt(CAPTION_TEXT_SIZE,DEFAULT_CAPTION_TEXT_SIZE)),
+            captionSizeTier(p),
             clampOpacity(p.getInt(BACKGROUND_OPACITY,DEFAULT_BACKGROUND_OPACITY)),"");
     }
     static Snapshot load(Context context) {
@@ -53,6 +53,8 @@ final class DeepSeekConfig {
         SharedPreferences p = ApiProfiles.values(context);
         SharedPreferences global = prefs(context);
         String prompt = p.getString(PROMPT, "");
+        boolean programDefault = prompt == null || prompt.trim().isEmpty()
+                || LEGACY_CHINESE_PROMPT.equals(prompt) || DEFAULT_PROMPT.equals(prompt);
         // Absence is a dynamic default, not a Chinese string frozen into each profile.
         if (prompt == null || prompt.trim().isEmpty() || LEGACY_CHINESE_PROMPT.equals(prompt)
                 || DEFAULT_PROMPT.equals(prompt)) prompt = defaultPrompt(context);
@@ -61,9 +63,10 @@ final class DeepSeekConfig {
                 safe(p.getString(BASE_URL, DEFAULT_BASE_URL), DEFAULT_BASE_URL),
                 p.getString(MODEL, DEFAULT_MODEL),
                 prompt,
-                clampTextSize(global.getInt(CAPTION_TEXT_SIZE, DEFAULT_CAPTION_TEXT_SIZE)),
+                captionSizeTier(global),
                 clampOpacity(global.getInt(BACKGROUND_OPACITY, DEFAULT_BACKGROUND_OPACITY)),
-                SecureApiKey.load(context)
+                SecureApiKey.load(context),
+                programDefault ? "program_default" : "stored_custom"
         );
         }
     }
@@ -104,7 +107,26 @@ final class DeepSeekConfig {
     }
 
     static String defaultPrompt(Context context) {
+        return legacyRuntimeDefaultPrompt(context);
+    }
+
+    /** Display only: never stored in a Snapshot, provider request, fingerprint or cache identity. */
+    static String displayDefaultPrompt(Context context) {
         return CaptionStrings.settings(context, "default_prompt");
+    }
+
+    /** Exactly the N30 runtime reader. This exception is not an entry point for visible UI text. */
+    private static String legacyRuntimeDefaultPrompt(Context context) {
+        try {
+            Object value = Class.forName("app.morphe.extension.shared.ResourceUtils")
+                    .getMethod("getString", String.class).invoke(null, "cap_default_prompt");
+            if (value instanceof String && !value.equals("cap_default_prompt")) return (String) value;
+        } catch (Exception ignored) { /* N30 fallback below. */ }
+        if (context != null) try {
+            int id = context.getResources().getIdentifier("cap_default_prompt", "string", context.getPackageName());
+            if (id != 0) return context.getString(id);
+        } catch (Exception ignored) { /* Same N30 English fallback. */ }
+        return "Translate faithfully, naturally and concisely into the target language, using native phrasing. Preserve names, terminology, numbers, tone and necessary punctuation. Do not add explanations absent from the source.";
     }
 
     static void savePrompt(Context context, String value) {
@@ -118,8 +140,11 @@ final class DeepSeekConfig {
         }
     }
 
-    static void saveCaptionTextSize(Context context, int value) {
-        prefs(context).edit().putInt(CAPTION_TEXT_SIZE, clampTextSize(value)).apply();
+    static void saveCaptionSizeTier(Context context, int value) {
+        SharedPreferences p = prefs(context);
+        synchronized (p) {
+            p.edit().putInt(CAPTION_SIZE_TIER, CaptionFontSize.clampTier(value)).apply();
+        }
     }
 
     static void saveBackgroundOpacity(Context context, int value) {
@@ -146,8 +171,16 @@ final class DeepSeekConfig {
         return value == null || value.trim().isEmpty() ? fallback : value.trim();
     }
 
-    private static int clampTextSize(int value) {
-        return Math.max(MIN_CAPTION_TEXT_SIZE, Math.min(MAX_CAPTION_TEXT_SIZE, value));
+    private static int captionSizeTier(SharedPreferences p) {
+        synchronized (p) {
+            if (p.contains(CAPTION_SIZE_TIER))
+                return CaptionFontSize.clampTier(p.getInt(CAPTION_SIZE_TIER, CaptionFontSize.DEFAULT_TIER));
+            if (!p.contains(CAPTION_GLYPH_HEIGHT_RATIO_BPS)) return CaptionFontSize.DEFAULT_TIER;
+            float oldDetailGlyphHeightPx = p.getInt(CAPTION_GLYPH_HEIGHT_RATIO_BPS, 0) * 1264f / 10000f;
+            int migrated = CaptionFontSize.nearestTierForDetailGlyphHeight(oldDetailGlyphHeightPx);
+            p.edit().putInt(CAPTION_SIZE_TIER, migrated).apply();
+            return migrated;
+        }
     }
 
     private static int clampOpacity(int value) {
@@ -193,26 +226,37 @@ final class DeepSeekConfig {
         final String baseUrl;
         final String model;
         final String prompt;
-        final int captionTextSize;
+        final int captionSizeTier;
         final int backgroundOpacity;
         final String apiKey;
+        final String preferenceProvenance, effectivePreference;
 
         Snapshot(
                 boolean enabled,
                 String baseUrl,
                 String model,
                 String prompt,
-                int captionTextSize,
+                int captionSizeTier,
                 int backgroundOpacity,
                 String apiKey
         ) {
+            this(enabled, baseUrl, model, prompt, captionSizeTier, backgroundOpacity, apiKey,
+                    "unverified_custom");
+        }
+
+        Snapshot(boolean enabled, String baseUrl, String model, String prompt,
+                int captionSizeTier, int backgroundOpacity, String apiKey, String provenance) {
             this.enabled = enabled;
             this.baseUrl = baseUrl;
             this.model = model;
             this.prompt = prompt;
-            this.captionTextSize = captionTextSize;
+            this.captionSizeTier = CaptionFontSize.clampTier(captionSizeTier);
             this.backgroundOpacity = backgroundOpacity;
             this.apiKey = apiKey == null ? "" : apiKey;
+            preferenceProvenance = provenance;
+            effectivePreference = "program_default".equals(provenance)
+                    ? "Translate faithfully, naturally and concisely in the selected target language; preserve names, numbers, tone and necessary punctuation; do not add explanations."
+                    : prompt;
         }
 
         boolean ready() {

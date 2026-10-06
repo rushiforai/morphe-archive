@@ -1,15 +1,42 @@
 package com.zeldrisho.patches
 
+import app.morphe.patcher.patch.Patch
 import com.google.gson.JsonParser
+import com.zeldrisho.patches.zalo.backup.configurableZaloBackupIntervalPatch
+import com.zeldrisho.patches.zalo.privacy.enableZaloAvatarSavingPatch
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
 import util.JsonCompatibility
 import util.JsonPatch
 import util.formatPatchList
+import util.generatePatchList
+import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class PatchListGeneratorTest {
+    @get:Rule val temporary = TemporaryFolder()
+
+    @Test
+    fun generatesPatchMetadataFromRegisteredPatchDefinitions() {
+        val output = temporary.newFile()
+        val patches: Set<Patch<*>> = setOf(enableZaloAvatarSavingPatch, configurableZaloBackupIntervalPatch)
+
+        generatePatchList("1.2.3", patches, output)
+
+        val root = JsonParser.parseString(output.readText()).asJsonObject
+        assertEquals("1.2.3", root.get("version").asString)
+        val patchesByName = root.getAsJsonArray("patches").associateBy { it.asJsonObject.get("name").asString }
+        assertTrue("Enable avatar saving" in patchesByName)
+        assertTrue("Configurable native backup interval" in patchesByName)
+        assertTrue(
+            patchesByName.getValue("Configurable native backup interval").asJsonObject
+                .getAsJsonArray("options").size() > 0,
+        )
+    }
+
     /** Checks version, patch, dependency, and option metadata in the generated JSON. */
     @Test
     fun formatsPatchMetadataAsValidatedPrettyJson() {

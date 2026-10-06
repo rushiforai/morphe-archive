@@ -1,17 +1,202 @@
 package app.aidan.patches.sezzle.ads
 
 import app.aidan.patches.sezzle.shared.Constants.COMPATIBILITY_SEZZLE
+import app.aidan.patches.sezzle.shared.HermesBundleEditor
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.patch.rawResourcePatch
 
+
+private val CAN_SHOW_AD_SELECTOR_SUFFIX_BYTES = byteArrayOf(
+    0x02, 0x01, 0x00, 0x3b,
+    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0b, 0x93.toByte(),
+    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
+    0x01, 0x00, 0x74, 0x66, 0x76, 0x01
+)
+
+private val SHOULD_SHOW_ROKT_SELECTOR_SUFFIX_BYTES = byteArrayOf(
+    0x02, 0x01, 0x00, 0x3b,
+    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0c, 0x93.toByte(),
+    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
+    0x01, 0x00, 0x74, 0x63, 0x76, 0x01
+)
+
+private val SHOULD_SHOW_THANKS_SELECTOR_SUFFIX_BYTES = byteArrayOf(
+    0x02, 0x01, 0x00, 0x3b,
+    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0c, 0x93.toByte(),
+    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
+    0x01, 0x00, 0x8f.toByte(), 0x68, 0x76, 0x01
+)
+
+private val IS_AD_ENABLED_FOR_TRIGGER_SELECTOR_SUFFIX_BYTES = byteArrayOf(
+    0x02, 0x01, 0x00, 0x3b,
+    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0e, 0x93.toByte(),
+    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
+    0x01, 0x00, 0x3e, 0xd2.toByte(), 0x76, 0x01
+)
+
+private val IS_REGISTERED_TRIGGER_SELECTOR_SUFFIX_BYTES = byteArrayOf(
+    0x02, 0x01, 0x00, 0x3b,
+    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x08, 0x93.toByte(),
+    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
+    0x01, 0x00, 0x16, 0xdb.toByte(), 0x76, 0x01
+)
+
+private val IS_PLACEMENT_IN_CATALOG_SELECTOR_SUFFIX_BYTES = byteArrayOf(
+    0x02, 0x01, 0x00, 0x3b,
+    0x01, 0x01, 0x01, 0x5e, 0x01, 0x01, 0x0f, 0x93.toByte(),
+    0x00, 0x6e, 0x01, 0x02, 0x00, 0x01, 0x45, 0x01,
+    0x01, 0x00, 0x17, 0x63, 0x76, 0x01
+)
+
+private val ENABLE_THANKS_SUFFIX_BYTES = byteArrayOf(
+    0x00, 0x00, 0x07, 0x44, 0x01, 0x00, 0x00, 0x70, 0x44,
+    0x00, 0x01, 0x01, 0x9b.toByte(), 0x6c, 0x00, 0x00, 0x01,
+    0x45, 0x00, 0x00, 0x02, 0xc4.toByte(), 0xe6.toByte(), 0x45, 0x00,
+    0x00, 0x03, 0x6f, 0x37, 0x76, 0x00
+)
+
+private val THANKS_BASE_URL_BYTES = byteArrayOf(
+    0x91.toByte(), 0x00, 0x4c, 0x60, 0x01, 0x00, 0x76, 0x00
+)
+
+private val THANKS_MODAL_RENDER_PREFIX_BYTES = byteArrayOf(
+    0x40, 0x01, 0x04, 0x89.toByte(), 0x05, 0x02, 0x37, 0x01,
+    0x00, 0x05, 0x89.toByte(), 0x02, 0x06, 0x89.toByte(), 0x04, 0x07,
+    0x37, 0x01, 0x01, 0x04, 0x84.toByte(), 0x03, 0x01, 0x7c,
+    0x45, 0x37, 0x01, 0x03, 0x03, 0x3d, 0x06, 0x48,
+    0x09, 0x06, 0x00, 0x1d, 0x00, 0x44, 0x08, 0x09
+)
+
+private val EXPECTED_SELECTOR_PREFIX_BYTES = byteArrayOf(0x34, 0x01, 0x00, 0x3b)
+private val EXPECTED_ENABLE_THANKS_PREFIX_BYTES = byteArrayOf(0x34, 0x00, 0x00, 0x3b)
+private val EXPECTED_MODAL_RENDER_PREFIX_BYTES = byteArrayOf(0x40, 0x01, 0x04, 0x89.toByte())
+private val LOAD_CONST_FALSE_RET_R1 = byteArrayOf(0x96.toByte(), 0x01, 0x76.toByte(), 0x01)
+private val LOAD_CONST_FALSE_RET_R0 = byteArrayOf(0x96.toByte(), 0x00, 0x76.toByte(), 0x00)
+private val LOAD_CONST_NULL_RET_R0 = byteArrayOf(0x92.toByte(), 0x00, 0x76.toByte(), 0x00)
+private fun HermesBundleEditor.patchSelectorIfMatches(
+    bundleBytes: ByteArray,
+    suffix: ByteArray,
+    description: String
+) {
+    val suffixOffset = findUniqueSequence(bundleBytes, suffix, description)
+    val selectorOffset = suffixOffset - 4
+    if (matchesBytes(selectorOffset, EXPECTED_SELECTOR_PREFIX_BYTES)) {
+        patchBytes(selectorOffset, LOAD_CONST_FALSE_RET_R1)
+    } else if (!matchesBytes(selectorOffset, LOAD_CONST_FALSE_RET_R1)) {
+        throw PatchException("Unexpected bytes at $description")
+    }
+}
+private fun findUniqueSequence(bytes: ByteArray, sequence: ByteArray, description: String): Int {
+    require(sequence.isNotEmpty()) { "Sequence must not be empty" }
+    var matchOffset = -1
+    var count = 0
+    var i = 0
+    while (i <= bytes.size - sequence.size) {
+        if (bytes[i] == sequence[0]) {
+            var matched = true
+            for (j in 1 until sequence.size) {
+                if (bytes[i + j] != sequence[j]) {
+                    matched = false
+                    break
+                }
+            }
+            if (matched) {
+                matchOffset = i
+                count++
+            }
+        }
+        i++
+    }
+    return when (count) {
+        0 -> throw PatchException("Failed to find $description in Hermes bundle")
+        1 -> matchOffset
+        else -> throw PatchException("Found $count matches for $description in Hermes bundle; expected exactly 1")
+    }
+}
+
+/**
+ * Cross-Layer Companion Asset Patch:
+ *
+ * In Morphe, bytecode patches exclusively mutate Dalvik DEX ASTs and run in STRIP_FAST mode,
+ * which does not decode or repackage APK assets (such as assets/index.android.bundle).
+ * To ensure post-payment offers (Thanks network and Rokt placements) in Hermes bytecode
+ * are stripped whenever "Remove Ads and Tracking" is enabled, this companion rawResourcePatch
+ * is linked via `dependsOn`. Morphe's patcher graph automatically resolves the dependency,
+ * stages the bundle, applies the 10 bytecode edits, and repackages it into the output APK.
+ */
 @Suppress("unused")
-val removeAdsAndTrackingPatch = bytecodePatch(
-    name = "Remove Ads and Tracking",
-    description = "Removes all ads (AppLovin MAX, Google Mobile Ads, Rokt, Playtime, InBrain Surveys) and disables analytics and tracking SDKs (AppsFlyer, FullStory, Braze, Firebase Analytics, mParticle, Facebook SDK, AppCenter).",
+val removeAdsAndTrackingFromJsBundlePatch = rawResourcePatch(
+    name = "Remove Ads and Tracking from JS Bundle",
+    description = "Neutralizes post-payment reward and offer modals (Thanks network and Rokt placements) in the embedded Hermes JavaScript bundle.",
     default = true
 ) {
     compatibleWith(COMPATIBILITY_SEZZLE)
+    execute {
+        val bundleFile = get("assets/index.android.bundle")
+        if (!bundleFile.exists()) {
+            throw PatchException("assets/index.android.bundle not found")
+        }
+
+        val editor = HermesBundleEditor(bundleFile.readBytes())
+        val bundleBytes = editor.toByteArray()
+        // 1. Force canShowAd selector to return false
+        editor.patchSelectorIfMatches(bundleBytes, CAN_SHOW_AD_SELECTOR_SUFFIX_BYTES, "canShowAd selector")
+
+        // 2. Force shouldShowRokt selector to return false
+        editor.patchSelectorIfMatches(bundleBytes, SHOULD_SHOW_ROKT_SELECTOR_SUFFIX_BYTES, "shouldShowRokt selector")
+
+        // 3. Force shouldShowThanks selector to return false
+        editor.patchSelectorIfMatches(bundleBytes, SHOULD_SHOW_THANKS_SELECTOR_SUFFIX_BYTES, "shouldShowThanks selector")
+
+        // 4. Force isAdEnabledForTrigger selector to return false
+        editor.patchSelectorIfMatches(bundleBytes, IS_AD_ENABLED_FOR_TRIGGER_SELECTOR_SUFFIX_BYTES, "isAdEnabledForTrigger selector")
+
+        // 5. Force isRegisteredTrigger selector to return false
+        editor.patchSelectorIfMatches(bundleBytes, IS_REGISTERED_TRIGGER_SELECTOR_SUFFIX_BYTES, "isRegisteredTrigger selector")
+
+        // 6. Force isPlacementInCatalog selector to return false
+        editor.patchSelectorIfMatches(bundleBytes, IS_PLACEMENT_IN_CATALOG_SELECTOR_SUFFIX_BYTES, "isPlacementInCatalog selector")
+
+        // 7. Force enableThanks to return false
+        val enableThanksSuffixOffset = findUniqueSequence(bundleBytes, ENABLE_THANKS_SUFFIX_BYTES, "enableThanks getter")
+        val enableThanksOffset = enableThanksSuffixOffset - 4
+        if (editor.matchesBytes(enableThanksOffset, EXPECTED_ENABLE_THANKS_PREFIX_BYTES)) {
+            editor.patchBytes(enableThanksOffset, LOAD_CONST_FALSE_RET_R0)
+        } else if (!editor.matchesBytes(enableThanksOffset, LOAD_CONST_FALSE_RET_R0)) {
+            throw PatchException("Unexpected bytes at enableThanks getter")
+        }
+
+        // 8. Force getThanksBaseUrl to return null (prevents loading https://thanks.is/)
+        val thanksUrlOffset = findUniqueSequence(bundleBytes, THANKS_BASE_URL_BYTES, "getThanksBaseUrl")
+        if (editor.matchesBytes(thanksUrlOffset, THANKS_BASE_URL_BYTES)) {
+            editor.patchBytes(thanksUrlOffset, LOAD_CONST_NULL_RET_R0)
+        } else if (!editor.matchesBytes(thanksUrlOffset, LOAD_CONST_NULL_RET_R0)) {
+            throw PatchException("Unexpected bytes at getThanksBaseUrl")
+        }
+
+        // 9. Neutralize ThanksModal.render() method to return null (prevents ReactNativeModal from mounting)
+        val thanksModalRenderOffset = findUniqueSequence(bundleBytes, THANKS_MODAL_RENDER_PREFIX_BYTES, "ThanksModal render()")
+        if (editor.matchesBytes(thanksModalRenderOffset, EXPECTED_MODAL_RENDER_PREFIX_BYTES)) {
+            editor.patchBytes(thanksModalRenderOffset, LOAD_CONST_NULL_RET_R0)
+        } else if (!editor.matchesBytes(thanksModalRenderOffset, LOAD_CONST_NULL_RET_R0)) {
+            throw PatchException("Unexpected bytes at ThanksModal render()")
+        }
+
+        editor.updateFooterHash()
+        bundleFile.writeBytes(editor.toByteArray())
+    }
+}
+@Suppress("unused")
+val removeAdsAndTrackingPatch = bytecodePatch(
+    name = "Remove Ads and Tracking",
+    description = "Removes all ads (AppLovin MAX, Google Mobile Ads, Rokt, Thanks network, Playtime, InBrain Surveys) and disables analytics and tracking SDKs (AppsFlyer, FullStory, Braze, Firebase Analytics, mParticle, Facebook SDK, AppCenter).",
+    default = true
+) {
+    compatibleWith(COMPATIBILITY_SEZZLE)
+    dependsOn(removeAdsAndTrackingFromJsBundlePatch)
 
     execute {
         // --- ADS ---
@@ -61,7 +246,14 @@ val removeAdsAndTrackingPatch = bytecodePatch(
             "selectShoppableAds",
             "purchaseFinalized"
         )
+        disableVoidMethods(
+            "Lcom/mparticle/react/rokt/MPRoktModuleImpl;",
+            "selectPlacements",
+            "selectShoppableAds",
+            "purchaseFinalized"
+        )
         disableVoidMethods("Lcom/mparticle/react/rokt/RoktLayoutViewManager;", "setPlaceholderName")
+        disableVoidMethods("Lcom/mparticle/react/rokt/RoktLayoutViewManagerImpl;", "setPlaceholderName")
         disableVoidMethods(
             "Lcom/rokt/roktsdk/RoktInternalImplementation;",
             "execute",
@@ -69,7 +261,9 @@ val removeAdsAndTrackingPatch = bytecodePatch(
             "execute2Step"
         )
         disableVoidMethods("Lcom/rokt/roktsdk/Rokt;", "execute", "init")
-
+        disableVoidMethods("Lcom/rokt/roktsdk/ui/overlay/RoktModalActivity;", "onCreate")
+        disableVoidMethods("Lcom/rokt/roktsdk/internal/overlay/bottomsheet/BottomSheetActivity;", "onCreate")
+        disableVoidMethods("Lcom/rokt/roktux/RoktLayoutView;", "show", "setVisibility")
         // 4. Adjoe (Playtime Rewards / Ads)
         disableVoidMethods("Lio/adjoe/sdk/Playtime;", "init")
         disableVoidMethods(
@@ -239,7 +433,6 @@ val removeAdsAndTrackingPatch = bytecodePatch(
         )
     }
 }
-
 private fun BytecodePatchContext.disableVoidMethods(classDescriptor: String, vararg methodNames: String) {
     try {
         val classDef = classDefByOrNull(classDescriptor) ?: return

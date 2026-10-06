@@ -133,6 +133,7 @@ Importing settings	Mengimpor pengaturan
 Licenses	Lisensi
 Link expired. Reopen the item and try again	Tautan kedaluwarsa. Buka ulang kontennya lalu coba lagi
 Links	Tautan
+Privacy	Privasi
 Material You theme	Tema Material You
 News feed	Kabar Beranda
 No screenshot watching for ads, and no reports of which apps you install.	Tangkapan layar iklan tidak dipantau, dan aplikasi yang Anda pasang tidak dilaporkan.
@@ -246,7 +247,7 @@ There's no diagnostic data to put back.	Tidak ada data diagnostik yang dapat dik
 They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. Patch again to change them.	Semua ini dipilih di Morphe Manager saat Anda menambal, dan Jeda tidak mematikannya. Tambal ulang untuk mengubahnya.
 This phone has no file picker, so there's no way to choose a file here.	Ponsel ini tidak memiliki pemilih file, jadi file tidak dapat dipilih di sini.
 Try again, or go back to Facebook.	Coba lagi, atau kembali ke Facebook.
-The switch takes effect when Facebook restarts.	Sakelar ini berlaku saat Facebook dimulai ulang.
+A change shows the next time you pull down to refresh.	Perubahan terlihat saat berikutnya Anda menarik ke bawah untuk memuat ulang.
 Use the system font	Gunakan font sistem
 Use the phone's emoji	Gunakan emoji ponsel
 Version	Versi
@@ -299,6 +300,12 @@ Stop update prompts	Hentikan permintaan pembaruan
 Facebook stops asking you to update through Meta App Manager and stops having it look for one. Chat promotions aimed at older versions go too. A patched build can't install Meta's updates anyway.	Facebook berhenti meminta Anda memperbarui lewat Meta App Manager dan berhenti menyuruhnya mencari pembaruan. Promosi obrolan yang ditujukan ke versi lama juga hilang. Build yang dipatch memang tidak bisa memasang pembaruan Meta.
 Reels and Watch videos that Facebook's own detection marks as made with AI, starting with the next batch Facebook loads. One that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real account yet.	Reel dan video Watch yang ditandai deteksi Facebook sendiri sebagai buatan AI, mulai dari kumpulan berikutnya yang dimuat Facebook. Yang hanya diberi label AI oleh pembuatnya tetap ada. Sakelar ini nonaktif secara default karena belum diuji dengan akun sungguhan.
 Don't send reel watch history	Jangan kirim riwayat tontonan reel
+Hold back analytics uploads	Tahan unggahan analitik
+Facebook stops uploading its app analytics in the background and skips its on-device learning jobs. Restart Facebook after changing it.	Facebook berhenti mengunggah analitik aplikasinya di latar belakang dan melewati tugas pembelajaran di perangkat. Mulai ulang Facebook setelah mengubahnya.
+Allow screenshots	Izinkan tangkapan layar
+Screenshots and screen recordings show the pages Facebook blocks them on. A page that's already open changes when you open it again.	Tangkapan layar dan rekaman layar menampilkan halaman yang diblokir Facebook. Halaman yang sudah terbuka berubah saat kamu membukanya lagi.
+Block screenshot detection	Blokir deteksi tangkapan layar
+Facebook doesn't notice when you take a screenshot or record the screen, so nothing it does in response happens.	Facebook tidak tahu saat kamu mengambil tangkapan layar atau merekam layar, jadi tidak ada yang dilakukannya sebagai tanggapan.
 Stop sending watched-reel lists to Facebook. It uses them to rank your feed, so watched reels may return.	Hentikan pengiriman daftar reel yang ditonton ke Facebook. Daftar itu mengurutkan feed, jadi reel dapat muncul lagi.
 the rename of the shared permissions	penggantian nama izin bersama
 Room for Meta's apps	Ruang untuk aplikasi Meta
@@ -429,6 +436,8 @@ Friend suggestions stop showing up in your notifications. Friend requests still 
 Block nearby and weather notifications	Blokir notifikasi tempat terdekat dan cuaca
 # context: summary of that switch
 Alerts about places near you and about the weather stop.	Peringatan tentang tempat di dekat Anda dan tentang cuaca berhenti.
+Block account setup reminders	Blokir pengingat penyiapan akun
+Reminders to finish setting up a Facebook account stop. Login and security alerts still come through.	Pengingat untuk menyelesaikan penyiapan akun Facebook berhenti. Peringatan login dan keamanan tetap masuk.
 # context: title of a note under Notifications, below the switches; what no switch there blocks
 What always comes through	Yang selalu masuk
 # context: text of that note; Android's own settings are the phone's per-app notification categories, which Facebook's server defines
@@ -439,6 +448,8 @@ Hide suggested stories	Sembunyikan cerita yang disarankan
 Keep friends and followed Pages in the Stories tray. Applies when Facebook next loads the tray.	Pertahankan teman dan Halaman yang diikuti di baki cerita. Berlaku saat Facebook memuat ulang baki.
 # context: switch title under Marketplace; the ads Facebook puts between the things people sell in Marketplace's feed
 Hide sponsored Marketplace listings	Sembunyikan tawaran bersponsor di Marketplace
+Block Instant Games ads	Blokir iklan Instant Games
+Games you play in Facebook get no ads. A game asking for one hears there's none to show, so rewarded ads give no reward.	Game yang kamu mainkan di Facebook tidak mendapat iklan. Game yang meminta iklan diberi tahu bahwa tidak ada iklan, jadi iklan berhadiah tidak memberi hadiah.
 # context: summary of that switch; a boosted listing is one its seller paid Facebook to show to more people
 Ads and boosted listings in Marketplace's feed and search results. The other listings stay.	Iklan dan tawaran yang dipromosikan di feed dan hasil pencarian Marketplace. Tawaran lainnya tetap ada.
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
@@ -498,9 +509,11 @@ Type @ before Facebook suggests someone to tag in posts or comments. Your text s
 # context: switch title under Playback; on, a long video you left partway starts again where you left it
 Resume long videos	Lanjutkan video panjang
 # context: summary of that switch; the seek bar is the bar under a video you drag to move through it; Reels is Facebook's name for its short videos
-Resume videos over two minutes where you left off. Seek to start elsewhere. Reels, live videos and ads start as usual.	Lanjutkan video lebih dari dua menit dari posisi terakhir. Geser bilah untuk posisi lain. Reel, video langsung, dan iklan mulai seperti biasa.
+Resume videos over two minutes where you left off, in the feed or full screen. Seek to start elsewhere. Short reels, live videos and ads start as usual.	Lanjutkan video lebih dari dua menit dari posisi terakhir, di feed atau layar penuh. Geser bilah untuk posisi lain. Reel pendek, video langsung, dan iklan mulai seperti biasa.
 # context: switch title under News feed, right below Hide AI-detected posts; on, posts their creator labelled as AI go too
 Also hide posts labelled as AI	Sembunyikan juga postingan berlabel AI
+Hide Meta AI in the feed	Sembunyikan Meta AI di feed
+The Meta AI cards Facebook adds to the feed between posts. People's posts stay, whatever they say about AI.	Kartu Meta AI yang ditambahkan Facebook ke feed di antara postingan. Postingan orang tetap ada, apa pun yang mereka katakan tentang AI.
 # context: summary of that switch; the AI label is the one Facebook shows next to the poster's name on such posts
 Posts whose creator marked them as made with AI. Facebook puts its AI label next to the name on these as well as on the posts its detection found, and with this on, both kinds go. It's off by default because it hasn't been tested on a real feed yet.	Postingan yang ditandai pembuatnya sebagai buatan AI. Facebook memasang label AI di samping nama pada postingan ini maupun pada postingan yang ditemukan deteksinya, dan saat sakelar ini aktif, keduanya disembunyikan. Sakelar ini nonaktif secara default karena belum diuji di Kabar Beranda sungguhan.
 Return to regular Facebook	Kembali ke Facebook biasa
@@ -641,6 +654,14 @@ answered	dijawab
 failed (%1$s)	gagal (%1$s)
 # context: switch title under Reels and Watch; the dot is the tab bar's new-item badge
 Hide the Reels tab dot	Sembunyikan titik di tab Reels
+Hide the Feeds tab	Sembunyikan tab Feed
+Hide the Friends tab	Sembunyikan tab Teman
+Hide the Marketplace tab	Sembunyikan tab Marketplace
+Hide the Groups tab	Sembunyikan tab Grup
+Hide the Gaming tab	Sembunyikan tab Game
+Hide the Events tab	Sembunyikan tab Acara
+Takes the tab off the tab bar. Its page stays in the Menu. Restart Facebook after changing it.	Menghapus tab dari bilah tab. Halamannya tetap ada di Menu. Mulai ulang Facebook setelah mengubahnya.
+Facebook opens on Home while Hide tabs keeps %1$s off the tab bar. Your choice stays saved.	Facebook terbuka di Beranda selama Sembunyikan tab menjauhkan %1$s dari bilah tab. Pilihanmu tetap tersimpan.
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
 No dot or new count on the Reels tab, called Video on some accounts. Other tabs keep theirs.	Tanpa titik atau jumlah baru di tab Reels, yang di beberapa akun bernama Video. Tab lain tetap menampilkannya.
 # context: title of the overview row under the status card when the build lacks one patch Morphe Manager selects by default
@@ -745,6 +766,7 @@ The Feeds tab will open on %1$s.	Tab Feed akan terbuka di %1$s.
 Saved	Tersimpan
 Saved shortcut	Pintasan Tersimpan
 Adds Saved to Facebook's icon menu when there's room. Existing shortcuts stay.	Menambahkan Tersimpan ke menu ikon Facebook jika ada ruang. Pintasan yang ada tetap tersedia.
+Adds Saved to Facebook's icon menu when there's room, and a Saved row at the end of Settings and privacy in the Menu. Existing shortcuts stay.	Menambahkan Tersimpan ke menu ikon Facebook jika ada ruang, dan baris Tersimpan di akhir Pengaturan dan privasi di Menu. Pintasan yang ada tetap tersedia.
 Your launcher has no room for another shortcut.	Peluncur tidak memiliki ruang untuk pintasan lain.
 Saved isn't available in this build.	Tersimpan tidak tersedia dalam versi ini.
 # context: The optional matching mode for both post word lists.
@@ -760,3 +782,15 @@ Build %1$s (modified)	Build %1$s (diubah)
 Build %1$s (source known)	Build %1$s (sumber diketahui)
 Build %1$s (source unknown)	Build %1$s (sumber tidak diketahui)
 Tap Resume, then restart Facebook.	Ketuk Lanjutkan, lalu mulai ulang Facebook.
+Turn off haptics	Matikan haptik
+No short vibrations on Facebook's own taps and gestures. The keyboard and your phone's own haptics stay.	Tanpa getaran singkat pada ketukan dan gestur Facebook sendiri. Keyboard dan haptik ponselmu tetap ada.
+Turn off screen transitions	Matikan transisi layar
+Tabs, the Menu and screens that open over Facebook show at once, without the slide between them. Swiping between tabs stays.	Tab, Menu, dan layar yang terbuka di atas Facebook langsung muncul, tanpa geseran di antaranya. Mengusap antar tab tetap ada.
+# context: switch title under Playback; Android's own name for the floating video window
+Picture-in-picture	Gambar dalam gambar
+# context: summary of that switch
+A playing reel keeps going in a small window when you leave Facebook. Android 12 or later.	Reel yang sedang diputar terus berjalan di jendela kecil saat kamu keluar dari Facebook. Android 12 atau yang lebih baru.
+# context: switch title under Playback; HDR is the high-contrast video and photo format some screens show brighter than everything else
+Turn off HDR brightness	Matikan kecerahan HDR
+# context: summary of that switch
+HDR videos and photos stay at your screen's usual brightness instead of turning it up to full. They keep their resolution.	Video dan foto HDR tetap di kecerahan layar yang biasa, alih-alih menaikkannya sampai penuh. Resolusinya tetap sama.

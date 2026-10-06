@@ -28,8 +28,8 @@ import java.util.WeakHashMap;
 final class CaptionMusicSuppressor {
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
     private static final long TICK_MS = 40L;
-    private static final long INITIAL_NATIVE_SCAN_MS = 180L;
-    private static final long FALLBACK_NATIVE_SCAN_MS = 1_500L;
+    private static final long INITIAL_NATIVE_SCAN_MS = 320L;
+    private static final long FALLBACK_NATIVE_SCAN_MS = 5_000L;
     private static final long NATIVE_NOT_FOUND_LOG_MS = 1_800L;
     private static final int MAX_NATIVE_SCAN_VIEWS = 1_200;
     private static final String[] PLAYER_IDS = {
@@ -45,14 +45,20 @@ final class CaptionMusicSuppressor {
     private static boolean ready;
     private static boolean posted;
     private static boolean forceNativeRescan;
-    private static boolean nativeScanSuspended;
     private static long nativeSearchStartedAtMs;
     private static long nextNativeScanAtMs;
     private static boolean nativeNotFoundLogged;
+    private static boolean discoveryPaused, debugTreeRequested;
+    private static int misses;
+    static long scanCount, scanNanos, treeSummaryCount;
+
+    static void pauseDiscoveryForPlayerTransition(boolean paused) { discoveryPaused=paused; }
+    /** Detailed evidence is opt-in, never exported on every missing-view tick. */
+    static void sampleNativeRendererTree() { debugTreeRequested=true; forceNativeRendererScan(); }
 
     private static final Runnable TICK = () -> {
         posted = false;
-        if (!DynamicCaptionController.isVisibleActive()) {
+        if (!RebuildController.ownsNativeTrack()) {
             restoreNativeRenderers();
             return;
         }
@@ -76,9 +82,18 @@ final class CaptionMusicSuppressor {
             return;
         }
         if (posted) return;
-        if (!DynamicCaptionController.isVisibleActive() && maskedRenderers.isEmpty()) return;
+        if (!RebuildController.ownsNativeTrack() && maskedRenderers.isEmpty()) return;
         posted = true;
         MAIN.postDelayed(TICK, TICK_MS);
+    }
+
+    /** The real HookV2 transition callback only marks recovery; the existing tick performs it. */
+    static void requestNativeRendererScanAfterTransition() {
+        if(Looper.myLooper()!=Looper.getMainLooper()){MAIN.post(CaptionMusicSuppressor::requestNativeRendererScanAfterTransition);return;}
+        // An attached native window is already covered by the draw hook and known-view mask.
+        if(!keepKnownRenderersMasked())forceNativeRescan=true;
+        // Do not restart miss backoff for duplicate types or emit another missing-view summary.
+        kick();
     }
 
     /** Force one fresh player-local lookup after a video/player rebuild without adding a new loop. */
@@ -90,83 +105,70 @@ final class CaptionMusicSuppressor {
         forceNativeRescan = true;
         nextNativeScanAtMs = 0L;
         nativeNotFoundLogged = false;
-        if (DynamicCaptionController.isVisibleActive()) kick();
+        if (RebuildController.ownsNativeTrack()) { maskNativeRenderer(); kick(); }
     }
 
-    /** Keep new View-tree searches out of YouTube's animation-critical player transition window. */
+    /** Keep known windows hidden while discovery continues at its bounded cadence. */
     static void beginNativeRendererTransition() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             MAIN.post(CaptionMusicSuppressor::beginNativeRendererTransition);
             return;
         }
-        nativeScanSuspended = true;
+        keepKnownRenderersMasked();
     }
 
-    /** Resume renderer discovery only after the existing read-only geometry guard declares stable. */
+    /** Reapply immediately after the geometry guard declares the rebuilt player stable. */
     static void endNativeRendererTransition() {
         if (Looper.myLooper() != Looper.getMainLooper()) {
             MAIN.post(CaptionMusicSuppressor::endNativeRendererTransition);
             return;
         }
-        nativeScanSuspended = false;
-        forceNativeRescan = true;
-        nextNativeScanAtMs = 0L;
-        nativeNotFoundLogged = false;
-        if (DynamicCaptionController.isVisibleActive()) kick();
+        discoveryPaused=false;
+        // Release in constant work; detached views can be rediscovered by the bounded fallback tick.
+        keepKnownRenderersMasked();
+        if (RebuildController.ownsNativeTrack()) kick();
     }
 
     private static void sanitize() { /* Text belongs exclusively to the accepted event plan. */ }
 
     /**
-     * Keep already-found subtitle windows transparent. Only if no attached renderer is known do we
-     * run a bounded search, reusing the existing 40 ms maintenance tick rather than adding another
-     * polling loop. The fast scan exists only during initial AI takeover; after a miss it backs off
-     * to 1.5 s, minimizing work during player animations.
+     * Keep cached windows transparent every 40 ms. Discovery only runs after an explicit
+     * recovery signal or a bounded low-frequency backoff; no tree dump is implicit.
      */
     private static void maskNativeRenderer() {
         Activity activity = activityRef.get();
         if (activity == null || activity.isFinishing()) return;
 
-        if (nativeScanSuspended) {
-            // Do not traverse the player tree while YouTube is animating. A renderer already owned
-            // by this class may still be kept transparent with one cheap property write.
-            keepKnownRenderersMasked();
-            return;
-        }
-
-        boolean forced = forceNativeRescan;
-        forceNativeRescan = false;
         boolean knownAttached = keepKnownRenderersMasked();
-        if (knownAttached && !forced) return;
-
         long now = SystemClock.uptimeMillis();
-        if (nativeSearchStartedAtMs == 0L) nativeSearchStartedAtMs = now;
-        if (!forced && now < nextNativeScanAtMs) return;
-
-        long age = now - nativeSearchStartedAtMs;
-        nextNativeScanAtMs = now +
-                (age <= NATIVE_NOT_FOUND_LOG_MS ? INITIAL_NATIVE_SCAN_MS : FALLBACK_NATIVE_SCAN_MS);
-
-        boolean found = scanPlayerRoots(activity);
-        if (!found && age >= 700L) {
-            // Current YouTube builds normally keep SubtitleWindowView under the player overlay. The
-            // one-time broader fallback only accepts a strict player-subtitles class identity.
-            View decor = activity.getWindow() == null ? null : activity.getWindow().getDecorView();
-            found = scanTree(activity, decor, false);
+        if (discoveryPaused || (!forceNativeRescan && knownAttached) || now < nextNativeScanAtMs) return;
+        boolean forced=forceNativeRescan; forceNativeRescan=false;
+        if (nativeSearchStartedAtMs == 0L) nativeSearchStartedAtMs=now;
+        long started=System.nanoTime();
+        boolean found=scanPlayerRoots(activity);
+        if(!found && forced) {
+            // Explicit initial/rebuild recovery only; never repeated full-decor scans on a miss.
+            View decor=activity.getWindow()==null?null:activity.getWindow().getDecorView();
+            found=scanTree(activity,decor,true);
         }
-
-        if (found || knownAttached) {
-            nativeNotFoundLogged = false;
-            return;
+        scanCount++;scanNanos+=System.nanoTime()-started;
+        if(forced || misses==0)CaptionDiagnostics.mark(activity,"NATIVE_RENDERER_SCAN_SUMMARY",
+            "scan_count="+scanCount+";scan_total_us="+(scanNanos/1000)+";tree_summary_count="+treeSummaryCount+";found="+found);
+        if(found) { misses=0;nativeNotFoundLogged=false;nextNativeScanAtMs=now+FALLBACK_NATIVE_SCAN_MS; }
+        else {
+            misses++;
+            nextNativeScanAtMs=now+Math.min(FALLBACK_NATIVE_SCAN_MS,INITIAL_NATIVE_SCAN_MS*(1L<<Math.min(4,misses-1)));
+            if(!nativeNotFoundLogged) {
+                nativeNotFoundLogged=true;
+                CaptionDiagnostics.mark(activity,"NATIVE_RENDERER_VIEW_NOT_FOUND",
+                    "reason=player_local_renderer_absent;retry_backoff_ms="+(nextNativeScanAtMs-now));
+            }
         }
-
-        if (!nativeNotFoundLogged && age >= NATIVE_NOT_FOUND_LOG_MS) {
-            nativeNotFoundLogged = true;
-            CaptionDiagnostics.mark(
-                    activity,
-                    "NATIVE_RENDERER_VIEW_NOT_FOUND",
-                    "TimedText 已被不可见化，但当前播放器未发现可直接隐藏的 YouTube 原生字幕窗口"
-            );
+        if(debugTreeRequested) {
+            debugTreeRequested=false;
+            String summary=treeSummary(activity.getWindow()==null?null:activity.getWindow().getDecorView());
+            treeSummaryCount++;
+            CaptionDiagnostics.mark(activity,"NATIVE_RENDERER_VIEW_TREE","sample=explicit;"+summary);
         }
     }
 
@@ -177,7 +179,9 @@ final class CaptionMusicSuppressor {
             Map.Entry<View, Float> entry = iterator.next();
             View view = entry.getKey();
             if (view == null || !view.isAttachedToWindow()) {
+                if (view != null) view.setAlpha(entry.getValue());
                 iterator.remove();
+                forceNativeRescan=true;nextNativeScanAtMs=0L;
                 continue;
             }
             attached = true;
@@ -240,7 +244,7 @@ final class CaptionMusicSuppressor {
             View view,
             boolean allowPlayerLocalFallback
     ) {
-        if (view == null || !view.isAttachedToWindow() || view.getAlpha() <= 0.01f) return false;
+        if (view == null || !view.isAttachedToWindow()) return false;
         Object tag = view.getTag();
         if (tag != null && tag.toString().startsWith("yydarlinker.deepseek.caption")) return false;
 
@@ -249,7 +253,8 @@ final class CaptionMusicSuppressor {
             String name = type.getName().toLowerCase(Locale.ROOT);
             if (name.equals(LEGACY_SUBTITLE_WINDOW) ||
                     name.contains(".youtube.player.subtitles.") ||
-                    name.endsWith(".subtitlewindowview")) {
+                    name.endsWith("subtitlewindowview") || name.endsWith("captionwindowview")
+                    || name.endsWith("subtitlesview")) {
                 return true;
             }
             type = type.getSuperclass();
@@ -281,15 +286,12 @@ final class CaptionMusicSuppressor {
             return;
         }
         float originalAlpha = view.getAlpha();
-        // Only take ownership of a renderer that YouTube itself currently considers drawable. This
-        // ensures native-track restoration never inherits an alpha that was already zero.
-        if (originalAlpha <= 0.01f) return;
         maskedRenderers.put(view, originalAlpha);
         view.setAlpha(0f);
         CaptionDiagnostics.mark(
                 activity,
                 "NATIVE_RENDERER_VIEW_MASKED",
-                "已直接隐藏 YouTube 原生字幕绘制窗口；class=" + view.getClass().getName()
+                "YouTube native caption window hidden directly;class=" + view.getClass().getName()
         );
     }
 
@@ -301,7 +303,7 @@ final class CaptionMusicSuppressor {
         for (Map.Entry<View, Float> entry : maskedRenderers.entrySet()) {
             View view = entry.getKey();
             Float alpha = entry.getValue();
-            if (view == null || alpha == null || !view.isAttachedToWindow()) continue;
+            if (view == null || alpha == null) continue;
             try { view.setAlpha(alpha); } catch (Throwable ignored) {}
         }
         maskedRenderers.clear();
@@ -310,10 +312,30 @@ final class CaptionMusicSuppressor {
 
     private static void resetNativeSearch() {
         forceNativeRescan = false;
-        nativeScanSuspended = false;
         nativeSearchStartedAtMs = 0L;
         nextNativeScanAtMs = 0L;
         nativeNotFoundLogged = false;
+        discoveryPaused=false;debugTreeRequested=false;misses=0;
+    }
+
+    private static String treeSummary(View root) {
+        if (root == null) return "root=null";
+        StringBuilder out = new StringBuilder();
+        ArrayDeque<View> pending = new ArrayDeque<>();
+        pending.add(root);
+        int seen = 0;
+        while (!pending.isEmpty() && seen++ < MAX_NATIVE_SCAN_VIEWS && out.length() < 16000) {
+            View view = pending.removeFirst();
+            out.append("parent=").append(view.getParent() == null ? "null" : view.getParent().getClass().getName())
+                    .append(";child=").append(view.getClass().getName())
+                    .append(";visibility=").append(view.getVisibility())
+                    .append(";size=").append(view.getWidth()).append('x').append(view.getHeight()).append('\n');
+            if (view instanceof ViewGroup) {
+                ViewGroup group = (ViewGroup) view;
+                for (int i = 0; i < group.getChildCount(); i++) pending.addLast(group.getChildAt(i));
+            }
+        }
+        return out.append(";visited=").append(seen).append(";truncated=").append(!pending.isEmpty()).toString();
     }
 
     private static boolean prepare() {

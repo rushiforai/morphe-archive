@@ -6,6 +6,8 @@ package app.morphe.extension.facebook.navigation;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import com.facebook.bookmark.tab.BookmarkTab;
@@ -62,12 +64,14 @@ public class ReelsTabTest {
     public void inBuild() {
         ReelsTabForTests.inBuild(Boolean.TRUE);
         ReelsTab.forget();
+        TabBarFilter.clearForTests();
     }
 
     @After
     public void restore() {
         ReelsTabForTests.inBuild(null);
         ReelsTab.forget();
+        TabBarFilter.clearForTests();
         MarketplaceOnlyForTests.inBuild(null);
         MarketplaceOnly.forgetLogged();
         StartTabRoute.settled();
@@ -118,6 +122,23 @@ public class ReelsTabTest {
     }
 
     /** Facebook's own Hide stays in charge: the tab stays off, and nothing here claims it. */
+    /** The Menu's Reels shortcut and a link to the Reels tab open Reels on its own screen while the tab is off. */
+    @Test
+    public void theReelsTabsLinksOpenReelsOnItsOwnScreen() {
+        shown(configured, Collections.emptySet());
+        WatchTab reels = new WatchTab();
+        assertNull(TabBarFilter.launchedTab(reels));
+        assertFalse(TabBarFilter.configuresTab(true, reels));
+        MarketplaceTab marketplace = new MarketplaceTab();
+        assertSame(marketplace, TabBarFilter.launchedTab(marketplace));
+
+        TabBarFilter.clearForTests();
+        ReelsTab.forget();
+        Settings.HIDE_REELS_TAB.save(false);
+        shown(configured, Collections.emptySet());
+        assertSame("with the switch off the tab is there to switch to", reels, TabBarFilter.launchedTab(reels));
+    }
+
     @Test
     public void aReelsTabFacebookAlreadyHidesIsLeftToFacebook() {
         BaseSettings.DEBUG.save(true);

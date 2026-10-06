@@ -7,6 +7,46 @@ public class VerifyKyodemoRouting {
     }
 
     public static void main(String[] args) {
+        String analysisBase = "https://www.kyodemo.net/sdemo/b/morningcoffee/?bs=hi&k=%BB%BB%B8%AF%C3%DB%D7+Spc1-LqHT";
+        check((analysisBase + "&c=ee0icqt").equals(KyodemoRouting.analysisResultUrl(
+                analysisBase + "&c=ee0icqt&fetch=a")), "Keep raw search bytes during recovery");
+        check(KyodemoRouting.analysisResultUrl(analysisBase) == null,
+                "Normal result must not trigger a recovery loop");
+        check(KyodemoRouting.analysisResultUrl(analysisBase.replace("www.kyodemo.net", "evil.example")
+                + "&fetch=a") == null, "Only recover Kyodemo analysis");
+        check(KyodemoRouting.analysisResultUrl(analysisBase + "&fetch=s") == null,
+                "Do not intercept screenshot requests");
+        for (String slip : new String[]{"ﾜｯﾁｮｲW 0df8-cCyK", "ｽﾌﾟｯｯ Sd5a-rxom",
+                "ｵｲｺﾗﾐﾈｵ MMb7-Udye", "ﾜｯﾁｮｲ 4cbe-g+JR", "ﾜｯﾁｮｲW abcd-a/B+",
+                "ﾜｯﾁｮｲW a-!@#$%^&*=?:;,.~_+/-", "ｽﾌﾟｯｯ ABCDE-xy", "ﾜｯﾁｮｲW -",
+                "ﾜｯﾁｮｲ 日本語-全角！", "ﾜｯﾁｮｲW foo", "ﾜｯﾁｮｲW abcd–EFGH", "ﾜｯﾁｮｲW a-😀"}) {
+            check(slip.equals(KyodemoRouting.labeledWacchoiInText("名無し (" + slip + " [1.2.3.4])")),
+                    "Preserve actual label: " + slip);
+            check(KyodemoRouting.isWacchoiToken(slip), "Recognize carrier SLIP: " + slip);
+            String url = KyodemoRouting.wacchoiSearchUrl("egg.5ch.io", "dccg", slip);
+            try {
+                check(slip.equals(java.net.URLDecoder.decode(url.substring(url.indexOf("&k=") + 3),
+                        java.nio.charset.Charset.forName("Shift_JIS").newEncoder().canEncode(slip)
+                                ? "Shift_JIS" : "UTF-8")), "URL round-trip: " + slip);
+            } catch (java.io.UnsupportedEncodingException impossible) {
+                throw new AssertionError(impossible);
+            }
+        }
+        check("L20 njHQ-49Od".equals(KyodemoRouting.edgeWacchoiInText(
+                "エッヂの名無し (L20 njHQ-49Od)")), "Keep Edge level and case");
+        check("https://www.kyodemo.net/sdemo/b/e_e_liveedge/?bs=hi&k=L20+njHQ-49Od"
+                .equals(KyodemoRouting.wacchoiSearchUrl("bbs.eddibb.cc", "liveedge",
+                        "(L20 njHQ-49Od)")), "Reported Edge response must use its actual name");
+        check("L7 abcd–EFGH".equals(KyodemoRouting.edgeWacchoiInText("L7 abcd–EFGH")),
+                "Preserve hyphen and level verbatim");
+        check("l7 a-!+/-".equals(KyodemoRouting.edgeWacchoiInText("(l7 a-!+/-)")),
+                "Preserve Edge letter case and arbitrary token symbols");
+        check("a-!+/-".equals(KyodemoRouting.bareWacchoiInText("(a-!+/- [1.2.3.4])")),
+                "Menu accepts nonstandard token lengths and symbols");
+        check(KyodemoRouting.bareWacchoiInText("https://example.com/a-b") == null,
+                "Do not treat a URL as a Wacchoi");
+        check(KyodemoRouting.bareWacchoiInText("ID:abcd-EFGH 2026-10-06") == null,
+                "Do not treat an explicit ID or date as a Wacchoi");
         check("e_e_liveedge".equals(KyodemoRouting.boardSlug("bbs.eddibb.cc", "liveedge")),
                 "Edge board");
         check("s_anime_11177".equals(KyodemoRouting.boardSlug(

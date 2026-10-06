@@ -16,6 +16,76 @@ fun main(args:Array<String>){
     val support=classes.getValue("Lapp/yydarlinker/deepseekcaptions/CaptionAddonSupport;")
     val flags=support.methods.filter { it.name.endsWith("Installed") }.associate { method -> method.name to method.implementation!!.instructions.filterIsInstance<WideLiteralInstruction>().single().wideLiteral }
     println("FEATURES=$flags")
+    val forbiddenStrings=listOf("ngPkbaZliaU","b7_354_387","zero bezels","all right this is a big smartphone")
+    for(cls in classes.values.filter { it.type.startsWith("Lapp/yydarlinker/deepseekcaptions/") })for(method in cls.methods) {
+        for(ins in method.implementation?.instructions?:emptyList()) {
+            val string=(ins as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.StringReference
+            check(string==null || forbiddenStrings.none { bad->string.string.contains(bad,true) }){"N30 video-specific production condition in "+cls.type}
+            val literal=(ins as? WideLiteralInstruction)?.wideLiteral
+            check(literal !in listOf(112140L,127282L,381L)){"N30 sample-specific numeric literal in "+cls.type+"->"+method.name}
+        }
+    }
+    println("N30_PRODUCTION_SPECIFICITY_PASS fixture_ids_text_times=0")
+    val hostHooks=mutableMapOf<String,Int>()
+    classes.values.filterNot { it.type.startsWith("Lapp/yydarlinker/") }.forEach { cls -> cls.methods.forEach { m ->
+        m.implementation?.instructions?.filterIsInstance<ReferenceInstruction>()?.forEach { ins ->
+            val r=ins.reference as? MethodReference
+            if(r!=null && r.definingClass.startsWith("Lapp/yydarlinker/deepseekcaptions/"))hostHooks[r.name]=(hostHooks[r.name]?:0)+1
+        }
+    } }
+    println("HOST_HOOKS=$hostHooks")
+    if(flags["aiInstalled"]==1L || flags["simplifiedInstalled"]==1L) {
+        check((hostHooks["augmentTranslations"]?:0)>0){"N30 language menu hook missing"}
+        val bridge=classes.getValue("Lapp/yydarlinker/deepseekcaptions/NativeCaptionBridge;")
+        val clone=bridge.methods.singleOrNull { it.name=="cloneTranslation" && it.parameterTypes.map { p->p.toString() }==listOf("Ljava/lang/Object;","Ljava/lang/String;") } ?: error("N30 generic translation clone missing")
+        val refs=clone.implementation!!.instructions.filterIsInstance<ReferenceInstruction>().map { it.reference }
+        check(refs.filterIsInstance<MethodReference>().count { it.name=="translationUrl" }==1){"N30 generic target URL clone incomplete"}
+        check(refs.filterIsInstance<MethodReference>().count { it.name=="translationVss" }==1){"N30 generic VSS clone incomplete"}
+        check(refs.filterIsInstance<MethodReference>().count { it.name=="translationLabel" }==1){"N30 generic label clone incomplete"}
+        println("N30_MENU_BRIDGE_COMPLETE generic_clone=1 canonical_codes=14")
+    }
+    if(flags["aiInstalled"]==1L) {
+        val v2=classes.getValue("Lapp/yydarlinker/deepseekcaptions/DeepSeekCaptionHookV2;")
+        val outer=v2.methods.single { it.name=="onPlayerType" }
+        val outerCalls=outer.implementation!!.instructions.filterIsInstance<ReferenceInstruction>().mapNotNull { it.reference as? MethodReference }
+        check(outerCalls.none { it.name=="forceNativeRendererScan" }){"N30 outer V2 still has synchronous scan exit"}
+        check(outerCalls.count { it.name=="requestNativeRendererScanAfterTransition" }==1)
+        val typeHooks=classes.values.filterNot { it.type.startsWith("Lapp/yydarlinker/") }.flatMap { it.methods.toList() }.flatMap { it.implementation?.instructions?.filterIsInstance<ReferenceInstruction>()?.toList()?:emptyList() }.mapNotNull { it.reference as? MethodReference }.filter { it.name=="onPlayerType" && it.definingClass.startsWith("Lapp/yydarlinker/deepseekcaptions/") }
+        check(typeHooks.size==1 && typeHooks.single().definingClass==v2.type){"N30 host test entry and final HookV2 injection differ"}
+        println("N30_TRANSITION_ENTRY_COMPLETE hook_v2=1 inline_force_scan=0")
+    }
+    val requiredAI=flags["aiInstalled"]==1L || (hostHooks["rewriteUrl"]?:0)>0 || (hostHooks["onMenu"]?:0)>0
+    if(requiredAI) {
+        val required=listOf("onMenu","observeMenuPath","suppressNativeDraw","initialize","onNativeTrackApplied","consumePathCopy","rewriteUrl")
+        val missing=required.filter { (hostHooks[it]?:0)!=1 }
+        check(missing.isEmpty()) { "AI finalizer incomplete: missing/nonunique host hooks ${missing.map { it+"="+(hostHooks[it]?:0) }}" }
+        check(flags["aiInstalled"]==1L) { "AI finalizer incomplete: immutable installation permission not published" }
+        val renderer=classes.getValue("Lcom/google/android/libraries/youtube/player/subtitles/ui/SubtitleWindowView;")
+        val draw=renderer.methods.filter { it.name=="draw" && it.parameterTypes.map { t->t.toString() }==listOf("Landroid/graphics/Canvas;") && it.returnType=="V" }.singleOrNull()
+        check(draw!=null) { "AI finalizer incomplete: SubtitleWindowView.draw missing/nonunique" }
+        val dc=draw!!.implementation!!.instructions.toList()
+        check(dc.filterIsInstance<ReferenceInstruction>().any { (it.reference as? MethodReference)?.name=="suppressNativeDraw" })
+        check(dc.any { it.opcode==com.android.tools.smali.dexlib2.Opcode.INVOKE_SUPER })
+        val filter=classes.getValue("Lapp/morphe/extension/youtube/patches/components/PlayerFlyoutMenuComponentsFilter;")
+        val detector=filter.methods.filter { it.name=="isFiltered" }.single()
+        val params=detector.parameterTypes.map { it.toString() };val bytes=params.indexOf("[B");val path=params.getOrNull(bytes-1)
+        check(bytes>0 && path in listOf("Ljava/lang/String;","Ljava/lang/CharSequence;")) { "Unsupported serialized menu path: $params" }
+        val observer=detector.implementation!!.instructions.filterIsInstance<ReferenceInstruction>().mapNotNull { it.reference as? MethodReference }.single { it.name=="observeMenuPath" }
+        check(observer.parameterTypes.map { it.toString() }==listOf(path,"[B")) { "Menu path observer descriptor mismatch" }
+        val instruction=detector.implementation!!.instructions.first() as com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+        val parameterWords=(if(AccessFlags.STATIC.isSet(detector.accessFlags))0 else 1)+params.sumOf { if(it in listOf("J","D"))2 else 1 }
+        val expectedStart=detector.implementation!!.registerCount-parameterWords+(if(AccessFlags.STATIC.isSet(detector.accessFlags))0 else 1)+params.take(bytes-1).sumOf { if(it in listOf("J","D"))2 else 1 }
+        check(instruction.startRegister==expectedStart && instruction.registerCount==2) { "Menu observer parameter register mismatch" }
+        val fragment=classes.getValue("Lapp/morphe/extension/shared/settings/preference/AbstractPreferenceFragment;")
+        val copy=fragment.methods.single { it.name=="onPreferenceLongClick" }
+        val calls=copy.implementation!!.instructions.filterIsInstance<ReferenceInstruction>().mapNotNull { it.reference as? MethodReference }
+        val original=calls.single { it.name=="aiCaptionOriginalLongClick" }
+        val inner=fragment.methods.single { it.name==original.name }
+        check(inner.accessFlags==copy.accessFlags && AccessFlags.PRIVATE.isSet(inner.accessFlags) && calls.any { it.name=="consumePathCopy" }) { "Internal copy delegate must remain private for invoke-direct" }
+        check(copy.implementation!!.instructions.any { it.opcode==com.android.tools.smali.dexlib2.Opcode.INVOKE_DIRECT_RANGE && ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name==inner.name })
+        check((hostHooks["onNativeSelection"]?:0)==0 && (hostHooks["onNativeSelectionWithReason"]?:0)==0) { "Duplicate manual-only dispatch" }
+        println("AI_FINALIZER_COMPLETE draw=1 menu=1 observer=1 initialize=1 selection=1 copy=1 path=$path registers=$expectedStart")
+    }
     // Type matching alone accepted amof.a in 1.2.5. Trace the value to the host's
     // named videoId builder property instead, including memory-only compositions.
     val nativeBridge=classes.getValue("Lapp/yydarlinker/deepseekcaptions/NativeCaptionBridge;")
@@ -197,7 +267,29 @@ fun main(args:Array<String>){
         println("NATIVE_CONTAINER_TYPED_RETURNS=true")
         val utils=classes.getValue("Lapp/morphe/extension/youtube/patches/utils/FlyoutUtils;")
         check(AccessFlags.PUBLIC.isSet(utils.methods.single { it.name=="getFlyoutMenuInfo" }.accessFlags))
-        val instructions=utils.methods.single { it.name=="addFlyoutElements" }.implementation!!.instructions.toList()
+        val entry=utils.methods.single { it.name=="addFlyoutElements" }
+        val body=utils.methods.single { method -> method.implementation?.instructions?.any { instruction ->
+            val reference=(instruction as? ReferenceInstruction)?.reference as? MethodReference
+            reference?.definingClass==menu.type && reference.name=="onMenu"
+        }==true }
+        if(body!=entry) {
+            check(body.returnType=="V" && body.parameterTypes.map { it.toString() }==listOf("Ljava/lang/Object;") && AccessFlags.STATIC.isSet(body.accessFlags))
+            val allocated=entry.implementation!!.instructions.mapNotNull { instruction ->
+                if(instruction.opcode!=com.android.tools.smali.dexlib2.Opcode.NEW_INSTANCE)null
+                else ((instruction as? ReferenceInstruction)?.reference as? com.android.tools.smali.dexlib2.iface.reference.TypeReference)?.type
+            }
+            check(allocated.count { type -> classes[type]?.let { runnable ->
+                "Ljava/lang/Runnable;" in runnable.interfaces && runnable.methods.any { method ->
+                    method.name=="run" && method.returnType=="V" && method.parameterTypes.isEmpty() &&
+                        method.implementation?.instructions?.any { instruction ->
+                            val reference=(instruction as? ReferenceInstruction)?.reference as? MethodReference
+                            reference?.definingClass==utils.type && reference.name==body.name &&
+                                reference.returnType=="V" && reference.parameterTypes.map { it.toString() }==listOf("Ljava/lang/Object;")
+                        }==true
+                }
+            }==true }==1){"Deferred menu hook must be uniquely reachable from the actual entry Runnable"}
+        }
+        val instructions=body.implementation!!.instructions.toList()
         fun called(i:Int)=((instructions[i] as? ReferenceInstruction)?.reference as? MethodReference)?.name
         val hook=instructions.indices.single { called(it)=="onMenu" }
         val divider=instructions.indices.single { called(it)=="addDivider" }

@@ -253,7 +253,7 @@ final class CaptionButtonController {
             if (menuCandidate) {
                 commitNativeCaptionOff(
                         true,
-                        "真实 CC 控制器已明确报告字幕关闭；AI 字幕状态同步关闭"
+                        "Actual CC controller explicitly reported captions off; AI captions switched off too"
                 );
             } else {
                 syncNativeCaptionState(button);
@@ -308,7 +308,7 @@ final class CaptionButtonController {
         }
         if (state == CaptionIntentPolicy.OFF) {
             lastExactNativeState = CaptionIntentPolicy.OFF;
-            commitNativeCaptionOff(true, "真实 CC 控制器已明确报告字幕关闭；AI 字幕状态同步关闭");
+            commitNativeCaptionOff(true, "Actual CC controller explicitly reported captions off; AI captions switched off too");
             return;
         }
         if (lastExactNativeState != CaptionIntentPolicy.ON) return;
@@ -319,7 +319,7 @@ final class CaptionButtonController {
         // UNKNOWN observation avoids interpreting ordinary player rebuilds or menu dismissal as Off.
         commitNativeCaptionOff(
                 true,
-                "真实 CC 控制器确认长按菜单已切换到关闭状态；AI 字幕同步关闭"
+                "Actual CC controller confirmed long-press menu switched captions off; AI captions switched off too"
         );
     }
 
@@ -372,7 +372,7 @@ final class CaptionButtonController {
             CaptionDiagnostics.mark(
                     context,
                     "NATIVE_CAPTION_SELECTED",
-                    "已尊重当前视频的长按菜单原生字幕选择；该权限不会带到下一视频"
+                    "Native-caption selection from long-press menu honored for this video only"
             );
         }
         return true;
@@ -460,7 +460,7 @@ final class CaptionButtonController {
             CaptionDiagnostics.mark(
                     context,
                     "DEFAULT_TARGET_SELECTED",
-                    "字幕按钮默认启用 " + TargetLanguage.fromCode(code).promptLabel()
+                    "Caption button default target enabled: " + TargetLanguage.fromCode(code).promptLabel()
             );
         }
         return rewritten;
@@ -507,7 +507,7 @@ final class CaptionButtonController {
             CaptionDiagnostics.mark(
                     activity,
                     "NATIVE_CAPTION_MENU",
-                    "CC 长按菜单获得选择权；原生字幕、关闭与自动翻译选项不再被默认 AI 逻辑覆盖"
+                    "CC long-press menu has selection authority; default AI behavior no longer overrides native, off, or automatic translation"
             );
         }
     }
@@ -740,7 +740,7 @@ final class CaptionButtonController {
         if (state == CaptionIntentPolicy.OFF) {
             commitNativeCaptionOff(
                     now <= nativeMenuUntilMs,
-                    "已确认长按菜单关闭字幕；残余字幕请求不会重新开启原生轨"
+                    "Long-press menu confirmed captions off; pending caption requests cannot reenable the native track"
             );
             return;
         }
@@ -774,7 +774,7 @@ final class CaptionButtonController {
                     activity,
                     "NATIVE_CAPTION_OFF",
                     detail == null || detail.trim().isEmpty()
-                            ? "已确认长按菜单关闭字幕；AI 字幕同步关闭"
+                            ? "Long-press menu confirmed captions off; AI captions switched off too"
                             : detail.trim()
             );
         }

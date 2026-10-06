@@ -14,7 +14,14 @@ public final class InlineCaptionEditor extends EditText {
     @Override public android.view.inputmethod.InputConnection onCreateInputConnection(android.view.inputmethod.EditorInfo info){
         android.view.inputmethod.InputConnection connection=super.onCreateInputConnection(info);
         info.imeOptions |= android.view.inputmethod.EditorInfo.IME_FLAG_NO_EXTRACT_UI;
+        // A served connection is a real editing session: the viewport may submit its one bounded
+        // caret correction. The connection itself is never replaced programmatically.
+        if(connection!=null && viewport!=null)viewport.beginUserEdit();
         return connection;
+    }
+    @Override public boolean onKeyDown(int keyCode,android.view.KeyEvent event){
+        if(viewport!=null && keyCode!=android.view.KeyEvent.KEYCODE_BACK)viewport.beginUserEdit();
+        return super.onKeyDown(keyCode,event);
     }
     public void sensitive(boolean value){sensitive=value;}
     @Override public boolean onTouchEvent(android.view.MotionEvent e){
@@ -30,22 +37,25 @@ public final class InlineCaptionEditor extends EditText {
         // Let TextView establish the cursor and input connection before requesting the IME.
         boolean handled=super.onTouchEvent(e);
         if(action==MotionEvent.ACTION_UP && !dragged){
-            requestFocus();pendingKeyboard=true;post(this::showKeyboardWhenReady);
+            requestFocus();pendingKeyboard=true;
+            if(viewport!=null)viewport.beginUserEdit();
+            post(this::showKeyboardWhenReady);
         }
         if(action==MotionEvent.ACTION_CANCEL)pendingKeyboard=false;
         return handled;
     }
+    /**
+     * One main IME request flow. It runs only for a focused, attached editor in a focused window and
+     * never restarts a connection the IME already serves, so a single gesture cannot issue two shows.
+     */
     private void showKeyboardWhenReady(){
         if(!pendingKeyboard || !isAttachedToWindow() || !hasFocus() || !hasWindowFocus())return;
         pendingKeyboard=false;
         android.view.inputmethod.InputMethodManager ime=(android.view.inputmethod.InputMethodManager)getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
-        if(ime!=null){
-            if(!ime.isActive(this))ime.restartInput(this);
-            ime.showSoftInput(this,android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
-        }
+        if(ime!=null && !ime.isActive(this))ime.restartInput(this);
+        if(ime!=null)ime.showSoftInput(this,android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
         if(android.os.Build.VERSION.SDK_INT>=30 && getWindowInsetsController()!=null)
             getWindowInsetsController().show(WindowInsets.Type.ime());
-        if(viewport!=null){viewport.onGlobalLayout();viewport.reveal();}
     }
     @Override public void onWindowFocusChanged(boolean focused){
         super.onWindowFocusChanged(focused);if(focused && pendingKeyboard)post(this::showKeyboardWhenReady);
@@ -55,9 +65,9 @@ public final class InlineCaptionEditor extends EditText {
         if(actions!=null){actions.finish();actions=null;}
         actions=startActionMode(new ActionMode.Callback2(){
             public boolean onCreateActionMode(ActionMode mode,Menu menu){
-                menu.add(0,android.R.id.paste,0,android.R.string.paste).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-                menu.add(0,android.R.id.selectAll,1,android.R.string.selectAll);
-                if(!sensitive)menu.add(0,android.R.id.copy,2,android.R.string.copy);
+                menu.add(0,android.R.id.paste,0,CaptionStrings.settings(getContext(),"paste")).setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
+                menu.add(0,android.R.id.selectAll,1,CaptionStrings.settings(getContext(),"select_all"));
+                if(!sensitive)menu.add(0,android.R.id.copy,2,CaptionStrings.settings(getContext(),"copy"));
                 return true;
             }
             public boolean onPrepareActionMode(ActionMode mode,Menu menu){return false;}
@@ -76,7 +86,10 @@ public final class InlineCaptionEditor extends EditText {
         super.onFocusChanged(focused,direction,previous);if(viewport!=null)viewport.focus(focused);
     }
     @Override protected void onSelectionChanged(int start,int end){
-        super.onSelectionChanged(start,end);if(viewport!=null)viewport.reveal();
+        // Caret movement is no longer an unconditional scroll request. Programmatic selection (row
+        // rebinding, profile bind, paste from the action mode) stays passive; the viewport submits its
+        // one bounded correction only while a real IME session serves this editor.
+        super.onSelectionChanged(start,end);
     }
     @Override protected void onDetachedFromWindow(){
         pendingKeyboard=false;

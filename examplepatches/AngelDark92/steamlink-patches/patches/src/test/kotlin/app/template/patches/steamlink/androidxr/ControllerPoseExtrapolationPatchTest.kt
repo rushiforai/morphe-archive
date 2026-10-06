@@ -16,12 +16,22 @@ class ControllerPoseExtrapolationPatchTest {
         assertContentEquals(byteArrayOf(0x7f, 0x45, 0x4c, 0x46), library.copyOfRange(0, 4))
         // extensions/controller-extrapolation-layer, NDK 28.2.13676358, arm64-v8a, Release.
         assertEquals(
-            "d69f0830863e62ba9fcec1c910f53325361f847fc128cee77c0e41d34b73d693",
+            "ae75434d377afd8056f70ffd5bf28377ae4c3a8d6dbbca5adac2566ab7c9f092",
             MessageDigest.getInstance("SHA-256").digest(library).joinToString("") { "%02x".format(it) },
         )
         val text = String(library, Charsets.ISO_8859_1)
         assertTrue("xrNegotiateLoaderApiLayerInterface" in text)
         assertTrue("com.android.xr.flags.enable_controller_pose_extrapolation_consumer_side" in text)
+        // The pose filter: VRLink's controller pose action, its switch and its tuning.
+        assertTrue("pamir-stream-pose" in text)
+        assertTrue("debug.gxr.posefilter" in text)
+        assertTrue("debug.gxr.posefilter.pos.cutoff" in text)
+        assertTrue("debug.gxr.posefilter.pos.beta" in text)
+        assertTrue("debug.gxr.posefilter.rot.cutoff" in text)
+        assertTrue("debug.gxr.posefilter.rot.beta" in text)
+        // Stands down while the controller HAL pose layer supplies the pose.
+        assertTrue("gxr_controller_hal_pose_active" in text)
+        assertTrue(CONTROLLER_HAL_POSE_LIBRARY in text)
     }
 
     @Test

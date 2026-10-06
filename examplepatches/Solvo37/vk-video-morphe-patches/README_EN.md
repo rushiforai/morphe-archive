@@ -18,7 +18,7 @@ Only the APK is published as a Release asset. Build reports and diagnostics stay
 
 ## Updates
 
-The auto-build checks RuStore, Google Play and APKPure every 6 hours, verifies package/signing data, selects the highest verified versionCode, applies all required patches and publishes only if every compatibility gate passes.
+The auto-build checks RuStore and APKPure every 6 hours, verifies package/signing data, selects the highest verified versionCode, applies all required patches and publishes only if every compatibility gate passes.
 
 Release revisions are immutable:
 

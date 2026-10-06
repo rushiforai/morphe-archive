@@ -1,5 +1,5 @@
 {
-  "version": "v0.0.8",
+  "version": "v0.0.9",
   "appNames": {
     "org.telegram.messenger.web": "Telegram",
     "org.telegram.messenger.beta": "Telegram Beta"
@@ -54,7 +54,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -111,7 +111,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -168,7 +168,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -225,7 +225,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -282,7 +282,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -339,7 +339,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -396,7 +396,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -453,7 +453,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -510,7 +510,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -567,7 +567,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -624,7 +624,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -681,7 +681,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -738,7 +738,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -795,7 +795,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -852,7 +852,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -909,7 +909,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -966,7 +966,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -1024,7 +1024,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -1081,7 +1081,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -1138,7 +1138,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -1195,7 +1195,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -1252,7 +1252,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -1309,7 +1309,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -1363,7 +1363,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]
@@ -1427,7 +1427,7 @@
               "version": "12.10.7",
               "experimental": false,
               "versionCodes": {
-                "ARM64_V8A": 71159
+                "ARM64_V8A": 71179
               }
             }
           ]

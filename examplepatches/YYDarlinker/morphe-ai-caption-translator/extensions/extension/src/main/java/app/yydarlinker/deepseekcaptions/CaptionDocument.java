@@ -49,6 +49,7 @@ final class CaptionDocument {
     static Parsed parse(byte[] data, String fallbackContentType) throws Exception {
         if (data == null || data.length == 0) throw new IllegalArgumentException("字幕为空");
         String body = new String(data, StandardCharsets.UTF_8);
+        if(body.startsWith("\uFEFF"))body=body.substring(1);
         String trimmed = body.trim();
 
         if (trimmed.startsWith("{") && trimmed.contains("\"events\"")) {
@@ -205,6 +206,7 @@ final class CaptionDocument {
         List<Cue> rawCues = new ArrayList<>();
 
         for (int i = 0; i < blocks.size(); i++) {
+            if(contentType.startsWith("text/vtt") && WebVttSourceReader.metadata(blocks.get(i)))continue;
             String[] lines = blocks.get(i).split("\\r?\\n", -1);
             int timeline = -1;
             for (int j = 0; j < lines.length; j++) {
@@ -222,10 +224,9 @@ final class CaptionDocument {
             long endMs = parseTime(endToken, false);
             if (startMs < 0L || endMs <= startMs) continue;
 
-            String text = normalizeCueText(String.join(
-                    "\n",
-                    Arrays.copyOfRange(lines, timeline + 1, lines.length)
-            ));
+            String payload = String.join("\n",Arrays.copyOfRange(lines,timeline+1,lines.length));
+            String text = normalizeCueText(contentType.startsWith("text/vtt")
+                    ? WebVttSourceReader.decode(payload) : payload);
             if (text.isEmpty()) continue;
             cueIndexes.add(i);
             texts.add(text);

@@ -316,11 +316,30 @@ final class DashManifest {
     static final class Pick {
         final Track video;
         final Track audio;
+        /** Whether [audio], xHE-AAC, is to be made AAC-LC before the join ({@link AacReencode}). */
+        final boolean reencodeSound;
+        /** Whether [video], VP9, AV1 or H.265, is to be made H.264 before the join ({@link VideoTranscode}). */
+        final boolean transcodeVideo;
 
         Pick(Track video, Track audio) {
+            this(video, audio, false, false);
+        }
+
+        Pick(Track video, Track audio, boolean reencodeSound) {
+            this(video, audio, reencodeSound, false);
+        }
+
+        Pick(Track video, Track audio, boolean reencodeSound, boolean transcodeVideo) {
             this.video = video;
             this.audio = audio;
+            this.reencodeSound = reencodeSound;
+            this.transcodeVideo = transcodeVideo;
         }
+    }
+
+    /** Whether this phone can make a track's picture H.264 ({@link VideoTranscode#canConvert}). */
+    interface Converter {
+        boolean canConvert(Track track);
     }
 
     /**
@@ -333,6 +352,28 @@ final class DashManifest {
      * one: the caller saves the single file instead.
      */
     static Pick pick(List<Track> tracks, boolean allowAv1, DownloadQuality quality, boolean compatible) {
+        return pick(tracks, allowAv1, quality, compatible, false);
+    }
+
+    /**
+     * As above. With [compatible] and [reencodable], a manifest whose only sound is xHE-AAC still
+     * has a pick: its H.264 track and the xHE-AAC sound, marked to be made AAC-LC before the join,
+     * rather than none, which left the save to Facebook's single file (360p for a story).
+     */
+    static Pick pick(List<Track> tracks, boolean allowAv1, DownloadQuality quality, boolean compatible,
+            boolean reencodable) {
+        return pick(tracks, allowAv1, quality, compatible, reencodable, null);
+    }
+
+    /**
+     * As above. With [compatible] and a [converter], a manifest with no H.264 track at all still
+     * has a pick: the 8-bit VP9, AV1 or H.265 track that suits [quality] best among those the phone
+     * can convert ({@link #pickConvertibleVideo}), marked to be made H.264 before the join. Facebook
+     * sends some stories only as VP9 with xHE-AAC sound, and their only H.264 copy is 360p (#77).
+     * Whether that's worth the time over the single file is the caller's to weigh.
+     */
+    static Pick pick(List<Track> tracks, boolean allowAv1, DownloadQuality quality, boolean compatible,
+            boolean reencodable, Converter converter) {
         if (!compatible) {
             Track video = pickVideo(tracks, allowAv1, quality);
             Track audio = bestAudio(tracks);
@@ -342,11 +383,42 @@ final class DashManifest {
         }
 
         Track video = pickCompatibleVideo(tracks, quality);
+        boolean convert = false;
+        if (video == null && converter != null) {
+            video = pickConvertibleVideo(tracks, quality, converter);
+            convert = video != null;
+        }
         if (video == null) return null;
 
         Track audio = bestCompatibleAudio(tracks);
-        if (audio == null && hasSound(tracks)) return null;
-        return new Pick(video, audio);
+        if (audio == null && hasSound(tracks)) {
+            Track xhe = reencodable ? bestXheAudio(tracks) : null;
+            return xhe == null ? null : new Pick(video, xhe, true, convert);
+        }
+        return new Pick(video, audio, false, convert);
+    }
+
+    /**
+     * The 8-bit VP9, AV1 or H.265 track that suits [quality] best, by the rules of
+     * {@link #pickVideo}, among those [converter] says the phone can make H.264, or null.
+     */
+    static Track pickConvertibleVideo(List<Track> tracks, DownloadQuality quality, Converter converter) {
+        List<Track> convertible = new ArrayList<>();
+        for (Track track : tracks) {
+            if (!track.isVideo() || VideoTranscode.sourceType(track.codecs) == null) continue;
+            if (converter.canConvert(track)) convertible.add(track);
+        }
+        return pickVideo(convertible, true, quality);
+    }
+
+    /** The xHE-AAC track with the highest bitrate, or {@code null}. */
+    static Track bestXheAudio(List<Track> tracks) {
+        Track best = null;
+        for (Track track : tracks) {
+            if (!track.isAudio() || !AacReencode.isXhe(track.codecs)) continue;
+            if (best == null || track.bandwidth > best.bandwidth) best = track;
+        }
+        return best;
     }
 
     /** Whether the manifest lists any sound at all, whatever its codec. */

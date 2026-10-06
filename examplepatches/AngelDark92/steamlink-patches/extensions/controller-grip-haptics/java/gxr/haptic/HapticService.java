@@ -25,6 +25,8 @@ public class HapticService extends Binder {
     private static final int HAL_STOP_HAPTIC = 22;
     private static final int HAL_GET_DEVICE_STATUS = 15;
     private static final int HAL_STATUS_CONNECTED = 2;
+    // The HAL's device 2 is both controllers: one upload that both of them play.
+    private static final int HAL_DEVICE_BOTH = 2;
     private static final long STATUS_MAX_AGE_MS = 300;
     private static final int HAL_HAPTIC_INFO_SIZE = 28;
     // The controller plays signed 8-bit samples at this rate.
@@ -136,7 +138,14 @@ public class HapticService extends Binder {
 
     private void play(int device, int vibrator, byte[] samples) {
         if (samples == null || samples.length == 0) return;
-        if (!isConnected(device)) return;
+        if (device == HAL_DEVICE_BOTH) {
+            final boolean left = isConnected(0);
+            final boolean right = isConnected(1);
+            if (!left && !right) return;
+            if (!left || !right) device = left ? 0 : 1;
+        } else if (!isConnected(device)) {
+            return;
+        }
         final Parcel data = Parcel.obtain();
         data.writeInterfaceToken(HAL_DESCRIPTOR);
         data.writeInt(device);

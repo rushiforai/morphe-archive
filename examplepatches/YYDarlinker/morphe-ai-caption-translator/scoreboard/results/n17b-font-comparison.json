@@ -1,0 +1,35 @@
+{
+  "source": "N15r captured-events.json; N17a pagination code; Robolectric SDK28 StaticLayout",
+  "before": {
+    "font_px": 46.70833206176758,
+    "width_px": 1121,
+    "events": 540,
+    "pages": 791,
+    "fallback_events": 0,
+    "one_line_percent": 86.0,
+    "12_to_18_percent": 41.8,
+    "length_median": 16,
+    "length_p90": 27,
+    "duration_median_s": 3.484,
+    "duration_p90_s": 6.269,
+    "cps_median": 4.51,
+    "cps_p90": 6.03
+  },
+  "after": {
+    "font_px": 60.11600112915039,
+    "width_px": 1121,
+    "events": 540,
+    "pages": 814,
+    "fallback_events": 0,
+    "one_line_percent": 66.2,
+    "12_to_18_percent": 42.8,
+    "length_median": 16.0,
+    "length_p90": 27,
+    "duration_median_s": 3.411,
+    "duration_p90_s": 6.171,
+    "cps_median": 4.51,
+    "cps_p90": 6.03
+  },
+  "events_with_changed_page_count": 21,
+  "note": "Same 1121px proxy viewport and 12–18 soft band; only measured font changed. Zero API calls."
+}

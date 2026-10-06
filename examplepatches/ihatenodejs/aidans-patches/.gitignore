@@ -62,6 +62,12 @@ out/
 # Node
 node_modules/
 
+# Astro
+.astro/
+
+# Cloudflare Wrangler
+.wrangler/
+
 # Mac
 .DS_Store
 

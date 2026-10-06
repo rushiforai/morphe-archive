@@ -1486,6 +1486,8 @@ Show only LIVEs with this many people watching.	Yalnızca bu kadar izleyicisi ol
 LIVE followers range	CANLI takipçi aralığı
 Show only LIVEs from creators with this many followers.	Yalnızca bu kadar takipçisi olan içerik üreticilerinin CANLI yayınlarını göster.
 Hide the comment bar on opened videos	Açılan videolarda yorum çubuğunu gizle
+Hide the Clear display controls	Temiz ekran kontrollerini gizle
+While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.	Temiz ekran açıkken alttaki ilerleme çubuğunu, kapatma düğmesini, duraklatma ve hız düğmelerini de gizle. Temiz ekrandan çıkmak için videoya basılı tut ve Ekranı geri yükle'ye dokun.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Bir profilden, hashtag'den, sesten veya aramadan açtığın videolardaki yorum yazma çubuğunu kaldır, böylece video ekranı en alta kadar doldurur. Sağdaki yorum düğmesi yorumları açmaya devam eder.
 Build details	Derleme ayrıntıları
 Copy or save patch-time choices and build identity.	Yama uygulanırken seçilen seçenekleri ve derleme kimliğini kopyalayın veya kaydedin.

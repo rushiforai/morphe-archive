@@ -53,6 +53,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *       ago, the trigger is BY_USER, and nothing else has let a start through or moved on since
  *       ({@link #activityCreated}). Facebook's video player opens a shared video from a browser
  *       with BY_USER and no tap, and it has no play button of its own to tap.</li>
+ *   <li>The Facebook screen last brought to the front shows in a picture-in-picture window
+ *       ({@link #inPictureInPicture}). Android keeps every tap on that window for its own buttons,
+ *       and Facebook pauses the player on its way in and starts it again in the window, so a start
+ *       held there could never be tapped into playing.</li>
  * </ul>
  *
  * <p>Every other start is held, and the player stays where it was, showing its first frame or its
@@ -106,6 +110,8 @@ public final class TapToPlay {
     private static final ArmedPlayers ARMED = new ArmedPlayers();
     /** When a link from another app last opened a Facebook screen, on the uptime clock. */
     private static final AtomicLong LINK_OPENED_AT = new AtomicLong(NO_LINK);
+    /** The Facebook screen last brought to the front. */
+    private static volatile WeakReference<Activity> front = new WeakReference<>(null);
     private static final Object LOG_LOCK = new Object();
     private static int decisions;
     private static int allowedSinceSummary;
@@ -310,10 +316,12 @@ public final class TapToPlay {
         // A tap or a control is the person at work, so a link waiting is no longer what started
         // this. An armed player's own restart leaves it for the player the link opened.
         if (tapped || control) dropLink();
-        boolean linked = !armed && !control && !tapped && BY_USER.equals(trigger) && takeLink(now);
-        boolean allowed = armed || control || linked || tapped;
+        boolean window = !armed && !control && !tapped && inPictureInPicture();
+        boolean linked = !armed && !control && !tapped && !window && BY_USER.equals(trigger) && takeLink(now);
+        boolean allowed = armed || control || linked || tapped || window;
         if (allowed && (!armed || control)) ARMED.arm(player, now);
-        logDecision(allowed, trigger, sinceTap, armed, linked ? path + " (a link asked for it)" : path);
+        logDecision(allowed, trigger, sinceTap, armed,
+                linked ? path + " (a link asked for it)" : window ? path + " (in picture-in-picture)" : path);
         return allowed;
     }
 
@@ -371,9 +379,25 @@ public final class TapToPlay {
         Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE, () -> logged);
     }
 
+    /** Hushfacebook's activity watcher, as each Facebook screen comes to the front. */
+    public static void activityResumed(Activity activity) {
+        front = new WeakReference<>(activity);
+    }
+
+    /**
+     * Whether the Facebook screen last brought to the front shows in a picture-in-picture window.
+     * It stays the last one there while the window is up: a screen in the window is paused, not
+     * replaced.
+     */
+    static boolean inPictureInPicture() {
+        Activity activity = front.get();
+        return activity != null && activity.isInPictureInPictureMode();
+    }
+
     /** Forgets every armed player and the log's counts. For tests. */
     static void forget() {
         ARMED.clear();
+        front = new WeakReference<>(null);
         LINK_OPENED_AT.set(NO_LINK);
         synchronized (LOG_LOCK) {
             decisions = 0;

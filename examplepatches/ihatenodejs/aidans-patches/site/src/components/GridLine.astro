@@ -1,0 +1,17 @@
+---
+interface Props {
+  className?: string;
+  withCrosshairs?: boolean;
+}
+
+const { className = '', withCrosshairs = false } = Astro.props;
+---
+
+<div class={`relative w-full h-px bg-white/[0.08] ${className}`}>
+  {withCrosshairs && (
+    <>
+      <span class="absolute -left-[4px] -top-[4px] select-none text-[9px] font-mono text-zinc-500 leading-none pointer-events-none">+</span>
+      <span class="absolute -right-[4px] -top-[4px] select-none text-[9px] font-mono text-zinc-500 leading-none pointer-events-none">+</span>
+    </>
+  )}
+</div>

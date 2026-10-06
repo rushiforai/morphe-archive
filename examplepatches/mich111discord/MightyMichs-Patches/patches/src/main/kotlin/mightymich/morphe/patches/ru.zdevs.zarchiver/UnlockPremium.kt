@@ -43,6 +43,7 @@ val unlockPremiumPatch = bytecodePatch(
             )
         }
 
+
         isloginFingerprint.let { fingerprint ->
             val method = fingerprint.method
             method.addInstructions(

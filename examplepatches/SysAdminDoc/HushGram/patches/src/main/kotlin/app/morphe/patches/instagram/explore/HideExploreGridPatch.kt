@@ -9,10 +9,10 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -100,8 +100,7 @@ internal class ExploreParser(
  */
 internal fun BytecodePatchContext.findExploreParser(): ExploreParser {
     val found = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(SECTIONS, PAGING_TOKEN).forEach { classDef ->
         classDef.methods.forEach { method ->
             if (method.name != "unsafeParseFromJson") return@forEach
             val strings = method.strings()
@@ -207,8 +206,7 @@ internal fun BytecodePatchContext.findLoadMoreRow(): LoadMoreRow {
 /** The Explore fragment: the one class with a method holding [EXPLORE_FRAGMENT_TAG]. */
 internal fun BytecodePatchContext.findExploreFragment(): String {
     val found = mutableSetOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(EXPLORE_FRAGMENT_TAG).forEach { classDef ->
         if (classDef.methods.any { EXPLORE_FRAGMENT_TAG in it.strings() }) found += classDef.type
     }
     return found.singleOrNull() ?: refuse("expected one class holding $EXPLORE_FRAGMENT_TAG, found ${found.size}")

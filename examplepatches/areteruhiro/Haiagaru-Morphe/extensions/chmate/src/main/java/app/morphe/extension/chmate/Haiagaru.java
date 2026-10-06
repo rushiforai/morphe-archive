@@ -133,7 +133,19 @@ public final class Haiagaru {
     private static final String HISSI_VIEWER_TEXT_ZOOM_KEY = "hissiViewerTextZoom";
     private static final String HISSI_VIEWER_FULLSCREEN_KEY = "hissiViewerFullscreen";
     private static final String HISSI_VIEWER_SWIPE_HISTORY_KEY = "hissiViewerSwipeHistory";
+    private static final String HISSI_VIEWER_TOOLBAR_BUTTONS_KEY = "hissiViewerToolbarButtons";
     private static final String KYODEMO_ENHANCED_VIEWER_KEY = "kyodemoEnhancedViewer";
+    public static final int HISSI_TOOLBAR_REFRESH = 0;
+    public static final int HISSI_TOOLBAR_COPY_URL = 1;
+    public static final int HISSI_TOOLBAR_COPY_ALL = 2;
+    public static final int HISSI_TOOLBAR_COPY_BODY = 3;
+    public static final int HISSI_TOOLBAR_DATE = 4;
+    public static final int HISSI_TOOLBAR_SEARCH = 5;
+    public static final int HISSI_TOOLBAR_ANALYSIS = 6;
+    public static final int HISSI_TOOLBAR_TEXT_ZOOM = 7;
+    public static final int HISSI_TOOLBAR_THEME = 8;
+    private static final int HISSI_TOOLBAR_BUTTON_COUNT = 9;
+    private static final int ALL_HISSI_TOOLBAR_BUTTONS = (1 << HISSI_TOOLBAR_BUTTON_COUNT) - 1;
     private static final int DEFAULT_NG_REGISTRATION_LIMIT = 300;
     private static final int MAX_NG_REGISTRATION_LIMIT = 100_000;
     /** ChMate's own bounded post-history store (postDataList.json). */
@@ -165,21 +177,20 @@ public final class Haiagaru {
     private static final String AD_CLASS_242 = "o.zzbgb";
     private static final String AD_CLASS_243 = "o.zzexb";
     private static final Pattern LEGACY_BE_ATTACHMENT_TOKEN = Pattern.compile(
-            "(?:(?:sssp|https?):)?//img\\.5ch\\.(?:io|net)/(?:ico|premium)/[^\\s<\\u0003\\u3000]+"
-                    + "|\\u0003img\\.5ch\\.(?:io|net)/(?:ico|premium)/[^\\s<\\u0003\\u3000]+",
+            "(?<![A-Za-z0-9./])(?:(?:(?:sssp|https?):)?//|\\u0003)?img\\.(?:5ch\\.(?:io|net)|2ch\\.net)/(?:ico|premium)/[^\\s<\\u0003\\u3000]+",
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern LEGACY_PREMIUM_BE_URL = Pattern.compile(
-            "(?:(?:(?:sssp|https?):)?//|\\u0003)img\\.5ch\\.(?:io|net)/premium/([^\\s<\\u0003\\u3000]+)",
+            "(?<![A-Za-z0-9./])(?:(?:(?:sssp|https?):)?//|\\u0003)?img\\.(?:5ch\\.(?:io|net)|2ch\\.net)/premium/([^\\s<\\u0003\\u3000]+)",
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern LEGACY_BE_ICO_URL = Pattern.compile(
-            "(?:(?:(?:sssp|https?):)?//|\\u0003)img\\.5ch\\.(?:io|net)/ico/([^\\s<\\u0003\\u3000]+)",
+            "(?<![A-Za-z0-9./])(?:(?:(?:sssp|https?):)?//|\\u0003)?img\\.(?:5ch\\.(?:io|net)|2ch\\.net)/ico/([^\\s<\\u0003\\u3000]+)",
             Pattern.CASE_INSENSITIVE
     );
     /** Any legacy BE image spelling, used only for duplicate detection. */
     private static final Pattern LEGACY_BE_ANY_URL = Pattern.compile(
-            "(?:(?:(?:sssp|https?):)?//|\\u0003)img\\.5ch\\.(?:io|net)/(?:premium|ico)/([^\\s<\\u0003\\u3000]+)",
+            "(?<![A-Za-z0-9./])(?:(?:(?:sssp|https?):)?//|\\u0003)?img\\.(?:5ch\\.(?:io|net)|2ch\\.net)/(?:premium|ico)/([^\\s<\\u0003\\u3000]+)",
             Pattern.CASE_INSENSITIVE
     );
     private static final Pattern LEGACY_THREAD_READ_PATH = Pattern.compile(
@@ -421,6 +432,7 @@ public final class Haiagaru {
                         @Override public void onActivityStarted(Activity activity) { }
                         @Override public void onActivityResumed(Activity activity) {
                             resumedActivity = new WeakReference<>(activity);
+                            StringReplacement.reload(activity, false, null);
                         }
                         @Override public void onActivityPaused(Activity activity) { }
                         @Override public void onActivityStopped(Activity activity) { }
@@ -603,6 +615,10 @@ public final class Haiagaru {
         }
     }
 
+    static void showReadThreadsFirstScope() {
+        ReadThreadsFirst.chooseScope(resumedActivity.get());
+    }
+
     private static Activity toolbarActivity(Object owner) {
         if (owner instanceof Activity) return (Activity) owner;
         if (owner != null) {
@@ -626,13 +642,25 @@ public final class Haiagaru {
                 .setPositiveButton(text("既読にする", "Mark read"), (dialog, which) ->
                         new Thread(() -> {
                             try {
-                                int changed = markAllBookmarksRead(activity.getApplicationContext());
+                                MarkReadResult result = markAllBookmarksRead(activity.getApplicationContext());
                                 activity.runOnUiThread(() -> {
-                                    Toast.makeText(activity, text(changed + "件の未読を0にしました。",
-                                            "Marked " + changed + " threads read."), Toast.LENGTH_LONG).show();
-                                    if (changed > 0 && !activity.isFinishing()) {
-                                        activity.recreate();
+                                    try {
+                                        refreshMarkedReadMemory(activity, result.rows);
+                                        notifyMarkedThreadsRead(result.changed);
+                                    } catch (Exception error) {
+                                        Log.e(LOG_TAG, "Unable to refresh marked-read board badges", error);
+                                        Toast.makeText(activity, text("既読数を保存しましたが、一覧表示を更新できませんでした。",
+                                                "Read counts were saved, but the list could not be refreshed."), Toast.LENGTH_LONG).show();
+                                        return;
                                     }
+                                    Toast.makeText(activity, text(result.changed.size() + "件の未読を0にしました。",
+                                            "Marked " + result.changed.size() + " threads read."), Toast.LENGTH_LONG).show();
+                                    // Do not recreate the current ChMate activity here. In
+                                    // Edge's thread list the restored board state can be lost
+                                    // during recreation, leaving an empty list until manual
+                                    // refresh. The read counts are already persisted; let the
+                                    // current screen stay alive and update through its normal
+                                    // refresh/reactive path.
                                 });
                             } catch (Throwable error) {
                                 Log.e(LOG_TAG, "Unable to mark all threads read", error);
@@ -644,7 +672,30 @@ public final class Haiagaru {
                 .show();
     }
 
-    private static int markAllBookmarksRead(Context context) throws IOException {
+    private static final class ReadSnapshot {
+        final String board;
+        final long created;
+        final int count;
+        ReadSnapshot(String board, long created, int count) {
+            this.board = board;
+            this.created = created;
+            this.count = count;
+        }
+    }
+
+    private static final class MarkReadResult {
+        final List<long[]> changed = new ArrayList<>();
+        final List<ReadSnapshot> rows = new ArrayList<>();
+    }
+
+    private static volatile java.lang.ref.WeakReference<Object> readCountManager =
+            new java.lang.ref.WeakReference<>(null);
+
+    public static void captureReadCountManager(Object manager) {
+        readCountManager = new java.lang.ref.WeakReference<>(manager);
+    }
+
+    private static MarkReadResult markAllBookmarksRead(Context context) throws IOException {
         File database = context.getDatabasePath("roidon.sqlite");
         if (database == null || !database.isFile()) {
             throw new IOException("roidon.sqlite が見つかりません");
@@ -657,25 +708,103 @@ public final class Haiagaru {
                     || !columns.contains("server_res_count")) {
                 throw new IOException("未読数のデータ構造が一致しません");
             }
-            int changed;
+            MarkReadResult result = new MarkReadResult();
             db.beginTransaction();
             try {
-                try (Cursor cursor = db.rawQuery("SELECT COUNT(*) FROM bookmarks WHERE "
+                try (Cursor cursor = db.rawQuery("SELECT _id, MAX(read_count, res_count, server_res_count) "
+                        + "FROM bookmarks WHERE "
                         + "read_count < MAX(res_count, server_res_count)", null)) {
-                    cursor.moveToFirst();
-                    changed = cursor.getInt(0);
+                    while (cursor.moveToNext()) {
+                        result.changed.add(new long[]{cursor.getLong(0), cursor.getLong(1)});
+                    }
                 }
                 db.execSQL("UPDATE bookmarks SET read_count = "
                         + "MAX(read_count, res_count, server_res_count) WHERE "
                         + "read_count < MAX(res_count, server_res_count)");
+                // Include already-read rows to repair stale caches left by older patches.
+                try (Cursor cursor = db.rawQuery("SELECT name, created, read_count FROM bookmarks", null)) {
+                    while (cursor.moveToNext()) {
+                        result.rows.add(new ReadSnapshot(cursor.getString(0), cursor.getLong(1), cursor.getInt(2)));
+                    }
+                }
                 db.setTransactionSuccessful();
             } finally {
                 db.endTransaction();
             }
-            return changed;
+            return result;
         } finally {
             db.close();
         }
+    }
+
+    /** Board badges prefer MemReadCountManager over the persisted read_count. */
+    private static void refreshMarkedReadMemory(Activity activity, List<ReadSnapshot> rows) throws Exception {
+            String version = chMateVersion();
+            Object manager;
+            String boardsName;
+            String setter;
+            if ("0.8.10.191 dev".equals(version) || "0.8.10.226 dev".equals(version)) {
+                boolean legacy = "0.8.10.191 dev".equals(version);
+                Class<?> type = Class.forName(legacy ? "o.onUserRewarded" : "o.splitDomain", false, activity.getClassLoader());
+                Field instanceField = type.getDeclaredField("d");
+                instanceField.setAccessible(true);
+                manager = instanceField.get(null);
+                boardsName = legacy ? "a" : "e";
+                setter = "e";
+            } else if ("0.8.10.241".equals(version) || "0.8.10.242 dev".equals(version)) {
+                manager = readCountManager.get();
+                boardsName = "0.8.10.241".equals(version) ? "e" : "a";
+                setter = "0.8.10.241".equals(version) ? "b" : "c";
+            } else {
+                // Keep the existing database-only behavior for other versions.
+                return;
+            }
+            if (manager == null) throw new IllegalStateException("Read-count manager is unavailable");
+            Field boardsField = manager.getClass().getDeclaredField(boardsName);
+            boardsField.setAccessible(true);
+            Map<?, ?> boards = (Map<?, ?>) boardsField.get(manager);
+                for (ReadSnapshot row : rows) {
+                    Object board = boards.get(row.board);
+                    if (board != null) {
+                        board.getClass().getMethod(setter, long.class, int.class)
+                                .invoke(board, row.created, row.count);
+                    }
+                }
+    }
+
+    /** Mirror ChMate's ThreadChanged event after the direct database update. */
+    private static void notifyMarkedThreadsRead(List<long[]> changed) throws Exception {
+        if (changed.isEmpty()) return;
+        ClassLoader loader = Haiagaru.class.getClassLoader();
+        Class<?> eventType;
+        Object bus;
+        Method publish;
+        Field readCount;
+        if ("0.8.10.226 dev".equals(chMateVersion())) {
+            Class<?> events = Class.forName("o.getFormatOpcode", false, loader);
+            eventType = Class.forName("o.RealWebSocketinitReaderAndWriterlambda3inlinedschedule1", false, loader);
+            bus = events.getMethod("l").invoke(null);
+            publish = bus.getClass().getMethod("e", Object.class);
+        } else if ("0.8.10.191 dev".equals(chMateVersion())) {
+            Class<?> events = Class.forName("o.setRequestListener", false, loader);
+            eventType = Class.forName("o.cExternalSyntheticLambda0", false, loader);
+            bus = events.getField("x").get(null);
+            publish = bus.getClass().getMethod("b", Object.class);
+        } else {
+            return;
+        }
+        readCount = eventType.getField("d");
+        java.lang.reflect.Constructor<?> constructor = eventType.getConstructor(long.class);
+        for (long[] row : changed) {
+            Object event = constructor.newInstance(row[0]);
+            readCount.set(event, (int) row[1]);
+            publish.invoke(bus, event);
+        }
+    }
+
+    private static String chMateVersion() throws PackageManager.NameNotFoundException {
+        Context context = applicationContext;
+        return context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
     }
 
     /** Applies the bundled emoji fallback while preserving the original text. */
@@ -1198,16 +1327,39 @@ public final class Haiagaru {
         }
     }
 
-    /** Keep short response lists at the top instead of anchoring them to the bottom. */
-    public static boolean threadListStackFromEnd(Object layoutManager, boolean requested) {
+    /** Adjust only a fully fitting list, after ChMate restores its scroll anchor. */
+    public static void alignShortThreadAfterLayout(Object layoutManager) {
         SharedPreferences settings = preferencesOrNull();
-        if (settings != null && settings.getBoolean("topAlignShortThreads", false)
-                && layoutManager != null
-                && "jp.syoboi.a2chMate.view.MyLinearLayoutManager".equals(
-                        layoutManager.getClass().getName())) {
-            return false;
+        if (settings == null || !settings.getBoolean("topAlignShortThreads", false)
+                || layoutManager == null || !"jp.syoboi.a2chMate.view.MyLinearLayoutManager"
+                        .equals(layoutManager.getClass().getName())) return;
+        try {
+            for (Class<?> type = layoutManager.getClass(); type != null; type = type.getSuperclass()) {
+                for (Field field : type.getDeclaredFields()) {
+                    if (java.lang.reflect.Modifier.isStatic(field.getModifiers())
+                            || !"androidx.recyclerview.widget.RecyclerView".equals(field.getType().getName())) continue;
+                    field.setAccessible(true);
+                    android.view.ViewGroup list = (android.view.ViewGroup) field.get(layoutManager);
+                    if (list == null || list.getChildCount() == 0 || list.canScrollVertically(-1)
+                            || list.canScrollVertically(1)) return;
+                    int top = Integer.MAX_VALUE;
+                    int bottom = Integer.MIN_VALUE;
+                    for (int i = 0; i < list.getChildCount(); i++) {
+                        android.view.View child = list.getChildAt(i);
+                        top = Math.min(top, child.getTop());
+                        bottom = Math.max(bottom, child.getBottom());
+                    }
+                    int available = list.getHeight() - list.getPaddingTop() - list.getPaddingBottom();
+                    if (top <= list.getPaddingTop() || bottom - top > available) return;
+                    int offset = list.getPaddingTop() - top;
+                    for (int i = 0; i < list.getChildCount(); i++) list.getChildAt(i).offsetTopAndBottom(offset);
+                    list.invalidate();
+                    return;
+                }
+            }
+        } catch (ReflectiveOperationException error) {
+            Log.w(LOG_TAG, "Unable to align short thread", error);
         }
-        return requested;
     }
 
     public static boolean shouldHideAds(Context context) {
@@ -2220,6 +2372,7 @@ public final class Haiagaru {
     public static String normalizeBeIconUrl(String original) {
         if (original == null) return null;
         return original
+                .replace("://img.2ch.net/", "://img.5ch.net/")
                 .replace("://img.5ch.net/ico/_be_", "://img.5ch.io/premium/")
                 .replace("://img.5ch.net/ico/_be", "://img.5ch.io/premium/")
                 .replace("://img.5ch.net/", "://img.5ch.io/");
@@ -2234,6 +2387,7 @@ public final class Haiagaru {
         // character prefix. Normalize the host in all forms before the 226
         // response model builds its attachment projection.
         String normalized = original
+                .replace("img.2ch.net/", "img.5ch.io/")
                 .replace("img.5ch.net/", "img.5ch.io/")
                 .replace("img.5ch.NET/", "img.5ch.io/");
         // 226 builds both the response model and the attachment projection
@@ -2244,14 +2398,8 @@ public final class Haiagaru {
 
     public static String prepareLegacyBeParsing(String original) {
         if (original == null) return null;
-        // ChMate 191 parses the same legacy row twice: once for the compact
-        // header and once for the expanded body. The expanded pass contains
-        // the complete row (including links) and would draw the BE token a
-        // second time. Keep the compact token and suppress only that repeated
-        // long-body token; ordinary short posts still use the native icon.
-        if (original.length() > 80 && LEGACY_PREMIUM_BE_URL.matcher(original).find()) {
-            original = LEGACY_PREMIUM_BE_URL.matcher(original).replaceAll("");
-        }
+        // Text length does not identify a second render pass. Only the overload
+        // with a render buffer can establish that an icon was already emitted.
         // The 191 parser only routes sssp://img.5ch.net/ico/... through its
         // inline icon renderer. Normalize every public spelling, including
         // ordinary https://, protocol-relative, and control-character encoded
@@ -2345,6 +2493,7 @@ public final class Haiagaru {
                 if (!(value instanceof String)) continue;
                 String url = ((String) value).toLowerCase(Locale.ROOT);
                 if (url.endsWith("/premium/" + target)
+                        || url.endsWith("/ico/" + target)
                         || url.endsWith("/ico/_be" + target)
                         || url.endsWith("/ico/_be_" + target)) return true;
             }
@@ -2408,10 +2557,7 @@ public final class Haiagaru {
             Object value = field.get(span);
             if (!(value instanceof String)) return end;
             String url = ((String) value).toLowerCase(Locale.ROOT);
-            if (!url.contains("img.5ch.io/premium/")
-                    && !url.contains("img.5ch.net/premium/")
-                    && !url.contains("img.5ch.io/ico/_be")
-                    && !url.contains("img.5ch.net/ico/_be")) return end;
+            if (!LEGACY_BE_ANY_URL.matcher(url).find()) return end;
             int corrected = newline >= 0 ? newline : candidate;
             return corrected > start ? corrected : end;
         } catch (ReflectiveOperationException | SecurityException ignored) {
@@ -2434,28 +2580,48 @@ public final class Haiagaru {
         int end = originalEnd;
         if (renderedText != null && url != null && !url.isEmpty()) {
             String text = renderedText.toString();
-            boolean alreadyAligned = start >= 0
-                    && end == start + url.length()
-                    && end <= text.length()
-                    && text.regionMatches(start, url, 0, url.length());
-            if (!alreadyAligned) {
-                int searchStart = Math.max(0, start - 8);
-                int searchEnd = Math.min(text.length(), start + 8 + url.length());
-                int candidate = text.indexOf(url, searchStart);
-                int closest = -1;
-                int closestDistance = Integer.MAX_VALUE;
-                while (candidate >= 0 && candidate + url.length() <= searchEnd) {
-                    int distance = Math.abs(candidate - start);
-                    if (distance < closestDistance) {
-                        closest = candidate;
-                        closestDistance = distance;
+            // The target URL includes a scheme even for a bare domain or ttp
+            // display token. Its length therefore is not the span length.
+            String[] displays = (url.startsWith("http://") || url.startsWith("https://"))
+                    ? new String[]{url, url.substring(1), url.substring(url.indexOf("://") + 3)}
+                    : new String[]{url};
+            int closest = -1, closestLength = 0, closestDistance = Integer.MAX_VALUE;
+            int unique = -1, uniqueLength = 0, matches = 0;
+            for (String display : displays) {
+                int candidate = text.indexOf(display);
+                while (candidate >= 0) {
+                    // Do not mistake a domain inside another URL (or ttp inside
+                    // http) for a standalone display token.
+                    char previous = candidate > 0 ? text.charAt(candidate - 1) : ' ';
+                    boolean boundary = display.equals(url)
+                            || !(Character.isLetterOrDigit(previous)
+                            || previous == '/' || previous == ':' || previous == '.'
+                            || previous == '_' || previous == '-');
+                    if (boundary) {
+                        if (candidate == start && end == start + display.length()) {
+                            return ((long) end << 32) | (start & 0xffffffffL);
+                        }
+                        matches++;
+                        unique = candidate;
+                        uniqueLength = display.length();
+                        int distance = Math.abs(candidate - start);
+                        if (distance <= 8 && distance < closestDistance) {
+                            closest = candidate;
+                            closestLength = display.length();
+                            closestDistance = distance;
+                        }
                     }
-                    candidate = text.indexOf(url, candidate + 1);
+                    candidate = text.indexOf(display, candidate + 1);
                 }
-                if (closest >= 0) {
-                    start = closest;
-                    end = closest + url.length();
-                }
+            }
+            // Distant offsets are repaired only when the display token is unique.
+            if (closest < 0 && matches == 1) {
+                closest = unique;
+                closestLength = uniqueLength;
+            }
+            if (closest >= 0) {
+                start = closest;
+                end = closest + closestLength;
             }
         }
         return ((long) end << 32) | (start & 0xffffffffL);
@@ -2485,6 +2651,8 @@ public final class Haiagaru {
         if (url == null) return false;
         String normalized = url.toLowerCase(Locale.ROOT);
         return normalized.contains("img.5ch.io/ico/")
+                || normalized.contains("img.2ch.net/ico/")
+                || normalized.contains("img.2ch.net/premium/")
                 || normalized.contains("img.5ch.net/ico/")
                 || normalized.contains("img.5ch.io/premium/")
                 || normalized.contains("img.5ch.net/premium/");
@@ -2973,6 +3141,7 @@ public final class Haiagaru {
                 new String[]{"100%", "115%", "130%"},
                 viewerTextZoomIndex(preferences.getInt(HISSI_VIEWER_TEXT_ZOOM_KEY, 100))
         );
+        addHissiViewerToolbarButtonControl(activity, layout, preferences);
         Switch hissiViewerFullscreen = addSwitch(
                 layout,
                 activity,
@@ -3013,6 +3182,11 @@ public final class Haiagaru {
                     ReadThreadsFirst.enabled());
         }
         final Switch readThreadsFirstSwitch = readThreadsFirst;
+        if (readThreadsFirstSwitch != null) {
+            readThreadsFirstSwitch.setOnCheckedChangeListener((button, checked) -> {
+                if (checked) ReadThreadsFirst.chooseScope(activity);
+            });
+        }
         Switch edgeReporterId = addSwitch(
                 layout,
                 activity,
@@ -3199,6 +3373,13 @@ public final class Haiagaru {
                 "MEGA backup",
                 () -> HaiagaruMegaSync.addSettingsButton(layout, activity)
         );
+        if (StringReplacement.supported(activity)) {
+            Button replaceStrings = new Button(activity);
+            replaceStrings.setText("本文の文字列置換（外部TXT）");
+            replaceStrings.setOnClickListener(v -> activity.startActivity(
+                    new Intent(activity, ReplacementSettingsActivity.class)));
+            layout.addView(replaceStrings, rowParams(activity));
+        }
 
         ScrollView scrollView = new ScrollView(activity);
         scrollView.addView(layout);
@@ -3902,6 +4083,60 @@ public final class Haiagaru {
         return widget;
     }
 
+    private static void addHissiViewerToolbarButtonControl(
+            Activity activity,
+            LinearLayout layout,
+            SharedPreferences preferences
+    ) {
+        String[] labels = new String[]{
+                text("更新", "Refresh"),
+                text("URLコピー", "Copy URL"),
+                text("全レスコピー", "Copy all posts"),
+                text("本文コピー", "Copy page text"),
+                text("日付", "Date"),
+                text("ID/ﾜｯﾁｮｲ検索", "ID/Wacchoi search"),
+                text("分析", "Analysis"),
+                text("文字サイズ", "Text size"),
+                text("配色", "Theme")
+        };
+        Button button = new Button(activity);
+        button.setAllCaps(false);
+        button.setText(text("必死チェッカー上部ボタンの表示項目を選択",
+                "Choose checker toolbar buttons"));
+        layout.addView(button, rowParams(activity));
+        button.setOnClickListener(view -> {
+            int savedMask = preferences.getInt(
+                    HISSI_VIEWER_TOOLBAR_BUTTONS_KEY, ALL_HISSI_TOOLBAR_BUTTONS);
+            boolean[] selected = new boolean[labels.length];
+            for (int index = 0; index < selected.length; index++) {
+                selected[index] = (savedMask & (1 << index)) != 0;
+            }
+            new AlertDialog.Builder(activity)
+                    .setTitle(text("上部に表示するボタン", "Checker toolbar buttons"))
+                    .setMultiChoiceItems(labels, selected,
+                            (dialog, which, checked) -> selected[which] = checked)
+                    .setNeutralButton(text("すべて表示", "Show all"), (dialog, which) -> {
+                        preferences.edit().putInt(HISSI_VIEWER_TOOLBAR_BUTTONS_KEY,
+                                ALL_HISSI_TOOLBAR_BUTTONS).apply();
+                        Toast.makeText(activity,
+                                text("すべてのボタンを表示します", "All toolbar buttons are shown"),
+                                Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton(text("キャンセル", "Cancel"), null)
+                    .setPositiveButton(text("保存", "Save"), (dialog, which) -> {
+                        int mask = 0;
+                        for (int index = 0; index < selected.length; index++) {
+                            if (selected[index]) mask |= 1 << index;
+                        }
+                        preferences.edit().putInt(HISSI_VIEWER_TOOLBAR_BUTTONS_KEY, mask).apply();
+                        Toast.makeText(activity,
+                                text("上部ボタンの表示を保存しました", "Toolbar button visibility saved"),
+                                Toast.LENGTH_SHORT).show();
+                    })
+                    .show();
+        });
+    }
+
     private static EditText addTextField(
             LinearLayout layout,
             Context context,
@@ -4071,6 +4306,15 @@ public final class Haiagaru {
         SharedPreferences prefs = preferencesOrNull();
         int zoom = value == 115 || value == 130 ? value : 100;
         if (prefs != null) prefs.edit().putInt(HISSI_VIEWER_TEXT_ZOOM_KEY, zoom).apply();
+    }
+
+    public static boolean hissiViewerToolbarButtonVisible(int buttonIndex) {
+        if (buttonIndex < 0 || buttonIndex >= HISSI_TOOLBAR_BUTTON_COUNT) return false;
+        SharedPreferences prefs = preferencesOrNull();
+        int mask = prefs == null
+                ? ALL_HISSI_TOOLBAR_BUTTONS
+                : prefs.getInt(HISSI_VIEWER_TOOLBAR_BUTTONS_KEY, ALL_HISSI_TOOLBAR_BUTTONS);
+        return (mask & (1 << buttonIndex)) != 0;
     }
 
     public static boolean hissiViewerFullscreen() {

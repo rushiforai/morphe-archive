@@ -1,1 +1,1 @@
-c86dba2d822cba5b5469473882ea0108570536bee292ae31acd755d7d05c5701  patches/build/libs/patches-1.7.0.mpp
+b66d1833dc43935b27c0caedaa9f9f6159d254bb68bd200d52c158de0639ea15  patches/build/libs/patches-1.8.0.mpp

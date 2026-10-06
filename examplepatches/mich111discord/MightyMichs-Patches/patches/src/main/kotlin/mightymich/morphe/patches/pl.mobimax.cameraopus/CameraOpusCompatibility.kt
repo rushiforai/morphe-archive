@@ -11,7 +11,10 @@ object CameraOpusCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5722, // Orange color
         targets = listOf(
-            AppTarget(version = "1.2.21")
+            AppTarget(
+                version = "1.2.21",
+            isExperimental = true
+            )
         )
     )
 }

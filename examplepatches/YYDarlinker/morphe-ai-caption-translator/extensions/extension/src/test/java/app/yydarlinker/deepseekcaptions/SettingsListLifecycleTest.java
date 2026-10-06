@@ -30,17 +30,17 @@ public class SettingsListLifecycleTest {
             list.setAdapter(adapter);a.setContentView(list);
             list.measure(View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(1000,View.MeasureSpec.EXACTLY));
             list.layout(0,0,600,1000);Shadows.shadowOf(Looper.getMainLooper()).idle();
-            View row=address.getView(null,list);EditText editor=row.findViewById(android.R.id.edit);editor.requestFocus();
+            View row=address.getView(null,list);EditText editor=CaptionEditorIds.editorIn(row);editor.requestFocus();
             for(int height:new int[]{600,900,500,1000}){
                 adapter.notifyDataSetChanged();
                 list.measure(View.MeasureSpec.makeMeasureSpec(600,View.MeasureSpec.EXACTLY),View.MeasureSpec.makeMeasureSpec(height,View.MeasureSpec.EXACTLY));
                 list.layout(0,0,600,height);Shadows.shadowOf(Looper.getMainLooper()).idle();
-                assertSame(editor,address.getView(null,list).findViewById(android.R.id.edit));
+                assertSame(editor,CaptionEditorIds.editorIn(address.getView(null,list)));
                 assertTrue(editor.hasFocus());
             }
             list.setSelection(3);Shadows.shadowOf(Looper.getMainLooper()).idle();
             list.setSelection(0);Shadows.shadowOf(Looper.getMainLooper()).idle();
-            assertEquals(DeepSeekConfig.DEFAULT_BASE_URL,((EditText)address.getView(null,list).findViewById(android.R.id.edit)).getText().toString());
+            assertEquals(DeepSeekConfig.DEFAULT_BASE_URL,((EditText)CaptionEditorIds.editorIn(address.getView(null,list))).getText().toString());
         } finally {a.finish();}
     }
 }

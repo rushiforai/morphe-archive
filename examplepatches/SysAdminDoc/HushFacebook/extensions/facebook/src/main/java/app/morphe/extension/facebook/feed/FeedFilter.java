@@ -21,6 +21,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -101,6 +104,13 @@ public final class FeedFilter {
      * its table of type names rather than a literal: one large Stories tile, and one person's
      * Stories in a viewer of their own.
      */
+    /**
+     * The type name of the Meta AI card Facebook adds to the feed between posts. Facebook's own feed
+     * unit dispatcher compares a unit's type name with it in 581. Hide AI-detected posts takes it out
+     * under {@link Settings#HIDE_META_AI_FEED_UNITS}.
+     */
+    static final String META_AI_UNIT_TYPE = "XFBFBImplicitMetaAIFeedUnit";
+
     static final String STORIES_LARGE_TILE_UNIT_TYPE = "StoriesOneColumnOneRowLargeTileFeedUnit";
     static final String STORIES_INLINE_VIEWER_UNIT_TYPE = "StoriesSingleBucketInlineViewerFeedUnit";
     /** What Hide the Stories tray's rule adds to the type of a row of Stories it took out of the feed. */
@@ -371,6 +381,10 @@ public final class FeedFilter {
             }
             if (reason == null && trayPatched && Settings.HIDE_STORIES_BETWEEN_POSTS.get()) {
                 reason = storiesRowReason(typeName(feedUnit));
+            }
+            if (reason == null && aiPatched && Settings.HIDE_META_AI_FEED_UNITS.get()
+                    && META_AI_UNIT_TYPE.equals(typeName(feedUnit))) {
+                reason = META_AI_UNIT_TYPE;
             }
             boolean aiLabelled = aiPatched && Settings.HIDE_AI_LABELLED_POSTS.get();
             if (reason == null && aiPatched && (aiLabelled || Settings.HIDE_AI_DETECTED_POSTS.get())) {
@@ -723,23 +737,98 @@ public final class FeedFilter {
     }
 
     /**
-     * Injection point, at the start of both Stories tray adapter methods of the feed's adapter
-     * configuration. True makes the method return null, which is what it returns when Facebook
-     * itself turns the tray off, and its callers only look a null up in the adapter list.
+     * Injection point, the item count of a Stories tray adapter: the patch gives the classic and
+     * the unified tray adapter a getItemCount() that asks here with Facebook's own count. It answers
+     * 0 while the tray is hidden, which leaves the tray built but out of the feed, and
+     * {@code count} otherwise.
      *
-     * <p>Until the settings are ready, and while Hushfacebook is paused, it answers false and the
-     * tray is built as Facebook builds it.
+     * <p>Facebook's feed adapter reads its children's counts again whenever one of them changes,
+     * and tells the list only what that child said changed. So an adapter's answer changes only
+     * through its own notifyDataSetChanged, which has the feed rebuild its rows: a count that finds
+     * the switch changed keeps the answer it gave and posts the change to the main thread
+     * ({@link #flipTray}). The feed reads the counts on a pull to refresh, so the switch shows by
+     * then, with no restart. The adapters themselves are built once per feed view (the
+     * built-once fixture test), which is why the switch isn't where they're built.
      *
-     * @param adapter {@link #LEGACY_TRAY} or {@link #UNIFIED_TRAY}, the method the patch hooked.
+     * <p>Until the settings are ready, and while Hushfacebook is paused, the tray is shown.
+     *
+     * @param kind {@link #LEGACY_TRAY} or {@link #UNIFIED_TRAY}, the adapter the patch hooked.
      */
-    public static boolean hideStoriesTray(int adapter) {
+    public static int storiesTrayCount(Object adapter, int kind, int count) {
+        try {
+            Boolean hidden = TRAY_HIDDEN.get(adapter);
+            if (hidden == null) {
+                hidden = hideStoriesTray(kind);
+                TRAY_HIDDEN.put(adapter, hidden);
+            } else if (hidden != trayHidden() && !TRAY_STUCK.containsKey(adapter)
+                    && TRAY_PENDING.put(adapter, Boolean.TRUE) == null) {
+                Utils.runOnMainThread(() -> flipTray(adapter, kind));
+            }
+            return hidden ? 0 : count;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.STORIES_TRAY, "stories tray count", failure);
+            Logger.printException(() -> "Stories tray: could not answer its count", failure);
+            return count;
+        }
+    }
+
+    /** Each tray adapter's answer: hidden or not. Weak, so a feed view that goes takes its adapters. */
+    private static final Map<Object, Boolean> TRAY_HIDDEN = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /** Tray adapters with a change posted and not yet made. */
+    private static final Map<Object, Boolean> TRAY_PENDING = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /** Tray adapters whose notifyDataSetChanged failed: they keep their answer until Facebook restarts. */
+    private static final Map<Object, Boolean> TRAY_STUCK = Collections.synchronizedMap(new WeakHashMap<>());
+
+    private static boolean trayHidden() {
+        return Utils.settingsReady() && Settings.HIDE_TOP_STORIES_TRAY.get();
+    }
+
+    /**
+     * On the main thread, after the count that found the switch changed: the adapter takes what the
+     * switch says now, and its own notifyDataSetChanged has the feed read every count again and
+     * rebuild its rows, the change the list is built to take. Should that call fail, the adapter
+     * keeps the answer the feed has, and the switch waits for a restart.
+     */
+    static void flipTray(Object adapter, int kind) {
+        TRAY_PENDING.remove(adapter);
+        Boolean was = TRAY_HIDDEN.get(adapter);
+        if (was == null || was == trayHidden()) return;
+        boolean hide = hideStoriesTray(kind);
+        TRAY_HIDDEN.put(adapter, hide);
+        try {
+            adapter.getClass().getMethod("notifyDataSetChanged").invoke(adapter);
+        } catch (Throwable failure) {
+            TRAY_HIDDEN.put(adapter, was);
+            TRAY_STUCK.put(adapter, Boolean.TRUE);
+            Throwable cause = failure instanceof InvocationTargetException ? failure.getCause() : failure;
+            HookStatus.threw(FamilyNames.STORIES_TRAY, "stories tray recount", cause);
+            Logger.printException(() -> "Stories tray: the feed couldn't be told, so the switch waits for a restart", cause);
+        }
+    }
+
+    static void forgetTraysForTests() {
+        TRAY_HIDDEN.clear();
+        TRAY_PENDING.clear();
+        TRAY_STUCK.clear();
+    }
+
+    /**
+     * Whether a tray adapter is hidden, counted in the report: when an adapter first gives its
+     * count, and each time its answer changes. The report counts each as a list of one, under the
+     * adapter's kind, and a hidden one as removed.
+     *
+     * @param adapter {@link #LEGACY_TRAY} or {@link #UNIFIED_TRAY}.
+     */
+    static boolean hideStoriesTray(int adapter) {
         try {
             HookStatus.invoked(FamilyNames.STORIES_TRAY);
             String kind = adapter == UNIFIED_TRAY ? "unified" : "legacy";
             FeedFilterCounters.sawList(TRAY_ROUTE, 1);
             FeedFilterCounters.sawKind(TRAY_ROUTE, kind);
-            boolean hide = Utils.settingsReady() && Settings.HIDE_TOP_STORIES_TRAY.get();
-            if (hide) FeedFilterCounters.removed(TRAY_ROUTE, 1, kind + " adapter skipped");
+            boolean hide = trayHidden();
+            if (hide) FeedFilterCounters.removed(TRAY_ROUTE, 1, kind + " adapter hidden");
             logTrayOnce(adapter, kind, hide);
             return hide;
         } catch (Throwable failure) {
@@ -753,7 +842,7 @@ public final class FeedFilter {
     static final AtomicInteger TRAY_LOGGED = new AtomicInteger();
 
     /**
-     * A debug line the first time each adapter is skipped or kept: which tray Facebook builds on
+     * A debug line the first time each adapter is hidden or shown: which tray Facebook builds on
      * this phone, and what the switch did to it. Only once the settings can be read and debug
      * logging is on, so turning logging on later still gets the line.
      */
@@ -761,7 +850,7 @@ public final class FeedFilter {
         if (!Utils.settingsReady() || !BaseSettings.DEBUG.get()) return;
         int bit = 1 << ((adapter == UNIFIED_TRAY ? 2 : 0) + (hide ? 1 : 0));
         if ((TRAY_LOGGED.getAndUpdate(logged -> logged | bit) & bit) != 0) return;
-        Logger.printDebug(() -> "Stories tray: " + (hide ? "skipped" : "kept") + " " + kind + " adapter");
+        Logger.printDebug(() -> "Stories tray: " + (hide ? "hid" : "kept") + " the " + kind + " adapter");
     }
 
     /**

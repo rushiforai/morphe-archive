@@ -1,0 +1,1027 @@
+{
+  "wireMagic": "pb3",
+  "pens": [ {
+  
+  } ],
+  "wsWinStyles": [ {
+  
+  } ],
+  "wpWinPositions": [ {
+  
+  } ],
+  "events": [ {
+    "tStartMs": 2593,
+    "dDurationMs": 2188,
+    "segs": [ {
+      "utf8": "Do you remember back in the day when..."
+    } ]
+  }, {
+    "tStartMs": 4863,
+    "dDurationMs": 2432,
+    "segs": [ {
+      "utf8": "screen-to-body ratio was one of those,\nlike,"
+    } ]
+  }, {
+    "tStartMs": 7377,
+    "dDurationMs": 2889,
+    "segs": [ {
+      "utf8": "headlining numbers in a new\nsmartphone presentation?"
+    } ]
+  }, {
+    "tStartMs": 10348,
+    "dDurationMs": 2147,
+    "segs": [ {
+      "utf8": "Like, I remember, for a couple of years"
+    } ]
+  }, {
+    "tStartMs": 12697,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "in a row,"
+    } ]
+  }, {
+    "tStartMs": 13741,
+    "dDurationMs": 1794,
+    "segs": [ {
+      "utf8": "bezels were getting smaller and smaller."
+    } ]
+  }, {
+    "tStartMs": 15617,
+    "dDurationMs": 3175,
+    "segs": [ {
+      "utf8": "So those numbers got closer\nand closer to that magical..."
+    } ]
+  }, {
+    "tStartMs": 18874,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "100%."
+    } ]
+  }, {
+    "tStartMs": 19786,
+    "dDurationMs": 1667,
+    "segs": [ {
+      "utf8": "And everybody generally\nagreed that less bezels..."
+    } ]
+  }, {
+    "tStartMs": 21535,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "equals better."
+    } ]
+  }, {
+    "tStartMs": 22447,
+    "dDurationMs": 2664,
+    "segs": [ {
+      "utf8": "The higher the screen-to-body number,\nthe better we were doing."
+    } ]
+  }, {
+    "tStartMs": 25193,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "It was improving."
+    } ]
+  }, {
+    "tStartMs": 26651,
+    "dDurationMs": 3338,
+    "segs": [ {
+      "utf8": "But then we started to come up against\nthe limits of display technology."
+    } ]
+  }, {
+    "tStartMs": 30071,
+    "dDurationMs": 3080,
+    "segs": [ {
+      "utf8": "So that's when we had to start\ngetting creative with things"
+    } ]
+  }, {
+    "tStartMs": 33233,
+    "dDurationMs": 1526,
+    "segs": [ {
+      "utf8": "like the Xiaomi Mi MIX phones."
+    } ]
+  }, {
+    "tStartMs": 34841,
+    "dDurationMs": 1043,
+    "segs": [ {
+      "utf8": "You remember those?.."
+    } ]
+  }, {
+    "tStartMs": 35966,
+    "dDurationMs": 1740,
+    "segs": [ {
+      "utf8": "And then phones with curved edges,"
+    } ]
+  }, {
+    "tStartMs": 37788,
+    "dDurationMs": 2866,
+    "segs": [ {
+      "utf8": "like Samsung started doing for\na couple years with that"
+    } ]
+  }, {
+    "tStartMs": 40736,
+    "dDurationMs": 1472,
+    "segs": [ {
+      "utf8": "whole waterfall display thing"
+    } ]
+  }, {
+    "tStartMs": 42410,
+    "dDurationMs": 4259,
+    "segs": [ {
+      "utf8": "to make it feel like you had almost no\nbezels at all on the sides of the phone..."
+    } ]
+  }, {
+    "tStartMs": 46751,
+    "dDurationMs": 2598,
+    "segs": [ {
+      "utf8": "And we even got all the\nway to that concept phone,"
+    } ]
+  }, {
+    "tStartMs": 49431,
+    "dDurationMs": 1204,
+    "segs": [ {
+      "utf8": "the Xiaomi Mi MIX Alpha,"
+    } ]
+  }, {
+    "tStartMs": 50717,
+    "dDurationMs": 2920,
+    "segs": [ {
+      "utf8": "where the display curved all\nthe way around to the back."
+    } ]
+  }, {
+    "tStartMs": 53719,
+    "dDurationMs": 3026,
+    "segs": [ {
+      "utf8": "So they technically got to say\nthey- They had an over 100%"
+    } ]
+  }, {
+    "tStartMs": 57227,
+    "dDurationMs": 1043,
+    "segs": [ {
+      "utf8": "screen-to-body ratio."
+    } ]
+  }, {
+    "tStartMs": 58352,
+    "dDurationMs": 1687,
+    "segs": [ {
+      "utf8": "It was a pretty interesting time."
+    } ]
+  }, {
+    "tStartMs": 60121,
+    "dDurationMs": 1739,
+    "segs": [ {
+      "utf8": "Now, we later,\nof course, realized that,"
+    } ]
+  }, {
+    "tStartMs": 61942,
+    "dDurationMs": 2286,
+    "segs": [ {
+      "utf8": "you know,\nwe were getting a little bit carried away,"
+    } ]
+  }, {
+    "tStartMs": 64310,
+    "dDurationMs": 1740,
+    "segs": [ {
+      "utf8": "and there are actually some downsides to"
+    } ]
+  }, {
+    "tStartMs": 66252,
+    "dDurationMs": 1557,
+    "segs": [ {
+      "utf8": "curving the displays over the edges."
+    } ]
+  }, {
+    "tStartMs": 68011,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "Less durable,"
+    } ]
+  }, {
+    "tStartMs": 69055,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "more reflections,"
+    } ]
+  }, {
+    "tStartMs": 70099,
+    "dDurationMs": 1390,
+    "segs": [ {
+      "utf8": "accidental touches, all this stuff."
+    } ]
+  }, {
+    "tStartMs": 71571,
+    "dDurationMs": 2195,
+    "segs": [ {
+      "utf8": "So, you know,\nthe curved edges started to go away."
+    } ]
+  }, {
+    "tStartMs": 73848,
+    "dDurationMs": 2477,
+    "segs": [ {
+      "utf8": "And these days,\nwe seem to have settled on, like,"
+    } ]
+  }, {
+    "tStartMs": 76407,
+    "dDurationMs": 1380,
+    "segs": [ {
+      "utf8": "1- to 2-millimeter bezels..."
+    } ]
+  }, {
+    "tStartMs": 77869,
+    "dDurationMs": 1954,
+    "segs": [ {
+      "utf8": "all the way around a smartphone screen."
+    } ]
+  }, {
+    "tStartMs": 79905,
+    "dDurationMs": 962,
+    "segs": [ {
+      "utf8": "Like, that's just..."
+    } ]
+  }, {
+    "tStartMs": 80949,
+    "dDurationMs": 2320,
+    "segs": [ {
+      "utf8": "That's just how premium phones...\nall look now."
+    } ]
+  }, {
+    "tStartMs": 83351,
+    "dDurationMs": 4252,
+    "segs": [ {
+      "utf8": "It's gotten so good that some people will\nactually see a phone that looks like this"
+    } ]
+  }, {
+    "tStartMs": 88165,
+    "dDurationMs": 1537,
+    "segs": [ {
+      "utf8": "and leave a comment...\nlike this"
+    } ]
+  }, {
+    "tStartMs": 90504,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "saying,"
+    } ]
+  }, {
+    "tStartMs": 91416,
+    "dDurationMs": 1773,
+    "segs": [ {
+      "utf8": "the thickness of these\nbezels is unacceptable."
+    } ]
+  }, {
+    "tStartMs": 93271,
+    "dDurationMs": 3021,
+    "segs": [ {
+      "utf8": "Which has always, to me,\nfelt a little bit ridiculous."
+    } ]
+  }, {
+    "tStartMs": 96374,
+    "dDurationMs": 2158,
+    "segs": [ {
+      "utf8": "Like, I see it as people complaining..."
+    } ]
+  }, {
+    "tStartMs": 98614,
+    "dDurationMs": 3308,
+    "segs": [ {
+      "utf8": "about something that they were\nnever going to buy anyway..."
+    } ]
+  }, {
+    "tStartMs": 102004,
+    "dDurationMs": 1355,
+    "segs": [ {
+      "utf8": "But fast-forward to 2026,"
+    } ]
+  }, {
+    "tStartMs": 103441,
+    "dDurationMs": 2733,
+    "segs": [ {
+      "utf8": "and I get an email from\na company called Tecno..."
+    } ]
+  }, {
+    "tStartMs": 106256,
+    "dDurationMs": 1240,
+    "segs": [ {
+      "utf8": "who wants to show their"
+    } ]
+  }, {
+    "tStartMs": 107698,
+    "dDurationMs": 2142,
+    "segs": [ {
+      "utf8": "0-millimeter bezel to...\nconcept phone."
+    } ]
+  }, {
+    "tStartMs": 112140,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "All right,"
+    } ]
+  }, {
+    "tStartMs": 113184,
+    "dDurationMs": 2653,
+    "segs": [ {
+      "utf8": "I'll bite!\nSo I said, yes, it showed up..."
+    } ]
+  }, {
+    "tStartMs": 115919,
+    "dDurationMs": 1141,
+    "segs": [ {
+      "utf8": "And here it is..."
+    } ]
+  }, {
+    "tStartMs": 117142,
+    "dDurationMs": 1573,
+    "segs": [ {
+      "utf8": "This is a big...\npremium"
+    } ]
+  }, {
+    "tStartMs": 118917,
+    "dDurationMs": 2797,
+    "segs": [ {
+      "utf8": "smartphone with a 6.7-inch display...\nand"
+    } ]
+  }, {
+    "tStartMs": 122436,
+    "dDurationMs": 3084,
+    "segs": [ {
+      "utf8": "zero bezels, corner-to-corner,\nedge-to-edge,"
+    } ]
+  }, {
+    "tStartMs": 125722,
+    "dDurationMs": 1398,
+    "segs": [ {
+      "utf8": "nothing but display."
+    } ]
+  }, {
+    "tStartMs": 127840,
+    "dDurationMs": 858,
+    "segs": [ {
+      "utf8": "Well, actually."
+    } ]
+  }, {
+    "tStartMs": 129260,
+    "dDurationMs": 2044,
+    "segs": [ {
+      "utf8": "Okay, hang on a second.\nIs it truly..."
+    } ]
+  }, {
+    "tStartMs": 131304,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "zero...\nbezels?"
+    } ]
+  }, {
+    "tStartMs": 132216,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "Like,"
+    } ]
+  }, {
+    "tStartMs": 133128,
+    "dDurationMs": 2127,
+    "segs": [ {
+      "utf8": "I'm sure a lot of you are\nlooking at this and thinking,"
+    } ]
+  }, {
+    "tStartMs": 135987,
+    "dDurationMs": 1147,
+    "segs": [ {
+      "utf8": "okay, if it was zero..."
+    } ]
+  }, {
+    "tStartMs": 137216,
+    "dDurationMs": 879,
+    "segs": [ {
+      "utf8": "truly zero bezels,"
+    } ]
+  }, {
+    "tStartMs": 138177,
+    "dDurationMs": 3175,
+    "segs": [ {
+      "utf8": "wouldn't I just be holding\nbasically just a screen right now?"
+    } ]
+  }, {
+    "tStartMs": 141434,
+    "dDurationMs": 2416,
+    "segs": [ {
+      "utf8": "I feel like you can see\nsome silver around it."
+    } ]
+  }, {
+    "tStartMs": 144010,
+    "dDurationMs": 979,
+    "segs": [ {
+      "utf8": "How is it zero bezels?.."
+    } ]
+  }, {
+    "tStartMs": 145071,
+    "dDurationMs": 1959,
+    "segs": [ {
+      "utf8": "And I know that you're thinking that,\nbecause..."
+    } ]
+  }, {
+    "tStartMs": 147112,
+    "dDurationMs": 2597,
+    "segs": [ {
+      "utf8": "that's what I was thinking when\nI first took it out of the box."
+    } ]
+  }, {
+    "tStartMs": 149791,
+    "dDurationMs": 3234,
+    "segs": [ {
+      "utf8": "But what we're actually looking at here,\nall the way around the screen"
+    } ]
+  }, {
+    "tStartMs": 153227,
+    "dDurationMs": 1529,
+    "segs": [ {
+      "utf8": "is the literal frame of the phone."
+    } ]
+  }, {
+    "tStartMs": 154838,
+    "dDurationMs": 2665,
+    "segs": [ {
+      "utf8": "And we talk about the frames\non these phones all the time."
+    } ]
+  }, {
+    "tStartMs": 157585,
+    "dDurationMs": 1008,
+    "segs": [ {
+      "utf8": "This silver, the metal,"
+    } ]
+  }, {
+    "tStartMs": 159155,
+    "dDurationMs": 3275,
+    "segs": [ {
+      "utf8": "this phone clearly does have a silver\nmid-frame all the way around it."
+    } ]
+  }, {
+    "tStartMs": 162580,
+    "dDurationMs": 1949,
+    "segs": [ {
+      "utf8": "But that is not the same thing..."
+    } ]
+  }, {
+    "tStartMs": 164611,
+    "dDurationMs": 3476,
+    "segs": [ {
+      "utf8": "as the thin black bezel that\ntypically surrounds a display."
+    } ]
+  }, {
+    "tStartMs": 168169,
+    "dDurationMs": 1908,
+    "segs": [ {
+      "utf8": "So, like here's the Pixel 11 Pro."
+    } ]
+  }, {
+    "tStartMs": 170279,
+    "dDurationMs": 3717,
+    "segs": [ {
+      "utf8": "You can see the black is the\ndisplay's bezel and then the metal"
+    } ]
+  }, {
+    "tStartMs": 174198,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "is the frame."
+    } ]
+  }, {
+    "tStartMs": 175542,
+    "dDurationMs": 943,
+    "segs": [ {
+      "utf8": "So clearly, okay,"
+    } ]
+  }, {
+    "tStartMs": 176567,
+    "dDurationMs": 4802,
+    "segs": [ {
+      "utf8": "now you can see that there's a difference\nbetween a normal premium phone and this"
+    } ]
+  }, {
+    "tStartMs": 181571,
+    "dDurationMs": 1105,
+    "segs": [ {
+      "utf8": "0-millimeter bezel."
+    } ]
+  }, {
+    "tStartMs": 183060,
+    "dDurationMs": 845,
+    "segs": [ {
+      "utf8": "Now, the secret,"
+    } ]
+  }, {
+    "tStartMs": 183987,
+    "dDurationMs": 3519,
+    "segs": [ {
+      "utf8": "the way they're achieving this is\nwith internal display stacking."
+    } ]
+  }, {
+    "tStartMs": 187588,
+    "dDurationMs": 1469,
+    "segs": [ {
+      "utf8": "So it's a flat screen.\nBut..."
+    } ]
+  }, {
+    "tStartMs": 189057,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "holding this,"
+    } ]
+  }, {
+    "tStartMs": 189969,
+    "dDurationMs": 2855,
+    "segs": [ {
+      "utf8": "you'll actually notice the\nframe is slightly higher up,"
+    } ]
+  }, {
+    "tStartMs": 192906,
+    "dDurationMs": 3433,
+    "segs": [ {
+      "utf8": "slightly raised up from the\ndisplay itself all the way around."
+    } ]
+  }, {
+    "tStartMs": 196421,
+    "dDurationMs": 2447,
+    "segs": [ {
+      "utf8": "So you can feel the edge\nof it with your finger."
+    } ]
+  }, {
+    "tStartMs": 199350,
+    "dDurationMs": 3238,
+    "segs": [ {
+      "utf8": "And of course, straight on,\nthat means you don't see any bezel."
+    } ]
+  }, {
+    "tStartMs": 202670,
+    "dDurationMs": 2078,
+    "segs": [ {
+      "utf8": "So you can say, yeah,\n0-millimeter bezel,"
+    } ]
+  }, {
+    "tStartMs": 204830,
+    "dDurationMs": 2131,
+    "segs": [ {
+      "utf8": "but if you tilt it really far to an angle,"
+    } ]
+  }, {
+    "tStartMs": 207043,
+    "dDurationMs": 2974,
+    "segs": [ {
+      "utf8": "or I imagine if you peeled\nthis frame off of this display,"
+    } ]
+  }, {
+    "tStartMs": 210099,
+    "dDurationMs": 3106,
+    "segs": [ {
+      "utf8": "you'd see a tiny little bit of\nbezel hidden underneath here."
+    } ]
+  }, {
+    "tStartMs": 213287,
+    "dDurationMs": 1664,
+    "segs": [ {
+      "utf8": "Unfortunately, this little edge"
+    } ]
+  }, {
+    "tStartMs": 215683,
+    "dDurationMs": 2902,
+    "segs": [ {
+      "utf8": "kind of breaks the immersion of using...\na full-screen"
+    } ]
+  }, {
+    "tStartMs": 218787,
+    "dDurationMs": 2565,
+    "segs": [ {
+      "utf8": "device more than any tiny\nbezel probably would,"
+    } ]
+  }, {
+    "tStartMs": 221434,
+    "dDurationMs": 1945,
+    "segs": [ {
+      "utf8": "just because now every time I swipe,"
+    } ]
+  }, {
+    "tStartMs": 223461,
+    "dDurationMs": 2734,
+    "segs": [ {
+      "utf8": "especially from the top\nto get to notifications..."
+    } ]
+  }, {
+    "tStartMs": 226277,
+    "dDurationMs": 1607,
+    "segs": [ {
+      "utf8": "or from the bottom to go home,"
+    } ]
+  }, {
+    "tStartMs": 228446,
+    "dDurationMs": 2508,
+    "segs": [ {
+      "utf8": "my finger drags along that edge.\nSo it looks..."
+    } ]
+  }, {
+    "tStartMs": 231036,
+    "dDurationMs": 876,
+    "segs": [ {
+      "utf8": "amazing, clearly."
+    } ]
+  }, {
+    "tStartMs": 231994,
+    "dDurationMs": 2733,
+    "segs": [ {
+      "utf8": "But I feel like actually using the phone,\nweirdly,"
+    } ]
+  }, {
+    "tStartMs": 234809,
+    "dDurationMs": 3410,
+    "segs": [ {
+      "utf8": "I'd prefer to have a little bit\nof bezel and have smooth edges"
+    } ]
+  }, {
+    "tStartMs": 238421,
+    "dDurationMs": 2564,
+    "segs": [ {
+      "utf8": "rather than having no bezel,\nbut having to feel"
+    } ]
+  }, {
+    "tStartMs": 241527,
+    "dDurationMs": 2002,
+    "segs": [ {
+      "utf8": "the edge, this rough edge every time."
+    } ]
+  }, {
+    "tStartMs": 243611,
+    "dDurationMs": 4159,
+    "segs": [ {
+      "utf8": "And I think that answers the big question\nof why this is a concept phone and not a"
+    } ]
+  }, {
+    "tStartMs": 247852,
+    "dDurationMs": 1883,
+    "segs": [ {
+      "utf8": "real phone that they plan on shipping,"
+    } ]
+  }, {
+    "tStartMs": 249817,
+    "dDurationMs": 1884,
+    "segs": [ {
+      "utf8": "because the rest of the specs...\nare..."
+    } ]
+  }, {
+    "tStartMs": 251701,
+    "dDurationMs": 1344,
+    "segs": [ {
+      "utf8": "solid.\nIt's a nice display."
+    } ]
+  }, {
+    "tStartMs": 253127,
+    "dDurationMs": 1884,
+    "segs": [ {
+      "utf8": "You know, it's nice and bright, 144Hz."
+    } ]
+  }, {
+    "tStartMs": 255213,
+    "dDurationMs": 1677,
+    "segs": [ {
+      "utf8": "There's triple cameras back there."
+    } ]
+  }, {
+    "tStartMs": 256972,
+    "dDurationMs": 2334,
+    "segs": [ {
+      "utf8": "It's a 6,000 milliamp-hour battery,\nand it also,"
+    } ]
+  }, {
+    "tStartMs": 259388,
+    "dDurationMs": 3692,
+    "segs": [ {
+      "utf8": "it's super lightweight to the point\nwhere it almost feels like one of those"
+    } ]
+  }, {
+    "tStartMs": 263162,
+    "dDurationMs": 1881,
+    "segs": [ {
+      "utf8": "plastic dummy phones with no internals."
+    } ]
+  }, {
+    "tStartMs": 265125,
+    "dDurationMs": 975,
+    "segs": [ {
+      "utf8": "It's kind of surreal."
+    } ]
+  }, {
+    "tStartMs": 266182,
+    "dDurationMs": 2585,
+    "segs": [ {
+      "utf8": "Surely all the YouTube\ncommenters hating on bezels..."
+    } ]
+  }, {
+    "tStartMs": 268849,
+    "dDurationMs": 2183,
+    "segs": [ {
+      "utf8": "would love to try something like this,\nright?"
+    } ]
+  }, {
+    "tStartMs": 271114,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "I mean,"
+    } ]
+  }, {
+    "tStartMs": 272026,
+    "dDurationMs": 2680,
+    "segs": [ {
+      "utf8": "they'd probably also still want\nto see that hole-punch camera turn"
+    } ]
+  }, {
+    "tStartMs": 274788,
+    "dDurationMs": 1831,
+    "segs": [ {
+      "utf8": "into an under-display selfie...\ncamera."
+    } ]
+  }, {
+    "tStartMs": 276701,
+    "dDurationMs": 1124,
+    "segs": [ {
+      "utf8": "But still, this is...\nform"
+    } ]
+  }, {
+    "tStartMs": 278307,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "over"
+    } ]
+  }, {
+    "tStartMs": 279351,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "function..."
+    } ]
+  }, {
+    "tStartMs": 280263,
+    "dDurationMs": 1722,
+    "segs": [ {
+      "utf8": "It turns out you actually\nneed a little bit of bezel,"
+    } ]
+  }, {
+    "tStartMs": 282067,
+    "dDurationMs": 1606,
+    "segs": [ {
+      "utf8": "at least with today's display tech,"
+    } ]
+  }, {
+    "tStartMs": 283755,
+    "dDurationMs": 2957,
+    "segs": [ {
+      "utf8": "to be able to have that smooth\nexperience using a phone and not"
+    } ]
+  }, {
+    "tStartMs": 286794,
+    "dDurationMs": 1406,
+    "segs": [ {
+      "utf8": "drag your finger over an edge."
+    } ]
+  }, {
+    "tStartMs": 288288,
+    "dDurationMs": 4065,
+    "segs": [ {
+      "utf8": "And also to put a case on the\nphone and not have the case..."
+    } ]
+  }, {
+    "tStartMs": 292435,
+    "dDurationMs": 2595,
+    "segs": [ {
+      "utf8": "overlap onto the display...\nitself."
+    } ]
+  }, {
+    "tStartMs": 295650,
+    "dDurationMs": 1364,
+    "segs": [ {
+      "utf8": "This is more for Tecno"
+    } ]
+  }, {
+    "tStartMs": 297216,
+    "dDurationMs": 2727,
+    "segs": [ {
+      "utf8": "to be able to say they\ndid something unique."
+    } ]
+  }, {
+    "tStartMs": 300025,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "I looked on"
+    } ]
+  }, {
+    "tStartMs": 301069,
+    "dDurationMs": 1867,
+    "segs": [ {
+      "utf8": "the press release on their website"
+    } ]
+  }, {
+    "tStartMs": 303738,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "and it says"
+    } ]
+  }, {
+    "tStartMs": 305160,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "this"
+    } ]
+  }, {
+    "tStartMs": 306204,
+    "dDurationMs": 3208,
+    "segs": [ {
+      "utf8": "breakthrough on the Tecno next-gen\nbezel-less concept phone..."
+    } ]
+  }, {
+    "tStartMs": 309494,
+    "dDurationMs": 2153,
+    "segs": [ {
+      "utf8": "is much more than a design upgrade."
+    } ]
+  }, {
+    "tStartMs": 311729,
+    "dDurationMs": 4451,
+    "segs": [ {
+      "utf8": "It redefines how users will interact\nwith their phones in the AI era..."
+    } ]
+  }, {
+    "tStartMs": 316262,
+    "dDurationMs": 3174,
+    "segs": [ {
+      "utf8": "by removing visual barriers\nbetween digital content"
+    } ]
+  }, {
+    "tStartMs": 319998,
+    "dDurationMs": 2049,
+    "segs": [ {
+      "utf8": "and the real world.\nI"
+    } ]
+  }, {
+    "tStartMs": 322529,
+    "dDurationMs": 2605,
+    "segs": [ {
+      "utf8": "would say relax,\nthey're hyping themselves up."
+    } ]
+  }, {
+    "tStartMs": 325216,
+    "dDurationMs": 1788,
+    "segs": [ {
+      "utf8": "I get it.\nSurely this video is..."
+    } ]
+  }, {
+    "tStartMs": 327086,
+    "dDurationMs": 1203,
+    "segs": [ {
+      "utf8": "feeding into that too."
+    } ]
+  }, {
+    "tStartMs": 328931,
+    "dDurationMs": 3598,
+    "segs": [ {
+      "utf8": "But you know what I didn't find\non that press release that they"
+    } ]
+  }, {
+    "tStartMs": 332611,
+    "dDurationMs": 1495,
+    "segs": [ {
+      "utf8": "should be hyping up more..."
+    } ]
+  }, {
+    "tStartMs": 334188,
+    "dDurationMs": 2313,
+    "segs": [ {
+      "utf8": "When I first took this out the case, I..."
+    } ]
+  }, {
+    "tStartMs": 336583,
+    "dDurationMs": 3422,
+    "segs": [ {
+      "utf8": "unboxed it and I pulled it out\nof this bubble wrap sleeve..."
+    } ]
+  }, {
+    "tStartMs": 340087,
+    "dDurationMs": 3248,
+    "segs": [ {
+      "utf8": "and the first thing I noticed\nwas the back of this phone."
+    } ]
+  }, {
+    "tStartMs": 343417,
+    "dDurationMs": 1792,
+    "segs": [ {
+      "utf8": "And fun fact, the back of this phone,"
+    } ]
+  }, {
+    "tStartMs": 345291,
+    "dDurationMs": 2450,
+    "segs": [ {
+      "utf8": "arguably more visually\ninteresting than the front."
+    } ]
+  }, {
+    "tStartMs": 348303,
+    "dDurationMs": 2906,
+    "segs": [ {
+      "utf8": "They didn't say much about it\nin any of the press releases,"
+    } ]
+  }, {
+    "tStartMs": 351291,
+    "dDurationMs": 2096,
+    "segs": [ {
+      "utf8": "but it's like this\nholographic 3D butterfly"
+    } ]
+  }, {
+    "tStartMs": 353939,
+    "dDurationMs": 921,
+    "segs": [ {
+      "utf8": "wing type of thing."
+    } ]
+  }, {
+    "tStartMs": 355180,
+    "dDurationMs": 1753,
+    "segs": [ {
+      "utf8": "It looks to my eye...\nlike it's..."
+    } ]
+  }, {
+    "tStartMs": 356933,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "actually..."
+    } ]
+  }, {
+    "tStartMs": 357845,
+    "dDurationMs": 2676,
+    "segs": [ {
+      "utf8": "coming off of the back of the phone,\nlike it's gonna..."
+    } ]
+  }, {
+    "tStartMs": 360603,
+    "dDurationMs": 3342,
+    "segs": [ {
+      "utf8": "You're gonna have to take my word\nfor it because it's extremely"
+    } ]
+  }, {
+    "tStartMs": 364027,
+    "dDurationMs": 1712,
+    "segs": [ {
+      "utf8": "difficult to capture on camera..."
+    } ]
+  }, {
+    "tStartMs": 365821,
+    "dDurationMs": 1114,
+    "segs": [ {
+      "utf8": "But I swear this is..."
+    } ]
+  }, {
+    "tStartMs": 367017,
+    "dDurationMs": 3832,
+    "segs": [ {
+      "utf8": "one of the best lenticular lens effects\nI've ever seen with my own eyes."
+    } ]
+  }, {
+    "tStartMs": 371331,
+    "dDurationMs": 1169,
+    "segs": [ {
+      "utf8": "It's absolutely insane."
+    } ]
+  }, {
+    "tStartMs": 372582,
+    "dDurationMs": 2318,
+    "segs": [ {
+      "utf8": "So if they do ever ship a phone like this,"
+    } ]
+  }, {
+    "tStartMs": 374982,
+    "dDurationMs": 3289,
+    "segs": [ {
+      "utf8": "they definitely need to make\na clear case for it because..."
+    } ]
+  }, {
+    "tStartMs": 378353,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "it's crazy"
+    } ]
+  }, {
+    "tStartMs": 379654,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "either way"
+    } ]
+  }, {
+    "tStartMs": 380698,
+    "dDurationMs": 1737,
+    "segs": [ {
+      "utf8": "now, you know...\nThanks for watching..."
+    } ]
+  }, {
+    "tStartMs": 382517,
+    "dDurationMs": 1689,
+    "segs": [ {
+      "utf8": "Catch you guys in the next one."
+    } ]
+  }, {
+    "tStartMs": 384588,
+    "dDurationMs": 830,
+    "segs": [ {
+      "utf8": "Peace."
+    } ]
+  } ]
+}

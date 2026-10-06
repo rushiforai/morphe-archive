@@ -3,6 +3,8 @@ package com.zeldrisho.patches.zalo
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction35c
 import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction3rc
@@ -10,6 +12,7 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodRefere
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import com.zeldrisho.patches.testing.syntheticMutableMethod
 import com.zeldrisho.patches.zalo.backup.enableMediaBackup
+import com.zeldrisho.patches.zalo.backup.forceMediaBackupEligible
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -120,6 +123,33 @@ class BackupMediaTransformationTest {
             enableMediaBackup(writer(key = "OTHER_SETTING"))
         }
         assertEquals("Zalo Google Drive backup: expected exactly one ENABLE_BACKUP_MEDIA key", error.message)
+    }
+
+    /** Verifies the opt-in patch bypasses only Zalo's account-metadata eligibility predicate. */
+    @Test
+    fun forcesAccountEligibilityPredicateToTrue() {
+        val method = syntheticMutableMethod(
+            registerCount = 2,
+            instructions = listOf(
+                ImmutableInstruction11n(
+                    Opcode.CONST_4,
+                    0,
+                    0,
+                ),
+                ImmutableInstruction11x(
+                    Opcode.RETURN,
+                    0,
+                ),
+            ),
+        )
+
+        forceMediaBackupEligible(method)
+
+        val instructions = method.implementation!!.instructions
+        assertEquals(2, instructions.size)
+        assertEquals(Opcode.CONST_4, instructions[0].opcode)
+        assertEquals(1, (instructions[0] as NarrowLiteralInstruction).narrowLiteral)
+        assertEquals(Opcode.RETURN, instructions[1].opcode)
     }
 
     /** Checks the diagnostic when the configuration method has no bytecode implementation. */

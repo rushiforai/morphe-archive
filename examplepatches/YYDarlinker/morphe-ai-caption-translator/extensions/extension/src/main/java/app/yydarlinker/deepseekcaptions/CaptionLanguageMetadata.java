@@ -7,23 +7,24 @@ public final class CaptionLanguageMetadata {
     private CaptionLanguageMetadata() {}
     public static byte[] addSimplified(byte[] original) {
         if(original==null || original.length>1024*1024) return original;
+        if(!CaptionAddonSupport.aiInstalled() && !CaptionAddonSupport.simplifiedInstalled())return original;
         try {
-            List<Field> root=fields(original);List<byte[]> languages=new ArrayList<>();byte[] prototype=null;boolean hasHans=false;
-            for(Field f:root)if(f.number==3&&f.wire==2){languages.add(f.value);String code=code(f.value);
-                if(LanguageMenuOrder.rank(code)==1)hasHans=true;if(prototype==null)prototype=f.value;}
+            List<Field> root=fields(original);List<byte[]> languages=new ArrayList<>();byte[] prototype=null;
+            Set<String> present=new HashSet<>();Map<String,String> labels=new LinkedHashMap<>();
+            for(Field f:root)if(f.number==3&&f.wire==2){languages.add(f.value);String normalized=CaptionLanguageSelection.canonical(code(f.value));
+                if(!normalized.isEmpty()){present.add(normalized);labels.put(normalized,label(f.value));}if(prototype==null)prototype=f.value;}
+            NativeCaptionBridge.observeLanguageMetadata(labels);
             if(prototype==null)return original;
-            if(!hasHans){ByteArrayOutputStream entry=new ByteArrayOutputStream();
-                write(entry,1,"zh-Hans".getBytes(StandardCharsets.UTF_8));ByteArrayOutputStream label=new ByteArrayOutputStream();
-                write(label,4,LanguageMenuOrder.simplifiedLabel().getBytes(StandardCharsets.UTF_8));write(entry,2,label.toByteArray());
-                for(Field f:fields(prototype))if(f.number!=1&&f.number!=2)entry.write(f.raw);languages.add(entry.toByteArray());}
-            for(int i=0;i<languages.size();i++)if(LanguageMenuOrder.rank(code(languages.get(i)))==1){
-                ByteArrayOutputStream corrected=new ByteArrayOutputStream(),name=new ByteArrayOutputStream();
-                write(name,4,LanguageMenuOrder.simplifiedLabel().getBytes(StandardCharsets.UTF_8));
-                boolean wroteName=false;
-                for(Field field:fields(languages.get(i))){if(field.number==2&&field.wire==2){if(!wroteName){write(corrected,2,name.toByteArray());wroteName=true;}}else corrected.write(field.raw);}
-                if(!wroteName)write(corrected,2,name.toByteArray());languages.set(i,corrected.toByteArray());
+            java.text.Collator collator=java.text.Collator.getInstance(LanguageMenuOrder.locale());
+            for(String code:CaptionLanguageSelection.menuCodes()) {
+                if(!present.add(code))continue;
+                ByteArrayOutputStream entry=new ByteArrayOutputStream(),name=new ByteArrayOutputStream();
+                write(entry,1,code.getBytes(StandardCharsets.UTF_8));String display=NativeCaptionBridge.translationLabel(code);
+                write(name,4,display.getBytes(StandardCharsets.UTF_8));write(entry,2,name.toByteArray());
+                for(Field f:fields(prototype))if(f.number!=1&&f.number!=2)entry.write(f.raw);
+                int at=languages.size();for(int i=0;i<languages.size();i++)if(collator.compare(LanguageMenuOrder.sortLabel(display),LanguageMenuOrder.sortLabel(label(languages.get(i))))<0){at=i;break;}
+                languages.add(at,entry.toByteArray());
             }
-            languages=LanguageMenuOrder.insertSimplified(languages,CaptionLanguageMetadata::code,CaptionLanguageMetadata::label);
             ByteArrayOutputStream out=new ByteArrayOutputStream();boolean wrote=false;
             for(Field f:root){if(f.number==3&&f.wire==2){if(!wrote){for(byte[] item:languages)write(out,3,item);wrote=true;}}else out.write(f.raw);}
             byte[] result=out.toByteArray();return Arrays.equals(original,result)?original:result;

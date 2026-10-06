@@ -26,13 +26,14 @@ import app.hushgram.extension.shared.diagnostics.HookStatus;
  * without a lock ({@link #holdEnded}). A lock keeps the speed the reel was set to last. The
  * controller's maybeResumePlayer hands over the reel ({@link #item}) and then its player
  * ({@link #resuming}) just before it plays it, and a reel that isn't an ad gets the kept speed then.
- * Instagram's own reset of the reel's speed, after a lock or a hold, is handed the kept speed in
- * place of normal ({@link #resetSpeed}).
+ * Instagram's own reset of the reel's speed, after a lock or a hold and on every scroll to the next
+ * reel, is handed the kept speed in place of normal ({@link #resetSpeed}). That reset sets the reel
+ * being scrolled to, an ad too, so an ad is set back to normal speed when it starts.
  *
  * <p>Sliding the lock off, or Instagram ending it from the speed menu, forgets the speed, and so does
  * a hold at the edge let go of without a lock: that hold ends at normal speed, and the next reels
  * start there too. Scrolling to the next reel or switching tabs ends Instagram's lock but keeps the
- * speed. Ads start at Instagram's speed. The speed lives in memory only, so it's gone when Instagram
+ * speed. Ads play at normal speed, as Instagram plays them. The speed lives in memory only, so it's gone when Instagram
  * restarts, and nothing is kept or set while the switch is off, HushGram is paused, the settings
  * aren't ready, or anything here fails.
  */
@@ -226,7 +227,8 @@ public final class ReelSpeed {
 
     /**
      * The hook, in maybeResumePlayer just before it plays [player]: the kept speed goes on, unless the
-     * reel {@link #item} handed over is an ad.
+     * reel {@link #item} handed over is an ad. An ad goes back to normal speed, since Instagram's reset
+     * a moment before handed its player the kept speed.
      */
     public static void resuming(@Nullable Object player) {
         try {
@@ -242,11 +244,12 @@ public final class ReelSpeed {
                 speed = kept;
             }
             if (player == null || same(speed, NORMAL)) return;
+            HookStatus.bound(FAMILY, "reel start");
             if (item != null && access.ad(item)) {
-                Logger.printDebug(() -> "Reel speed: an ad started at Instagram's speed");
+                access.setSpeed(player, NORMAL);
+                Logger.printDebug(() -> "Reel speed: an ad started, set back to normal speed");
                 return;
             }
-            HookStatus.bound(FAMILY, "reel start");
             access.setSpeed(player, speed);
             HookStatus.counted(FAMILY, APPLIED);
             Logger.printDebug(() -> "Reel speed: a reel started, set to the kept " + speed + "x");

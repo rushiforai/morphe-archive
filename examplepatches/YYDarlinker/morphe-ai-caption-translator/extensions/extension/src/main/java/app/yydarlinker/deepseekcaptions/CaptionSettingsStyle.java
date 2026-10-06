@@ -13,6 +13,27 @@ import android.widget.TextView;
 
 /** Small theme-derived refinements; native widgets, host typography and accessibility remain in charge. */
 final class CaptionSettingsStyle {
+    static int sliderUnfilled(Context c){return tint(primary(c),64);}
+    /**
+     * Shared rail geometry and colours for both settings sliders. The platform already keeps
+     * {@code thumbOffset == padding == half the thumb}, so the two extreme thumb centres sit at
+     * {@code paddingLeft} and {@code width - paddingRight}. {@link DeepSeekSliderPreference.RailBar}
+     * draws the rail and every tick on exactly those two coordinates, which the stock progress drawable
+     * cannot do: its own bounds are the padded frame shifted one further thumb offset, and the visible
+     * rail is inset by an opaque vendor amount that does not scale with the layout width.
+     */
+    static void slider(android.widget.SeekBar view){
+        Context c=view.getContext();
+        android.graphics.drawable.Drawable thumb=view.getThumb();
+        int halfThumb=thumb==null?0:thumb.getIntrinsicWidth()/2;
+        // Platform thumb centre = paddingLeft + fraction * (available - thumbWidth): thumbOffset and the
+        // half thumb cancel in AbsSeekBar.onDraw. Insetting the padding by half a thumb on each side
+        // therefore puts the two end thumb centres exactly on the two visible rail endpoints.
+        view.setPadding(halfThumb,view.getPaddingTop(),halfThumb,view.getPaddingBottom());
+        view.setProgressTintList(android.content.res.ColorStateList.valueOf(primary(c)));
+        view.setProgressBackgroundTintList(android.content.res.ColorStateList.valueOf(sliderUnfilled(c)));
+        view.setThumbTintList(android.content.res.ColorStateList.valueOf(primary(c)));
+    }
     static int dp(Context c,float value){return Math.round(value*c.getResources().getDisplayMetrics().density);}
     static int color(Context c,int attr,int fallback){
         TypedArray a=c.obtainStyledAttributes(new int[]{attr});
@@ -24,10 +45,10 @@ final class CaptionSettingsStyle {
     }
     static int secondary(Context c){return color(c,android.R.attr.textColorSecondary,primary(c));}
     static int tint(int color,int alpha){return (color&0x00ffffff)|(alpha<<24);}
-    static void row(View view){Context c=view.getContext();view.setPadding(dp(c,20),dp(c,12),dp(c,20),dp(c,12));}
-    static void title(TextView view){view.setTextSize(16);view.setTextColor(primary(view.getContext()));view.setTypeface(Typeface.DEFAULT,Typeface.NORMAL);view.setAlpha(1f);}
-    static void caption(TextView view){view.setTextSize(13);view.setTextColor(secondary(view.getContext()));view.setAlpha(1f);view.setLineSpacing(dp(view.getContext(),2),1f);}
-    static void button(Button view){Context c=view.getContext();view.setAllCaps(false);view.setTextSize(14);view.setMinHeight(dp(c,48));view.setMinimumHeight(dp(c,48));view.setMinimumWidth(dp(c,64));view.setMinWidth(dp(c,64));view.setPadding(dp(c,12),0,dp(c,12),0);}
+    static void row(View view){Context c=view.getContext();view.setPadding(dp(c,20),dp(c,12),dp(c,20),dp(c,12));CaptionTextResolver.direction(view,false);}
+    static void title(TextView view){view.setTextSize(16);view.setTextColor(primary(view.getContext()));view.setTypeface(Typeface.DEFAULT,Typeface.NORMAL);view.setAlpha(1f);CaptionTextResolver.direction(view,false);}
+    static void caption(TextView view){view.setTextSize(13);view.setTextColor(secondary(view.getContext()));view.setAlpha(1f);view.setLineSpacing(dp(view.getContext(),2),1f);CaptionTextResolver.direction(view,false);}
+    static void button(Button view){Context c=view.getContext();view.setAllCaps(false);view.setTextSize(14);view.setMinHeight(dp(c,48));view.setMinimumHeight(dp(c,48));view.setMinimumWidth(dp(c,64));view.setMinWidth(dp(c,64));view.setPadding(dp(c,12),0,dp(c,12),0);CaptionTextResolver.direction(view,false);}
     static Button action(Context c,String label,boolean primaryAction,boolean destructive,Runnable click){
         Button b=null;
         try { b=(Button)Class.forName("app.morphe.extension.shared.ui.CustomDialog")
@@ -58,6 +79,7 @@ final class CaptionSettingsStyle {
     }
     static void editor(EditText view){
         Context c=view.getContext();view.setTextSize(16);view.setTextColor(primary(c));view.setHintTextColor(secondary(c));
+        CaptionTextResolver.direction(view,true);
         view.setMinHeight(dp(c,48));view.setMinimumHeight(dp(c,48));view.setPadding(dp(c,12),dp(c,10),dp(c,12),dp(c,10));
         StateListDrawable bg=new StateListDrawable();
         bg.addState(new int[]{android.R.attr.state_focused},surface(c,true));

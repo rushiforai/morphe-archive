@@ -34,29 +34,28 @@ public class RebuildR212Test {
     assertTrue(RebuildReview.shouldRepair(p,1,0,0,b.end));
   }
 
-  @Test public void oversegmentedBlockIsRepairCandidateWithoutChangingTimes() throws Exception {
+  @Test public void releaseOversegmentedBlockIsRepairCandidateWithoutChangingTimes() throws Exception {
     RebuildSource s=RebuildContractTest.source(String.join(" ",Collections.nCopies(56,"word")),300);
     RebuildPlanner.Block b=RebuildContractTest.block(s);
     JSONArray events=new JSONArray();
     for(int i=0;i<14;i++) events.put(RebuildContractTest.event(i*4,i*4+3,"这一句"));
     RebuildProtocol.Plan p=RebuildProtocol.parse(RebuildContractTest.reply(b,events),s,b);
-    assertTrue(p.issues.stream().anyMatch(x->x.code.equals("fragmented_plan")&&!x.repair));
-    assertFalse("Event count alone must not spend another paid model call",
-        RebuildReview.shouldRepair(p,1,0,0,b.end));
+    assertTrue(p.issues.stream().anyMatch(x->x.code.equals("fragmented_plan")&&x.repair));
+    assertTrue(RebuildReview.shouldRepair(p,1,0,0,b.end));
     for(RebuildProtocol.Event e:p.events) {
       assertEquals(s.words.get(e.from).start,e.start);
       assertEquals(s.words.get(e.to).end,e.end);
     }
   }
 
-  @Test public void structuralSourceFailuresAllowOnlyOneTargetedExtraAttempt() {
+  @Test public void releaseRetriesMultipleStructuralSourceFailures() {
     assertTrue(RebuildReview.structuralRetry("source_quote_mismatch; range=1-2"));
-    assertFalse("unobserved structural errors do not merit a third paid call",RebuildReview.structuralRetry("missing_source"));
+    assertTrue(RebuildReview.structuralRetry("missing_source"));
     assertFalse(RebuildReview.structuralRetry("json"));
     assertFalse(RebuildReview.structuralRetry("http_500"));
   }
 
-  @Test public void knownEquipmentAndAdjacentNumberMistakesAreTargeted() throws Exception {
+  @Test public void releaseEquipmentRiskAndAdjacentNumberRejection() throws Exception {
     RebuildSource equipment=RebuildContractTest.source("the size of a country's tank fleet",300);
     RebuildPlanner.Block eb=RebuildContractTest.block(equipment);
     RebuildProtocol.Plan ep=RebuildProtocol.parse(
@@ -65,9 +64,12 @@ public class RebuildR212Test {
 
     RebuildSource numbers=RebuildContractTest.source("about 50 20 aircraft",300);
     RebuildPlanner.Block nb=RebuildContractTest.block(numbers);
-    RebuildProtocol.Plan np=RebuildProtocol.parse(
-        RebuildContractTest.reply(nb,new JSONArray().put(RebuildContractTest.event(0,numbers.words.size()-1,"大约50至20架飞机"))),numbers,nb);
-    assertTrue(np.issues.stream().anyMatch(x->x.code.equals("numeric_range_invention")&&x.repair));
-    assertTrue("The invented range is quarantined, not displayed",RebuildReview.blocked(np,np.events.get(0)));
+    try {
+      RebuildProtocol.parse(RebuildContractTest.reply(nb,new JSONArray().put(
+          RebuildContractTest.event(0,numbers.words.size()-1,"大约50至20架飞机"))),numbers,nb);
+      fail("Published parser rejects the whole candidate on invented range");
+    } catch(RebuildProtocol.Invalid expected) {
+      assertEquals("numeric_range_invention",expected.code);
+    }
   }
 }

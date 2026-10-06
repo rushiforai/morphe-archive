@@ -23,6 +23,13 @@
     base manifests are read before anything is patched, so a declared build with no fixture
     stops the run at once instead of after the others, which for Pinterest unpacks gigabytes.
 
+    Each patched fixture then goes through the checks verify-all-patches.ps1 runs: its rebuilt
+    resource table against the stock one (ResourceTableCheck.java), and its injected code against
+    Pinterest's, including every class and member it calls (verify-injected-registers.ps1). A patch
+    can apply and still call something one build lacks. 0.0.3's System share sheet did, calling a
+    14.38.0 class on 14.25.0, and the receipt only read the CLI's verdicts. A finding stops the run.
+    Their reports stay in -WorkDir.
+
     The patched APKs are working files and are deleted on the way out, including after a failure.
 
     The bundle has to be a build of HEAD from a clean tree, and a clean tree when the receipt is
@@ -54,6 +61,10 @@ param(
     [string]$DesktopJar,
     [string]$Java,
     [string]$Aapt2,
+    # Android SDK public stubs and their API history for the host reference check. Default: the
+    # newest installed platform, as verify-injected-registers.ps1 finds it.
+    [string]$AndroidJar,
+    [string]$ApiVersions,
     [string]$OutputPath,
     # The SBOM :patches:buildAndroid writes beside the bundle, named for it. Defaults to that.
     [string]$Sbom,
@@ -360,6 +371,33 @@ foreach ($apk in $Fixture) {
             -ApprovedManifestDelta $approved
         if (-not $manifestCheck.Valid) { throw "${label}: $($manifestCheck.Reason)" }
         $delta = $manifestCheck.Delta
+
+        $resourceReport = Resolve-WithinRoot -Path (Join-Path $workRoot "receipt-resources-$runId.txt") -Root $workRoot
+        # Continue for the call alone, as for the CLI: a JDK note on stderr would otherwise end the
+        # run under Windows PowerShell 5.1 before the exit code is read.
+        $preference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            $global:LASTEXITCODE = -1
+            $resourceOutput = @(& $Java '-Xmx4g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
+                $patchInput $out $resourceReport 2>&1)
+            $resourceExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $preference
+        }
+        if ($resourceExitCode -ne 0) {
+            throw ("${label}: the patched resource table failed its check against the stock one " +
+                "(exit $resourceExitCode). Report: $resourceReport. $(@($resourceOutput | Select-Object -Last 2) -join ' ')")
+        }
+        $registerReport = Resolve-WithinRoot -Path (Join-Path $workRoot "receipt-registers-$runId.txt") -Root $workRoot
+        $global:LASTEXITCODE = 0
+        & (Join-Path $PSScriptRoot 'verify-injected-registers.ps1') -CleanApk $apk -CleanMerged $patchInput `
+            -PatchedApk $out -ReportPath $registerReport -Java $Java -DesktopJar $DesktopJar -Aapt2 $Aapt2 `
+            -SelectedPatchNames $manifestSelection -AndroidJar $AndroidJar -ApiVersions $ApiVersions
+        if ($LASTEXITCODE -ne 0) {
+            throw ("${label}: the injected code failed its structural or host reference checks " +
+                "(exit $LASTEXITCODE). Report: $registerReport")
+        }
         $verdicts = Get-PatchVerdicts -Report $report -Names $patchNames
         $changes = @(ConvertTo-ManifestDeltaEntries -Delta $delta)
         Write-Host ("[receipt] $label" + ": $(@($verdicts | Where-Object { $_.applied }).Count)/" +

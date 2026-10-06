@@ -86,12 +86,12 @@ Assert-True ($browz.branches[0].name -eq 'main' -and $browz.branches[0].commit -
     'browzomje must keep its pinned main commit and its 28 Pinterest patches, as a candidate and not an adopted source.'
 $oyasumi = @($entries | Where-Object { $_.id -eq 'oyasumi' })[0]
 Assert-True ($oyasumi.branches.Count -eq 1 -and $oyasumi.branches[0].name -eq 'dev' -and
-    $oyasumi.branches[0].commit -eq '6465d7af8460692b8eca63a18eb30a23aba73b59' -and $oyasumi.patchCounts.'com.pinterest' -eq 8 -and
+    $oyasumi.branches[0].commit -eq '4d6329b9c8a0dcbf7f00cc97cf2e8601224e8dba' -and $oyasumi.patchCounts.'com.pinterest' -eq 13 -and
     $oyasumi.targetVersions.'com.pinterest' -contains '14.38.0' -and $oyasumi.reason -like '*dev branch only*' -and
-    $oyasumi.reason -like '*v0.6.0-dev.10*' -and $oyasumi.reason -like '*Stable v0.5.3*' -and
+    $oyasumi.reason -like '*v0.6.0-dev.24*' -and $oyasumi.reason -like '*Stable v0.5.3*' -and
     $oyasumi.watchPaths -contains 'extensions/extension/src/main/java/app/oyasumi/extension' -and
     $oyasumi.disposition -eq 'candidate') `
-    'oyasumi must distinguish eight dev Pinterest patches from stable v0.5.3, without claiming adoption.'
+    'oyasumi must distinguish thirteen dev Pinterest patches from stable v0.5.3, without claiming adoption.'
 $mubelotix = @($entries | Where-Object { $_.id -eq 'mubelotix' })[0]
 Assert-True ($mubelotix.repository -ceq 'https://github.com/Mubelotix/my-morphe-patches' -and
     $mubelotix.branches[0].commit -eq '8b6f75e226634c6a0b4031bba6cda1de7db146a0' -and

@@ -1,129 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cap_age_close" formatted="false">" seconds ago)"</string>
+    <string name="cap_age_open" formatted="false">"(about %1$s"</string>
     <string name="cap_ai_title" formatted="false">"AI caption translation"</string>
-    <string name="cap_enable_ai" formatted="false">"Enable AI caption translation"</string>
-    <string name="cap_api_config" formatted="false">"API configuration"</string>
     <string name="cap_api_address" formatted="false">"API address"</string>
+    <string name="cap_api_config" formatted="false">"API configuration"</string>
+    <string name="cap_api_config_error" formatted="false">"Caption API configuration error: %1$s"</string>
     <string name="cap_api_key" formatted="false">"API Key"</string>
-    <string name="cap_model" formatted="false">"Model"</string>
-    <string name="cap_test_api" formatted="false">"Test API"</string>
-    <string name="cap_translation" formatted="false">"Translation"</string>
-    <string name="cap_translation_requirements" formatted="false">"Translation instructions"</string>
-    <string name="cap_style" formatted="false">"Caption style"</string>
-    <string name="cap_size" formatted="false">"Caption size"</string>
-    <string name="cap_opacity" formatted="false">"Background opacity"</string>
-    <string name="cap_reset_position" formatted="false">"Reset caption position"</string>
-    <string name="cap_cache_diagnostics" formatted="false">"Cache and diagnostics"</string>
-    <string name="cap_clear_cache" formatted="false">"Clear caption cache"</string>
-    <string name="cap_delete_key" formatted="false">"Delete API Key"</string>
-    <string name="cap_text_debug" formatted="false">"Caption text debugging"</string>
-    <string name="cap_diagnostics" formatted="false">"Caption diagnostics"</string>
-    <string name="cap_clear_diagnostics" formatted="false">"Clear diagnostics"</string>
-    <string name="cap_preview" formatted="false">"Caption preview"</string>
-    <string name="cap_landscape" formatted="false">"Landscape"</string>
-    <string name="cap_portrait" formatted="false">"Portrait"</string>
-    <string name="cap_to_landscape" formatted="false">"Switch to landscape"</string>
-    <string name="cap_to_portrait" formatted="false">"Switch to portrait"</string>
-    <string name="cap_refresh" formatted="false">"Refresh"</string>
-    <string name="cap_copy" formatted="false">"Copy"</string>
-    <string name="cap_expand" formatted="false">"Expand"</string>
-    <string name="cap_collapse" formatted="false">"Collapse"</string>
-    <string name="cap_cancel" formatted="false">"Cancel"</string>
-    <string name="cap_delete" formatted="false">"Delete"</string>
-    <string name="cap_saved" formatted="false">"Saved automatically"</string>
+    <string name="cap_api_test_failed" formatted="false">"API test failed: %1$s"</string>
+    <string name="cap_api_test_ok" formatted="false">"API available: %1$s"</string>
+    <string name="cap_api_test_retry_hint" formatted="false">"Test the connection using the saved configuration"</string>
+    <string name="cap_audit_api" formatted="false">"API: %1$s attempts · %2$s successful (2xx) · %3$s failures · internal retries %4$s"</string>
+    <string name="cap_audit_api_call_many" formatted="false">"%1$s API calls · "</string>
+    <string name="cap_audit_api_call_one" formatted="false">"%1$s API call · "</string>
+    <string name="cap_audit_boundary" formatted="false">"Boundary recheck: triggered %1$s times (at most once/page) · sent %2$s requests · recovered %3$s atoms"</string>
+    <string name="cap_audit_bucket_background" formatted="false">"Background prefetch"</string>
+    <string name="cap_audit_bucket_background_alt" formatted="false">"Boundary recheck"</string>
+    <string name="cap_audit_bucket_background_block" formatted="false">"Block (fallback)"</string>
+    <string name="cap_audit_bucket_background_page" formatted="false">"Page merge"</string>
+    <string name="cap_audit_bucket_display" formatted="false">"Display slicing"</string>
+    <string name="cap_audit_bucket_priority" formatted="false">"Current priority"</string>
+    <string name="cap_audit_bucket_priority_current" formatted="false">"Current anchor"</string>
+    <string name="cap_audit_bucket_priority_gap_rescue" formatted="false">"Gap rescue"</string>
+    <string name="cap_audit_bucket_progress" formatted="false">"Page merge progress: %1$s fixed blocks completed by %2$s page requests (%3$s blocks/request; &lt;1.0 means repeated requests without progress)"</string>
+    <string name="cap_audit_bucket_unit_background" formatted="false">"Time anchor / background batch"</string>
+    <string name="cap_audit_bucket_unit_realtime" formatted="false">"Time anchor / current batch"</string>
+    <string name="cap_audit_by_purpose" formatted="false">"Requests by purpose:"</string>
+    <string name="cap_audit_cache_known" formatted="false">"Input cache: hit %1$s / miss %2$s · hit rate %3$s"</string>
+    <string name="cap_audit_cache_unknown" formatted="false">"Input cache: provider did not report recognizable hit/miss details"</string>
+    <string name="cap_audit_char_ratio" formatted="false">"character exposure ratio %1$s"</string>
+    <string name="cap_audit_circuit_breakers" formatted="false">"local circuit breakers %1$s"</string>
+    <string name="cap_audit_core_contextual_unit" formatted="false">"Core: Contextual Unit v1"</string>
+    <string name="cap_audit_core_event_rebuild" formatted="false">"Core: Event rebuild / %1$s"</string>
+    <string name="cap_audit_core_semantic_ledger" formatted="false">"Core: Semantic Ledger v2"</string>
+    <string name="cap_audit_current_engine" formatted="false">"Current engine: %1$s"</string>
+    <string name="cap_audit_current_model" formatted="false">"Current model: %1$s"</string>
+    <string name="cap_audit_disk_cache" formatted="false">"Request-block disk cache: lookups %1$s · hit blocks %2$s · missed units %3$s"</string>
+    <string name="cap_audit_display_handoff" formatted="false">"handed off to AI %1$s times (AI calls %2$s · with usage %3$s · failures %4$s)"</string>
+    <string name="cap_audit_display_local" formatted="false">"Display slicing: local zero-token successes %1$s times"</string>
+    <string name="cap_audit_display_whole" formatted="false">"kept whole sentences %1$s times"</string>
+    <string name="cap_audit_efficiency" formatted="false">"%1$s efficiency: added %2$s core atoms · input per atom %3$s tok · cache-miss input per atom %4$s tok"</string>
+    <string name="cap_audit_estimate" formatted="false">"V4 Flash current provider estimate: %1$s"</string>
+    <string name="cap_audit_failure_breakdown" formatted="false">"Failure breakdown: 429 %1$s · 5xx %2$s · other 4xx %3$s · timeout %4$s · network %5$s · cancelled/interrupted %6$s · other %7$s"</string>
+    <string name="cap_audit_focus_misses" formatted="false">"focus misses %1$s"</string>
+    <string name="cap_audit_legacy_engine" formatted="false">"Legacy compatibility engine"</string>
+    <string name="cap_audit_logical_request_many" formatted="false">"%1$s logical requests / "</string>
+    <string name="cap_audit_logical_request_one" formatted="false">"%1$s logical request / "</string>
+    <string name="cap_audit_no_usage" formatted="false">"Token cost audit: no API usage yet. Play AI captions to see usage, cache hits, request purposes, and cost per viewing minute."</string>
+    <string name="cap_audit_no_usage_note" formatted="false">"Note: %1$s 2xx responses lacked usage; only request counts, not exact tokens, are known for these."</string>
+    <string name="cap_audit_page_fallback" formatted="false">"Page fallback: %1$s cached pages exceeded the failure threshold; falling back to block requests"</string>
+    <string name="cap_audit_per_minute" formatted="false">"%1$s tokens/viewing minute"</string>
+    <string name="cap_audit_priced_subset" formatted="false">"(only responses priced by built-in V4 Flash rates)"</string>
+    <string name="cap_audit_request_blocks" formatted="false">"Request blocks: target %1$s blocks · read-only context %2$s sections · context sections/block %3$s"</string>
+    <string name="cap_audit_request_body" formatted="false">"Request body: total %1$s bytes · average %2$s bytes/API attempt"</string>
+    <string name="cap_audit_semantic_window" formatted="false">"Semantic window: core %1$s atoms · exposed %2$s atoms · context exposure ratio %3$s"</string>
+    <string name="cap_audit_structural" formatted="false">"Structural and deterministic checks: accepted / rejected (not semantic acceptance): %1$s / %2$s (%3$s)"</string>
+    <string name="cap_audit_sunk" formatted="false">"Sent but unread requests: %1$s requests · %2$s bytes. Provider processing and billing are unknown; the token and cost totals exclude this usage, so the actual spend cannot be determined."</string>
+    <string name="cap_audit_title" formatted="false">"Token cost audit (since last reset)"</string>
+    <string name="cap_audit_tok" formatted="false">"%1$s tok"</string>
+    <string name="cap_audit_tok_per_minute" formatted="false">"%1$s tok/viewing minute"</string>
+    <string name="cap_audit_tokens" formatted="false">"Tokens: %1$s = input %2$s + output %3$s"</string>
+    <string name="cap_audit_video" formatted="false">"Current video: viewed %1$s s · %2$s tokens"</string>
+    <string name="cap_audit_viewed" formatted="false">"viewed %1$s s · %2$s tok"</string>
     <string name="cap_autosave" formatted="false">"Changes are saved automatically"</string>
-    <string name="cap_enter_key" formatted="false">"Enter API Key"</string>
-    <string name="cap_key_saved" formatted="false">"Stored encrypted; enter to replace"</string>
-    <string name="cap_model_hint" formatted="false">"Select a model or enter its ID"</string>
-    <string name="cap_preview_hint" formatted="false">"Tap the image to switch orientation; style updates live"</string>
-    <string name="cap_size_hint" formatted="false">"Relative size 8–15; scales with the video"</string>
-    <string name="cap_opacity_hint" formatted="false">"0% transparent, 100% opaque; saved on release"</string>
-    <string name="cap_diagnostic_hint" formatted="false">"Expand to inspect and copy diagnostic records"</string>
-    <string name="cap_use_youtube" formatted="false">"Use YouTube"</string>
-    <string name="cap_use_ai" formatted="false">"Use AI"</string>
-    <string name="cap_on" formatted="false">"On"</string>
-    <string name="cap_off" formatted="false">"Off"</string>
-    <string name="cap_configure_api" formatted="false">"Configure the API before enabling AI translation"</string>
-    <string name="cap_switch_failed" formatted="false">"Could not switch; previous mode restored"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"Cache and diagnostics"</string>
+    <string name="cap_cancel" formatted="false">"Cancel"</string>
+    <string name="cap_caption_translating" formatted="false">"Translating…"</string>
     <string name="cap_choose_translation" formatted="false">"Choose an Auto-translate language in the captions menu"</string>
-    <string name="cap_message_7b7480271fa5" formatted="false">"When off, YouTube renders its own captions"</string>
-    <string name="cap_message_1cc3c4b0aab0" formatted="false">"Original captions work directly; AI translation requires an API key"</string>
-    <string name="cap_message_2c107e436145" formatted="false">"Enabled; choose an Auto-translate language to use AI captions"</string>
-    <string name="cap_message_ea9ebe26591a" formatted="false">"Include source and translated text in diagnostics; enable only for troubleshooting"</string>
-    <string name="cap_message_f496dd228d0b" formatted="false">"Do not record source or translated caption text"</string>
-    <string name="cap_message_261f1c6f0fde" formatted="false">"Include caption text for troubleshooting; off by default"</string>
-    <string name="cap_message_92561907fadc" formatted="false">"Test the connection using the saved configuration"</string>
-    <string name="cap_message_33c08bcbc79b" formatted="false">"Only Auto-translate uses the API; source captions remain untranslated"</string>
-    <string name="cap_message_fd1ada5395a0" formatted="false">"Reset vertical position; keep size and background settings"</string>
+    <string name="cap_clear_cache" formatted="false">"Clear caption cache"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"Clear diagnostics"</string>
+    <string name="cap_clear_diagnostics_confirm" formatted="false">"Clear the local diagnostic records? API settings and the translation cache are not cleared."</string>
+    <string name="cap_collapse" formatted="false">"Collapse"</string>
+    <string name="cap_configure_api" formatted="false">"Configure the API before enabling AI translation"</string>
+    <string name="cap_copy" formatted="false">"Copy"</string>
+    <string name="cap_copy_part_done" formatted="false">"Copied part %1$s / %2$s; tap Save again for the remaining parts"</string>
+    <string name="cap_copy_part_failed" formatted="false">"Could not copy part %1$s"</string>
+    <string name="cap_copy_part_label" formatted="false">"Copy part %1$s / %2$s"</string>
+    <string name="cap_copy_parts_title" formatted="false">"Android 9 and below: copy full diagnostics in parts"</string>
+    <string name="cap_default_prompt" formatted="false">"Translate faithfully, naturally and concisely into the target language, using native phrasing. Preserve names, terminology, numbers, tone and necessary punctuation. Do not add explanations absent from the source."</string>
+    <string name="cap_delete" formatted="false">"Delete"</string>
+    <string name="cap_delete_key" formatted="false">"Delete API Key"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"Expand to inspect and copy diagnostic records"</string>
+    <string name="cap_diagnostics" formatted="false">"Caption diagnostics"</string>
+    <string name="cap_diagnostics_hint" formatted="false">"Enable caption text debugging for long tests; Save full diagnostics exports the last 24 hours (16 MiB cap). The summary below is recent activity only."</string>
+    <string name="cap_display_debug" formatted="false">"Display text debugging: %1$s"</string>
+    <string name="cap_enable_ai" formatted="false">"Enable AI caption translation"</string>
+    <string name="cap_engine" formatted="false">"Engine"</string>
+    <string name="cap_engine_event_rebuild" formatted="false">"Event rebuild"</string>
+    <string name="cap_enter_key" formatted="false">"Enter API Key"</string>
+    <string name="cap_expand" formatted="false">"Expand"</string>
+    <string name="cap_flyout_summary" formatted="false">"Show the shortcut in the player flyout menu. Hiding it does not disable AI captions; applies when the menu is reopened."</string>
+    <string name="cap_flyout_title" formatted="false">"AI captions toggle in regular video menu"</string>
+    <string name="cap_keep_last_valid" formatted="false">"; keeping the last valid value"</string>
+    <string name="cap_key_saved" formatted="false">"Stored encrypted; enter to replace"</string>
+    <string name="cap_label_separator" formatted="false">"%1$s: "</string>
+    <string name="cap_landscape" formatted="false">"Landscape"</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"Auto-translate"</string>
     <string name="cap_message_10d1b374429d" formatted="false">"Visible while editing; cleared on close and stored encrypted"</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"Model list updated"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"Original captions work directly; AI translation requires an API key"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"Delete API key?"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"Include caption text for troubleshooting; off by default"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"Enabled; choose an Auto-translate language to use AI captions"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"Could not load models; enter manually: "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"Recent events: "</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"Only Auto-translate uses the API; source captions remain untranslated"</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" seconds ago)"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"Original captions (no translation API)"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API available: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"Latest stage: "</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"Loading model list…"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"Testing…"</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"API key deleted"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"Only remove the encrypted API key on this device. Other settings are unchanged."</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"Could not read diagnostics: "</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"When off, YouTube renders its own captions"</string>
     <string name="cap_message_7da9039cc193" formatted="false">"The API key must be a single line"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"No translation request yet. Configure the API, select an Auto-translate language in the player, then refresh diagnostics."</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"; keeping the last valid value"</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"Mode: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"API test failed: "</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"Diagnostics copied"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"Diagnostics cleared"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"Test the connection using the saved configuration"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"Unknown setting"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"Caption position reset"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"Could not save the model"</string>
     <string name="cap_message_bafa7b1ca6cb" formatted="false">"The API address must start with https:// or http://"</string>
     <string name="cap_message_bbbcd9c8bf80" formatted="false">"Could not save automatically"</string>
-    <string name="cap_message_b795d97808e8" formatted="false">"Could not save the model"</string>
-    <string name="cap_message_9a6606c64f5f" formatted="false">"Unknown setting"</string>
-    <string name="cap_message_8500e82ca181" formatted="false">"; keeping the last valid value"</string>
-    <string name="cap_message_a25bd037963d" formatted="false">"Caption position reset"</string>
-    <string name="cap_message_e8b2177e1cd3" formatted="false">"Caption cache cleared"</string>
-    <string name="cap_message_1f328bc723d4" formatted="false">"Delete API key?"</string>
-    <string name="cap_message_6ec744dcc83a" formatted="false">"Only remove the encrypted API key on this device. Other settings are unchanged."</string>
-    <string name="cap_message_574dd3f1ccfe" formatted="false">"API key deleted"</string>
-    <string name="cap_message_8bfb437edfc4" formatted="false">"Diagnostics cleared"</string>
-    <string name="cap_message_896c4b51d7e9" formatted="false">"Diagnostics copied"</string>
-    <string name="cap_message_49562bf14c82" formatted="false">"Testing…"</string>
-    <string name="cap_message_3a1185c1dc9f" formatted="false">"API available: "</string>
-    <string name="cap_message_88ce10e8f20b" formatted="false">"API test failed: "</string>
-    <string name="cap_message_ec966cf35a63" formatted="false">"Refreshing model list…"</string>
-    <string name="cap_message_462efc3e98ef" formatted="false">"Loading model list…"</string>
-    <string name="cap_message_2d61f9891514" formatted="false">"Could not load models; enter manually: "</string>
-    <string name="cap_message_17ea5266e7a5" formatted="false">"Model list updated"</string>
-    <string name="cap_message_7e7bfd29c71d" formatted="false">"No translation request yet. Configure the API, select an Auto-translate language in the player, then refresh diagnostics."</string>
-    <string name="cap_message_dd0fb9f395bc" formatted="false">"Engine: "</string>
-    <string name="cap_message_8736a99d18f2" formatted="false">"Mode: "</string>
-    <string name="cap_message_0825b4b0cb7d" formatted="false">"Auto-translate"</string>
-    <string name="cap_message_375e0f929195" formatted="false">"Original captions (no translation API)"</string>
-    <string name="cap_message_c46b062d22ba" formatted="false">"Caption text debugging: "</string>
-    <string name="cap_message_44feb4d98d48" formatted="false">"Latest stage: "</string>
-    <string name="cap_message_dedc85cbb813" formatted="false">"Timing references and failures (timestamped): "</string>
-    <string name="cap_message_30070c30d85c" formatted="false">"Recent events: "</string>
-    <string name="cap_message_75a885d3b526" formatted="false">"Could not read diagnostics: "</string>
     <string name="cap_message_c34848823d86" formatted="false">" (about "</string>
-    <string name="cap_message_33cc168ccb4e" formatted="false">" seconds ago)"</string>
-    <string name="cap_mode_pending" formatted="false">"Mode saved. It will apply when this video\'s captions are ready."</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"Caption text debugging: "</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"Engine: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"Timing references and failures (timestamped): "</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"Caption cache cleared"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"Include source and translated text in diagnostics; enable only for troubleshooting"</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"Refreshing model list…"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"Do not record source or translated caption text"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"Reset vertical position; keep size and background settings"</string>
+    <string name="cap_mode" formatted="false">"Mode"</string>
+    <string name="cap_mode_auto_translate" formatted="false">"Auto-translate"</string>
     <string name="cap_mode_off_pending" formatted="false">"AI is off. YouTube captions will resume when the native track is ready."</string>
-    <string name="cap_flyout_title" formatted="false">"AI captions toggle in regular video menu"</string>
-    <string name="cap_flyout_summary" formatted="false">"Show the shortcut in the player flyout menu. Hiding it does not disable AI captions; applies when the menu is reopened."</string>
-    <string name="cap_shorts_flyout_title" formatted="false">"AI captions toggle in Shorts menu"</string>
-    <string name="cap_profiles_title" formatted="false">"API profiles"</string>
-    <string name="cap_profile_default" formatted="false">"Original configuration"</string>
-    <string name="cap_profile_name" formatted="false">"Profile name"</string>
-    <string name="cap_profile_rename" formatted="false">"Rename"</string>
+    <string name="cap_mode_original" formatted="false">"Original captions (no translation API)"</string>
+    <string name="cap_mode_pending" formatted="false">"Mode saved. It will apply when this video\'s captions are ready."</string>
+    <string name="cap_model" formatted="false">"Model"</string>
+    <string name="cap_model_hint" formatted="false">"Select a model or enter its ID"</string>
+    <string name="cap_model_hint_key_first" formatted="false">"Enter the API Key first; the model can also be typed"</string>
+    <string name="cap_model_hint_manual_only" formatted="false">"Select from the list below or type a model ID"</string>
+    <string name="cap_model_hint_retry" formatted="false">"Tap Refresh to retry, or type a model ID directly"</string>
+    <string name="cap_model_list_updated" formatted="false">"Model list updated"</string>
+    <string name="cap_model_load_failed" formatted="false">"Could not load models; enter one manually: %1$s"</string>
+    <string name="cap_model_loading_auto" formatted="false">"Loading the model list…"</string>
+    <string name="cap_model_loading_refresh" formatted="false">"Refreshing the model list…"</string>
+    <string name="cap_model_pick_or_type" formatted="false">"Pick a model or type its ID"</string>
+    <string name="cap_model_save_failed" formatted="false">"Could not save the model"</string>
+    <string name="cap_model_saved" formatted="false">"Model saved automatically"</string>
+    <string name="cap_no_request_yet" formatted="false">"No translation request yet. Configure the API, select an Auto-translate language in the player, then refresh diagnostics."</string>
+    <string name="cap_off" formatted="false">"Off"</string>
+    <string name="cap_on" formatted="false">"On"</string>
+    <string name="cap_opacity" formatted="false">"Background opacity"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% transparent, 100% opaque; saved on release"</string>
+    <string name="cap_preview" formatted="false">"Landscape full-screen preview"</string>
+    <string name="cap_preview_hint" formatted="false">"Style preview (full screen)"</string>
+    <string name="cap_preview_sample" formatted="false">"A big world. Let\'s explore!"</string>
     <string name="cap_profile_add" formatted="false">"Add profile"</string>
-    <string name="cap_profiles_summary" formatted="false">"Manage current profile"</string>
-    <string name="cap_profile_name_error" formatted="false">"Enter a name of 1–60 characters"</string>
-    <string name="cap_profile_limit" formatted="false">"Up to 30 profiles can be saved"</string>
-    <string name="cap_profile_invalid_edits" formatted="false">"Correct the current unfinished fields before switching profiles"</string>
     <string name="cap_profile_add_failed" formatted="false">"Unable to add profile. Check the fields and the 30-profile limit."</string>
-    <string name="cap_profile_manage" formatted="false">"Manage current profile"</string>
-    <string name="cap_profile_close" formatted="false">"Close"</string>
-    <string name="cap_profile_save" formatted="false">"Save"</string>
-    <string name="cap_profile_current" formatted="false">"Current profile"</string>
-    <string name="cap_profile_delete" formatted="false">"Delete profile"</string>
     <string name="cap_profile_clear_key" formatted="false">"Clear this profile’s API key"</string>
-    <string name="cap_profile_keep_one" formatted="false">"Keep at least one profile. You can clear its API key instead."</string>
-    <string name="cap_profile_new_summary" formatted="false">"New profiles use default translation requirements and have no API key or model. Complete the fields on the settings page."</string>
-    <string name="cap_profile_delete_summary" formatted="false">"Delete this profile’s address, model, translation requirements and encrypted key from this device. Other profiles and subtitle settings are kept. If active, the first remaining profile becomes active. This cannot be undone."</string>
     <string name="cap_profile_clear_key_summary" formatted="false">"Clear only this profile’s saved key and any unsaved key entry. Keep its address, model and translation requirements. Other profiles are unchanged. This does not revoke the key with the provider."</string>
-    <string name="cap_prompt_summary" formatted="false">"Saved for this profile. Clear to restore defaults. Default wording follows the interface language; your edits stay unchanged."</string>
-    <string name="cap_default_prompt" formatted="false">"Translate faithfully, naturally and concisely into the target language, using native phrasing. Preserve names, terminology, numbers, tone and necessary punctuation. Do not add explanations absent from the source."</string>
-    <string name="cap_profile_more" formatted="false">"Profile actions"</string>
+    <string name="cap_profile_close" formatted="false">"Close"</string>
     <string name="cap_profile_collapse" formatted="false">"Collapse actions"</string>
-    <string name="cap_profile_finish_name" formatted="false">"Save or cancel the name edit first."</string>
-    <string name="cap_profile_delete_inline" formatted="false">"Delete this profile and its saved key from this device? Other profiles are kept. This cannot be undone."</string>
-    <string name="cap_profile_delete_switch" formatted="false">"After deletion, activate:"</string>
-    <string name="cap_profile_keep" formatted="false">"Keep profile"</string>
     <string name="cap_profile_confirm_delete" formatted="false">"Confirm deletion"</string>
+    <string name="cap_profile_current" formatted="false">"Current profile"</string>
+    <string name="cap_profile_default" formatted="false">"Original configuration"</string>
+    <string name="cap_profile_delete" formatted="false">"Delete profile"</string>
+    <string name="cap_profile_delete_inline" formatted="false">"Delete this profile and its saved key from this device? Other profiles are kept. This cannot be undone."</string>
+    <string name="cap_profile_delete_summary" formatted="false">"Delete this profile’s address, model, translation requirements and encrypted key from this device. Other profiles and subtitle settings are kept. If active, the first remaining profile becomes active. This cannot be undone."</string>
+    <string name="cap_profile_delete_switch" formatted="false">"After deletion, activate:"</string>
+    <string name="cap_profile_finish_name" formatted="false">"Save or cancel the name edit first."</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"Correct the current unfinished fields before switching profiles"</string>
+    <string name="cap_profile_keep" formatted="false">"Keep profile"</string>
+    <string name="cap_profile_keep_one" formatted="false">"Keep at least one profile. You can clear its API key instead."</string>
+    <string name="cap_profile_limit" formatted="false">"Up to 30 profiles can be saved"</string>
+    <string name="cap_profile_manage" formatted="false">"Manage current profile"</string>
+    <string name="cap_profile_more" formatted="false">"Profile actions"</string>
+    <string name="cap_profile_name" formatted="false">"Profile name"</string>
+    <string name="cap_profile_name_error" formatted="false">"Enter a name of 1–60 characters"</string>
+    <string name="cap_profile_new_summary" formatted="false">"New profiles use default translation requirements and have no API key or model. Complete the fields on the settings page."</string>
+    <string name="cap_profile_rename" formatted="false">"Rename"</string>
+    <string name="cap_profile_save" formatted="false">"Save"</string>
+    <string name="cap_profiles_summary" formatted="false">"Manage current profile"</string>
+    <string name="cap_profiles_title" formatted="false">"API profiles"</string>
+    <string name="cap_prompt_summary" formatted="false">"Saved for this profile. Clear to restore defaults. Default wording follows the interface language; your edits stay unchanged."</string>
+    <string name="cap_quality_outcome" formatted="false">"Local validation: accepted / rejected (quality)"</string>
+    <string name="cap_recent_trace" formatted="false">"Recent events: "</string>
+    <string name="cap_refresh" formatted="false">"Refresh"</string>
+    <string name="cap_reset_position" formatted="false">"Reset caption position"</string>
+    <string name="cap_save_diagnostics" formatted="false">"Save full diagnostics"</string>
+    <string name="cap_save_failed" formatted="false">"Save failed: %1$s"</string>
+    <string name="cap_save_ok" formatted="false">"Saved to Download/%1$s"</string>
+    <string name="cap_saved" formatted="false">"Saved automatically"</string>
+    <string name="cap_selected_suffix" formatted="false">"selected"</string>
+    <string name="cap_shorts_flyout_summary" formatted="false">"Show the shortcut in the Shorts flyout menu. Hiding it does not disable AI captions; applies when the menu is reopened."</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"AI captions toggle in Shorts menu"</string>
+    <string name="cap_size" formatted="false">"Font size"</string>
+    <string name="cap_size_hint" formatted="false">"Standard: video details 44.5px · full screen 55.5px"</string>
+    <string name="cap_size_tier_hint" formatted="false">"%1$s: video details %2$spx · full screen %3$spx"</string>
+    <string name="cap_size_tier_l" formatted="false">"Large"</string>
+    <string name="cap_size_tier_s" formatted="false">"Small"</string>
+    <string name="cap_size_tier_standard" formatted="false">"Standard"</string>
+    <string name="cap_size_tier_xl" formatted="false">"Huge"</string>
+    <string name="cap_size_tier_xs" formatted="false">"Tiny"</string>
     <string name="cap_source_retry" formatted="false">"Caption connection interrupted. Retrying…"</string>
     <string name="cap_source_unavailable" formatted="false">"Source captions unavailable. Try selecting the caption track again."</string>
-    <string name="cap_caption_overflow" formatted="false">"Caption too long — original unavailable"</string>
-    <string name="cap_quality_outcome" formatted="false">"Local validation: accepted / rejected (quality)"</string>
+    <string name="cap_style" formatted="false">"Caption style"</string>
+    <string name="cap_switch_failed" formatted="false">"Could not switch; previous mode restored"</string>
+    <string name="cap_test_api" formatted="false">"Test API"</string>
+    <string name="cap_text_debug" formatted="false">"Caption text debugging"</string>
+    <string name="cap_timing_decisions" formatted="false">"Timing references and failures (timestamped): "</string>
+    <string name="cap_translation" formatted="false">"Translation"</string>
+    <string name="cap_translation_requirements" formatted="false">"Translation instructions"</string>
+    <string name="cap_use_ai" formatted="false">"Use AI"</string>
+    <string name="cap_use_youtube" formatted="false">"Use YouTube"</string>
+    <string name="cap_ai_quick_toggle_on" formatted="false">"AI caption translation · On"</string>
+    <string name="cap_ai_quick_toggle_off" formatted="false">"AI caption translation · Off"</string>
+    <string name="cap_ai_summary" formatted="false">"When enabled, choose a language in YouTube’s ‘Auto-translate’ list to translate captions in real time using your configured AI service."</string>
+    <string name="cap_languages_title" formatted="false">"Auto-translate languages"</string>
+    <string name="cap_languages_summary" formatted="false">"Add the selected languages to YouTube’s ‘Auto-translate’ language list. You can select multiple languages."</string>
+    <string name="cap_languages_count" formatted="false">"%1$d languages selected"</string>
+    <string name="cap_languages_save" formatted="false">"Save"</string>
+    <string name="cap_languages_existing" formatted="false">"Already available"</string>
+    <string name="cap_languages_new" formatted="false">"Added"</string>
+    <string name="cap_languages_unavailable" formatted="false">"Unavailable"</string>
+    <string name="cap_languages_empty" formatted="false">"No languages selected; the native menu is unchanged"</string>
+    <string name="cap_languages_entry" formatted="false">"%1$s · %2$s"</string>
+    <string name="cap_model_empty" formatted="false">"The model ID cannot be empty"</string>
+    <string name="cap_api_address_invalid" formatted="false">"Enter a valid HTTP(S) OpenAI-compatible base URL without embedded credentials or a fragment."</string>
+    <string name="cap_language_zh_hans" formatted="false">"Chinese (Simplified)"</string>
+    <string name="cap_language_zh_hant" formatted="false">"Chinese (Traditional)"</string>
+    <string name="cap_paste" formatted="false">"Paste"</string>
+    <string name="cap_select_all" formatted="false">"Select all"</string>
+    <string name="cap_value_retained" formatted="false">"%1$s; keeping the last valid value"</string>
+    <string name="cap_model_ids_empty" formatted="false">"The endpoint returned no selectable model IDs"</string>
+    <string name="cap_diagnostics_loading" formatted="false">"Loading diagnostics…"</string>
 </resources>

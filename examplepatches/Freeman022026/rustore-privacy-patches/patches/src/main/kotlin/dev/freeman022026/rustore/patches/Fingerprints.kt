@@ -66,19 +66,19 @@ internal val agreementSettingConstructorFingerprint = Fingerprint(
 )
 
 internal val rawAdvertisementRepositoryGetFingerprint = methodFingerprint(
-    "Lh81/r0;",
+    "Lj81/f0;",
     "a",
     "Ljava/lang/Object;",
     listOf(
         "Ljava/util/List;",
-        "Lc81/c;",
+        "Le81/c;",
         "Ljava/util/List;",
-        "Lz71/c;",
+        "Lb81/d;",
         "Ljava/util/Set;",
         "Ljava/util/UUID;",
         "Z",
         "Z",
-        "Lzt0/c;"
+        "Lau0/d;"
     )
 )
 
@@ -94,29 +94,29 @@ internal val advertisementIdsConstructorFingerprint = Fingerprint(
 )
 
 internal val appVersionInfoListFingerprint = methodFingerprint(
-    "Lec2/o;",
+    "Lud2/o;",
     "c",
     "Ljava/io/Serializable;",
-    listOf("Lec2/o;", "Ljava/lang/String;", "Lzt0/c;")
+    listOf("Lud2/o;", "Ljava/lang/String;", "Lau0/d;")
 )
 
 internal val requestDeviceIdFingerprint = methodFingerprint(
-    "Lsr2/g;",
+    "Lvt2/g;",
     "a",
     "Ljava/lang/String;",
     strings = listOf("android_id")
 )
 
 internal val altCraftSendFingerprint = methodFingerprint(
-    "Lfq2/b;",
-    "a",
+    "Lfs2/b;",
+    "b",
     "V",
     listOf(
         "Ljava/lang/String;",
         "Ljava/util/Map;",
         "Ljava/lang/String;",
         "Z",
-        "Lzp2/f;"
+        "Lzr2/f;"
     )
 )
 
@@ -124,7 +124,7 @@ internal val altCraftScheduleFingerprint = methodFingerprint(
     "Lru/vk/store/lib/analytics/system/altcraft/presentation/AltCraftFlushEventsWorker\$a;",
     "a",
     "V",
-    listOf("Ltb/i0;", "J"),
+    listOf("Ltb/k0;", "J"),
     listOf("AltCraftFlushEventsWorker")
 )
 
@@ -132,14 +132,14 @@ internal val altCraftWorkerFingerprint = methodFingerprint(
     "Lru/vk/store/lib/analytics/system/altcraft/presentation/AltCraftFlushEventsWorker;",
     "b",
     "Ljava/lang/Object;",
-    listOf("Lxt0/e;")
+    listOf("Lyt0/e;")
 )
 
 internal val radarScheduleFingerprint = methodFingerprint(
     "Lru/vk/store/lib/analytics/system/radar/presentation/RadarFlushSnapshotWorker\$a;",
     "a",
     "V",
-    listOf("Ltb/i0;", "J"),
+    listOf("Ltb/k0;", "J"),
     listOf("RadarFlushSnapshotsWorker")
 )
 
@@ -147,7 +147,7 @@ internal val radarWorkerFingerprint = methodFingerprint(
     "Lru/vk/store/lib/analytics/system/radar/presentation/RadarFlushSnapshotWorker;",
     "b",
     "Ljava/lang/Object;",
-    listOf("Lxt0/e;")
+    listOf("Lyt0/e;")
 )
 
 private val kasperskyScannerDtoClassFingerprint = Fingerprint(
@@ -165,69 +165,71 @@ internal val kasperskyWorkerFingerprint = methodFingerprint(
     "Lru/vk/store/feature/kaspersky/impl/presentation/KasperskyScannerWorker;",
     "b",
     "Ljava/lang/Object;",
-    listOf("Lxt0/e;")
+    listOf("Lyt0/e;")
 )
 
 internal val mineViewModelOpenGameCenterFingerprint = methodFingerprint(
-    "Lso1/a8;",
-    "x0",
+    "Lyo1/t5;",
+    "z0",
     "V",
     strings = listOf("gameProfile.click")
 )
 
 internal val gameCenterV2ButtonFingerprint = methodFingerprint(
-    "Lgh1/s0;",
+    "Lkh1/j;",
     "d",
     "V",
     listOf(
         "Lkotlin/jvm/functions/Function0;",
         "Lk2/j;",
-        "Lgh1/v;",
+        "Lkh1/m;",
         "Landroidx/compose/runtime/a;",
         "I"
     ),
     listOf("GAME_CENTER_BUTTON_V2_KEY")
 )
 
-internal val gameCenterV1ButtonFingerprint = methodFingerprint(
-    "Lgh1/t;",
-    "e",
-    "V",
-    listOf(
-        "Lkotlin/jvm/functions/Function0;",
-        "Lk2/j;",
-        "Lgh1/v;",
-        "Landroidx/compose/runtime/a;",
-        "I"
-    ),
-    listOf("GAME_CENTER_BUTTON_KEY")
-)
-
 internal val updateAuthSuggestFingerprint = methodFingerprint(
-    "Lz91/e;",
+    "Lca1/f;",
     "a",
     "Ljava/lang/Object;",
-    listOf("Lzt0/c;")
+    listOf("Lau0/d;")
 )
 
 internal val metricsEventCollectionFingerprint = methodFingerprint(
-    "Lx41/i0;", "invoke", "Ljava/lang/Object;",
+    "Lz41/d0;", "invoke", "Ljava/lang/Object;",
     strings = listOf("metrics_event_table", "job_config_version")
 )
 
 internal val metricsEventSendFingerprint = methodFingerprint(
-    "Lx41/t0;", "a", "V", listOf("Ljava/util/List;"),
+    "Lz41/o0;", "a", "V", listOf("Ljava/util/List;"),
     listOf("USER_ID_KEY", "X-Metrics-Request-Time")
 )
 
 internal val mediaScopeTrackFingerprint = methodFingerprint(
-    "Lhn1/d;", "a", "Ljava/lang/Object;", listOf("Lzt0/c;"),
+    "Lnn1/d;", "a", "Ljava/lang/Object;", listOf("Lau0/d;"),
     listOf("mediaScopeCustomLaunch")
 )
 
 internal val inAppStoryInitializeFingerprint = methodFingerprint(
-    "Lqn2/l;", "b", "Ljava/lang/Object;", listOf("Lzt0/c;"),
+    "Lsp2/l;", "b", "Ljava/lang/Object;", listOf("Lau0/d;"),
     listOf("story.initilized", "story_user_id")
+)
+
+internal val networkPolicyLoadFingerprint = methodFingerprint(
+    "Ljp0/l;",
+    "a",
+    "Ljava/lang/String;",
+    listOf("Landroid/content/Context;"),
+    strings = listOf("[Network Policy]: load remote config")
+)
+
+internal val networkPolicyConstructorFingerprint = methodFingerprint(
+    "Ljp0/n;",
+    "<init>",
+    "V",
+    listOf("Landroid/content/Context;", "Ljp0/d;", "Z"),
+    strings = listOf("superappkit_network_policy", "payload", "api_endpoint")
 )
 
 internal val applicationOnCreateFingerprint = methodFingerprint(
@@ -244,14 +246,14 @@ internal val googleAdvertisingIdFingerprint = methodFingerprint(
 )
 
 internal val rustoreSdkDeviceIdFingerprint = methodFingerprint(
-    "Lz41/hj;",
+    "Lb51/ol;",
     "a",
     "Ljava/lang/String;",
     strings = listOf("android_id", "value")
 )
 
 internal val vkSdkDeviceIdFingerprint = methodFingerprint(
-    "Lb40/c;",
+    "Lx20/c;",
     "a",
     "Ljava/lang/String;",
     listOf("Landroid/content/Context;"),
@@ -260,10 +262,10 @@ internal val vkSdkDeviceIdFingerprint = methodFingerprint(
 
 internal val autoUpdateForegroundRestrictionFingerprint = Fingerprint(
     custom = { method, classDef ->
-        classDef.type == "Lwj1/l;" &&
-            method.name == "g" &&
+        classDef.type == "Lck1/l;" &&
+            method.name == "b" &&
             method.returnType == "Z" &&
-            method.parameterTypes.map(CharSequence::toString) == listOf("Z")
+            method.parameterTypes.map(CharSequence::toString) == listOf("Lbk1/c;")
     }
 )
 
@@ -351,10 +353,10 @@ internal val tracerSampleUploadFingerprint = methodFingerprint(
 )
 
 internal val omicronNetworkRequestFingerprint = methodFingerprint(
-    "Ls31/b;",
+    "Lt31/b;",
     "a",
-    "Ls31/e;",
-    listOf("Li31/d;", "Ls31/a;", "Lk31/b;")
+    "Lt31/e;",
+    listOf("Lj31/c;", "Lt31/a;", "Ll31/d;")
 )
 
 internal val omicronDefaultScheduleFingerprint = methodFingerprint(
@@ -375,78 +377,78 @@ internal val installIdentifierInitializerFingerprint = methodFingerprint(
     "Lru/vk/store/feature/install/identifier/impl/presentation/a;",
     "a",
     "Ljava/lang/Object;",
-    listOf("Lzt0/c;")
+    listOf("Lau0/d;")
 )
 
 internal val remoteAnalyticsInitializerFingerprint = methodFingerprint(
-    "Ls42/d;",
+    "Ll62/d;",
     "a",
     "Ljava/lang/Object;",
-    listOf("Lzt0/c;")
+    listOf("Lau0/d;")
 )
 
 internal val remoteAnalyticsSchedulerFingerprint = methodFingerprint(
     "Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;",
     "a",
     "Ljava/lang/Object;",
-    listOf("Lzt0/c;")
+    listOf("Lau0/d;")
 )
 
 internal val usageStatsInitializerFingerprint = methodFingerprint(
     "Lru/vk/store/feature/usagestats/impl/presentation/a;",
     "a",
     "Ljava/lang/Object;",
-    listOf("Lzt0/c;")
+    listOf("Lau0/d;")
 )
 
 internal val cancelSubscriptionInitializerFingerprint = methodFingerprint(
     "Lru/vk/store/feature/payments/subscription/update/impl/presentation/a;",
     "a",
     "Ljava/lang/Object;",
-    listOf("Lzt0/c;")
+    listOf("Lau0/d;")
 )
 
 internal val launcherIconScheduleFingerprint = methodFingerprint(
-    "Lyl1/i;",
+    "Ldm1/i;",
     "a",
     "V"
 )
 
 internal val startDestinationScheduleFingerprint = methodFingerprint(
-    "Le42/e;",
+    "Lq52/e;",
     "a",
     "V",
-    listOf("J", "Lcx0/c;")
+    listOf("J", "Ldx0/c;")
 )
 
 internal val tabsOrderScheduleFingerprint = methodFingerprint(
-    "Lk42/g;",
+    "Lw52/g;",
     "a",
     "V"
 )
 
 internal val publisherTrackingScheduleFingerprint = methodFingerprint(
-    "Lle2/e;",
-    "a",
+    "Lcg2/e;",
+    "b",
     "V",
     listOf("Ljava/lang/String;", "Ljava/lang/String;")
 )
 
 internal val analyticsDispatchFingerprint = Fingerprint(
     custom = { method, classDef ->
-        classDef.type == "Laq2/f;" && method.name == "d" && method.returnType == "V"
+        classDef.type == "Las2/g;" && method.name == "d" && method.returnType == "V"
     }
 )
 
 internal val analyticsUserIdFingerprint = Fingerprint(
     custom = { method, classDef ->
-        classDef.type == "Laq2/f;" && method.name == "b" && method.returnType == "V"
+        classDef.type == "Las2/g;" && method.name == "b" && method.returnType == "V"
     }
 )
 
 internal val pushProviderOnInitializedFingerprint = Fingerprint(
     custom = { method, classDef ->
-        classDef.type == "Lld0/f;" &&
+        classDef.type == "Ljd0/f;" &&
             method.name == "invokeSuspend" &&
             method.returnType == "Ljava/lang/Object;"
     }
@@ -454,7 +456,7 @@ internal val pushProviderOnInitializedFingerprint = Fingerprint(
 
 internal val pushAuthOnInitializedFingerprint = Fingerprint(
     custom = { method, classDef ->
-        classDef.type == "Ljb0/l;" &&
+        classDef.type == "Lhb0/k;" &&
             method.name == "invokeSuspend" &&
             method.returnType == "Ljava/lang/Object;"
     }
@@ -473,7 +475,7 @@ internal val pushLifecycleMethods = mapOf(
 internal val pushLifecycleFingerprints = pushLifecycleMethods.map { (name, parameters) ->
     Fingerprint(
         custom = { method, classDef ->
-            classDef.type == "Lfc0/a;" &&
+            classDef.type == "Ldc0/a;" &&
                 method.name == name &&
                 method.returnType == "V" &&
                 method.parameterTypes.map(CharSequence::toString) == parameters

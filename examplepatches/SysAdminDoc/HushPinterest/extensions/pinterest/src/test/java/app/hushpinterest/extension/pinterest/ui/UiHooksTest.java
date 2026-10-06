@@ -39,9 +39,9 @@ public class UiHooksTest {
 
     private static final BooleanSetting[] SWITCHES = {
             Settings.HIDE_SCREENSHOT_SHARE, Settings.HIDE_SEARCH_HISTORY,
-            Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_HEADER_BUTTONS,
+            Settings.HIDE_NAV_CREATE, Settings.HIDE_NAV_NOTIFICATIONS, Settings.HIDE_NAV_SEARCH, Settings.HIDE_HEADER_BUTTONS,
             Settings.HIDE_PIN_MENU_COLLAGE, Settings.HIDE_PIN_MENU_VISUAL_SEARCH, Settings.HIDE_PIN_MENU_PIN_BOOST,
-            Settings.HIDE_COMMENTS, Settings.QUIET_EMAIL_REMINDER, Settings.DISABLE_UPDATE_NAG
+            Settings.HIDE_COMMENTS, Settings.QUIET_EMAIL_REMINDER, Settings.HIDE_SAVE_TOASTS, Settings.ORIGINAL_IMAGES, Settings.DISABLE_UPDATE_NAG
     };
 
     @After public void restore() {
@@ -55,6 +55,7 @@ public class UiHooksTest {
         assertFalse(UiHooks.hideScreenshotShare());
         assertFalse(UiHooks.quietEmailReminder());
         assertFalse(UiHooks.disableUpdateNag());
+        assertFalse(UiHooks.originalImages());
         assertEquals(View.INVISIBLE, UiHooks.searchHistoryVisibility(View.INVISIBLE));
         assertEquals(312, UiHooks.searchHistoryMeasureSpec(312));
         assertEquals(View.VISIBLE, UiHooks.commentsVisibility(View.VISIBLE));
@@ -65,14 +66,35 @@ public class UiHooksTest {
         Settings.HIDE_SCREENSHOT_SHARE.save(true);
         Settings.QUIET_EMAIL_REMINDER.save(true);
         Settings.DISABLE_UPDATE_NAG.save(true);
+        Settings.ORIGINAL_IMAGES.save(true);
         assertTrue(UiHooks.hideScreenshotShare());
         assertTrue(UiHooks.quietEmailReminder());
         assertTrue(UiHooks.disableUpdateNag());
+        assertTrue(UiHooks.originalImages());
         PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
         assertFalse(UiHooks.hideScreenshotShare());
         assertFalse(UiHooks.quietEmailReminder());
         assertFalse(UiHooks.disableUpdateNag());
+        assertFalse(UiHooks.originalImages());
         assertTrue(Settings.HIDE_SCREENSHOT_SHARE.savedValue());
+    }
+
+    @Test public void saveToastsDropOnlyTheNamedModelsWhileTheSwitchIsOn() {
+        StringBuilder saved = new StringBuilder();
+        UiHooks.saveToastForTests = StringBuilder.class;
+        try {
+            assertFalse(UiHooks.hideSaveToast(saved));
+            Settings.HIDE_SAVE_TOASTS.save(true);
+            assertTrue(UiHooks.hideSaveToast(saved));
+            assertFalse(UiHooks.hideSaveToast("another toast"));
+            assertFalse(UiHooks.hideSaveToast(null));
+            PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+            assertFalse(UiHooks.hideSaveToast(saved));
+            PauseForTests.resume();
+        } finally {
+            UiHooks.saveToastForTests = null;
+        }
+        assertFalse("the unpatched stub names no toast", UiHooks.hideSaveToast(saved));
     }
 
     @Test public void searchHistoryAndCommentsFoldToZeroAndRestoreTheirRequestedSize() {
@@ -101,6 +123,11 @@ public class UiHooksTest {
         assertFalse(InterfaceControls.hideNavigation("PROFILE"));
         assertFalse(InterfaceControls.hideNavigation("SEARCH"));
         assertFalse(InterfaceControls.hideNavigation("UNKNOWN"));
+        Settings.HIDE_NAV_SEARCH.save(true);
+        assertTrue(InterfaceControls.hideNavigation("SEARCH"));
+        assertFalse(InterfaceControls.hideNavigation("HOME"));
+        assertFalse(InterfaceControls.hideNavigation("PROFILE"));
+        Settings.HIDE_NAV_SEARCH.save(false);
         LinearLayout root = new LinearLayout(RuntimeEnvironment.getApplication());
         LinearLayout nested = new LinearLayout(RuntimeEnvironment.getApplication());
         View create = new View(RuntimeEnvironment.getApplication());

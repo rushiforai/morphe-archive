@@ -4,6 +4,18 @@ Every HushGram release, newest first.
 
 ## Unreleased
 
+* **Instagram:** Import overrides takes Instagram's own overrides file (mc_overrides.json) as well as a HushGram export, even when the file leaves the setting names blank, and up to 4,096 overrides at once. Every override still has to match a setting of the same type in the Instagram you're running, or nothing is changed. Picking an overrides file in the settings import now tells you to use Import overrides under Developer instead. Reported in #67.
+
+* **Tooling:** Moved to Morphe patcher 1.15.1, which fixes a reused patch match handing back stale classes and speeds up signing, DEX output and matching. With it, the patch step for all 48 patches takes 54 seconds on a desktop, down from 147 at v0.0.5. The next release needs Morphe Manager 1.34.0 or newer, the first Manager that carries this patcher. v0.0.5 keeps working in Manager 1.33.0.
+
+* **Instagram:** Patching is quicker. Many patches used to read every one of Instagram's 200,000 classes to find their spot, and now they look it up in the patcher's index first. On a desktop, Hide Meta AI went from 32 seconds to under one, and the patch step for all 48 patches from 147 to 78 seconds. Reported in #60.
+
+* **Instagram:** Keep the reel speed no longer speeds up video ads. After you locked a reel at 2x, Instagram's own reset on the scroll to the next reel handed an ad the kept speed too, and the ad played at 2x. An ad now goes back to normal speed when it starts, and the reels after it still play at your speed. On a test phone the same ad ran twice as fast before the change.
+
+* **Instagram:** Download any video adds Download to the menu on your own posts too, whenever a tap would save the video or photo. Instagram only lists its own Download on posts it allows outside downloads for, some accounts get it in the share sheet instead of the menu, and HushGram's row was only on other people's posts. Reported in #57.
+
+* **Instagram:** Pure black dark mode now reaches the Direct inbox and the Notifications screen, which kept Instagram's near-black gray because they draw from a second color palette the patch didn't change. On a test phone both screens went from the gray to pure black, and the tab bar icons stayed visible. Reported in #51 and #58.
+
 * **Instagram:** Replaced navigation-tab listeners can no longer open settings or call an old native action. Each callback belongs to its current button binding, including tabs with no native long-press handler.
 
 * **Instagram:** Settings backups now include the chosen navigation tab for opening HushGram. Import reports when the change needs a restart, and Undo preserves any choice made after the import. Older backups leave this choice unchanged.

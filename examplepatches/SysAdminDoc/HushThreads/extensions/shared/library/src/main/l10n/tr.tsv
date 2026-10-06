@@ -193,3 +193,6 @@ Tap to see which.	Hangileri olduğunu görmek için dokun.
 %1$d default patches aren't in this build	%1$d varsayılan yama bu sürümde yok
 Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Bu sürümde yok: %1$s. Morphe Manager bunu varsayılan olarak seçer. Yaptığı işi almak için onu seçip yeniden yamala.
 Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Bu sürümde yok: %1$s. Morphe Manager bunları varsayılan olarak seçer. Yaptıkları işi almak için onları seçip yeniden yamala.
+Appearance	Görünüm
+Pure black dark mode	Saf siyah karanlık mod
+Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	Karanlık mod koyu gri yerine siyah görünür. Görmek için Threads'te karanlık modu aç.

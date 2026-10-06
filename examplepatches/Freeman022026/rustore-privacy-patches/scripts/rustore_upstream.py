@@ -96,8 +96,9 @@ DISABLED_COMPONENT_PREFIXES = {
 }
 
 DEVICE_IDENTIFIER_STUBS = {
-    "z41.hj": "a()Ljava/lang/String;",
-    "b40.c": "a(Landroid/content/Context;)Ljava/lang/String;",
+    "vt2.g": "a()Ljava/lang/String;",
+    "b51.ol": "a()Ljava/lang/String;",
+    "x20.c": "a(Landroid/content/Context;)Ljava/lang/String;",
 }
 
 INVALID_COMPONENT_PREFIXES = ("xav.", "xid.", "xo.", "xom.", "xu.")
@@ -330,12 +331,12 @@ def audit_patched(args: argparse.Namespace) -> None:
         str(args.apk),
     )
     verify_google_ad_id_stub(ad_code)
-    unit_stub = ["sget-object v0, Ltt0/e0;->a:Ltt0/e0;", "return-object v0"]
+    unit_stub = ["sget-object v0, Lut0/e0;->a:Lut0/e0;", "return-object v0"]
     telemetry_stubs = {
-        "x41.i0": ("invoke()Ljava/lang/Object;", unit_stub),
-        "x41.t0": ("a(Ljava/util/List;)V", ["return-void"]),
-        "hn1.d": ("a(Lzt0/c;)Ljava/lang/Object;", unit_stub),
-        "qn2.l": ("b(Lzt0/c;)Ljava/lang/Object;", unit_stub),
+        "z41.d0": ("invoke()Ljava/lang/Object;", unit_stub),
+        "z41.o0": ("a(Ljava/util/List;)V", ["return-void"]),
+        "nn1.d": ("a(Lau0/d;)Ljava/lang/Object;", unit_stub),
+        "sp2.l": ("b(Lau0/d;)Ljava/lang/Object;", unit_stub),
     }
     for class_name, (method, expected) in telemetry_stubs.items():
         code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
@@ -345,6 +346,56 @@ def audit_patched(args: argparse.Namespace) -> None:
         code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
                    "--method", method, str(args.apk))
         verify_device_identifier_stub(code, class_name)
+    # Both the download and cached/legacy policy restoration must be blocked.
+    policy_code = run(
+        str(args.apkanalyzer), "dex", "code", "--class", "jp0.l",
+        "--method", "a(Landroid/content/Context;)Ljava/lang/String;", str(args.apk),
+    )
+    verify_instruction_prefix(policy_code, ["const/4 v0, 0x0", "return-object v0"],
+                              "Remote network policy loader")
+    policy_class = run(str(args.apkanalyzer), "dex", "code", "--class", "jp0.n", str(args.apk))
+    constructor = re.search(
+        r"(?ms)^\.method [^\n]* <init>\(Landroid/content/Context;Ljp0/d;Z\)V\n.*?^\.end method",
+        policy_class,
+    )
+    if constructor is None:
+        raise RuntimeError("Network policy constructor not found")
+    verify_instruction_prefix(constructor.group(), [
+        "invoke-static {}, Ljp0/o;->a()Ljp0/d;", "move-result-object p2",
+    ], "Embedded network policy")
+    guard_code = run(str(args.apkanalyzer), "dex", "code", "--class", "ck1.l",
+                     "--method", "b(Lbk1/c;)Z", str(args.apk))
+    verify_auto_update_guard(guard_code)
+    entry_stubs = {
+        "j81.f0": (
+            "a(Ljava/util/List;Le81/c;Ljava/util/List;Lb81/d;Ljava/util/Set;Ljava/util/UUID;ZZLau0/d;)Ljava/lang/Object;",
+            ["sget-object v0, Lvt0/x;->a:Lvt0/x;", "return-object v0"],
+        ),
+        "t31.b": ("a(Lj31/c;Lt31/a;Ll31/d;)Lt31/e;",
+                  ["sget-object v0, Lt31/e;->ERROR:Lt31/e;", "return-object v0"]),
+        "ru.ok.tracer.disk.usage.DiskUsage": (
+            "initialize$tracer_disk_usage_release(Landroid/content/Context;)V",
+            ["move-object/from16 v0, p1",
+             "invoke-static {v0}, Lub/r0;->m(Landroid/content/Context;)Lub/r0;",
+             "move-result-object v0", 'const-string v1, "tracer.disk.usage.worker"',
+             "invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;", "return-void"],
+        ),
+        "dm1.i": ("a()V", [
+            "move-object/from16 v0, p0", "iget-object v0, v0, Ldm1/i;->a:Lst0/a;",
+            "invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;", "move-result-object v0",
+            "check-cast v0, Ltb/k0;", 'const-string v1, "LauncherIconUpdate"',
+            "invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;", "return-void",
+        ]),
+        "yo1.t5": ("z0()V", ["return-void"]),
+        "kh1.j": (
+            "d(Lkotlin/jvm/functions/Function0;Lk2/j;Lkh1/m;Landroidx/compose/runtime/a;I)V",
+            ["return-void"],
+        ),
+    }
+    for class_name, (method, expected) in entry_stubs.items():
+        code = run(str(args.apkanalyzer), "dex", "code", "--class", class_name,
+                   "--method", method, str(args.apk))
+        verify_instruction_prefix(code, expected, class_name)
     startup_code = run(str(args.apkanalyzer), "dex", "code", "--class", "ru.vk.store.App",
                        "--method", "onCreate()V", str(args.apk))
     verify_instruction_prefix(startup_code, push_service_cleanup_prefix(), "Push service cleanup")
@@ -434,6 +485,9 @@ def audit_patched(args: argparse.Namespace) -> None:
                 "google_ad_id_lookup_stubbed": True,
                 "direct_telemetry_stubbed": sorted(telemetry_stubs),
                 "stable_device_identifiers_stubbed": sorted(DEVICE_IDENTIFIER_STUBS),
+                "remote_and_cached_network_policy_blocked": True,
+                "auto_update_status_checks_preserved": True,
+                "additional_entry_points_audited": sorted(entry_stubs),
                 "persisted_push_services_disabled_at_startup": True,
             },
             indent=2,
@@ -469,6 +523,29 @@ def verify_device_identifier_stub(code: str, name: str) -> None:
         "return-object v0",
     ]
     verify_instruction_prefix(code, expected, name)
+
+
+def verify_auto_update_guard(code: str) -> None:
+    targets = re.findall(r"if-(?:eqz|nez) [vp]\d+, (:\w+)", code)
+    if len(targets) != 4 or len(set(targets)) != 1:
+        raise RuntimeError("Auto-update status branches changed")
+    code = code.replace(targets[0], ":blocked")
+    verify_instruction_prefix(code, [
+        "invoke-static {p1}, Lck1/l;->a(Lbk1/c;)Z",
+        "move-result v0",
+        "if-eqz v0, :blocked",
+        "iget-boolean v0, p1, Lbk1/c;->f:Z",
+        "if-eqz v0, :blocked",
+        "iget-boolean p1, p1, Lbk1/c;->g:Z",
+        "if-eqz p1, :blocked",
+        "iget-object p1, p0, Lck1/l;->u:Lxs2/b;",
+        "const/4 p1, 0x0",
+        "if-nez p1, :blocked",
+        "const/4 p1, 0x1",
+        "return p1",
+        "const/4 p1, 0x0",
+        "return p1",
+    ], "Auto-update eligibility")
 
 
 def push_service_cleanup_prefix() -> list[str]:

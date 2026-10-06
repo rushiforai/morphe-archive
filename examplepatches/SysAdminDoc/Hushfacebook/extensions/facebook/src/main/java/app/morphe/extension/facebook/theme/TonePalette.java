@@ -63,6 +63,24 @@ public final class TonePalette {
     /** Whether the tones came from the phone's wallpaper palette rather than {@link #FALLBACK}. */
     public final boolean dynamic;
 
+    /**
+     * Below this CIELAB chroma a phone's accent can't be told from its greys at the same lightness.
+     * Facebook draws an unseen story ring, an unread dot and a badge in its blue and their seen or
+     * read state in grey, so an accent this grey makes the two look alike (#67: a ring of chroma 7
+     * beside a seen grey of chroma 3). Material's tonal spot accents run at 36, and the muted
+     * blue-grey palette of a Galaxy S25 at 22.
+     */
+    static final double GREY_ACCENT = 12;
+
+    /** The CIELAB chroma of the phone's accent: the most among its tones 30 to 80. */
+    public final double accentChroma;
+
+    /**
+     * Whether the phone's accent was too grey to use ({@link #GREY_ACCENT}), so the accent tones of
+     * {@link #FALLBACK}, Facebook's blue, stand in for it. The greys stay the phone's.
+     */
+    public final boolean accentReplaced;
+
     /** [family][L* in tenths]: built on first use, since the settings screen needs only the tones. */
     private volatile int[][] byLightness;
 
@@ -77,17 +95,34 @@ public final class TonePalette {
             for (int i = 0; i < TONES.length; i++) this.tones[f][i] = tones[f][i] | 0xFF000000;
         }
         this.dynamic = dynamic;
+        this.accentChroma = chroma(this.tones[ACCENT]);
+        this.accentReplaced = dynamic && accentChroma < GREY_ACCENT;
+        if (accentReplaced) this.tones[ACCENT] = fallbackFamily(ACCENT);
     }
 
     /** The fixed palette Android 11 gets. */
     public static TonePalette fallback() {
-        String[] families = FALLBACK.split(";");
-        int[][] tones = new int[3][TONES.length];
-        for (int f = 0; f < 3; f++) {
-            String[] hex = families[f].trim().split(" ");
-            for (int i = 0; i < TONES.length; i++) tones[f][i] = 0xFF000000 | Integer.parseInt(hex[i], 16);
-        }
+        int[][] tones = new int[3][];
+        for (int f = 0; f < 3; f++) tones[f] = fallbackFamily(f);
         return new TonePalette(tones, false);
+    }
+
+    private static int[] fallbackFamily(int family) {
+        String[] hex = FALLBACK.split(";")[family].trim().split(" ");
+        int[] tones = new int[TONES.length];
+        for (int i = 0; i < TONES.length; i++) tones[i] = 0xFF000000 | Integer.parseInt(hex[i], 16);
+        return tones;
+    }
+
+    /** The most CIELAB chroma among a family's tones 30 to 80, where its hue shows. */
+    private static double chroma(int[] family) {
+        double most = 0;
+        for (int i = 0; i < TONES.length; i++) {
+            if (TONES[i] < 30 || TONES[i] > 80) continue;
+            double[] lab = lab(family[i]);
+            most = Math.max(most, Math.hypot(lab[1], lab[2]));
+        }
+        return most;
     }
 
     /** The phone's wallpaper palette from Android 12, and {@link #fallback()} before it or when it can't be read. */
@@ -186,7 +221,8 @@ public final class TonePalette {
         return y <= 216.0 / 24389.0 ? y * 24389.0 / 27.0 : 116.0 * Math.cbrt(y) - 16.0;
     }
 
-    private static double[] lab(int color) {
+    /** CIELAB of an sRGB colour: L*, a*, b*. The alpha is ignored. */
+    static double[] lab(int color) {
         double r = LINEAR[(color >> 16) & 0xFF];
         double g = LINEAR[(color >> 8) & 0xFF];
         double b = LINEAR[color & 0xFF];

@@ -437,7 +437,7 @@ if (-not $SkipDescriptionTestCount) {
     $patchTestFiles = @()
     # Each partition writes a content receipt beside its XML. A timestamp alone rejects a
     # byte-identical rewrite even when Gradle correctly reuses the earlier result.
-    foreach ($partition in @('test', 'documentationTest')) {
+    foreach ($partition in @('test', 'nativeTest', 'documentationTest')) {
         $patchTestRoot = Join-Path $rootPath "patches/build/test-results/$partition"
         $partitionFiles = @(Get-ChildItem -LiteralPath $patchTestRoot -Filter '*.xml' -File -ErrorAction SilentlyContinue)
         if ($partitionFiles.Count -eq 0) {
@@ -448,7 +448,8 @@ if (-not $SkipDescriptionTestCount) {
         if ($partition -eq 'documentationTest') {
             $inputPaths += @('README.md', 'patches-bundle.json', 'assets/readme-hero.png',
                 'patches-bundle.png', 'concepts/marketing/2026-09-12')
-        } else {
+        } elseif ($partition -eq 'test') {
+            # nativeTest leaves the extensions out, so a runtime-only edit reuses its results.
             $inputPaths += 'extensions'
         }
         $currentInputs = @($inputPaths | ForEach-Object { Join-Path $rootPath $_ } |

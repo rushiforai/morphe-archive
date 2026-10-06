@@ -1,0 +1,11 @@
+gradle.projectsEvaluated {
+ def project=gradle.rootProject.project(':patches')
+ project.sourceSets.test.kotlin.srcDir(gradle.rootProject.file('tools/n34/inspector-src'))
+ project.tasks.register('inspectN34', JavaExec) {
+  dependsOn project.tasks.named('testClasses')
+  classpath=project.sourceSets.test.runtimeClasspath-project.sourceSets.main.output
+  mainClass='validation.N34InspectorKt'
+  maxHeapSize='3G'
+  args project.findProperty('n34.input'),project.findProperty('n34.output')
+ }
+}

@@ -8,7 +8,7 @@ object Constants {
     val COMPATIBILITY_GITHUB = Compatibility(
         name = "GitHub",
         packageName = "com.github.android",
-        apkFileType = ApkFileType.APK_REQUIRED,
+        apkFileType = ApkFileType.APKM,
         appIconColor = 0x181C20,
         signatures = setOf(
             "df08c9f2d809189d9d506497c15745a7395a41536efb433e3aee1aedbe11b261"

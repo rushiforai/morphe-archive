@@ -159,6 +159,7 @@ Promoted and AI-labeled pins	Pines promocionados y con etiqueta de IA
 Promoted pins	Pines promocionados
 Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Los pines promocionados desaparecen del feed de inicio, la búsqueda, los pines relacionados y los tableros antes de mostrarse, y los paneles que solo contienen anuncios se quedan plegados.
 ad-only views	vistas solo de anuncios
+Google ad SDK start	inicio del SDK de anuncios de Google
 promoted pins in lists	pines promocionados en las listas
 Privacy	Privacidad
 Pin actions	Acciones del pin
@@ -172,6 +173,8 @@ Analytics launch tasks	Inicio de estadísticas
 Analytics uploads	Envíos de estadísticas
 Strip link tracking	Quitar rastreo de enlaces
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Quita parámetros de rastreo conocidos de los enlaces copiados y compartidos. Los enlaces cortos quedan como los creó Pinterest.
+Hide advertising ID	Ocultar el ID de publicidad
+Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest y el código de anuncios y rastreo que lleva dentro leen un ID de publicidad todo en ceros, con el seguimiento de anuncios limitado, como si hubieras borrado tu ID de publicidad en los ajustes de Android.
 Download pins	Descargar pines
 Open links in your browser	Abrir enlaces en tu navegador
 Open pin Visit links and profile websites in your browser.	Abre enlaces de Visitar de los pines y sitios web de perfiles en tu navegador.
@@ -182,6 +185,7 @@ Hide search history	Ocultar historial de búsquedas
 Hide navigation buttons	Ocultar botones de navegación
 Hide Create button	Ocultar botón Crear
 Hide Notifications button	Ocultar botón Notificaciones
+Hide Search button	Ocultar botón Buscar
 Hide header buttons	Ocultar botones del encabezado
 Filter pin menu	Filtrar menú del pin
 Hide collage menu items	Ocultar opciones de collage
@@ -237,6 +241,12 @@ Pin %s	Pin %s
 Retry download	Reintentar descarga
 Starts a new download. Android manages it.	Inicia una descarga nueva. Android la gestiona.
 Open pin	Abrir pin
+Set as wallpaper	Usar como fondo de pantalla
+Opens Android's Set as options for this saved image.	Abre las opciones de Android para usar esta imagen guardada.
+Set as	Usar como
+Couldn't open Set as. Check Downloads for the saved file.	No se pudo abrir Usar como. Busca el archivo guardado en Descargas.
+This download isn't a finished image anymore. Check Downloads.	Esta descarga ya no es una imagen terminada. Revisa Descargas.
+Resume HushPinterest and turn on Download pins to use this.	Reanuda HushPinterest y activa Descargar Pines para usar esto.
 Remove from history	Eliminar del historial
 Removes this history entry. Files and active downloads are kept.	Elimina esta entrada del historial. Se conservan los archivos y las descargas activas.
 Open Downloads	Abrir Descargas
@@ -260,6 +270,10 @@ Only unfinished saves are listed. Check your chosen location before saving again
 Pin saved. Check Pending saves if its history remains.	Pin guardado. Revisa Guardados pendientes si aún aparece en el historial.
 Download unavailable	Descarga no disponible
 Supplied media details	Detalles del contenido proporcionado
+Copy media link	Copiar enlace del archivo
+Media link	Enlace del archivo
+Media link copied.	Enlace del archivo copiado.
+Couldn't copy the media link. Open the pin again and try again.	No se pudo copiar el enlace del archivo. Vuelve a abrir el Pin e inténtalo de nuevo.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Estos detalles proceden de la URL y los metadatos que proporcionó Pinterest. No se ha inspeccionado el archivo.
 Supplied width: %s	Ancho proporcionado: %s
 Supplied height: %s	Alto proporcionado: %s
@@ -301,12 +315,17 @@ Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still
 Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Oculta las filas y los carruseles de búsquedas recientes en su próxima actualización de diseño o visibilidad. No elimina el historial de la cuenta.
 Hides Create in the bottom bar on its next layout.	Oculta Crear en la barra inferior cuando vuelva a actualizarse su diseño.
 Hides Notifications in the bottom bar on its next layout.	Oculta Notificaciones en la barra inferior cuando vuelva a actualizarse su diseño.
+Hides Search in the bottom bar on its next layout.	Oculta Buscar en la barra inferior cuando vuelva a actualizarse su diseño.
 Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Oculta los iconos al final de la cabecera en su próxima actualización de diseño. Volver, las acciones de texto y los controles de cuenta siguen disponibles.
 Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Oculta Añadir al collage y Remezclar collage en los menús de pines recién creados. Un menú existente no cambia.
 Hides Search image in newly created pin menus. An existing menu won't change.	Oculta Buscar imagen en los menús de pines recién creados. Un menú existente no cambia.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Oculta Promocionar pin en los menús de pines recién creados. Un menú existente no cambia.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Oculta los paneles y las vistas previas de comentarios bajo los pines en su próxima actualización de diseño o visibilidad. No cambia quién puede comentar.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Descarta los recordatorios opcionales de confirmación de correo recién creados. Un recordatorio abierto no cambia. Las comprobaciones de verificación e inicio de sesión siguen vigentes.
+Hide save toasts	Ocultar avisos al guardar
+Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Al guardar un Pin ya no aparece «Guardado en» tu tablero ni una sugerencia para seguir a quien lo creó. El Pin se guarda igual.
+Original-quality images	Imágenes en calidad original
+Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Elige la imagen original antes del tamaño grande cuando Pinterest la proporciona. Usa más datos. Las imágenes que ya se ven cambian al volver a cargarse.
 Save media	Guardar contenido multimedia
 Recent searches autocomplete	Autocompletado de búsquedas recientes
 Activity alerts	Avisos de actividad

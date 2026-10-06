@@ -35,14 +35,17 @@ public class CaptionLongDiagnosticsTest {
   }
   @Test public void detailBeyondOld260CharacterLimitSurvives() {
     CaptionDiagnostics.mark(a,"REBUILD_PRESENTED","a".repeat(400)+"end-marker");
-    assertTrue(CaptionDiagnosticArchive.read(a,"history").contains("end-marker"));
+    // N36: records are redacted and appended on the diagnostics lane; the evidence reader drains it.
+    assertTrue(CaptionDiagnostics.history(a).contains("end-marker"));
   }
   @Test public void exportManifestReportsActualEngineAndBothChannels() {
     CaptionDiagnostics.mark(a,"REBUILD_TEST","test");
     String report=CaptionDiagnostics.fullText(a);
     assertTrue(report.contains("ui="+app.yydarlinker.extension.BuildConfig.CAPTION_PATCH_VERSION));
-    assertTrue(report.contains("engine=event-rebuild-r2.12"));
-    assertTrue(report.contains("history_records=1"));
+    assertTrue(report.contains("engine=" + app.yydarlinker.extension.BuildConfig.CAPTION_PATCH_VERSION));
+    assertTrue(report.contains("ui=" + RebuildProtocol.VERSION + "; engine=" + RebuildProtocol.VERSION));
+    assertTrue(report.contains("Engine: Event rebuild / " + RebuildProtocol.VERSION));
+    assertTrue("manifest: "+report.substring(0,Math.min(600,report.length())),report.contains("history_records=1"));
     assertTrue(report.contains("quality_records=0"));
     assertTrue(report.contains("completeness=bounded_not_guaranteed"));
   }

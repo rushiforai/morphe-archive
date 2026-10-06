@@ -1,0 +1,276 @@
+{
+  "counter_version": "n28a-counters-v1",
+  "boundary_version": "android-icu+devanagari-virama-v1",
+  "cases": [
+    {
+      "id": "nfc-accent",
+      "text": "é",
+      "boundaries": [
+        0,
+        1
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "nfd-accent",
+      "text": "é",
+      "boundaries": [
+        0,
+        2
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "vietnamese-nfc",
+      "text": "ắ",
+      "boundaries": [
+        0,
+        1
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "vietnamese-nfd",
+      "text": "ắ",
+      "boundaries": [
+        0,
+        3
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "arabic-marks",
+      "text": "سَلَام",
+      "boundaries": [
+        0,
+        2,
+        4,
+        5,
+        6
+      ],
+      "reading": 4,
+      "halves": 8
+    },
+    {
+      "id": "indic-virama",
+      "text": "क्ष",
+      "boundaries": [
+        0,
+        3
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "indic-zwj",
+      "text": "क्‍ष",
+      "boundaries": [
+        0,
+        4
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "indic-nukta-zwj",
+      "text": "क़्‍ष",
+      "boundaries": [
+        0,
+        5
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "indic-nukta-vowel",
+      "text": "क़ि",
+      "boundaries": [
+        0,
+        3
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "indic-zwnj",
+      "text": "क्‌ष",
+      "boundaries": [
+        0,
+        3,
+        4
+      ],
+      "reading": 2,
+      "halves": 4
+    },
+    {
+      "id": "hangul-jamo",
+      "text": "각",
+      "boundaries": [
+        0,
+        3
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "emoji-modifier",
+      "text": "👍🏽",
+      "boundaries": [
+        0,
+        4
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "emoji-zwj-modifier",
+      "text": "👩🏽‍💻",
+      "boundaries": [
+        0,
+        7
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "emoji-family",
+      "text": "👨‍👩‍👧‍👦",
+      "boundaries": [
+        0,
+        11
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "flag",
+      "text": "🇯🇵",
+      "boundaries": [
+        0,
+        4
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "surrogate-pair",
+      "text": "𝄞",
+      "boundaries": [
+        0,
+        2
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "nbsp",
+      "text": "a b",
+      "boundaries": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "reading": 3,
+      "halves": 6
+    },
+    {
+      "id": "crlf",
+      "text": "a\r\nb",
+      "boundaries": [
+        0,
+        1,
+        3,
+        4
+      ],
+      "reading": 2,
+      "halves": 4
+    },
+    {
+      "id": "isolated-bidi",
+      "text": "⁧a⁩",
+      "boundaries": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "isolated-marks",
+      "text": "́̈",
+      "boundaries": [
+        0,
+        2
+      ],
+      "reading": 0,
+      "halves": 0
+    },
+    {
+      "id": "isolated-zwj",
+      "text": "‍",
+      "boundaries": [
+        0,
+        1
+      ],
+      "reading": 0,
+      "halves": 0
+    },
+    {
+      "id": "variation-selector",
+      "text": "️",
+      "boundaries": [
+        0,
+        1
+      ],
+      "reading": 0,
+      "halves": 0
+    },
+    {
+      "id": "keycap",
+      "text": "#️⃣",
+      "boundaries": [
+        0,
+        3
+      ],
+      "reading": 1,
+      "halves": 2
+    },
+    {
+      "id": "empty",
+      "text": "",
+      "boundaries": [
+        0
+      ],
+      "reading": 0,
+      "halves": 0
+    },
+    {
+      "id": "indic-independent-vowel-not-conjunct",
+      "text": "क्अ",
+      "boundaries": [
+        0,
+        2,
+        3
+      ],
+      "reading": 2,
+      "halves": 4
+    },
+    {
+      "id": "hangul-nfc",
+      "text": "각",
+      "boundaries": [
+        0,
+        1
+      ],
+      "reading": 1,
+      "halves": 2
+    }
+  ]
+}

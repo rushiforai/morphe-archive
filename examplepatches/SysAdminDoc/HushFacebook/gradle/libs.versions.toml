@@ -1,13 +1,15 @@
 [versions]
 # Align with morphe-patches-template (Compatibility / Manager display names). Hold the patcher
 # at the version the oldest supported Morphe Manager bundles: a newer pin trips the manager's
-# Patcher-Version gate and it refuses the bundle. Manager 1.33.0 bundles 1.15.0, and so does
-# desktop CLI 1.18.0, which the fixture gates run. Manager 1.32.0 compares bundles against
-# 1.14.1 and refuses this one with its update prompt.
-morphe-patcher = "1.15.0"
+# Patcher-Version gate and it refuses the bundle. Manager 1.34.0 bundles 1.15.1, and so does
+# desktop CLI 1.18.1, which the fixture gates run. Manager 1.33.0 carries 1.15.0 and refuses
+# this one with its update prompt. 1.15.1 pulls in MorpheApp's ARSCLib 9b742c412d, stops a reused
+# fingerprint match from handing back stale class and method objects and validates DEX entry
+# paths; its public API only adds to 1.15.0's.
+morphe-patcher = "1.15.1"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
 # README's stated floor to this value.
-manager-floor = "1.33.0"
+manager-floor = "1.34.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official

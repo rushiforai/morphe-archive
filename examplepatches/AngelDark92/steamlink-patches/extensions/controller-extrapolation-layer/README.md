@@ -16,7 +16,33 @@ library reads is never created.
 The layer redirects that library's PLT import of
 `server_configurable_flags::GetServerConfigurableFlag` inside the Steam Link process
 and answers `true` for this one flag. All other flag reads go to the original function.
-It hooks no OpenXR call and changes no Steam Link code.
+It changes no Steam Link code.
+
+## Pose filter
+
+The layer also wraps `xrLocateSpace` for the action spaces of VRLink's controller pose
+action (`pamir-stream-pose`) and runs a jitter filter on the pose the runtime returns: a
+low-pass whose cutoff rises with the controller's speed, `cutoff = base + beta * speed`. A
+resting hand is smoothed hard and a fast one barely lags (at most about 2.6 mm and
+0.15 degrees with the defaults). The speed is the size of the runtime's own velocities, so
+the frame they are reported in does not matter. Velocities, other spaces and hand tracking
+are not touched.
+
+The filter properties are re-read every second while streaming:
+
+| Property | Default | Meaning |
+|---|---|---|
+| `debug.gxr.posefilter` | 1 | `0` reports the runtime's pose unfiltered |
+| `debug.gxr.posefilter.pos.cutoff` | 3 | Position cutoff at rest, Hz |
+| `debug.gxr.posefilter.pos.beta` | 60 | Position cutoff added per m/s, Hz |
+| `debug.gxr.posefilter.rot.cutoff` | 3 | Rotation cutoff at rest, Hz |
+| `debug.gxr.posefilter.rot.beta` | 60 | Rotation cutoff added per rad/s, Hz |
+
+The defaults were chosen by feel on the headset with the
+[controller HAL pose layer](../controller-hal-pose/README.md), which has the same filter.
+On the runtime's pose a controller held still jitters in the same poses and as much as
+with that layer: the jitter is in the tracking itself, not in either pose path. While that layer
+supplies the controller pose this filter stands down, so a pose is never filtered twice.
 
 `adb shell setprop debug.gxr.extrapolation 0` leaves the flag untouched. The property is
 read when the runtime first asks for the flag, so restart Steam Link after changing it.

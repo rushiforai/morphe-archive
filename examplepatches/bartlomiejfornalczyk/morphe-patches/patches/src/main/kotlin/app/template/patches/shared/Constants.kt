@@ -14,4 +14,22 @@ object Constants {
             )
         )
     )
+
+    val COMPATIBILITY_YOUTUBE_MUSIC = Compatibility(
+        name = "YouTube Music",
+        packageName = "com.google.android.apps.youtube.music",
+        appIconColor = 0xFF0000
+    )
+
+    val COMPATIBILITY_MORPHE_YOUTUBE_MUSIC = Compatibility(
+        name = "YouTube Music (Morphe)",
+        packageName = "app.morphe.android.apps.youtube.music",
+        appIconColor = 0xFF0000
+    )
+
+    val COMPATIBILITY_REVANCED_YOUTUBE_MUSIC = Compatibility(
+        name = "YouTube Music (ReVanced)",
+        packageName = "app.revanced.android.apps.youtube.music",
+        appIconColor = 0xFF0000
+    )
 }

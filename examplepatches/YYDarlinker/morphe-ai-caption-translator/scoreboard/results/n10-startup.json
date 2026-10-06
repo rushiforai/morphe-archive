@@ -1,0 +1,34 @@
+{
+  "layer": "n10_frozen_startup_plus_policy_mirror",
+  "input_sha256": {
+    "diagnostics": "13b1f29cdf6ea180dadb67bf91de6a7b085412fb132880d8cd07585cf5ac5171"
+  },
+  "anchor": {
+    "kind": "first_preparing_status_presented",
+    "at": 1790668000335,
+    "line": 174
+  },
+  "frozen": {
+    "source_ready_ms": 12094,
+    "first_content_ms": 29640,
+    "source_ready_at": 1790668012429,
+    "source_ready_line": 189,
+    "first_content_at": 1790668029975,
+    "first_content_line": 216,
+    "first_content_id": "1:0:2:98-126"
+  },
+  "policy_mirror": {
+    "source_ready_ms": 12094,
+    "raw_source_available_ms": 10730,
+    "raw_source_available_at": 1790668011065,
+    "raw_source_available_line": 184,
+    "first_content_ms": 10730,
+    "timing_kind": "earliest_raw_source_eligible_floor",
+    "device_presented_verified": false
+  },
+  "limits": [
+    "Frozen elapsed times start at the first preparing-status PRESENTED record, not player load.",
+    "The policy mirror's first_content_ms is an eligibility floor at raw source availability, not measured display latency.",
+    "No new Android startup trace or API request was used."
+  ]
+}

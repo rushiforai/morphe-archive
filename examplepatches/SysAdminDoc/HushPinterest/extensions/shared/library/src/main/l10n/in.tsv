@@ -159,6 +159,7 @@ Promoted and AI-labeled pins	Pin promosi dan pin berlabel AI
 Promoted pins	Pin promosi
 Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Pin promosi hilang dari beranda, pencarian, pin terkait, dan papan sebelum ditampilkan, dan panel yang hanya berisi iklan tetap terlipat.
 ad-only views	tampilan khusus iklan
+Google ad SDK start	memulai SDK iklan Google
 promoted pins in lists	pin promosi di daftar
 Privacy	Privasi
 Pin actions	Tindakan Pin
@@ -172,6 +173,8 @@ Analytics launch tasks	Tugas awal analitik
 Analytics uploads	Pengiriman data analitik
 Strip link tracking	Hapus pelacakan tautan
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Menghapus parameter pelacakan yang dikenal dari tautan yang disalin dan dibagikan. Tautan pendek tetap seperti yang dibuat Pinterest.
+Hide advertising ID	Sembunyikan ID iklan
+Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest dan kode iklan serta pelacakan di dalamnya membaca ID iklan berisi nol semua dengan pelacakan iklan dibatasi, seolah kamu sudah menghapus ID iklan di setelan Android.
 Download pins	Unduh Pin
 Open links in your browser	Buka tautan di browser Anda
 Open pin Visit links and profile websites in your browser.	Buka tautan Kunjungi Pin dan situs web profil di browser Anda.
@@ -182,6 +185,7 @@ Hide search history	Sembunyikan riwayat pencarian
 Hide navigation buttons	Sembunyikan tombol navigasi
 Hide Create button	Sembunyikan tombol Buat
 Hide Notifications button	Sembunyikan tombol Notifikasi
+Hide Search button	Sembunyikan tombol Cari
 Hide header buttons	Sembunyikan tombol header
 Filter pin menu	Filter menu Pin
 Hide collage menu items	Sembunyikan opsi kolase
@@ -237,6 +241,12 @@ Pin %s	Pin %s
 Retry download	Coba unduh lagi
 Starts a new download. Android manages it.	Memulai unduhan baru. Android mengelolanya.
 Open pin	Buka pin
+Set as wallpaper	Jadikan wallpaper
+Opens Android's Set as options for this saved image.	Membuka opsi Setel sebagai dari Android untuk gambar tersimpan ini.
+Set as	Setel sebagai
+Couldn't open Set as. Check Downloads for the saved file.	Setel sebagai tidak dapat dibuka. Cari file tersimpan di Download.
+This download isn't a finished image anymore. Check Downloads.	Unduhan ini bukan lagi gambar yang selesai. Periksa Download.
+Resume HushPinterest and turn on Download pins to use this.	Lanjutkan HushPinterest dan aktifkan Unduh Pin untuk memakai ini.
 Remove from history	Hapus dari riwayat
 Removes this history entry. Files and active downloads are kept.	Menghapus entri riwayat ini. File dan unduhan aktif tetap disimpan.
 Open Downloads	Buka Unduhan
@@ -260,6 +270,10 @@ Only unfinished saves are listed. Check your chosen location before saving again
 Pin saved. Check Pending saves if its history remains.	Pin disimpan. Periksa Penyimpanan tertunda jika riwayatnya masih ada.
 Download unavailable	Unduhan tidak tersedia
 Supplied media details	Detail media yang diberikan
+Copy media link	Salin tautan media
+Media link	Tautan media
+Media link copied.	Tautan media disalin.
+Couldn't copy the media link. Open the pin again and try again.	Tautan media tidak dapat disalin. Buka Pin lagi dan coba lagi.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Detail ini berasal dari URL media dan metadata yang diberikan Pinterest. File belum diperiksa.
 Supplied width: %s	Lebar yang diberikan: %s
 Supplied height: %s	Tinggi yang diberikan: %s
@@ -301,12 +315,17 @@ Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still
 Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Menyembunyikan baris dan karusel pencarian terbaru saat tata letak atau visibilitasnya diperbarui berikutnya. Riwayat pencarian akun tidak dihapus.
 Hides Create in the bottom bar on its next layout.	Menyembunyikan Buat di bilah bawah saat tata letaknya diperbarui berikutnya.
 Hides Notifications in the bottom bar on its next layout.	Menyembunyikan Notifikasi di bilah bawah saat tata letaknya diperbarui berikutnya.
+Hides Search in the bottom bar on its next layout.	Menyembunyikan Cari di bilah bawah saat tata letaknya diperbarui berikutnya.
 Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Menyembunyikan ikon di ujung bilah judul saat tata letaknya diperbarui berikutnya. Kembali, tindakan teks, dan kontrol akun tetap tersedia.
 Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Menyembunyikan Tambahkan ke kolase dan Remix kolase di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
 Hides Search image in newly created pin menus. An existing menu won't change.	Menyembunyikan Cari gambar di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Menyembunyikan Promosikan Pin di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Menyembunyikan panel dan pratinjau komentar di bawah Pin saat tata letak atau visibilitasnya diperbarui berikutnya. Tidak mengubah siapa yang boleh berkomentar.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Menutup pengingat opsional konfirmasi email yang baru dibuat. Pengingat yang terbuka tidak berubah. Pemeriksaan verifikasi dan masuk tetap berlaku.
+Hide save toasts	Sembunyikan notifikasi simpan
+Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Menyimpan Pin tidak lagi memunculkan "Disimpan ke" papanmu atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.
+Original-quality images	Gambar kualitas asli
+Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Memilih gambar asli sebelum ukuran besar jika Pinterest menyediakannya. Memakai lebih banyak data. Gambar yang sudah tampil berubah saat dimuat ulang.
 Save media	Simpan media
 Recent searches autocomplete	Pelengkapan otomatis pencarian terbaru
 Activity alerts	Notifikasi aktivitas

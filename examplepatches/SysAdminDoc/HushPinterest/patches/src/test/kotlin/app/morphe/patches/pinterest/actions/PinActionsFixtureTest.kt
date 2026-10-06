@@ -19,6 +19,7 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.*
@@ -79,6 +80,41 @@ class PinActionsFixtureTest {
     }
 
     @Test
+    fun `closeup share closes through the close-screen method its own fragment inherits in each declared build`() {
+        for (build in Fixtures.declaredBuilds()) {
+            val classes = read(build)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes)
+            systemSharePatch.execute(context)
+            val open = "$EXTENSION_PACKAGE/actions/SystemShare;->openSendable(Ljava/lang/Object;Ljava/lang/Object;)Z"
+            val (fragment, onCreate) = classes.flatMap { original ->
+                context.mutableClassDefBy(original.type).methods.map { original.type to it }
+            }.single { (_, method) -> open in references(method.implementation?.instructions?.toList() ?: emptyList()) }
+            val instructions = onCreate.implementation!!.instructions.toList()
+            val call = instructions.drop(instructions.indexOfFirst { (it as? ReferenceInstruction)?.reference?.toString() == open })
+                .first { it.opcode == Opcode.INVOKE_VIRTUAL }
+            val close = (call as ReferenceInstruction).reference as MethodReference
+            val chain = generateSequence(fragment) { type -> classes.firstOrNull { it.type == type }?.superclass }.toList()
+            assertTrue("${build.name} ${close.definingClass} is not above $fragment: $chain", close.definingClass in chain.drop(1))
+            val target = classes.single { it.type == close.definingClass }.methods.single {
+                it.name == close.name && it.parameterTypes.isEmpty() && it.returnType == "V"
+            }
+            assertTrue("${build.name} ${close.definingClass}->${close.name} is not the close-screen method", target.closesScreen())
+        }
+    }
+
+    @Test
+    fun `missing close-screen method refuses system share before host changes`() {
+        val classes = read(Fixtures.declaredBuilds().first())
+        val context = PatchContexts.of(ExtensionDex.classes() + classes.filterNot { owner -> owner.methods.any { it.closesScreen() } })
+        assertThrows(PatchException::class.java) { systemSharePatch.execute(context) }
+        assertFlag(context, "systemShare", 0)
+        assertFlag(context, "pinShare", 0)
+        assertFalse(classes.flatMap { context.mutableClassDefByOrNull(it.type)?.methods ?: emptyList() }.any { method ->
+            references(method.implementation?.instructions?.toList() ?: emptyList()).any { "/SystemShare;->" in it }
+        })
+    }
+
+    @Test
     fun `missing profile website binding refuses browser capability before host changes`() {
         val classes = read(Fixtures.declaredBuilds().first())
         val context = PatchContexts.of(ExtensionDex.classes() + classes.filterNot { owner ->
@@ -118,6 +154,15 @@ class PinActionsFixtureTest {
     private fun references(instructions: List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>): List<String> =
         instructions.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
 
+    // Pinterest's base screen fragment closes itself by comparing its ScreenDescription with the
+    // top of the screen stack, then signals back navigation with TRUE or removes itself.
+    private fun Method.closesScreen(): Boolean {
+        val refs = references(implementation?.instructions?.toList() ?: return false)
+        return returnType == "V" && parameterTypes.isEmpty() &&
+            refs.count { it.endsWith("()Lcom/pinterest/framework/screens/ScreenDescription;") } == 2 &&
+            "Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;" in refs && refs.any { it.endsWith("->onNext(Ljava/lang/Object;)V") }
+    }
+
     private fun Method.strings(): Set<String> = implementation?.instructions?.mapNotNull {
         ((it as? ReferenceInstruction)?.reference as? StringReference)?.string
     }?.toSet() ?: emptySet()
@@ -126,10 +171,12 @@ class PinActionsFixtureTest {
         val wanted = mutableMapOf<String, ClassDef>()
         val sourceTypes = mutableSetOf<String>()
         val potentialShareFragments = mutableListOf<ClassDef>()
+        val superclasses = mutableMapOf<String, String?>()
         var dispatchers = 0
         var choosers = 0
         FixtureDex.forEach(build) { dex ->
             for (owner in dex.classes) {
+                superclasses[owner.type] = owner.superclass
                 val visit = owner.methods.any { it.strings().containsAll(setOf("_url", "android_client_tracking_params_consistency")) }
                 val profile = owner.methods.any { method ->
                     "websiteUrlView" in method.strings() || method.name == "onClick" &&
@@ -170,6 +217,11 @@ class PinActionsFixtureTest {
                 } == true
             }
         }.forEach { wanted[it.type] = ImmutableClassDef.of(it) }
+        // The share fragment closes itself through a method it inherits, so its superclasses come too.
+        val shareFragments = wanted.keys.filter { type -> potentialShareFragments.any { it.type == type } }
+        wanted += FixtureDex.classes(build, shareFragments.flatMap { fragment ->
+            generateSequence(superclasses[fragment]) { superclasses[it] }.toList()
+        }.toSet())
         assertEquals("${build.name} Visit owner", 1, dispatchers)
         assertEquals("${build.name} share chooser owner", 1, choosers)
         val menu = wanted.getValue(PIN_MENU)

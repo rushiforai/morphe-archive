@@ -21,7 +21,10 @@ import app.morphe.patches.pinterest.misc.extension.requireLocals
 import app.morphe.patches.pinterest.misc.extension.requireStatusMethod
 import app.morphe.patches.pinterest.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.superclassChain
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 
@@ -56,18 +59,6 @@ val systemSharePatch = bytecodePatch(
         val model = method.parameterRegister(0)
         val source = method.parameterRegister(2)
         val sourceType = method.parameterTypes[2].toString()
-        method.addInstructionsWithLabels(
-            0,
-            """
-                move-object/from16 v0, $model
-                move-object/from16 v1, $source
-                invoke-static { v0, v1 }, $EXTENSION_PACKAGE/actions/SystemShare;->open(Ljava/lang/Object;Ljava/lang/Object;)Z
-                move-result v0
-                if-eqz v0, :hush_original_share
-                return-void
-            """,
-            ExternalLabel("hush_original_share", method.getInstruction(0)),
-        )
         val fragment = Fingerprint(
             returnType = "V",
             parameters = listOf("Landroid/os/Bundle;"),
@@ -92,6 +83,7 @@ val systemSharePatch = bytecodePatch(
         val superCall = instructions.indexOfLast {
             (it as? ReferenceInstruction)?.reference?.toString()?.endsWith("->onCreate(Landroid/os/Bundle;)V") == true
         }
+        if (superCall < 0) throw PatchException("$PATCH: closeup share sheet onCreate order changed")
         val sendableValue = instructions.withIndex().take(superCall).lastOrNull { (_, instruction) ->
             instruction.opcode == Opcode.CHECK_CAST &&
                 (instruction as? ReferenceInstruction)?.reference?.toString() == "Lcom/pinterest/sendshare/model/SendableObject;"
@@ -102,14 +94,33 @@ val systemSharePatch = bytecodePatch(
                 (instruction as? ReferenceInstruction)?.reference?.toString() == sourceType
         }?.let { (_, instruction) -> (instruction as OneRegisterInstruction).registerA }
             ?: throw PatchException("$PATCH: closeup share sheet source register changed")
-        if (superCall < 0) throw PatchException("$PATCH: closeup share sheet onCreate order changed")
+        // The sheet closes through Pinterest's base screen fragment, whose obfuscated owner and
+        // name change every build (14.38.0 xu1/f.z6, 14.25.0 ds1/e.c7). Writing one build's name
+        // left the other calling a class it doesn't have.
+        val close = superclassChain(fragment.definingClass).flatMap { type ->
+            classDefByOrNull(type)?.methods?.filter { it.closesScreen() }?.map { "$type->${it.name}()V" } ?: emptyList()
+        }.toList().singleOrNull()
+            ?: throw PatchException("$PATCH: no single close-screen method above ${fragment.definingClass}")
+        // Every lookup is done, so a refusal above leaves both host methods as they were.
+        method.addInstructionsWithLabels(
+            0,
+            """
+                move-object/from16 v0, $model
+                move-object/from16 v1, $source
+                invoke-static { v0, v1 }, $EXTENSION_PACKAGE/actions/SystemShare;->open(Ljava/lang/Object;Ljava/lang/Object;)Z
+                move-result v0
+                if-eqz v0, :hush_original_share
+                return-void
+            """,
+            ExternalLabel("hush_original_share", method.getInstruction(0)),
+        )
         fragment.addInstructionsWithLabels(
             superCall + 1,
             """
                 invoke-static { v$sendableValue, v$sourceValue }, $SYSTEM_SHARE->openSendable(Ljava/lang/Object;Ljava/lang/Object;)Z
                 move-result v0
                 if-eqz v0, :hush_original_closeup_share
-                invoke-virtual { p0 }, Lxu1/f;->z6()V
+                invoke-virtual { p0 }, $close
                 return-void
             """,
             ExternalLabel("hush_original_closeup_share", fragment.getInstruction(superCall + 1)),
@@ -117,4 +128,17 @@ val systemSharePatch = bytecodePatch(
         enableCapability("pinShare")
         enableStatus("systemShare")
     }
+}
+
+/**
+ * Pinterest's base screen fragment closes itself by comparing its own ScreenDescription with the top
+ * of the screen stack: the top screen signals back navigation with TRUE, any other one removes itself.
+ */
+private fun Method.closesScreen(): Boolean {
+    if (returnType != "V" || parameterTypes.isNotEmpty() || AccessFlags.STATIC.isSet(accessFlags)) return false
+    val references = implementation?.instructions?.mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
+        ?: return false
+    return references.count { it.endsWith("()Lcom/pinterest/framework/screens/ScreenDescription;") } == 2 &&
+        "Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;" in references &&
+        references.any { it.endsWith("->onNext(Ljava/lang/Object;)V") }
 }

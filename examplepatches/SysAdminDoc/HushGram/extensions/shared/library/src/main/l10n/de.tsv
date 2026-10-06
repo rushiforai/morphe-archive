@@ -273,6 +273,7 @@ Undo is available until %1$s. Restarting Instagram discards Undo.	Rückgängig i
 No settings import to undo.	Kein Einstellungsimport zum Rückgängigmachen.
 No document picker is available. Your settings haven't changed.	Keine Dateiauswahl verfügbar. Deine Einstellungen wurden nicht geändert.
 Couldn't use that settings file. Your settings haven't changed.	Diese Einstellungsdatei konnte nicht verwendet werden. Deine Einstellungen wurden nicht geändert.
+That's an overrides file, not a settings file. Turn on Allow importing overrides under Developer, then use Import overrides. Your settings haven't changed.	Das ist eine Überschreibungsdatei, keine Einstellungsdatei. Schalte unter Entwickler „Import von Überschreibungen erlauben“ ein und nutze dann „Überschreibungen importieren“. Deine Einstellungen wurden nicht geändert.
 HushGram settings exported.	HushGram-Einstellungen exportiert.
 Couldn't export HushGram settings. Try another file.	HushGram-Einstellungen konnten nicht exportiert werden. Versuche eine andere Datei.
 Settings restored.	Einstellungen wiederhergestellt.

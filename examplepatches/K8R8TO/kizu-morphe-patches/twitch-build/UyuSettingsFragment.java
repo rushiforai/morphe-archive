@@ -1,6 +1,7 @@
 package io.github.bakwudo.uyu.extension.settings;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.preference.Preference;
@@ -130,7 +131,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
     }
 
     private void addAppearanceSettings(PreferenceScreen screen) {
-                addSwitch(screen, Settings.HIDE_SUBSCRIBE_BUTTONS, "Hide the subscribe and Bits buttons",
+        addSwitch(screen, Settings.HIDE_SUBSCRIBE_BUTTONS, "Hide the subscribe and Bits buttons",
                 "Hides the row above chat with the Bits, gift a sub and subscribe buttons.");
         addSwitch(screen, Settings.HIDE_CHAT_BITS_BUTTON, "Hide the Bits button in the chat box",
                 "Hides the Bits button next to the emote button.");
@@ -141,7 +142,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
                         + "SUBtember, above the player and above chat, and the banner that "
                         + "advertises Turbo.");
 
-        Preference note = new Preference(SettingsUi.preferenceContext(screen.getContext()));
+        Preference note = new Preference(screen.getContext());
         note.setSummary("Items you show again appear the next time you open a stream.");
         note.setSelectable(false);
         screen.addPreference(note);
@@ -196,7 +197,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
         proxy.setTitle("Proxy URL");
         screen.addPreference(proxy);
 
-        Preference note = new Preference(SettingsUi.preferenceContext(screen.getContext()));
+        Preference note = new Preference(screen.getContext());
         note.setSummary("Optional. Live streams are loaded through this proxy, which can remove "
                 + "the ads that are part of the stream. {channel} is replaced with the channel "
                 + "name; without it, the name is added to the end.\n\n"
@@ -223,7 +224,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
     private void addChatSettings(PreferenceScreen screen) {
         addSwitch(screen, Settings.CHAT_DELETED_MESSAGES, "Deleted messages",
                 "Control whether deleted chat messages remain visible locally.");        
-        Preference deletedMessageStyle = new Preference(SettingsUi.preferenceContext(screen.getContext()));
+        Preference deletedMessageStyle = new Preference(screen.getContext());
         deletedMessageStyle.setTitle("Deleted message style");
         deletedMessageStyle.setSummary(deletedMessageStyleName(Settings.CHAT_DELETED_MESSAGES_STYLE.get()));
         deletedMessageStyle.setOnPreferenceClickListener(clicked -> {
@@ -247,6 +248,8 @@ public class UyuSettingsFragment extends PreferenceFragment {
 
         addSwitch(screen, Settings.CHAT_TIMESTAMPS, "Chat timestamps",
                 "Show timestamps on chat messages.");
+        addSwitch(screen, Settings.CHAT_MENTION_HIGHLIGHT, "Highlight mentions",
+                "Highlight chat messages that directly mention your account.");
         addSwitch(screen, Settings.LANDSCAPE_CHAT_SIZE_ENABLED, "Landscape chat size",
                 "Use the custom landscape chat width.");
         addSlider(screen, Settings.LANDSCAPE_CHAT_SIZE, 5, "Landscape chat width",
@@ -269,6 +272,119 @@ public class UyuSettingsFragment extends PreferenceFragment {
         if ("grey".equalsIgnoreCase(value)) return "Grey";
         // "default" is a legacy value and is equivalent to Mod.
         return "Mod";
+    }
+
+    private void addPrivacySettings(PreferenceScreen screen) {
+        addSwitch(screen, Settings.DISABLE_COMSCORE, "Disable Comscore",
+                "Prevent Twitch's Comscore measurement component from starting.");
+        addSwitch(screen, Settings.DISABLE_BUGSNAG, "Disable crash reporting",
+                "Prevent Twitch's crash-reporting component from collecting reports.");
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View list = super.onCreateView(inflater, container, savedInstanceState);
+        if (!SECTION_DANMAKU.equals(section)) return list;
+
+        // The preview stays above the list, so it is visible while any setting is changed.
+        LinearLayout layout = new LinearLayout(getActivity());
+        layout.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        // The preview is narrower than the screen in landscape.
+        previewParams.gravity = Gravity.CENTER_HORIZONTAL;
+        layout.addView(new DanmakuPreview(getActivity()), previewParams);
+        layout.addView(list, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
+        return layout;
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        SettingsUi.applySettingsView(view);
+        view.setClickable(true);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == FontPreference.REQUEST_IMPORT_FONT && fontPreference != null) {
+            fontPreference.onActivityResult(resultCode, data);
+            return;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        View settingsView = getView();
+        if (settingsView != null) SettingsUi.applySettingsView(settingsView);
+        Activity activity = getActivity();
+        TextView title = activity == null ? null : SettingsPatch.findToolbarTitle(activity);
+        if (title == null) return;
+        if (previousTitle == null) previousTitle = title.getText();
+        title.setText(title(section));
+    }
+
+    @Override
+    public void onDestroyView() {
+        Activity activity = getActivity();
+        TextView title = activity == null ? null : SettingsPatch.findToolbarTitle(activity);
+        if (title != null && previousTitle != null) title.setText(previousTitle);
+        super.onDestroyView();
+    }
+
+    private static String title(String section) {
+        if (section == null) return SettingsPatch.TITLE;
+        switch (section) {
+            case SECTION_GENERAL:
+                return "General";
+            case SECTION_APPEARANCE:
+                return "Appearance";
+            case SECTION_DANMAKU:
+                return "Danmaku";
+            case SECTION_ADS:
+                return "Ads";
+            case SECTION_EMOTES:
+                return "Emotes";
+            case SECTION_CHAT:
+                return "Chat";
+            case SECTION_PRIVACY:
+                return "Privacy";
+            default:
+                return SettingsPatch.TITLE;
+        }
+    }
+
+    private void addSwitch(PreferenceGroup group, BooleanSetting setting,
+                                  String title, String summary) {
+        SwitchPreference preference = new SwitchPreference(SettingsUi.preferenceContext(group.getContext()));
+        preference.setKey(setting.key);
+        preference.setDefaultValue(setting.defaultValue);
+        preference.setTitle(title);
+        preference.setSummary(summary);
+        group.addPreference(preference);
+    }
+
+    private static void addSlider(PreferenceGroup group, IntSetting setting, int step,
+                                  String title, SliderPreference.Formatter formatter) {
+        Preference preference = new SliderPreference(SettingsUi.preferenceContext(group.getContext()), setting, step, formatter);
+        preference.setTitle(title);
+        group.addPreference(preference);
+    }
+
+    private static void addColor(PreferenceGroup group, IntSetting setting, String title) {
+        Preference preference = new ColorPreference(SettingsUi.preferenceContext(group.getContext()), setting);
+        preference.setTitle(title);
+        group.addPreference(preference);
+    }
+}    private void addHomeSettings(PreferenceScreen screen) {
+        addSwitch(screen, Settings.HIDE_TURBO_UPSELL, "Hide Go Ad-Free",
+                "Hide Twitch's Go Ad-Free/Turbo control in the Following feed.");
+        addSwitch(screen, Settings.HIDE_RESUME_WATCHING, "Hide Continue Watching",
+                "Remove the Continue Watching / resume-watching section from the Following feed.");
+        addSwitch(screen, Settings.HIDE_OFFLINE_CHANNELS, "Hide Offline Channels",
+                "Remove the offline followed-channels section from the Following feed.");
     }
 
     private void addPrivacySettings(PreferenceScreen screen) {

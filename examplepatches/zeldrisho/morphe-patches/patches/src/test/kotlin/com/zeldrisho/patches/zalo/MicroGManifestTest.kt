@@ -15,7 +15,7 @@ class MicroGManifestTest {
         .newDocumentBuilder()
         .parse(ByteArrayInputStream(xml.toByteArray()))
 
-    /** Checks the injected microG package query and stock signature metadata. */
+    /** Checks package visibility and both upstream identity metadata values. */
     @Test
     fun injectsPackageVisibilityAndSignatureMetadata() {
         val doc = document(
@@ -26,17 +26,20 @@ class MicroGManifestTest {
 
         val pkg = doc.getElementsByTagName("package").item(0) as Element
         assertEquals(MICROG_PACKAGE, pkg.getAttribute("android:name"))
-        val metadata = doc.getElementsByTagName("meta-data").item(0) as Element
-        assertEquals("app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE", metadata.getAttribute("android:name"))
-        assertEquals(STOCK_VNG_CERT_HEX, metadata.getAttribute("android:value"))
+        val metadata = (0 until doc.getElementsByTagName("meta-data").length)
+            .map { doc.getElementsByTagName("meta-data").item(it) as Element }
+            .associate { it.getAttribute("android:name") to it.getAttribute("android:value") }
+        assertEquals("com.zing.zalo", metadata["app.revanced.android.gms.SPOOFED_PACKAGE_NAME"])
+        assertEquals(STOCK_VNG_CERT_HEX, metadata["app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE"])
     }
 
-    /** Verifies that existing queries and signature metadata are preserved without duplicate entries. */
+    /** Verifies existing queries and metadata are preserved without duplicate entries. */
     @Test
     fun reusesQueriesAndDoesNotDuplicateExistingEntries() {
         val doc = document(
             """<manifest xmlns:android="http://schemas.android.com/apk/res/android"><queries><package android:name="$MICROG_PACKAGE"/></queries><application>
                 <meta-data android:name="app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE" android:value="existing"/>
+                <meta-data android:name="app.revanced.android.gms.SPOOFED_PACKAGE_NAME" android:value="existing-name"/>
             </application></manifest>""",
         )
 
@@ -44,7 +47,11 @@ class MicroGManifestTest {
 
         assertEquals(1, doc.getElementsByTagName("queries").length)
         assertEquals(1, doc.getElementsByTagName("package").length)
-        assertEquals(1, doc.getElementsByTagName("meta-data").length)
-        assertEquals("existing", (doc.getElementsByTagName("meta-data").item(0) as Element).getAttribute("android:value"))
+        assertEquals(2, doc.getElementsByTagName("meta-data").length)
+        val metadata = (0 until doc.getElementsByTagName("meta-data").length)
+            .map { doc.getElementsByTagName("meta-data").item(it) as Element }
+            .associate { it.getAttribute("android:name") to it.getAttribute("android:value") }
+        assertEquals("existing", metadata["app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE"])
+        assertEquals("existing-name", metadata["app.revanced.android.gms.SPOOFED_PACKAGE_NAME"])
     }
 }

@@ -1,15 +1,15 @@
 [versions]
 # Align with morphe-patches-template (Compatibility / Manager display names). A Manager that
 # bundles an older patcher than this pin refuses the bundle at its Patcher-Version gate. Patcher
-# 1.15.0 went stable on 2026-09-30 with Manager 1.33.0 and desktop 1.18.0, and every Hush repo
-# tracks the newest stable patcher. It pulls in MorpheApp's ARSCLib 88d5e0811f and still pins
-# smali d856bad65f. Hushfeed measured 1.14.1 running out of heap while writing a large APK at
-# -Xmx768m where 1.15.0 finished, so the move is worth more than the Manager 1.32.0 users it
-# leaves behind, and there is no release yet for any of them to be on.
-morphe-patcher = "1.15.0"
+# 1.15.1 went stable on 2026-10-05 with Manager 1.34.0 and desktop 1.18.1, and every Hush repo
+# tracks the newest stable patcher. It pulls in MorpheApp's ARSCLib 9b742c412d and still pins
+# smali d856bad65f. It stops a reused fingerprint match from handing back stale class and method
+# objects and validates DEX entry paths; the rest is signing, DEX output and matching speed. Its
+# public API only adds to 1.15.0's. Manager 1.33.0 carries 1.15.0 and refuses this bundle.
+morphe-patcher = "1.15.1"
 # First stable Manager release that bundled the patcher above. The release fact check holds the
 # README's stated floor to this value.
-manager-floor = "1.33.0"
+manager-floor = "1.34.0"
 # Read by the app.morphe.patches settings plugin, not by anything in this repo: remove it and
 # configuration fails with "Version with alias smali not found in version catalog". The commit
 # resolves as com.github.MorpheApp.smali through JitPack. It is not waiting on an official

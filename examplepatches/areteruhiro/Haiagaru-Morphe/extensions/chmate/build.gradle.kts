@@ -17,6 +17,12 @@ configure<ApplicationExtension> {
     namespace = "app.morphe.extension.chmate"
     compileSdk = 36
 
+    buildTypes {
+        getByName("release") {
+            proguardFiles("proguard-rules.pro")
+        }
+    }
+
     defaultConfig {
         minSdk = 21
     }

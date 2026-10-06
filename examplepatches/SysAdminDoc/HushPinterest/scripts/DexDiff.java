@@ -275,7 +275,7 @@ public class DexDiff {
     private static final Map<String, Integer> MUTATION_COLUMNS = Map.ofEntries(
             Map.entry("feed", 4), Map.entry("views", 3), Map.entry("guard", 2), Map.entry("refresh", 2),
             Map.entry("navigation", 2), Map.entry("menu", 2), Map.entry("downloads", 2), Map.entry("comments", 5),
-            Map.entry("links", 6), Map.entry("analytics", 4), Map.entry("settings", 3));
+            Map.entry("links", 6), Map.entry("analytics", 5), Map.entry("answers", 4), Map.entry("imageOrder", 1), Map.entry("settings", 3));
 
     /**
      * A start-call, next-call, sole-call or once-call line: its method reference, the next-call's
@@ -2339,6 +2339,9 @@ public class DexDiff {
         static final String BASE = "Lapp/hushpinterest/extension/pinterest/";
         static final String STATUS = BASE + "settings/SettingsStatus;";
         static final String PIN_MENU = "Lcom/pinterest/feature/gridactions/modal/view/PinOverflowMenuModalImpl;";
+        static final String TOAST_CONTAINER = "Lcom/pinterest/gestalt/toast/PinterestToastContainer;";
+        static final String TOAST_VIEW = "Lcom/pinterest/gestalt/toast/BaseGestaltToast;";
+        static final Set<String> SAVE_TOAST_STRINGS = Set.of("saved_to", "saved_onto_board_bold", "pinned", "pinned_multiple", "pinned_multiple_to_board");
         final FeatureIndex clean;
         final FeatureIndex patched;
         final List<String> findings = new ArrayList<>();
@@ -2520,6 +2523,10 @@ public class DexDiff {
                 Instruction i = instructions(m).get(at);
                 if (i.getOpcode() != Opcode.INVOKE_STATIC && i.getOpcode() != Opcode.INVOKE_STATIC_RANGE)
                     fail(hook + " is not invoked statically in " + m);
+                // One register passed twice means a scratch write replaced a value the hook still wanted,
+                // unless the hook took over a host call that already passed it twice.
+                if (new HashSet<>(arguments(i)).size() != arguments(i).size() && !carried(m, i))
+                    fail(hook + " passes one register twice in " + m);
             }
             Method callee = actual(hook);
             if (callee != null && (!AccessFlags.PUBLIC.isSet(callee.getAccessFlags())
@@ -2527,6 +2534,16 @@ public class DexDiff {
                     || !AccessFlags.PUBLIC.isSet(patched.classes.get(callee.getDefiningClass()).getAccessFlags()))) fail(hook + " is not a public static hook");
             if (featureControls) controls(callee, true);
             return sites;
+        }
+
+        boolean carried(Method m, Instruction hook) {
+            Method before = clean.methods.get(m.toString());
+            if (before == null || before.getImplementation() == null) return false;
+            List<? extends CharSequence> shape = ((MethodReference) reference(hook)).getParameterTypes();
+            for (Instruction i : instructions(before))
+                if (i.getOpcode().name().startsWith("INVOKE_STATIC") && reference(i) instanceof MethodReference host
+                        && host.getParameterTypes().equals(shape) && arguments(i).equals(arguments(hook))) return true;
+            return false;
         }
 
         void remove(Method m, int first, int end) {
@@ -2771,6 +2788,25 @@ public class DexDiff {
                 for (String type : types) for (Method m : clean.classes.get(type).getMethods())
                     if (m.getName().equals("onCreate") && descriptor(m).equals("(Landroid/os/Bundle;)V")) targets.add(m);
                 before = 1;
+            } else if (selector.equals("googleAds")) {
+                for (Method m : clean.methods.values()) {
+                    if (m.getDefiningClass().startsWith(OWN) || AccessFlags.STATIC.isSet(m.getAccessFlags()) || !descriptor(m).equals("()V")) continue;
+                    if (instructions(m).stream().anyMatch(i -> i.getOpcode() == Opcode.SGET_OBJECT && reference(i) instanceof FieldReference
+                            && ((FieldReference) reference(i)).getName().equals("GOOGLE_MOBILE_ADS")
+                            && ((FieldReference) reference(i)).getType().equals(((FieldReference) reference(i)).getDefiningClass()))) targets.add(m);
+                }
+                // A build without the launch step keeps the capability off, and the patch only warns.
+                if (targets.isEmpty()) return false;
+            } else if (selector.equals("saveToast")) {
+                ClassDef container = clean.classes.get(TOAST_CONTAINER);
+                if (container != null) for (Method m : container.getMethods()) {
+                    if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getReturnType().equals("V") || m.getParameterTypes().size() != 1) continue;
+                    String model = m.getParameterTypes().get(0).toString();
+                    if (instructions(m).stream().anyMatch(i -> reference(i) instanceof MethodReference
+                            && ((MethodReference) reference(i)).getDefiningClass().equals(model)
+                            && descriptor((MethodReference) reference(i)).equals("(" + TOAST_CONTAINER + ")" + TOAST_VIEW))) targets.add(m);
+                }
+                if (targets.size() == 1) saveToastStub(targets.get(0).getParameterTypes().get(0).toString());
             } else { fail("unknown guard selector " + selector); return false; }
             Method original = unique(targets, c.callee);
             Method m = actual(original);
@@ -2778,6 +2814,7 @@ public class DexDiff {
                 List<Integer> args = List.of();
                 int prep = 0;
                 if (selector.equals("visit")) args = List.of(parameter(m, 0), parameter(m, 1));
+                if (selector.equals("saveToast")) args = List.of(parameter(m, 0));
                 if (selector.equals("share")) {
                     args = List.of(0, 1); prep = 2;
                     List<Instruction> body = instructions(m);
@@ -2797,6 +2834,49 @@ public class DexDiff {
                 guard(m, hook, before, args, prep, selector.equals("email"), selector.equals("update"));
             }
             return original != null;
+        }
+
+        /**
+         * The save toast stub: one instance check per concrete toast model that reads a save
+         * confirmation's text or names the follow suggestion, then false, then the shared true.
+         */
+        void saveToastStub(String model) {
+            Set<String> expected = new TreeSet<>();
+            for (ClassDef owner : clean.classes.values()) {
+                if (AccessFlags.ABSTRACT.isSet(owner.getAccessFlags()) || AccessFlags.INTERFACE.isSet(owner.getAccessFlags())
+                        || owner.getType().equals(model)) continue;
+                Set<String> seen = new HashSet<>();
+                boolean toast = false;
+                for (ClassDef cd = clean.classes.get(owner.getSuperclass()); cd != null && seen.add(cd.getType()); cd = clean.classes.get(cd.getSuperclass()))
+                    if (cd.getType().equals(model)) { toast = true; break; }
+                if (!toast) continue;
+                for (Method m : owner.getMethods()) for (Instruction i : instructions(m)) if (reference(i) instanceof FieldReference) {
+                    FieldReference f = (FieldReference) reference(i);
+                    if (f.getType().equals("I") && SAVE_TOAST_STRINGS.contains(f.getName())
+                            || f.getName().equals("FollowUpsellToast") && f.getType().equals(f.getDefiningClass())) expected.add(owner.getType());
+                }
+            }
+            Method stub = actual(BASE + "ui/UiHooks;->isSaveToast(Ljava/lang/Object;)Z");
+            if (stub == null) return;
+            List<Instruction> body = instructions(stub);
+            int n = (body.size() - 4) / 2, input = parameter(stub, 0);
+            List<String> named = new ArrayList<>();
+            boolean shaped = expected.size() > 0 && body.size() == 2 * expected.size() + 4;
+            Layout code = new Layout(stub.getImplementation());
+            for (int k = 0; shaped && k < n; k++) {
+                Instruction check = body.get(2 * k), branch = body.get(2 * k + 1);
+                shaped = check.getOpcode() == Opcode.INSTANCE_OF && ((TwoRegisterInstruction) check).getRegisterB() == input
+                        && branch.getOpcode() == Opcode.IF_NEZ && firstRegister(branch) == firstRegister(check)
+                        && code.addresses.get(2 * k + 1) + ((OffsetInstruction) branch).getCodeOffset() == code.addresses.get(2 * n + 2);
+                named.add(String.valueOf(reference(check)));
+            }
+            if (shaped) for (int k = 0; k < 2; k++) {
+                Instruction literal = body.get(2 * n + 2 * k), exit = body.get(2 * n + 2 * k + 1);
+                shaped &= literal.getOpcode() == Opcode.CONST_4 && ((NarrowLiteralInstruction) literal).getNarrowLiteral() == k
+                        && exit.getOpcode() == Opcode.RETURN && firstRegister(exit) == firstRegister(literal);
+            }
+            if (!shaped || !new TreeSet<>(named).equals(expected) || named.size() != expected.size())
+                fail("save toast stub names " + named + " instead of the save toast models " + expected);
         }
 
         boolean hasSendableShareSource(Method m) {
@@ -2928,14 +3008,41 @@ public class DexDiff {
                 else {
                     TwoRegisterInstruction identity = (TwoRegisterInstruction) body.get(at - 1);
                     List<Integer> nativeArgs = arguments(body.get(at - 2));
-                    if (identity.getRegisterB() != parameter(m, 0) || nativeArgs.isEmpty()
+                    if (identity.getRegisterB() != parameter(m, 0) || nativeArgs.isEmpty() || identity.getRegisterA() == nativeArgs.get(0)
                             || !arguments(body.get(at)).equals(List.of(nativeArgs.get(0), identity.getRegisterA())))
                         fail("navigation hook reads a different view or model");
                 }
                 remove(m, at - 1, at + 1);
             }
+            // A swapped-in tab view gets its ID in the replacement method and is bound there too.
+            List<Method> swaps = new ArrayList<>();
+            for (Method method : navigation.getMethods()) if (method.getImplementation() != null && method.getReturnType().equals("V")
+                    && method.getParameterTypes().size() == 2 && method.getParameterTypes().get(1).toString().equals("I")
+                    && !method.getParameterTypes().get(0).toString().equals(model.getType())
+                    && !namedCalls(method, "setId", "(I)V").isEmpty() && !namedCalls(method, "removeViewAt", "(I)V").isEmpty()) swaps.add(method);
+            Method r = actual(unique(swaps, "navigation tab replacement"));
+            List<Integer> swapSites = calls(r, c.strings.get(0), 1);
+            if (r != null && swapSites.size() == 1) {
+                int at = swapSites.get(0);
+                List<Instruction> body = instructions(r);
+                Reference getter = at < 3 ? null : reference(body.get(at - 2));
+                boolean shaped = at >= 3 && body.get(at - 2).getOpcode() == Opcode.INVOKE_INTERFACE
+                        && body.get(at - 1).getOpcode() == Opcode.MOVE_RESULT_OBJECT && methodNamed(body.get(at - 3), "setId", "(I)V")
+                        && getter instanceof MethodReference && ((MethodReference) getter).getParameterTypes().isEmpty()
+                        && ((MethodReference) getter).getDefiningClass().equals(r.getParameterTypes().get(0).toString())
+                        && identities.size() == 1 && ((MethodReference) getter).getReturnType().equals(identities.get(0).getType());
+                if (!shaped) fail("navigation replacement hook is not immediately after its ID and the replaced tab's identity");
+                else {
+                    List<Integer> nativeArgs = arguments(body.get(at - 3));
+                    int tab = ((OneRegisterInstruction) body.get(at - 1)).getRegisterA();
+                    if (!arguments(body.get(at - 2)).equals(List.of(parameter(r, 0))) || nativeArgs.isEmpty() || tab == nativeArgs.get(0)
+                            || !arguments(body.get(at)).equals(List.of(nativeArgs.get(0), tab)))
+                        fail("navigation replacement hook reads a different view or tab");
+                }
+                remove(r, at - 2, at + 1);
+            }
             view(navigation.getType(), null, null, c.strings.get(1));
-            capability(c.callee, m != null && identities.size() == 1);
+            capability(c.callee, m != null && r != null && identities.size() == 1);
         }
 
         static boolean methodNamed(Instruction i, String name, String shape) {
@@ -3228,6 +3335,9 @@ public class DexDiff {
             if (analytics != null) for (Method method : analytics.getMethods()) if (method.getName().startsWith("hushUpload") && !wrappers.contains(method.toString())) fail("analytics has an unrelated or duplicated wrapper " + method);
             int sdk = replacement(c.strings.get(1), c.strings.get(2), "Lcom/appsflyer/", true);
             if (sdk == 0) fail("analytics has no clean AppsFlyer transport");
+            int crashes = replacement(c.strings.get(1), c.strings.get(2), "Lcom/bugsnag/", false);
+            if (crashes == 0) fail("analytics has no clean Bugsnag transport");
+            boolean engage = engageGateway(c.strings.get(4));
             List<ClassDef> tags = new ArrayList<>();
             for (ClassDef cd : clean.classes.values()) {
                 Set<String> fields = new HashSet<>(); for (Field f : cd.getFields()) fields.add(f.getName());
@@ -3255,7 +3365,131 @@ public class DexDiff {
                         || ((TwoRegisterInstruction) body.get(0)).getRegisterB() != parameter(task, -1)) fail("analytics task guard reads the wrong task identity");
                 else guard(task, c.strings.get(0), 0, List.of(firstRegister(body.get(0))), 1, false, false);
             }
-            capability(c.callee, covered.equals(paths) && sdk > 0 && task != null);
+            capability(c.callee, covered.equals(paths) && sdk > 0 && crashes > 0 && engage && task != null);
+        }
+
+        /**
+         * The image model's rendition chooser: behind the hook it answers the original rendition the
+         * model's description names, when there is one, and otherwise runs its own order unchanged.
+         */
+        void imageOrder(Contract c) {
+            String hook = c.strings.get(0);
+            List<Method> descriptions = new ArrayList<>();
+            for (Method m : clean.holding("Image(largeInternal=")) if (m.getName().equals("toString")) descriptions.add(m);
+            Method description = descriptions.isEmpty() ? null : unique(descriptions, "image model description");
+            boolean found = false;
+            if (description != null) {
+                Map<String, FieldReference> labels = new LinkedHashMap<>();
+                String label = null;
+                for (Instruction i : instructions(description)) {
+                    Reference r = reference(i);
+                    if (r instanceof StringReference) label = ((StringReference) r).getString();
+                    if (i.getOpcode() == Opcode.IGET_OBJECT && r instanceof FieldReference && label != null) { labels.put(label, (FieldReference) r); label = null; }
+                }
+                FieldReference large = labels.get("Image(largeInternal="), original = labels.get(", original=");
+                List<Method> choosers = new ArrayList<>();
+                if (large != null && original != null) for (Method m : clean.classes.get(description.getDefiningClass()).getMethods()) {
+                    if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !m.getParameterTypes().isEmpty() || !m.getReturnType().equals(large.getType())) continue;
+                    Set<String> read = new HashSet<>();
+                    for (Instruction i : instructions(m)) if (reference(i) instanceof FieldReference) read.add(String.valueOf(reference(i)));
+                    if (labels.values().stream().allMatch(f -> read.contains(String.valueOf(f)))) choosers.add(m);
+                }
+                Method m = actual(unique(choosers, "image rendition chooser"));
+                List<Integer> sites = calls(m, hook, 1);
+                if (m != null && sites.size() == 1) {
+                    List<Instruction> body = instructions(m);
+                    Layout code = new Layout(m.getImplementation());
+                    boolean shaped = sites.get(0) == 0 && body.size() > 6 && arguments(body.get(0)).isEmpty()
+                            && body.get(1).getOpcode() == Opcode.MOVE_RESULT && body.get(2).getOpcode() == Opcode.IF_EQZ
+                            && body.get(3).getOpcode() == Opcode.IGET_OBJECT && String.valueOf(original).equals(String.valueOf(reference(body.get(3))))
+                            && ((TwoRegisterInstruction) body.get(3)).getRegisterB() == parameter(m, -1)
+                            && body.get(4).getOpcode() == Opcode.IF_EQZ && body.get(5).getOpcode() == Opcode.RETURN_OBJECT;
+                    for (int at = 2; shaped && at <= 5; at++) shaped = firstRegister(body.get(at)) == firstRegister(body.get(1));
+                    for (int at : List.of(2, 4)) shaped = shaped && code.addresses.get(at) + ((OffsetInstruction) body.get(at)).getCodeOffset() == code.addresses.get(6);
+                    if (!shaped) fail(hook + " does not answer the original rendition first, behind its switch, in " + m);
+                    else { remove(m, 0, 6); found = true; }
+                }
+            }
+            capability(c.callee, found);
+        }
+
+        /** Getter and hook pairs: each value a getter returns goes through its hook first, in the same register. */
+        void answers(Contract c) {
+            Set<Opcode> exits = Set.of(Opcode.RETURN, Opcode.RETURN_OBJECT, Opcode.RETURN_WIDE, Opcode.RETURN_VOID);
+            boolean all = true;
+            for (int n = 0; n + 1 < c.strings.size(); n += 2) {
+                String getter = c.strings.get(n), hook = c.strings.get(n + 1);
+                Method old = clean.methods.get(getter);
+                if (old == null || old.getImplementation() == null) { fail(getter + " is absent from the clean target"); all = false; continue; }
+                List<Instruction> was = instructions(old);
+                List<Integer> returns = new ArrayList<>();
+                for (int at = 0; at < was.size(); at++) if (exits.contains(was.get(at).getOpcode())) returns.add(at);
+                Method m = actual(old);
+                List<Integer> sites = calls(m, hook, returns.size());
+                if (m == null || returns.isEmpty() || sites.size() != returns.size()) { all = false; continue; }
+                List<Instruction> body = instructions(m);
+                for (int k = 0; k < sites.size(); k++) {
+                    int at = sites.get(k);
+                    Instruction exit = was.get(returns.get(k));
+                    int register = firstRegister(exit);
+                    if (exit.getOpcode() == Opcode.RETURN_VOID || exit.getOpcode() == Opcode.RETURN_WIDE || at != returns.get(k) + 2 * k
+                            || at + 2 >= body.size() || !arguments(body.get(at)).equals(List.of(register))
+                            || !isMoveResult(body.get(at + 1).getOpcode()) || firstRegister(body.get(at + 1)) != register
+                            || body.get(at + 2).getOpcode() != exit.getOpcode() || firstRegister(body.get(at + 2)) != register) {
+                        fail(hook + " does not filter the answer before every return in " + m); all = false; continue;
+                    }
+                    remove(m, at, at + 2);
+                }
+            }
+            capability(c.callee, all);
+        }
+
+        /** Engage's one client gateway: the service read, the pass-through hook, then the SDK's own null test. */
+        boolean engageGateway(String hook) {
+            List<Method> gateways = new ArrayList<>();
+            for (ClassDef cd : clean.classesHolding("com.google.android.engage.BIND_APP_ENGAGE_SERVICE")) {
+                boolean client = false;
+                for (Method m : cd.getMethods()) if (m.getName().equals("<clinit>")
+                        && clean.holding("com.google.android.engage.BIND_APP_ENGAGE_SERVICE").contains(m)) client = true;
+                if (client) for (Method m : cd.getMethods()) if (engageTest(m) >= 0) gateways.add(m);
+            }
+            Method gateway = unique(gateways, "Google Engage service gateway");
+            Method m = actual(gateway);
+            List<Integer> sites = calls(m, hook, 1);
+            if (m == null || sites.size() != 1) return false;
+            int test = engageTest(gateway);
+            Instruction read = instructions(gateway).get(test - 1);
+            int register = firstRegister(read);
+            String type = ((FieldReference) reference(read)).getType();
+            List<Instruction> body = instructions(m);
+            int at = sites.get(0);
+            if (at != test || at + 3 >= body.size() || !arguments(body.get(at)).equals(List.of(register))
+                    || body.get(at + 1).getOpcode() != Opcode.MOVE_RESULT_OBJECT || firstRegister(body.get(at + 1)) != register
+                    || body.get(at + 2).getOpcode() != Opcode.CHECK_CAST || firstRegister(body.get(at + 2)) != register
+                    || !type.equals(String.valueOf(reference(body.get(at + 2))))
+                    || body.get(at + 3).getOpcode() != Opcode.IF_NEZ || firstRegister(body.get(at + 3)) != register) {
+                fail(hook + " is not a service pass-through before Engage's null test in " + m); return false;
+            }
+            remove(m, at, at + 3);
+            return true;
+        }
+
+        /** The index of the null test that follows an instance read and precedes Engage's unavailable exception, or -1. */
+        int engageTest(Method m) {
+            if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || m.getImplementation() == null
+                    || !m.getReturnType().equals("Lcom/google/android/gms/tasks/Task;")) return -1;
+            List<Instruction> body = instructions(m);
+            int found = -1;
+            for (int at = 1; at + 1 < body.size(); at++) {
+                Instruction read = body.get(at - 1), test = body.get(at), refusal = body.get(at + 1);
+                if (read.getOpcode() != Opcode.IGET_OBJECT || ((TwoRegisterInstruction) read).getRegisterB() != parameter(m, -1)
+                        || test.getOpcode() != Opcode.IF_NEZ || firstRegister(test) != firstRegister(read)
+                        || refusal.getOpcode() != Opcode.NEW_INSTANCE
+                        || !"Lcom/google/android/engage/service/AppEngageException;".equals(String.valueOf(reference(refusal)))) continue;
+                if (found >= 0) return -1;
+                found = at;
+            }
+            return found;
         }
 
         void wrapperFallback(Method wrapper, Method endpoint, String hook) {
@@ -3418,6 +3652,8 @@ public class DexDiff {
                     case "comments": comments(c); break;
                     case "links": links(c); break;
                     case "analytics": analytics(c); break;
+                    case "answers": answers(c); break;
+                    case "imageOrder": imageOrder(c); break;
                     case "settings": settings(c); break;
                     default: fail("unknown mutation kind " + c.target);
                 }

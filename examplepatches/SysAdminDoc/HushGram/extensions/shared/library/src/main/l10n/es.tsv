@@ -273,6 +273,7 @@ Undo is available until %1$s. Restarting Instagram discards Undo.	Puedes deshace
 No settings import to undo.	No hay ninguna importación de ajustes que deshacer.
 No document picker is available. Your settings haven't changed.	No hay un selector de documentos disponible. Tus ajustes no han cambiado.
 Couldn't use that settings file. Your settings haven't changed.	No se pudo usar ese archivo de ajustes. Tus ajustes no han cambiado.
+That's an overrides file, not a settings file. Turn on Allow importing overrides under Developer, then use Import overrides. Your settings haven't changed.	Ese es un archivo de valores personalizados, no de ajustes. Activa Permitir importar valores personalizados en Desarrollador y luego usa Importar valores personalizados. Tus ajustes no han cambiado.
 HushGram settings exported.	Se exportaron los ajustes de HushGram.
 Couldn't export HushGram settings. Try another file.	No se pudieron exportar los ajustes de HushGram. Prueba otro archivo.
 Settings restored.	Se restauraron los ajustes.

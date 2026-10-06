@@ -25,22 +25,10 @@ jobs:
           python3 tools/check_localization.py
           python3 .github/scripts/test_release_contract.py
           python3 .github/scripts/validate_morphe_metadata.py "$(jq -r .version patches-bundle.json)"
-      - name: Identify source version
-        id: source
-        run: echo "version=$(jq -r .version patches-bundle.json)" >> "$GITHUB_OUTPUT"
-      - name: Test and build Android bundle (no publication)
-        if: steps.source.outputs.version != '1.3.5'
+      - name: Test and build current source (no publication)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: ./gradlew :extensions:extension:testDebugUnitTest :patches:buildAndroid --no-daemon
-      - name: Rebuild recovered 1.3.5 source
-        if: steps.source.outputs.version == '1.3.5'
-        shell: pwsh
-        run: |
-          ./tools/rebuild_recovered_135.ps1
-          ./tools/verify_release_135.ps1
-          New-Item -ItemType Directory -Path patches/build/libs -Force | Out-Null
-          Copy-Item build/recovered-1.3.5/patches-1.3.5.mpp patches/build/libs/patches-1.3.5.mpp
+        run: ./gradlew :extensions:extension:testDebugUnitTest :patches:buildAndroid :patches:generatePatchesList --no-daemon
       - name: Validate bundle
         run: python3 .github/scripts/verify_bundle.py "$(jq -r .version patches-bundle.json)"
       - uses: actions/upload-artifact@v6

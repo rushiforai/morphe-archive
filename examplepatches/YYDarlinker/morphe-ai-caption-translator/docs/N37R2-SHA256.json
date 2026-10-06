@@ -1,0 +1,665 @@
+{
+  "stage": "N37R2 local delivery; physical phone after pending",
+  "generated_at": "2026-10-05T17:43:37+08:00",
+  "source_commit": "6ff1053c74c2deaa10bf733f5328d3b6756abd49",
+  "source_anchor": "anchor/n37r2-6ff1053",
+  "completion_anchor": "anchor/n37r2-final",
+  "baseline_source_commit": "98ac1a16440f64d8b1e095d0f4496cae7cdcece9",
+  "baseline_final_commit": "3c36bf4d0e3ebd499fc5f21e68a1f34e4f111ff5",
+  "baseline_anchor": "anchor/n37-final",
+  "backup_anchor": "backup/pre-n37r2-n37-3c36bf4",
+  "artifacts": [
+    {
+      "kind": "mpp",
+      "path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\patches-1.3.5-本地测试包-n37r2.mpp",
+      "bytes": 1285008,
+      "sha256": "5709345081F1E8407869A892262B24051E0A1742A61A9D7B1BAC5C0AF77504E6",
+      "candidate_path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\patches-1.3.5-local-n37r2-candidate-01.mpp",
+      "output_path": "C:\\Users\\14776\\Documents\\Codex\\2026-10-05\\n37r2-2026-10-05-n37-98ac1a1\\outputs\\patches-1.3.5-本地测试包-n37r2.mpp"
+    },
+    {
+      "kind": "mpe",
+      "path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\extension-1.3.5-本地测试包-n37r2.mpe",
+      "bytes": 3139924,
+      "sha256": "DE3DF2B7D721B4B4D0B21554E40247FED7A519B933211F21BB407F366B347C27",
+      "candidate_path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\extension-1.3.5-local-n37r2-candidate-01.mpe",
+      "output_path": "C:\\Users\\14776\\Documents\\Codex\\2026-10-05\\n37r2-2026-10-05-n37-98ac1a1\\outputs\\extension-1.3.5-本地测试包-n37r2.mpe"
+    },
+    {
+      "kind": "apk",
+      "path": "E:\\Projects\\morphe-caption-v2\\build\\n37r2-composition-final\\YouTube-21.16.256-本地测试包-n37r2-unsigned.apk",
+      "bytes": 198263738,
+      "sha256": "2ECD2395E28DD55222AC0742394D353F60B884D252D119782D7C0C82D85AB5B8",
+      "candidate_path": "E:\\Projects\\morphe-caption-v2\\.verification\\n37r2\\composition-candidate-01\\patched-unsigned.apk",
+      "output_path": "C:\\Users\\14776\\Documents\\Codex\\2026-10-05\\n37r2-2026-10-05-n37-98ac1a1\\outputs\\YouTube-21.16.256-本地测试包-n37r2-unsigned.apk"
+    }
+  ],
+  "validation": {
+    "status": "PASS",
+    "source_commit": "6ff1053c74c2deaa10bf733f5328d3b6756abd49",
+    "baseline": "3c36bf4d0e3ebd499fc5f21e68a1f34e4f111ff5",
+    "tests": {
+      "tests": 750,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "retained_n37_tests": 727,
+    "new_tests": 23,
+    "native": {
+      "status": "PASS",
+      "sdk": 35,
+      "serial": "emulator-5554",
+      "observations": 86,
+      "required_combinations": 14,
+      "required_shape_observations": 56,
+      "max_center_error_px": 0.5,
+      "physical_phone_written": false,
+      "youtube_oem_ui": false
+    },
+    "diagnostics": {
+      "status": "PASS",
+      "emitted_records": 91,
+      "sessions_covered": 86,
+      "all_required_fields_per_record": true,
+      "actual_rect_matches_native_observation": true,
+      "single_line_shapes": 24,
+      "two_line_shapes": 24,
+      "max_emitted_center_error_px": 0.5
+    },
+    "api": {
+      "status": "PASS",
+      "min_api": 28,
+      "baseline": "n37 candidate-04 serialized MPE",
+      "candidate": "n37r2 candidate-01 serialized MPE",
+      "api_table": "C:\\Users\\14776\\AppData\\Local\\Android\\Sdk\\platforms\\android-35\\data\\api-versions.xml",
+      "api_table_sha256": "74573d56d0712739b4763d2a5db64acfe309f3c098a6135257572f1f5302dbcf",
+      "new_instruction_references": 77,
+      "max_since": 24,
+      "checked": [
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/ApiProfiles$$ExternalSyntheticApiModelOutline0;",
+          "method": "m(Ljava/util/function/BooleanSupplier;)Z",
+          "reference_kind": "method",
+          "reference": "Ljava/util/function/BooleanSupplier;->getAsBoolean()Z",
+          "since": 24
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement$$ExternalSyntheticLambda1;",
+          "method": "<init>(Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Object;-><init>()V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "<init>(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/widget/TextView;)V",
+          "reference_kind": "class",
+          "reference": "Ljava/lang/ref/WeakReference;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "<init>(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/widget/TextView;)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Object;-><init>()V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "<init>(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/widget/TextView;)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/ref/WeakReference;-><init>(Ljava/lang/Object;)V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "cancel()V",
+          "reference_kind": "method",
+          "reference": "Landroid/view/ViewTreeObserver;->isAlive()Z",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "cancel()V",
+          "reference_kind": "method",
+          "reference": "Landroid/view/ViewTreeObserver;->removeOnPreDrawListener(Landroid/view/ViewTreeObserver$OnPreDrawListener;)V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "cancel()V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/ref/WeakReference;->clear()V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "observe(Landroid/app/Activity;Landroid/graphics/Rect;Ljava/lang/String;Ljava/lang/String;JJLjava/util/function/BooleanSupplier;)V",
+          "reference_kind": "class",
+          "reference": "Landroid/graphics/Rect;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "observe(Landroid/app/Activity;Landroid/graphics/Rect;Ljava/lang/String;Ljava/lang/String;JJLjava/util/function/BooleanSupplier;)V",
+          "reference_kind": "class",
+          "reference": "Landroid/widget/FrameLayout;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "observe(Landroid/app/Activity;Landroid/graphics/Rect;Ljava/lang/String;Ljava/lang/String;JJLjava/util/function/BooleanSupplier;)V",
+          "reference_kind": "class",
+          "reference": "Ljava/lang/ref/WeakReference;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "observe(Landroid/app/Activity;Landroid/graphics/Rect;Ljava/lang/String;Ljava/lang/String;JJLjava/util/function/BooleanSupplier;)V",
+          "reference_kind": "method",
+          "reference": "Landroid/graphics/Rect;-><init>(Landroid/graphics/Rect;)V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "observe(Landroid/app/Activity;Landroid/graphics/Rect;Ljava/lang/String;Ljava/lang/String;JJLjava/util/function/BooleanSupplier;)V",
+          "reference_kind": "method",
+          "reference": "Landroid/view/ViewTreeObserver;->addOnPreDrawListener(Landroid/view/ViewTreeObserver$OnPreDrawListener;)V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "observe(Landroid/app/Activity;Landroid/graphics/Rect;Ljava/lang/String;Ljava/lang/String;JJLjava/util/function/BooleanSupplier;)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getViewTreeObserver()Landroid/view/ViewTreeObserver;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "observe(Landroid/app/Activity;Landroid/graphics/Rect;Ljava/lang/String;Ljava/lang/String;JJLjava/util/function/BooleanSupplier;)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->isLayoutRequested()Z",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "observe(Landroid/app/Activity;Landroid/graphics/Rect;Ljava/lang/String;Ljava/lang/String;JJLjava/util/function/BooleanSupplier;)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/ref/WeakReference;-><init>(Ljava/lang/Object;)V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "observe(Landroid/app/Activity;Landroid/graphics/Rect;Ljava/lang/String;Ljava/lang/String;JJLjava/util/function/BooleanSupplier;)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/ref/WeakReference;->get()Ljava/lang/Object;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "physicalLeft(Landroid/graphics/Rect;I)I",
+          "reference_kind": "field",
+          "reference": "Landroid/graphics/Rect;->left",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "physicalLeft(Landroid/graphics/Rect;I)I",
+          "reference_kind": "method",
+          "reference": "Landroid/graphics/Rect;->width()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "physicalLeft(Landroid/graphics/Rect;I)I",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Math;->round(F)I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "class",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "field",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->gravity",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "field",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->height",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "field",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->leftMargin",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "field",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->rightMargin",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "field",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->topMargin",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "field",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->width",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->isMarginRelative()Z",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->setMarginEnd(I)V",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout$LayoutParams;->setMarginStart(I)V",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getLayoutDirection()I",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getLayoutParams()Landroid/view/ViewGroup$LayoutParams;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getPaddingLeft()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getScrollX()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getTranslationX()F",
+          "since": 11
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->setLayoutDirection(I)V",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->setLayoutParams(Landroid/view/ViewGroup$LayoutParams;)V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "place(Landroid/widget/FrameLayout;Landroid/widget/FrameLayout;Landroid/graphics/Rect;III)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->setTranslationX(F)V",
+          "since": 11
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "class",
+          "reference": "Landroid/app/Activity;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "class",
+          "reference": "Landroid/widget/FrameLayout;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "class",
+          "reference": "Landroid/widget/TextView;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "class",
+          "reference": "Ljava/lang/StringBuilder;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/graphics/Rect;->exactCenterX()F",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/graphics/Rect;->flattenToString()Ljava/lang/String;",
+          "since": 7
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getHeight()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getLayoutDirection()I",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getLeft()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getScrollX()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getScrollY()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getTop()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getTranslationX()F",
+          "since": 11
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getTranslationY()F",
+          "since": 11
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getVisibility()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->getWidth()I",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->isAttachedToWindow()Z",
+          "since": 19
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->isLayoutRequested()Z",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/TextView;->getLayoutDirection()I",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/TextView;->getTextDirection()I",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/StringBuilder;-><init>(Ljava/lang/String;)V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/StringBuilder;->append(F)Ljava/lang/StringBuilder;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/StringBuilder;->append(I)Ljava/lang/StringBuilder;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/StringBuilder;->append(J)Ljava/lang/StringBuilder;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/StringBuilder;->toString()Ljava/lang/String;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement;",
+          "method": "record(Z)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/ref/WeakReference;->get()Ljava/lang/Object;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionOverlay$$ExternalSyntheticLambda11;",
+          "method": "<init>(JJLjava/lang/String;Lapp/yydarlinker/deepseekcaptions/CaptionOverlay$RenderGuard;)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Object;-><init>()V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionOverlay$$ExternalSyntheticLambda12;",
+          "method": "<init>(JLapp/yydarlinker/deepseekcaptions/CaptionOverlay$RenderGuard;)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Object;-><init>()V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionOverlay$$ExternalSyntheticLambda13;",
+          "method": "<init>(Landroid/app/Activity;)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Object;-><init>()V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionOverlay$$ExternalSyntheticLambda14;",
+          "method": "<init>(JLapp/yydarlinker/deepseekcaptions/CaptionOverlay$RenderGuard;JLapp/yydarlinker/deepseekcaptions/CaptionRenderSpec;Lapp/yydarlinker/deepseekcaptions/RebuildDisplayMerge$Merged;Ljava/lang/String;Ljava/lang/String;JJJZZLjava/util/function/Supplier;)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Object;-><init>()V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionOverlay$$ExternalSyntheticLambda15;",
+          "method": "<init>(JLapp/yydarlinker/deepseekcaptions/CaptionOverlay$RenderGuard;J)V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Object;-><init>()V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionOverlay$$ExternalSyntheticLambda17;",
+          "method": "<init>()V",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Object;-><init>()V",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionOverlay;",
+          "method": "attach(Landroid/app/Activity;)Z",
+          "reference_kind": "method",
+          "reference": "Landroid/widget/FrameLayout;->setLayoutDirection(I)V",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionOverlay;",
+          "method": "lambda$render$14(JJLjava/lang/String;Lapp/yydarlinker/deepseekcaptions/CaptionOverlay$RenderGuard;)Z",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/String;->equals(Ljava/lang/Object;)Z",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionSurface;",
+          "method": "playerLayoutDirection()I",
+          "reference_kind": "class",
+          "reference": "Landroid/view/View;->",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionSurface;",
+          "method": "playerLayoutDirection()I",
+          "reference_kind": "method",
+          "reference": "Landroid/view/View;->getLayoutDirection()I",
+          "since": 17
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/CaptionSurface;",
+          "method": "playerLayoutDirection()I",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/ref/WeakReference;->get()Ljava/lang/Object;",
+          "since": 1
+        },
+        {
+          "class": "Lapp/yydarlinker/deepseekcaptions/RebuildController$3;",
+          "method": "session()Ljava/lang/String;",
+          "reference_kind": "method",
+          "reference": "Ljava/lang/Long;->toString(J)Ljava/lang/String;",
+          "since": 1
+        }
+      ]
+    },
+    "artifacts": [
+      {
+        "kind": "mpp",
+        "path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\patches-1.3.5-local-n37r2-candidate-01.mpp",
+        "bytes": 1285008,
+        "sha256": "5709345081F1E8407869A892262B24051E0A1742A61A9D7B1BAC5C0AF77504E6"
+      },
+      {
+        "kind": "mpe",
+        "path": "E:\\Projects\\morphe-caption-v2\\build\\local-test\\extension-1.3.5-local-n37r2-candidate-01.mpe",
+        "bytes": 3139924,
+        "sha256": "DE3DF2B7D721B4B4D0B21554E40247FED7A519B933211F21BB407F366B347C27"
+      },
+      {
+        "kind": "apk",
+        "path": "E:\\Projects\\morphe-caption-v2\\.verification\\n37r2\\composition-candidate-01\\patched-unsigned.apk",
+        "bytes": 198263738,
+        "sha256": "2ECD2395E28DD55222AC0742394D353F60B884D252D119782D7C0C82D85AB5B8"
+      }
+    ],
+    "official_methods_unchanged": 39,
+    "localization_pairs": 3374,
+    "embedded_mpe_identical": true,
+    "formal_apk_unsigned": true,
+    "physical_phone_after": "pending user validation",
+    "physical_phone_written": false,
+    "source_paths_changed": [
+      "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/CaptionHorizontalPlacement.java",
+      "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/CaptionOverlayV2.java",
+      "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/CaptionSurface.java",
+      "extensions/extension/src/main/java/app/yydarlinker/deepseekcaptions/RebuildController.java"
+    ],
+    "timing_pagination_authority_unchanged": true
+  },
+  "evidence_archive": {
+    "path": "C:\\Users\\14776\\Documents\\Codex\\2026-10-05\\n37r2-2026-10-05-n37-98ac1a1\\outputs\\N37R2-验证证据.zip",
+    "sha256": "0D425AE50ECA855C227E38B5804C9C536F8CE8A29E811EFD57CD7D8B0052A946",
+    "bytes": 311948
+  },
+  "formal_unsigned": true,
+  "physical_phone_written": false,
+  "physical_phone_after": "pending user test of real YouTube scenes and app languages",
+  "README_or_source_metadata_changed": false,
+  "published_or_pushed": false
+}

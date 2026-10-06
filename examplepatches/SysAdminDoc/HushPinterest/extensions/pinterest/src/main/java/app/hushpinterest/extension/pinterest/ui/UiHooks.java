@@ -36,6 +36,31 @@ public final class UiHooks {
         return enabled(FamilyNames.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER);
     }
 
+    /** The toast class a test stands in for the save toasts patching names. */
+    static volatile Class<?> saveToastForTests;
+
+    /** True drops a save confirmation or follow suggestion before Pinterest's toast container builds it. */
+    public static boolean hideSaveToast(Object toast) {
+        if (!enabled(FamilyNames.HIDE_SAVE_TOASTS, Settings.HIDE_SAVE_TOASTS) || !saveToast(toast)) return false;
+        HookStatus.counted(FamilyNames.HIDE_SAVE_TOASTS, "save toast hidden");
+        return true;
+    }
+
+    private static boolean saveToast(Object toast) {
+        Class<?> forced = saveToastForTests;
+        return forced != null ? forced.isInstance(toast) : isSaveToast(toast);
+    }
+
+    /** Answers false here. Patching writes instance checks for the save toast models found in that build. */
+    public static boolean isSaveToast(Object toast) {
+        return false;
+    }
+
+    /** True has Pinterest's image model answer its original rendition first, where it has one. */
+    public static boolean originalImages() {
+        return enabled(FamilyNames.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES);
+    }
+
     public static boolean disableUpdateNag() {
         return enabled(FamilyNames.DISABLE_UPDATE_NAG, Settings.DISABLE_UPDATE_NAG);
     }

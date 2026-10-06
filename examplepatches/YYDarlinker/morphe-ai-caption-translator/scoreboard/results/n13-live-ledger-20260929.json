@@ -1,0 +1,52 @@
+{
+  "scope": "N13 only; b17_1219_1299; no neighbor blocks",
+  "raw_archives_locally_ignored": true,
+  "api_attempts": 2,
+  "limit": 4,
+  "prompt_tokens": 4590,
+  "completion_tokens": 729,
+  "total_tokens": 5319,
+  "provider_reported_all": true,
+  "success_criterion_met": false,
+  "stopped_reason": "both repair replays retained wrong subject; no prompt/model change permitted",
+  "attempts": [
+    {
+      "archive": "live-n13-block17-20260929T101357579301Z.json",
+      "parser_audit": "n13-parser-20260929T101357579301Z.json",
+      "utc": "2026-09-29T10:13:57.579301+00:00",
+      "api_attempts": 1,
+      "model": "qwen3.8-flash",
+      "finish_reason": "stop",
+      "prompt_tokens": 2295,
+      "completion_tokens": 367,
+      "total_tokens": 2662,
+      "production_parser_verified": true,
+      "review_risks": 1,
+      "repair_issues": [
+        "possible_subject_attachment:1219-1240"
+      ],
+      "correct_actor": false,
+      "success_criterion_met": false,
+      "raw_sha256": "47abffc21be8797062f417f2fbeb0ba350c68c292480ff3f95e142f0b9d13f52"
+    },
+    {
+      "archive": "live-n13-block17-20260929T101501957373Z.json",
+      "parser_audit": "n13-parser-20260929T101501957373Z.json",
+      "utc": "2026-09-29T10:15:01.957373+00:00",
+      "api_attempts": 1,
+      "model": "qwen3.8-flash",
+      "finish_reason": "stop",
+      "prompt_tokens": 2295,
+      "completion_tokens": 362,
+      "total_tokens": 2657,
+      "production_parser_verified": true,
+      "review_risks": 1,
+      "repair_issues": [
+        "possible_subject_attachment:1219-1240"
+      ],
+      "correct_actor": false,
+      "success_criterion_met": false,
+      "raw_sha256": "924e1d51e9a211cad6831a551ba78b166ee1a3af006daf818b4a3d90833e932d"
+    }
+  ]
+}

@@ -44,8 +44,8 @@ Cleanup removes the whole directory, including notes and runs.
 
 See [toolchain setup](toolchain.md) for the complete inventory and install
 commands, including PATH setup and optional `uv tool` versus `uvx` usage.
-The Morphe CLI applies `.mpp` bundles; `scripts/repatch.py` finds the Morphe
-JAR in its standard locations with no setup.
+Morphe applies `.mpp` bundles; `scripts/repatch.py` uses `morphe` from PATH
+with no additional setup.
 
 `scripts/apk_recon.py` wraps recon; `scripts/extract_smali.py` uses baksmali for
 DEX → smali conversion, including split `.apkm`/`.xapk` handling. Run
@@ -66,13 +66,13 @@ Manual equivalent:
 1. `aapt dump badging <apk>` — package, version, versionCode, SDK levels, label, launch activity.
 2. `aapt dump xmltree <apk> AndroidManifest.xml | rg -i 'split|requiredSplit'` — split-APK detection.
    For `.apkm`/`.xapk`, extract `base.apk` to a temp dir first and run `aapt` on that.
-3. `uvx apkid <apk>` — compiler, obfuscator, packer, anti-debug, anti-VM (per DEX / lib).
-4. `unzip -l <apk> | rg '\.dex'` — DEX count.
-5. `unzip -l <apk> | rg 'index.android.bundle|libflutter|libapp'` — framework:
-   `index.android.bundle` = React Native, `libflutter.so`/`libapp.so` = Flutter,
-   `assets/www|public/` = Cordova/Capacitor, `libmonodroid.so|assemblies/` = Xamarin/MAUI,
-   else native (Compose vs Kotlin distinguished via `androidx.compose` / `kotlin_module`
-   DEX strings — `apk_recon.py` does all of this automatically).
+3. `apkid <apk>` (install with `brew install apkid`) — compiler, obfuscator, packer, anti-debug, anti-VM (per DEX / lib).
+4. `python3 scripts/extract_smali.py <apk-or-bundle> [output]` — inspect extracted DEX/smali to determine DEX count.
+5. Inspect the APK or bundle contents directly for framework assets such as
+   `index.android.bundle` (React Native), `libflutter.so`/`libapp.so` (Flutter),
+   `assets/www|public/` (Cordova/Capacitor), or `libmonodroid.so|assemblies/`
+   (Xamarin/MAUI). Use `scripts/extract_smali.py` only for DEX/smali inspection;
+   `apk_recon.py` performs the framework checks automatically.
 6. Record native-lib architectures and notable permissions (billing, internet, etc.).
 7. Note HTTP/DI/billing stack signals from the recon report (Retrofit/OkHttp/Ktor/Apollo,
    Hilt/Koin, RevenueCat/Adapty/Play Billing) — they pick the hunt patterns in
@@ -147,10 +147,10 @@ invariants rather than copying framework infrastructure.
    substantial portions. Remote catalogs, settings, recording, and diagnostics
    infrastructure require separate scope decisions, not automatic adoption.
 
-For local-data features, use the [Zalo roadmap](plan.md#local-backupexport) for
-feasibility and recovery requirements. Keep app-specific symbols and experimental
-results in gitignored `analysis/`; do not treat private-file access as proof of
-portable backup or restore.
+For local-data features, establish feasibility and recovery requirements before
+implementation. Keep app-specific symbols and experimental results in gitignored
+`analysis/`; do not treat private-file access as proof of portable backup or
+restore.
 
 ### Recover Kotlin names for obfuscated Kotlin apps
 

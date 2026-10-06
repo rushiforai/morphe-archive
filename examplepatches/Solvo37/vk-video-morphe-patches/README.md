@@ -40,7 +40,7 @@ Android внутри APK: **1.164 / versionCode 52379**.
 
 ## Автообновление
 
-Workflow **VK Video auto build** каждые 6 часов проверяет RuStore, Google Play и APKPure, валидирует package/certificate и выбирает самый новый подтверждённый `versionCode`.
+Workflow **VK Video auto build** каждые 6 часов проверяет RuStore и APKPure, валидирует package/certificate и выбирает самый новый подтверждённый `versionCode`.
 
 Схема версий Releases отделена от Android `versionName`:
 

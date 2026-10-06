@@ -12,14 +12,15 @@ Morphe Patches for some Android apps that I use.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.12](https://github.com/rhubarbshoelaces/morphe-patches/releases/tag/v1.0.12)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;3 patches total
+> **[v1.0.13](https://github.com/rhubarbshoelaces/morphe-patches/releases/tag/v1.0.13)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
-<summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Custom Cartographic Region](#custom-cartographic-region) | Adds dynamic cartographic region overrides to Google Maps. |  |
+| [Hybrid Theme (Dark Menus, Light Map)](#hybrid-theme-dark-menus-light-map) | Allows toggling a light map canvas while keeping app UI in Dark Mode via Customizations menu. |  |
 
 </details>
 

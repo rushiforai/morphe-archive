@@ -58,6 +58,14 @@ class ConstantsTest {
             Constants.COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL.versionCodes(),
         )
         assertEquals(
+            listOf(5001712, 5001812, 5001968, 5002244),
+            Constants.COMPATIBILITIES_STEAM_LINK_LEGACY_EXPERIMENTAL.versionCodes(),
+        )
+        assertEquals(
+            listOf(5002363),
+            Constants.COMPATIBILITIES_STEAM_LINK_NATIVE_XR_EXPERIMENTAL.versionCodes(),
+        )
+        assertEquals(
             listOf("2.0.23" to 5002363),
             Constants.COMPATIBILITIES_STEAM_LINK_5002363.targets(),
         )

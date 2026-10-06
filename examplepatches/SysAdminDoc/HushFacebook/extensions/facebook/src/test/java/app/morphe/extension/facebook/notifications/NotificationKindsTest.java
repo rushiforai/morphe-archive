@@ -61,12 +61,13 @@ public class NotificationKindsTest {
             "HOTP_LOGIN_APPROVALS", "PLATFORM_LOGIN_APPROVAL", "LA_PUSH_AUTHENTICATE", "AUTHENTICATION_FAILED",
             "DEVICE_REQUEST", "GROUP_ACTIVITY", "LIVE_VIDEO_EXPLICIT", "DEFAULT_PUSH_OF_JEWEL_NOTIF", "UNKNOWN");
 
-    /** The six switches, in the order the settings screen shows them. Settings loads with the context, so not static. */
+    /** The seven switches, in the order the settings screen shows them. Settings loads with the context, so not static. */
     private static List<BooleanSetting> switches() {
         return Arrays.asList(
                 Settings.BLOCK_TRENDING_VIDEO_NOTIFICATIONS, Settings.BLOCK_MEMORY_NOTIFICATIONS,
                 Settings.BLOCK_BIRTHDAY_NOTIFICATIONS, Settings.BLOCK_HIGHLIGHT_NOTIFICATIONS,
-                Settings.BLOCK_PEOPLE_YOU_MAY_KNOW_NOTIFICATIONS, Settings.BLOCK_NEARBY_NOTIFICATIONS);
+                Settings.BLOCK_PEOPLE_YOU_MAY_KNOW_NOTIFICATIONS, Settings.BLOCK_NEARBY_NOTIFICATIONS,
+                Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS);
     }
 
     @Before
@@ -146,7 +147,7 @@ public class NotificationKindsTest {
         }
         for (String kind : ALWAYS_POST) assertFalse(kind, NotificationKinds.block(kind));
         for (String kind : Arrays.asList("GROUP_HIGHLIGHTS", "PAGE_HIGHLIGHTS", "NEAR_SAVED_PLACE",
-                "MARKETPLACE_MESSAGE", "MARKETPLACE_ORDER_UPDATE", "SOME_FUTURE_KIND")) {
+                "FB_REGISTRATION_REMINDER", "MARKETPLACE_MESSAGE", "MARKETPLACE_ORDER_UPDATE", "SOME_FUTURE_KIND")) {
             assertFalse(kind, NotificationKinds.block(kind));
         }
         for (BooleanSetting setting : switches()) assertFalse(setting.key, setting.savedValue());
@@ -273,6 +274,28 @@ public class NotificationKindsTest {
             if (!kind.equals(NotificationKinds.kindOf(kind))) odd.add(kind);
         }
         assertEquals(new ArrayList<String>(), odd);
-        assertEquals(12, NotificationKinds.KINDS.size());
+        assertEquals(13, NotificationKinds.KINDS.size());
+        assertTrue(NotificationKinds.KINDS.keySet().containsAll(NotificationKinds.SERVER_ONLY));
+    }
+
+    /**
+     * Issue #57: "finish setting up your account" kept coming to a phone that was signed in. The
+     * reporter's Notification kinds counter read the push's type as FB_REGISTRATION_REMINDER, which
+     * Facebook's own NotificationType doesn't name. Its switch drops it, in whatever case or with
+     * whatever colon suffix the payload carries, and only it: the login and security kinds and
+     * Facebook's generic fallbacks still post.
+     */
+    @Test
+    public void accountSetupRemindersGoByTheirOwnSwitch() {
+        assertFalse(NotificationKinds.block("fb_registration_reminder"));
+        Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS.save(true);
+        assertTrue(NotificationKinds.block("fb_registration_reminder"));
+        assertTrue(NotificationKinds.block("FB_REGISTRATION_REMINDER:12345"));
+        for (String kind : ALWAYS_POST) assertFalse(kind, NotificationKinds.block(kind));
+        for (String kind : Arrays.asList("FB_REGISTRATION", "REGISTRATION_REMINDER", "FB_REGISTRATION_REMINDERS")) {
+            assertFalse(kind, NotificationKinds.block(kind));
+        }
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("blocked while paused", NotificationKinds.block("fb_registration_reminder"));
     }
 }

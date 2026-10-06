@@ -96,6 +96,7 @@ final class SettingsNavigation extends BaseAdapter {
         section("Marketplace", L10n.t("Marketplace"), null, SettingsIcons.MARKETPLACE, false);
         section("Notifications", L10n.t("Notifications"), null, SettingsIcons.NOTIFICATIONS, false);
         section("Links", L10n.t("Links"), null, SettingsIcons.LINKS, false);
+        section("Privacy", L10n.t("Privacy"), null, SettingsIcons.TELEMETRY, false);
         section("Updates", L10n.t("Updates"), null, SettingsIcons.UPDATES, false);
         section("Appearance", L10n.t("Appearance"), null, SettingsIcons.APPEARANCE, false);
         section("Set when you patched", L10n.t("Set when you patched"), null, SettingsIcons.PATCHED, false);

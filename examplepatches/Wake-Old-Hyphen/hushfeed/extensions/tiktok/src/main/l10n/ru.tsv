@@ -1624,6 +1624,8 @@ Show only LIVEs with this many people watching.	Показывать тольк�
 LIVE followers range	Диапазон подписчиков авторов LIVE
 Show only LIVEs from creators with this many followers.	Показывать только трансляции авторов с таким количеством подписчиков.
 Hide the comment bar on opened videos	Скрывать строку комментария в открытых видео
+Hide the Clear display controls	Скрывать кнопки чистого вида
+While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.	В чистом виде также скрывать полосу прогресса, кнопку закрытия и кнопки паузы и скорости внизу. Чтобы выйти из чистого вида, нажмите на видео и удерживайте, затем выберите «Восстановить экран».
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Убирать строку для ввода комментария под видео, открытыми из профиля, по хештегу, со страницы звука или из поиска, чтобы видео занимало экран до самого низа. Кнопка комментариев справа по-прежнему открывает комментарии.
 Build details	Сведения о сборке
 Copy or save patch-time choices and build identity.	Скопируйте или сохраните выбранные при применении патчей параметры и данные о сборке.

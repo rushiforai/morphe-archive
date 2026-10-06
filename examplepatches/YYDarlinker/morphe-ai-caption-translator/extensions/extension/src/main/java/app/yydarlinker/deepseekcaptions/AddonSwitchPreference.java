@@ -5,7 +5,7 @@ import android.view.*;
 import android.widget.*;
 /** Self-managed addon Boolean. Not a host SwitchPreference requiring an official Setting registry entry. */
 @SuppressWarnings("deprecation")
-public class AddonSwitchPreference extends android.preference.Preference {
+public class AddonSwitchPreference extends CaptionSettingPreference {
     private boolean checked,binding; private Switch widget;
     public AddonSwitchPreference(Context c){super(c);}
     public AddonSwitchPreference(Context c,AttributeSet a){super(c,a);}
@@ -23,5 +23,6 @@ public class AddonSwitchPreference extends android.preference.Preference {
         widget.setOnCheckedChangeListener((b,v)->{if(!binding){if(callChangeListener(v))setChecked(v);else setChecked(checked);}});
         row.addView(widget);return row;
     }
+    @Override protected void onBindView(View view){super.onBindView(view);if(widget!=null){widget.setContentDescription(getTitle());CaptionTextResolver.direction(widget,false);}}
     @Override protected void onClick(){if(callChangeListener(!checked))setChecked(!checked);}
 }

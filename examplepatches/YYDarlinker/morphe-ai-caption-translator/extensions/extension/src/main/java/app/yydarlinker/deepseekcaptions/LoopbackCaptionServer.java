@@ -82,7 +82,7 @@ final class LoopbackCaptionServer {
         this.context = context;
         this.secret = randomSecret();
         this.server = new ServerSocket(0, 24, InetAddress.getByName("127.0.0.1"));
-        CaptionDiagnostics.mark(context, "SERVER_STARTED", "本机空字幕轨端口 " + server.getLocalPort());
+        CaptionDiagnostics.mark(context, "SERVER_STARTED", "Local empty-caption track port " + server.getLocalPort());
         Thread acceptThread = new Thread(this::acceptLoop, "DeepSeekCaptionLoopback");
         acceptThread.setDaemon(true);
         acceptThread.start();
@@ -193,6 +193,8 @@ final class LoopbackCaptionServer {
      * translation scheduler.
      */
     private EmptyTrack ownershipTrackFor(String translatedUrl) {
+        // Invisible TimedText can still allocate a native background window.
+        CaptionMusicSuppressor.forceNativeRendererScan();
         String sourceKey = "";
         try {
             String sourceUrl = CaptionEngine.sourceCaptionUrl(translatedUrl);
@@ -216,7 +218,7 @@ final class LoopbackCaptionServer {
                         CaptionDiagnostics.mark(
                                 context,
                                 "NATIVE_RENDERER_MASKED",
-                                "原生 renderer 已接管同格式、同时间轴的不可见镜像轨；源字幕不会与 AI 叠加"
+                                "Native renderer owns an invisible mirror track with matching format and timing; source captions will not overlap AI captions"
                         );
                     }
                     return masked;
@@ -228,10 +230,11 @@ final class LoopbackCaptionServer {
                 CaptionDiagnostics.mark(
                         context,
                         "NATIVE_RENDERER_MASK_FALLBACK",
-                        "原轨镜像不可用，退回不可见 ownership 轨：" +
+                        "Source-track mirror unavailable; falling back to invisible ownership track: " +
                                 CaptionDiagnostics.errorDetail(failure)
                 );
             }
+            CaptionMusicSuppressor.forceNativeRendererScan();
             return emptyTrackFor(translatedUrl);
         }
 
@@ -240,9 +243,10 @@ final class LoopbackCaptionServer {
             CaptionDiagnostics.mark(
                     context,
                     "NATIVE_RENDERER_MASK_FALLBACK",
-                    "原轨尚未在短等待窗口内就绪，退回不可见 ownership 轨"
+                    "Source track not ready within the short wait window; falling back to invisible ownership track"
             );
         }
+        CaptionMusicSuppressor.forceNativeRendererScan();
         return emptyTrackFor(translatedUrl);
     }
 

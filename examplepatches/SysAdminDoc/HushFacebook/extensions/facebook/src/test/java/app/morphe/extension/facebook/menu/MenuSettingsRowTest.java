@@ -10,8 +10,14 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.pm.ResolveInfo;
+import android.net.Uri;
 import android.view.View;
 
 import org.junit.After;
@@ -21,6 +27,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowLooper;
@@ -31,6 +38,7 @@ import java.util.Collections;
 import java.util.List;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
+import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.HushfacebookPause;
@@ -85,6 +93,7 @@ public class MenuSettingsRowTest {
 
     @After
     public void restore() {
+        Settings.SAVED_SHORTCUT.resetToDefault();
         PauseForTests.resume();
         MenuSettingsRow.forget();
         HookStatus.clear();
@@ -191,6 +200,80 @@ public class MenuSettingsRowTest {
         ShadowLooper.idleMainLooper();
         assertEquals("Hushfacebook settings can't open here. Long-press the Facebook logo instead.",
                 ShadowToast.getTextOfLatestToast());
+    }
+
+    /** Facebook's public Saved route, taken by an activity of the app's own package. */
+    private static void addSavedRoute(Context context) {
+        ResolveInfo info = new ResolveInfo();
+        info.activityInfo = new ActivityInfo();
+        info.activityInfo.packageName = context.getPackageName();
+        info.activityInfo.name = context.getPackageName() + ".IntentUriHandler";
+        shadowOf(context.getPackageManager()).addResolveInfoForIntent(
+                new Intent(Intent.ACTION_VIEW, Uri.parse("fb://saved")).setPackage(context.getPackageName()), info);
+    }
+
+    @Test
+    public void withTheSavedShortcutOnASavedRowComesBeforeTheSettingsRow() {
+        addSavedRoute(RuntimeEnvironment.getApplication());
+        Settings.SAVED_SHORTCUT.save(true);
+        List<?> rows = MenuSettingsRow.withRow(Arrays.asList(settings, language));
+        assertEquals(4, rows.size());
+        assertSame(settings, rows.get(0));
+        assertSame(language, rows.get(1));
+        Row saved = (Row) rows.get(2);
+        assertEquals("Saved", saved.title.toString());
+        assertEquals(MenuSettingsRow.SAVED_ROW_ID, saved.id);
+        assertEquals("the row has the first row's icon", 17, saved.icon);
+        assertNull("the row has an address Facebook would open", saved.address);
+        assertEquals(MenuSettingsRow.ROW_ID, ((Row) rows.get(3)).id);
+        assertSame("a list holding our rows is handed back as it is", rows, MenuSettingsRow.withRow(rows));
+    }
+
+    /** Its id is negative like the settings row's, so the loggers skip it and Facebook never matches it. */
+    @Test
+    public void theSavedRowIsKnownByAnIdFacebookNeverUses() {
+        assertTrue(MenuSettingsRow.SAVED_ROW_ID < 0);
+        assertTrue(MenuSettingsRow.SAVED_ROW_ID != MenuSettingsRow.ROW_ID);
+        assertTrue(MenuSettingsRow.isRow(MenuSettingsRow.SAVED_ROW_ID));
+    }
+
+    /** No row without the switch, without a Saved route in this build, or while paused. */
+    @Test
+    public void theSavedRowNeedsTheSwitchTheRouteAndNoPause() {
+        Settings.SAVED_SHORTCUT.save(true);
+        assertEquals("no Saved route", 3, MenuSettingsRow.withRow(Arrays.asList(settings, language)).size());
+        addSavedRoute(RuntimeEnvironment.getApplication());
+        Settings.SAVED_SHORTCUT.save(false);
+        assertEquals("switch off", 3, MenuSettingsRow.withRow(Arrays.asList(settings, language)).size());
+        Settings.SAVED_SHORTCUT.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertEquals("paused", 3, MenuSettingsRow.withRow(Arrays.asList(settings, language)).size());
+        PauseForTests.resume();
+        assertEquals(4, MenuSettingsRow.withRow(Arrays.asList(settings, language)).size());
+    }
+
+    @Test
+    public void aTapOnTheSavedRowOpensSavedInsideTheTask() {
+        addSavedRoute(RuntimeEnvironment.getApplication());
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            assertTrue(MenuSettingsRow.onTap(new View(activity), MenuSettingsRow.SAVED_ROW_ID));
+            Intent started = shadowOf(activity).getNextStartedActivity();
+            assertNotNull("Saved didn't open", started);
+            assertEquals(Uri.parse("fb://saved"), started.getData());
+            assertEquals(activity.getPackageName(), started.getComponent().getPackageName());
+            assertEquals("Saved opened in a new task", 0, started.getFlags() & Intent.FLAG_ACTIVITY_NEW_TASK);
+            ShadowLooper.idleMainLooper();
+            assertNull("the settings opened instead", activity.getFragmentManager().findFragmentByTag("hushfacebook_settings"));
+            assertNull("a toast said it couldn't open", ShadowToast.getTextOfLatestToast());
+        }
+    }
+
+    @Test
+    public void aSavedTapWithNoRouteSaysSoAndStaysOurs() {
+        assertTrue(MenuSettingsRow.onTap(null, MenuSettingsRow.SAVED_ROW_ID));
+        ShadowLooper.idleMainLooper();
+        assertEquals("Saved isn't available in this build.", ShadowToast.getTextOfLatestToast());
     }
 
     @Test

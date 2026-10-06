@@ -2,9 +2,11 @@
 #include <openxr/openxr_loader_negotiation.h>
 
 #include <android/log.h>
+#include <dlfcn.h>
 #include <sys/system_properties.h>
 
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <mutex>
@@ -23,10 +25,32 @@ constexpr char STREAM_POSE_ACTION[] = "pamir-stream-pose";
 // to the controller, pitched against the grip pose, instead of in the base space. VRLink forwards
 // both unchanged: SteamVR reads the linear one as a world vector and the angular one as local to
 // the streamed pose. Measured on the PC side against the motion of the streamed positions
-// (2026-10-04): both sit 42 degrees of pitch away from the streamed pose's frame, which is itself
-// pitched -20.6 degrees against the runtime's grip pose.
-constexpr double DEFAULT_LINEAR_PITCH_DEG = -62.6;
-constexpr double DEFAULT_ANGULAR_PITCH_DEG = -42.0;
+// (2026-10-04): both sit about 42 degrees of pitch away from the streamed pose's frame, which is
+// itself pitched -20.6 degrees against the runtime's grip pose. The exact angle is the pitch of
+// the grip pose against the controller HAL's own pose, 42.25 degrees, measured on still
+// controllers to 0.04 degrees: the velocities are in the HAL's frame.
+constexpr double DEFAULT_LINEAR_PITCH_DEG = -62.85;
+constexpr double DEFAULT_ANGULAR_PITCH_DEG = -42.25;
+
+// The angular velocity local to the streamed pose is what VRLink 2.0.23 expects. VRLink 2.0.20
+// hands it to SteamVR as a base-space vector, as OpenXR defines it (measured 2026-10-06 with the
+// controller HAL pose layer, which reports the same frames), so there it is rotated into the base
+// space. Written by the Morphe patch per Steam Link base, located by the 16-byte magic. Version 1:
+//   +16 version          uint32
+//   +20 angularWorld     uint32  0 = local to the pose (VRLink 2.0.23), 1 = base space (2.0.20 - 2.0.22)
+struct ConfigBlob {
+    char magic[16];
+    std::uint32_t version;
+    std::uint32_t angularWorld;
+    std::uint32_t reserved[2];
+};
+
+__attribute__((used)) volatile ConfigBlob CONFIG = {
+    {'G', 'X', 'R', 'V', 'F', 'R', 'C', 'F', 'G', '0', '0', '0', '0', '0', '0', '1'},
+    1,
+    0,
+    {0, 0},
+};
 
 PFN_xrGetInstanceProcAddr NEXT_GET_INSTANCE_PROC_ADDR = nullptr;
 PFN_xrCreateAction NEXT_CREATE_ACTION = nullptr;
@@ -44,7 +68,14 @@ struct Pitch {
     double sine = 0.0;
     double cosine = 1.0;
 };
+// The controller HAL pose layer reports the HAL's own velocities, already in the right frames.
+constexpr char HAL_POSE_LIBRARY[] = "libgxr_controller_hal_pose.so";
+constexpr char HAL_VELOCITY_ACTIVE_SYMBOL[] = "gxr_controller_hal_velocity_active";
+constexpr unsigned HAL_LOOKUP_EVERY = 512;
+int (*HAL_VELOCITY_ACTIVE)() = nullptr;
+unsigned HAL_LOOKUP_COUNT = 0;
 bool ENABLED = true;
+bool ANGULAR_WORLD = false;
 Pitch LINEAR_PITCH;
 Pitch ANGULAR_PITCH;
 
@@ -68,12 +99,19 @@ Pitch pitchFromProperty(const char* name, double fallbackDegrees) {
 //   debug.gxr.velocity_frame 0            report the runtime's velocities unchanged
 //   debug.gxr.velocity_pitch_linear  deg  pitch of the linear velocity's frame against the grip pose
 //   debug.gxr.velocity_pitch_angular deg  pitch applied to the angular velocity
+//   debug.gxr.velocity_frame.angular local / world: frame of the angular velocity (default from CONFIG)
 void readConfig() {
     char value[PROP_VALUE_MAX]{};
     ENABLED = !readProperty("debug.gxr.velocity_frame", value) || std::atoi(value) != 0;
     LINEAR_PITCH = pitchFromProperty("debug.gxr.velocity_pitch_linear", DEFAULT_LINEAR_PITCH_DEG);
     ANGULAR_PITCH = pitchFromProperty("debug.gxr.velocity_pitch_angular", DEFAULT_ANGULAR_PITCH_DEG);
-    GXR_LOG("controller velocity frame correction %s", ENABLED ? "on" : "off");
+    ANGULAR_WORLD = CONFIG.angularWorld != 0;
+    if (readProperty("debug.gxr.velocity_frame.angular", value)) {
+        if (std::strcmp(value, "world") == 0) ANGULAR_WORLD = true;
+        if (std::strcmp(value, "local") == 0) ANGULAR_WORLD = false;
+    }
+    GXR_LOG("controller velocity frame correction %s (angular %s)", ENABLED ? "on" : "off",
+        ANGULAR_WORLD ? "world" : "local");
 }
 
 // Rotation about +X by the pitch.
@@ -177,13 +215,22 @@ XrResult XRAPI_PTR layerLocateSpace(
     {
         std::lock_guard<std::mutex> lock(MUTEX);
         if (STREAM_SPACES.count(space) == 0) return result;
+        if (!HAL_VELOCITY_ACTIVE && HAL_LOOKUP_COUNT++ % HAL_LOOKUP_EVERY == 0) {
+            // Only looks at a library that is already loaded.
+            if (void* library = dlopen(HAL_POSE_LIBRARY, RTLD_NOW | RTLD_NOLOAD)) {
+                HAL_VELOCITY_ACTIVE =
+                    reinterpret_cast<int (*)()>(dlsym(library, HAL_VELOCITY_ACTIVE_SYMBOL));
+            }
+        }
     }
+    if (HAL_VELOCITY_ACTIVE && HAL_VELOCITY_ACTIVE()) return result;
     if (velocity->velocityFlags & XR_SPACE_VELOCITY_LINEAR_VALID_BIT) {
         velocity->linearVelocity =
             rotated(location->pose.orientation, pitched(LINEAR_PITCH, velocity->linearVelocity));
     }
     if (velocity->velocityFlags & XR_SPACE_VELOCITY_ANGULAR_VALID_BIT) {
-        velocity->angularVelocity = pitched(ANGULAR_PITCH, velocity->angularVelocity);
+        const XrVector3f local = pitched(ANGULAR_PITCH, velocity->angularVelocity);
+        velocity->angularVelocity = ANGULAR_WORLD ? rotated(location->pose.orientation, local) : local;
     }
     return result;
 }

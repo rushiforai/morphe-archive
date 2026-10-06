@@ -210,6 +210,17 @@
     },
     {
       "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/theme/PureBlack.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/theme/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Pure black dark mode: the #101010 dark gray BdsTheme loads, and the background slots of the dark TDS color scheme, asked of the extension, which hands back black while the switch is on. Found by reading the theme and its scheme builder in 449 and 448, with no outside code."
+    },
+    {
+      "paths": [
         "extensions/threads/src/main/java/app/morphe/extension/hushthreads/feed/ReturnRefresh.java"
       ],
       "origin": "ported",

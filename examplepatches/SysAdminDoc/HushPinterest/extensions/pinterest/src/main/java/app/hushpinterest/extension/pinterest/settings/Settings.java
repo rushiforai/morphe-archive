@@ -54,6 +54,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_disable_analytics", TRUE);
     public static final BooleanSetting STRIP_LINK_TRACKING =
             new BooleanSetting("hushpinterest_strip_link_tracking", TRUE);
+    public static final BooleanSetting HIDE_ADVERTISING_ID =
+            new BooleanSetting("hushpinterest_hide_ad_id", TRUE);
     public static final BooleanSetting DOWNLOAD_PINS =
             new BooleanSetting("hushpinterest_download_pins", FALSE);
     public static final BooleanSetting EXTERNAL_BROWSER =
@@ -68,6 +70,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_nav_create", FALSE);
     public static final BooleanSetting HIDE_NAV_NOTIFICATIONS =
             new BooleanSetting("hushpinterest_hide_nav_notifications", FALSE);
+    public static final BooleanSetting HIDE_NAV_SEARCH =
+            new BooleanSetting("hushpinterest_hide_nav_search", FALSE);
     public static final BooleanSetting HIDE_HEADER_BUTTONS =
             new BooleanSetting("hushpinterest_hide_header_buttons", FALSE);
     public static final BooleanSetting HIDE_PIN_MENU_COLLAGE =
@@ -80,6 +84,10 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_comments", FALSE);
     public static final BooleanSetting QUIET_EMAIL_REMINDER =
             new BooleanSetting("hushpinterest_quiet_email_reminder", FALSE);
+    public static final BooleanSetting HIDE_SAVE_TOASTS =
+            new BooleanSetting("hushpinterest_hide_save_toasts", FALSE);
+    public static final BooleanSetting ORIGINAL_IMAGES =
+            new BooleanSetting("hushpinterest_original_images", FALSE);
     public static final BooleanSetting DISABLE_UPDATE_NAG =
             new BooleanSetting("hushpinterest_disable_update_nag", FALSE);
 

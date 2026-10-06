@@ -830,7 +830,7 @@ public class SettingsBackupTest {
         String file = SettingsBackup.create();
         int size = file.getBytes(StandardCharsets.UTF_8).length;
         assertTrue("a file of " + size + " bytes", size <= SettingsBackup.MAX_BYTES);
-        assertTrue("MAX_BYTES says 62 KB at most: " + size, size <= 62 * 1024);
+        assertTrue("MAX_BYTES says 63 KB at most: " + size, size <= 63 * 1024);
         Settings.HIDDEN_WORDS.resetToDefault();
         Settings.KEPT_WORDS.resetToDefault();
 

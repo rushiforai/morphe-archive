@@ -8,7 +8,7 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -51,8 +51,7 @@ internal class FeedEnd(val adapter: String, val flag: FieldReference)
  */
 internal fun BytecodePatchContext.findFeedEnd(): FeedEnd {
     val found = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(BUILD_MODELS, SHIMMER_KEY).forEach { classDef ->
         classDef.methods.forEach { method ->
             if (method.holds(BUILD_MODELS) && method.holds(SHIMMER_KEY)) found += classDef.type to method
         }
@@ -115,8 +114,7 @@ internal fun BytecodePatchContext.endEmptiedFeed(end: FeedEnd) {
  */
 internal fun BytecodePatchContext.endFollowingAtItsCard() {
     val found = mutableListOf<Pair<String, Method>>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(FOLLOWING_FEED).forEach { classDef ->
         classDef.methods.forEach { method ->
             if (!AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "Z" && method.parameterTypes.isEmpty() &&
                 method.holds(FOLLOWING_FEED)

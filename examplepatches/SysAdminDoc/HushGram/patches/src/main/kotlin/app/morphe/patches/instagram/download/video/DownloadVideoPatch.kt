@@ -29,6 +29,7 @@ import app.morphe.patches.instagram.misc.extension.markers
 import app.morphe.patches.instagram.misc.extension.originalName
 import app.morphe.patches.instagram.misc.extension.requireLocals
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
+import app.morphe.patches.instagram.media.quality.target
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
@@ -59,6 +60,8 @@ internal const val ALLOW_VIDEO = "$VIDEO_DOWNLOAD->allow(Ljava/util/List;Ljava/l
 internal const val OFFER_ALL = "$VIDEO_DOWNLOAD->offerAll(Ljava/lang/Object;Ljava/util/ArrayList;)V"
 internal const val SAVE_ALL = "$VIDEO_DOWNLOAD->saveAll(Ljava/lang/Object;Landroid/app/Activity;)V"
 internal const val ALL_OPTION = "$VIDEO_DOWNLOAD->allOption()Ljava/lang/Object;"
+internal const val OWN_POST = "$VIDEO_DOWNLOAD->ownPost(ILjava/lang/Object;)I"
+internal const val OWN_POST_ROW = "$VIDEO_DOWNLOAD->ownPostRow(ILjava/lang/Object;)I"
 
 /** The options the short feed menu's list of kept options reads first and last: "Why you're seeing this" and Report. */
 internal const val WHY_OPTION = "$OPTION->WHY_AM_I_SEEING_THIS:$OPTION"
@@ -92,11 +95,13 @@ private const val CAROUSEL_FIELD = "carousel_media"
  * Download in the menu of anyone's feed post with a video, saving through HushGram's own pipeline.
  *
  * Instagram 449's feed menu builder splits on whose post it is. Your own post goes past the
- * download check and a server flag to Instagram's own Download row, and a tap on it saves a copy
- * with a watermark. Anyone else's post jumps past that row to rows of its own, so it never gets
- * Download. This patch leaves your own rows as Instagram builds them, and where anyone else's rows
- * start it asks the extension, which adds the same row, built the way Instagram builds it, to a
- * post with a video. A tap on Download saves the video from the addresses its Media already holds,
+ * download check, and a flag of the menu's state with a server flag, to Instagram's own Download
+ * row, and a tap on it saves a copy with a watermark. With both flags on, Instagram offers its
+ * download in the share sheet instead. Anyone else's post jumps past that row to rows of its own,
+ * so it never gets Download. On your own post this patch asks the extension at the check and at
+ * the state's flag, which keep the row whenever a tap would save (see [OwnPost]). Where anyone
+ * else's rows start it asks the extension, which adds the same row, built the way Instagram
+ * builds it, to a post with a video. A tap on Download saves the video from the addresses its Media already holds,
  * the way Hushfacebook's Download any video does.
  *
  * A carousel's Media has no video of its own, only its pages. The post's feed state keeps which
@@ -184,6 +189,7 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
     )
     val others = builder.othersRow(eligible)
     val batchAt = builder.batchRow(others)
+    val own = builder.ownPost(eligible, others)
     val option = classDefBy(OPTION)
     val constructor = option.methods.singleOrNull {
         it.name == "<init>" && AccessFlags.PUBLIC.isSet(it.accessFlags) && it.returnType == "V" &&
@@ -279,9 +285,24 @@ internal fun BytecodePatchContext.offerDownloadOnEveryVideo() {
         )
     }
 
+    // Highest index first, so the ones before it stay where they were.
     mutable(builder).addInstructionsAtControlFlowLabel(
         others.at,
         "invoke-static { v${others.state}, v${others.rows} }, $OFFER_VIDEO",
+    )
+    mutable(builder).addInstructions(
+        own.gate + 1,
+        """
+            invoke-static { v${own.flag}, v${own.state} }, $OWN_POST_ROW
+            move-result v${own.flag}
+        """,
+    )
+    mutable(builder).addInstructions(
+        own.result + 1,
+        """
+            invoke-static { v${own.answer}, v${own.state} }, $OWN_POST
+            move-result v${own.answer}
+        """,
     )
     mutable(builder).addInstructions(batchAt, "invoke-static { v${others.state}, v${others.rows} }, $OFFER_ALL")
 
@@ -505,6 +526,65 @@ internal fun Method.othersRow(eligible: Method): OthersRow {
     } ?: throw PatchException("$PATCH: in $where anyone else's rows never read the post")
     return OthersRow(at, state, rows, stateType, adder, kind, context, label, media)
 }
+
+/**
+ * Where your own post's rows ask Instagram whether the post may be downloaded: [result], the
+ * move-result of the builder's one call to the download check, holding the answer in [answer].
+ * Instagram adds its Download row to your own post only on a yes, which a photo, and a video it
+ * doesn't allow downloads of, never get (#57). [state] still holds the builder's state there.
+ * Past a yes, [gate] reads a flag of the state into [flag], and a 0 there jumps to the row. With
+ * the flag and a server flag on, Instagram offers its download in the share sheet and leaves the
+ * row out, which is what an account with downloads allowed gets (#57 again).
+ */
+internal class OwnPost(val result: Int, val answer: Int, val state: Int, val gate: Int, val flag: Int)
+
+/**
+ * Finds [OwnPost] in [this], the feed menu's builder. Only your own posts reach the check (see
+ * [othersRow]). The post the check is handed is read from the builder's state just before, and
+ * nothing between that read and the answer writes the state's register. A no jumps away at once.
+ * On a yes, the first branch is on a boolean of the state read without a branch in between, and
+ * it jumps ahead to the Download row on a 0.
+ */
+internal fun Method.ownPost(eligible: Method, found: OthersRow): OwnPost {
+    val code = code()
+    val where = "$definingClass->$name"
+    val check = code.indices.single { code[it].calls(eligible) }
+    val result = check + 1
+    if (code.getOrNull(result)?.opcode != Opcode.MOVE_RESULT) throw PatchException("$PATCH: $where drops the download check's answer")
+    val answer = (code[result] as OneRegisterInstruction).registerA
+    val offset = if (code[check].opcode in STATIC_CALLS) 0 else 1
+    val post = code[check].argumentRegisters().getOrNull(offset + eligible.parameterTypes.map(Any::toString).indexOf(MEDIA))
+        ?: throw PatchException("$PATCH: $where hands the download check no post")
+    val read = (check - 1 downTo 0).firstOrNull { code[it].writes(post) }
+    if (read == null || code[read].opcode != Opcode.IGET_OBJECT || code[read].referenceText() != found.media.toString()) {
+        throw PatchException("$PATCH: $where doesn't read the post it checks from the menu's state")
+    }
+    val state = (code[read] as TwoRegisterInstruction).registerB
+    if ((read + 1..result).any { code[it].writes(state) } || (read + 1 until check).any { code[it] is OffsetInstruction }) {
+        throw PatchException("$PATCH: in $where the state doesn't reach the download check's answer as it was")
+    }
+    if (code.getOrNull(result + 1)?.opcode != Opcode.IF_EQZ || (code[result + 1] as OneRegisterInstruction).registerA != answer) {
+        throw PatchException("$PATCH: $where doesn't branch on the download check's answer right away")
+    }
+    val gate = (result + 2 until code.size).firstOrNull { code[it] is OffsetInstruction || code[it].writes(state) || code[it].readsFlagOf(state, found.stateType) }
+        ?.takeIf { code[it].opcode == Opcode.IGET_BOOLEAN }
+        ?: throw PatchException("$PATCH: past the download check's yes, $where reads no flag of the menu's state before it branches")
+    val flag = (code[gate] as TwoRegisterInstruction).registerA
+    val branch = (gate + 1 until code.size).firstOrNull { code[it] is OffsetInstruction || code[it].writes(flag) || code[it].writes(state) }
+    val row = branch?.let { code.target(it) } ?: -1
+    if (branch == null || flag == state || code[branch].opcode != Opcode.IF_EQZ || (code[branch] as OneRegisterInstruction).registerA != flag ||
+        row <= branch || row >= found.at || code[row].opcode != Opcode.SGET_OBJECT || code[row].referenceText() != DOWNLOAD
+    ) {
+        throw PatchException("$PATCH: in $where the menu state's flag past the download check doesn't jump ahead to the Download row on a 0")
+    }
+    if (state > 15 || answer > 15 || flag > 15) throw PatchException("$PATCH: in $where v$answer, v$flag and v$state are out of an invoke's reach")
+    return OwnPost(result, answer, state, gate, flag)
+}
+
+/** Whether [this] reads a boolean field of [stateType] from [state]. */
+private fun Instruction.readsFlagOf(state: Int, stateType: String): Boolean =
+    opcode == Opcode.IGET_BOOLEAN && (this as TwoRegisterInstruction).registerB == state &&
+        ((this as ReferenceInstruction).reference as FieldReference).definingClass == stateType
 
 /** A call to [lookup], one of [MEDIA_EXT]'s (Media, int) methods answering a Media, handed an int read from [field], or null when it isn't one. */
 internal class PageRead(val lookup: String, val field: FieldReference?)

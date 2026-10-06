@@ -193,3 +193,6 @@ Tap to see which.	Tippe, um sie zu sehen.
 %1$d default patches aren't in this build	%1$d Standard-Patches sind nicht in diesem Build
 Not in this build: %1$s. Morphe Manager selects it by default. Patch again with it selected to get what it does.	Nicht in diesem Build: %1$s. Morphe Manager wählt diesen Patch standardmäßig aus. Wähle ihn aus und patche erneut, um zu bekommen, was er tut.
 Not in this build: %1$s. Morphe Manager selects them by default. Patch again with them selected to get what they do.	Nicht in diesem Build: %1$s. Morphe Manager wählt diese Patches standardmäßig aus. Wähle sie aus und patche erneut, um zu bekommen, was sie tun.
+Appearance	Darstellung
+Pure black dark mode	Rein schwarzer Dunkelmodus
+Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	Der Dunkelmodus zeigt Schwarz statt Dunkelgrau. Schalte in Threads den Dunkelmodus ein, um das zu sehen.

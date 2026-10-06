@@ -155,19 +155,19 @@ public class HushfacebookPreferenceFragmentTest {
     }
 
     /**
-     * Facebook builds the feed's adapters once per feed view and the tray is one of them, so the
-     * switch can't act before a restart (an S22 check on 2026-09-26 pulled to refresh and got no
-     * tray back). The row says so, after what the tray is.
+     * The tray adapter is built at every start and counts no rows while the switch is on, and the
+     * feed reads that count on a pull to refresh, so a change shows then (a Galaxy S25 check on
+     * 2026-10-05, both ways). The row says so, after what the tray is.
      */
     @Test
-    public void theStoriesTrayRowSaysTheSwitchWaitsForARestart() {
+    public void theStoriesTrayRowSaysAChangeShowsOnTheNextRefresh() {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.STORIES_TRAY);
         try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
             List<Preference> rows = rowsOf(controller);
             int tray = indexOfKey(rows, Settings.HIDE_TOP_STORIES_TRAY.key);
             assertTrue("the Stories tray row is missing", tray >= 0);
             assertEquals("The row of stories at the top of the feed, Create story included. "
-                    + "The switch takes effect when Facebook restarts.",
+                    + "A change shows the next time you pull down to refresh.",
                     String.valueOf(rows.get(tray).getSummary()));
             int between = indexOfKey(rows, Settings.HIDE_STORIES_BETWEEN_POSTS.key);
             assertEquals("the between-post Stories switch isn't immediately after the tray switch", tray + 1, between);

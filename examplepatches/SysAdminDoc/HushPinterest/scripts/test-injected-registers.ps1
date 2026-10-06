@@ -597,7 +597,7 @@ try {
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
     $families = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('family|') } |
         ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',') } })
-    Assert-True ($families.Count -eq 16) 'Every one of the 16 installed families needs a compiled contract.'
+    Assert-True ($families.Count -eq 19) 'Every one of the 19 installed families needs a compiled contract.'
     $declaredFlags = @($families | ForEach-Object { $_.Flag; $_.Caps } | Sort-Object)
     $statusSource = Join-Path $Root 'extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsStatus.java'
     $sourceFlags = @([regex]::Matches([IO.File]::ReadAllText($statusSource), 'public static boolean ([A-Za-z0-9]+)\(\)') |
@@ -660,6 +660,8 @@ try {
         'feature-links-disabled-misses-fallback' = $false
         'feature-links-guarded-fallback-good' = $true
         'feature-links-branch-fallback-good' = $true
+        'feature-links-doubled-host-good' = $true
+        'feature-links-doubled-bad' = $false
         'feature-shortcuts-branch-good' = $true
         'feature-optional-absent' = $true
         'feature-optional-unrelated' = $true
@@ -688,6 +690,7 @@ try {
     foreach ($entry in $featureCases.GetEnumerator()) {
         $name = $entry.Key
         $cleanName = if ($name -eq 'feature-links-partial') { 'feature-links-partial-clean' }
+            elseif ($name -eq 'feature-links-doubled-host-good') { 'feature-links-doubled-clean' }
             elseif ($name -like 'feature-profile-*') { 'feature-profile-clean' }
             elseif ($name -like 'feature-guard-interior-*') { 'feature-guard-interior-clean' }
             elseif ($name -eq 'feature-optional-unrelated') { 'feature-optional-unrelated-clean' }
@@ -707,6 +710,9 @@ try {
         }
         if ($name -eq 'feature-guard-interior-bad') {
             Assert-True ($text.Contains('middle of an injected block')) "An original back edge redirected into an enabled-only return was accepted.`n$text"
+        }
+        if ($name -eq 'feature-links-doubled-bad') {
+            Assert-True ($text.Contains('passes one register twice')) "A hook given one register twice, where the host passed two, was accepted.`n$text"
         }
         if ($name -eq 'feature-unknown-public') {
             Assert-True ($text.Contains('unknown selected patch Hide imaginary pins')) "An unknown public patch selection was accepted.`n$text"

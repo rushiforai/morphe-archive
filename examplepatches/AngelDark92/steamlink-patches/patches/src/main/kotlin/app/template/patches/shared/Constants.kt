@@ -200,13 +200,20 @@ object Constants {
             )
         }
 
-    val COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL =
-        (LEGACY_STEAM_LINK_BUILDS + NATIVE_XR_STEAM_LINK_BUILDS).map { build ->
+    private fun experimentalCompatibilities(builds: List<SteamLinkBuild>) =
+        builds.map { build ->
             steamLinkBuildCompatibility(
                 build = build,
                 name = EXPERIMENTAL_COMPATIBILITY_NAME,
                 description = "Experimental patches for Steam Link ${build.version} build ${build.versionCode}.",
             )
         }
+
+    val COMPATIBILITIES_STEAM_LINK_EXPERIMENTAL =
+        experimentalCompatibilities(LEGACY_STEAM_LINK_BUILDS + NATIVE_XR_STEAM_LINK_BUILDS)
+
+    val COMPATIBILITIES_STEAM_LINK_LEGACY_EXPERIMENTAL = experimentalCompatibilities(LEGACY_STEAM_LINK_BUILDS)
+
+    val COMPATIBILITIES_STEAM_LINK_NATIVE_XR_EXPERIMENTAL = experimentalCompatibilities(NATIVE_XR_STEAM_LINK_BUILDS)
 
 }

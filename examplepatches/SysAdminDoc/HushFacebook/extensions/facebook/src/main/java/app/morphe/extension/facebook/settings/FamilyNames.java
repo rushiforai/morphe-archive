@@ -55,8 +55,12 @@ public final class FamilyNames {
     public static final String TAP_TO_PLAY = "Tap to play";
     public static final String RESUME_LONG_VIDEOS = "Resume long videos";
     public static final String PLAYBACK_QUALITY = "Default playback quality";
+    public static final String PICTURE_IN_PICTURE = "Picture-in-picture";
+    public static final String HDR_BRIGHTNESS = "Turn off HDR brightness";
     public static final String SYSTEM_FONT = "Use the system font";
     public static final String SYSTEM_EMOJI = "Use the phone's emoji";
+    public static final String HAPTICS = "Turn off haptics";
+    public static final String SCREEN_TRANSITIONS = "Turn off screen transitions";
     public static final String EXTERNAL_BROWSER = "Open links in external browser";
     public static final String SANITIZE_SHARING_LINKS = "Sanitize sharing links";
     public static final String UPDATE_PROMPTS = "Stop update prompts";
@@ -67,6 +71,7 @@ public final class FamilyNames {
     public static final String MARKETPLACE_ONLY = "Marketplace only";
     public static final String REELS_TAB = "Hide the Reels tab";
     public static final String REELS_TAB_DOT = "Hide the Reels tab dot";
+    public static final String HIDDEN_TABS = "Hide tabs";
     public static final String BOTTOM_TAB_BAR = "Tab bar at the bottom";
     public static final String FORCE_DARK_MODE = "Force dark mode";
     public static final String MESSENGER_CARD = "Hide the Get Messenger card";
@@ -76,7 +81,11 @@ public final class FamilyNames {
     public static final String PROMO_NOTIFICATIONS = "Block promotional notifications";
     public static final String AD_PREFETCH = "Block background ad prefetch";
     public static final String AD_TELEMETRY = "Block ad telemetry";
+    public static final String ANALYTICS_UPLOADS = "Hold back analytics uploads";
+    public static final String SCREENSHOTS = "Allow screenshots";
+    public static final String SCREENSHOT_DETECTION = "Block screenshot detection";
     public static final String AUDIENCE_NETWORK = "Disable Audience Network";
+    public static final String GAME_ADS = "Block Instant Games ads";
     public static final String AMOLED_THEME = "AMOLED black theme";
     public static final String MATERIAL_YOU_THEME = "Material You theme";
     public static final String RESTORE_TRUST = "Restore screens on re-signed builds";

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MyThemeLight" parent="@style/Theme.AppCompat.Light">
+        <item name="colorPrimary">@color/theme_colorPrimary</item>
+        <item name="colorPrimaryDark">@color/theme_colorPrimaryDark</item>
+        <item name="colorAccent">@color/theme_colorAccent</item>
+        <item name="android:colorAccent">@color/theme_colorAccent</item>
+        <item name="android:colorBackground">#ffffffff</item>
+        <item name="android:windowBackground">#ffffffff</item>
+        <item name="android:textColorPrimary">#ff202124</item>
+        <item name="android:textColorSecondary">#ff595959</item>
+        <item name="android:textColorHint">#ff666a73</item>
+        <item name="android:statusBarColor">@color/theme_colorPrimaryDark</item>
+        <item name="android:navigationBarColor">#ffffffff</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="nicoidSurface">#ffe7e7e7</item>
+        <item name="nicoidSurfacePressed">#ffdadada</item>
+    </style>
+    <style name="MyThemeDark" parent="@style/Theme.AppCompat">
+        <item name="colorPrimary">#ff202b30</item>
+        <item name="colorPrimaryDark">#ff191b20</item>
+        <item name="colorAccent">@color/theme_colorAccent</item>
+        <item name="android:colorAccent">@color/theme_colorAccent</item>
+        <item name="android:colorBackground">#ff191b20</item>
+        <item name="android:windowBackground">#ff191b20</item>
+        <item name="android:textColorPrimary">#ffeeeeee</item>
+        <item name="android:textColorSecondary">#ffcccccc</item>
+        <item name="android:textColorHint">#ffb7bac3</item>
+        <item name="android:statusBarColor">#ff191b20</item>
+        <item name="android:navigationBarColor">#ff191b20</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="nicoidSurface">#ff303238</item>
+        <item name="nicoidSurfacePressed">#ff464950</item>
+    </style>
+</resources>

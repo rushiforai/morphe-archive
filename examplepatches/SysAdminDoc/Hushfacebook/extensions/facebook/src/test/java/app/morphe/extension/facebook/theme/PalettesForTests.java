@@ -30,6 +30,24 @@ public final class PalettesForTests {
             "000000 191D16 2E312B 444840 5C5F58 757870 8F9289 A9ACA3 C5C8BE E1E4D9 F0F2E7 FBFDF3 FFFFFF",
             "000000 181D15 2D3229 43483E 5B6055 74796D 8D9286 A8ADA0 C3C8BB DFE4D7 EEF3E5 F9FEF0 FFFFFF");
 
+    /**
+     * A Galaxy S25's own (One UI 8, read with {@code cmd overlay lookup}, 2026-10-05): a muted
+     * blue-grey accent of chroma 22 over greys of chroma 3 and 6.
+     */
+    public static final int[][] GALAXY_S25 = parse(
+            "000000 0B1A3A 223050 394668 505E81 69769B 8390B6 9DABD1 B8C6EE D9E2FF EEF0FF FEFBFF FFFFFF",
+            "000000 1A1B20 2F3035 46464B 5E5E63 76777C 909095 ABABB0 C7C6CB E3E2E7 F1F0F6 FEFBFF FFFFFF",
+            "000000 191B23 2E3038 44464F 5C5E67 757780 8E909A A9ABB5 C5C6D0 E1E2ED EFF0FB FEFBFF FFFFFF");
+
+    /**
+     * A near-grey palette like the one in #67, whose unseen story rings came out #6D717D: the
+     * Galaxy S25's greys, with its neutral variant (chroma 6) as the accent.
+     */
+    public static final int[][] NEAR_GREY = parse(
+            "000000 191B23 2E3038 44464F 5C5E67 757780 8E909A A9ABB5 C5C6D0 E1E2ED EFF0FB FEFBFF FFFFFF",
+            "000000 1A1B20 2F3035 46464B 5E5E63 76777C 909095 ABABB0 C7C6CB E3E2E7 F1F0F6 FEFBFF FFFFFF",
+            "000000 191B23 2E3038 44464F 5C5E67 757780 8E909A A9ABB5 C5C6D0 E1E2ED EFF0FB FEFBFF FFFFFF");
+
     /** A palette from one of the arrays above, as a phone's own. */
     public static TonePalette palette(int[][] families) {
         return new TonePalette(families, true);

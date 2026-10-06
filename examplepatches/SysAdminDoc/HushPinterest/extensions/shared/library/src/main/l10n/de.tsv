@@ -159,6 +159,7 @@ Promoted and AI-labeled pins	Beworbene und KI-markierte Pins
 Promoted pins	Beworbene Pins
 Promoted pins leave the home feed, search, related pins and boards before they're shown, and ad-only panels stay folded away.	Beworbene Pins verschwinden aus dem Startfeed, der Suche, den ähnlichen Pins und den Pinnwänden, bevor sie angezeigt werden, und reine Werbebereiche bleiben eingeklappt.
 ad-only views	reine Werbeansichten
+Google ad SDK start	Start des Google-Werbe-SDK
 promoted pins in lists	beworbene Pins in Listen
 Privacy	Datenschutz
 Pin actions	Pin-Aktionen
@@ -172,6 +173,8 @@ Analytics launch tasks	Start von Analysediensten
 Analytics uploads	Analyseberichte
 Strip link tracking	Link-Tracking entfernen
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Entfernt bekannte Tracking-Parameter aus kopierten und geteilten Links. Kurzlinks bleiben unverändert.
+Hide advertising ID	Werbe-ID verbergen
+Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest und der Werbe- und Tracking-Code darin lesen eine Werbe-ID aus lauter Nullen, mit eingeschränktem Werbe-Tracking, so als hättest du deine Werbe-ID in den Android-Einstellungen gelöscht.
 Download pins	Pins herunterladen
 Open links in your browser	Links im Browser öffnen
 Open pin Visit links and profile websites in your browser.	Öffnet Besuchen-Links von Pins und Profil-Websites in deinem Browser.
@@ -182,6 +185,7 @@ Hide search history	Suchverlauf ausblenden
 Hide navigation buttons	Navigationsschaltflächen ausblenden
 Hide Create button	Erstellen-Schaltfläche ausblenden
 Hide Notifications button	Benachrichtigungen-Schaltfläche ausblenden
+Hide Search button	Suche-Schaltfläche ausblenden
 Hide header buttons	Kopfzeilenschaltflächen ausblenden
 Filter pin menu	Pin-Menü filtern
 Hide collage menu items	Collage-Menüeinträge ausblenden
@@ -237,6 +241,12 @@ Pin %s	Pin %s
 Retry download	Download erneut starten
 Starts a new download. Android manages it.	Startet einen neuen Download. Android verwaltet ihn.
 Open pin	Pin öffnen
+Set as wallpaper	Als Hintergrund festlegen
+Opens Android's Set as options for this saved image.	Öffnet Androids Optionen unter „Festlegen als“ für dieses gespeicherte Bild.
+Set as	Festlegen als
+Couldn't open Set as. Check Downloads for the saved file.	„Festlegen als“ konnte nicht geöffnet werden. Sieh in den Downloads nach der gespeicherten Datei.
+This download isn't a finished image anymore. Check Downloads.	Dieser Download ist kein fertiges Bild mehr. Sieh in den Downloads nach.
+Resume HushPinterest and turn on Download pins to use this.	Setze HushPinterest fort und schalte Pins herunterladen ein, um das zu verwenden.
 Remove from history	Aus Verlauf entfernen
 Removes this history entry. Files and active downloads are kept.	Entfernt diesen Verlaufseintrag. Dateien und laufende Downloads bleiben erhalten.
 Open Downloads	Downloads öffnen
@@ -260,6 +270,10 @@ Only unfinished saves are listed. Check your chosen location before saving again
 Pin saved. Check Pending saves if its history remains.	Pin gespeichert. Prüfe Ausstehende Speichervorgänge, falls der Verlaufseintrag bleibt.
 Download unavailable	Download nicht verfügbar
 Supplied media details	Bereitgestellte Mediendetails
+Copy media link	Medienlink kopieren
+Media link	Medienlink
+Media link copied.	Medienlink kopiert.
+Couldn't copy the media link. Open the pin again and try again.	Der Medienlink konnte nicht kopiert werden. Öffne den Pin erneut und versuche es noch einmal.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Diese Details stammen aus der Medien-URL und den von Pinterest bereitgestellten Metadaten. Die Datei wurde nicht untersucht.
 Supplied width: %s	Bereitgestellte Breite: %s
 Supplied height: %s	Bereitgestellte Höhe: %s
@@ -301,12 +315,17 @@ Stops screenshot sharing suggestions after Pinterest restarts. Screenshots still
 Hides recent-search rows and carousels on their next layout or visibility update. It doesn't delete account history.	Blendet Zeilen und Karussells mit letzten Suchen bei der nächsten Aktualisierung des Layouts oder der Sichtbarkeit aus. Der Suchverlauf deines Kontos wird nicht gelöscht.
 Hides Create in the bottom bar on its next layout.	Blendet Erstellen in der unteren Leiste bei der nächsten Layout-Aktualisierung aus.
 Hides Notifications in the bottom bar on its next layout.	Blendet Benachrichtigungen in der unteren Leiste bei der nächsten Layout-Aktualisierung aus.
+Hides Search in the bottom bar on its next layout.	Blendet Suche in der unteren Leiste bei der nächsten Layout-Aktualisierung aus.
 Hides trailing header icons on their next layout. Back, text actions and account controls stay available.	Blendet die Symbole am Ende der Kopfleiste bei der nächsten Layout-Aktualisierung aus. Zurück, Textaktionen und Kontosteuerung bleiben verfügbar.
 Hides Add to collage and Remix collage in newly created pin menus. An existing menu won't change.	Blendet Zur Collage hinzufügen und Collage remixen in neu erstellten Pin-Menüs aus. Ein vorhandenes Menü bleibt unverändert.
 Hides Search image in newly created pin menus. An existing menu won't change.	Blendet Bild suchen in neu erstellten Pin-Menüs aus. Ein vorhandenes Menü bleibt unverändert.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Blendet Pin bewerben in neu erstellten Pin-Menüs aus. Ein vorhandenes Menü bleibt unverändert.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Blendet Kommentarbereiche und Vorschauen unter Pins bei der nächsten Aktualisierung des Layouts oder der Sichtbarkeit aus. Wer kommentieren darf, ändert sich nicht.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Schließt neu erstellte optionale Erinnerungen zur E-Mail-Bestätigung. Eine offene Erinnerung bleibt unverändert. Bestätigungs- und Anmeldeprüfungen gelten weiterhin.
+Hide save toasts	Merken-Hinweise ausblenden
+Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Beim Merken eines Pins erscheint kein „Gemerkt auf“-Hinweis zu deiner Pinnwand und kein Vorschlag mehr, der Person zu folgen. Der Pin wird trotzdem gemerkt.
+Original-quality images	Bilder in Originalqualität
+Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Wählt das Originalbild vor der großen Größe, wenn Pinterest eines bereitstellt. Verbraucht mehr Daten. Bereits angezeigte Bilder ändern sich, wenn sie neu geladen werden.
 Save media	Medien speichern
 Recent searches autocomplete	Autovervollständigung der letzten Suchen
 Activity alerts	Aktivitätsmeldungen

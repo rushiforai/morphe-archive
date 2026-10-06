@@ -1,7 +1,9 @@
 # Controller velocity frame layer (2026-10-04)
 
-Source of `libgxr_controller_velocity_frame.so`, installed by the opt-in patch
-**Controller velocity frame (experimental)** for exact Steam Link 2.0.23/5002363.
+Source of `libgxr_controller_velocity_frame.so`, installed by the opt-in patches
+**Controller velocity frame (experimental)** for exact Steam Link 2.0.23/5002363 and
+**Controller velocity frame, 2.0.20 - 2.0.22 (experimental)** for the legacy bases. The two
+differ only in the angular velocity frame they write into the library's config block.
 
 ## What it changes
 
@@ -14,12 +16,19 @@ controller is held at release.
 The layer wraps `xrLocateSpace` for the action spaces of VRLink's controller pose action
 (`pamir-stream-pose`) and rewrites the chained `XrSpaceVelocity`:
 
-- linear: pitched by -62.6 degrees about X in the located pose's frame, then rotated by
+- linear: pitched by -62.85 degrees about X in the located pose's frame, then rotated by
   the located orientation into the base space;
-- angular: pitched by -42 degrees about X and left local to the pose, which is how
-  SteamVR reads what VRLink forwards.
+- angular: pitched by -42.25 degrees about X and left local to the pose, which is how
+  SteamVR reads what VRLink 2.0.23 forwards. VRLink 2.0.20 - 2.0.22 hands it to SteamVR as a
+  base-space vector instead (measured on 2.0.20/5001712 with the controller HAL pose layer,
+  which reports the same frames, see its notes), so there it is also rotated by the located
+  orientation into the base space. The frame is a field of a config block in the library,
+  written by the patch (`GXRVFRCFG0000001`, then version `1` at +16 and `angularWorld` at
+  +20: `0` local, `1` base space); the bundled library carries `0`.
 
 Poses, other spaces and hand tracking are not touched, and no Steam Link code is changed.
+While the [controller HAL pose layer](../controller-hal-pose/README.md) supplies the
+velocities, which are then already in these frames, this layer leaves them alone.
 The layer is independent of the controller pose extrapolation layer; either can be
 installed without the other.
 
@@ -27,8 +36,9 @@ Read when Steam Link starts (logcat tag `GxrVelocityFrame`):
 
 ```
 adb shell setprop debug.gxr.velocity_frame 0            # report the runtime's velocities unchanged
-adb shell setprop debug.gxr.velocity_pitch_linear -62.6
-adb shell setprop debug.gxr.velocity_pitch_angular -42
+adb shell setprop debug.gxr.velocity_pitch_linear -62.85
+adb shell setprop debug.gxr.velocity_pitch_angular -42.25
+adb shell setprop debug.gxr.velocity_frame.angular world  # or local; default from the patch
 ```
 
 ## Measurements (Galaxy XR SM-I610, Steam Link 2.0.23/5002363, 2026-10-04)
@@ -51,7 +61,14 @@ degrees of pitch brought them to 7 / 12 degrees (linear) and 6 / 12 degrees (ang
 which is where the two angles come from. The streamed pose is pitched -20.6 degrees
 against the runtime's grip pose, hence -62.6 for the linear velocity. With the layer, the
 best remaining fixed rotation is 2-4 degrees for the angular velocity and 11-18 degrees
-about inconsistent axes for the linear one, so the defaults were left as they are.
+about inconsistent axes for the linear one.
+
+The table above was taken with -62.6 and -42. The defaults are now -62.85 and -42.25: the
+grip pose is pitched 42.25 degrees against the controller HAL's own pose (measured on still
+controllers to 0.04 degrees, see the
+[controller HAL pose layer notes](../controller-hal-pose/README.md)), and the velocities
+are in the HAL's frame. The measurement was not repeated with the new values; the change
+is a quarter of a degree.
 
 The runtime's own pose extrapolation still moves the pose along the uncorrected vector;
 the layer does not change poses.

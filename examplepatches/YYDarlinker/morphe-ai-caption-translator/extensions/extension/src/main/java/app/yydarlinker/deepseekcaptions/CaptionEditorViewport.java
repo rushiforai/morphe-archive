@@ -4,46 +4,117 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.os.Build;
 import android.view.*;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.WeakHashMap;
 
-/** Scoped IME handling for inline editors in Activity OR nested PreferenceScreen dialog windows. */
-final class CaptionEditorViewport implements ViewTreeObserver.OnGlobalLayoutListener, ViewTreeObserver.OnPreDrawListener {
+/**
+ * Scoped IME handling for inline editors in Activity OR nested PreferenceScreen dialog windows.
+ *
+ * <p>N36 contract: one coordinator per real root/window, the focused editor is the only one that may
+ * act, and the platform native IME resize / TextView caret handling is the primary path. The
+ * coordinator never polls per frame: there is no {@code OnPreDrawListener} and no automatic
+ * bring-into-view driven by focus, by ordinary row rebinding, or by {@code getView} recycling. A
+ * scroll request exists only while the IME is actually served on the registered editor and the user
+ * is actively editing it, and the bounded list padding is submitted only when a window genuinely does
+ * not resize for the IME.</p>
+ */
+final class CaptionEditorViewport {
+    /** Bounded evidence for the N36 IME/layout lane. Read-only; production never branches on it. */
+    static long forcedScrollCalls, paddingCalls, modeFlipCalls, layoutObservations, boundedRevealCalls, caretBrings;
+
     private static final WeakHashMap<View,WindowLease> windows=new WeakHashMap<>();
+
     private static final class WindowLease {
-        int users;
-        int originalAdjustment;
-        boolean changed;
+        final WeakReference<View> root;
+        final int originalAdjustment;
+        final boolean resized;
+        final boolean imeEligible;
+        final ArrayList<CaptionEditorViewport> users=new ArrayList<>(4);
+        View.OnAttachStateChangeListener watcher;
+        WindowLease(View root){
+            this.root=new WeakReference<>(root);
+            int adjust=WindowManager.LayoutParams.SOFT_INPUT_ADJUST_UNSPECIFIED;
+            if(root.getLayoutParams() instanceof WindowManager.LayoutParams)
+                adjust=((WindowManager.LayoutParams)root.getLayoutParams()).softInputMode
+                        & WindowManager.LayoutParams.SOFT_INPUT_MASK_ADJUST;
+            originalAdjustment=adjust;
+            resized=adjust==WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
+            imeEligible=windowAcceptsIme(root);
+        }
     }
-    private final EditText editor;
+
+    private final WeakReference<EditText> owner;
+    private final ViewTreeObserver.OnGlobalLayoutListener layoutListener=this::onGlobalLayout;
     private View root;
+    private WindowLease lease;
     private ListView list;
-    private int originalBottom;
-    private int appliedBottom;
-    private int lastBottom=-1,lastHeight=-1;
-    private int visibleBottom;
-    private boolean queued;
-    CaptionEditorViewport(EditText editor){this.editor=editor;}
+    /** Row recycling only detaches the row; the window lease survives until the real root detaches. */
+    private boolean attached;
+    /** True only while this editor is the registered coordinator target of its window. */
+    private boolean coordinator;
+    /** Armed by genuine user editing; disarmed once the bounded correction has been submitted. */
+    private boolean userEditing;
+    /** The only queued reveal task. A newer request replaces the older one. */
+    private Runnable queuedReveal;
+    private boolean imeVisible;
+    private int originalBottom,appliedBottom;
+    /** Last editor screen top: a scroll that only moves the row is not an occlusion change. */
+    private int lastEditorTop=Integer.MIN_VALUE;
+
+    CaptionEditorViewport(EditText editor){owner=new WeakReference<>(editor);}
+
+    private EditText editor(){return owner.get();}
 
     void attach(){
-        root=editor.getRootView();
+        EditText e=editor();
+        if(e==null)return;
+        root=e.getRootView();
         if(root==null)return;
-        // The Morphe nested screen is a Dialog, not necessarily the Context's Activity window.
-        WindowLease lease=windows.get(root);
+        lease=windows.get(root);
         if(lease==null){
-            lease=new WindowLease();windows.put(root,lease);
-            if(root.getLayoutParams() instanceof WindowManager.LayoutParams){
-                WindowManager.LayoutParams attrs=(WindowManager.LayoutParams)root.getLayoutParams();
-                lease.originalAdjustment=attrs.softInputMode & WindowManager.LayoutParams.SOFT_INPUT_MASK_ADJUST;
-                lease.changed=lease.originalAdjustment!=WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
-                        && adjust(root,WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+            lease=new WindowLease(root);
+            windows.put(root,lease);
+            final View leasedRoot=root;final WindowLease leasedLease=lease;
+            lease.watcher=new View.OnAttachStateChangeListener(){
+                @Override public void onViewAttachedToWindow(View v) {}
+                @Override public void onViewDetachedFromWindow(View v){cleanupWindow(leasedRoot,leasedLease);}
+            };
+            root.addOnAttachStateChangeListener(lease.watcher);
+            if(!lease.resized && lease.imeEligible){
+                // Only a window this extension owns the editing contract for is adjusted, and only when
+                // the platform would not resize it for the IME. The original mode is restored when the
+                // real root detaches; no host flag is cleared globally.
+                if(adjust(root,WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE))modeFlipCalls++;
             }
         }
-        lease.users++;
-        root.getViewTreeObserver().addOnGlobalLayoutListener(this);
-        root.getViewTreeObserver().addOnPreDrawListener(this);
+        if(!lease.users.contains(this))lease.users.add(this);
+        attached=true;
+        if(root.getViewTreeObserver().isAlive())
+            root.getViewTreeObserver().addOnGlobalLayoutListener(layoutListener);
     }
+
+    private static void cleanupWindow(View root,WindowLease lease){
+        if(root==null||lease==null||windows.get(root)!=lease)return;
+        if(lease.root.get()!=root)return;
+        if(lease.originalAdjustment!=WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)adjust(root,lease.originalAdjustment);
+        if(lease.watcher!=null)root.removeOnAttachStateChangeListener(lease.watcher);
+        for(CaptionEditorViewport user:new ArrayList<>(lease.users))user.windowDetached();
+        lease.users.clear();
+        windows.remove(root);
+    }
+
+    private static boolean windowAcceptsIme(View root){
+        if(!(root.getLayoutParams() instanceof WindowManager.LayoutParams))return false;
+        int flags=((WindowManager.LayoutParams)root.getLayoutParams()).flags;
+        if((flags & WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)!=0)return false;
+        if((flags & WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM)!=0)return false;
+        return true;
+    }
+
     private static boolean adjust(View root,int adjustment){
         if(!(root.getLayoutParams() instanceof WindowManager.LayoutParams))return false;
         WindowManager.LayoutParams attrs=new WindowManager.LayoutParams();attrs.copyFrom((WindowManager.LayoutParams)root.getLayoutParams());
@@ -53,82 +124,192 @@ final class CaptionEditorViewport implements ViewTreeObserver.OnGlobalLayoutList
             return true;
         }catch(IllegalArgumentException | IllegalStateException unavailable){return false;}
     }
-    void detach(){
-        restorePadding();
-        if(root==null)return;
-        if(root.getViewTreeObserver().isAlive()){root.getViewTreeObserver().removeOnGlobalLayoutListener(this);root.getViewTreeObserver().removeOnPreDrawListener(this);}
-        WindowLease lease=windows.get(root);
-        if(lease!=null && --lease.users==0){
-            if(lease.changed)adjust(root,lease.originalAdjustment);
-            windows.remove(root);
-        }
-        root=null;
+
+    /** The real window is gone: release its resources and every per-editor task it owned. */
+    private void windowDetached(){
+        detach();
     }
-    void focus(boolean focused){if(focused)reveal();else restorePadding();}
-    // IME inset animations need not trigger layout on an edge-to-edge window.
-    @Override public boolean onPreDraw(){onGlobalLayout();return true;}
-    @Override public void onGlobalLayout(){
-        if(root==null||!editor.hasFocus())return;
-        Rect visible=new Rect();root.getWindowVisibleDisplayFrame(visible);
-        int bottom=visible.bottom;
-        if(bottom<=0)return;
+
+    void detach(){
+        // Row recycling is not window destruction. Keep the root lease until the root really detaches,
+        // so entering/leaving the preview edge never flips the window's soft-input mode.
+        cancelQueuedReveal();
+        restorePadding();
+        View view=root;
+        if(view!=null && view.getViewTreeObserver().isAlive())
+            view.getViewTreeObserver().removeOnGlobalLayoutListener(layoutListener);
+        WindowLease current=lease;
+        if(current!=null){
+            current.users.remove(this);
+            if(current.users.isEmpty() && current.root.get()==null)windows.remove(view);
+        }
+        root=null;lease=null;list=null;
+        attached=false;coordinator=false;userEditing=false;imeVisible=false;
+    }
+
+    private void cancelQueuedReveal(){
+        if(queuedReveal!=null){
+            EditText e=editor();
+            if(e!=null)e.removeCallbacks(queuedReveal);
+            View view=root;
+            if(view!=null)view.removeCallbacks(queuedReveal);
+            queuedReveal=null;
+        }
+    }
+
+    void focus(boolean focused){
+        if(!focused){restorePadding();userEditing=false;imeVisible=false;return;}
+        EditText e=editor();
+        if(e==null||!attached)return;
+        // Focus alone is not an input action: the IME decides visibility and only a real editing
+        // session arms the bounded correction below.
+        registerCoordinator();
+    }
+
+    /** Called by the editor when a genuine text/IME interaction happened (tap, IME command). */
+    void beginUserEdit(){
+        EditText e=editor();
+        if(e==null||!attached)return;
+        userEditing=true;
+        registerCoordinator();
+    }
+
+    private void registerCoordinator(){
+        if(lease==null)return;
+        coordinator=true;
+        for(CaptionEditorViewport other:new ArrayList<>(lease.users))
+            if(other!=this)other.yieldCoordinator();
+    }
+
+    /** Another editor of the same window owns the current interaction: drop our per-editor work. */
+    private void yieldCoordinator(){
+        coordinator=false;userEditing=false;imeVisible=false;
+        cancelQueuedReveal();
+        restorePadding();
+    }
+
+    int appliedBottomPadding(){return appliedBottom;}
+    int originalBottomPadding(){return originalBottom;}
+    static int windowUsers(View root){WindowLease lease=windows.get(root);return lease==null?0:lease.users.size();}
+    static boolean windowAdjusted(View root){WindowLease lease=windows.get(root);return lease!=null&&lease.resized;}
+
+    /**
+     * Layout observation only, and only for the current editor. The IME is closed and the user is not
+     * editing: nothing is requested, so an ordinary preview scroll can never be pulled back to a caret.
+     */
+    void onGlobalLayout(){
+        if(!attached||!coordinator)return;
+        layoutObservations++;
+        EditText e=editor();
+        if(e==null||!e.isAttachedToWindow()||!e.hasFocus())return;
+        boolean visible=imeVisibleOn(e);
+        boolean wasVisible=imeVisible;
+        imeVisible=visible;
+        if(!visible){
+            if(wasVisible)restorePadding(); // The IME closed: one restore, then this window owes nothing.
+            userEditing=false;
+            return;
+        }
+        if(!userEditing)return;
+        int[] screen=new int[2];e.getLocationOnScreen(screen);
+        boolean moved=screen[1]!=lastEditorTop;
+        lastEditorTop=screen[1];
+        if(!moved && appliedBottom!=0)return; // Same place, same occlusion: nothing new to submit.
+        submitBoundedCorrection(e);
+    }
+
+    /** The single bounded correction: at most one list range or one rectangle for one edit session. */
+    private void submitBoundedCorrection(EditText e){
+        if(queuedReveal!=null)return;
+        queuedReveal=()->{
+            queuedReveal=null;
+            EditText current=editor();
+            if(!attached||!coordinator||current==null||current!=e)return;
+            if(!e.isAttachedToWindow()||!e.hasFocus())return;
+            if(!imeVisibleOn(e)){restorePadding();return;}
+            userEditing=false;
+            reveal(e);
+        };
+        e.post(queuedReveal);
+    }
+
+    /** True only when the platform reports a real IME on this editor's window. */
+    private boolean imeVisibleOn(EditText e){
+        View view=root;
+        if(view==null)return false;
         if(Build.VERSION.SDK_INT>=30){
-            WindowInsets insets=root.getRootWindowInsets();
+            WindowInsets insets=view.getRootWindowInsets();
+            if(insets!=null)return insets.isVisible(WindowInsets.Type.ime());
+        }
+        InputMethodManager ime=(InputMethodManager)view.getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
+        return ime!=null && ime.isActive(e);
+    }
+
+    /**
+     * One rectangle or one list range for the caret — never both, and never a padding/requestLayout
+     * per frame. Every coordinate comes from this same root/window: its visible frame, its insets and
+     * the list's real screen position.
+     */
+    private void reveal(EditText e){
+        boundedRevealCalls++;
+        View view=root;
+        if(view==null)return;
+        Rect visible=new Rect();
+        view.getWindowVisibleDisplayFrame(visible);
+        if(visible.bottom<=0)return;
+        if(Build.VERSION.SDK_INT>=30){
+            WindowInsets insets=view.getRootWindowInsets();
             if(insets!=null && insets.isVisible(WindowInsets.Type.ime())){
-                WindowManager wm=(WindowManager)root.getContext().getSystemService(Context.WINDOW_SERVICE);
+                WindowManager wm=(WindowManager)view.getContext().getSystemService(Context.WINDOW_SERVICE);
                 int windowBottom=wm.getCurrentWindowMetrics().getBounds().bottom;
-                bottom=Math.min(bottom,windowBottom-insets.getInsets(WindowInsets.Type.ime()).bottom);
+                visible.bottom=Math.min(visible.bottom,windowBottom-insets.getInsets(WindowInsets.Type.ime()).bottom);
             }
         }
-        visibleBottom=bottom;
-        // On edge-to-edge hosts which ignore adjustResize, give the ListView only the missing
-        // scroll range. Never add the full IME height on top of an already resized viewport.
-        if(list==null){
-            for(ViewParent p=editor.getParent();p!=null;p=p.getParent())if(p instanceof ListView){
+        int margin=CaptionSettingsStyle.dp(e.getContext(),12);
+        int[] screen=new int[2];
+        e.getLocationOnScreen(screen);
+        int lineHeight=Math.max(1,e.getLineHeight());
+        int caret=Math.max(0,e.getSelectionEnd());
+        int y=0;
+        if(e.getLayout()!=null)y=e.getLayout().getLineTop(e.getLayout().getLineForOffset(caret));
+        int top=Math.max(0,y+e.getTotalPaddingTop()-e.getScrollY());
+        int targetBottom=top+lineHeight+margin;
+        if(e.getHeight()>0 && e.getHeight()<=visible.height()-margin*2)targetBottom=e.getHeight()+margin;
+        if(screen[1]+targetBottom<=visible.bottom)return; // Already visible: no rectangle, no scroll.
+        ListView owning=listOf(e);
+        if(owning!=null && (lease==null || !lease.resized)){
+            int[] listScreen=new int[2];owning.getLocationOnScreen(listScreen);
+            int overlap=Math.max(0,listScreen[1]+owning.getHeight()-visible.bottom);
+            int padding=originalBottom+overlap;
+            if(padding!=appliedBottom){
+                owning.setPadding(owning.getPaddingLeft(),owning.getPaddingTop(),owning.getPaddingRight(),padding);
+                appliedBottom=padding;paddingCalls++;
+            }
+            if(overlap>0){forcedScrollCalls++;owning.scrollListBy(overlap);}
+            return;
+        }
+        forcedScrollCalls++;
+        caretBrings++;
+        e.requestRectangleOnScreen(new Rect(0,Math.max(0,top-margin),Math.max(1,e.getWidth()),targetBottom),true);
+    }
+
+    private ListView listOf(EditText e){
+        if(list!=null && list.isAttachedToWindow())return list;
+        for(ViewParent p=e.getParent();p!=null;p=p.getParent())
+            if(p instanceof ListView){
                 list=(ListView)p;originalBottom=list.getPaddingBottom();appliedBottom=originalBottom;break;
             }
-        }
-        if(list!=null){
-            int[] location=new int[2];list.getLocationOnScreen(location);
-            int overlap=Math.max(0,location[1]+list.getHeight()-bottom);
-            int padding=originalBottom+overlap;
-            if(padding!=appliedBottom){list.setPadding(list.getPaddingLeft(),list.getPaddingTop(),list.getPaddingRight(),padding);appliedBottom=padding;}
-        }
-        if(bottom!=lastBottom||root.getHeight()!=lastHeight){
-            lastBottom=bottom;lastHeight=root.getHeight();reveal();
-        }
+        return list;
     }
-    void reveal(){
-        if(queued||!editor.hasFocus())return;
-        queued=true;
-        editor.post(()->{
-            queued=false;if(!editor.hasFocus()||!editor.isAttachedToWindow())return;
-            int caret=Math.max(0,editor.getSelectionEnd());
-            editor.bringPointIntoView(caret);
-            int y=0;
-            if(editor.getLayout()!=null)y=editor.getLayout().getLineTop(editor.getLayout().getLineForOffset(caret));
-            int top=Math.max(0,y+editor.getTotalPaddingTop()-editor.getScrollY());
-            int margin=CaptionSettingsStyle.dp(editor.getContext(),12);
-            // Prefer the entire field if it fits, otherwise keep the insertion line visible.
-            int[] screen=new int[2];editor.getLocationOnScreen(screen);
-            int targetBottom=top+editor.getLineHeight()+margin;
-            if(list!=null && visibleBottom>0){
-                int[] listScreen=new int[2];list.getLocationOnScreen(listScreen);
-                int available=visibleBottom-listScreen[1]-list.getPaddingTop()-margin;
-                if(editor.getHeight()<=available)targetBottom=editor.getHeight()+margin;
-            }
-            editor.requestRectangleOnScreen(new Rect(0,Math.max(0,top-margin),editor.getWidth(),targetBottom),true);
-            // ListView may consider a child visible behind an IME: explicitly correct screen-space overlap.
-            if(list!=null && visibleBottom>0){
-                editor.getLocationOnScreen(screen);
-                int overlap=screen[1]+targetBottom-visibleBottom;
-                if(overlap>0)list.scrollListBy(overlap);
-            }
-        });
-    }
+
     private void restorePadding(){
-        if(list!=null && list.getPaddingBottom()==appliedBottom)
-            list.setPadding(list.getPaddingLeft(),list.getPaddingTop(),list.getPaddingRight(),originalBottom);
-        list=null;lastBottom=-1;lastHeight=-1;visibleBottom=0;
+        // One restore per hide. A later IME session re-reads the current padding, so repeated
+        // open/close cycles cannot accumulate or leak another editor's inset.
+        if(list!=null){
+            int current=list.getPaddingBottom();
+            if(current==appliedBottom && appliedBottom!=originalBottom)
+                list.setPadding(list.getPaddingLeft(),list.getPaddingTop(),list.getPaddingRight(),originalBottom);
+        }
+        list=null;appliedBottom=0;originalBottom=0;lastEditorTop=Integer.MIN_VALUE;
     }
 }

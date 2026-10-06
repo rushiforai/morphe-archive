@@ -11,10 +11,10 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.enableStatus
 import app.morphe.patches.instagram.misc.extension.instagramExtensionPatch
 import app.morphe.patches.instagram.misc.extension.requireStatusMethod
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.patches.instagram.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
@@ -77,8 +77,7 @@ internal class OptionsOpener(val instance: String, val open: String)
  */
 internal fun BytecodePatchContext.findOptionsOpener(): OptionsOpener {
     val found = mutableListOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(OPTIONS_ERROR).forEach { classDef ->
         val holds = classDef.methods.any { method ->
             AccessFlags.STATIC.isSet(method.accessFlags) &&
                 method.parameterTypes.map(Any::toString) == listOf(CONTEXT, FRAGMENT_ACTIVITY, USER_SESSION, "Ljava/util/concurrent/Callable;") &&
@@ -104,8 +103,7 @@ internal fun BytecodePatchContext.findOptionsOpener(): OptionsOpener {
  */
 internal fun BytecodePatchContext.openOnLongPress(opener: OptionsOpener) {
     val found = mutableListOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(*LONG_PRESS_STRINGS.toTypedArray()).forEach { classDef ->
         if (classDef.methods.any { it.isLongPress() && it.strings().containsAll(LONG_PRESS_STRINGS) }) found += classDef.type
     }
     val type = found.singleOrNull() ?: refuse("expected one long press handler holding $LONG_PRESS_STRINGS, found ${found.size}")

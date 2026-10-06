@@ -196,7 +196,7 @@ class MaterialYouTokenFixtureTest {
                 builds++
             }
         }
-        assertEquals("one fixture for each declared build", AppCompatibilities.facebook().single().targets.size, builds)
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
     }
 
     private fun checkBuild(build: String, apk: File, listed: Map<String, Set<Int>>, surfaces: Set<Int>) {
@@ -264,7 +264,7 @@ class MaterialYouTokenFixtureTest {
                 builds++
             }
         }
-        assertEquals("one fixture for each declared build", AppCompatibilities.facebook().single().targets.size, builds)
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
     }
 
     /**
@@ -292,7 +292,7 @@ class MaterialYouTokenFixtureTest {
                 builds++
             }
         }
-        assertEquals("one fixture for each declared build", AppCompatibilities.facebook().single().targets.size, builds)
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
     }
 
     /** AmoledTheme's BACKGROUND_TOKENS, the Mig names in it included. */
@@ -348,7 +348,7 @@ class MaterialYouTokenFixtureTest {
                 builds++
             }
         }
-        assertEquals("one fixture for each declared build", AppCompatibilities.facebook().single().targets.size, builds)
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
     }
 
     /**
@@ -378,7 +378,7 @@ class MaterialYouTokenFixtureTest {
                 builds++
             }
         }
-        assertEquals("one fixture for each declared build", AppCompatibilities.facebook().single().targets.size, builds)
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
     }
 
     private fun checkNightStyles(build: String, version: String, apk: File, listed: Map<String, Set<Int>>) {
@@ -628,4 +628,7 @@ class MaterialYouTokenFixtureTest {
     }
 
     private fun hex(colours: Set<Int>) = colours.joinToString(",") { "#%08X".format(it) }
+
+    /** Every build the bundle pins, one per ABI of each declared version, each a fixture of its own. */
+    private fun declaredBuilds() = AppCompatibilities.facebook().single().targets.sumOf { it.versionCodes.orEmpty().size }
 }

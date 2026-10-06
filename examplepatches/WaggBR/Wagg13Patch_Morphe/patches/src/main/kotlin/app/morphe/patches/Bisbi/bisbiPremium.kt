@@ -60,7 +60,7 @@ val testPremiumPatch = bytecodePatch(
             """
         )
 
-        // --- Mod Signature (sempre aplicada junto) ---
+        // --- Mod Signature ---
         BisbiVersionFingerprint.method.replaceInstruction(
             BisbiVersionFingerprint.instructionMatches.first().index,
             """

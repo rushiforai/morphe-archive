@@ -17,11 +17,7 @@ API Key	cap_api_key
 显示文本调试	cap_text_debug
 字幕诊断	cap_diagnostics
 清空诊断记录	cap_clear_diagnostics
-字幕预览	cap_preview
 横屏	cap_landscape
-竖屏	cap_portrait
-切换为横屏	cap_to_landscape
-切换为竖屏	cap_to_portrait
 刷新	cap_refresh
 复制	cap_copy
 展开	cap_expand
@@ -33,7 +29,7 @@ API Key	cap_api_key
 请输入 API Key	cap_enter_key
 已加密保存；输入可替换	cap_key_saved
 选择模型或输入模型 ID	cap_model_hint
-点按画面切换方向，样式实时预览	cap_preview_hint
+字号与背景设置实时预览	cap_preview_hint
 相对字号 8–15，随画面比例缩放	cap_size_hint
 0% 为透明，100% 为不透明；松手保存	cap_opacity_hint
 展开查看并复制诊断记录	cap_diagnostic_hint
@@ -52,10 +48,6 @@ API Key	cap_api_key
 已自动加密保存	cap_saved
 模型已自动保存	cap_saved
 填写兼容接口地址，停止输入后自动保存	cap_autosave
-点按画面切换方向 · 字号与背景设置实时预览	cap_preview_hint
-竖屏字幕示例	cap_preview
-这是字幕样式预览	cap_preview
-字幕预览，点击切换方向	cap_preview_hint
 排查翻译或时间问题时，可展开查看并复制记录	cap_diagnostic_hint
 展开查看，可手动刷新或复制	cap_diagnostic_hint
 字幕链路诊断	cap_diagnostics
@@ -132,3 +124,30 @@ API 配置方案	cap_profiles_title
 各方案独立保存；清空恢复随界面语言变化的默认要求	cap_prompt_summary
 清除本方案的 API Key	cap_profile_clear_key
 相对字号 8–15；13sp 为舒适基准，随画面比例缩放	cap_size_hint
+Shorts / 视频详情页字高	cap_size
+Shorts / 视频详情页字高（px）；屏幕宽度的 1.5%–3.0%，默认 2.03%；全屏等比例放大，画面收窄时同比缩小	cap_size_hint
+样式预览	cap_preview_hint
+标准：详情页 44.5px · 全屏 55.5px	cap_size_hint
+超小	cap_size_tier_xs
+小	cap_size_tier_s
+标准	cap_size_tier_standard
+大	cap_size_tier_l
+超大	cap_size_tier_xl
+%1$s：详情页 %2$spx · 全屏 %3$spx	cap_size_tier_hint
+翻译中…	cap_caption_translating
+Los subtitulos suenan natural.	cap_preview
+Les sous-titres restent naturels.	cap_preview
+Untertitel wirken naturlich.	cap_preview
+As legendas soam naturais.	cap_preview
+Субтитры звучат естественно.	cap_preview
+字幕は自然に。	cap_preview
+자막은 자연스럽게.	cap_preview
+الترجمة تبدو طبيعية.	cap_preview
+कैप्शन सहज लगें।	cap_preview
+Subtitel terbaca wajar.	cap_preview
+Phụ đề đọc tự nhiên.	cap_preview
+自动翻译语言	cap_languages_title
+选择要加入 YouTube 自动翻译菜单的语言	cap_languages_summary
+Invalid API URL: use an HTTP(S) OpenAI-compatible base URL without credentials or fragments	cap_api_address_invalid
+模型不能为空	cap_model_empty
+Loading diagnostics…	cap_diagnostics_loading

@@ -1,0 +1,60 @@
+---
+import { Image } from 'astro:assets';
+import type { App } from '../data/types';
+
+interface Props {
+  app: App;
+  className?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const { app, className = '', loading = 'lazy' } = Astro.props;
+---
+
+<a
+  href={`/patches#${app.id}`}
+  class={`group relative bg-[#090909] p-5 hover:bg-white/[0.02] hover:shadow-[0_0_20px_rgba(255,255,255,0.06)] transition-[background-color,box-shadow] duration-150 flex flex-col justify-between ${className}`}
+>
+  <!-- Inset 1px hover highlight border (zero layout reflow, zero flickering) -->
+  <div class="absolute inset-0 border border-transparent group-hover:border-white/35 pointer-events-none transition-colors duration-150"></div>
+  <div class="flex items-center gap-3 mb-4">
+    {app.iconUrl ? (
+      <Image
+        src={app.iconUrl}
+        alt={app.name}
+        width={32}
+        height={32}
+        loading={loading}
+        class="w-8 h-8 rounded-md object-cover border border-white/10 shrink-0 transition-transform group-hover:scale-105"
+      />
+    ) : (
+      <div
+        class="w-8 h-8 rounded-sm flex items-center justify-center font-mono text-xs font-bold transition-transform group-hover:scale-105"
+        style={`background-color: ${app.appIconColor}1a; color: ${app.appIconColor}; border: 1px solid ${app.appIconColor}40;`}
+      >
+        {app.name.charAt(0)}
+      </div>
+    )}
+    <div>
+      <h4 class="font-sans text-sm font-semibold text-white">
+        {app.name}
+      </h4>
+      <span class="font-mono text-[10px] text-zinc-500 block truncate max-w-[140px] sm:max-w-[180px]">
+        {app.packageName}
+      </span>
+    </div>
+  </div>
+
+  <div class="pt-2 flex items-center justify-between text-xs font-mono">
+    <div class="text-zinc-400">
+      <span class="text-zinc-200 font-semibold">{app.patchCount}</span>
+      <span class="text-zinc-500 text-[11px] ml-0.5">{app.patchCount === 1 ? 'patch' : 'patches'}</span>
+    </div>
+
+    <div class="flex items-center text-zinc-400">
+      <span class="text-[10px] px-1.5 py-0.5 bg-white/[0.04] border border-white/[0.08] rounded-sm text-zinc-300">
+        v{app.latestSupportedVersion}
+      </span>
+    </div>
+  </div>
+</a>

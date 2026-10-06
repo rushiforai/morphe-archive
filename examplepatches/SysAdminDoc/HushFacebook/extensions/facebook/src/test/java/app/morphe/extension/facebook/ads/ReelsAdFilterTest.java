@@ -5,6 +5,8 @@
 package app.morphe.extension.facebook.ads;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -293,6 +295,32 @@ public class ReelsAdFilterTest {
         String report = String.join("\n", FeedFilterCounters.report());
         assertTrue(report, report.contains(ReelsAdFilter.PAGES_ROUTE + ": 2 lists, 5 items, 1 removed"));
         assertTrue(report, report.contains(ReelsAdFilter.SECTIONS_ROUTE + ": 1 lists, 1 items, 1 removed"));
+    }
+
+    /**
+     * The ad pool's vends ask before handing an ad out. On, each ask is held to no ad and counted;
+     * off, the pool works as Facebook wrote it. A report from a 581 phone (#47) showed the page
+     * filter dropping an ad the pool had already handed out and logged.
+     */
+    @Test
+    public void theAdPoolIsHeldToNoAdOnlyWhileTheSwitchIsOn() {
+        HookStatus.clear();
+        try {
+            assertTrue(ReelsAdFilter.holdPoolAd());
+            assertTrue(ReelsAdFilter.holdPoolAd());
+            Settings.HIDE_SPONSORED_REELS.save(false);
+            assertFalse(ReelsAdFilter.holdPoolAd());
+
+            String line = null;
+            for (String candidate : HookStatus.report()) {
+                if (candidate.startsWith("Hide sponsored reels:")) line = candidate;
+            }
+            assertNotNull(String.join("\n", HookStatus.report()), line);
+            assertTrue(line, line.contains("invoked 3"));
+            assertTrue(line, line.contains(ReelsAdFilter.POOL_HELD + " 2"));
+        } finally {
+            HookStatus.clear();
+        }
     }
 
     /** A page whose iteration fails, the way a list changed on another thread would. */

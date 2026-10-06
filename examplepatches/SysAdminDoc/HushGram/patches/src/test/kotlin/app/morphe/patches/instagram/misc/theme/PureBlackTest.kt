@@ -76,15 +76,24 @@ class PureBlackTest {
         assertEquals("a second pass finds nothing", emptyList<String>(), blackenStyles(styles))
     }
 
-    /** Both literal forms go pure black on their own registers; other colors and the extension's own stay. */
+    /**
+     * Both literal forms go pure black on their own registers in each palette; other colors, a tab
+     * tint and the extension's own stay.
+     */
     @Test
     fun theLiteralsGetPureBlack() {
+        val (first, second) = COMPOSE_PALETTES
         val patch = PatchContexts.of(listOf(
-            classDef(COMPOSE_PALETTE, """
+            classDef(first, """
                 const v0, 0xff0c1014
                 const-wide v2, 0xff0c1014L
                 const v4, 0xff25292e
                 const-wide v2, 0xff25292eL
+                return-void
+            """),
+            classDef(second, """
+                const-wide v0, 0xff0c1014L
+                const-wide v2, 0xffa2aab4L
                 return-void
             """),
             classDef(bottomTabTint, """
@@ -97,9 +106,9 @@ class PureBlackTest {
             """),
         ))
 
-        assertEquals(listOf("$COMPOSE_PALETTE->colors"), patch.blackenLiterals())
+        assertEquals(setOf("$first->colors", "$second->colors"), patch.blackenLiterals().toSet())
 
-        val code = patch.code(COMPOSE_PALETTE)
+        val code = patch.code(first)
         assertEquals(Opcode.CONST, code[0].opcode)
         assertEquals(0, (code[0] as OneRegisterInstruction).registerA)
         assertEquals(PURE_BLACK.toInt(), (code[0] as WideLiteralInstruction).wideLiteral.toInt())
@@ -108,13 +117,21 @@ class PureBlackTest {
         assertEquals(PURE_BLACK, (code[1] as WideLiteralInstruction).wideLiteral)
         assertEquals(0xff25292e.toInt(), (code[2] as WideLiteralInstruction).wideLiteral.toInt())
         assertEquals(0xff25292eL, (code[3] as WideLiteralInstruction).wideLiteral)
+        val v2 = patch.code(second)
+        assertEquals(Opcode.CONST_WIDE, v2[0].opcode)
+        assertEquals(0, (v2[0] as OneRegisterInstruction).registerA)
+        assertEquals(PURE_BLACK, (v2[0] as WideLiteralInstruction).wideLiteral)
+        assertEquals(0xffa2aab4L, (v2[1] as WideLiteralInstruction).wideLiteral)
         assertTrue("bottom tab tint must keep Prism black", patch.code(bottomTabTint).any(::isPrismBlack))
         assertTrue("the extension's own color", patch.code(extension).any(::isPrismBlack))
     }
 
-    /** In each declared build, the Compose palette loses Prism's black without touching unrelated owners. */
+    /**
+     * In each declared build, both Compose palettes lose Prism's black without touching unrelated
+     * owners. 449's second palette (GRAY_1600) colors the Direct inbox and Activity (#51, #58).
+     */
     @Test
-    fun eachDeclaredBuildChangesOnlyTheComposePalette() {
+    fun eachDeclaredBuildChangesOnlyTheComposePalettes() {
         val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()
         for (version in versions) {
@@ -131,12 +148,15 @@ class PureBlackTest {
 
                 val changed = patch.blackenLiterals()
 
-                assertTrue("${bundle.name}: the Compose palette", changed.isNotEmpty() && changed.all { it.startsWith("$COMPOSE_PALETTE->") })
-                assertTrue("${bundle.name}: the Compose palette keeps no Prism black",
-                    patch.classDefBy(COMPOSE_PALETTE).methods.none { method ->
-                        method.implementation?.instructions?.any(::isPrismBlack) == true
-                    })
-                classes.filterNot { it.type == COMPOSE_PALETTE }.forEach { classDef ->
+                assertEquals("${bundle.name}: the Compose palettes", COMPOSE_PALETTES.toSet(),
+                    changed.map { it.substringBefore("->") }.toSet())
+                COMPOSE_PALETTES.forEach { palette ->
+                    assertTrue("${bundle.name}: $palette keeps no Prism black",
+                        patch.classDefBy(palette).methods.none { method ->
+                            method.implementation?.instructions?.any(::isPrismBlack) == true
+                        })
+                }
+                classes.filterNot { it.type in COMPOSE_PALETTES }.forEach { classDef ->
                     assertTrue("${bundle.name}: ${classDef.type} keeps Prism black",
                         patch.classDefBy(classDef.type).methods.any { method ->
                             method.implementation?.instructions?.any(::isPrismBlack) == true

@@ -13,6 +13,7 @@ import app.morphe.patches.instagram.misc.extension.markers
 import app.morphe.patches.instagram.misc.extension.parameterRegisterNumber
 import app.morphe.patches.instagram.misc.extension.patchLog
 import app.morphe.patches.instagram.misc.extension.requireParameterIntact
+import app.morphe.patches.instagram.misc.extension.typesMarked
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -85,7 +86,10 @@ internal fun BytecodePatchContext.hookAutoScroll(found: AutoScroll) {
 internal fun BytecodePatchContext.findAutoScroll(): AutoScroll? {
     fun refuse(detail: String): Nothing = throw PatchException("$PATCH: the Reels auto scroller: $detail")
     val moves = mutableListOf<Method>()
-    classDefForEach { classDef -> classDef.methods.filterTo(moves) { SCROLL_TO_NEXT_REEL in it.markers() } }
+    val marked = typesMarked(SCROLL_TO_NEXT_REEL)
+    classDefForEach { classDef ->
+        if (classDef.type in marked) classDef.methods.filterTo(moves) { SCROLL_TO_NEXT_REEL in it.markers() }
+    }
     if (moves.isEmpty()) {
         patchLog.warning(
             "$PATCH: no method carries Instagram's $SCROLL_TO_NEXT_REEL marker, so Instagram's auto scroll in Reels " +

@@ -4,6 +4,9 @@ import static org.junit.Assert.*;
 
 import android.app.Activity;
 import android.content.Context;
+import android.media.session.MediaController;
+import android.media.session.MediaSession;
+import android.media.session.PlaybackState;
 import android.os.*;
 import android.view.*;
 import android.widget.*;
@@ -43,10 +46,39 @@ public class RebuildIntegrationTest {
   volatile int mode;
   volatile boolean blockResponse;
   CountDownLatch release;
+  MediaSession mediaSession;
+  /** N24 gate: translation requests for these block ids wait until {@link #n24Gate} opens. */
+  final Set<String> n24GateBlocks = ConcurrentHashMap.newKeySet();
+  volatile CountDownLatch n24Gate;
+  /** N24 observation: requests the fixture server has actually received, and its live concurrency. */
+  final Set<String> n24SeenBlocks = ConcurrentHashMap.newKeySet();
+  final java.util.Map<String,AtomicInteger> n24BlockCalls = new ConcurrentHashMap<>();
+  final AtomicInteger n24InFlight = new AtomicInteger();
+  final AtomicInteger n24MaxInFlight = new AtomicInteger();
+  /** N24: when set the fixture answers per block so a presentation can be traced to its own block. */
+  volatile boolean n24TextByBlock;
+  volatile RebuildController.Session n37LedgerSession;
+  final java.util.concurrent.ConcurrentLinkedQueue<String> n37RequestLedger=new java.util.concurrent.ConcurrentLinkedQueue<>();
+  volatile CountDownLatch n37PrefetchGate;
+  final Set<String> n37PrefetchBlocks=ConcurrentHashMap.newKeySet();
+  void n37Identity(String phase,String blockId)throws Exception{
+    RebuildController.Session s=n37LedgerSession;if(s==null)return;
+    synchronized(s){for(int i=0;i<s.blocks.size();i++)if(s.blocks.get(i).id().equals(blockId)){
+      RebuildController.Job j=s.jobs[i];
+      n37RequestLedger.add(new JSONObject().put("phase",phase).put("session",s.id).put("block",blockId)
+        .put("index",i).put("requestID",j==null?-1:j.traceId).put("purpose",j==null?"completed":j.priority?"focus":"prefetch")
+        .put("generation",s.generation).put("time",SystemClock.elapsedRealtime())
+        .put("cancel",j!=null&&j.cancelled).put("publication_finish_sent",s.publication.finishSent()).toString());break;
+    }}
+  }
 
   @Before
   public void setup() throws Exception {
     RebuildController.stop();
+    // N36: the player authority and its transition coordinator are process-wide; a fixture Activity
+    // must start from a clean authority instead of inheriting the previous test owner state.
+    CaptionPlayerTransitionGuard.resetForTests();
+    CaptionPlayerAuthority.resetForTests();
     RebuildApi.reset();
     a = Robolectric.buildActivity(Activity.class).setup().visible().get();
     SourceCaptionCache.clear(a);
@@ -59,12 +91,23 @@ public class RebuildIntegrationTest {
         new Dispatcher() {
           public MockResponse dispatch(RecordedRequest r) {
             calls.incrementAndGet();
+            int live = n24InFlight.incrementAndGet();
+            n24MaxInFlight.accumulateAndGet(live, Math::max);
             try {
               if (blockResponse) release.await(3, TimeUnit.SECONDS);
               JSONObject req = new JSONObject(r.getBody().clone().readUtf8());
               JSONObject input =
                   new JSONObject(
                       req.getJSONArray("messages").getJSONObject(1).getString("content"));
+              String blockId = input.optString("block", "");
+              n37Identity("received",blockId);
+              n24SeenBlocks.add(blockId);
+              n24BlockCalls.computeIfAbsent(blockId, k -> new AtomicInteger()).incrementAndGet();
+              // The N24 tests hold chosen blocks open to prove that a second slot stays usable.
+              CountDownLatch gate = n24Gate;
+              if (gate != null && n24GateBlocks.contains(blockId)) gate.await(15, TimeUnit.SECONDS);
+              if(n37PrefetchGate!=null&&n37PrefetchBlocks.contains(blockId))n37PrefetchGate.await(15,TimeUnit.SECONDS);
+              n37Identity("response",blockId);
               if (mode == 1 && req.has("response_format"))
                 return new MockResponse()
                     .setResponseCode(400)
@@ -82,6 +125,7 @@ public class RebuildIntegrationTest {
               int from = words.getJSONArray(0).getInt(0),
                   to = words.getJSONArray(words.length() - 1).getInt(0);
               String translation="这是一条完整的测试字幕。";
+              if(n24TextByBlock)translation="这是"+blockId+"的译文。";
               if(mode>=5&&mode<=7)translation=mode==5&&input.has("repair")
                   ? "最后说明限制：虽然整集讨论中国现代化为何迅速，但这种速度恐怕不能永远持续。"
                   : "最后，我要对整体增长故事提出一些限制条件，";
@@ -112,6 +156,8 @@ public class RebuildIntegrationTest {
                           .toString());
             } catch (Exception e) {
               return new MockResponse().setResponseCode(500).setBody("{}");
+            } finally {
+              n24InFlight.decrementAndGet();
             }
           }
         });
@@ -133,7 +179,12 @@ public class RebuildIntegrationTest {
   @After
   public void cleanup() throws Exception {
     release.countDown();
+    CountDownLatch gate = n24Gate;
+    if (gate != null) gate.countDown();
+    CountDownLatch finalGate = n37PrefetchGate;
+    if (finalGate != null) finalGate.countDown();
     RebuildController.stop();
+    if (mediaSession != null) mediaSession.release();
     Field f = DeepSeekCaptionHook.class.getDeclaredField("youtubeCronetEngine");
     f.setAccessible(true);
     f.set(null, oldEngine);
@@ -204,7 +255,7 @@ public class RebuildIntegrationTest {
       if (condition.getAsBoolean()) return;
       Thread.sleep(15);
     }
-    fail("timeout;calls=" + calls + ";diagnostics=" + CaptionDiagnostics.uiText(a));
+    fail("timeout;calls=" + calls + ";diagnostics=" + N37DiagnosticsReports.read(a));
   }
 
   void start(boolean original) throws Exception {
@@ -245,11 +296,12 @@ public class RebuildIntegrationTest {
   public void originalModeMakesZeroModelCalls() throws Exception {
     start(true);
     RebuildController.Session s = session();
-    await(() -> s.raw != null);
+    await(() -> s.source != null);
     RebuildController.time(1000);
     advance(100);
     assertEquals(0, calls.get());
     assertTrue(s.sourceOnly);
+    assertTrue(s.lastShown,s.lastShown.endsWith("|This is one complete sentence.|"));
   }
 
   @Test
@@ -375,6 +427,88 @@ public class RebuildIntegrationTest {
     await(() -> next.plans != null && next.plans[0] != null);
     assertEquals(1, calls.get());
     assertEquals(0, next.attempts[0]);
+  }
+
+  @Test
+  public void acceptedResponseIsDurableBeforeImmediateRestart() throws Exception {
+    start(false);
+    RebuildController.Session first = session();
+    await(() -> CaptionDiagnostics.fullText(a).contains(
+        "REBUILD_EVENTS_ACCEPTED | block=0;events=1;session=" + first.id + ";"));
+    assertNotNull(first.plans[0]);
+    assertEquals(1, calls.get());
+
+    RebuildController.stop();
+    start(false);
+    RebuildController.Session replay = session();
+    await(() -> replay.plans != null && replay.plans[0] != null);
+    assertEquals(first.cacheKey, replay.cacheKey);
+    assertEquals(0, replay.attempts[0]);
+    assertEquals(1, calls.get());
+  }
+
+  @Test
+  public void promptModelAndSourceChangesInvalidateAcceptedBlock() throws Exception {
+    start(false);
+    RebuildController.Session first = session();
+    await(() -> first.plans != null && first.plans[0] != null);
+    assertEquals(1, calls.get());
+    String firstKey = first.cacheKey;
+    String blockId = first.blocks.get(0).id();
+
+    RebuildController.stop();
+    DeepSeekConfig.savePrompt(a, "N12 changed translation prompt");
+    start(false);
+    RebuildController.Session changedPrompt = session();
+    await(() -> changedPrompt.plans != null && changedPrompt.plans[0] != null);
+    assertEquals(blockId, changedPrompt.blocks.get(0).id());
+    assertNotEquals(firstKey, changedPrompt.cacheKey);
+    assertEquals(1, changedPrompt.attempts[0]);
+    assertEquals(2, calls.get());
+
+    RebuildController.stop();
+    DeepSeekConfig.saveModel(a, "fixture-n12-model");
+    start(false);
+    RebuildController.Session changedModel = session();
+    await(() -> changedModel.plans != null && changedModel.plans[0] != null);
+    assertEquals(blockId, changedModel.blocks.get(0).id());
+    assertNotEquals(changedPrompt.cacheKey, changedModel.cacheKey);
+    assertEquals(1, changedModel.attempts[0]);
+    assertEquals(3, calls.get());
+
+    RebuildSource changedSource = RebuildR2SourceTest.json(new JSONArray().put(
+        RebuildR2SourceTest.cue(0, 2400, "That is one complete sentence.", false)));
+    RebuildPlanner.Block changedBlock = RebuildPlanner.plan(changedSource).get(0);
+    String changedSourceKey = RebuildCache.identity(
+        changedSource, changedModel.config, changedModel.target);
+    assertEquals(blockId, changedBlock.id());
+    assertNotEquals(changedModel.cacheKey, changedSourceKey);
+    assertNull(RebuildCache.read(a, changedSourceKey, changedSource, changedBlock));
+    assertEquals(3, calls.get());
+  }
+
+  @Test
+  public void seekBackToGeneratedBlockDoesNotRequestAgain() throws Exception {
+    engine.fixtureBody = new JSONObject().put("events", new JSONArray()
+        .put(RebuildR2SourceTest.cue(0, 7000, "This is the first sentence.", false))
+        .put(RebuildR2SourceTest.cue(7000, 7000, "This is the second sentence.", false))
+        .put(RebuildR2SourceTest.cue(14000, 7000, "This is the third sentence.", false))
+        .put(RebuildR2SourceTest.cue(50000, 7000, "This is the distant sentence.", false)))
+        .toString();
+    start(false);
+    RebuildController.Session s = session();
+    await(() -> s.plans != null && s.plans[0] != null && s.plans[1] != null);
+    assertEquals(RebuildController.READY, s.states[1]);
+    int replayedBlockAttempts = s.attempts[1];
+
+    RebuildController.time(50050);
+    await(() -> s.plans[2] != null);
+    int callsBeforeReplay = calls.get();
+    RebuildController.time(7000);
+    advance(1500);
+    assertEquals(RebuildController.READY, s.states[1]);
+    assertEquals(replayedBlockAttempts, s.attempts[1]);
+    assertEquals(callsBeforeReplay, calls.get());
   }
 
   @Test
@@ -607,8 +741,8 @@ public class RebuildIntegrationTest {
     RebuildController.Session s = session();
     await(() -> s.plans != null && s.plans[0] != null);
     String audit = TokenCostAudit.uiText(a);
-    assertTrue(audit, audit.contains("当前优先：1 个逻辑请求 / 1 次 API"));
-    assertTrue(audit, audit.contains("Event rebuild R2"));
+    assertTrue(audit, audit.contains("Current priority: 1 logical request / 1 API call"));
+    assertTrue(audit, audit.contains("Event rebuild / " + RebuildProtocol.VERSION));
   }
 
   @Test
@@ -663,9 +797,9 @@ public class RebuildIntegrationTest {
     await(() -> s.raw != null);
     Method original =
         RebuildController.class.getDeclaredMethod(
-            "original", RebuildController.Session.class, long.class, boolean.class);
+            "original", RebuildController.Session.class, long.class);
     original.setAccessible(true);
-    assertEquals("newer words", original.invoke(null, s, 2000L, false));
+    assertEquals("newer words", original.invoke(null, s, 2000L));
     assertEquals(0, calls.get());
   }
 
@@ -693,8 +827,10 @@ public class RebuildIntegrationTest {
   @Test public void unresolvedReviewDoesNotLoopOrDiscardCandidate()throws Exception {
     mode=6;reviewSource();start(false);RebuildController.Session s=session();
     await(()->s.states!=null&&s.states[0]==RebuildController.WAITING&&s.plans[0]!=null);
+    advance(1500);await(()->calls.get()==2 && s.states[0]==RebuildController.WAITING);
     advance(1500);await(()->s.states[0]==RebuildController.READY);advance(3000);
-    assertEquals(2,calls.get());assertTrue(RebuildReview.score(s.plans[0].issues)>0);
+    assertEquals(3,calls.get());assertEquals(2,s.repairCount);
+    assertTrue(RebuildReview.score(s.plans[0].issues)>0);
     assertNull(RebuildCache.read(a,s.cacheKey,s.source,s.blocks.get(0)));
   }
   @Test public void malformedRepairPreservesPreviouslyValidatedCandidate()throws Exception {
@@ -715,16 +851,21 @@ public class RebuildIntegrationTest {
     release.countDown();await(()->s.plans!=null&&s.plans[0]!=null);
     await(()->CaptionDiagnostics.fullText(a).contains("REBUILD_FALLBACK_END"));
   }
-  @Test public void startupAllowsOnlyOneNeighbourWhileFirstCallIsInFlight()throws Exception {
+  @Test public void startupPrefetchesUpToTheBackgroundBudgetAndKeepsTheFocusLaneFree()throws Exception {
     engine.fixtureBody=new JSONObject().put("events",new JSONArray()
         .put(RebuildR2SourceTest.cue(0,7000,"This is the first sentence.",false))
         .put(RebuildR2SourceTest.cue(7000,7000,"This is the second sentence.",false))
         .put(RebuildR2SourceTest.cue(14000,7000,"This is the third sentence.",false))).toString();
     blockResponse=true;start(false);RebuildController.Session s=session();await(()->calls.get()==1);
+    // N24 D4: the in-flight current block no longer holds the background lane shut.
     RebuildController.time(100);await(()->calls.get()==2);
-    RebuildController.time(200);assertEquals(2,calls.get());
-    assertEquals(1,s.attempts[0]);assertEquals(1,s.attempts[1]);
-    assertEquals(2,Arrays.stream(s.states).filter(x->x==RebuildController.RUNNING).count());
+    assertEquals(2,s.blocks.size());
+    assertEquals(1,s.attempts[0]);
+    assertEquals("the qualified successor is prefetched while the current block is open",1,s.attempts[1]);
+    String diag=CaptionDiagnostics.fullText(a);
+    assertTrue(diag.contains("purpose=focus"));
+    assertTrue("the successor request runs on the background lane",
+        diag.contains("block="+s.blocks.get(1).id()+";purpose=prefetch"));
     release.countDown();await(()->s.plans[0]!=null&&s.plans[1]!=null);
   }
 
@@ -750,12 +891,168 @@ public class RebuildIntegrationTest {
     }
   }
 
-  @Test public void r28WaitingDoesNotSelectOriginalEnglish()throws Exception {
+  @Test public void a01ColdWaitShowsPlaceholderThenReplacesWithinOwnedWindow()throws Exception {
+    engine.startMs=80;engine.duration=6960;
     blockResponse=true; start(false);await(()->calls.get()==1);
+    RebuildController.time(92);
     RebuildController.Session s=session();
-    assertTrue(s.lastShown.startsWith("status:"));
-    assertFalse(s.lastShown.contains("[原文 / Original]"));
-    assertTrue(s.lastShown.contains("字幕翻译中"));
+    assertTrue(s.lastShown,s.lastShown.startsWith("caption:source:0:80_7040"));
+    assertTrue(s.lastShown,s.lastShown.endsWith("|"+CaptionStrings.get(a,"caption_translating")+"|"));
+    assertFalse(s.lastShown.contains("This is one complete sentence."));
+    assertEquals("",s.displayedEvent);
+    release.countDown();await(()->s.plans[0]!=null);
+    RebuildController.time(3195);
+    assertTrue(s.lastShown,s.lastShown.contains("这是一条完整的测试字幕。"));
+    assertTrue(s.lastShown,s.lastShown.startsWith("caption:0:0-"));
+    assertTrue(s.position<7040);
+    assertEquals(7040,s.plans[0].events.get(0).end);
+  }
+  @Test public void rawSourceShowsWaitingPlaceholderWithinOwnedCueBeforeEnginePlanExists()throws Exception {
+    engine.startMs=80;engine.duration=6960;
+    blockResponse=true;start(false);RebuildController.Session s=session();await(()->s.blocks!=null);
+    RebuildSource savedSource=s.source;
+    List<RebuildPlanner.Block> savedBlocks=s.blocks;
+    RebuildProtocol.Plan[] savedPlans=s.plans;
+    synchronized(s){
+      s.source=null;s.blocks=null;s.plans=null;s.position=92;s.lastShown="";
+    }
+    Method render=RebuildController.class.getDeclaredMethod("render",RebuildController.Session.class);
+    render.setAccessible(true);render.invoke(null,s);
+    assertTrue(s.lastShown,s.lastShown.startsWith("caption:source:raw:80_7040"));
+    assertTrue(s.lastShown,s.lastShown.endsWith("|"+CaptionStrings.get(a,"caption_translating")+"|"));
+    assertFalse(s.lastShown,s.lastShown.contains("This is one complete sentence."));
+    assertFalse(s.lastShown,s.lastShown.contains("字幕准备中"));
+    synchronized(s){s.position=7040;s.lastShown="";}
+    render.invoke(null,s);
+    assertFalse(s.lastShown,s.lastShown.contains("This is one complete sentence."));
+    synchronized(s){s.source=savedSource;s.blocks=savedBlocks;s.plans=savedPlans;}
+  }
+  @Test public void lateReadySkipsExpiredFirstBlockAndRequestsCurrentBlock()throws Exception {
+    engine.fixtureBody=new JSONObject().put("events",new JSONArray()
+        .put(RebuildR2SourceTest.cue(80,6960,"This is the first sentence.",false))
+        .put(RebuildR2SourceTest.cue(7040,12960,"This is the current sentence.",false))).toString();
+    RebuildController.time(11420);blockResponse=true;start(false);
+    RebuildController.Session s=session();await(()->s.blocks!=null&&calls.get()==1);
+    assertEquals(0,s.attempts[0]);
+    assertEquals(1,s.attempts[1]);
+    assertTrue(s.lastShown,s.lastShown.endsWith("|"+CaptionStrings.get(a,"caption_translating")+"|"));
+    assertFalse(s.lastShown,s.lastShown.contains("This is the current sentence."));
+    assertTrue(CaptionDiagnostics.fullText(a).contains("skipped_due_to_late_ready"));
+  }
+  @Test public void failedBlockStaysBlankWithEachCueOnlyInItsOwnTime()throws Exception {
+    engine.fixtureBody=new JSONObject().put("events",new JSONArray()
+      .put(RebuildR2SourceTest.cue(80,6960,"This is the first sentence.",false))
+      .put(RebuildR2SourceTest.cue(7040,12960,"Earlier claims belong to this cue.",false))
+      .put(RebuildR2SourceTest.cue(20000,8920,"Later equipment belongs to this cue.",false))).toString();
+    blockResponse=true;start(false);RebuildController.Session s=session();await(()->s.blocks!=null);
+    assertEquals(7040,s.blocks.get(1).start);
+    assertEquals(28920,s.blocks.get(1).end);
+    synchronized(s){s.states[1]=RebuildController.FAILED;s.reasons[1]="semantic_anchor_leak";}
+    RebuildController.time(7000);
+    assertTrue(s.lastShown,s.lastShown.endsWith("|"+CaptionStrings.get(a,"caption_translating")+"|"));
+    assertFalse(s.lastShown,s.lastShown.contains("This is the first sentence."));
+    assertFalse(s.lastShown,s.lastShown.contains("字幕暂不可用"));
+    assertFalse(s.lastShown,s.lastShown.contains("Later equipment"));
+    RebuildController.time(7040);
+    assertTrue(s.lastShown,s.lastShown.startsWith("caption:source:1:7040_20000"));
+    assertTrue(s.lastShown,s.lastShown.endsWith("||"));
+    assertEquals("failed:semantic_anchor_leak",s.fallbackReason);
+    long blankRevision=s.renderRevision;
+    RebuildController.time(7041);
+    assertEquals("identical blank owned cue must remain deduplicated",blankRevision,s.renderRevision);
+    assertFalse(s.lastShown,s.lastShown.contains("Earlier claims"));
+    assertFalse(s.lastShown,s.lastShown.contains("Later equipment"));
+    assertFalse(s.lastShown,s.lastShown.contains("字幕暂不可用"));
+    RebuildController.time(19999);
+    assertFalse(s.lastShown,s.lastShown.contains("Later equipment"));
+    RebuildController.time(20000);
+    assertTrue(s.lastShown,s.lastShown.startsWith("caption:source:1:20000_28920"));
+    assertTrue(s.lastShown,s.lastShown.endsWith("||"));
+    assertTrue("the next blank cue still produces its own render",s.renderRevision>blankRevision);
+    RebuildController.time(28920);
+    assertFalse(s.lastShown,s.lastShown.contains("Later equipment"));
+    assertEquals("",s.fallbackReason);
+    assertTrue(CaptionDiagnostics.fullText(a).contains("reason=failed:semantic_anchor_leak"));
+    RebuildLayoutTest.exportDiagnostics("controller-failure-diagnostics.txt",CaptionDiagnostics.fullText(a));
+  }
+  @Test public void eventReviewStaysBlankWithinOwnedWindowAndKeepsAcceptedTextWhenSafe()throws Exception {
+    engine.startMs=384639;engine.duration=7105;
+    engine.fixtureBody=new JSONObject().put("events",new JSONArray().put(
+        RebuildR2SourceTest.cue(384639,7105,"Foreign investment and explosive economic growth followed.",false))).toString();
+    blockResponse=true;start(false);RebuildController.Session s=session();await(()->s.blocks!=null);
+    RebuildPlanner.Block b=s.blocks.get(0);
+    RebuildProtocol.Event event=new RebuildProtocol.Event(b.from,b.to,b.start,b.end,"可展示的译文");
+    synchronized(s){
+      s.plans[0]=new RebuildProtocol.Plan(Collections.singletonList(event),"{}",Collections.emptyList());
+      s.states[0]=RebuildController.READY;
+    }
+    RebuildController.time(384647);
+    assertTrue(s.lastShown,s.lastShown.contains("可展示的译文"));
+    synchronized(s){
+      s.plans[0]=new RebuildProtocol.Plan(Collections.singletonList(event),"{}",Collections.singletonList(
+          new RebuildReview.Issue(b.from,b.to,"possible_subject_attachment","review",true)));
+    }
+    RebuildController.time(384648);
+    assertTrue(s.lastShown,s.lastShown.startsWith("caption:source:0:"));
+    assertTrue(s.lastShown,s.lastShown.endsWith("||"));
+    assertFalse(s.lastShown,s.lastShown.contains("Foreign investment"));
+    assertFalse(s.lastShown,s.lastShown.contains("可展示的译文"));
+    assertEquals("event_review",s.fallbackReason);
+    assertTrue(CaptionDiagnostics.fullText(a).contains("reason=event_review"));
+    assertFalse(s.lastShown,s.lastShown.contains("字幕暂不可用"));
+    RebuildController.time(391744);
+    assertFalse(s.lastShown,s.lastShown.contains("Foreign investment"));
+    assertEquals("",s.fallbackReason);
+  }
+
+  @Test public void lateArrivalDisplaysAcceptedTextWithoutBorrowingItsOwnEnd()throws Exception {
+    engine.startMs=80;engine.duration=6960;
+    blockResponse=true;start(false);RebuildController.Session s=session();await(()->s.blocks!=null);
+    RebuildPlanner.Block b=s.blocks.get(0);
+    RebuildProtocol.Event event=new RebuildProtocol.Event(b.from,b.to,b.start,b.end,
+        "这段译文来得太晚，不能把后续时间借给当前字幕。");
+    synchronized(s){
+      s.plans[0]=new RebuildProtocol.Plan(Collections.singletonList(event),"{}",Collections.emptyList());
+      s.states[0]=RebuildController.READY;
+    }
+    RebuildController.time(6282);
+    assertTrue(s.lastShown,s.lastShown.endsWith("|"+event.text+"|"));
+    assertFalse(s.lastShown,s.lastShown.contains(CaptionStrings.get(a,"caption_translating")));
+    assertFalse(s.lastShown,s.lastShown.contains("This is one complete sentence."));
+    assertEquals("",s.fallbackReason);
+    String history=CaptionDiagnostics.fullText(a);
+    assertTrue(history.contains("REBUILD_LATE_ARRIVAL_WATCH"));
+    assertTrue(history.contains(";remaining=758"));
+    assertTrue(history.contains("reason=late_arrival_watch"));
+    RebuildLayoutTest.exportDiagnostics("controller-late-diagnostics.txt",history);
+    RebuildController.time(7040);
+    assertTrue(s.lastShown,s.lastShown.endsWith("||"));
+    assertEquals("",s.fallbackReason);
+    assertEquals(7040,event.end);
+  }
+
+  @Test public void emptyStartupStatusUsesWaitingAndActionableStatusesRemainVisible()throws Exception {
+    blockResponse=true;start(false);RebuildController.Session s=session();await(()->s.blocks!=null);
+    RebuildSource saved=s.source;
+    RawCaptionSource.Source savedRaw=s.raw;
+    Method render=RebuildController.class.getDeclaredMethod("render",RebuildController.Session.class);
+    render.setAccessible(true);
+    synchronized(s){s.source=null;s.raw=null;s.status="";s.lastShown="";}
+    render.invoke(null,s);
+    assertTrue(s.lastShown,s.lastShown.endsWith("|"+CaptionStrings.get(a,"caption_translating")+"|"));
+    assertTrue(s.lastShown,s.lastShown.startsWith("status:"));
+    for(String message:new String[]{CaptionStrings.get(a,"configure_api"),
+        "字幕 API 配置错误：invalid_model",CaptionStrings.get(a,"source_unavailable"),
+        CaptionStrings.get(a,"source_retry")}) {
+      synchronized(s){s.status=message;s.lastShown="";}
+      render.invoke(null,s);
+      assertTrue(s.lastShown,s.lastShown.endsWith("|"+message+"|"));
+    }
+    synchronized(s){s.raw=savedRaw;s.status=CaptionStrings.get(a,"source_retry");s.lastShown="";}
+    render.invoke(null,s);
+    assertTrue("retry remains actionable even with a raw cue",s.lastShown.endsWith(
+        "|"+CaptionStrings.get(a,"source_retry")+"|"));
+    synchronized(s){s.source=saved;s.raw=savedRaw;s.status="";}
   }
   @Test public void r28LateReadabilityDoesNotInventOrExtendTimes() {
     RebuildProtocol.Event e=new RebuildProtocol.Event(0,20,80,7040,"在2月24日之前，你只需在网上稍作搜索，就能找到声称俄罗斯拥有世界第二强军事力量的人");
@@ -777,5 +1074,537 @@ public class RebuildIntegrationTest {
     RebuildCache.write(a,s.cacheKey,b,RebuildProtocol.parseBound(json,s.source,b));int before=calls.get();
     RebuildController.time(50050);await(()->s.plans[2]!=null);
     assertEquals(before,calls.get());assertEquals(0,s.attempts[2]);assertTrue(s.cacheChecked[2]);
+  }
+
+  private MediaController pausedMedia() {
+    mediaSession = new MediaSession(a, "paused-caption-fixture");
+    MediaController controller = mediaSession.getController();
+    Shadows.shadowOf(controller).setPackageName(a.getPackageName());
+    a.setMediaController(controller);
+    return controller;
+  }
+
+  private void reportMedia(MediaController controller, int state, long position) {
+    Shadows.shadowOf(controller).setPlaybackState(new PlaybackState.Builder()
+        .setState(state, position, state == PlaybackState.STATE_PLAYING ? 1 : 0,
+            SystemClock.elapsedRealtime()).build());
+  }
+
+  @Test public void n23SeekStormPausesPrefetchButDispatchesFocusWithoutDuplicate() throws Exception {
+    blockResponse=true;
+    RebuildController.Session s=new RebuildController.Session(a, "", "rebuild0001", "n23-storm", "zh-Hans", config(), false, true, CaptionLanguageContext.LEGACY);
+    s.source=new RebuildSource(Arrays.asList(
+        new RebuildSource.Word("First complete sentence",0,6000,0,RebuildSource.Precision.NATIVE),
+        new RebuildSource.Word("Second complete sentence",6000,12000,1,RebuildSource.Precision.NATIVE),
+        new RebuildSource.Word("Third complete sentence",12000,18000,2,RebuildSource.Precision.NATIVE)));
+    s.blocks=Arrays.asList(new RebuildPlanner.Block(0,0,0,s.source),new RebuildPlanner.Block(1,1,1,s.source),new RebuildPlanner.Block(2,2,2,s.source));
+    s.plans=new RebuildProtocol.Plan[3];s.pendingPlans=new RebuildProtocol.Plan[3];
+    s.states=new int[3];s.attempts=new int[3];s.retryAt=new long[3];s.reasons=new String[]{"","",""};
+    s.jobs=new RebuildController.Job[3];s.cacheChecked=new boolean[]{true,true,true};s.position=6500;
+    Field active=RebuildController.class.getDeclaredField("active");active.setAccessible(true);active.set(null,s);
+    long now=SystemClock.elapsedRealtime();s.noteSeek(now);s.noteSeek(now+1000);
+    assertEquals(now+1000+RebuildController.SEEK_STORM_PAUSE_MS,s.prefetchPausedUntil);
+    Method schedule=RebuildController.class.getDeclaredMethod("schedule",RebuildController.Session.class);schedule.setAccessible(true);
+    schedule.invoke(null,s);await(()->s.jobs[1]!=null&&s.jobs[1].sent&&calls.get()==1);
+    assertTrue(s.jobs[1].priority);assertEquals(1,calls.get());
+    for(int i=0;i<5;i++)schedule.invoke(null,s);
+    assertEquals("in-flight focus must not be duplicated",1,calls.get());
+    assertNull("storm must not dispatch new prefetch",s.jobs[2]);
+    release.countDown();await(()->s.plans[1]!=null);
+    assertTrue(CaptionDiagnostics.fullText(a).contains("REBUILD_PREFETCH_PAUSED"));
+    await(()->CaptionDiagnostics.fullText(a).contains("REBUILD_WAIT_BREAKDOWN"));
+    assertTrue(CaptionDiagnostics.fullText(a).contains("slot_wait_ms="));
+    assertTrue(CaptionDiagnostics.fullText(a).contains("validation_repair_retries="));
+    RebuildController.time(6500);s.prefetchPausedUntil=0;schedule.invoke(null,s);
+    await(()->s.plans[2]!=null);assertEquals(2,calls.get());
+  }
+
+  private RebuildController.Session readyPagedSession(MediaController controller) throws Exception {
+    RebuildLayoutTest.shorts = false;
+    RebuildLayoutTest.bounds = new android.graphics.Rect(0, 0, 600, 340);
+    a.getResources().getDisplayMetrics().widthPixels = 1264;
+    a.getResources().getDisplayMetrics().heightPixels = 2736;
+    DeepSeekConfig.saveCaptionSizeTier(a, 2);
+    DeepSeekConfig.saveDisplayTextDebugEnabled(a, true);
+    CaptionOverlay.clear();
+    CaptionOverlay.setActivity(a);
+    RebuildController.Session s = new RebuildController.Session(a,
+        "https://www.youtube.com/api/timedtext?v=rebuild0001&lang=en&tlang=zh-Hans",
+        "rebuild0001", "paused-ready-fixture", "zh-Hans", config(), false, true);
+    s.source = new RebuildSource(Collections.singletonList(new RebuildSource.Word(
+        "A complete source sentence.", 0, 12000, 0, RebuildSource.Precision.NATIVE)));
+    RebuildPlanner.Block block = RebuildContractTest.block(s.source);
+    s.blocks = Collections.singletonList(block);
+    String caption = "第一，中国的国防预算实际上比你以为的更大；这不是因为他们想隐瞒，"
+        + "而是因为会计标准不同，以及纳入和排除的项目不同。";
+    s.plans = new RebuildProtocol.Plan[]{new RebuildProtocol.Plan(Collections.singletonList(
+        new RebuildProtocol.Event(block.from, block.to, block.start, block.end, caption)),
+        "{}", Collections.emptyList())};
+    s.pendingPlans = new RebuildProtocol.Plan[1];
+    s.states = new int[]{RebuildController.READY};
+    s.attempts = new int[1];
+    s.retryAt = new long[1];
+    s.reasons = new String[]{""};
+    s.jobs = new RebuildController.Job[1];
+    s.cacheChecked = new boolean[]{true};
+    s.everReady = true;
+    Field active = RebuildController.class.getDeclaredField("active");
+    active.setAccessible(true);
+    active.set(null, s);
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 0);
+    RebuildController.time(0);
+    assertTrue("fixture must exercise a real page boundary", overlayPages().size() > 1);
+    assertEquals("ready fixture must not request translation", 0, calls.get());
+    return s;
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<RebuildPageLayout.Page> overlayPages() throws Exception {
+    return (List<RebuildPageLayout.Page>) field(null, CaptionOverlay.class, "pendingPages");
+  }
+
+  private long overlayPosition() throws Exception {
+    return (long) field(null, CaptionOverlay.class, "pendingPosition");
+  }
+
+  private int overlayPage() throws Exception {
+    return (int) field(null, CaptionOverlay.class, "shownPage");
+  }
+
+  private int presentationCount() {
+    return CaptionDiagnostics.fullText(a).split("REBUILD_PRESENTED", -1).length - 1;
+  }
+
+  @Test
+  @Config(shadows = {Keys.class, RebuildLayoutTest.Geometry.class})
+  @GraphicsMode(GraphicsMode.Mode.NATIVE)
+  public void pausedMediaJitterKeepsPositionPageAndRenderStable() throws Exception {
+    MediaController controller = pausedMedia();
+    RebuildController.Session s = readyPagedSession(controller);
+    long frozen = overlayPages().get(0).end - 8;
+    assertEquals(0, RebuildPageLayout.indexAt(overlayPages(), frozen));
+    assertEquals(1, RebuildPageLayout.indexAt(overlayPages(), frozen + 16));
+    reportMedia(controller, PlaybackState.STATE_NONE, frozen);
+    RebuildController.time(frozen);
+    assertEquals("a non-paused hook must not establish a freeze", -1, s.pausedDisplayPosition);
+    reportMedia(controller, PlaybackState.STATE_PAUSED, frozen);
+    advance(80);
+    assertEquals("first paused tick must capture the reported position", frozen, s.pausedDisplayPosition);
+    assertEquals(frozen, overlayPosition());
+    long revision = s.renderRevision;
+    int presented = presentationCount();
+    int maintenanceScans = 0;
+    for (int i = 0; i < 10; i++) {
+      List<RebuildPageLayout.Page> pages = overlayPages();
+      long previousScan = (long) field(null, CaptionOverlay.class, "lastScan");
+      long reported = frozen + (i % 2 == 0 ? 16 : 0);
+      reportMedia(controller, PlaybackState.STATE_PAUSED, reported);
+      advance(80);
+      assertEquals("schedule and render must consume the same paused freeze", frozen, s.position);
+      assertEquals("raw winning observation is retained for evidence", reported, s.observation.position);
+      assertEquals(frozen, s.pausedDisplayPosition);
+      assertEquals(frozen, overlayPosition());
+      assertEquals(0, overlayPage());
+      assertEquals("same event must not issue another controller render", revision, s.renderRevision);
+      if (previousScan == (long) field(null, CaptionOverlay.class, "lastScan"))
+        assertSame("jitter must not replan pages between existing surface scans", pages, overlayPages());
+      else maintenanceScans++;
+      assertEquals("jitter must not generate another presentation", presented, presentationCount());
+    }
+    assertTrue("the existing surface maintenance must still run while paused", maintenanceScans > 0);
+    assertEquals(0, calls.get());
+  }
+
+  @Test
+  @Config(shadows = {Keys.class, RebuildLayoutTest.Geometry.class})
+  @GraphicsMode(GraphicsMode.Mode.NATIVE)
+  public void resumedPlaybackClearsPauseFreezeAndAdvancesPage() throws Exception {
+    MediaController controller = pausedMedia();
+    RebuildController.Session s = readyPagedSession(controller);
+    long frozen = overlayPages().get(0).end - 8;
+    reportMedia(controller, PlaybackState.STATE_PAUSED, frozen);
+    RebuildController.time(frozen);
+    assertEquals(0, overlayPage());
+    reportMedia(controller, PlaybackState.STATE_PLAYING, frozen + 16);
+    advance(80);
+    assertEquals(-1, s.pausedDisplayPosition);
+    assertTrue("playing clock must advance again", s.position > frozen + 16);
+    assertEquals(s.position, overlayPosition());
+    assertEquals(1, overlayPage());
+    assertEquals(0, calls.get());
+  }
+
+  @Test
+  @Config(shadows = {Keys.class, RebuildLayoutTest.Geometry.class})
+  @GraphicsMode(GraphicsMode.Mode.NATIVE)
+  public void pausedExplicitSeekAndSmallBackwardCallbackTakeEffectImmediately() throws Exception {
+    MediaController controller = pausedMedia();
+    RebuildController.Session s = readyPagedSession(controller);
+    List<RebuildPageLayout.Page> pages = overlayPages();
+    long frozen = pages.get(pages.size() - 1).start + 300;
+    reportMedia(controller, PlaybackState.STATE_PAUSED, frozen);
+    RebuildController.time(frozen);
+    int generation = s.generation;
+    RebuildController.time(frozen - 3000);
+    assertEquals(generation + 1, s.generation);
+    assertEquals(frozen - 3000, s.pausedDisplayPosition);
+    assertEquals(frozen - 3000, overlayPosition());
+    assertEquals(RebuildPageLayout.indexAt(overlayPages(), frozen - 3000), overlayPage());
+    assertTrue(CaptionDiagnostics.fullText(a).contains("REBUILD_SEEK"));
+    advance(80);
+    assertEquals("the older paused snapshot must not undo an explicit seek beyond 1500 ms",
+        frozen - 3000, overlayPosition());
+    RebuildController.time(frozen - 3016);
+    assertEquals("small explicit movement keeps normal seek threshold", generation + 1, s.generation);
+    assertEquals(frozen - 3016, s.pausedDisplayPosition);
+    assertEquals("small backward hook must outrank the clock's monotonic presentation",
+        frozen - 3016, overlayPosition());
+    advance(80);
+    assertEquals("stale paused report must not undo the explicit callback",
+        frozen - 3016, overlayPosition());
+    long newlyReported = frozen - 3016 + 1601;
+    reportMedia(controller, PlaybackState.STATE_PAUSED, newlyReported);
+    advance(80);
+    assertEquals("a changed report must still activate the safety valve after a hook",
+        newlyReported, s.pausedDisplayPosition);
+    assertEquals(newlyReported, overlayPosition());
+    assertEquals(0, calls.get());
+  }
+
+  @Test
+  @Config(shadows = {Keys.class, RebuildLayoutTest.Geometry.class})
+  @GraphicsMode(GraphicsMode.Mode.NATIVE)
+  public void replacementSessionDoesNotInheritPauseFreeze() throws Exception {
+    MediaController controller = pausedMedia();
+    RebuildController.Session old = readyPagedSession(controller);
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 1000);
+    RebuildController.time(1000);
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 1016);
+    start(true);
+    RebuildController.Session next = session();
+    assertNotSame(old, next);
+    assertEquals("cancel must discard the old session's freeze", -1, old.pausedDisplayPosition);
+    assertEquals("replacement must capture its own first paused report", 1016, next.pausedDisplayPosition);
+    await(() -> next.source != null);
+    advance(80);
+    assertEquals(1016, overlayPosition());
+    assertEquals(0, calls.get());
+  }
+
+  @Test
+  @Config(shadows = {Keys.class, RebuildLayoutTest.Geometry.class})
+  @GraphicsMode(GraphicsMode.Mode.NATIVE)
+  public void pausedPositionSafetyValveUsesRawReportAndStrict1500msLimit() throws Exception {
+    MediaController controller = pausedMedia();
+    RebuildController.Session s = readyPagedSession(controller);
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 1000);
+    RebuildController.time(1000);
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 2500);
+    advance(80);
+    assertEquals("exactly 1500 ms remains frozen", 1000, s.pausedDisplayPosition);
+    assertEquals(1000, overlayPosition());
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 2501);
+    advance(80);
+    assertEquals("1501 ms is a real position change", 2501, s.pausedDisplayPosition);
+    assertEquals(2501, overlayPosition());
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 5000);
+    advance(80);
+    assertEquals("large raw change must bypass the ordinary clock's evidence guard",
+        5000, s.pausedDisplayPosition);
+    assertEquals(5000, overlayPosition());
+    assertEquals("a validated native-unavailable pause seek must share schedule/render time", 5000, s.position);
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 5016);
+    advance(80);
+    assertEquals(5000, overlayPosition());
+    assertEquals(0, calls.get());
+  }
+
+  @Test
+  @Config(shadows = {Keys.class, RebuildLayoutTest.Geometry.class})
+  @GraphicsMode(GraphicsMode.Mode.NATIVE)
+  public void everyNonPausedOrUnavailableMediaStateClearsDisplayFreeze() throws Exception {
+    MediaController controller = pausedMedia();
+    RebuildController.Session s = readyPagedSession(controller);
+    int[] states = {PlaybackState.STATE_NONE, PlaybackState.STATE_STOPPED,
+        PlaybackState.STATE_PLAYING, PlaybackState.STATE_FAST_FORWARDING,
+        PlaybackState.STATE_REWINDING, PlaybackState.STATE_BUFFERING, PlaybackState.STATE_ERROR,
+        PlaybackState.STATE_CONNECTING, PlaybackState.STATE_SKIPPING_TO_PREVIOUS,
+        PlaybackState.STATE_SKIPPING_TO_NEXT, PlaybackState.STATE_SKIPPING_TO_QUEUE_ITEM, 99};
+    for (int state : states) {
+      reportMedia(controller, PlaybackState.STATE_PAUSED, 1000);
+      RebuildController.time(1000);
+      assertEquals(1000, s.pausedDisplayPosition);
+      reportMedia(controller, state, 1100);
+      advance(80);
+      assertEquals("state " + state + " must clear the pause freeze", -1, s.pausedDisplayPosition);
+      assertEquals(s.position, overlayPosition());
+    }
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 1000);
+    RebuildController.time(1000);
+    Shadows.shadowOf(controller).setPlaybackState(null);
+    advance(80);
+    assertEquals("missing state must clear the pause freeze", -1, s.pausedDisplayPosition);
+    assertEquals(s.position, overlayPosition());
+    reportMedia(controller, PlaybackState.STATE_PAUSED, 1000);
+    RebuildController.time(1000);
+    Shadows.shadowOf(controller).setPackageName("another.player");
+    advance(80);
+    assertEquals("another player's media evidence must clear the pause freeze",
+        -1, s.pausedDisplayPosition);
+    assertEquals(s.position, overlayPosition());
+    assertEquals(0, calls.get());
+  }
+
+  /* ------------------------------------------------------------------------------------------------
+   * N24 D7: the production scheduler's task selection and lifecycle under a bounded budget.
+   * These drive RebuildController.schedule()/time() and the real dispatch/translate path against the
+   * local fixture server; nothing here measures provider latency, only queueing and lane ownership.
+   * ---------------------------------------------------------------------------------------------- */
+
+  /** Four one-word blocks at 0-6s, 6-12s, 12-18s, 18-24s so a landing can be placed exactly. */
+  RebuildController.Session n24Session(int blockCount, long stepMs) throws Exception {
+    RebuildSource source=new RebuildSource(Arrays.asList(
+        new RebuildSource.Word("First complete sentence",0,stepMs,0,RebuildSource.Precision.NATIVE),
+        new RebuildSource.Word("Second complete sentence",stepMs,2*stepMs,1,RebuildSource.Precision.NATIVE),
+        new RebuildSource.Word("Third complete sentence",2*stepMs,3*stepMs,2,RebuildSource.Precision.NATIVE),
+        new RebuildSource.Word("Fourth complete sentence",3*stepMs,4*stepMs,3,RebuildSource.Precision.NATIVE),
+        new RebuildSource.Word("Fifth complete sentence",4*stepMs,5*stepMs,4,RebuildSource.Precision.NATIVE),
+        new RebuildSource.Word("Sixth complete sentence",5*stepMs,6*stepMs,5,RebuildSource.Precision.NATIVE)));
+    List<RebuildPlanner.Block> blocks=new ArrayList<>();
+    for(int i=0;i<blockCount;i++)blocks.add(new RebuildPlanner.Block(i,i,i,source));
+    RebuildController.Session s=new RebuildController.Session(
+        a,"","rebuild0001","n24-"+System.nanoTime(),"zh-Hans",config(),false,true,CaptionLanguageContext.LEGACY);
+    s.source=source;
+    s.blocks=blocks;
+    s.plans=new RebuildProtocol.Plan[blockCount];
+    s.pendingPlans=new RebuildProtocol.Plan[blockCount];
+    s.states=new int[blockCount];
+    s.attempts=new int[blockCount];
+    s.retryAt=new long[blockCount];
+    s.reasons=new String[blockCount];
+    for(int i=0;i<blockCount;i++)s.reasons[i]="";
+    s.jobs=new RebuildController.Job[blockCount];
+    s.cacheChecked=new boolean[blockCount];
+    java.util.Arrays.fill(s.cacheChecked,true);
+    Field active=RebuildController.class.getDeclaredField("active");
+    active.setAccessible(true);
+    active.set(null,s);
+    return s;
+  }
+
+  int n24InFlight(RebuildController.Session s,boolean focus) {
+    try {
+      Method m=RebuildController.class.getDeclaredMethod("dispatched",RebuildController.Session.class,boolean.class);
+      m.setAccessible(true);
+      return (Integer)m.invoke(null,s,focus);
+    } catch (Exception e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
+  /** All requests the fixture server has received for a block, matched on the block id in the body. */
+  boolean n24Saw(String blockId){return n24SeenBlocks.contains(blockId);}
+
+  int n24Calls(String blockId){
+    AtomicInteger count=n24BlockCalls.get(blockId);
+    return count==null?0:count.get();
+  }
+
+  void n24GateAll(RebuildController.Session s){
+    for(RebuildPlanner.Block b:s.blocks)n24GateBlocks.add(b.id());
+    n24Gate=new CountDownLatch(1);
+  }
+
+  @Test public void n24BlockedOldFocusStillLeavesTheSecondSlotForTheNewLanding() throws Exception {
+    RebuildController.Session s=n24Session(4,6000);n37LedgerSession=s;
+    String first=s.blocks.get(0).id(),second=s.blocks.get(1).id();
+    n24GateBlocks.add(first);n24GateBlocks.add(second);n24Gate=new CountDownLatch(1);
+    n37PrefetchGate=new CountDownLatch(1);
+    n37PrefetchBlocks.add(s.blocks.get(2).id());n37PrefetchBlocks.add(s.blocks.get(3).id());
+    try{
+      RebuildController.time(0);await(()->n24Saw(first));
+      assertEquals("the old landing holds one foreground slot",1,n24InFlight(s,true));
+      RebuildController.time(6500);await(()->n24Saw(second));
+      assertTrue("both foreground slots are usable at once",n24MaxInFlight.get()>=2);
+      assertEquals(1,s.attempts[0]);assertEquals(1,s.attempts[1]);
+      assertEquals("before acceptance only the two focus requests are possible",2,calls.get());
+      n24Gate.countDown();await(()->s.plans[0]!=null&&s.plans[1]!=null);
+      int originalObservation=calls.get();
+      await(()->n24Saw(s.blocks.get(2).id())&&n24Saw(s.blocks.get(3).id()));
+      assertEquals("two focus plus two distinct legal successors",4,calls.get());
+      assertEquals(4,n24BlockCalls.size());
+      for(int i=0;i<4;i++)assertEquals("each block exactly once",1,n24BlockCalls.get(s.blocks.get(i).id()).get());
+      synchronized(s){
+        for(int i=2;i<4;i++){
+          assertFalse("successors retain the prefetch lane",s.jobs[i].priority);
+          assertTrue("unchanged 30-second lookahead",s.blocks.get(i).start<=s.position+30000);
+        }
+      }
+      long focus=n37RequestLedger.stream().filter(line->line.contains("\"phase\":\"received\"")&&line.contains("\"purpose\":\"focus\"")).count();
+      long prefetch=n37RequestLedger.stream().filter(line->line.contains("\"phase\":\"received\"")&&line.contains("\"purpose\":\"prefetch\"")).count();
+      assertEquals(2,focus);assertEquals(2,prefetch);
+      n37PrefetchGate.countDown();await(()->s.plans[2]!=null&&s.plans[3]!=null);
+      JSONArray ledger=new JSONArray();for(String line:n37RequestLedger)ledger.put(new JSONObject(line));
+      N28CGeometryTest.export("n37-original-n24-request-identities.json",new JSONObject()
+          .put("original_assertion_expected_total",2).put("original_after_acceptance_observed",originalObservation)
+          .put("focus",focus).put("prefetch",prefetch).put("total",calls.get()).put("ledger",ledger));
+    }finally{n24Gate.countDown();n37PrefetchGate.countDown();n37LedgerSession=null;}
+  }
+
+  @Test public void n24TwoFocusInFlightRetainOnlyTheNewestPendingLanding() throws Exception {
+    RebuildController.Session s=n24Session(6,6000);
+    String b0=s.blocks.get(0).id(), b1=s.blocks.get(1).id();
+    n24GateBlocks.add(b0);n24GateBlocks.add(b1);n24Gate=new CountDownLatch(1);
+    Method schedule=RebuildController.class.getDeclaredMethod("schedule",RebuildController.Session.class);
+    schedule.setAccessible(true);
+    schedule.invoke(null,s);
+    await(()->n24Saw(b0));
+    RebuildController.time(6300);
+    await(()->n24Saw(b1));
+    assertEquals(2,n24InFlight(s,true));
+    // Both slots busy: three further landings must collapse into one retained newest pending.
+    RebuildController.time(12500);
+    RebuildController.time(18500);
+    RebuildController.time(24500);
+    await(()->s.pendingFocus!=null);
+    assertEquals("only the newest landing stays pending",4,s.pendingFocus.index);
+    assertEquals("nothing new may be sent while both slots are busy",2,calls.get());
+    assertEquals("both replaced landings are recorded",2,s.replacedFocus);
+    for(int i=2;i<4;i++) {
+      assertEquals("a replaced landing consumes no attempt",0,s.attempts[i]);
+      assertFalse("a replaced landing is never sent",n24Saw(s.blocks.get(i).id()));
+      assertEquals("a replaced landing goes back to WAITING",RebuildController.WAITING,s.states[i]);
+    }
+    assertEquals("the retained landing consumes no attempt before it is dispatched",0,s.attempts[4]);
+    assertEquals(RebuildController.RUNNING,s.states[4]);
+    assertTrue(CaptionDiagnostics.fullText(a).contains("REBUILD_FOCUS_PENDING_REPLACED"));
+    assertTrue(CaptionDiagnostics.fullText(a).contains("attempts_consumed=0"));
+    assertTrue("the retained pending block is reported",
+        CaptionDiagnostics.fullText(a).contains("REBUILD_FOCUS_PENDING_HELD"));
+    assertTrue(CaptionDiagnostics.fullText(a).contains("pending_focus_block="));
+    // Releasing one slot dispatches the retained landing, and only that one.
+    n24Gate.countDown();
+    await(()->n24Saw(s.blocks.get(4).id()));
+    await(()->s.pendingFocus==null);
+    assertEquals("only the newest landing was dispatched after a slot freed up",3,calls.get());
+    assertEquals(1,s.attempts[4]);
+    assertTrue("queueing stays separated from network time",
+        CaptionDiagnostics.fullText(a).contains("slot_wait_ms="));
+  }
+
+  @Test public void n24PrefetchBudgetUsesTwoSuccessorsAndStopsAtThirtySeconds() throws Exception {
+    RebuildController.Session s=n24Session(6,6000);
+    s.plans[0]=new RebuildProtocol.Plan(Collections.emptyList(),"{}",Collections.emptyList());
+    s.states[0]=RebuildController.READY;s.everReady=true;s.position=0;s.prefetchPausedUntil=0;
+    // Hold the two initial responses: completing one legally replenishes the lane.
+    n24GateBlocks.add(s.blocks.get(1).id());n24GateBlocks.add(s.blocks.get(2).id());
+    n24Gate=new CountDownLatch(1);
+    RebuildController.time(0);
+    // D4: one in-flight prefetch must not by itself block the second qualified successor.
+    assertEquals(1,s.attempts[1]);
+    assertEquals(1,s.attempts[2]);
+    assertEquals("a third successor is over the prefetch budget",0,s.attempts[3]);
+    await(()->n24Saw(s.blocks.get(1).id()));
+    await(()->n24Saw(s.blocks.get(2).id()));
+    assertFalse(n24Saw(s.blocks.get(3).id()));
+    RebuildController.stop();n24Gate.countDown();
+    await(()->n24InFlight.get()==0);
+    n24GateBlocks.clear();n24Gate=null;
+    // A block beyond the 30 second window is never dispatched, budget or not.
+    RebuildController.Session far=n24Session(6,20000);
+    far.plans[0]=new RebuildProtocol.Plan(Collections.emptyList(),"{}",Collections.emptyList());
+    far.states[0]=RebuildController.READY;far.everReady=true;far.position=0;far.prefetchPausedUntil=0;
+    n24SeenBlocks.clear();
+    RebuildController.time(0);
+    assertEquals("the only successor inside 30 seconds is dispatched",1,far.attempts[1]);
+    assertEquals("a block past 30 seconds is out of prefetch range",0,far.attempts[2]);
+    await(()->n24Saw(far.blocks.get(1).id()));
+    assertFalse("a block past 30 seconds is never sent",n24Saw(far.blocks.get(2).id()));
+  }
+
+  @Test public void n24TotalInFlightStaysBoundedAndBackgroundKeepsItsOwnLanes() throws Exception {
+    RebuildController.Session s=n24Session(6,6000);
+    n24GateAll(s);
+    RebuildController.time(0);
+    // The release assertion names block 0: actually send it before the rapid landing storm.
+    // Otherwise the legal unsent-focus replacement can cancel it before the mock sees a request.
+    await(()->n24Saw(s.blocks.get(0).id())&&s.jobs[0]!=null&&s.jobs[0].sent);
+    // Keep the final landing observable even on a fast local/CI server.
+    n37PrefetchGate=new CountDownLatch(1);n37PrefetchBlocks.add(s.blocks.get(5).id());
+    for(int i=1;i<6;i++)RebuildController.time(i*6000L+100);
+    // Intermediate landings may already be sent and occupy both focus lanes. Check
+    // pressure before releasing them; do not require a third focus request to bypass them.
+    int stormFocus=n24InFlight(s,true),stormPrefetch=n24InFlight(s,false);
+    assertTrue("storm foreground bound",stormFocus<=2);
+    assertTrue("storm background bound",stormPrefetch<=2);
+    assertTrue("storm total bound",stormFocus+stormPrefetch<=4);
+    n24Gate.countDown();
+    await(()->n24Saw(s.blocks.get(5).id())&&s.jobs[5]!=null&&s.jobs[5].sent);
+    int focus=n24InFlight(s,true),prefetch=n24InFlight(s,false);
+    assertTrue("foreground must never exceed two",focus<=2);
+    assertTrue("background must never exceed two",prefetch<=2);
+    assertTrue("client translation requests must never exceed four",focus+prefetch<=4);
+    assertTrue("the fixture server never saw more than four at once",n24MaxInFlight.get()<=4);
+    n24Gate.countDown();n37PrefetchGate.countDown();
+    await(()->s.plans[0]!=null||s.plans[1]!=null);
+  }
+
+  @Test public void n24SameBlockIsReusedCacheRestoresAndSessionEndReleasesEverything() throws Exception {
+    RebuildController.Session s=n24Session(4,6000);
+    s.plans[0]=new RebuildProtocol.Plan(Collections.emptyList(),"{}",Collections.emptyList());
+    s.states[0]=RebuildController.READY;s.everReady=true;s.position=0;s.prefetchPausedUntil=0;
+    String second=s.blocks.get(1).id(), fourth=s.blocks.get(3).id();
+    // Seed the cache before anything is scheduled, so a late lane completion can only restore it.
+    RebuildPlanner.Block cached=s.blocks.get(3);
+    String json=RebuildContractTest.reply(cached,new JSONArray().put(
+        RebuildR26Test.quoted(s.source,cached.from,cached.to,"这是已缓存的第四句。")));
+    RebuildCache.write(a,s.cacheKey,cached,RebuildProtocol.parseBound(json,s.source,cached));
+    s.cacheChecked[3]=false;s.states[3]=RebuildController.WAITING;
+    n24GateBlocks.add(second);n24Gate=new CountDownLatch(1);
+    RebuildController.time(0);
+    await(()->n24Saw(second));
+    assertEquals("the successor was requested exactly once",1,n24Calls(second));
+    // D3: landing on the block a background request already covers reuses it instead of re-requesting.
+    RebuildController.time(6500);
+    assertNotNull("the reused background request is still in flight",s.jobs[1]);
+    assertFalse("the reused request keeps its background lane",s.jobs[1].priority);
+    assertEquals("an in-flight background request is reused, never duplicated",1,n24Calls(second));
+    assertTrue("the reuse is recorded with its reason",
+        CaptionDiagnostics.fullText(a).contains("REBUILD_BLOCK_REUSED"));
+    assertTrue(CaptionDiagnostics.fullText(a).contains("reason=in_flight_prefetch"));
+    // The cached block is restored without any network call and never waits behind a lane.
+    RebuildController.time(18500);
+    await(()->s.plans[3]!=null);
+    assertEquals("a cache restore makes no translation request for that block",0,n24Calls(fourth));
+    assertEquals("a cache restore does not consume an attempt",0,s.attempts[3]);
+    assertTrue(CaptionDiagnostics.fullText(a).contains("REBUILD_CACHE_RESTORED"));
+    // Ending the session drops the retained pending request and marks the session cancelled.
+    RebuildController.stop();
+    assertTrue(s.cancelled);
+    assertNull("session end releases the retained pending request",s.pendingFocus);
+    n24Gate.countDown();
+  }
+
+  @Test public void n24LateResultNeverPresentsOnTheWrongLanding() throws Exception {
+    n24TextByBlock=true;
+    RebuildController.Session s=n24Session(4,6000);
+    String first=s.blocks.get(0).id(), landed=s.blocks.get(3).id();
+    n24GateBlocks.add(first);n24Gate=new CountDownLatch(1);
+    RebuildController.time(0);
+    await(()->n24Saw(first));
+    // Land far away while the old request is still open, and let the new landing answer first.
+    RebuildController.time(18500);
+    await(()->s.plans[3]!=null);
+    advance(200);
+    assertTrue("the new landing presents its own block",s.lastShown.contains("这是"+landed));
+    assertFalse("the open old request is not presented at the new landing",
+        s.lastShown.contains("这是"+first));
+    // The late old result may still be cached, but it must never be presented on this landing.
+    n24Gate.countDown();
+    await(()->s.plans[0]!=null);
+    advance(200);
+    assertFalse("a late result for the old block stays out of the new landing",
+        s.lastShown.contains("这是"+first));
+    assertTrue("the new landing keeps its own text",s.lastShown.contains("这是"+landed));
   }
 }

@@ -35,7 +35,6 @@ env:
   EXPECTED_CERT_SHA256: 057d974412032066f1b5edb1fdb550f71854189815c806b27c4d486fb4f1ef32
   PROJECT_CERT_SHA256: d41f492f0e2a2e3990ac7f8e75cc5d4b14895f7b46c0b6113b7882c48aa5d40a
 
-  GPLAYDL_VERSION: '4.2.1'
   APKEEP_VERSION: '1.0.0'
   APKEEP_SHA256: a23579a3ba366d25a6d69848189b983d65662f4ecf4b9e11e16510811659de4e
   APKEDITOR_VERSION: '1.4.1'
@@ -52,7 +51,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       HAS_SIGNING: ${{ secrets.ANDROID_KEYSTORE_B64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
-      GPLAYDL_API_KEY: ${{ secrets.GPLAYDL_API_KEY }}
 
     steps:
       - name: Checkout
@@ -167,35 +165,9 @@ jobs:
           echo "version_code=$BASELINE_VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "tag=$BASELINE_TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Load linked Google Play credential
-        env:
-          ENC_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          set -euo pipefail
-
-          if [[ -n "${GPLAYDL_API_KEY:-}" ]]; then
-            echo "Using GPLAYDL_API_KEY repository secret."
-            exit 0
-          fi
-
-          if [[ ! -s ci/gplaydl-api-key.enc ]]; then
-            echo "No linked Google Play credential found; Google Play source will be skipped."
-            exit 0
-          fi
-
-          KEY="$(openssl enc -d -aes-256-cbc -pbkdf2 -a -A             -in ci/gplaydl-api-key.enc             -pass env:ENC_PASSWORD)"
-
-          [[ -n "$KEY" ]]
-          echo "::add-mask::$KEY"
-          echo "GPLAYDL_API_KEY=$KEY" >> "$GITHUB_ENV"
-          unset KEY
-          echo "Loaded encrypted Google Play credential."
-
       - name: Install download tools
         run: |
           set -euo pipefail
-
-          python -m pip install --disable-pip-version-check "gplaydl==${GPLAYDL_VERSION}"
 
           curl -fL --retry 4             -o apkeep             "https://github.com/EFForg/apkeep/releases/download/${APKEEP_VERSION}/apkeep-x86_64-unknown-linux-gnu"
           echo "${APKEEP_SHA256}  apkeep" | sha256sum -c -
@@ -211,7 +183,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -rf upstream
-          mkdir -p upstream/rustore upstream/google-play upstream/apkpure
+          mkdir -p upstream/rustore upstream/apkpure
 
           echo "=== RuStore ==="
           if tools/rustore/rustore_apk_downloader -j "${PACKAGE_NAME}" > rustore-meta.json 2>/dev/null; then
@@ -226,18 +198,11 @@ jobs:
             echo "::warning::RuStore metadata query failed."
           fi
 
-          echo "=== Google Play ==="
-          if [[ -n "${GPLAYDL_API_KEY:-}" ]]; then
-            gplaydl download "${PACKAGE_NAME}"               --arch arm64               --no-extras               -o upstream/google-play               || echo "::warning::Google Play download failed."
-          else
-            echo "::notice::Google Play credential unavailable; source skipped."
-          fi
-
           echo "=== APKPure ==="
           ./apkeep -a "${PACKAGE_NAME}" -d apk-pure upstream/apkpure             || echo "::warning::APKPure download failed."
 
           # Flatten APK/XAPK/APKS/APKM containers inside their source directory.
-          for source_dir in upstream/rustore upstream/google-play upstream/apkpure; do
+          for source_dir in upstream/rustore upstream/apkpure; do
             while IFS= read -r archive; do
               [[ -z "$archive" ]] && continue
               tmp="${archive}.dir"

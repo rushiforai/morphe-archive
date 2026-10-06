@@ -318,7 +318,8 @@ public final class FeatureDexFixture {
         body.add(invoke(patched ? Opcode.INVOKE_STATIC : Opcode.INVOKE_VIRTUAL, patched ? textHook : nativeText, 1, 2, 3));
         body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
         if (clipboard) {
-            body.add(invoke(Opcode.INVOKE_STATIC, patched ? clipboardHook : nativeClipboard, 2, 3));
+            // ClipData.newPlainText(text, text) passes one register twice in the host already.
+            body.add(invoke(Opcode.INVOKE_STATIC, patched ? clipboardHook : nativeClipboard, variant.startsWith("doubled-") ? 3 : 2, 3));
             body.add(new ImmutableInstruction11x(Opcode.MOVE_RESULT_OBJECT, 0));
         }
         body.add(end());
@@ -567,14 +568,21 @@ public final class FeatureDexFixture {
                     : variant.equals("ads") ? new String[]{"hideAds"} : new String[]{"hideAds", "hideAiPins", "hideShopping"};
             for (String family : selected) enable(family);
             FLAGS.put("adViews", false);
+            FLAGS.put("googleAds", false);
             Map<String, List<Method>> classes = new LinkedHashMap<>(settings);
             feed(classes, variant);
             write(root, "feature-feed-" + variant, classes, true, selected);
         }
         for (String variant : List.of("good", "left-original", "wrong-register", "missing-original-fallback", "partial", "false-capability",
                 "unreachable-putStringExtra-fallback", "unreachable-putTextExtra-fallback", "unreachable-newPlainText-fallback",
-                "unreachable-control", "unreachable-helper-control", "disabled-misses-fallback", "guarded-fallback-good", "branch-fallback-good")) {
+                "unreachable-control", "unreachable-helper-control", "disabled-misses-fallback", "guarded-fallback-good", "branch-fallback-good",
+                "doubled-host-good", "doubled-bad")) {
             boolean partial = variant.equals("partial");
+            if (variant.equals("doubled-host-good")) {
+                Map<String, List<Method>> doubledClean = new LinkedHashMap<>(clean);
+                links(doubledClean, false, "doubled-clean", true);
+                write(root, "feature-links-doubled-clean", doubledClean, false);
+            }
             if (partial) {
                 Map<String, List<Method>> partialClean = new LinkedHashMap<>(clean);
                 links(partialClean, false, "good", false);

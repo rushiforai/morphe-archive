@@ -8,15 +8,27 @@ private const val LEGACY_ZALO_PERMISSION_PREFIX = "zing.zalo.permission."
 private val PACKAGE_NAME_REGEX = Regex("^[a-z][\\w]*(\\.[a-z][\\w]*)+$")
 
 /** Rewrites a Zalo-owned provider URI for the cloned package. */
-fun rewriteZaloProviderUri(uri: String, newPackage: String): String = when (uri) {
-    "content://$ORIGINAL_ZALO_PACKAGE.db.preferencesprovider" ->
-        "content://$newPackage.db.preferencesprovider"
+private val CLONE_PACKAGE_STRINGS = mapOf(
+    "content://$ORIGINAL_ZALO_PACKAGE.db.preferencesprovider" to "content://%s.db.preferencesprovider",
+    "$ORIGINAL_ZALO_PACKAGE.db.preferencesprovider" to "%s.db.preferencesprovider",
+    "content://$ORIGINAL_ZALO_PACKAGE.provider.InternalProvider" to "content://%s.provider.InternalProvider",
+    "$ORIGINAL_ZALO_PACKAGE.provider.InternalProvider" to "%s.provider.InternalProvider",
+    "$ORIGINAL_ZALO_PACKAGE.provider" to "%s.provider",
+    "android.resource://$ORIGINAL_ZALO_PACKAGE/" to "android.resource://%s/",
+)
 
-    "content://$ORIGINAL_ZALO_PACKAGE.provider.InternalProvider" ->
-        "content://$newPackage.provider.InternalProvider"
+/** Rewrites only package-owned provider/resource identity strings in the pinned app. */
+fun rewriteZaloProviderUri(uri: String, newPackage: String): String = CLONE_PACKAGE_STRINGS[uri]?.format(newPackage) ?: uri
 
-    else -> uri
-}
+/** Expected exact literal occurrence counts in the pinned Zalo 26.08.01 DEX. */
+internal val EXPECTED_CLONE_STRING_COUNTS = mapOf(
+    "content://$ORIGINAL_ZALO_PACKAGE.db.preferencesprovider" to 1,
+    "$ORIGINAL_ZALO_PACKAGE.db.preferencesprovider" to 1,
+    "content://$ORIGINAL_ZALO_PACKAGE.provider.InternalProvider" to 1,
+    "$ORIGINAL_ZALO_PACKAGE.provider.InternalProvider" to 1,
+    "$ORIGINAL_ZALO_PACKAGE.provider" to 6,
+    "android.resource://$ORIGINAL_ZALO_PACKAGE/" to 1,
+)
 
 fun isValidZaloPackageName(name: String?): Boolean = name != null && PACKAGE_NAME_REGEX.matches(name)
 

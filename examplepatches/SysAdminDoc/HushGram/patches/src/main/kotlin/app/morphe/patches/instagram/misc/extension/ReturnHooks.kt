@@ -10,7 +10,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -75,8 +74,7 @@ internal fun MutableMethod.filterEveryBooleanReturn(patch: String, filter: Strin
  */
 internal fun BytecodePatchContext.filterEveryStringLoad(value: String, filter: String): Int {
     val owners = mutableListOf<String>()
-    classDefForEach { classDef ->
-        if (classDef.type.startsWith(EXTENSION_ROOT)) return@classDefForEach
+    classesHolding(value).forEach { classDef ->
         if (classDef.methods.any { method -> method.stringLoads(value).isNotEmpty() }) owners += classDef.type
     }
     var count = 0

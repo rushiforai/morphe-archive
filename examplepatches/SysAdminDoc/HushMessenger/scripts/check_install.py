@@ -92,22 +92,37 @@ def active_signers(output: str, sdk: int) -> frozenset[str]:
         if len(counts) == 1
         else None
     )
+    # Build Tools 36 prints "Signer #1 ..."; 37 prefixes the scheme, as in "V3.1 Signer: (minSdkVersion=...) ...".
     records = re.findall(
-        r"^Signer .*certificate SHA-256 digest:.*$", output, re.MULTILINE
+        r"^(?:V\S* )?Signer\b.*certificate SHA-256 digest:.*$", output, re.MULTILINE
     )
     selected = []
     identities = set()
     numbers = set()
+    styles = set()
     for record in records:
-        match = re.fullmatch(
+        legacy = re.fullmatch(
             r"Signer (?:#(\d+)|\(minSdkVersion=(\d+), maxSdkVersion=(\d+)\)) "
             r"certificate SHA-256 digest: ([0-9a-fA-F]{64})",
             record,
         )
-        if not match:
+        prefixed = legacy or re.fullmatch(
+            r"V(\d+(?:\.\d+)?) Signer: (?:\(minSdkVersion=(\d+), maxSdkVersion=(\d+)\) )?"
+            r"certificate SHA-256 digest: ([0-9a-fA-F]{64})",
+            record,
+        )
+        if not prefixed:
             raise ValueError("Unrecognized apksigner certificate output")
-        number, lower, upper, digest = match.groups()
-        identity = (number, lower, upper)
+        if legacy:
+            scheme = None
+            number, lower, upper, digest = legacy.groups()
+        else:
+            number = None
+            scheme, lower, upper, digest = prefixed.groups()
+        styles.add(scheme is None)
+        identity = (scheme, number, lower, upper)
+        if len(styles) > 1:
+            raise ValueError("Ambiguous apksigner certificate output")
         if identity in identities or (lower is not None and int(lower) > int(upper)):
             raise ValueError("Ambiguous apksigner certificate output")
         identities.add(identity)
@@ -605,7 +620,7 @@ def main() -> int:
         "--build-tools",
         type=Path,
         required=True,
-        help="Android SDK Build Tools directory (tested with 36.1.0)",
+        help="Android SDK Build Tools directory (tested with 36.1.0 and 37.0.0)",
     )
     parser.add_argument("--java", type=Path, default=Path("java"))
     parser.add_argument("--adb", type=Path, default=Path("adb"))

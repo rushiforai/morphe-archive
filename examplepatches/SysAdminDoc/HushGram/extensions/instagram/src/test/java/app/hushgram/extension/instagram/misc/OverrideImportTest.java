@@ -1028,19 +1028,43 @@ public class OverrideImportTest {
         assertEquals(original(), semantic(NativeTable.file));
     }
 
+    /**
+     * A document can't hold more overrides than the limit, so the changes past it come from both
+     * sides: the store's overrides the document leaves out and the document's the store doesn't have.
+     */
     @Test public void moreChangesThanTheLimitRefuseBeforeWriting() throws Exception {
+        int half = OverrideImport.MAX_CHANGES / 2 + 1;
         List<OverrideExchange.Parameter> many = new ArrayList<>(NativeTable.SCHEMA);
-        for (int i = 0; i <= OverrideImport.MAX_CHANGES; i++) {
-            many.add(new OverrideExchange.Parameter(789, i, "many", "p" + i, 1, NativeTable.id(1, 100 + i)));
+        for (int i = 0; i < half; i++) {
+            many.add(new OverrideExchange.Parameter(789, i, "kept", "p" + i, 1, NativeTable.id(1, 100 + i)));
+            many.add(new OverrideExchange.Parameter(790, i, "new", "p" + i, 1, NativeTable.id(1, 100 + half + i)));
         }
         NativeTable.schema = many;
+        JSONObject held = new JSONObject(new String(NATIVE, StandardCharsets.UTF_8));
+        JSONArray kept = new JSONArray(), added = new JSONArray();
+        for (int i = 0; i < half; i++) { kept.put(i + ": p" + i + ": true"); added.put(i + ": p" + i + ": true"); }
+        byte[] store = held.put("789:kept", kept).toString().getBytes(StandardCharsets.UTF_8);
+        Files.write(NativeTable.file.toPath(), store);
         JSONObject file = new JSONObject(new String(exported(), StandardCharsets.UTF_8));
-        JSONArray list = new JSONArray();
-        for (int i = 0; i <= OverrideImport.MAX_CHANGES; i++) list.put(i + ": p" + i + ": true");
-        file.getJSONObject("overrides").put("789:many", list);
+        file.getJSONObject("overrides").remove("789:kept");
+        file.getJSONObject("overrides").put("790:new", added);
         NativeTable.captures = 0;
         assertThrows(IOException.class, () -> OverrideImport.apply(activity, file.toString().getBytes(StandardCharsets.UTF_8)));
-        untouched(NATIVE);
+        untouched(store);
+    }
+
+    /** Instagram's own mc_overrides.json, with its empty names, imports and restores like an export. */
+    @Test public void instagramsOwnFileImportsAndRestores() throws Exception {
+        byte[] own = ("{\"123:\":[\"0: : false\",\"1: : 7\"],\"456:\":[\"1: : __NULL_VALUE__\"],"
+                + "\"_qe_overrides_\":[]}").getBytes(StandardCharsets.UTF_8);
+        NativeTable.captures = 0;
+        OverrideImport.Result result = OverrideImport.apply(activity, own);
+        assertEquals(OverrideImport.Outcome.APPLIED, result.outcome);
+        assertEquals(2, result.changes);
+        assertEquals("false", semantic(NativeTable.file).get("123:config/0/enabled"));
+        assertEquals("7", semantic(NativeTable.file).get("123:config/1/limit"));
+        assertEquals(OverrideImport.Outcome.APPLIED, OverrideImport.restore(activity).outcome);
+        assertEquals(original(), semantic(NativeTable.file));
     }
 
     /**

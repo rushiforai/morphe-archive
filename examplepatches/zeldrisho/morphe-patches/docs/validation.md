@@ -40,7 +40,6 @@ failure, mark dependent checks UNEXECUTED rather than implying they ran.
 Run the canonical local gates from the repository root:
 
 ```bash
-pre-commit run --all-files --show-diff-on-failure
 python3 -m unittest discover -s scripts/tests -v
 ./gradlew verify --no-daemon
 ```
@@ -89,11 +88,15 @@ Update only when signing certificates match; see [signing](cli.md#signing).
 use `VERIFY_SDK=/path/to/sdk` to pin it. Record the result and hashes. Compilation
 alone is insufficient: the patcher verifier defaults to existence checks.
 
-For startup isolation, set the same `MPP` and use strict patch allow-lists.
-Install and cold-start each build before adding the next patch:
+Optional startup diagnosis only: if the normal default-enabled build fails,
+use strict patch allow-lists to find an interaction. This isolation procedure is
+not the routine feature-validation flow and cannot substitute for successfully
+installing and testing the full default-enabled patch set. Install and cold-start
+each diagnostic build before adding the next patch:
 
 ```bash
 export MPP="patches/build/libs/patches-<version>.mpp"
+# Diagnostic only; PATCHES overrides defaults and disables all unlisted patches.
 PATCHES='' python3 scripts/repatch.py /path/to/input.apkm /tmp/control-0.apk
 PATCHES='<first patch>' python3 scripts/repatch.py /path/to/input.apkm /tmp/control-1.apk
 PATCHES='<first patch>,<second patch>' python3 scripts/repatch.py /path/to/input.apkm /tmp/control-2.apk
@@ -119,7 +122,9 @@ Morphe fixes the verifier. Other required checks still apply.
 
 ## Repeatable device journeys
 
-Run stock, minimally re-signed no-patch control, and selected-patch builds.
+Run stock, minimally re-signed no-patch control, and the normal default-enabled
+patch-set build. Leave `PATCHES` unset for the patched build; a single-patch or
+allow-listed build is diagnostic only and does not count as normal-user validation.
 Use ADB for UI inspection and visual evidence:
 
 ```bash
@@ -132,8 +137,9 @@ Replace `/private/` with an existing local evidence directory outside Git.
 A successful tap is not proof of the expected state.
 
 Record stock, minimally re-signed control, and patched results separately for
-these pinned targets: Threads `com.instagram.barcelona` version code
-`511507647`; Zalo `com.zing.zalo` version code `260801903`. Include cold launch,
+these targets: Threads `com.instagram.barcelona` version code
+`511908382` (449.0.0.54.82); Zalo `com.zing.zalo` version code `260801903`. Include
+cold launch,
 feed load/order, sponsored filtering, scrolling and refresh for Threads; include
 background/resume, provider prompt and cancellation, account-picker refresh, Drive,
 and notification behavior for Zalo. Mark each assertion PASS, FAIL, BLOCKED, or
@@ -162,12 +168,6 @@ background/network activity; at least three repetitions, with variance recorded.
 Set thresholds only after control variance is known. Add backup scheduling when
 implemented. Keep traces/heap dumps private and bounded under the
 [analysis retention policy](reverse-engineering.md#analysis-workspace); do not make release APKs debuggable.
-
-## Zalo microG/Drive issue checklist
-
-Use the [Zalo microG/Drive guide](zalo-microg.md) to distinguish package discovery,
-account-picker behavior, OAuth rejection, and restore failures. Issue #11's local
-visibility/download-link fixes still require device confirmation.
 
 ## Provider boundaries
 

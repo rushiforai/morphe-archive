@@ -177,7 +177,7 @@ public class ResumePlaybackTest {
         leftAt(clip, 60_000);
         assertTrue(opened(clip).seeks.isEmpty());
 
-        Params reel = longVideo("2");
+        Params reel = new Params("2", ResumePlayback.MIN_DURATION_MS - 1);
         reel.reel = true;
         Params live = longVideo("3");
         live.live = true;
@@ -199,6 +199,17 @@ public class ResumePlaybackTest {
                 "audio only 1"}) {
             assertTrue(kind + " in " + report, report.contains(kind));
         }
+    }
+
+    /** Since 581 a long video opened full screen plays in the reel viewer, which loops it. It resumes. */
+    @Test
+    public void aLongVideoInTheReelViewerResumes() {
+        Params documentary = longVideo("444444444");
+        documentary.reel = true;
+        documentary.loop = true;
+        leftAt(documentary, 3 * MINUTE);
+        assertEquals(Collections.singletonList("BY_PLAYER@180000"), opened(documentary).seeks);
+        assertTrue(report(), report().contains("point saved"));
     }
 
     @Test

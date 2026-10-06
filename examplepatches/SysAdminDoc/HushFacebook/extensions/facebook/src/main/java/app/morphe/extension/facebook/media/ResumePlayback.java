@@ -53,9 +53,13 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *
  * <p>A point is saved only for a video of at least {@link #MIN_DURATION_MS} that was stopped at
  * least {@link #MIN_SAVED_MS} in and more than {@link #END_MARGIN_MS} before its end. A stop
- * closer to the end forgets the point. Reels, live videos, ads, looping and audio-only players
- * and GIFs are left alone, and so is a start Facebook gives a start point of its own, which is what
- * a link to a moment in a video does. The points are kept in {@link ResumePoints}.
+ * closer to the end forgets the point. Reels under two minutes, live videos, ads, looping and
+ * audio-only players and GIFs are left alone, and so is a start Facebook gives a start point of its
+ * own, which is what a link to a moment in a video does. The points are kept in {@link ResumePoints}.
+ *
+ * <p>Since 581 Facebook opens every video it plays full screen in the reel viewer, a half-hour
+ * documentary included, and that viewer loops what it plays. So a reel of two minutes or more,
+ * looping or not, is a long video here like any other.
  *
  * <p>Off, paused, before the settings are ready, or when anything here throws, the player plays as
  * Facebook starts it: nothing is saved, nothing is looked up and nothing seeks. The report counts
@@ -427,16 +431,18 @@ public final class ResumePlayback {
     }
 
     /**
-     * Why a video [length] long is left alone, or null when it's one this resumes: reels, live
-     * videos, ads, looping, audio-only and GIF players, and anything shorter than
-     * {@link #MIN_DURATION_MS}.
+     * Why a video [length] long is left alone, or null when it's one this resumes: reels under
+     * {@link #MIN_DURATION_MS}, live videos, ads, looping, audio-only and GIF players, and anything
+     * shorter than {@link #MIN_DURATION_MS}. A long video in the reel viewer, which loops everything,
+     * resumes.
      */
     @Nullable
     static String skipReason(Facts facts, int length) {
-        if (facts.reel) return REEL;
+        boolean longReel = facts.reel && length >= MIN_DURATION_MS;
+        if (facts.reel && !longReel) return REEL;
         if (facts.live) return LIVE;
         if (facts.ad) return AD;
-        if (facts.loops) return LOOPS;
+        if (facts.loops && !longReel) return LOOPS;
         if (facts.gif) return GIF;
         if (facts.audioOnly) return AUDIO;
         if (length < MIN_DURATION_MS) return SHORT;

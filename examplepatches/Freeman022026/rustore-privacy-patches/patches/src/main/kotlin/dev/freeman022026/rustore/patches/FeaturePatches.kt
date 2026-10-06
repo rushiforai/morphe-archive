@@ -3,6 +3,7 @@ package dev.freeman022026.rustore.patches
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
@@ -32,7 +33,7 @@ val disableAdvertisementsPatch = bytecodePatch(
         rawAdvertisementRepositoryGetFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Lut0/x;->a:Lut0/x;
+                sget-object v0, Lvt0/x;->a:Lvt0/x;
                 return-object v0
             """
         )
@@ -98,7 +99,7 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
             fingerprint.method.addInstructions(
                 0,
                 """
-                    sget-object v0, Ltt0/e0;->a:Ltt0/e0;
+                    sget-object v0, Lut0/e0;->a:Lut0/e0;
                     return-object v0
                 """
             )
@@ -133,7 +134,7 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
             0,
             """
                 const-string v0, "AltCraftFlushEventsWorker"
-                invoke-virtual {p0, v0}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
+                invoke-virtual {p0, v0}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
                 return-void
             """
         )
@@ -150,7 +151,7 @@ val disableAnalyticsAndTrackersPatch = bytecodePatch(
             0,
             """
                 const-string v0, "RadarFlushSnapshotsWorker"
-                invoke-virtual {p0, v0}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
+                invoke-virtual {p0, v0}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
                 return-void
             """
         )
@@ -237,13 +238,15 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
                 $disablePersistedPushServices
             """
         )
-        autoUpdateForegroundRestrictionFingerprint.method.addInstructions(
-            0,
-            """
-                const/4 v0, 0x0
-                return v0
-            """
-        )
+        autoUpdateForegroundRestrictionFingerprint.method.apply {
+            val foregroundRead = implementation!!.instructions.withIndex().single { (_, instruction) ->
+                instruction.opcode == Opcode.IGET_BOOLEAN &&
+                    (instruction as? ReferenceInstruction)?.reference?.toString() == "Lxs2/b;->c:Z"
+            }
+            val register = (foregroundRead.value as OneRegisterInstruction).registerA
+            // Keep the existing update-permission and status checks.
+            replaceInstruction(foregroundRead.index, "const/4 v$register, 0x0")
+        }
 
         val workerSuccess = """
             new-instance v0, Landroidx/work/c${'$'}a${'$'}c;
@@ -267,10 +270,10 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             0,
             """
                 move-object/from16 v0, p1
-                invoke-static {v0}, Lub/u0;->l(Landroid/content/Context;)Lub/u0;
+                invoke-static {v0}, Lub/r0;->m(Landroid/content/Context;)Lub/r0;
                 move-result-object v0
                 const-string v1, "tracer.disk.usage.worker"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
                 return-void
             """
         )
@@ -279,7 +282,7 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
         omicronNetworkRequestFingerprint.method.addInstructions(
             0,
             """
-                sget-object v0, Ls31/e;->ERROR:Ls31/e;
+                sget-object v0, Lt31/e;->ERROR:Lt31/e;
                 return-object v0
             """
         )
@@ -304,12 +307,15 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             0,
             """
                 move-object/from16 v0, p0
-                iget-object v0, v0, Lru/vk/store/feature/install/identifier/impl/presentation/a;->d:Ltb/i0;
+                iget-object v0, v0, Lru/vk/store/feature/install/identifier/impl/presentation/a;->d:Lst0/a;
+                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, Ltb/k0;
                 const-string v1, "InstallIdentifierSyncWorker"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
                 const-string v1, "tracer.disk.usage.worker"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
-                sget-object v0, Ltt0/e0;->a:Ltt0/e0;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
                 return-object v0
             """
         )
@@ -317,10 +323,13 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             0,
             """
                 move-object/from16 v0, p0
-                iget-object v0, v0, Lru/vk/store/feature/usagestats/impl/presentation/a;->b:Ltb/i0;
+                iget-object v0, v0, Lru/vk/store/feature/usagestats/impl/presentation/a;->b:Lst0/a;
+                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, Ltb/k0;
                 const-string v1, "UsageStatsCollectorWorker"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
-                sget-object v0, Ltt0/e0;->a:Ltt0/e0;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
                 return-object v0
             """
         )
@@ -328,10 +337,13 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             0,
             """
                 move-object/from16 v0, p0
-                iget-object v0, v0, Lru/vk/store/feature/payments/subscription/update/impl/presentation/a;->b:Ltb/i0;
+                iget-object v0, v0, Lru/vk/store/feature/payments/subscription/update/impl/presentation/a;->b:Lst0/a;
+                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, Ltb/k0;
                 const-string v1, "CancelSubscriptionSyncWorker"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
-                sget-object v0, Ltt0/e0;->a:Ltt0/e0;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
                 return-object v0
             """
         )
@@ -339,13 +351,16 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             0,
             """
                 move-object/from16 v0, p0
-                iget-object v0, v0, Ls42/d;->a:Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;
-                iget-object v0, v0, Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;->a:Ltb/i0;
+                iget-object v0, v0, Ll62/d;->a:Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;
+                iget-object v0, v0, Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;->a:Lst0/a;
+                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, Ltb/k0;
                 const-string v1, "SendAnalyticsEventPeriodicWorker"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
                 const-string v1, "SendAnalyticsEventWorker"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
-                sget-object v0, Ltt0/e0;->a:Ltt0/e0;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
                 return-object v0
             """
         )
@@ -353,10 +368,13 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             0,
             """
                 move-object/from16 v0, p0
-                iget-object v0, v0, Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;->a:Ltb/i0;
+                iget-object v0, v0, Lru/vk/store/feature/storeapp/analytics/remote/impl/presentation/b;->a:Lst0/a;
+                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, Ltb/k0;
                 const-string v1, "SendAnalyticsEventWorker"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
-                sget-object v0, Ltt0/e0;->a:Ltt0/e0;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
+                sget-object v0, Lut0/e0;->a:Lut0/e0;
                 return-object v0
             """
         )
@@ -365,9 +383,12 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             0,
             """
                 move-object/from16 v0, p0
-                iget-object v0, v0, Lyl1/i;->a:Ltb/i0;
+                iget-object v0, v0, Ldm1/i;->a:Lst0/a;
+                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, Ltb/k0;
                 const-string v1, "LauncherIconUpdate"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
                 return-void
             """
         )
@@ -375,9 +396,12 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             0,
             """
                 move-object/from16 v0, p0
-                iget-object v0, v0, Le42/e;->a:Ltb/i0;
+                iget-object v0, v0, Lq52/e;->a:Lst0/a;
+                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, Ltb/k0;
                 const-string v1, "PeriodicUpdateStartDestination"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
                 return-void
             """
         )
@@ -385,9 +409,12 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             0,
             """
                 move-object/from16 v0, p0
-                iget-object v0, v0, Lk42/g;->a:Ltb/i0;
+                iget-object v0, v0, Lw52/g;->a:Lst0/a;
+                invoke-interface {v0}, Lst0/a;->get()Ljava/lang/Object;
+                move-result-object v0
+                check-cast v0, Ltb/k0;
                 const-string v1, "NavigationTabsOrderUpdate"
-                invoke-virtual {v0, v1}, Ltb/i0;->a(Ljava/lang/String;)Ltb/z;
+                invoke-virtual {v0, v1}, Ltb/k0;->a(Ljava/lang/String;)Ltb/a0;
                 return-void
             """
         )
@@ -405,7 +432,7 @@ val restrictBackgroundWorkToUpdatesPatch = bytecodePatch(
             }.addInstructions(
                 0,
                 """
-                    sget-object v0, Ltt0/e0;->a:Ltt0/e0;
+                    sget-object v0, Lut0/e0;->a:Lut0/e0;
                     return-object v0
                 """
             )
@@ -450,7 +477,7 @@ val disableKasperskyBackgroundScanPatch = bytecodePatch(
 @Suppress("unused")
 val hideGamingProfilePatch = bytecodePatch(
     name = "Hide gaming profile",
-    description = "Removes the gaming profile permission, hides both gaming buttons, and blocks navigation to the gaming profile.",
+    description = "Removes the gaming profile permission, hides the gaming profile widget, and blocks navigation to the gaming profile.",
     default = true
 ) {
     compatibleWith(RUSTORE_COMPATIBILITY)
@@ -459,7 +486,6 @@ val hideGamingProfilePatch = bytecodePatch(
     execute {
         mineViewModelOpenGameCenterFingerprint.method.addInstruction(0, "return-void")
         gameCenterV2ButtonFingerprint.method.addInstruction(0, "return-void")
-        gameCenterV1ButtonFingerprint.method.addInstruction(0, "return-void")
     }
 }
 
@@ -493,6 +519,34 @@ val skipUpdateAuthenticationPatch = bytecodePatch(
             0,
             """
                 sget-object v0, ${unitReferences.single()}
+                return-object v0
+            """
+        )
+    }
+}
+
+@Suppress("unused")
+val blockRemoteNetworkPolicyPatch = bytecodePatch(
+    name = "Block remote network policy",
+    description = "Blocks remote and cached network policies that add TLS trust anchors or override API and static-content hosts.",
+    default = true
+) {
+    compatibleWith(RUSTORE_COMPATIBILITY)
+
+    execute {
+        // A non-null embedded snapshot bypasses both cached payload and legacy
+        // api_endpoint restoration. The existing certificate pinning stays active.
+        networkPolicyConstructorFingerprint.method.addInstructions(
+            0,
+            """
+                invoke-static {}, Ljp0/o;->a()Ljp0/d;
+                move-result-object p2
+            """
+        )
+        networkPolicyLoadFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
                 return-object v0
             """
         )

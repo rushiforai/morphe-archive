@@ -18,7 +18,7 @@ final class StoriesSetting extends BooleanSetting {
     static final String BETWEEN_KEY = "hushfacebook_hide_stories_between_posts";
 
     StoriesSetting(String key) {
-        super(key, true, TOP_KEY.equals(key));
+        super(key, true, false);
     }
 
     /** Run before the independent settings load. A failed write keeps the old choice readable. */

@@ -9,6 +9,7 @@ import android.os.Build;
 import android.text.Html;
 import android.text.InputType;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowInsets;
@@ -148,7 +149,38 @@ final class EddiArchiveSearchUi {
         status = text("", 13, muted);
         status.setPadding(0, dp(8), 0, dp(4));
         root.addView(status);
-        scroll = new ScrollView(activity);
+        scroll = new ScrollView(activity) {
+            private float startX, startY;
+            private boolean singleTouch;
+
+            @Override
+            public boolean dispatchTouchEvent(MotionEvent event) {
+                int action = event.getActionMasked();
+                if (action == MotionEvent.ACTION_DOWN) {
+                    startX = event.getX();
+                    startY = event.getY();
+                    singleTouch = true;
+                } else if (action == MotionEvent.ACTION_POINTER_DOWN
+                        || action == MotionEvent.ACTION_CANCEL) {
+                    singleTouch = false;
+                } else if (action == MotionEvent.ACTION_UP && singleTouch) {
+                    int mode = Haiagaru.hissiViewerSwipeHistory();
+                    float dx = event.getX() - startX;
+                    float dy = event.getY() - startY;
+                    if (mode != 0 && Math.abs(dx) >= dp(96)
+                            && Math.abs(dy) < Math.abs(dx) * 0.45f) {
+                        // Cancel the result row's click before navigating.
+                        MotionEvent cancel = MotionEvent.obtain(event);
+                        cancel.setAction(MotionEvent.ACTION_CANCEL);
+                        super.dispatchTouchEvent(cancel);
+                        cancel.recycle();
+                        navigateBySwipe((dx > 0) == (mode == 1));
+                        return true;
+                    }
+                }
+                return super.dispatchTouchEvent(event);
+            }
+        };
         results = new LinearLayout(activity);
         results.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(results);
@@ -176,6 +208,16 @@ final class EddiArchiveSearchUi {
 
         restoreQuery(source);
         search(page);
+    }
+
+    private void navigateBySwipe(boolean forward) {
+        if (forward) {
+            if (next.isEnabled()) next.performClick();
+        } else if (page <= 1) {
+            activity.finish();
+        } else if (previous.isEnabled()) {
+            previous.performClick();
+        }
     }
 
     private void restoreQuery(Uri uri) {

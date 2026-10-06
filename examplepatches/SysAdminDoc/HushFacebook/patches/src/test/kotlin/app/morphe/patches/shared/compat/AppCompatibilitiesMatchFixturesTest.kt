@@ -6,6 +6,7 @@
 package app.morphe.patches.shared.compat
 
 import app.morphe.Fixtures
+import app.morphe.patcher.patch.SupportedAbi
 import com.android.apksig.ApkVerifier
 import com.android.apksig.apk.ApkUtils
 import com.android.apksig.util.DataSources
@@ -83,9 +84,11 @@ class AppCompatibilitiesMatchFixturesTest {
                         val manifest = RandomAccessFile(copy, "r").use { file ->
                             ApkUtils.getAndroidManifest(DataSources.asDataSource(file))
                         }
+                        // A fixture's file name says its ABI, and each ABI pins its own build.
+                        val abi = SupportedAbi.entries.single { fixture.name.contains(abiName(it)) }
                         assertEquals(
                             "${fixture.name} version code",
-                            codes.values.single(),
+                            checkNotNull(codes[abi]) { "the $version target pins no ${abiName(abi)} build" },
                             ApkUtils.getVersionCodeFromBinaryAndroidManifest(manifest.duplicate()),
                         )
                         assertEquals(
@@ -100,7 +103,11 @@ class AppCompatibilitiesMatchFixturesTest {
                 }
             }
         }
-        assertEquals("one retained fixture for each declared target", targets.size, checked)
+        assertEquals(
+            "one retained fixture for each declared build",
+            targets.sumOf { it.versionCodes.orEmpty().size },
+            checked,
+        )
     }
 
     /** Every APK a fixture holds: itself, or each split inside an .apkm, copied out to a temp file. */
@@ -120,6 +127,10 @@ class AppCompatibilitiesMatchFixturesTest {
             }
         }
     }
+
+    /** The ABI as Android and APKMirror spell it: arm64-v8a, armeabi-v7a, x86, x86_64. */
+    private fun abiName(abi: SupportedAbi): String =
+        if (abi == SupportedAbi.X86_64) "x86_64" else abi.name.lowercase().replace('_', '-')
 
     private fun sha256(bytes: ByteArray): String =
         MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }

@@ -1,0 +1,26 @@
+gradle.projectsEvaluated {
+  def project=gradle.rootProject.findProject(':extensions:extension')
+  if (gradle.rootProject.findProperty('scheduler.probeDir'))
+    project.android.sourceSets.getByName('test').java.srcDir(new File(gradle.rootProject.findProperty('scheduler.probeDir').toString()))
+  project.tasks.withType(Test).configureEach {
+    maxParallelForks=1
+    jvmArgs "-javaagent:${gradle.rootProject.findProperty('scheduler.agent')}"
+    ['output','tests','inputSha'].each { key ->
+      systemProperty "scheduler.${key}",gradle.rootProject.findProperty("scheduler.${key}")
+    }
+    systemProperty 'n28deadlock.output',gradle.rootProject.findProperty('scheduler.output')
+    systemProperty 'n28deadlock.ref',new File(project.projectDir,
+        'src/main/java/app/yydarlinker/deepseekcaptions/CaptionRenderSpec.java').exists()
+        ? 'fixed-snapshot-uncommitted' : 'fixed-pure-b'
+    testLogging { events 'started','passed','failed','skipped';exceptionFormat='full' }
+    afterTest { descriptor, result ->
+      if(result.resultType==org.gradle.api.tasks.testing.TestResult.ResultType.FAILURE) {
+        def output=new File(gradle.rootProject.findProperty('scheduler.output').toString())
+        new File(output,'failure.request').text="test=${descriptor.className}.${descriptor.name}\n${result.exceptions}"
+        long deadline=System.nanoTime()+java.util.concurrent.TimeUnit.SECONDS.toNanos(2)
+        while(!new File(output,'failure-full-threads.txt').exists() && System.nanoTime()<deadline)
+          java.util.concurrent.locks.LockSupport.parkNanos(10000000)
+      }
+    }
+  }
+}

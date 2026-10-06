@@ -5,11 +5,13 @@
 package app.morphe.patches.klassikradio.misc.premium
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.getReference
 import app.morphe.util.matchSingle
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -17,8 +19,8 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock premium",
-    description = "Unlocks the premium music channels, on-demand playback and track skipping. " +
-        "Requires a signed-in account.",
+    description = "Unlocks the premium music channels, on-demand playback and unlimited track skipping, " +
+        "and hides the trial banner. Requires a signed-in account.",
 ) {
     compatibleWith(AppCompatibilities.KLASSIK_RADIO)
 
@@ -34,5 +36,24 @@ val unlockPremiumPatch = bytecodePatch(
 
             method.addInstruction(index, "sget-object v$register, $premium")
         }
+
+        SectionTypeDecoderFingerprint.matchSingle().apply {
+            val index = instructionMatches.last().index
+            val register = method.getInstruction<OneRegisterInstruction>(index).registerA
+
+            method.addInstruction(index + 1, "const/4 v$register, 0x0")
+        }
+
+        SkipToStringFingerprint.matchSingle().classDef.methods
+            .single { it.name == "<init>" && it.parameterTypes == listOf("I", "Z") }
+            .addInstructionsWithLabels(
+                0,
+                """
+                    if-gtz p1, :has_skips
+                    const/4 p1, 0x1
+                    :has_skips
+                    const/4 p2, 0x1
+                """,
+            )
     }
 }

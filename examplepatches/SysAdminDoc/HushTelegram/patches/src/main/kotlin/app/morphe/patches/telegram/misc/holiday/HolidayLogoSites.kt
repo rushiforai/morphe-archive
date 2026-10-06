@@ -426,8 +426,10 @@ internal fun BytecodePatchContext.resolveHolidayLogoSites(holiday: HolidayLookSi
     val decoration = ownField(create, title[logo + 37], null)
     val color = title[logo + 20].field() ?: refuse("no logo theme color")
     val colorGetter = title[logo + 21].call() ?: refuse("no logo color getter")
+    // R8 renames the setter between builds (I in beta 71159, G in beta 71179). Its call site is
+    // fixed above and requireTitleStorage proves its body, so the name itself is not pinned.
     shape(actionBar.name == "actionBar" && actionBar.type == bar.definingClass && titleSetter.definingClass == bar.definingClass &&
-        titleSetter.name == "I" && titleSetter.returnType == "V" &&
+        titleSetter.returnType == "V" &&
         titleSetter.parameterTypes.map(CharSequence::toString) == listOf(TEXT, decoration.type) &&
         color.definingClass == theme && color.type == "I" && colorGetter.name == "getThemedColor",
         "the logo is no longer the chat list's action bar title")

@@ -18,7 +18,14 @@ internal data class MicroGMethodReplacementCounts(
     val launchCheck: Int = 0,
 )
 
-/** Applies one method's applicable microG rewrites and reports their counts. */
+/**
+ * Applies one method's applicable microG rewrites to [mutableMethod] and reports their counts.
+ * Account-result key substitutions are not counted.
+ *
+ * @param replacement Original and replacement provider/account-type literals, respectively.
+ * @throws IllegalStateException if the launcher has no scratch register or an account-refresh
+ * call has an unsupported encoding, argument count, or register range.
+ */
 internal fun rewriteMicroGMethodBody(
     classType: String,
     method: Method,
@@ -29,8 +36,9 @@ internal fun rewriteMicroGMethodBody(
     val picker = isAccountPickerMethod(classType, method)
     if (picker) replaceWithAccountPicker(mutableMethod)
     val implementation = method.implementation
-    val rewritten = if (!picker && implementation != null) {
-        rewriteMicroGInstructions(classType, method, mutableMethod, replacement, implementation.instructions)
+    val instructions = implementation?.instructions?.toList()
+    val rewritten = if (!picker && instructions != null) {
+        rewriteMicroGInstructions(classType, method, mutableMethod, replacement, instructions)
     } else {
         MicroGMethodReplacementCounts()
     }

@@ -507,6 +507,30 @@ public class Utils {
         return settingsReady;
     }
 
+    /**
+     * Waits up to [timeoutMillis] for {@link #settingsReady()}, for a hook that a library's own
+     * startup reaches on a worker thread before the application's onCreate: Firebase's init
+     * provider opens its first Installations request that way. Answers at once on the main
+     * thread, the thread setContext runs on, where waiting could only time out.
+     */
+    public static boolean awaitSettingsReady(long timeoutMillis) {
+        if (settingsReady) return true;
+        if (Looper.myLooper() == Looper.getMainLooper()) return false;
+        long deadline = System.nanoTime() + timeoutMillis * 1_000_000L;
+        while (!settingsReady) {
+            long left = deadline - System.nanoTime();
+            if (left <= 0) return false;
+            try {
+                // A short poll rather than a notify, so setContext stays as it is.
+                Thread.sleep(Math.max(1L, Math.min(10L, left / 1_000_000L)));
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                return settingsReady;
+            }
+        }
+        return true;
+    }
+
     /** Persistent preference writes are owned by the package's main process. */
     public static boolean isMainProcess() {
         Context appContext = context;

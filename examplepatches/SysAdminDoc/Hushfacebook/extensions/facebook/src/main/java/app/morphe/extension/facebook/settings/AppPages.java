@@ -53,8 +53,9 @@ final class AppPages {
     static void menu(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
         PreferenceCategory menu = category(screen, L10n.t("Menu"));
-        SwitchPreference saved = toggle(context, Settings.SAVED_SHORTCUT,
-                L10n.t("Adds Saved to Facebook's icon menu when there's room. Existing shortcuts stay."));
+        SwitchPreference saved = toggle(context, Settings.SAVED_SHORTCUT, build.contains(PatchFamily.MENU_SETTINGS_ROW)
+                ? L10n.t("Adds Saved to Facebook's icon menu when there's room, and a Saved row at the end of Settings and privacy in the Menu. Existing shortcuts stay.")
+                : L10n.t("Adds Saved to Facebook's icon menu when there's room. Existing shortcuts stay."));
         saved.setOnPreferenceChangeListener((preference, value) -> {
             Settings.SAVED_SHORTCUT.save((Boolean) value);
             SavedShortcut.changed(context);
@@ -68,6 +69,11 @@ final class AppPages {
             menu.addPreference(toggle(context, Settings.HIDE_MENU_ALSO_FROM_META,
                     L10n.t("The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps "
                             + "and its ads for Meta's devices. Your own shortcuts stay.")));
+        }
+        if (build.contains(PatchFamily.GAME_ADS)) {
+            menu.addPreference(toggle(context, Settings.BLOCK_GAME_ADS,
+                    L10n.t("Games you play in Facebook get no ads. A game asking for one hears there's none to show, "
+                            + "so rewarded ads give no reward.")));
         }
     }
 
@@ -120,6 +126,9 @@ final class AppPages {
                             + "through.")));
             notifications.addPreference(toggle(context, Settings.BLOCK_NEARBY_NOTIFICATIONS,
                     L10n.t("Alerts about places near you and about the weather stop.")));
+            notifications.addPreference(toggle(context, Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS,
+                    L10n.t("Reminders to finish setting up a Facebook account stop. Login and security alerts "
+                            + "still come through.")));
             notifications.addPreference(info(context, L10n.t("What always comes through"),
                     L10n.t("Messages, friend requests, comments, mentions, calls and login alerts, and any kind "
                             + "Hushfacebook doesn't know. Android's own settings for Facebook's notification "
@@ -150,5 +159,31 @@ final class AppPages {
                 L10n.t("Android checks Facebook's links against Meta's signing key, which a re-signed build doesn't have. "
                         + "Selecting the addresses sends their links here again. It doesn't restore Meta's verification, "
                         + "and your other link settings stay as they are.")));
+    }
+
+    /** Privacy: what Facebook sends home in the background. */
+    static void privacy(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
+            Set<PatchFamily> build) {
+        if (!build.contains(PatchFamily.ANALYTICS_UPLOADS) && !build.contains(PatchFamily.SCREENSHOTS)
+                && !build.contains(PatchFamily.SCREENSHOT_DETECTION)) {
+            return;
+        }
+        PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
+        if (build.contains(PatchFamily.ANALYTICS_UPLOADS)) {
+            // XAnalytics resumes its uploader once, as Facebook starts.
+            privacy.addPreference(toggle(context, Settings.HOLD_ANALYTICS_UPLOADS,
+                    L10n.t("Facebook stops uploading its app analytics in the background and skips its on-device "
+                            + "learning jobs. Restart Facebook after changing it.")));
+        }
+        if (build.contains(PatchFamily.SCREENSHOT_DETECTION)) {
+            privacy.addPreference(toggle(context, Settings.BLOCK_SCREENSHOT_DETECTION,
+                    L10n.t("Facebook doesn't notice when you take a screenshot or record the screen, so nothing it does "
+                            + "in response happens.")));
+        }
+        if (build.contains(PatchFamily.SCREENSHOTS)) {
+            privacy.addPreference(toggle(context, Settings.ALLOW_SCREENSHOTS,
+                    L10n.t("Screenshots and screen recordings show the pages Facebook blocks them on. A page that's "
+                            + "already open changes when you open it again.")));
+        }
     }
 }

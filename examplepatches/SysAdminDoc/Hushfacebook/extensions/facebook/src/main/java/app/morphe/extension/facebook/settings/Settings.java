@@ -84,7 +84,7 @@ public class Settings extends BaseSettings {
 
     /**
      * The row of stories at the top of the feed. The feed's adapter list builds it as an adapter of
-     * its own, and the patch has both tray adapters return nothing while this is on.
+     * its own, and the patch has both tray adapters count no rows while this is on.
      */
     public static final BooleanSetting HIDE_TOP_STORIES_TRAY =
             new StoriesSetting(StoriesSetting.TOP_KEY);
@@ -122,6 +122,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_AI_LABELLED_POSTS =
             new BooleanSetting("hushfacebook_hide_ai_labelled_posts", FALSE);
+
+    /**
+     * The Meta AI cards Facebook adds to the feed between posts, known by their GraphQL type name
+     * alone. On: they're Facebook's own promotion, not anyone's post, and the type can't match a
+     * post.
+     */
+    public static final BooleanSetting HIDE_META_AI_FEED_UNITS =
+            new BooleanSetting("hushfacebook_hide_meta_ai_feed_units", TRUE);
 
     /**
      * Reels and Watch videos Facebook's own detection marked as made with AI, read off the
@@ -218,6 +226,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_sponsored_marketplace_listings", TRUE);
 
     /**
+     * The ads Instant Games ask Facebook for ({@link app.morphe.extension.facebook.ads.GameAds}): each
+     * request is answered with no ad.
+     */
+    public static final BooleanSetting BLOCK_GAME_ADS =
+            new BooleanSetting("hushfacebook_block_game_ads", TRUE);
+
+    /**
      * The product cards of the shop links a creator attaches to a post go: on a reel, under a feed
      * post and floating over the comment box ({@link app.morphe.extension.facebook.ads.AffiliateLinks}).
      * The "Commission eligible" label stays. A change shows on the reels, posts and comment sheets
@@ -256,6 +271,43 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DONT_SEND_REEL_WATCH_HISTORY =
             new BooleanSetting("hushfacebook_dont_send_reel_watch_history", TRUE);
+
+    /**
+     * Facebook's own analytics uploads ({@link app.morphe.extension.facebook.misc.AnalyticsUploads}):
+     * the XAnalytics event uploader and the Papaya on-device learning jobs. On once the patch is
+     * picked. The uploader is resumed as Facebook starts, so a change shows fully after a restart.
+     */
+    public static final BooleanSetting HOLD_ANALYTICS_UPLOADS =
+            new BooleanSetting("hushfacebook_hold_analytics_uploads", TRUE, true);
+
+    /**
+     * Screenshots of the screens Facebook marks secure ({@link app.morphe.extension.facebook.misc.Screenshots}).
+     * On once the patch is picked. A screen takes it when it's next opened.
+     */
+    public static final BooleanSetting ALLOW_SCREENSHOTS =
+            new BooleanSetting("hushfacebook_allow_screenshots", TRUE);
+
+    /**
+     * Facebook's haptics on its own taps and gestures ({@link app.morphe.extension.facebook.misc.Haptics}).
+     * On once the patch is picked, since picking it is the choice.
+     */
+    public static final BooleanSetting TURN_OFF_HAPTICS =
+            new BooleanSetting("hushfacebook_turn_off_haptics", TRUE);
+
+    /**
+     * Facebook's screens and tabs show without the slide or fade between them
+     * ({@link app.morphe.extension.facebook.misc.ScreenTransitions}). On once the patch is picked,
+     * since picking it is the choice.
+     */
+    public static final BooleanSetting TURN_OFF_SCREEN_TRANSITIONS =
+            new BooleanSetting("hushfacebook_turn_off_screen_transitions", TRUE);
+
+    /**
+     * Facebook's screenshot and screen recording detection
+     * ({@link app.morphe.extension.facebook.misc.ScreenshotDetection}). On once the patch is picked.
+     */
+    public static final BooleanSetting BLOCK_SCREENSHOT_DETECTION =
+            new BooleanSetting("hushfacebook_block_screenshot_detection", TRUE);
 
     /**
      * A double tap on a reel or a video left without Facebook's like: no heart, no like sent. A
@@ -331,6 +383,23 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting DEFAULT_PLAYBACK_QUALITY =
             new BooleanSetting("hushfacebook_default_playback_quality", TRUE);
+
+    /**
+     * A playing reel shrinks into a window when you leave Facebook, through the picture-in-picture
+     * Facebook ships for its Reels viewer behind server flags
+     * ({@link app.morphe.extension.facebook.media.PictureInPicture}). On once the patch is picked,
+     * since picking it is the choice. Off or paused, Facebook decides as before.
+     */
+    public static final BooleanSetting PICTURE_IN_PICTURE =
+            new BooleanSetting("hushfacebook_picture_in_picture", TRUE);
+
+    /**
+     * HDR videos and photos stay in the screen's usual range instead of turning it up to full
+     * brightness ({@link app.morphe.extension.facebook.media.HdrBrightness}). On once the patch is
+     * picked, since picking it is the choice. Off or paused, Facebook asks for its HDR window again.
+     */
+    public static final BooleanSetting TURN_OFF_HDR_BRIGHTNESS =
+            new BooleanSetting("hushfacebook_turn_off_hdr_brightness", TRUE);
 
     /**
      * Facebook's own text, React Native screens' included, drawn in the font {@link #FONT_SOURCE}
@@ -437,6 +506,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_block_nearby_notifications", FALSE);
 
     /**
+     * Push notifications typed FB_REGISTRATION_REMINDER: "finish setting up your account" reminders
+     * that keep coming to a phone already signed in. Facebook's server sends the type, which its own
+     * NotificationType doesn't name, so Facebook would show them under a generic kind.
+     */
+    public static final BooleanSetting BLOCK_ACCOUNT_SETUP_NOTIFICATIONS =
+            new BooleanSetting("hushfacebook_block_account_setup_notifications", FALSE);
+
+    /**
      * Once a day, when Facebook starts, ask api.github.com whether a newer Hushfacebook release is
      * out, and say so on the settings screen ({@link ReleaseCheck}). It's the settings entry's own
      * switch rather than a patch's, so every build has it ({@link PatchFamily#ENTRY_SWITCHES}). Off
@@ -507,6 +584,28 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_REELS_TAB_DOT =
             new BooleanSetting("hushfacebook_hide_reels_tab_dot", TRUE);
+
+    /*
+     * The tabs Hide tabs takes off the tab bar ({@link app.morphe.extension.facebook.navigation.HiddenTabs}),
+     * each off until it's picked. Facebook builds the bar once, so a change shows when it restarts.
+     */
+    public static final BooleanSetting HIDE_FEEDS_TAB =
+            new BooleanSetting("hushfacebook_hide_feeds_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_FRIENDS_TAB =
+            new BooleanSetting("hushfacebook_hide_friends_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_MARKETPLACE_TAB =
+            new BooleanSetting("hushfacebook_hide_marketplace_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_GROUPS_TAB =
+            new BooleanSetting("hushfacebook_hide_groups_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_GAMING_TAB =
+            new BooleanSetting("hushfacebook_hide_gaming_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_EVENTS_TAB =
+            new BooleanSetting("hushfacebook_hide_events_tab", FALSE, true);
 
     /**
      * The tab bar goes to the bottom of the screen on accounts Facebook gives it at the top

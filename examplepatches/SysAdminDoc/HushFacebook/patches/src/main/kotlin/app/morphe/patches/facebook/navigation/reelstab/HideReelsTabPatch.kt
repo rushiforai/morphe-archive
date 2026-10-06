@@ -8,6 +8,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.facebook.navigation.tabbar.tabBarFilterPatch
+import app.morphe.patches.facebook.navigation.tabbar.tabLinksPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 
 /**
@@ -16,7 +17,9 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  * Facebook's own hidden-tab set answers, and the extension's ReelsTab drops the one class Facebook
  * keeps for that tab, WatchTab, while the switch is on. A tab Facebook's own tab bar settings hide
  * stays theirs. Nothing else of Reels is touched, so reel links, reels in the feed and the Reels
- * viewer still open, and Open on a chosen tab sends a start meant for the hidden tab to Home.
+ * viewer still open, and Open on a chosen tab sends a start meant for the hidden tab to Home. The
+ * tab links patch (TabLinkAnchors.kt) has Facebook open Reels on its own screen where a link or the
+ * Menu's Reels shortcut would otherwise switch to the missing tab.
  * Facebook's Reels shortcut on its launcher icon goes too: the settings patch already sends each of
  * Facebook's ShortcutManager calls through SettingsEntry, which asks ReelsTab to leave that one out.
  *
@@ -32,7 +35,7 @@ val hideReelsTabPatch = bytecodePatch(
     default = false,
 ) {
     category("Interface")
-    dependsOn(settingsPatch, tabBarFilterPatch)
+    dependsOn(settingsPatch, tabBarFilterPatch, tabLinksPatch)
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {

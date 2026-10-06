@@ -1,4 +1,3 @@
--repackageclasses app.morphe.extension.isolated
 -dontoptimize
 -keepattributes *
 -keep class app.morphe.extension.chmate.** {

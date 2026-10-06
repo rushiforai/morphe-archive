@@ -109,6 +109,14 @@ public final class SettingsContextRule extends ExternalResource {
         }
     }
 
+    /**
+     * setContext's last step, for a body inside {@link #beforeThePauseIsDecided} that needs the
+     * pause decided partway through. The outer call still restores the flag.
+     */
+    public static void finishSetContext() {
+        Utils.settingsReady = true;
+    }
+
     @Override
     protected void after() {
         // The sandbox is shared with whatever runs next, and a test is free to swap the context

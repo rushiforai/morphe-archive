@@ -36,6 +36,36 @@ class CertificateChecks(unittest.TestCase):
         self.assertEqual(checker.active_signers(output, 36), {B})
         self.assertEqual(checker.active_signers(output, 28), {A})
 
+    def test_build_tools_37_scheme_prefixed_signers(self):
+        self.assertEqual(
+            checker.active_signers(
+                f"Number of signers: 1\nV2 Signer: certificate SHA-256 digest: {A}\nV2 Signer: public key SHA-256 digest: {B}\n", 36
+            ),
+            {A},
+        )
+        self.assertEqual(
+            checker.active_signers(f"Number of signers: 1\nV3.0 Signer: certificate SHA-256 digest: {A}\n", 36),
+            {A},
+        )
+        rotated = (
+            "Number of signers: 1\n"
+            f"V3.1 Signer: (minSdkVersion=33, maxSdkVersion=2147483647) certificate SHA-256 digest: {B}\n"
+            f"V3.0 Signer: (minSdkVersion=24, maxSdkVersion=32) certificate SHA-256 digest: {A}\n"
+            f"Source Stamp Signer: certificate SHA-256 digest: {STAMP}\n"
+        )
+        self.assertEqual(checker.active_signers(rotated, 36), {B})
+        self.assertEqual(checker.active_signers(rotated, 28), {A})
+
+    def test_build_tools_37_unknown_or_mixed_records_fail_closed(self):
+        for output in (
+            f"Number of signers: 1\nV2 Signer: unknown certificate SHA-256 digest: {A}\n",
+            f"Number of signers: 1\nV2 Signer: certificate SHA-256 digest: {A}\nV2 Signer: certificate SHA-256 digest: {B}\n",
+            f"Number of signers: 2\nSigner #1 certificate SHA-256 digest: {A}\nV2 Signer: certificate SHA-256 digest: {B}\n",
+            f"Number of signers: 1\nSource Stamp Signer: certificate SHA-256 digest: {A}\n",
+        ):
+            with self.subTest(output=output), self.assertRaises(ValueError):
+                checker.active_signers(output, 36)
+
     def test_multiple_signers_require_full_set(self):
         output = f"Number of signers: 2\nSigner #1 certificate SHA-256 digest: {A}\nSigner #2 certificate SHA-256 digest: {B}\n"
         self.assertEqual(checker.active_signers(output, 28), {A, B})

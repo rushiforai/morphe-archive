@@ -787,6 +787,64 @@ public class MaterialYouThemeTest {
         }
     }
 
+    /** Stands in for a story ring's tokens: unseen in Facebook's blue, seen in its disabled grey. */
+    enum Ring { STORY_UNSEEN, DISABLED_ICON }
+
+    private static final int UNSEEN_BLUE = 0xFF0866FF;
+    private static final int SEEN_GREY = 0xFF6F7276;
+
+    /**
+     * Issue #67: under a near-grey wallpaper palette the unseen story ring took the accent at its
+     * lightness and came out as grey as the seen ring beside it. Facebook's blue palette stands in
+     * for an accent that grey, the greys stay the phone's, and the report says which it was.
+     */
+    @Test
+    public void anAccentTooGreyToTellFromTheGreysGivesWayToFacebooksBlue() {
+        DarkMode.answer(true);
+        TonePalette grey = PalettesForTests.palette(PalettesForTests.NEAR_GREY);
+        assertTrue("accent chroma " + grey.accentChroma, grey.accentReplaced);
+        MaterialYouTheme.use(grey, false);
+        int unseen = MaterialYouTheme.fds(UNSEEN_BLUE, Ring.STORY_UNSEEN);
+        int seen = MaterialYouTheme.fds(SEEN_GREY, Ring.DISABLED_ICON);
+        assertEquals("Facebook's blue palette", TonePalette.fallback().sameLightness(TonePalette.ACCENT, UNSEEN_BLUE), unseen);
+        assertEquals("the phone's grey", grey.sameLightness(TonePalette.NEUTRAL, SEEN_GREY), seen);
+        assertSameLightness("unseen ring", UNSEEN_BLUE, unseen);
+        assertTrue("unseen and seen rings " + distance(unseen, seen) + " apart", distance(unseen, seen) > 25);
+        String line = MaterialYouTheme.reportLine(grey);
+        assertTrue(line, line.startsWith("wallpaper palette; its accent (chroma ") && line.endsWith("Facebook's blue stands in"));
+    }
+
+    /**
+     * A palette with colour in its accent keeps it, today's colours: a Galaxy S25's muted blue-grey
+     * as well as the red, yellow and green ones. Android 11's fixed palette is never replaced.
+     */
+    @Test
+    public void anAccentWithColourInItStaysThePhones() {
+        DarkMode.answer(true);
+        for (int[][] families : new int[][][]{PalettesForTests.GALAXY_S25, PalettesForTests.RED,
+                PalettesForTests.YELLOW, PalettesForTests.GREEN}) {
+            TonePalette phone = PalettesForTests.palette(families);
+            assertFalse("accent chroma " + phone.accentChroma, phone.accentReplaced);
+            assertEquals(families[TonePalette.ACCENT][5], phone.tone(TonePalette.ACCENT, 50));
+            MaterialYouTheme.use(phone, false);
+            int unseen = MaterialYouTheme.fds(UNSEEN_BLUE, Ring.STORY_UNSEEN);
+            assertEquals(phone.sameLightness(TonePalette.ACCENT, UNSEEN_BLUE), unseen);
+            double apart = distance(unseen, MaterialYouTheme.fds(SEEN_GREY, Ring.DISABLED_ICON));
+            assertTrue("unseen and seen rings " + apart + " apart", apart > 15);
+        }
+        assertEquals("wallpaper palette; accent chroma 22.0",
+                MaterialYouTheme.reportLine(PalettesForTests.palette(PalettesForTests.GALAXY_S25)));
+        assertFalse(TonePalette.fallback().accentReplaced);
+        assertTrue(MaterialYouTheme.reportLine(TonePalette.fallback()).startsWith("Facebook's blue palette: "));
+    }
+
+    /** CIELAB distance between two colours. */
+    private static double distance(int a, int b) {
+        double[] x = TonePalette.lab(a);
+        double[] y = TonePalette.lab(b);
+        return Math.sqrt((x[0] - y[0]) * (x[0] - y[0]) + (x[1] - y[1]) * (x[1] - y[1]) + (x[2] - y[2]) * (x[2] - y[2]));
+    }
+
     private static void assertSameLightness(String what, int before, int after) {
         double difference = Math.abs(TonePalette.lstar(before) - TonePalette.lstar(after));
         assertTrue(what + ": L* moved by " + difference, difference <= 0.6);

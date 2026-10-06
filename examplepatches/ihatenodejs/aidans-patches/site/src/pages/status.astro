@@ -1,0 +1,556 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getApps, getInitialVersionStatuses, getRepositoryStats, getLatestPlayRelease } from '../data/repo';
+const apps = getApps();
+const initialStatuses = getInitialVersionStatuses();
+const stats = getRepositoryStats();
+const latestReleaseApp = getLatestPlayRelease();
+const workerUrl = import.meta.env.PUBLIC_WORKER_URL || 'https://worker.patch.p0ntus.com';
+
+function getNextCheckCountdown(): string {
+  const now = new Date();
+  const nextCheck = new Date(Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate(),
+    6, 0, 0
+  ));
+  if (now.getTime() >= nextCheck.getTime()) {
+    nextCheck.setUTCDate(nextCheck.getUTCDate() + 1);
+  }
+  const diff = Math.max(0, nextCheck.getTime() - now.getTime());
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  return `in ${hours}h ${mins}m`;
+}
+
+function formatRelativeTime(dateStr: string): string {
+  try {
+    const d = new Date(dateStr);
+    const now = new Date();
+    const diffSec = Math.floor((now.getTime() - d.getTime()) / 1000);
+    if (diffSec < 60) return 'just now';
+    const diffMin = Math.floor(diffSec / 60);
+    if (diffMin < 60) return `${diffMin} ${diffMin === 1 ? 'minute' : 'minutes'} ago`;
+    const diffHours = Math.floor(diffMin / 60);
+    if (diffHours < 24) return `${diffHours} ${diffHours === 1 ? 'hour' : 'hours'} ago`;
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffDays < 30) return `${diffDays} ${diffDays === 1 ? 'day' : 'days'} ago`;
+    const diffMonths = Math.floor(diffDays / 30);
+    if (diffMonths < 12) return `${diffMonths} ${diffMonths === 1 ? 'month' : 'months'} ago`;
+    return dateStr.split('T')[0];
+  } catch {
+    return dateStr;
+  }
+}
+---
+
+<BaseLayout
+  title="App Support & Status — Aidan's Morphe Patches"
+  description="Comparison of repository supported/tested patch targets against live Google Play versions."
+  currentPath="/status"
+>
+  <div class="px-4 sm:px-6 py-10 space-y-8">
+    <!-- Header Section -->
+    <div class="space-y-3">
+      <h1 class="font-sans text-3xl font-extrabold tracking-tight text-white">
+        App Support &amp; Status
+      </h1>
+      <p class="font-sans text-sm text-zinc-400 max-w-2xl leading-relaxed">
+        Tracks target stability across all {apps.length} applications. Patches guarantee compatibility with explicit target releases; target divergence reflects upstream store updates rather than broken patches.
+      </p>
+    </div>
+
+    <!-- Status Overview Cards (Clean values without secondary descriptions) -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-px bg-white/[0.08] bg-clip-padding border border-white/[0.08]">
+      <div class="p-5 bg-[#080808] space-y-1">
+        <div class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider">Monitored Apps</div>
+        <div class="text-2xl font-bold font-sans text-white">{apps.length} Applications</div>
+      </div>
+      <div class="p-5 bg-[#080808] space-y-1">
+        <div class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider">Next Check</div>
+        <div class="text-2xl font-bold font-mono text-white" id="countdown-timer">{getNextCheckCountdown()}</div>
+      </div>
+      <div class="p-5 bg-[#080808] space-y-1">
+        <div class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider">Latest Release</div>
+        <div class="flex items-center gap-2.5 min-h-[32px]">
+          {latestReleaseApp.iconUrl ? (
+            <Image
+              id="latest-release-icon"
+              src={latestReleaseApp.iconUrl}
+              alt={latestReleaseApp.appName}
+              width={24}
+              height={24}
+              class="w-6 h-6 rounded-sm object-cover border border-white/10 shrink-0"
+              loading="eager"
+            />
+          ) : (
+            <span
+              id="latest-release-fallback-icon"
+              class="w-6 h-6 rounded-sm bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-[10px] text-zinc-400 shrink-0"
+            >
+              {latestReleaseApp.appName.charAt(0)}
+            </span>
+          )}
+          <div class="flex items-baseline gap-2 min-w-0">
+            <span id="latest-release-name" class="text-2xl font-bold font-sans text-white truncate">
+              {latestReleaseApp.appName}
+            </span>
+            <span
+              id="latest-release-time"
+              class="font-mono text-xs text-zinc-400 font-normal shrink-0"
+              title={latestReleaseApp.updatedOn ? `Updated on Google Play: ${latestReleaseApp.updatedOn}` : ''}
+            >
+              {latestReleaseApp.updatedAt ? formatRelativeTime(latestReleaseApp.updatedAt) : ''}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Table with Pinned Columns on Mobile -->
+    <div class="border border-white/[0.08] bg-[#080808] rounded-sm overflow-hidden">
+      <!-- Search Bar Header -->
+      <div class="p-3 bg-zinc-950 border-b border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="relative w-full max-w-sm">
+          <input
+            type="search"
+            id="status-search-input"
+            placeholder="Search applications or package names..."
+            class="w-full bg-zinc-900 border border-white/10 px-3 py-1.5 pl-8 text-xs font-mono text-white placeholder-zinc-500 rounded-sm focus:outline-none focus:border-white/30"
+          />
+          <svg class="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <span class="font-mono text-[11px] text-zinc-500 shrink-0" id="last-updated-label">
+          Built with bundle: {stats.releaseDate}
+        </span>
+      </div>
+
+      <!-- Horizontal Scrollable Container with Sticky Application & Freshness Columns -->
+      <div class="overflow-x-auto relative">
+        <table class="w-full text-left font-mono text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-white/[0.08] text-[11px] text-zinc-500 uppercase tracking-wider">
+              <!-- Sticky Left: Application Column -->
+              <th class="py-3 px-4 sm:sticky sm:left-0 z-20 bg-zinc-950 sm:shadow-[1px_0_0_rgba(255,255,255,0.08)]">
+                Application
+              </th>
+              <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap hidden sm:table-cell">Package Name</th>
+              <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap hidden sm:table-cell">Tested Target</th>
+              <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap hidden sm:table-cell">Google Play</th>
+              <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap hidden sm:table-cell">Last Checked</th>
+              <!-- Sticky Right: Status Column -->
+              <th class="py-3 px-4 text-right sm:sticky sm:right-0 z-20 bg-zinc-950 sm:shadow-[-1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/[0.06]" id="status-tbody">
+            {initialStatuses.map((item) => (
+              <tr
+                class="hover:bg-white/[0.02] transition-colors group/row"
+                data-package={item.packageName}
+                data-app-name={item.appName.toLowerCase()}
+              >
+                <!-- Sticky Left: Application Cell -->
+                <td class="py-3.5 px-4 font-sans font-semibold text-white sm:sticky sm:left-0 z-10 bg-[#080808] group-hover/row:bg-[#0c0c0c] sm:shadow-[1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
+                  <div class="flex items-center gap-2.5">
+                    {item.iconUrl ? (
+                      <Image
+                        src={item.iconUrl}
+                        alt={item.appName}
+                        width={20}
+                        height={20}
+                        class="w-5 h-5 rounded-sm object-cover border border-white/10 shrink-0"
+                        loading="eager"
+                      />
+                    ) : (
+                      <span class="w-5 h-5 rounded-sm bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-[10px] text-zinc-400 shrink-0">
+                        {item.appName.charAt(0)}
+                      </span>
+                    )}
+                    <a href={`/patches#${item.appId}`} class="hover:text-zinc-200 transition-colors">
+                      {item.appName}
+                    </a>
+                  </div>
+                </td>
+
+                <td class="py-3.5 px-4 text-zinc-500 text-[11px] whitespace-nowrap hidden sm:table-cell">
+                  {item.packageName}
+                </td>
+                <td class="py-3.5 px-4 text-zinc-200 whitespace-nowrap hidden sm:table-cell">
+                  v{item.latestSupportedVersion}
+                </td>
+                <td class="py-3.5 px-4 text-zinc-400 play-version whitespace-nowrap hidden sm:table-cell">
+                  {item.playVersion ? `v${item.playVersion}` : '—'}
+                </td>
+                <td class="py-3.5 px-4 text-zinc-400 text-[11px] check-time whitespace-nowrap hidden sm:table-cell" data-raw-time={item.checkedAt}>
+                  {item.checkedAt ? formatRelativeTime(item.checkedAt) : 'Pending'}
+                </td>
+
+                <!-- Sticky Right: Status Cell -->
+                <td class="py-3.5 px-4 text-right status-badge-cell sm:sticky sm:right-0 z-10 bg-[#080808] group-hover/row:bg-[#0c0c0c] sm:shadow-[-1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
+                  {item.status === 'up-to-date' ? (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                      <span>Up to date</span>
+                    </span>
+                  ) : item.status === 'newer-available' ? (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                      <span>Newer version available</span>
+                    </span>
+                  ) : item.status === 'check-failed' ? (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-rose-950/60 text-rose-400 border border-rose-800/40">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                      <span>Check failed</span>
+                    </span>
+                  ) : item.status === 'not-on-play-store' ? (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-500 border border-white/10">
+                      <span>Not on Play Store</span>
+                    </span>
+                  ) : (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10">
+                      <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                      <span>Unknown</span>
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty Filter State -->
+      <div id="status-no-results" class="hidden p-8 text-center font-mono text-xs text-zinc-500 border-t border-white/[0.06]">
+        No matching applications found.
+      </div>
+    </div>
+
+    <!-- Refactored Explanatory Box (Icons, Clarity, Status Definitions & Update Context) -->
+    <div class="p-6 border border-white/[0.08] bg-[#070707] rounded-sm space-y-6 text-xs text-zinc-300">
+      <div class="flex items-center gap-2 text-white font-mono text-xs uppercase tracking-wider font-semibold">
+        <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="9" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+          <polyline points="11 12 12 12 12 16 13 16" />
+        </svg>
+        <span>Understanding Target Stability &amp; Status</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
+        <!-- Section 1: What Statuses Mean -->
+        <div class="space-y-3 p-4 bg-zinc-950/60 border border-white/[0.06] rounded-sm">
+          <h4 class="font-mono text-xs uppercase tracking-wider text-zinc-200 font-semibold flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span>Status Definitions</span>
+          </h4>
+          <ul class="space-y-3 font-mono text-[11px] text-zinc-400">
+            <li>
+              <div class="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
+                <span>Up to date</span>
+              </div>
+              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
+                The latest build distributed on Google Play matches our tested and verified target release.
+              </span>
+            </li>
+            <li>
+              <div class="flex items-center gap-1.5 text-amber-400 font-semibold">
+                <span class="w-1 h-1 rounded-full bg-amber-400"></span>
+                <span>Newer version available</span>
+              </div>
+              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
+                The vendor rolled out an update on the Play Store. Existing patches continue running reliably on the tested APK version.
+              </span>
+            </li>
+            <li>
+              <div class="flex items-center gap-1.5 text-zinc-400 font-semibold">
+                <span class="w-1 h-1 rounded-full bg-zinc-500"></span>
+                <span>Not on Play Store</span>
+              </div>
+              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
+                The application is distributed directly by the organization or institution outside public store channels.
+              </span>
+            </li>
+            <li>
+              <div class="flex items-center gap-1.5 text-rose-400 font-semibold">
+                <span class="w-1 h-1 rounded-full bg-rose-400"></span>
+                <span>Check failed</span>
+              </div>
+              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
+                Google Play Store scraping encountered a network error or rate limit. Existing tested target builds remain unaffected.
+              </span>
+            </li>
+            <li>
+              <div class="flex items-center gap-1.5 text-zinc-400 font-semibold">
+                <span class="w-1 h-1 rounded-full bg-zinc-500"></span>
+                <span>Unknown</span>
+              </div>
+              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
+                Initial baseline target pending upstream Google Play verification.
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Section 2: What It Means If an App Is Out of Date -->
+        <div class="space-y-3 p-4 bg-zinc-950/60 border border-white/[0.06] rounded-sm">
+          <h4 class="font-mono text-xs uppercase tracking-wider text-zinc-200 font-semibold flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
+            <span>What If an App Shows an Update?</span>
+          </h4>
+          <div class="space-y-3 text-xs text-zinc-300 leading-relaxed font-sans">
+            <p>
+              <strong class="text-white">Patches purposefully pin exact target versions.</strong> Morphe patches operate directly on compiled Dalvik bytecode, Hermes HBC v98 opcodes, and ARM64 binary structures at specific offsets.
+            </p>
+            <p>
+              An update on the Play Store does <em class="text-white not-italic font-semibold">not</em> mean the patch is broken. It simply indicates that upstream code changed. You can continue installing and running the supported target APK without issues.
+            </p>
+            <div class="font-mono text-[10px] text-zinc-500 pt-2 border-t border-white/[0.06]">
+              When an app updates, new bytecode fingerprints are reverse engineered and verified in subsequent patch releases.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Client-side hydration, countdown timer, and search filter script -->
+  <script is:inline define:vars={{ workerUrl }}>
+    (function () {
+      // 1. Live Countdown Timer to next 06:00 UTC check
+      function updateCountdown() {
+        const now = new Date();
+        const nextCheck = new Date(Date.UTC(
+          now.getUTCFullYear(),
+          now.getUTCMonth(),
+          now.getUTCDate(),
+          6, 0, 0
+        ));
+        if (now.getTime() >= nextCheck.getTime()) {
+          nextCheck.setUTCDate(nextCheck.getUTCDate() + 1);
+        }
+        const diff = Math.max(0, nextCheck.getTime() - now.getTime());
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const timerEl = document.getElementById('countdown-timer');
+        if (timerEl) {
+          timerEl.textContent = 'in ' + hours + 'h ' + mins + 'm';
+        }
+      }
+      updateCountdown();
+      setInterval(updateCountdown, 30000);
+
+      // 2. Relative time helper
+      function formatRelative(dateStr) {
+        if (!dateStr) return 'Cached';
+        try {
+          const d = new Date(dateStr);
+          const now = new Date();
+          const diffSec = Math.floor((now.getTime() - d.getTime()) / 1000);
+          if (diffSec < 60) return 'just now';
+          const diffMin = Math.floor(diffSec / 60);
+          if (diffMin < 60) return diffMin + (diffMin === 1 ? ' minute ago' : ' minutes ago');
+          const diffHours = Math.floor(diffMin / 60);
+          if (diffHours < 24) return diffHours + (diffHours === 1 ? ' hour ago' : ' hours ago');
+          const diffDays = Math.floor(diffHours / 24);
+          if (diffDays < 30) return diffDays + (diffDays === 1 ? ' day ago' : ' days ago');
+          const diffMonths = Math.floor(diffDays / 30);
+          if (diffMonths < 12) return diffMonths + (diffMonths === 1 ? ' month ago' : ' months ago');
+          return dateStr.split('T')[0];
+        } catch {
+          return dateStr;
+        }
+      }
+
+      // 3. Search Filter
+      const searchInput = document.getElementById('status-search-input');
+      const rows = document.querySelectorAll('#status-tbody tr[data-package]');
+      const noResults = document.getElementById('status-no-results');
+
+      if (searchInput) {
+        searchInput.addEventListener('input', () => {
+          const query = searchInput.value.toLowerCase().trim();
+          let visible = 0;
+
+          rows.forEach((row) => {
+            const pkg = (row.getAttribute('data-package') || '').toLowerCase();
+            const name = (row.getAttribute('data-app-name') || '').toLowerCase();
+            const matches = !query || pkg.includes(query) || name.includes(query);
+            row.style.display = matches ? '' : 'none';
+            if (matches) visible++;
+          });
+
+          if (noResults) {
+            noResults.classList.toggle('hidden', visible > 0);
+          }
+        });
+      }
+
+      // 4. Hydrate from live Cloudflare Worker API with sessionStorage caching
+      const STATUS_CACHE_KEY = 'aidans_patches_status_cache';
+      const STATUS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+      function applyStatusData(data) {
+        if (!data || !data.apps) return;
+
+        const lastUpdatedEl = document.getElementById('last-updated-label');
+        if (lastUpdatedEl && data.updatedAt) {
+          lastUpdatedEl.textContent = 'Live Cloudflare KV: ' + formatRelative(data.updatedAt);
+        }
+
+        // Update Latest Release card if live data is available
+        const latestIconEl = document.getElementById('latest-release-icon');
+        const latestFallbackIconEl = document.getElementById('latest-release-fallback-icon');
+        const latestNameEl = document.getElementById('latest-release-name');
+        const latestTimeEl = document.getElementById('latest-release-time');
+
+        let latestApp = data.latestRelease;
+        if (!latestApp && data.apps) {
+          let maxTime = 0;
+          for (const [pkg, appData] of Object.entries(data.apps)) {
+            if (appData.updatedAt) {
+              const t = new Date(appData.updatedAt).getTime();
+              if (t > maxTime) {
+                maxTime = t;
+                const row = document.querySelector(`#status-tbody tr[data-package="${pkg}"]`);
+                const appName = appData.appName || (row ? row.querySelector('td a')?.textContent?.trim() : pkg);
+                latestApp = {
+                  packageName: pkg,
+                  appName: appName || pkg,
+                  iconUrl: appData.iconUrl || `/icons/${pkg}.png`,
+                  updatedAt: appData.updatedAt,
+                  updatedOn: appData.updatedOn,
+                };
+              }
+            }
+          }
+        }
+
+        if (latestApp) {
+          if (latestIconEl) {
+            const iconSrc = latestApp.iconUrl || `/icons/${latestApp.packageName}.png`;
+            latestIconEl.src = iconSrc;
+            latestIconEl.alt = latestApp.appName || 'Latest release icon';
+            latestIconEl.classList.remove('hidden');
+            if (latestFallbackIconEl) latestFallbackIconEl.classList.add('hidden');
+          }
+          if (latestNameEl && latestApp.appName) {
+            latestNameEl.textContent = latestApp.appName;
+          }
+          if (latestTimeEl) {
+            const timeText = latestApp.updatedAt
+              ? formatRelative(latestApp.updatedAt)
+              : (latestApp.updatedOn || '');
+            latestTimeEl.textContent = timeText;
+            if (latestApp.updatedOn) {
+              latestTimeEl.title = 'Updated on Google Play: ' + latestApp.updatedOn;
+            }
+          }
+        }
+
+        rows.forEach((row) => {
+          const pkg = row.getAttribute('data-package');
+          const appData = data.apps[pkg];
+          if (!appData) return;
+
+          const playCell = row.querySelector('.play-version');
+          const timeCell = row.querySelector('.check-time');
+          const badgeCell = row.querySelector('.status-badge-cell');
+
+          if (playCell && appData.playVersion) {
+            playCell.textContent = 'v' + appData.playVersion;
+          }
+          if (timeCell && appData.checkedAt) {
+            timeCell.textContent = formatRelative(appData.checkedAt);
+          }
+
+          if (badgeCell) {
+            if (appData.status === 'up-to-date') {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                  <span>Up to date</span>
+                </span>
+              `;
+            } else if (appData.status === 'newer-available') {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                  <span>Newer version available</span>
+                </span>
+              `;
+            } else if (appData.status === 'not-on-play-store') {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-500 border border-white/10">
+                  <span>Not on Play Store</span>
+                </span>
+              `;
+            } else if (appData.status === 'check-failed') {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-rose-950/60 text-rose-400 border border-rose-800/40">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                  <span>Check failed</span>
+                </span>
+              `;
+            } else if (appData.status === 'unknown') {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10">
+                  <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                  <span>Unknown</span>
+                </span>
+              `;
+            } else {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10">
+                  <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                  <span>Unknown</span>
+                </span>
+              `;
+            }
+          }
+        });
+      }
+
+      (async function hydrate() {
+        try {
+          const cached = sessionStorage.getItem(STATUS_CACHE_KEY);
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (parsed && parsed.data && Date.now() - parsed.timestamp < STATUS_CACHE_TTL_MS) {
+                applyStatusData(parsed.data);
+                return;
+              }
+            } catch {
+              // Ignore invalid cache JSON
+            }
+          }
+
+          const endpoint = (typeof workerUrl !== 'undefined' && workerUrl) ? new URL('/api/status', workerUrl).toString() : 'https://worker.patch.p0ntus.com/api/status';
+          const response = await fetch(endpoint);
+          if (!response.ok) return;
+
+          const data = await response.json();
+          if (!data || !data.apps) return;
+
+          try {
+            sessionStorage.setItem(STATUS_CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+          } catch {
+            // Ignore storage quota / private browsing errors
+          }
+
+          applyStatusData(data);
+        } catch {
+          // Keep static fallback
+        }
+      })();
+    })();
+  </script>
+</BaseLayout>

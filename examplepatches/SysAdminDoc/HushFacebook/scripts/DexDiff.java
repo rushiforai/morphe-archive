@@ -88,8 +88,9 @@ import java.util.TreeSet;
  * addNewEdgeToCollection, because two guards stacked on that method is what broke Froggo's
  * builds; and each extension stub a patch fills in with one of Facebook's renamed accessors calls
  * it before it returns, so a patch that stopped filling one fails here instead of shipping a stub
- * that answers its marker forever; and the Stories tray hook comes first in each of the two tray
- * adapter methods, and the reels hook first in the pre-EOF injector; and the settings patch's
+ * that answers its marker forever; and each of the two Stories tray adapter classes gets one
+ * count of its own asking the extension, and the reels hook comes first in the pre-EOF injector;
+ * and the settings patch's
  * stand-in for the Facebook logo's touch listener comes right after the logo gets its tap, on the
  * same view; and the reel watch-history hook takes the place of the one call in the batcher's flush
  * that hands its batch to an executor, on that call's registers; and the runnable that swaps an
@@ -147,6 +148,9 @@ public class DexDiff {
      * <ul>
      *   <li>"single-call &lt;method reference&gt; in &lt;caller method name&gt;": exactly one call
      *       site, there.
+     *   <li>"count-call &lt;method reference&gt; in &lt;caller method name&gt; &lt;n&gt;": exactly n
+     *       call sites, each in a method of that name and each in a class of its own. For a hook
+     *       the patch adds to several classes as a method of their own.
      *   <li>"first-call &lt;method reference&gt; on &lt;class&gt;": the method calls a method of
      *       &lt;class&gt; that takes no arguments before its first return or throw. A stub the
      *       patch filled does; one still answering its marker doesn't.
@@ -212,13 +216,24 @@ public class DexDiff {
         final Boolean isStatic;
         /** The same rules: its method's descriptor, "*" for any run of characters, or null. */
         final String shape;
+        /** For a count-call rule, how many call sites, each in a class of its own; 1 for the others. */
+        final int count;
 
         Contract(String kind, String callee, String target) {
-            this(kind, callee, target, null, null, List.of(), null, null);
+            this(kind, callee, target, 1);
+        }
+
+        Contract(String kind, String callee, String target, int count) {
+            this(kind, callee, target, null, null, List.of(), null, null, count);
         }
 
         Contract(String kind, String callee, String target, String after, String replaced, List<String> strings,
                 Boolean isStatic, String shape) {
+            this(kind, callee, target, after, replaced, strings, isStatic, shape, 1);
+        }
+
+        private Contract(String kind, String callee, String target, String after, String replaced,
+                List<String> strings, Boolean isStatic, String shape, int count) {
             this.kind = kind;
             this.callee = callee;
             this.target = target;
@@ -227,6 +242,7 @@ public class DexDiff {
             this.strings = strings;
             this.isStatic = isStatic;
             this.shape = shape;
+            this.count = count;
         }
 
         /** Whether this rule picks its method by strings and a shape: start-call, next-call, sole-call and once-call. */
@@ -328,6 +344,8 @@ public class DexDiff {
                 continue;
             }
             boolean singleCall = parts.length == 4 && parts[0].equals("single-call") && parts[2].equals("in");
+            boolean countCall = parts.length == 5 && parts[0].equals("count-call") && parts[2].equals("in")
+                    && parts[4].matches("[1-9][0-9]*");
             boolean firstCall = parts.length == 4 && parts[0].equals("first-call") && parts[2].equals("on")
                     && parts[3].startsWith("L") && parts[3].endsWith(";");
             boolean firstCallTyped = parts.length == 4 && parts[0].equals("first-call")
@@ -336,10 +354,11 @@ public class DexDiff {
                     && parts[3].startsWith("L") && parts[3].endsWith("/");
             boolean noCall = parts.length == 4 && parts[0].equals("no-call") && parts[2].equals("outside")
                     && parts[3].startsWith("L") && parts[3].endsWith("/");
-            if ((!singleCall && !firstCall && !firstCallTyped && !firstCallOutside && !noCall)
+            if ((!singleCall && !countCall && !firstCall && !firstCallTyped && !firstCallOutside && !noCall)
                     || !parts[1].contains("->")) {
                 throw new IllegalArgumentException("Invalid contract line " + lineNumber
                         + ": expected single-call <method reference> in <caller method name>,"
+                        + " count-call <method reference> in <caller method name> <n>,"
                         + " first-call <method reference> on <class>,"
                         + " first-call <method reference> on-type-named <GraphQL type>,"
                         + " first-call <method reference> outside <package prefix ending in />,"
@@ -348,6 +367,10 @@ public class DexDiff {
                         + " sole-call <method reference> replacing <method reference>"
                         + " or once-call <method reference>, each then"
                         + " [in [static|instance] <(parameters)return>] holding <string> [<string> ...]");
+            }
+            if (countCall) {
+                contracts.add(new Contract(parts[0], parts[1], parts[3], Integer.parseInt(parts[4])));
+                continue;
             }
             String kind = firstCallTyped ? TYPED_FIRST_CALL : firstCallOutside ? OUTSIDE_FIRST_CALL : parts[0];
             contracts.add(new Contract(kind, parts[1], parts[3]));
@@ -1239,7 +1262,9 @@ public class DexDiff {
         Map<String, String> noCallInside = new HashMap<>();
         Map<String, List<String>> noCallSites = new LinkedHashMap<>();
         for (Contract contract : contracts) {
-            if (contract.kind.equals("single-call")) callSites.put(contract.callee, new ArrayList<>());
+            if (contract.kind.equals("single-call") || contract.kind.equals("count-call")) {
+                callSites.put(contract.callee, new ArrayList<>());
+            }
             else if (contract.kind.equals("first-call")) firstCallTargets.put(contract.callee, contract.target);
             else if (contract.kind.equals(TYPED_FIRST_CALL)) {
                 typedFirstCallTargets.put(contract.callee, contract.target);
@@ -1368,6 +1393,10 @@ public class DexDiff {
                 continue;
             }
             List<String> sites = callSites.get(contract.callee);
+            if (contract.kind.equals("count-call")) {
+                checkCounted(contract, sites, contractFindings);
+                continue;
+            }
             System.out.println("[diff] contract " + contract.callee + ": " + sites.size() + " call site"
                     + (sites.size() == 1 ? "" : "s") + (sites.isEmpty() ? "" : ", in " + String.join(", ", sites)));
             if (sites.size() != 1) {
@@ -1381,6 +1410,33 @@ public class DexDiff {
         }
         if (!contractFindings.isEmpty()) out.put("contract", contractFindings);
         return out;
+    }
+
+    /**
+     * Holds a count-call rule to its call sites: exactly its count of them, every one in a method
+     * of the rule's name, and no two in one class (two calls in one method count as two sites).
+     */
+    private static void checkCounted(Contract contract, List<String> sites, List<String> findings) {
+        String rule = "contract count-call " + contract.callee + " in " + contract.target + " " + contract.count;
+        System.out.println("[diff] " + rule + ": " + sites.size() + " call site" + (sites.size() == 1 ? "" : "s")
+                + (sites.isEmpty() ? "" : ", in " + String.join(", ", sites)));
+        List<String> elsewhere = new ArrayList<>();
+        Set<String> classes = new TreeSet<>();
+        for (String site : sites) {
+            if (site.contains("->" + contract.target + "(")) classes.add(site.substring(0, site.indexOf("->")));
+            else elsewhere.add(site);
+        }
+        if (sites.size() != contract.count) {
+            findings.add("contract: " + contract.callee + " has " + sites.size() + " call sites, and must have exactly "
+                    + contract.count + ", each in " + contract.target + " of a class of its own"
+                    + (sites.isEmpty() ? "" : ": " + String.join(", ", sites)));
+        } else if (!elsewhere.isEmpty()) {
+            findings.add("contract: " + contract.callee + " is called from " + String.join(", ", elsewhere)
+                    + ", not from " + contract.target);
+        } else if (classes.size() != contract.count) {
+            findings.add("contract: " + contract.callee + " is called more than once in one class's "
+                    + contract.target + ": " + String.join(", ", sites));
+        }
     }
 
     /** Where a method calls a start-call rule's method: not at all, first thing, or later. */
@@ -1454,7 +1510,7 @@ public class DexDiff {
         List<Instruction> body = instructions(only.m);
         List<Integer> sites = callSites(body, contract.callee);
         // Where else the hook went. A start-call rule looks among the methods holding its strings,
-        // since the two tray rules send the same call to two adapters. A next-call, sole-call or
+        // since the two Messenger icon rules send the same call to two methods. A next-call, sole-call or
         // once-call hook belongs to one method, so a second call anywhere is one too many.
         List<String> elsewhere = new ArrayList<>();
         if (contract.kind.equals("start-call")) {

@@ -12,6 +12,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.interaction.blockauthor.PlayerProgressAidFingerprint
 import app.morphe.util.cloneMutable
 import app.morphe.util.getReference
 import app.morphe.util.implementationOrPatchException
@@ -73,6 +74,8 @@ val rememberClearDisplayPatch = bytecodePatch(
             listOf("F", "I", "J", "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
         )
         val eventMethod = OnClearDisplayEventFingerprint.method
+        val controllerMembers = resolveClearDisplayController(eventMethod) { classDefByOrNull(it) }
+        hookClearDisplayCompletion(eventMethod, ClearDisplayCellFingerprint.method)
         val eventClass = eventMethod.parameters[0].type
         val frameMethod = OnRenderFirstFrameBodyFingerprint.method
         val awemeGetter = frameMethod.implementationOrPatchException("Remember clear display")
@@ -84,6 +87,10 @@ val rememberClearDisplayPatch = bytecodePatch(
         }.distinctBy { it.toString() }
             .singleOrPatchException("Remember clear display: first-frame Aweme getter")
         val extension = mutableClassDefBy(EXTENSION)
+        val panelOriginal = extension.methods.filter { it.name == "onNativePanelApply" }
+            .singleOrPatchException("Remember clear display: extension panel controller bridge")
+        extension.methods.remove(panelOriginal)
+        extension.methods.add(clearDisplayPanelBridge(panelOriginal, controllerMembers))
         val postOriginal = extension.methods.filter { it.name == "postClear" }
             .singleOrPatchException("Remember clear display: extension postClear bridge")
         val post = postOriginal.cloneMutable(additionalRegisters = 5)
@@ -96,8 +103,11 @@ val rememberClearDisplayPatch = bytecodePatch(
             const-string v3, ""
             const-string v4, "long_press"
             invoke-direct { v0, v1, v2, v3, v4 }, $eventClass-><init>(ZILjava/lang/String;Ljava/lang/String;)V
+            invoke-static { v0, v1 }, $EXTENSION->beginNativeDispatch(Ljava/lang/Object;Z)V
             invoke-virtual { v0 }, $eventClass->post()Lcom/ss/android/ugc/governance/eventbus/IEvent;
-            return-void
+            invoke-static {}, $EXTENSION->finishNativeDispatch()Z
+            move-result v0
+            return v0
         """)
         val readOriginal = extension.methods.filter { it.name == "readCurrentAweme" }
             .singleOrPatchException("Remember clear display: extension readCurrentAweme bridge")
@@ -114,6 +124,8 @@ val rememberClearDisplayPatch = bytecodePatch(
             "invoke-static/range { p1 .. p1 }, $EXTENSION->rememberClearDisplayEvent(Ljava/lang/Object;)V")
         frameMethod.addInstruction(0,
             "invoke-static/range { p0 .. p0 }, $EXTENSION->onFirstFrame(Ljava/lang/Object;)V")
+        PlayerProgressAidFingerprint.method.addInstruction(0,
+            "invoke-static/range { p0 .. p1 }, $EXTENSION->onPlaybackProgress(Ljava/lang/Object;Ljava/lang/String;)V")
         SettingsStatusLoadFingerprint.method.addInstruction(0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableAutomaticClearDisplay()V")
     }

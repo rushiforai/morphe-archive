@@ -4,6 +4,9 @@ import android.app.Activity;import android.content.Context;import android.graphi
 public final class CaptionQuickToggle {
     private static long shortsMenuAt;
     private static String shortsVideo="";
+    public static void observeMenuPath(CharSequence path,byte[] buffer){
+        if(path!=null)observeMenuPath(path.toString(),buffer);
+    }
     public static void observeMenuPath(String path,byte[] buffer){
         if(!shortsOpen()||path==null||!path.startsWith("overflow_menu_item.e")||buffer==null)return;
         if(path.contains("captions_sheet")||path.contains("quality_sheet"))return;
@@ -19,7 +22,7 @@ public final class CaptionQuickToggle {
         if(!visible){shortsMenuAt=0;shortsVideo="";return index;}
         boolean shorts=shortsMenuAt>0&&inShorts&&android.os.SystemClock.uptimeMillis()-shortsMenuAt<1500&&shortsVideo.equals(PageCaptionController.currentVideoIdSnapshot());
         if(!topMenu()&&!shorts)return index;shortsMenuAt=0;
-        String text=CaptionStrings.get(a,"ai_title")+" · "+CaptionStrings.get(a,DeepSeekConfig.enabled(a)?"on":"off");
+        String text=CaptionStrings.settings(a,DeepSeekConfig.enabled(a)?"ai_quick_toggle_on":"ai_quick_toggle_off");
         int id=a.getResources().getIdentifier("deepseek_caption_settings","drawable",a.getPackageName());Drawable icon=id==0?null:a.getDrawable(id);
         int next=addNativeRow(panel,icon,text,v->{if(toggle(a))dismissNative();},index);
         if(next<0)return index;
@@ -40,7 +43,7 @@ public final class CaptionQuickToggle {
     }
     public static android.widget.LinearLayout nativeContainer(Object panel){return null;}
     static boolean setEngine(Context context,boolean enabled){
-        if(enabled && DeepSeekConfig.load(context).apiKey.isEmpty()){Toast.makeText(context,CaptionStrings.get(context,"configure_api"),Toast.LENGTH_LONG).show();return false;}
+        if(enabled && DeepSeekConfig.load(context).apiKey.isEmpty()){Toast.makeText(context,CaptionStrings.settings(context,"configure_api"),Toast.LENGTH_LONG).show();return false;}
         boolean previous=DeepSeekConfig.enabled(context);
         // Saving the user's mode is independent of an ephemeral native player/track reference.
         // In particular, OFF must never be rolled back to ON by a stale Shorts manager.
@@ -52,9 +55,9 @@ public final class CaptionQuickToggle {
         CaptionMusicSuppressor.forceNativeRendererScan();CaptionMusicSuppressor.kick();
         CaptionDiagnostics.mark(context,"ENGINE_MODE_SAVED","enabled="+enabled+";native="+refreshed.name()+";session="+DynamicCaptionController.isVisibleActive()+";choice_known="+CaptionChoice.known());
         if(previous!=enabled&&refreshed==NativeCaptionBridge.Refresh.DEFERRED)
-            Toast.makeText(context,CaptionStrings.get(context,enabled?"mode_pending":"mode_off_pending"),Toast.LENGTH_LONG).show();
+            Toast.makeText(context,CaptionStrings.settings(context,enabled?"mode_pending":"mode_off_pending"),Toast.LENGTH_LONG).show();
         else if(enabled&&CaptionChoice.isOn()&&!CaptionChoice.translates())
-            Toast.makeText(context,CaptionStrings.get(context,"choose_translation"),Toast.LENGTH_LONG).show();
+            Toast.makeText(context,CaptionStrings.settings(context,"choose_translation"),Toast.LENGTH_LONG).show();
         return true;
     }
     public static boolean shortsOpen(){return false;}

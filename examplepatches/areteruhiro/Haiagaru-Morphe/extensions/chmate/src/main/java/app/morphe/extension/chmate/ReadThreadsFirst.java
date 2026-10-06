@@ -29,6 +29,26 @@ public final class ReadThreadsFirst {
     private static final String TAG = "HaiagaruReadFirst";
     private static final String PREFS = "io.github.areteruhiro.chmate.haiagaru.ui-config";
     private static final String KEY = "readThreadsFirst";
+    private static final String NEW_ONLY_KEY = "readThreadsFirstNewOnly";
+
+    public static void chooseScope(Activity activity) {
+        if (activity == null || activity.isFinishing()) return;
+        SharedPreferences prefs = preferences();
+        if (prefs == null) return;
+        new android.app.AlertDialog.Builder(activity)
+                .setTitle("上に表示する既読スレ")
+                .setSingleChoiceItems(new String[]{"既読スレすべて", "新着レスがある既読スレのみを上に"},
+                        prefs.getBoolean(NEW_ONLY_KEY, false) ? 1 : 0, (dialog, which) -> {
+                            prefs.edit().putBoolean(NEW_ONLY_KEY, which == 1).apply();
+                            Haiagaru.refreshBoardListAfterReadSortChange();
+                            dialog.dismiss();
+                        })
+                .setNegativeButton("閉じる", null).show();
+    }
+
+    private static void chooseScopeIfEnabled() {
+        if (enabled()) Haiagaru.showReadThreadsFirstScope();
+    }
     private static volatile Object label;
     private static volatile Object click;
     private static volatile Method checkbox;
@@ -87,6 +107,7 @@ public final class ReadThreadsFirst {
                 SharedPreferences prefs = preferences();
                 if (prefs != null) prefs.edit().putBoolean(KEY, checked).apply();
                 Haiagaru.refreshBoardListAfterReadSortChange();
+                chooseScopeIfEnabled();
             });
             LinearLayout.LayoutParams original = (LinearLayout.LayoutParams) star.getLayoutParams();
             LinearLayout.LayoutParams placement = new LinearLayout.LayoutParams(original.width, original.height);
@@ -144,6 +165,7 @@ public final class ReadThreadsFirst {
                 if (prefs != null) prefs.edit().putBoolean(KEY, !enabled()).apply();
                 if (version242) updateCompose242CheckedState();
                 Haiagaru.refreshBoardListAfterReadSortChange();
+                chooseScopeIfEnabled();
                 return unitValue;
             });
             Class<?> rowType = loader.loadClass(version242 ? "o.zzaxj" : "o.zzemn");
@@ -239,6 +261,7 @@ public final class ReadThreadsFirst {
                     if (checkedState != null) checkedState.getClass().getMethod("a", Object.class)
                             .invoke(checkedState, args[0]);
                     Haiagaru.refreshBoardListAfterReadSortChange();
+                    chooseScopeIfEnabled();
                 }
                 return value;
             });
@@ -317,6 +340,7 @@ public final class ReadThreadsFirst {
                     if (checkedState != null) checkedState.getClass().getMethod("b", Object.class)
                             .invoke(checkedState, Boolean.valueOf(enabled()));
                     Haiagaru.refreshBoardListAfterReadSortChange();
+                    chooseScopeIfEnabled();
                     return unit;
                 });
             }
@@ -384,8 +408,8 @@ public final class ReadThreadsFirst {
                 while (end < mutable.size() && thread(mutable.get(end)) != null) end++;
                 if (end - start > 1) {
                     List<Object> ordered = new ArrayList<>(end - start);
-                    for (int i = start; i < end; i++) if (hasLocalHistory(thread(mutable.get(i)))) ordered.add(mutable.get(i));
-                    for (int i = start; i < end; i++) if (!hasLocalHistory(thread(mutable.get(i)))) ordered.add(mutable.get(i));
+                    for (int i = start; i < end; i++) if (prioritize(thread(mutable.get(i)))) ordered.add(mutable.get(i));
+                    for (int i = start; i < end; i++) if (!prioritize(thread(mutable.get(i)))) ordered.add(mutable.get(i));
                     for (int i = start; i < end; i++) mutable.set(i, ordered.get(i - start));
                 }
                 start = end + 1;
@@ -618,16 +642,35 @@ public final class ReadThreadsFirst {
                 || modelName.equals("o.zzejt") ? model : null;
     }
 
+    private static boolean prioritize(Object model) throws Exception {
+        if (!hasLocalHistory(model)) return false;
+        SharedPreferences prefs = preferences();
+        if (prefs == null || !prefs.getBoolean(NEW_ONLY_KEY, false)) return true;
+        String name = model.getClass().getName();
+        String total = name.equals("o.MaxAdViewImplExternalSyntheticLambda2") ? "d"
+                : name.equals("o.verifyHostname") ? "c"
+                : name.equals("o.zzauw") ? "a"
+                : name.equals("o.zzejt") ? "d" : "b";
+        String read = name.equals("o.MaxAdViewImplExternalSyntheticLambda2") ? "b"
+                : name.equals("o.verifyHostname") ? "e"
+                : name.equals("o.zzauw") ? "g" : "f";
+        Field totalField = model.getClass().getDeclaredField(total);
+        Field readField = model.getClass().getDeclaredField(read);
+        totalField.setAccessible(true);
+        readField.setAccessible(true);
+        return totalField.getInt(model) > readField.getInt(model);
+    }
+
     private static boolean hasLocalHistory(Object model) throws Exception {
         // 241's read_count is populated even for unopened board threads. The local
         // SelectByBoardForThreadList row ID stays -1 until a thread has history.
-        // 241/242/243 store the local history row ID in d. Their other long
-        // field is an activity timestamp and cannot identify opened threads.
+        // Use DEX field names, not JADX's Kotlin-metadata aliases: the local
+        // history ID is e in 241/243 and d in 242. The other long is a timestamp.
         // 241 can populate the local row with ID 0; -1 is its no-history sentinel.
         String name = model.getClass().getName();
         Field field = model.getClass().getDeclaredField(
-                name.equals("o.OnConnectionFailedListener") || name.equals("o.zzejt")
-                        || name.equals("o.zzauw") ? "d"
+                name.equals("o.OnConnectionFailedListener") || name.equals("o.zzejt") ? "e"
+                        : name.equals("o.zzauw") ? "d"
                         : name.equals("o.verifyHostname") ? "b" : "e");
         field.setAccessible(true);
         long localRowId = field.getLong(model);

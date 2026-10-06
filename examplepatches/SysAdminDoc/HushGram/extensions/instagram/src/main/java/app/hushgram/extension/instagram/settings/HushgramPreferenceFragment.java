@@ -1224,6 +1224,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         changingConfiguration = true;
         showConfiguration();
         if (!Utils.runOnBackgroundThread(() -> {
+            byte[] document = null;
             try {
                 ConfigurationBackup.Result result;
                 if (undo) result = ConfigurationBackup.undo(token);
@@ -1232,6 +1233,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
                         bytes = ConfigurationBackup.read(input);
                     }
+                    document = bytes;
                     // A provider can fail while closing. Finish all document I/O before values
                     // change, so the failure verdict can truthfully say nothing was applied.
                     result = ConfigurationBackup.restore(bytes);
@@ -1251,7 +1253,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                         : L10n.t("Couldn't save or fully restore the settings. Check the shown values and try Undo."));
             } catch (Exception failure) {
                 Logger.printInfo(() -> "Configuration import failed before applying settings");
-                showImportFeedback(L10n.t("Couldn't use that settings file. Your settings haven't changed."));
+                // An overrides file handed to the settings import is the likeliest mix-up, so name it.
+                showImportFeedback(OverrideExchange.isOverridesFile(document)
+                        ? L10n.t("That's an overrides file, not a settings file. Turn on Allow importing overrides "
+                                + "under Developer, then use Import overrides. Your settings haven't changed.")
+                        : L10n.t("Couldn't use that settings file. Your settings haven't changed."));
             } finally { configurationFinished(); }
         })) configurationQueueFull();
     }

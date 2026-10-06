@@ -1,0 +1,9 @@
+"""Report honest before/after scope: real device before, same controlled replay comparison."""
+from pathlib import Path
+import json,statistics
+R=Path(__file__).resolve().parents[2];V=R/'.verification/n30';O=V/'delivery-records'
+read=lambda p:json.loads(p.read_text(encoding='utf-8-sig'))
+before=read(R/'.verification/n29/full-final-06/n29-startup-fixed-after.json');after=read(V/'full-final-05/n30-startup-fixed-after.json')
+rows=read(V/'full-final-05/n30-transition-after.json')['rows'];local=[r['callback_ns'] for r in rows]
+report={'device_before':read(O/'n29-device-before.json'),'device_after':None,'controlled_startup':{'n29':before,'n30':after,'focus_first_accepted_wall_ms':3350,'network_latency_model_unchanged':True,'controlled_usage_tokens':'not modeled: fixture reports no provider usage','boundary_wait_is_not_optimized_to_zero':True},'controlled_connections':{k:v for k,v in read(V/'full-final-05/n30-connection-failure.json').items() if k!='raw_trace'},'controlled_callback':{'rows':len(rows),'inline_geometry_scans':0,'inline_native_scans':0,'deferred_geometry_searches':sum(r['deferred_geometry_searches'] for r in rows),'callback_local_ns_min':min(local),'callback_local_ns_max':max(local),'callback_local_ns_median':statistics.median(local),'ordinary_path_rounds':30,'compact_rounds':10,'timing_boundary':'Robolectric observations only, not phone fps or latency claims'},'native_menu_open':{'scope':'production augmentTranslations plus platform dialog with test host objects; actual phone not run','evidence':'full-final-05/n30-menu-runtime.json; test logs LANGUAGE_MENU_READY elapsed_us','locale_switches':4,'menu_rows':12},'no_more_fast_or_cheaper_claim':True}
+(O/'before-after-comparison.json').write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8');print('N30_BEFORE_AFTER_EVIDENCE_READY')

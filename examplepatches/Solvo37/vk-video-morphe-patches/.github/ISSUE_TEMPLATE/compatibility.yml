@@ -23,7 +23,6 @@ body:
       label: Where did you get the official build?
       options:
         - RuStore
-        - Google Play
         - VK / official update
         - Other
     validations:

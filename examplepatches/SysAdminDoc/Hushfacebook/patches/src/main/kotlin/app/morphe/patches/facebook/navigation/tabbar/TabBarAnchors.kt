@@ -40,7 +40,8 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * the current tab, and a start or a link asking for a tab the bar hasn't got opens the bar's first
  * tab. Nothing builds the feed's page when the bar has no Home, though the start-up still warms
  * the feed's data in the background. The older top navigation bar looks the Video tab up in the
- * shown list the same way and keeps -1 when it's gone.
+ * shown list the same way and keeps -1 when it's gone. Links, Menu shortcuts and notifications ask
+ * the configured list instead, which a dropped tab is still in: see TabLinkAnchors.kt.
  */
 internal const val TAB_BAR_FILTER = "Tab bar filter"
 
@@ -67,10 +68,10 @@ internal data class TabFilter(
     val hidden: Int,
 )
 
-private val Instruction.call: MethodReference?
+internal val Instruction.call: MethodReference?
     get() = (this as? ReferenceInstruction)?.reference as? MethodReference
 
-private fun MethodReference.signature() =
+internal fun MethodReference.signature() =
     "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
 /** The registers a call reads, in order, whether it's written as a range or not. */
@@ -81,7 +82,7 @@ internal fun Instruction.callRegisters(): List<Int> = when (this) {
 }
 
 /** Whether [instruction] can write [register], a wide write counting for both halves. */
-private fun writes(instruction: Instruction, register: Int): Boolean {
+internal fun writes(instruction: Instruction, register: Int): Boolean {
     val opcode = instruction.opcode
     if (!opcode.setsRegister() || instruction !is OneRegisterInstruction) return false
     val first = instruction.registerA

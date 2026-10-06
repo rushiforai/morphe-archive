@@ -32,6 +32,7 @@ public final class SettingsStatus {
     public static boolean hideAds() { return false; }
     public static boolean feedAds() { return false; }
     public static boolean adViews() { return false; }
+    public static boolean googleAds() { return false; }
 
     public static boolean hideAiPins() { return false; }
     public static boolean feedAiPins() { return false; }
@@ -43,6 +44,8 @@ public final class SettingsStatus {
     public static boolean analyticsUploads() { return false; }
     public static boolean stripLinkTracking() { return false; }
     public static boolean linkTracking() { return false; }
+    public static boolean hideAdvertisingId() { return false; }
+    public static boolean advertisingId() { return false; }
     public static boolean downloadPins() { return false; }
     public static boolean pinDownloads() { return false; }
     public static boolean externalBrowser() { return false; }
@@ -63,6 +66,10 @@ public final class SettingsStatus {
     public static boolean comments() { return false; }
     public static boolean quietEmailReminder() { return false; }
     public static boolean emailReminder() { return false; }
+    public static boolean hideSaveToasts() { return false; }
+    public static boolean saveToasts() { return false; }
+    public static boolean originalImages() { return false; }
+    public static boolean imageChooser() { return false; }
     public static boolean disableUpdateNag() { return false; }
     public static boolean updateNag() { return false; }
 }

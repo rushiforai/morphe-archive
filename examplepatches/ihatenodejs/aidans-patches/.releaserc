@@ -74,6 +74,17 @@
         ],
         "successComment": false
       }
+    ],
+    [
+      "@kilianpaquier/semantic-release-backmerge",
+      {
+        "targets": [
+          {
+            "from": "main",
+            "to": "dev"
+          }
+        ]
+      }
     ]
   ]
 }

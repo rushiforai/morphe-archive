@@ -59,7 +59,6 @@ public final class RegionActivity extends Activity {
                     prefs.edit().putString("forced_region", targetRegion).apply();
 
                     Toast.makeText(getApplicationContext(), "Setting region to " + targetRegion + "...", Toast.LENGTH_SHORT).show();
-                    getSharedPreferences("settings_preference", MODE_PRIVATE).edit().remove("dark_mode").apply();
 
                     new Handler(Looper.getMainLooper()).postDelayed(() -> {
                         Intent launchIntent = getPackageManager().getLaunchIntentForPackage(getPackageName());
@@ -222,8 +221,6 @@ public final class RegionActivity extends Activity {
         if (isFinishing() && initialRegion != null && !initialRegion.equalsIgnoreCase(currentRegion)) {
             Context app = getApplicationContext();
             Toast.makeText(app, "Restarting Maps to apply region...", Toast.LENGTH_SHORT).show();
-
-            getSharedPreferences("settings_preference", MODE_PRIVATE).edit().remove("dark_mode").apply();
 
             new Handler(Looper.getMainLooper()).postDelayed(() -> {
                 Intent intent = app.getPackageManager().getLaunchIntentForPackage(app.getPackageName());

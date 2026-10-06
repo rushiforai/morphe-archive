@@ -1,0 +1,358 @@
+---
+import { Image } from 'astro:assets';
+import { getApps, getPatches } from '../data/repo';
+import { getPatchCodeMap } from '../data/patch-code';
+import { getPatchSourceUrl } from '../data/source-links';
+const apps = getApps();
+const allPatches = getPatches();
+const codeMap = getPatchCodeMap();
+
+// Prepare structured data for client viewer
+const viewerData = apps.map((app) => {
+  const appPatches = allPatches
+    .filter((p) => p.compatibleAppIds.includes(app.id))
+    .map((p) => {
+      const codeEntry = codeMap[`${app.id}:${p.name}`] || codeMap[p.name];
+      return {
+        id: p.id,
+        name: p.name,
+        fileName: codeEntry ? codeEntry.fileName : `${p.name}.kt`,
+        relativePath: codeEntry ? codeEntry.relativePath : 'patches/',
+        sourceUrl: getPatchSourceUrl(p.name, app.id) || p.sourceUrl,
+        code: codeEntry ? codeEntry.code : '// Source available in repository',
+      };
+    });
+
+  return {
+    id: app.id,
+    name: app.name,
+    iconUrl: app.iconUrl,
+    appIconColor: app.appIconColor,
+    patches: appPatches,
+  };
+});
+
+// Initial selection: first app with code
+const initialAppIndex = Math.max(0, viewerData.findIndex((a) => a.patches.length > 0));
+const initialApp = viewerData[initialAppIndex] || viewerData[0];
+const initialPatch = initialApp.patches[0];
+---
+
+<div class="border border-white/[0.08] bg-[#090909] rounded-sm overflow-hidden relative">
+  <!-- Corner crosshairs -->
+  <span class="absolute -top-[5px] -left-[4px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+  <span class="absolute -top-[5px] -right-[4px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+  <span class="absolute -bottom-[5px] -left-[4px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+  <span class="absolute -bottom-[5px] -right-[4px] select-none text-[9px] font-mono text-zinc-600 leading-none pointer-events-none">+</span>
+
+  <div class="grid grid-cols-1 md:grid-cols-12 min-h-[500px]">
+    <!-- Left Sidebar: App & Patch Picker (33% width / 4 cols out of 12) -->
+    <div class="md:col-span-4 border-b md:border-b-0 md:border-r border-white/[0.08] flex flex-col bg-[#070707]">
+      <!-- Top 50% Vertical Space: App Picker -->
+      <div class="h-64 flex flex-col border-b border-white/[0.08]">
+        <div class="px-4 py-2.5 bg-zinc-950 border-b border-white/[0.06] flex items-center justify-between shrink-0">
+          <span class="font-mono text-[10px] uppercase tracking-wider text-zinc-400">1. Select Application</span>
+          <span class="font-mono text-[10px] text-zinc-600">{apps.length} apps</span>
+        </div>
+        <div class="overflow-y-auto flex-grow p-1.5 space-y-0.5 custom-scrollbar overscroll-none" id="code-viewer-app-list">
+          {viewerData.map((app, index) => (
+            <button
+              type="button"
+              data-app-id={app.id}
+              class={`w-full text-left px-3 py-2 rounded-sm text-xs font-mono flex items-center justify-between transition-colors ${
+                index === initialAppIndex
+                  ? 'bg-white/[0.08] text-white font-semibold'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/[0.03]'
+              }`}
+            >
+              <div class="flex items-center gap-2.5 min-w-0">
+                {app.iconUrl ? (
+                  <Image
+                    src={app.iconUrl}
+                    alt={app.name}
+                    width={16}
+                    height={16}
+                    class="w-4 h-4 rounded-sm object-cover border border-white/10 shrink-0"
+                    loading="lazy"
+                  />
+                ) : (
+                  <span class="w-4 h-4 rounded-sm bg-zinc-900 border border-white/10 flex items-center justify-center text-[10px] text-zinc-400 shrink-0">
+                    {app.name.charAt(0)}
+                  </span>
+                )}
+                <span class="truncate">{app.name}</span>
+              </div>
+              <span class="text-[10px] text-zinc-500 shrink-0">
+                {app.patches.length}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <!-- Bottom 50% Vertical Space: Patch Picker -->
+      <div class="h-64 flex flex-col">
+        <div class="px-4 py-2.5 bg-zinc-950 border-b border-white/[0.06] flex items-center justify-between shrink-0">
+          <span class="font-mono text-[10px] uppercase tracking-wider text-zinc-400">2. Select Patch</span>
+          <span class="font-mono text-[10px] text-zinc-600" id="code-viewer-patch-count">
+            {initialApp.patches.length} patches
+          </span>
+        </div>
+        <div class="overflow-y-auto flex-grow p-1.5 space-y-0.5 custom-scrollbar overscroll-none" id="code-viewer-patch-list">
+          {initialApp.patches.map((patch, index) => (
+            <button
+              type="button"
+              data-patch-id={patch.id}
+              class={`w-full text-left px-3 py-2 rounded-sm text-xs font-mono truncate transition-colors ${
+                index === 0
+                  ? 'bg-white/[0.08] text-white font-semibold'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/[0.03]'
+              }`}
+            >
+              {patch.name}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Code Viewer (67% width / 8 cols out of 12) -->
+    <div class="md:col-span-8 flex flex-col bg-[#050505] min-w-0">
+      <!-- Code Header -->
+      <div class="px-4 py-2.5 bg-zinc-950 border-b border-white/[0.08] flex items-center justify-between gap-4 font-mono text-xs shrink-0">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-zinc-200 font-semibold truncate" id="viewer-file-name">
+            {initialPatch ? initialPatch.fileName : 'Source'}
+          </span>
+          <span class="text-zinc-600 text-[11px] hidden sm:inline truncate max-w-[240px]" id="viewer-file-path">
+            {initialPatch ? initialPatch.relativePath : ''}
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <button
+            type="button"
+            id="viewer-copy-btn"
+            class="px-2.5 py-1 rounded-sm bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-white/20 text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5 font-mono text-[11px]"
+          >
+            <svg id="viewer-copy-icon" class="w-3.5 h-3.5 text-zinc-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+            </svg>
+            <span id="viewer-copy-text">Copy</span>
+          </button>
+          <a
+            href={initialPatch ? initialPatch.sourceUrl : '#'}
+            target="_blank"
+            rel="noreferrer"
+            id="viewer-github-link"
+            class="px-2.5 py-1 rounded-sm bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.1] hover:border-white/20 text-zinc-300 hover:text-white transition-colors flex items-center gap-1.5 font-mono text-[11px]"
+          >
+            <svg class="w-3.5 h-3.5 fill-current shrink-0 text-zinc-400" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+            </svg>
+            <span>GitHub</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Code Area with Line Numbers -->
+      <div class="flex-grow overflow-auto max-h-[500px] bg-[#050505] relative custom-scrollbar overscroll-none" id="code-container">
+        <div class="flex min-w-full w-max">
+          <div
+            class="sticky left-0 z-10 select-none text-zinc-600 text-right pt-2 pb-4 pl-3 pr-4 bg-[#050505] font-mono text-[12px] leading-[22px] shrink-0 tabular-nums min-w-[2.75rem]"
+            id="viewer-line-numbers"
+            aria-hidden="true"
+          >
+            {initialPatch ? initialPatch.code.split('\n').map((_, i) => <div class="h-[22px] leading-[22px]">{i + 1}</div>) : null}
+          </div>
+          <pre class="flex-grow font-mono text-[12px] leading-[22px] text-zinc-300 pt-2 pb-4 pl-0 pr-6 m-0 whitespace-pre overflow-visible"><code id="viewer-code-body" class="font-mono text-[12px] leading-[22px]">{initialPatch ? initialPatch.code : ''}</code></pre>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline define:vars={{ viewerData, initialAppIndex }}>
+  (function () {
+    if (!viewerData || viewerData.length === 0) return;
+    let activeAppIndex = initialAppIndex;
+    let activePatchIndex = 0;
+
+    const appListEl = document.getElementById('code-viewer-app-list');
+    const patchListEl = document.getElementById('code-viewer-patch-list');
+    const patchCountEl = document.getElementById('code-viewer-patch-count');
+    const fileNameEl = document.getElementById('viewer-file-name');
+    const filePathEl = document.getElementById('viewer-file-path');
+    const githubLinkEl = document.getElementById('viewer-github-link');
+    const codeBodyEl = document.getElementById('viewer-code-body');
+    const lineNumbersEl = document.getElementById('viewer-line-numbers');
+    const copyBtn = document.getElementById('viewer-copy-btn');
+    const copyText = document.getElementById('viewer-copy-text');
+    const copyIcon = document.getElementById('viewer-copy-icon');
+    const codeContainerEl = document.getElementById('code-container');
+
+    // Single-pass Kotlin syntax highlighter (immune to HTML tag re-matching collisions)
+    function highlightKotlin(code) {
+      const TOKEN_REGEX = /(\/\/[^\n]*)|("[^"\\]*(?:\\.[^"\\]*)*")|(@\w+)|(\b(?:package|import|val|var|fun|class|object|interface|return|true|false|null|if|else|when|override|private|public|protected|internal|by|in|is|as|this|super)\b)|(\b(?:bytecodePatch|rawResourcePatch|resourcePatch|compatibleWith|execute|dependsOn|extendWith|document|fingerprint|options)\b)|(\b0x[0-9a-fA-F]+\b|\b\d+L?\b)/g;
+
+      let lastIndex = 0;
+      let html = '';
+      let match;
+
+      function escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      }
+
+      while ((match = TOKEN_REGEX.exec(code)) !== null) {
+        if (match.index > lastIndex) {
+          html += escapeHtml(code.slice(lastIndex, match.index));
+        }
+
+        const [, comment, string, annotation, keyword, dsl, number] = match;
+
+        if (comment) {
+          html += `<span class="text-zinc-500 italic">${escapeHtml(comment)}</span>`;
+        } else if (string) {
+          html += `<span class="text-emerald-400">${escapeHtml(string)}</span>`;
+        } else if (annotation) {
+          html += `<span class="text-amber-400 font-semibold">${escapeHtml(annotation)}</span>`;
+        } else if (keyword) {
+          html += `<span class="text-purple-400 font-semibold">${escapeHtml(keyword)}</span>`;
+        } else if (dsl) {
+          html += `<span class="text-blue-400 font-bold">${escapeHtml(dsl)}</span>`;
+        } else if (number) {
+          html += `<span class="text-amber-300">${escapeHtml(number)}</span>`;
+        }
+
+        lastIndex = TOKEN_REGEX.lastIndex;
+      }
+
+      if (lastIndex < code.length) {
+        html += escapeHtml(code.slice(lastIndex));
+      }
+
+      return html;
+    }
+
+    function renderActivePatch() {
+      const app = viewerData[activeAppIndex];
+      if (!app) return;
+      const patch = app.patches[activePatchIndex] || app.patches[0];
+      if (!patch) return;
+
+      if (codeContainerEl) {
+        codeContainerEl.scrollTop = 0;
+        codeContainerEl.scrollLeft = 0;
+      }
+
+      if (fileNameEl) fileNameEl.textContent = patch.fileName;
+      if (filePathEl) filePathEl.textContent = patch.relativePath;
+      if (githubLinkEl) githubLinkEl.href = patch.sourceUrl;
+
+      if (codeBodyEl) {
+        codeBodyEl.innerHTML = highlightKotlin(patch.code);
+      }
+
+      if (lineNumbersEl) {
+        const lineCount = patch.code.split('\n').length;
+        let numbersHtml = '';
+        for (let i = 1; i <= lineCount; i++) {
+          numbersHtml += '<div class="h-[22px] leading-[22px]">' + i + '</div>';
+        }
+        lineNumbersEl.innerHTML = numbersHtml;
+      }
+    }
+
+    function renderPatchList() {
+      const app = viewerData[activeAppIndex];
+      if (!app || !patchListEl) return;
+
+      if (patchCountEl) {
+        patchCountEl.textContent = app.patches.length === 1 ? '1 patch' : app.patches.length + ' patches';
+      }
+
+      let html = '';
+      app.patches.forEach((patch, idx) => {
+        const isActive = idx === activePatchIndex;
+        html += `
+          <button
+            type="button"
+            data-patch-idx="${idx}"
+            class="w-full text-left px-3 py-2 rounded-sm text-xs font-mono truncate transition-colors ${
+              isActive
+                ? 'bg-white/[0.08] text-white font-semibold'
+                : 'text-zinc-400 hover:text-white hover:bg-white/[0.03]'
+            }"
+          >
+            ${patch.name}
+          </button>
+        `;
+      });
+
+      patchListEl.innerHTML = html;
+
+      // Bind patch click listeners
+      patchListEl.querySelectorAll('[data-patch-idx]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const idx = parseInt(btn.getAttribute('data-patch-idx') || '0', 10);
+          activePatchIndex = idx;
+          renderPatchList();
+          renderActivePatch();
+        });
+      });
+    }
+
+    // Bind app click listeners
+    if (appListEl) {
+      appListEl.querySelectorAll('button[data-app-id]').forEach((btn, idx) => {
+        btn.addEventListener('click', () => {
+          activeAppIndex = idx;
+          activePatchIndex = 0;
+
+          appListEl.querySelectorAll('button').forEach((b, bIdx) => {
+            b.classList.toggle('bg-white/[0.08]', bIdx === idx);
+            b.classList.toggle('text-white', bIdx === idx);
+            b.classList.toggle('font-semibold', bIdx === idx);
+            b.classList.toggle('text-zinc-400', bIdx !== idx);
+          });
+
+          renderPatchList();
+          renderActivePatch();
+        });
+      });
+    }
+
+    // Copy button
+    if (copyBtn) {
+      const CLIPBOARD_ICON_HTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />';
+      const CHECK_ICON_HTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />';
+
+      copyBtn.addEventListener('click', () => {
+        const app = viewerData[activeAppIndex];
+        const patch = app?.patches[activePatchIndex];
+        if (patch?.code) {
+          navigator.clipboard.writeText(patch.code).then(() => {
+            if (copyText) copyText.textContent = 'Copied!';
+            if (copyIcon) {
+              copyIcon.innerHTML = CHECK_ICON_HTML;
+              copyIcon.classList.remove('text-zinc-400');
+              copyIcon.classList.add('text-emerald-400');
+            }
+            setTimeout(() => {
+              if (copyText) copyText.textContent = 'Copy';
+              if (copyIcon) {
+                copyIcon.innerHTML = CLIPBOARD_ICON_HTML;
+                copyIcon.classList.remove('text-emerald-400');
+                copyIcon.classList.add('text-zinc-400');
+              }
+            }, 1500);
+          });
+        }
+      });
+    }
+
+    // Initial highlight and patch list binding on load
+    renderPatchList();
+    renderActivePatch();
+  })();
+</script>

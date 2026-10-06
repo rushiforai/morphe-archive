@@ -81,6 +81,22 @@ public class TapToPlayTest {
     private enum ReelControl { AUTOPLAY_OFF_INIT_STATE, PLAYING, PAUSED, PLAYBACK_COMPLETE, UNKNOWN }
 
     @Test
+    public void aStartInAPictureInPictureWindowGoesAheadAndKeepsItsPlayerArmed() {
+        long now = SystemClock.uptimeMillis();
+        Activity screen = Robolectric.buildActivity(Activity.class).setup().get();
+        TapToPlay.activityResumed(screen);
+        Object reel = new Object();
+        assertFalse("a reel coming into view on the screen", decide(reel, Trigger.BY_SHORT_FORM_VIDEO_FULLY_VISIBLE, now));
+        screen.enterPictureInPictureMode();
+        assertTrue("the same reel starting again in the window",
+                decide(reel, Trigger.BY_SHORT_FORM_VIDEO_FULLY_VISIBLE, now + 100));
+        assertTrue("its player stays armed for its own restarts", TapToPlay.armed(reel));
+        TapToPlayForTests.forget();
+        assertFalse("with no screen in front, nothing is in a window",
+                decide(new Object(), Trigger.BY_SHORT_FORM_VIDEO_FULLY_VISIBLE, now + 200));
+    }
+
+    @Test
     public void playingClearsTheHeldStartButtonEvenWhenFacebooksViewerFlagIsOff() {
         assertTrue(TapToPlay.showReelPlayButton(false));
         assertTrue("PLAYING must clear the forced initial overlay regardless of the viewer's flag",

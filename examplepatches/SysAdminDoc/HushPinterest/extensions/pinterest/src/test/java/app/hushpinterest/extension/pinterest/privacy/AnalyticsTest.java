@@ -8,6 +8,7 @@ package app.hushpinterest.extension.pinterest.privacy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -95,6 +96,19 @@ public class AnalyticsTest {
         assertEquals(1, handler.opened);
     }
 
+    @Test public void engageServiceIsWithheldOnlyWhileTheSwitchIsActive() {
+        Object service = new Object();
+        assertNull(Analytics.engageService(service));
+        assertNull(Analytics.engageService(null));
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertSame(service, Analytics.engageService(service));
+        PauseForTests.resume();
+        Settings.DISABLE_ANALYTICS.save(false);
+        assertSame(service, Analytics.engageService(service));
+        Settings.DISABLE_ANALYTICS.save(true);
+        SettingsContextRule.withoutContext(() -> assertSame(service, Analytics.engageService(service)));
+    }
+
     @Test public void retainedPartialHooksRemainInactiveUntilTheFamilyIsInstalled() throws Exception {
         Settings.DISABLE_ANALYTICS.save(true);
         PatchFamilyForTests.capabilities(EnumSet.of(PatchFamily.Capability.ANALYTICS_TASKS,
@@ -102,6 +116,8 @@ public class AnalyticsTest {
         installed(false);
         assertFalse(Analytics.blockUpload());
         assertFalse(Analytics.blockTask(Task.TAG_APPSFLYER_INIT));
+        Object service = new Object();
+        assertSame(service, Analytics.engageService(service));
         ProbeHandler handler = new ProbeHandler();
         URL url = new URL(null, "https://appsflyer.example/event", handler);
         URLConnection original = Analytics.openConnection(url);

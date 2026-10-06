@@ -4240,6 +4240,13 @@ try {
         'if exist "%APK%.xmltree" (type "%APK%.xmltree") else (type "%APK%")',
         'exit /b %errorlevel%') -join "`r`n") + "`r`n"), [System.Text.Encoding]::ASCII)
     Set-Content -LiteralPath $stubJar -Value 'not a jar' -Encoding ASCII
+    # The receipt builder and verify-all-patches.ps1 both hold the clean fixture to Pinterest's signer.
+    $releaseSigner = @($releaseCatalog.patches | ForEach-Object { $_.compatibility } |
+        Where-Object { $_.packageName -eq $releaseTarget.PackageName } | ForEach-Object { $_.signatures } |
+        Sort-Object -Unique | Select-Object -First 1)
+    Assert-True ($releaseSigner.Count -eq 1) 'The release catalog names no signer for the stand-in apksigner.'
+    Set-Content -LiteralPath (Join-Path $tools 'apksigner.bat') -Encoding ASCII -Value @(
+        '@echo off', "echo Signer #1 certificate SHA-256 digest: $($releaseSigner[0])", 'exit /b 0')
     New-TestBundleArchive -Path (Join-Path $tools 'patched.apk') -Entries ([ordered]@{
         'AndroidManifest.xml' = 'binary manifest'; 'classes.dex' = "dex`n035" })
 
@@ -4310,7 +4317,7 @@ try {
             . $osvStandIn
             $global:LASTEXITCODE = 0
             $arguments = @{ Root = $releaseRepo; Fixture = $Fixtures; WorkDir = $WorkDir; DesktopJar = $DesktopJar
-                Java = $stubJava; Aapt2 = $stubAapt2 }
+                Java = $stubJava; Aapt2 = $stubAapt2; AndroidJar = $stubAndroidJar; ApiVersions = $stubApiVersions }
             if ($Bundle) { $arguments['Bundle'] = $Bundle }
             if ($SkipAdvisoryCheck) { $arguments['SkipAdvisoryCheck'] = $true }
             $script:builderSaid = @(& (Join-Path $PSScriptRoot 'build-release-receipt.ps1') @arguments 3>&1 6>&1 |
@@ -4397,6 +4404,29 @@ try {
         }
     }
 
+    # A patched fixture whose injected code fails the structural check, or calls a class or member
+    # the build lacks, stops the run with no receipt. 0.0.3 shipped a System share sheet call into
+    # a 14.38.0 class on 14.25.0 because the builder read only the CLI's verdicts.
+    $builtReceiptBeforeChecks = [System.IO.File]::ReadAllBytes($releaseReceipt)
+    foreach ($broken in @(
+            @{ Flag = 'dexdiff-fails.txt'; Pattern = '*failed its structural or host reference checks (exit 1)*' },
+            @{ Flag = 'references-fails.txt'; Pattern = '*failed its structural or host reference checks (exit 1)*' })) {
+        $flag = Join-Path $tools $broken.Flag
+        Set-Content -LiteralPath $flag -Value 'on' -Encoding ASCII
+        Remove-Item -LiteralPath $releaseReceipt -Force
+        try {
+            Assert-Throws { Invoke-ReceiptBuilder -Fixtures $allFixtures } $broken.Pattern `
+                "build-release-receipt.ps1 went ahead when $($broken.Flag -replace '\.txt$', '')."
+            Assert-True (-not (Test-Path -LiteralPath $releaseReceipt)) `
+                "build-release-receipt.ps1 wrote a receipt when $($broken.Flag -replace '\.txt$', '')."
+            Assert-True (@(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'work') -Directory -Filter 'receipt-*').Count -eq 0) `
+                "build-release-receipt.ps1 left its run folder behind when $($broken.Flag -replace '\.txt$', '')."
+        } finally {
+            Remove-Item -LiteralPath $flag -Force -ErrorAction SilentlyContinue
+            [System.IO.File]::WriteAllBytes($releaseReceipt, $builtReceiptBeforeChecks)
+        }
+    }
+
     # A merge that fails, and one that exits 0 and writes nothing, stop the run before the CLI
     # patches anything. base.apk is not what the CLI patches, so there's no receipt to fall back to.
     $builtReceiptBeforeMerge = [System.IO.File]::ReadAllBytes($releaseReceipt)
@@ -4420,19 +4450,13 @@ try {
         }
     }
 
-    # verify-all-patches.ps1 on the same stand-ins, with an apksigner beside aapt2 that names
+    # verify-all-patches.ps1 on the same stand-ins, with the apksigner beside aapt2 that names
     # Pinterest's signer. Once the CLI stopped leaving its merge behind (1.17.0) it held the
     # patched table to base.apk, so the resources a split bundle's other slices carry were never
     # compared. It merges first now:
     # the CLI is handed the merge, the resource check's stock side is that merge, and a bundle that
     # yields no merged APK stops the run before anything is patched. A plain APK goes to the CLI as
     # it is and is its own stock side.
-    $releaseSigner = @($releaseCatalog.patches | ForEach-Object { $_.compatibility } |
-        Where-Object { $_.packageName -eq $releaseTarget.PackageName } | ForEach-Object { $_.signatures } |
-        Sort-Object -Unique | Select-Object -First 1)
-    Assert-True ($releaseSigner.Count -eq 1) 'The release catalog names no signer for the stand-in apksigner.'
-    Set-Content -LiteralPath (Join-Path $tools 'apksigner.bat') -Encoding ASCII -Value @(
-        '@echo off', "echo Signer #1 certificate SHA-256 digest: $($releaseSigner[0])", 'exit /b 0')
     $verifyAllScript = Join-Path $PSScriptRoot 'verify-all-patches.ps1'
     function Invoke-VerifyAll([string]$Apk, [switch]$Force) {
         Remove-Item -LiteralPath $javaLog, $mergeLog, $resourceStock -Force -ErrorAction SilentlyContinue

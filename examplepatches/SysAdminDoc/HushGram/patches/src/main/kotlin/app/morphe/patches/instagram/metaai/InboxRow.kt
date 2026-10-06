@@ -8,10 +8,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
+import app.morphe.patches.instagram.misc.extension.classesHolding
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
-import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -40,9 +39,7 @@ internal class InboxRowSite(val type: String, val name: String, val parameters: 
  * Discover and validate all of this before changing any method, registration or model state.
  */
 internal fun BytecodePatchContext.findOptionalInboxRow(): InboxRowSite {
-    val classes = mutableListOf<ClassDef>()
-    classDefForEach { if (!it.type.startsWith(EXTENSION_ROOT)) classes += it }
-    val renderers = classes.asSequence().flatMap { it.methods.asSequence() }.filter { method ->
+    val renderers = classesHolding(INBOX_ROW_RENDER_MARKER).asSequence().flatMap { it.methods.asSequence() }.filter { method ->
         val parameters = method.parameterTypes.map(CharSequence::toString)
         AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && parameters.size == 6 &&
             parameters.take(4).all { it.startsWith("L") } && parameters.takeLast(2) == listOf("I", "I") &&
@@ -50,7 +47,7 @@ internal fun BytecodePatchContext.findOptionalInboxRow(): InboxRowSite {
     }.toList()
     val renderer = renderers.singleOrNull() ?: refuseInbox("${renderers.size} Hatch row renderers, not one")
     val model = renderer.parameterTypes[3].toString()
-    val callbacks = classes.asSequence().flatMap { it.methods.asSequence() }.filter { method ->
+    val callbacks = classesHolding(INBOX_ROW_ITEM_MARKER).asSequence().flatMap { it.methods.asSequence() }.filter { method ->
         val code = method.rowCode()
         val call = code.singleOrNull { it.rowMethod()?.toString() == renderer.toString() }
         val modelRegister = call?.rowArguments()?.getOrNull(3)
@@ -59,7 +56,7 @@ internal fun BytecodePatchContext.findOptionalInboxRow(): InboxRowSite {
                 (it as OneRegisterInstruction).registerA == modelRegister }
     }.toList()
     if (callbacks.size != 1) refuseInbox("${callbacks.size} Hatch row item callbacks, not one")
-    val candidates = classes.filter { owner -> owner.methods.any { method ->
+    val candidates = classesHolding(INBOX_SECTION_MARKER).filter { owner -> owner.methods.any { method ->
         method.rowCode().any { it.rowString() == INBOX_SECTION_MARKER }
     } }.flatMap { owner ->
         owner.methods.mapNotNull { method -> optionalInboxRead(method, model)?.let { read ->

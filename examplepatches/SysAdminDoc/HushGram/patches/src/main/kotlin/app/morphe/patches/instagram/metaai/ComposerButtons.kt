@@ -8,7 +8,9 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
-import app.morphe.patches.instagram.misc.settings.EXTENSION_ROOT
+import app.morphe.patches.instagram.misc.extension.classesCalling
+import app.morphe.patches.instagram.misc.extension.classesHolding
+import app.morphe.patches.instagram.misc.extension.classesLoading
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
@@ -40,21 +42,21 @@ internal class ComposerVisibilitySite(val type: String, val name: String, val pa
  * Its callback receives that same flag. No instruction changes until every check has passed.
  */
 internal fun BytecodePatchContext.findComposerButtonVisibility(): ComposerVisibilitySite {
-    val classes = mutableListOf<ClassDef>()
-    classDefForEach { if (!it.type.startsWith(EXTENSION_ROOT)) classes += it }
-    val enums = classes.filter { candidate ->
+    val enums = classesHolding(*COMPOSER_BUTTON_NAMES.toTypedArray()).filter { candidate ->
         candidate.superclass == "Ljava/lang/Enum;" && candidate.methods.any { method ->
             method.name == "<clinit>" && method.code().mapNotNull { it.string() }.containsAll(COMPOSER_BUTTON_NAMES)
         }
     }
     val buttonEnum = enums.singleOrNull() ?: refuseComposer("${enums.size} composer button enums, not one")
-    val lookups = classes.flatMap { candidate -> candidate.methods.map { candidate to it } }.filter { (_, method) ->
+    val loading = COMPOSER_BUTTON_IDS.map { id -> classesLoading(id.toLong()).mapTo(HashSet()) { it.type } }
+    val lookups = classesLoading(COMPOSER_BUTTON_IDS.first().toLong()).filter { candidate -> loading.all { candidate.type in it } }
+        .flatMap { candidate -> candidate.methods.map { candidate to it } }.filter { (_, method) ->
         method.parameterTypes.isEmpty() && method.returnType == "Ljava/lang/Object;" &&
             method.code().mapNotNull { it.literal() }.containsAll(COMPOSER_BUTTON_IDS)
     }
     val (lookupClass, lookup) = lookups.singleOrNull() ?: refuseComposer("${lookups.size} optional composer lookup methods, not one")
     requireOptionalLookups(lookup)
-    val candidates = classes.filter { candidate ->
+    val candidates = classesCalling(lookupClass.type, "<init>").filter { candidate ->
         candidate.methods.any { method ->
             method.name == "<init>" && method.code().any { instruction ->
                 instruction.methodReference()?.let { it.definingClass == lookupClass.type && it.name == "<init>" } == true

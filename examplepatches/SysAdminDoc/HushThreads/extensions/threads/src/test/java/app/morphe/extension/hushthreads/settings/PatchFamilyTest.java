@@ -140,6 +140,8 @@ public class PatchFamilyTest {
         // The check can fail: an opt-in patch isn't in either list.
         assertFalse(selected.contains(PatchFamily.VIDEO_AUTOPLAY.patchName));
         assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.VIDEO_AUTOPLAY));
+        assertFalse(selected.contains(PatchFamily.PURE_BLACK.patchName));
+        assertFalse(PatchFamily.DEFAULT_SELECTION.contains(PatchFamily.PURE_BLACK));
     }
 
     /**
@@ -152,6 +154,7 @@ public class PatchFamilyTest {
         assertEquals(Collections.emptyList(), PatchFamily.missingDefaults(build));
         build.remove(PatchFamily.VIDEO_AUTOPLAY);
         build.remove(PatchFamily.RETURN_REFRESH);
+        build.remove(PatchFamily.PURE_BLACK);
         assertEquals(Collections.emptyList(), PatchFamily.missingDefaults(build));
         for (String line : PatchFamily.reportLines(build, false)) {
             assertFalse(line, line.startsWith("left out of Manager's default selection"));
@@ -163,7 +166,8 @@ public class PatchFamilyTest {
         List<String> lines = PatchFamily.reportLines(build, false);
         assertEquals("left out of Manager's default selection: Hide ads, Hide suggested users",
                 lines.get(lines.size() - 1));
-        assertEquals("not in this build: Hide ads, Hide suggested users, Block background-return feed refresh, Disable video autoplay", lines.get(lines.size() - 2));
+        assertEquals("not in this build: Hide ads, Hide suggested users, Block background-return feed refresh, Disable video autoplay, "
+                + "Pure black dark mode", lines.get(lines.size() - 2));
     }
 
     /** The new line goes through the redactor like the rest of the section and comes out whole. */
@@ -229,7 +233,7 @@ public class PatchFamilyTest {
                 "Sanitize sharing links: disabled by its switch (hushthreads_sanitize_sharing_links=off)",
                 "Remove the advertising ID: no switch, stays in while paused: the removed advertising ID permission",
                 "not in this build: Hide suggested users, Block background-return feed refresh, Disable video autoplay, Open links in browser, Disable analytics, "
-                        + "Restore screens on re-signed builds",
+                        + "Pure black dark mode, Restore screens on re-signed builds",
                 "left out of Manager's default selection: Hide suggested users, Open links in browser, Disable analytics, Restore screens on re-signed builds"),
                 running);
         assertEquals("Restore screens on re-signed builds: no switch, stays in while paused: the re-signed build fix",

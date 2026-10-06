@@ -105,15 +105,106 @@ public class FirebasePushTest {
         assertEquals(0, connection.connects);
     }
 
-    @Test public void missingSettingsAndUndecidedPauseKeepStockIncludingNull() throws Exception {
+    @Test public void missingSettingsAndUndecidedPauseKeepStockOnTheMainThreadWithoutWaiting() throws Exception {
         ProbeConnection connection = connection(CREATE);
+        long started = System.nanoTime();
         SettingsContextRule.withoutContext(() -> {
             assertSame(ORIGINAL, FirebasePush.certificateHeader(connection, ORIGINAL));
             assertNull(FirebasePush.certificateHeader(connection, null));
         });
         SettingsContextRule.beforeThePauseIsDecided(() -> assertSame(ORIGINAL,
                 FirebasePush.certificateHeader(connection, ORIGINAL)));
-        assertFalse(HookStatus.report().get(0).contains("Counted:"));
+        // setContext runs on the main thread, so a wait there could only time out.
+        assertTrue(System.nanoTime() - started < 2_000_000_000L);
+        assertEquals(Arrays.asList("Repair Firebase push registration: invoked 3, 0 found, 0 missing. "
+                + "Counted: requests before app start 3"), HookStatus.report());
+    }
+
+    @Test public void firebasesStartupRequestWaitsForSettingsOnItsWorkerAndIsRepaired() throws Exception {
+        // Issue 5: FCM's eager token sync starts in Firebase's init provider, so on a slow phone
+        // the first Installations request reached the hook before Application.onCreate.
+        ProbeConnection connection = connection(CREATE);
+        String[] answer = new String[1];
+        SettingsContextRule.beforeThePauseIsDecided(() -> {
+            Thread worker = new Thread(() -> answer[0] = FirebasePush.certificateHeader(connection, ORIGINAL));
+            worker.start();
+            awaitWaiting(worker);
+            SettingsContextRule.finishSetContext();
+            join(worker);
+        });
+        assertEquals(OFFICIAL_SHA1, answer[0]);
+        assertEquals(0, connection.connects);
+        assertEquals(Arrays.asList("Repair Firebase push registration: invoked 1, 0 found, 0 missing. "
+                + "Counted: requests held for app start 1, certificate headers repaired 1"), HookStatus.report());
+    }
+
+    @Test public void aStartupRequestStillKeepsTheSwitchAndPauseDecidedAfterItsWait() throws Exception {
+        Settings.REPAIR_FIREBASE_PUSH.save(false);
+        String[] answer = new String[1];
+        SettingsContextRule.beforeThePauseIsDecided(() -> {
+            Thread worker = new Thread(() -> answer[0] = FirebasePush.certificateHeader(connectionOrFail(), ORIGINAL));
+            worker.start();
+            awaitWaiting(worker);
+            SettingsContextRule.finishSetContext();
+            join(worker);
+        });
+        assertSame(ORIGINAL, answer[0]);
+        Settings.REPAIR_FIREBASE_PUSH.save(true);
+        PauseForTests.pause(HushTelegramPause.Reason.SWITCH);
+        SettingsContextRule.beforeThePauseIsDecided(() -> {
+            Thread worker = new Thread(() -> answer[0] = FirebasePush.certificateHeader(connectionOrFail(), ORIGINAL));
+            worker.start();
+            awaitWaiting(worker);
+            SettingsContextRule.finishSetContext();
+            join(worker);
+        });
+        assertSame(ORIGINAL, answer[0]);
+        assertFalse(HookStatus.report().get(0).contains("certificate headers repaired"));
+    }
+
+    @Test public void aStartupRequestThatNeverSeesSettingsGivesUpAndKeepsStock() throws Exception {
+        long saved = FirebasePush.startupWaitMillis;
+        FirebasePush.startupWaitMillis = 50L;
+        String[] answer = new String[1];
+        try {
+            SettingsContextRule.beforeThePauseIsDecided(() -> {
+                Thread worker = new Thread(() -> answer[0] = FirebasePush.certificateHeader(connectionOrFail(), ORIGINAL));
+                worker.start();
+                join(worker);
+            });
+        } finally {
+            FirebasePush.startupWaitMillis = saved;
+        }
+        assertSame(ORIGINAL, answer[0]);
+        assertEquals(Arrays.asList("Repair Firebase push registration: invoked 1, 0 found, 0 missing. "
+                + "Counted: requests before app start 1"), HookStatus.report());
+    }
+
+    private static void awaitWaiting(Thread worker) {
+        long deadline = System.nanoTime() + 5_000_000_000L;
+        while (worker.getState() != Thread.State.TIMED_WAITING) {
+            if (!worker.isAlive() || System.nanoTime() > deadline) {
+                throw new AssertionError("the startup request answered before settings were ready");
+            }
+            Thread.yield();
+        }
+    }
+
+    private static void join(Thread worker) {
+        try {
+            worker.join(5_000L);
+        } catch (InterruptedException interrupted) {
+            throw new AssertionError(interrupted);
+        }
+        assertFalse("the startup request never finished", worker.isAlive());
+    }
+
+    private static ProbeConnection connectionOrFail() {
+        try {
+            return connection(CREATE);
+        } catch (Exception failure) {
+            throw new AssertionError(failure);
+        }
     }
 
     @Test public void foreignPackagesAndMissingNativePackageHeadersKeepStock() throws Exception {

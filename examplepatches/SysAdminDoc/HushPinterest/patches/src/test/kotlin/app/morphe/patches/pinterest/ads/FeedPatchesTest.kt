@@ -65,8 +65,9 @@ class FeedPatchesTest {
                 }
             }
             if (present.isEmpty()) continue
-            // One warning per missing holder, and one per missing ad-only view.
-            assertEquals("subset $present warnings: $warnings", 3 - present.size + AD_ONLY_VIEWS.size + 1, warnings.size)
+            // One warning per missing holder and per missing ad-only view, one for no view at all and one for no Google ad SDK start.
+            assertEquals("subset $present warnings: $warnings", 3 - present.size + AD_ONLY_VIEWS.size + 2, warnings.size)
+            assertFlag(context, "googleAds", false)
             assertEquals(present.size, feedListHoldersHooked)
             assertFlag(context, "hideAds", true)
             assertFlag(context, "feedAds", true)
@@ -108,7 +109,7 @@ class FeedPatchesTest {
             feedListHookPatch.execute(context)
             hideAdsPatch.execute(context)
         }
-        assertEquals(warnings.toString(), AD_ONLY_VIEWS.size - 1, warnings.size)
+        assertEquals(warnings.toString(), AD_ONLY_VIEWS.size, warnings.size)
         assertFlag(context, "adViews", true)
         val view = context.mutableClassDefBy(type)
         val visibility = view.methods.single { it.name == "setVisibility" }
@@ -149,7 +150,7 @@ class FeedPatchesTest {
 
     @Test
     fun `a missing status stub refuses before any holder changes`() {
-        for (status in listOf("hideAds", "feedAds", "adViews")) {
+        for (status in listOf("hideAds", "feedAds", "adViews", "googleAds")) {
             val context = PatchContexts.of(ExtensionDex.classes() + Holder.entries.map { holder(it) })
             context.mutableClassDefBy(SETTINGS_STATUS).methods.removeAll { it.name == status }
             feedListHookPatch.execute(context)

@@ -51,6 +51,8 @@ public enum PatchFamily {
             Settings.OPEN_LINKS_EXTERNALLY),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics", null,
             Settings.DISABLE_ANALYTICS),
+    PURE_BLACK(FamilyNames.PURE_BLACK, "pureBlack", null,
+            Settings.PURE_BLACK),
     // A manifest can't be switched at run time: the permission is gone from the APK whether or not
     // HushThreads is paused.
     REMOVE_AD_ID(FamilyNames.REMOVE_AD_ID, "removeAdId", "the removed advertising ID permission"),

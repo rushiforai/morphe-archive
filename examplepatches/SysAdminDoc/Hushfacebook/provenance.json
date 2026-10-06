@@ -201,12 +201,14 @@
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveControl.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SavedFileActions.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/SaveLeftovers.java",
-        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/Mp4Join.java"
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/Mp4Join.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/AacReencode.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/VideoTranscode.java"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: a running save's notification with its progress and a Cancel button, the removal of the work files and pending gallery rows a save left when Android ended the process, and the MP4 writer that joins a DASH picture and its sound for the formats MediaMuxer won't write, VP9 always and AV1 before Android 14, by copying the fragments' boxes and samples into one plain MP4."
+      "changes": "Written for Hushfacebook: a running save's notification with its progress and a Cancel button, the removal of the work files and pending gallery rows a save left when Android ended the process, and the MP4 writer that joins a DASH picture and its sound for the formats MediaMuxer won't write, VP9 always and AV1 before Android 14, by copying the fragments' boxes and samples into one plain MP4, and the conversions that turn a save's xHE-AAC sound into AAC-LC and its VP9, AV1 or H.265 picture into H.264 for the apps that take only those."
     },
     {
       "paths": [
@@ -444,6 +446,15 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredreels/ReelsAdPool.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the Reels and Watch ad pool. In Facebook 577, 580 and 581 one class, which names itself VideoHomeSponsoredPool, extends the story pool base every client-side story loader draws from, and its two instance methods that hand back an ad edge log -WVCDF-NO-AD when the pool has none to give. The patch finds that class by the literal and those two methods by their shape, and puts a call of the extension first in each: while the switch is on they answer null, the same answer the pool gives when no slot is free, so the loader takes the next organic reel and the pool never marks an ad as used."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/notifications/**",
         "patches/src/main/kotlin/app/morphe/patches/facebook/notifications/**"
       ],
@@ -470,12 +481,13 @@
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/MarketplacePathRemapper.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/HideSponsoredMarketplaceListingsPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceRequestAnchors.kt",
-        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceResponseAnchors.kt"
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceResponseAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredmarketplace/MarketplaceVideoAdAnchors.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the ads in Marketplace's feed. Facebook 577 and 580 draw Marketplace with React Native, and its Relay queries go out through Facebook's own Networking module, whose sendRequest is the one method holding FBNetworkingModule_React_Native. It reads a POST body from the request data's string entry into a StringEntity, and the query's tracking name (RelayFBNetwork_ and the query's name) from the same data. The patch hands the body and the data to the extension right after that read. For a Marketplace query whose form-encoded variables name shouldSkipAdRequest or shouldSkipBoostedListingAdRequest at their top level as false or null, the extension sets them to true and changes nothing else. For the four ads-only queries Facebook's own Tigon callbacks list (MarketplaceHomeFeedAdsQueryRendererQuery, MarketplaceHomeFeedAdsPaginationQuery, MarketplaceHomeFeedBoostedListingAdsQuery and MarketplaceHomeFeedBoostedListingAdsPaginationQuery) it answers no body, which the module reports to JavaScript as a request it couldn't make. Marketplace search's results query names neither variable and has no ads-only query, so its ads come back among the listings. The module's answers reach JavaScript through the kept FBTigonRequest$FBTigonCallbacks: onBody hands each piece of text, a toString() result, to React Native's didReceiveNetworkIncrementalData emitter and onEOM hands a whole one to didReceiveNetworkData, each with the request's state at hand, which sendRequest builds with the tracking name in one String field. The patch reads that field and hands the text, the name and the state to the extension right where the text lands. For a Marketplace query with Search in its name, other than the typeahead and mutations, the extension reads each whole JSON payload and takes out a result whose node's type ends in AdStory or that carries a sponsored_data object with an ad id, moving later streamed and deferred indices of its list down past the ads taken out. A streamed ad gives way to a payload with null data that keeps its extensions. A payload that fails to be read goes on as it came, and after it nothing more is taken out while later indices still move. Right before onEOM reports an answer complete through didCompleteNetworkResponse, the patch asks the extension for text still waiting for a payload to finish and hands it to the incremental emitter as one last piece."
+      "changes": "Written for Hushfacebook: the ads in Marketplace's feed. Facebook 577 and 580 draw Marketplace with React Native, and its Relay queries go out through Facebook's own Networking module, whose sendRequest is the one method holding FBNetworkingModule_React_Native. It reads a POST body from the request data's string entry into a StringEntity, and the query's tracking name (RelayFBNetwork_ and the query's name) from the same data. The patch hands the body and the data to the extension right after that read. For a Marketplace query whose form-encoded variables name shouldSkipAdRequest or shouldSkipBoostedListingAdRequest at their top level as false or null, the extension sets them to true and changes nothing else. For the four ads-only queries Facebook's own Tigon callbacks list (MarketplaceHomeFeedAdsQueryRendererQuery, MarketplaceHomeFeedAdsPaginationQuery, MarketplaceHomeFeedBoostedListingAdsQuery and MarketplaceHomeFeedBoostedListingAdsPaginationQuery) it answers no body, which the module reports to JavaScript as a request it couldn't make. Marketplace search's results query names neither variable and has no ads-only query, so its ads come back among the listings. The module's answers reach JavaScript through the kept FBTigonRequest$FBTigonCallbacks: onBody hands each piece of text, a toString() result, to React Native's didReceiveNetworkIncrementalData emitter and onEOM hands a whole one to didReceiveNetworkData, each with the request's state at hand, which sendRequest builds with the tracking name in one String field. The patch reads that field and hands the text, the name and the state to the extension right where the text lands. For a Marketplace query with Search in its name, other than the typeahead and mutations, the extension reads each whole JSON payload and takes out a result whose node's type ends in AdStory or that carries a sponsored_data object with an ad id, moving later streamed and deferred indices of its list down past the ads taken out. A streamed ad gives way to a payload with null data that keeps its extensions. A payload that fails to be read goes on as it came, and after it nothing more is taken out while later indices still move. Right before onEOM reports an answer complete through didCompleteNetworkResponse, the patch asks the extension for text still waiting for a payload to finish and hands it to the incremental emitter as one last piece. A video ad that reaches Marketplace's feed anyway isn't drawn, an idea De-Vanced also has, written here from Facebook 577, 580 and 581: the two Litho components that draw one, found by the strings only each holds (its layout spec's own name, and MarketplaceVideoAdQuery with MarketplaceVideoAdComponent_), ask the extension first and return null on a yes, before the ad's video is fetched."
     },
     {
       "paths": [
@@ -581,6 +593,103 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: the quality videos play at, an idea De-Vanced also has, written from Facebook's own code. The patch finds, in Facebook 577 and 580, the DASH format evaluator as the class of the one (String)V call in the method holding HeroServicePlayer.setCustomQualityInternal, built with an AbrContextAwareConfiguration; that custom-quality setter's array of tracks and the static method and field it reads a track's label with; and the String field the evaluator hands its own setter at its first choice, its preselected label. The setter asks the extension first with its label, the constructor tells it about the evaluator before each return, and the extension's stubs are filled with the preselected label, the tracks and a track's label. While the switch is on and a quality is chosen, the extension leaves a marker as the preselected label of an evaluator Facebook gave none, and turns it into the label of the track the chosen quality plays when the setter gets it."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/AnalyticsUploads.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/analytics/AnalyticsUploadAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/analytics/HoldAnalyticsUploadsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Hold back analytics uploads, found in Facebook 577, 580 and 581 by names Facebook keeps. A check goes just before the one kickOffUpload() call, in the run() of the runnable the kept NativeXAnalyticsAppJobHandler schedules every three minutes, and the one resumeUploading(String) call, in the kept NativeXAnalyticsLowPriorityInit, and skips the call on a yes. The Papaya job's start, the most derived onStartJob along the kept FBPapayaJobService's superclasses, passes the answer of its config gate through the extension, so a held job takes Facebook's own off path."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/GameAds.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/games/BlockInstantGamesAdsPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/games/GameAdAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Block Instant Games ads, an idea De-Vanced also has, written here from Facebook 577, 580 and 581. The game bridge's postMessage(String, String), kept by name for the WebView, holds the five ad message types; the hook goes first in it and, for an ad message with the switch on, rejects the game's promise through the bridge's own (String, String, String) reject method, the one calling the call that holds \"Unexpected exception while constructing JSONObject to be dispatched to Javascript: rejectPromise\", with the SDK's code for an ad it can't serve. De-Vanced drops the message instead."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/Screenshots.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/screenshots/AllowScreenshotsAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/screenshots/AllowScreenshotsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Allow screenshots, an idea ReVanced's universal Remove screenshot restriction patch, Loukious and NexAlloy share, written here from Facebook 577, 580 and 581. Every Window.addFlags(int) and setFlags(int, int) call outside the extension becomes a static call of the extension on the same registers, and every write of WindowManager.LayoutParams.flags first runs its value through the extension, which takes FLAG_SECURE out while the switch is on."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/Haptics.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/haptics/HapticsAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/haptics/TurnOffHapticsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Turn off haptics, an idea from De-Vanced's Facebook clean-up patch, written here from Facebook 577, 580 and 581. Every View.performHapticFeedback(int) and (int, int) call outside the extension, and every Vibrator.vibrate call that takes a VibrationEffect, becomes a static call of the extension on the same registers, which skips it while the switch is on. The timed and patterned Vibrator calls are left as they are."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/PictureInPicture.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/pip/PictureInPicturePatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: picture-in-picture for reels through the picture-in-picture Facebook ships for its Reels viewer behind server flags, an idea from De-Vanced's Facebook picture-in-picture patch, written here from Facebook 577, 580 and 581. The patch finds ReelsPipUtil by the surface name only it loads and its one activity check by the system feature it asks for, and the Reels viewer's arming step by two player origins it names, with the surface gate it asks first. The extension answers yes first in both on Android 12 or later where the phone has the feature. It also hears ReelsPipUtil arm and disarm and FbGrootPlayer play and pause, arms the window again for the reel a swipe starts through a helper the patch adds to ReelsPipUtil, holds auto-enter off while the reel on screen is paused, and gives Facebook's window viewer a view id nothing on screen holds. No code came from De-Vanced."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/HdrBrightness.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/hdr/TurnOffHdrBrightnessPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581, for issue #66: every call of Window.setColorMode and Window.setDesiredHdrHeadroom outside the extension goes through the extension, which asks for the default colour mode and no headroom in place of Facebook's HDR window while the switch is on, and each SurfaceView Facebook builds asks Android 15 for no headroom. No Facebook patch source in the ledger has an HDR switch."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/ScreenTransitions.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/transitions/Fingerprints.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/transitions/TransitionAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/transitions/TurnOffScreenTransitionsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Turn off screen transitions, an idea from De-Vanced's Facebook clean-up patch, written here from Facebook 577, 580 and 581. The activity callbacks the settings patch registers ask Android for no transition as a screen comes to the front and as it closes, and the tab bar's pager controller and the sliding panel ask the extension before they decide to slide."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/ScreenshotDetection.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/screenshots/BlockScreenshotDetectionPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/screenshots/ScreenshotDetectionAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Block screenshot detection, an idea ReVanced's universal Prevent screenshot detection patch, Loukious and NexAlloy share, written here from Facebook 577, 580 and 581. A check goes first in the kept com.facebook.screenshot.ScreenshotContentObserver's onChange(boolean, Uri), the photo library observer every screenshot detector shares, and every registerScreenCaptureCallback call on an Activity and every WindowManager add/removeScreenRecordingCallback call outside the extension becomes a static call of the extension on the same registers, which doesn't make it while the switch is on."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/HiddenTabs.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/navigation/hidetabs/HideTabsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Hide tabs, an idea Loukious has for the Marketplace and Games tabs, written here as another rule of the tab bar filter. Each hideable tab is known by the class Facebook keeps for it (FeedsTab and MostRecentFeedTab, FriendRequestsTab, MarketplaceTab, GroupsTargetedTab, GamesTab and GamesTabWithSNESControllerIcon, EventsTab), and a start meant for a hidden tab opens Home."
     }
   ]
 }

@@ -1,0 +1,584 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import StatsStrip from '../components/StatsStrip.astro';
+import AppPreviewCard from '../components/AppPreviewCard.astro';
+import BentoCard from '../components/BentoCard.astro';
+import MockConfig from '../components/MockConfig.astro';
+import PatchCodeViewer from '../components/PatchCodeViewer.astro';
+import GridLine from '../components/GridLine.astro';
+import { getApps, getLatestRelease, getInitialVersionStatuses, getRepositoryStats } from '../data/repo';
+
+const apps = getApps();
+const totalPatches = getRepositoryStats().totalPatchesCount;
+const latestRelease = getLatestRelease();
+const versionStatuses = getInitialVersionStatuses().slice(0, 4);
+const workerUrl = import.meta.env.PUBLIC_WORKER_URL || 'https://worker.patch.p0ntus.com';
+---
+
+<BaseLayout
+  title="Aidan's Morphe Patches — Technical Android Bytecode & Asset Patches"
+  description="Minimal technical frontend and live freshness catalog for bytecode, resource, and Hermes binary patches."
+  currentPath="/"
+>
+  <!-- 1. Hero Section -->
+  <section class="relative px-6 py-20 md:py-24 bg-gradient-to-b from-[#0a0a0a] via-[#050505] to-[#050505] overflow-hidden">
+    <!-- Subtle technical grid background -->
+    <div class="absolute inset-0 bg-technical-grid opacity-30 pointer-events-none"></div>
+
+    <div class="relative z-10 max-w-2xl space-y-6">
+      <div class="space-y-4">
+        <h1 class="font-sans text-3xl sm:text-5xl font-extrabold tracking-tight text-white leading-[1.15] max-w-xl [text-wrap:balance]">
+          Make your apps work the way they should.
+        </h1>
+        <p class="font-sans text-base sm:text-lg text-zinc-400 max-w-xl leading-relaxed">
+          Remove telemetry and ads, unlock hidden features, and personalize your apps to your heart&apos;s content.
+        </p>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-wrap items-center gap-3 pt-2 font-mono text-xs">
+        <a
+          href="https://morphe.software/add-source?github=ihatenodejs/aidans-patches"
+          target="_blank"
+          rel="noreferrer"
+          class="px-5 py-2.5 bg-white text-black font-semibold rounded-sm hover:bg-zinc-200 transition-colors flex items-center gap-2"
+        >
+          <span>Add to Morphe</span>
+          <span>&rarr;</span>
+        </a>
+        <a
+          href="https://github.com/ihatenodejs/aidans-patches"
+          target="_blank"
+          rel="noreferrer"
+          class="px-5 py-2.5 bg-zinc-900 border border-white/[0.12] text-zinc-300 hover:text-white hover:border-white/[0.25] transition-colors rounded-sm flex items-center gap-2"
+        >
+          <span>View on GitHub</span>
+          <svg class="w-3.5 h-3.5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 2. Live Repository Stats Strip -->
+  <StatsStrip />
+
+  <!-- 3. Built Around The Apps I Actually Use -->
+  <section class="p-6 md:p-8 space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div>
+        <div class="font-mono text-[11px] uppercase tracking-wider text-zinc-500 mb-1">Supported Apps</div>
+        <h2 class="font-sans text-xl font-bold tracking-tight text-white">Find your new favorite</h2>
+      </div>
+      <a href="/patches" class="font-mono text-xs text-zinc-400 hover:text-white transition-colors">
+        Browse {totalPatches} patches &rarr;
+      </a>
+    </div>
+
+    <!-- 8-App Preview Grid (Strict 1px grid lines via gap, zero border stacking) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-white/[0.08] bg-clip-padding border border-white/[0.08] overflow-hidden">
+      {apps.map((app, index) => (
+        <AppPreviewCard app={app} className={index >= 4 ? 'hidden sm:flex' : ''} />
+      ))}
+    </div>
+  </section>
+
+  <GridLine withCrosshairs={true} />
+
+  <!-- 4. What Patches Can Do For You (Vercel-Style Bento) -->
+  <section class="p-6 md:p-8 space-y-6">
+    <div>
+      <div class="font-mono text-[11px] uppercase tracking-wider text-zinc-500 mb-1">Capabilities</div>
+      <h2 class="font-sans text-xl font-bold tracking-tight text-white">What the patches can do</h2>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Bento Cell 1: Privacy -->
+      <BentoCard title="Privacy & Telemetry Blocking" withCrosshair={true}>
+        <svg slot="icon" class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+          Strips invasive tracking and analytics SDKs at the bytecode layer. Stops behavioral profiling, eliminates ad dispatchers, and zeroes advertising identifiers.
+        </p>
+        <div class="grid grid-cols-2 gap-2 p-3 bg-zinc-950/80 border border-white/[0.06] rounded-sm font-mono text-[11px]">
+          {['Braze', 'AppsFlyer', 'Firebase Analytics', 'FullStory', 'Facebook SDK', 'mParticle', 'AppLovin MAX', 'Google AAID'].map((provider) => (
+            <div class="flex items-center gap-2 text-zinc-300">
+              <svg class="w-3.5 h-3.5 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+              <span class="truncate">{provider}</span>
+            </div>
+          ))}
+        </div>
+      </BentoCard>
+
+      <!-- Bento Cell 2: Customization -->
+      <BentoCard title="Aesthetic & Interface Customization" withCrosshair={true}>
+        <svg slot="icon" class="w-4 h-4 text-violet-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 0 1 0-18c4.97 0 9 3.582 9 8 0 1.06-.474 2.078-1.318 2.828-.844.75-1.989 1.172-3.182 1.172h-2.5a2 2 0 0 0-1 3.75 1.3 1.3 0 0 1-.8 2.25" />
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8.5 10.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM12.5 7.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2zM16.5 10.5a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+        </svg>
+        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+          Personalize the look and feel of your daily apps. Customize primary brand color accents, bundle native Apple Color Emoji, and force pure AMOLED dark backgrounds.
+        </p>
+        <div class="grid grid-cols-3 gap-3 p-3 bg-zinc-950/80 border border-white/[0.06] rounded-sm">
+          <!-- Theme Square -->
+          <div class="relative flex flex-col items-center justify-center p-3 rounded-sm border border-violet-500/25 bg-violet-950/20 hover:border-violet-500/50 transition-colors aspect-square text-center space-y-1.5 overflow-hidden group/sub">
+            <div class="absolute inset-0 bg-gradient-to-tr from-violet-500/10 via-transparent to-transparent opacity-70 animate-pulse pointer-events-none"></div>
+            <svg class="w-5 h-5 text-violet-300 relative z-10 transition-transform group-hover/sub:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+            <span class="font-mono text-[11px] font-medium text-zinc-200 relative z-10">Theme</span>
+          </div>
+
+          <!-- Emoji Square -->
+          <div class="relative flex flex-col items-center justify-center p-3 rounded-sm border border-amber-500/25 bg-amber-950/20 hover:border-amber-500/50 transition-colors aspect-square text-center space-y-1.5 overflow-hidden group/sub">
+            <div class="absolute inset-0 bg-gradient-to-tr from-amber-500/10 via-transparent to-transparent opacity-70 animate-pulse [animation-delay:600ms] pointer-events-none"></div>
+            <svg class="w-5 h-5 text-amber-300 relative z-10 transition-transform group-hover/sub:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="font-mono text-[11px] font-medium text-zinc-200 relative z-10">Emoji</span>
+          </div>
+
+          <!-- Brand Colors Square -->
+          <div class="relative flex flex-col items-center justify-center p-3 rounded-sm border border-emerald-500/25 bg-emerald-950/20 hover:border-emerald-500/50 transition-colors aspect-square text-center space-y-1.5 overflow-hidden group/sub">
+            <div class="absolute inset-0 bg-gradient-to-tr from-emerald-500/10 via-transparent to-transparent opacity-70 animate-pulse [animation-delay:1200ms] pointer-events-none"></div>
+            <svg class="w-5 h-5 text-emerald-300 relative z-10 transition-transform group-hover/sub:scale-110" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 3h-4a2 2 0 0 0-2 2v12a4 4 0 0 0 8 0v-12a2 2 0 0 0-2-2" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7.35l-2-2a2 2 0 0 0-2.828 0l-2.828 2.828a2 2 0 0 0 0 2.828l9 9" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.3 13h-2.3a2 2 0 0 0-2 2v4a2 2 0 0 0 2 2h12" />
+            </svg>
+            <span class="font-mono text-[11px] font-medium text-zinc-200 relative z-10">Branding</span>
+          </div>
+        </div>
+      </BentoCard>
+
+      <!-- Bento Cell 3: Feature Unlocks & Enhancements -->
+      <BentoCard title="Feature Unlocks & Enhancements" withCrosshair={true}>
+        <svg slot="icon" class="w-4 h-4 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+          Unlocks latent features hidden within application binaries and injects native utilities that make your workflow smoother and less restrictive.
+        </p>
+        <div class="space-y-2 p-3 bg-zinc-950/80 border border-white/[0.06] rounded-sm font-mono text-[11px]">
+          <div class="flex items-center justify-between p-1.5 bg-black/40 border border-white/[0.04] rounded-sm">
+            <div class="flex items-center gap-2 text-zinc-200">
+              <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+              </svg>
+              <span>OpenStreetMap Engine</span>
+            </div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-sm bg-blue-950/70 text-blue-300 border border-blue-800/40">Drop-in</span>
+          </div>
+
+          <div class="flex items-center justify-between p-1.5 bg-black/40 border border-white/[0.04] rounded-sm">
+            <div class="flex items-center gap-2 text-zinc-200">
+              <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              <span>Batch Clipboard Copy</span>
+            </div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-sm bg-blue-950/70 text-blue-300 border border-blue-800/40">Native</span>
+          </div>
+
+          <div class="flex items-center justify-between p-1.5 bg-black/40 border border-white/[0.04] rounded-sm">
+            <div class="flex items-center gap-2 text-zinc-200">
+              <svg class="w-4 h-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+              </svg>
+              <span>Receipt Scanner V2 Flow</span>
+            </div>
+            <span class="text-[10px] px-1.5 py-0.5 rounded-sm bg-emerald-950/70 text-emerald-300 border border-emerald-800/40">Unlocked</span>
+          </div>
+        </div>
+      </BentoCard>
+
+      <!-- Bento Cell 4: Developer & Low-Level -->
+      <BentoCard title="Developer Tools & Low-Level Hooks" withCrosshair={true}>
+        <svg slot="icon" class="w-4 h-4 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <p class="text-xs text-zinc-400 leading-relaxed mb-4">
+          Exposes internal developer menus, unlocks production debugging, and installs native ARM64 input bridges into compiled libraries.
+        </p>
+        <div class="p-3 bg-zinc-950/80 border border-white/[0.06] rounded-sm font-mono text-[11px] space-y-2">
+          <div class="flex items-center justify-between text-[10px] text-zinc-500 border-b border-white/[0.06] pb-1.5">
+            <div class="flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              <span class="ml-1 uppercase tracking-wider text-zinc-400">Terminal Inspector</span>
+            </div>
+            <span class="text-emerald-400">ACTIVE</span>
+          </div>
+          <div class="space-y-1.5 pt-0.5 text-zinc-300">
+            <div class="flex items-center justify-between">
+              <span>$ adb debuggable</span>
+              <span class="text-[10px] text-emerald-400 bg-emerald-950/50 px-1.5 py-0.5 border border-emerald-800/40 rounded-sm">injected</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>$ showMobileStudio()</span>
+              <span class="text-[10px] text-amber-400 bg-amber-950/50 px-1.5 py-0.5 border border-amber-800/40 rounded-sm">mounted</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span>$ libil2cpp OpenShop()</span>
+              <span class="text-[10px] text-purple-400 bg-purple-950/50 px-1.5 py-0.5 border border-purple-800/40 rounded-sm">bridged</span>
+            </div>
+          </div>
+        </div>
+      </BentoCard>
+    </div>
+  </section>
+
+  <GridLine withCrosshairs={true} />
+
+  <!-- 5. Version Compatibility / Freshness Preview -->
+  <section class="p-6 md:p-8 space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div>
+        <div class="font-mono text-[11px] uppercase tracking-wider text-zinc-500 mb-1">Target Stability</div>
+        <h2 class="font-sans text-xl font-bold tracking-tight text-white">Version compatibility &amp; freshness</h2>
+      </div>
+      <a href="/status" class="font-mono text-xs text-zinc-400 hover:text-white transition-colors flex items-center gap-1">
+        <span>View all apps</span>
+        <span>&rarr;</span>
+      </a>
+    </div>
+
+    <div class="border border-white/[0.08] bg-[#080808] overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left font-mono text-xs">
+          <thead>
+            <tr class="border-b border-white/[0.08] bg-zinc-950 text-[11px] text-zinc-500 uppercase tracking-wider">
+              <th class="py-3 px-4">Application</th>
+              <th class="py-3 px-4 hidden sm:table-cell">Supported Target</th>
+              <th class="py-3 px-4 hidden sm:table-cell">Google Play</th>
+              <th class="py-3 px-4 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/[0.06]">
+            {versionStatuses.map((item) => (
+              <tr class="hover:bg-white/[0.02] transition-colors" data-package={item.packageName}>
+                <td class="py-3.5 px-4 font-sans font-semibold text-white">
+                  <div class="flex items-center gap-2.5">
+                    {item.iconUrl ? (
+                      <Image
+                        src={item.iconUrl}
+                        alt={item.appName}
+                        width={20}
+                        height={20}
+                        class="w-5 h-5 rounded-sm object-cover border border-white/10 shrink-0"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span class="w-5 h-5 rounded-sm bg-zinc-900 border border-white/10 flex items-center justify-center font-mono text-[10px] text-zinc-400 shrink-0">
+                        {item.appName.charAt(0)}
+                      </span>
+                    )}
+                    <span>{item.appName}</span>
+                  </div>
+                </td>
+                <td class="py-3.5 px-4 text-zinc-300 hidden sm:table-cell">v{item.latestSupportedVersion}</td>
+                <td class="py-3.5 px-4 text-zinc-400 play-version hidden sm:table-cell">
+                  {item.playVersion ? `v${item.playVersion}` : '—'}
+                </td>
+                <td class="py-3.5 px-4 text-right status-badge-cell">
+                  {item.status === 'up-to-date' ? (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 whitespace-nowrap">
+                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                      <span>Up to date</span>
+                    </span>
+                  ) : item.status === 'newer-available' ? (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40 whitespace-nowrap">
+                      <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                      <span>Newer version available</span>
+                    </span>
+                  ) : item.status === 'check-failed' ? (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-rose-950/60 text-rose-400 border border-rose-800/40 whitespace-nowrap">
+                      <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>
+                      <span>Check failed</span>
+                    </span>
+                  ) : item.status === 'not-on-play-store' ? (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-500 border border-white/10 whitespace-nowrap">
+                      <span>Not on Play Store</span>
+                    </span>
+                  ) : (
+                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10 whitespace-nowrap">
+                      <span class="w-1.5 h-1.5 rounded-full bg-zinc-500 shrink-0"></span>
+                      <span>Unknown</span>
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="p-4 border-t border-white/[0.06] bg-zinc-950 text-[11px] text-zinc-400">
+        <p class="leading-relaxed">
+          Target versions indicate verified bytecode invariants. A newer version available on Google Play does not necessarily break existing patches.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <GridLine withCrosshairs={true} />
+
+  <!-- 6. Patch Options Are More Than On/Off -->
+  <section class="p-6 md:p-8 space-y-6">
+    <div>
+      <div class="font-mono text-[11px] uppercase tracking-wider text-zinc-500 mb-1">Customization</div>
+      <h2 class="font-sans text-xl font-bold tracking-tight text-white">Patch options are more than on/off</h2>
+      <p class="text-xs text-zinc-400 mt-1 max-w-2xl leading-relaxed">
+        Instead of enforcing rigid all-or-nothing defaults, I build configurable options into my patches so you can tailor features, UI elements, and palettes to your preferences.
+      </p>
+    </div>
+
+    <MockConfig />
+  </section>
+
+  <GridLine withCrosshairs={true} />
+
+  <!-- 7. Open and Inspectable -->
+  <section class="hidden md:block p-6 md:p-8 space-y-6">
+    <div>
+      <div class="font-mono text-[11px] uppercase tracking-wider text-zinc-500 mb-1">Transparency</div>
+      <h2 class="font-sans text-xl font-bold tracking-tight text-white">Open and inspectable</h2>
+      <p class="text-xs text-zinc-400 mt-1 max-w-2xl leading-relaxed">
+        Inspect the real, open Kotlin source code for any patch across all 8 applications. Zero obfuscation, zero proprietary binaries.
+      </p>
+    </div>
+
+    <PatchCodeViewer />
+  </section>
+
+  <GridLine withCrosshairs={true} className="hidden md:block" />
+  <!-- 8. Latest Release / What's New -->
+  <section class="p-6 md:p-8 space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div>
+        <div class="font-mono text-[11px] uppercase tracking-wider text-zinc-500 mb-1">Changelog</div>
+        <h2 class="font-sans text-xl font-bold tracking-tight text-white">Latest release &bull; v{latestRelease.version}</h2>
+      </div>
+      <span class="font-mono text-xs text-zinc-500">Released {latestRelease.releaseDate}</span>
+    </div>
+
+    <div class="border border-white/[0.08] bg-[#080808] p-6 space-y-4">
+      <div class="space-y-2">
+        <h4 class="font-mono text-xs uppercase tracking-wider text-zinc-400">Recent Commits in Bundle</h4>
+        {latestRelease.recentChanges.length > 0 ? (
+          <ul class="space-y-2">
+            {latestRelease.recentChanges.map((change) => (
+              <li class="flex items-center gap-2.5 text-xs">
+                <span class={`inline-flex items-center justify-center h-5 font-mono text-[10px] px-1.5 rounded-sm shrink-0 uppercase tracking-tight ${
+                  change.type === 'feat' ? 'bg-purple-950/60 text-purple-300 border border-purple-800/40' :
+                  change.type === 'fix' ? 'bg-blue-950/60 text-blue-300 border border-blue-800/40' :
+                  'bg-zinc-900 text-zinc-400 border border-white/10'
+                }`}>
+                  {change.type}
+                </span>
+                <div class="flex items-center gap-2 text-zinc-300 min-w-0">
+                  {change.appIconUrl ? (
+                    <Image
+                      src={change.appIconUrl}
+                      alt={change.appName || ''}
+                      title={change.appName || ''}
+                      width={20}
+                      height={20}
+                      class="w-5 h-5 rounded-sm object-cover border border-white/10 shrink-0"
+                      loading="lazy"
+                    />
+                  ) : change.scope ? (
+                    <span class="inline-flex items-center justify-center h-5 font-mono text-[10px] text-zinc-500 bg-white/[0.04] px-1.5 rounded-sm border border-white/[0.06] shrink-0">
+                      {change.scope}
+                    </span>
+                  ) : null}
+                  <span class="truncate">{change.description}</span>
+                </div>
+                {change.hash && (
+                  <a
+                    href={change.commitUrl || `https://github.com/ihatenodejs/aidans-patches/commit/${change.hash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    class="font-mono text-[11px] text-zinc-500 hover:text-zinc-300 hover:underline underline-offset-2 ml-auto shrink-0 transition-colors"
+                  >
+                    [{change.hash.substring(0, 7)}]
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="text-xs text-zinc-400 font-mono">
+            {latestRelease.rawChangelog.substring(0, 200)}...
+          </p>
+        )}
+      </div>
+
+      <div class="pt-4 border-t border-white/[0.06] flex flex-wrap items-center justify-between gap-4 font-mono text-xs">
+        <div class="flex flex-wrap items-center gap-3">
+          <a
+            href="https://morphe.software/add-source?github=ihatenodejs/aidans-patches"
+            target="_blank"
+            rel="noreferrer"
+            class="px-4 py-2 bg-white text-black font-semibold rounded-sm hover:bg-zinc-200 transition-colors flex items-center gap-1.5"
+          >
+            <span>Add to Morphe</span>
+            <span>&rarr;</span>
+          </a>
+          <a
+            href={latestRelease.downloadUrl}
+            target="_blank"
+            rel="noreferrer"
+            class="px-4 py-2 bg-zinc-900 border border-white/[0.12] text-zinc-300 hover:text-white rounded-sm transition-colors flex items-center gap-1.5"
+          >
+            <span>Download .mpp bundle</span>
+            <span>&darr;</span>
+          </a>
+        </div>
+        <a
+          href="https://github.com/ihatenodejs/aidans-patches/releases"
+          target="_blank"
+          rel="noreferrer"
+          class="text-zinc-400 hover:text-white transition-colors"
+        >
+          View all releases &rarr;
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <GridLine withCrosshairs={true} />
+
+  <!-- 9. Final CTA & Legal Notice -->
+  <section class="p-8 md:p-12 text-center space-y-6 bg-gradient-to-b from-[#050505] to-[#090909]">
+    <div class="max-w-xl mx-auto space-y-3">
+      <h2 class="font-sans text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+        See what you can patch.
+      </h2>
+      <p class="text-xs text-zinc-400 leading-relaxed">
+        Browse the complete catalog of {totalPatches} patches across {apps.length} apps with full option documentation and direct source references.
+      </p>
+    </div>
+
+    <div class="flex items-center justify-center gap-3 font-mono text-xs">
+      <a
+        href="/patches"
+        class="px-6 py-2.5 bg-white text-black font-semibold rounded-sm hover:bg-zinc-200 transition-colors"
+      >
+        Explore patches &rarr;
+      </a>
+      <a
+        href="https://github.com/ihatenodejs/aidans-patches"
+        target="_blank"
+        rel="noreferrer"
+        class="px-6 py-2.5 bg-zinc-900 border border-white/[0.12] text-zinc-300 hover:text-white rounded-sm transition-colors"
+      >
+        View source
+      </a>
+    </div>
+  </section>
+
+  <!-- Client-side live hydration from Cloudflare Worker -->
+  <script is:inline define:vars={{ workerUrl }}>
+    (function () {
+      const STATUS_CACHE_KEY = 'aidans_patches_status_cache';
+      const STATUS_CACHE_TTL_MS = 5 * 60 * 1000;
+      const rows = document.querySelectorAll('tr[data-package]');
+
+      function applyStatusData(data) {
+        if (!data || !data.apps) return;
+        rows.forEach((row) => {
+          const pkg = row.getAttribute('data-package');
+          const appData = data.apps[pkg];
+          if (!appData) return;
+
+          const playCell = row.querySelector('.play-version');
+          const badgeCell = row.querySelector('.status-badge-cell');
+
+          if (playCell && appData.playVersion) {
+            playCell.textContent = 'v' + appData.playVersion;
+          }
+
+          if (badgeCell) {
+            if (appData.status === 'up-to-date') {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 whitespace-nowrap">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+                  <span>Up to date</span>
+                </span>
+              `;
+            } else if (appData.status === 'newer-available') {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40 whitespace-nowrap">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
+                  <span>Newer version available</span>
+                </span>
+              `;
+            } else if (appData.status === 'check-failed') {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-rose-950/60 text-rose-400 border border-rose-800/40 whitespace-nowrap">
+                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>
+                  <span>Check failed</span>
+                </span>
+              `;
+            } else if (appData.status === 'not-on-play-store') {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-500 border border-white/10 whitespace-nowrap">
+                  <span>Not on Play Store</span>
+                </span>
+              `;
+            } else {
+              badgeCell.innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10 whitespace-nowrap">
+                  <span class="w-1.5 h-1.5 rounded-full bg-zinc-500 shrink-0"></span>
+                  <span>Unknown</span>
+                </span>
+              `;
+            }
+          }
+        });
+      }
+
+      (async function hydrate() {
+        try {
+          const cached = sessionStorage.getItem(STATUS_CACHE_KEY);
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (parsed && parsed.data && Date.now() - parsed.timestamp < STATUS_CACHE_TTL_MS) {
+                applyStatusData(parsed.data);
+                return;
+              }
+            } catch {
+              // Ignore parse error
+            }
+          }
+
+          const endpoint = (typeof workerUrl !== 'undefined' && workerUrl) ? new URL('/api/status', workerUrl).toString() : 'https://worker.patch.p0ntus.com/api/status';
+          const response = await fetch(endpoint);
+          if (!response.ok) return;
+
+          const data = await response.json();
+          if (!data || !data.apps) return;
+
+          try {
+            sessionStorage.setItem(STATUS_CACHE_KEY, JSON.stringify({ data, timestamp: Date.now() }));
+          } catch {
+            // Ignore storage quota errors
+          }
+
+          applyStatusData(data);
+        } catch {
+          // Keep static fallback
+        }
+      })();
+    })();
+  </script>
+</BaseLayout>

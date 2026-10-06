@@ -9,11 +9,16 @@ public class CaptionFlyoutPreference extends AddonSwitchPreference {
     public CaptionFlyoutPreference(Context c,AttributeSet a,int d,int r){super(c,a,d,r);initialize();}
     protected boolean saved(){return DeepSeekConfig.flyoutMenuEnabled(getContext());}
     protected void save(boolean visible){DeepSeekConfig.saveFlyoutMenuEnabled(getContext(),visible);}
-    protected String title(){return "普通视频弹出菜单中的 AI 字幕开关";}
+    /** Catalog key for this row's title; a subclass overrides it to bind the Shorts menu instead. */
+    protected String titleKey(){return "flyout_title";}
+    /** Catalog key for this row's summary. */
+    protected String summaryKey(){return "flyout_summary";}
     private void initialize(){
         setPersistent(false);
-        setTitle(CaptionStrings.localize(getContext(),title()));
-        setSummary(CaptionStrings.localize(getContext(),"在播放器弹出菜单中显示快捷开关；隐藏不关闭 AI 字幕，下次打开菜单生效"));
+        // Resolved through the settings catalog, so the row follows the interface language rather than
+        // the platform locale and never needs a substring pass over an assembled sentence.
+        setTitle(CaptionStrings.settings(getContext(),titleKey()));
+        setSummary(CaptionStrings.settings(getContext(),summaryKey()));
         setChecked(saved());
         setOnPreferenceChangeListener((p,value)->{
             boolean visible=Boolean.TRUE.equals(value);
@@ -26,4 +31,5 @@ public class CaptionFlyoutPreference extends AddonSwitchPreference {
         if(isChecked()!=visible)setChecked(visible);
         super.onBindView(view);
     }
+    @Override protected void refreshDynamicText(){setTitle(CaptionStrings.settings(getContext(),titleKey()));setSummary(CaptionStrings.settings(getContext(),summaryKey()));}
 }

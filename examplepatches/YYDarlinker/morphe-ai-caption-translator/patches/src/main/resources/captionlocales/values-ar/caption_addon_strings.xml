@@ -1,129 +1,244 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="cap_age_close" formatted="false">" ثانية)"</string>
+    <string name="cap_age_open" formatted="false">"(منذ حوالي %1$s"</string>
     <string name="cap_ai_title" formatted="false">"ترجمة الترجمة النصية بالذكاء الاصطناعي"</string>
-    <string name="cap_enable_ai" formatted="false">"تفعيل الترجمة بالذكاء الاصطناعي"</string>
-    <string name="cap_api_config" formatted="false">"إعدادات API"</string>
     <string name="cap_api_address" formatted="false">"عنوان API"</string>
+    <string name="cap_api_config" formatted="false">"إعدادات API"</string>
+    <string name="cap_api_config_error" formatted="false">"خطأ في إعدادات API الترجمة: %1$s"</string>
     <string name="cap_api_key" formatted="false">"مفتاح API"</string>
-    <string name="cap_model" formatted="false">"النموذج"</string>
-    <string name="cap_test_api" formatted="false">"اختبار API"</string>
-    <string name="cap_translation" formatted="false">"الترجمة"</string>
-    <string name="cap_translation_requirements" formatted="false">"تعليمات الترجمة"</string>
-    <string name="cap_style" formatted="false">"نمط الترجمة النصية"</string>
-    <string name="cap_size" formatted="false">"حجم الترجمة النصية"</string>
-    <string name="cap_opacity" formatted="false">"عتامة الخلفية"</string>
-    <string name="cap_reset_position" formatted="false">"إعادة ضبط الموضع"</string>
-    <string name="cap_cache_diagnostics" formatted="false">"ذاكرة التخزين والتشخيص"</string>
-    <string name="cap_clear_cache" formatted="false">"مسح ذاكرة الترجمة النصية"</string>
-    <string name="cap_delete_key" formatted="false">"حذف مفتاح API"</string>
-    <string name="cap_text_debug" formatted="false">"تصحيح نص الترجمة"</string>
-    <string name="cap_diagnostics" formatted="false">"تشخيص الترجمة النصية"</string>
-    <string name="cap_clear_diagnostics" formatted="false">"مسح التشخيص"</string>
-    <string name="cap_preview" formatted="false">"معاينة الترجمة النصية"</string>
-    <string name="cap_landscape" formatted="false">"أفقي"</string>
-    <string name="cap_portrait" formatted="false">"عمودي"</string>
-    <string name="cap_to_landscape" formatted="false">"التبديل إلى الأفقي"</string>
-    <string name="cap_to_portrait" formatted="false">"التبديل إلى العمودي"</string>
-    <string name="cap_refresh" formatted="false">"تحديث"</string>
-    <string name="cap_copy" formatted="false">"نسخ"</string>
-    <string name="cap_expand" formatted="false">"توسيع"</string>
-    <string name="cap_collapse" formatted="false">"طي"</string>
-    <string name="cap_cancel" formatted="false">"إلغاء"</string>
-    <string name="cap_delete" formatted="false">"حذف"</string>
-    <string name="cap_saved" formatted="false">"تم الحفظ تلقائيًا"</string>
+    <string name="cap_api_test_failed" formatted="false">"فشل اختبار API: %1$s"</string>
+    <string name="cap_api_test_ok" formatted="false">"API متاح: %1$s"</string>
+    <string name="cap_api_test_retry_hint" formatted="false">"اختبار الاتصال باستخدام الإعدادات المحفوظة"</string>
+    <string name="cap_audit_api" formatted="false">"API: %1$s محاولة · %2$s ناجحة (2xx) · %3$s فاشلة · إعادات داخلية %4$s"</string>
+    <string name="cap_audit_api_call_many" formatted="false">"%1$s نداءات API · "</string>
+    <string name="cap_audit_api_call_one" formatted="false">"%1$s نداء API · "</string>
+    <string name="cap_audit_boundary" formatted="false">"إعادة فحص الحدود: %1$s مرة (مرة واحدة لكل صفحة كحد أقصى) · %2$s طلبًا مُرسلًا · %3$s ذرّة مستردة"</string>
+    <string name="cap_audit_bucket_background" formatted="false">"التحميل المسبق في الخلفية"</string>
+    <string name="cap_audit_bucket_background_alt" formatted="false">"إعادة فحص الحدود"</string>
+    <string name="cap_audit_bucket_background_block" formatted="false">"كتلة (تراجع)"</string>
+    <string name="cap_audit_bucket_background_page" formatted="false">"دمج الصفحات"</string>
+    <string name="cap_audit_bucket_display" formatted="false">"تقسيم العرض"</string>
+    <string name="cap_audit_bucket_priority" formatted="false">"الأولوية الحالية"</string>
+    <string name="cap_audit_bucket_priority_current" formatted="false">"المرساة الحالية"</string>
+    <string name="cap_audit_bucket_priority_gap_rescue" formatted="false">"إنقاذ الفجوات"</string>
+    <string name="cap_audit_bucket_progress" formatted="false">"تقدّم دمج الصفحات: أُكملت %1$s كتلة ثابتة عبر %2$s طلب صفحة (%3$s كتلة/طلب؛ أقل من 1.0 يعني طلبات متكررة بلا تقدّم)"</string>
+    <string name="cap_audit_bucket_unit_background" formatted="false">"مرساة زمنية / دفعة الخلفية"</string>
+    <string name="cap_audit_bucket_unit_realtime" formatted="false">"مرساة زمنية / الدفعة الحالية"</string>
+    <string name="cap_audit_by_purpose" formatted="false">"الطلبات حسب الغرض:"</string>
+    <string name="cap_audit_cache_known" formatted="false">"ذاكرة الإدخال المؤقتة: إصابة %1$s / فقد %2$s · معدل الإصابة %3$s"</string>
+    <string name="cap_audit_cache_unknown" formatted="false">"ذاكرة الإدخال المؤقتة: لم يبلِّغ المزوِّد بتفاصيل إصابة/فقد قابلة للتعرّف"</string>
+    <string name="cap_audit_char_ratio" formatted="false">"نسبة كشف الأحرف %1$s"</string>
+    <string name="cap_audit_circuit_breakers" formatted="false">"قواطع محلية %1$s"</string>
+    <string name="cap_audit_core_contextual_unit" formatted="false">"النواة: الوحدة السياقية v1"</string>
+    <string name="cap_audit_core_event_rebuild" formatted="false">"النواة: إعادة بناء الأحداث / %1$s"</string>
+    <string name="cap_audit_core_semantic_ledger" formatted="false">"النواة: السجل الدلالي v2"</string>
+    <string name="cap_audit_current_engine" formatted="false">"المحرك الحالي: %1$s"</string>
+    <string name="cap_audit_current_model" formatted="false">"الطراز الحالي: %1$s"</string>
+    <string name="cap_audit_disk_cache" formatted="false">"ذاكرة كتل الطلب على القرص: بحث %1$s · كتل مصابة %2$s · وحدات فائتة %3$s"</string>
+    <string name="cap_audit_display_handoff" formatted="false">"أُحيلت إلى الذكاء الاصطناعي %1$s مرة (نداءات الذكاء %2$s · مع استخدام %3$s · إخفاقات %4$s)"</string>
+    <string name="cap_audit_display_local" formatted="false">"تقسيم العرض: %1$s نجاح محلي دون رموز"</string>
+    <string name="cap_audit_display_whole" formatted="false">"أُبقيت الجمل كاملة %1$s مرة"</string>
+    <string name="cap_audit_efficiency" formatted="false">"كفاءة %1$s: أُضيفت %2$s ذرّة نواة · الإدخال لكل ذرّة %3$s رمز · إدخال فقد الذاكرة لكل ذرّة %4$s رمز"</string>
+    <string name="cap_audit_estimate" formatted="false">"تقدير المزوِّد الحالي لـ V4 Flash: %1$s"</string>
+    <string name="cap_audit_failure_breakdown" formatted="false">"تفصيل الإخفاقات: 429 %1$s · 5xx %2$s · 4xx أخرى %3$s · مهلة %4$s · شبكة %5$s · ملغاة/منقطعة %6$s · أخرى %7$s"</string>
+    <string name="cap_audit_focus_misses" formatted="false">"فقد التركيز %1$s"</string>
+    <string name="cap_audit_legacy_engine" formatted="false">"محرك التوافق القديم"</string>
+    <string name="cap_audit_logical_request_many" formatted="false">"%1$s طلبات منطقية / "</string>
+    <string name="cap_audit_logical_request_one" formatted="false">"%1$s طلب منطقي / "</string>
+    <string name="cap_audit_no_usage" formatted="false">"تدقيق تكلفة الرموز: لا يوجد استخدام لـ API بعد. شغِّل ترجمات الذكاء الاصطناعي لعرض الاستخدام وإصابات الذاكرة المؤقتة وأغراض الطلبات والتكلفة لكل دقيقة مشاهدة."</string>
+    <string name="cap_audit_no_usage_note" formatted="false">"ملاحظة: %1$s استجابة 2xx بلا بيانات استخدام؛ لا يُعرف عنها سوى الأعداد لا الرموز الدقيقة."</string>
+    <string name="cap_audit_page_fallback" formatted="false">"تراجع الصفحات: %1$s صفحة مخزَّنة تجاوزت حد الفشل؛ العودة إلى طلبات الكتل"</string>
+    <string name="cap_audit_per_minute" formatted="false">"%1$s رمزًا لكل دقيقة مشاهدة"</string>
+    <string name="cap_audit_priced_subset" formatted="false">"(الاستجابات المسعَّرة بأسعار V4 Flash المدمجة فقط)"</string>
+    <string name="cap_audit_request_blocks" formatted="false">"كتل الطلب: الهدف %1$s كتلة · سياق للقراءة فقط %2$s مقطعًا · مقاطع السياق لكل كتلة %3$s"</string>
+    <string name="cap_audit_request_body" formatted="false">"جسم الطلب: الإجمالي %1$s بايت · المتوسط %2$s بايت لكل محاولة API"</string>
+    <string name="cap_audit_semantic_window" formatted="false">"النافذة الدلالية: النواة %1$s ذرّة · المكشوف %2$s ذرّة · نسبة كشف السياق %3$s"</string>
+    <string name="cap_audit_structural" formatted="false">"الفحوص البنيوية والحتمية: مقبول / مرفوض (ليس قبولًا دلاليًا): %1$s / %2$s (%3$s)"</string>
+    <string name="cap_audit_sunk" formatted="false">"طلبات أُرسلت ولم تُقرأ: %1$s طلبًا · %2$s بايت. معالجة المزوِّد والفوترة غير معروفتين؛ إجماليات الرموز والتكلفة تستثني هذا الاستخدام، لذا لا يمكن تحديد المصروف الفعلي."</string>
+    <string name="cap_audit_title" formatted="false">"تدقيق تكلفة الرموز (منذ آخر إعادة تعيين)"</string>
+    <string name="cap_audit_tok" formatted="false">"%1$s رمز"</string>
+    <string name="cap_audit_tok_per_minute" formatted="false">"%1$s رمز لكل دقيقة مشاهدة"</string>
+    <string name="cap_audit_tokens" formatted="false">"الرموز: %1$s = إدخال %2$s + إخراج %3$s"</string>
+    <string name="cap_audit_video" formatted="false">"الفيديو الحالي: شوهد %1$s ث · %2$s رمزًا"</string>
+    <string name="cap_audit_viewed" formatted="false">"شوهد %1$s ث · %2$s رمز"</string>
     <string name="cap_autosave" formatted="false">"تُحفظ التغييرات تلقائيًا"</string>
-    <string name="cap_enter_key" formatted="false">"أدخل مفتاح API"</string>
-    <string name="cap_key_saved" formatted="false">"محفوظ مشفّرًا؛ أدخل مفتاحًا لاستبداله"</string>
-    <string name="cap_model_hint" formatted="false">"اختر نموذجًا أو أدخل معرّفه"</string>
-    <string name="cap_preview_hint" formatted="false">"اضغط على الصورة لتغيير الاتجاه؛ معاينة فورية"</string>
-    <string name="cap_size_hint" formatted="false">"حجم نسبي 8–15 يتناسب مع الفيديو"</string>
-    <string name="cap_opacity_hint" formatted="false">"0% شفاف، 100% معتم؛ يُحفظ عند الإفلات"</string>
-    <string name="cap_diagnostic_hint" formatted="false">"وسّع لعرض سجلات التشخيص ونسخها"</string>
-    <string name="cap_use_youtube" formatted="false">"استخدام YouTube"</string>
-    <string name="cap_use_ai" formatted="false">"استخدام الذكاء الاصطناعي"</string>
-    <string name="cap_on" formatted="false">"مفعّل"</string>
-    <string name="cap_off" formatted="false">"متوقف"</string>
-    <string name="cap_configure_api" formatted="false">"اضبط API قبل تفعيل الترجمة بالذكاء الاصطناعي"</string>
-    <string name="cap_switch_failed" formatted="false">"تعذّر التبديل؛ تمت استعادة الوضع السابق"</string>
+    <string name="cap_cache_diagnostics" formatted="false">"ذاكرة التخزين والتشخيص"</string>
+    <string name="cap_cancel" formatted="false">"إلغاء"</string>
+    <string name="cap_caption_translating" formatted="false">"تجري الترجمة…"</string>
     <string name="cap_choose_translation" formatted="false">"اختر لغة الترجمة التلقائية من قائمة الترجمة النصية"</string>
-    <string name="cap_message_7b7480271fa5" formatted="false">"عند الإيقاف يعرض YouTube ترجمته النصية الأصلية"</string>
-    <string name="cap_message_1cc3c4b0aab0" formatted="false">"الترجمة النصية الأصلية تعمل مباشرة؛ يتطلب الذكاء الاصطناعي مفتاح API"</string>
-    <string name="cap_message_2c107e436145" formatted="false">"مفعّل؛ اختر لغة الترجمة التلقائية لاستخدام الذكاء الاصطناعي"</string>
-    <string name="cap_message_ea9ebe26591a" formatted="false">"تضمين النص الأصلي والمترجم في التشخيص فقط لاستكشاف الأخطاء"</string>
-    <string name="cap_message_f496dd228d0b" formatted="false">"عدم تسجيل النص الأصلي أو المترجم"</string>
-    <string name="cap_message_261f1c6f0fde" formatted="false">"تسجيل النص لاستكشاف الأخطاء؛ متوقف افتراضيًا"</string>
-    <string name="cap_message_92561907fadc" formatted="false">"اختبار الاتصال باستخدام الإعدادات المحفوظة"</string>
-    <string name="cap_message_33c08bcbc79b" formatted="false">"تستخدم الترجمة التلقائية فقط API؛ لا تُترجم النصوص الأصلية"</string>
-    <string name="cap_message_fd1ada5395a0" formatted="false">"إعادة ضبط الموضع العمودي مع الاحتفاظ بالحجم والخلفية"</string>
+    <string name="cap_clear_cache" formatted="false">"مسح ذاكرة الترجمة النصية"</string>
+    <string name="cap_clear_diagnostics" formatted="false">"مسح التشخيص"</string>
+    <string name="cap_clear_diagnostics_confirm" formatted="false">"هل تريد مسح سجلات التشخيص المحلية؟ لن تُمس إعدادات API ولا ذاكرة الترجمة المؤقتة."</string>
+    <string name="cap_collapse" formatted="false">"طي"</string>
+    <string name="cap_configure_api" formatted="false">"اضبط API قبل تفعيل الترجمة بالذكاء الاصطناعي"</string>
+    <string name="cap_copy" formatted="false">"نسخ"</string>
+    <string name="cap_copy_part_done" formatted="false">"تم نسخ الجزء %1$s / %2$s؛ اضغط حفظ مرة أخرى لبقية الأجزاء"</string>
+    <string name="cap_copy_part_failed" formatted="false">"تعذَّر نسخ الجزء %1$s"</string>
+    <string name="cap_copy_part_label" formatted="false">"نسخ الجزء %1$s / %2$s"</string>
+    <string name="cap_copy_parts_title" formatted="false">"Android 9 وما دونه: نسخ التشخيص الكامل على أجزاء"</string>
+    <string name="cap_default_prompt" formatted="false">"ترجم بأمانة وبأسلوب طبيعي وموجز إلى اللغة المستهدفة وبصياغة مألوفة لأهلها. حافظ على الأسماء والمصطلحات والأرقام والنبرة وعلامات الترقيم اللازمة. لا تضف شروحًا غير موجودة في المصدر."</string>
+    <string name="cap_delete" formatted="false">"حذف"</string>
+    <string name="cap_delete_key" formatted="false">"حذف مفتاح API"</string>
+    <string name="cap_diagnostic_hint" formatted="false">"وسّع لعرض سجلات التشخيص ونسخها"</string>
+    <string name="cap_diagnostics" formatted="false">"تشخيص الترجمة النصية"</string>
+    <string name="cap_diagnostics_hint" formatted="false">"فعِّل تصحيح نص الترجمة عند الاختبار الطويل؛ «حفظ التشخيص الكامل» يصدِّر سجل آخر 24 ساعة (بحد أقصى 16 MiB). الملخص أدناه يعرض النشاط الأخير فقط."</string>
+    <string name="cap_display_debug" formatted="false">"تصحيح النص: %1$s"</string>
+    <string name="cap_enable_ai" formatted="false">"تفعيل الترجمة بالذكاء الاصطناعي"</string>
+    <string name="cap_engine" formatted="false">"المحرّك"</string>
+    <string name="cap_engine_event_rebuild" formatted="false">"إعادة بناء الأحداث"</string>
+    <string name="cap_enter_key" formatted="false">"أدخل مفتاح API"</string>
+    <string name="cap_expand" formatted="false">"توسيع"</string>
+    <string name="cap_flyout_summary" formatted="false">"إظهار الاختصار في قائمة المشغل. إخفاؤه لا يوقف ترجمة الذكاء الاصطناعي؛ يسري عند إعادة فتح القائمة."</string>
+    <string name="cap_flyout_title" formatted="false">"مفتاح ترجمة الذكاء الاصطناعي في قائمة الفيديوهات العادية"</string>
+    <string name="cap_keep_last_valid" formatted="false">"؛ مع الاحتفاظ بآخر قيمة صحيحة"</string>
+    <string name="cap_key_saved" formatted="false">"محفوظ مشفّرًا؛ أدخل مفتاحًا لاستبداله"</string>
+    <string name="cap_label_separator" formatted="false">"%1$s: "</string>
+    <string name="cap_landscape" formatted="false">"أفقي"</string>
+    <string name="cap_message_0825b4b0cb7d" formatted="false">"الترجمة التلقائية"</string>
     <string name="cap_message_10d1b374429d" formatted="false">"ظاهر أثناء التحرير؛ يُمسح عند الإغلاق ويُحفظ مشفّرًا"</string>
+    <string name="cap_message_17ea5266e7a5" formatted="false">"تم تحديث قائمة النماذج"</string>
+    <string name="cap_message_1cc3c4b0aab0" formatted="false">"الترجمة النصية الأصلية تعمل مباشرة؛ يتطلب الذكاء الاصطناعي مفتاح API"</string>
+    <string name="cap_message_1f328bc723d4" formatted="false">"هل تريد حذف مفتاح API؟"</string>
+    <string name="cap_message_261f1c6f0fde" formatted="false">"تسجيل النص لاستكشاف الأخطاء؛ متوقف افتراضيًا"</string>
+    <string name="cap_message_2c107e436145" formatted="false">"مفعّل؛ اختر لغة الترجمة التلقائية لاستخدام الذكاء الاصطناعي"</string>
+    <string name="cap_message_2d61f9891514" formatted="false">"تعذّر تحميل النماذج؛ أدخل المعرّف يدويًا: "</string>
+    <string name="cap_message_30070c30d85c" formatted="false">"الأحداث الأخيرة: "</string>
+    <string name="cap_message_33c08bcbc79b" formatted="false">"تستخدم الترجمة التلقائية فقط API؛ لا تُترجم النصوص الأصلية"</string>
+    <string name="cap_message_33cc168ccb4e" formatted="false">" ثانية)"</string>
+    <string name="cap_message_375e0f929195" formatted="false">"الترجمة النصية الأصلية (بدون API للترجمة)"</string>
+    <string name="cap_message_3a1185c1dc9f" formatted="false">"API متاح: "</string>
+    <string name="cap_message_44feb4d98d48" formatted="false">"أحدث مرحلة: "</string>
+    <string name="cap_message_462efc3e98ef" formatted="false">"جارٍ تحميل قائمة النماذج…"</string>
+    <string name="cap_message_49562bf14c82" formatted="false">"جارٍ الاختبار…"</string>
+    <string name="cap_message_574dd3f1ccfe" formatted="false">"تم حذف مفتاح API"</string>
+    <string name="cap_message_6ec744dcc83a" formatted="false">"يُحذف فقط مفتاح API المشفّر على هذا الجهاز. تبقى الإعدادات الأخرى دون تغيير."</string>
+    <string name="cap_message_75a885d3b526" formatted="false">"تعذّرت قراءة التشخيص: "</string>
+    <string name="cap_message_7b7480271fa5" formatted="false">"عند الإيقاف يعرض YouTube ترجمته النصية الأصلية"</string>
     <string name="cap_message_7da9039cc193" formatted="false">"يجب أن يكون مفتاح API في سطر واحد"</string>
+    <string name="cap_message_7e7bfd29c71d" formatted="false">"لا توجد طلبات ترجمة بعد. اضبط API واختر لغة الترجمة التلقائية ثم حدّث التشخيص."</string>
+    <string name="cap_message_8500e82ca181" formatted="false">"؛ تم الاحتفاظ بآخر قيمة صالحة"</string>
+    <string name="cap_message_8736a99d18f2" formatted="false">"الوضع: "</string>
+    <string name="cap_message_88ce10e8f20b" formatted="false">"فشل اختبار API: "</string>
+    <string name="cap_message_896c4b51d7e9" formatted="false">"تم نسخ التشخيص"</string>
+    <string name="cap_message_8bfb437edfc4" formatted="false">"تم مسح التشخيص"</string>
+    <string name="cap_message_92561907fadc" formatted="false">"اختبار الاتصال باستخدام الإعدادات المحفوظة"</string>
+    <string name="cap_message_9a6606c64f5f" formatted="false">"إعداد غير معروف"</string>
+    <string name="cap_message_a25bd037963d" formatted="false">"تمت إعادة ضبط موضع الترجمة النصية"</string>
+    <string name="cap_message_b795d97808e8" formatted="false">"تعذّر حفظ النموذج"</string>
     <string name="cap_message_bafa7b1ca6cb" formatted="false">"يجب أن يبدأ عنوان API بـ https:// أو http://"</string>
     <string name="cap_message_bbbcd9c8bf80" formatted="false">"تعذّر الحفظ تلقائيًا"</string>
-    <string name="cap_message_b795d97808e8" formatted="false">"تعذّر حفظ النموذج"</string>
-    <string name="cap_message_9a6606c64f5f" formatted="false">"إعداد غير معروف"</string>
-    <string name="cap_message_8500e82ca181" formatted="false">"؛ تم الاحتفاظ بآخر قيمة صالحة"</string>
-    <string name="cap_message_a25bd037963d" formatted="false">"تمت إعادة ضبط موضع الترجمة النصية"</string>
-    <string name="cap_message_e8b2177e1cd3" formatted="false">"تم مسح ذاكرة الترجمة النصية"</string>
-    <string name="cap_message_1f328bc723d4" formatted="false">"هل تريد حذف مفتاح API؟"</string>
-    <string name="cap_message_6ec744dcc83a" formatted="false">"يُحذف فقط مفتاح API المشفّر على هذا الجهاز. تبقى الإعدادات الأخرى دون تغيير."</string>
-    <string name="cap_message_574dd3f1ccfe" formatted="false">"تم حذف مفتاح API"</string>
-    <string name="cap_message_8bfb437edfc4" formatted="false">"تم مسح التشخيص"</string>
-    <string name="cap_message_896c4b51d7e9" formatted="false">"تم نسخ التشخيص"</string>
-    <string name="cap_message_49562bf14c82" formatted="false">"جارٍ الاختبار…"</string>
-    <string name="cap_message_3a1185c1dc9f" formatted="false">"API متاح: "</string>
-    <string name="cap_message_88ce10e8f20b" formatted="false">"فشل اختبار API: "</string>
-    <string name="cap_message_ec966cf35a63" formatted="false">"جارٍ تحديث قائمة النماذج…"</string>
-    <string name="cap_message_462efc3e98ef" formatted="false">"جارٍ تحميل قائمة النماذج…"</string>
-    <string name="cap_message_2d61f9891514" formatted="false">"تعذّر تحميل النماذج؛ أدخل المعرّف يدويًا: "</string>
-    <string name="cap_message_17ea5266e7a5" formatted="false">"تم تحديث قائمة النماذج"</string>
-    <string name="cap_message_7e7bfd29c71d" formatted="false">"لا توجد طلبات ترجمة بعد. اضبط API واختر لغة الترجمة التلقائية ثم حدّث التشخيص."</string>
-    <string name="cap_message_dd0fb9f395bc" formatted="false">"المحرّك: "</string>
-    <string name="cap_message_8736a99d18f2" formatted="false">"الوضع: "</string>
-    <string name="cap_message_0825b4b0cb7d" formatted="false">"الترجمة التلقائية"</string>
-    <string name="cap_message_375e0f929195" formatted="false">"الترجمة النصية الأصلية (بدون API للترجمة)"</string>
-    <string name="cap_message_c46b062d22ba" formatted="false">"تصحيح النص: "</string>
-    <string name="cap_message_44feb4d98d48" formatted="false">"أحدث مرحلة: "</string>
-    <string name="cap_message_dedc85cbb813" formatted="false">"المراجع الزمنية والأخطاء (مع الطوابع الزمنية): "</string>
-    <string name="cap_message_30070c30d85c" formatted="false">"الأحداث الأخيرة: "</string>
-    <string name="cap_message_75a885d3b526" formatted="false">"تعذّرت قراءة التشخيص: "</string>
     <string name="cap_message_c34848823d86" formatted="false">" (منذ نحو "</string>
-    <string name="cap_message_33cc168ccb4e" formatted="false">" ثانية)"</string>
-    <string name="cap_mode_pending" formatted="false">"تم حفظ الوضع. سيُطبّق عندما تصبح ترجمة هذا الفيديو جاهزة."</string>
+    <string name="cap_message_c46b062d22ba" formatted="false">"تصحيح النص: "</string>
+    <string name="cap_message_dd0fb9f395bc" formatted="false">"المحرّك: "</string>
+    <string name="cap_message_dedc85cbb813" formatted="false">"المراجع الزمنية والأخطاء (مع الطوابع الزمنية): "</string>
+    <string name="cap_message_e8b2177e1cd3" formatted="false">"تم مسح ذاكرة الترجمة النصية"</string>
+    <string name="cap_message_ea9ebe26591a" formatted="false">"تضمين النص الأصلي والمترجم في التشخيص فقط لاستكشاف الأخطاء"</string>
+    <string name="cap_message_ec966cf35a63" formatted="false">"جارٍ تحديث قائمة النماذج…"</string>
+    <string name="cap_message_f496dd228d0b" formatted="false">"عدم تسجيل النص الأصلي أو المترجم"</string>
+    <string name="cap_message_fd1ada5395a0" formatted="false">"إعادة ضبط الموضع العمودي مع الاحتفاظ بالحجم والخلفية"</string>
+    <string name="cap_mode" formatted="false">"الوضع"</string>
+    <string name="cap_mode_auto_translate" formatted="false">"الترجمة التلقائية"</string>
     <string name="cap_mode_off_pending" formatted="false">"تم إيقاف الذكاء الاصطناعي. ستُستأنف ترجمة YouTube عندما يصبح المسار الأصلي جاهزًا."</string>
-    <string name="cap_flyout_title" formatted="false">"مفتاح ترجمة الذكاء الاصطناعي في قائمة الفيديوهات العادية"</string>
-    <string name="cap_flyout_summary" formatted="false">"إظهار الاختصار في قائمة المشغل. إخفاؤه لا يوقف ترجمة الذكاء الاصطناعي؛ يسري عند إعادة فتح القائمة."</string>
-    <string name="cap_shorts_flyout_title" formatted="false">"مفتاح ترجمة الذكاء الاصطناعي في قائمة Shorts"</string>
-    <string name="cap_profiles_title" formatted="false">"ملفات إعداد API"</string>
-    <string name="cap_profile_default" formatted="false">"الإعداد الأصلي"</string>
-    <string name="cap_profile_name" formatted="false">"اسم الملف"</string>
-    <string name="cap_profile_rename" formatted="false">"إعادة تسمية"</string>
+    <string name="cap_mode_original" formatted="false">"الترجمة النصية الأصلية (بدون API للترجمة)"</string>
+    <string name="cap_mode_pending" formatted="false">"تم حفظ الوضع. سيُطبّق عندما تصبح ترجمة هذا الفيديو جاهزة."</string>
+    <string name="cap_model" formatted="false">"النموذج"</string>
+    <string name="cap_model_hint" formatted="false">"اختر نموذجًا أو أدخل معرّفه"</string>
+    <string name="cap_model_hint_key_first" formatted="false">"أدخل مفتاح API أولًا؛ يمكن أيضًا كتابة الطراز"</string>
+    <string name="cap_model_hint_manual_only" formatted="false">"اختر من القائمة أدناه أو اكتب معرِّف الطراز"</string>
+    <string name="cap_model_hint_retry" formatted="false">"اضغط تحديث لإعادة المحاولة أو اكتب معرِّف الطراز مباشرة"</string>
+    <string name="cap_model_list_updated" formatted="false">"تم تحديث قائمة الطرازات"</string>
+    <string name="cap_model_load_failed" formatted="false">"تعذَّر جلب الطرازات؛ أدخلها يدويًا: %1$s"</string>
+    <string name="cap_model_loading_auto" formatted="false">"جارٍ جلب قائمة الطرازات…"</string>
+    <string name="cap_model_loading_refresh" formatted="false">"جارٍ إعادة جلب قائمة الطرازات…"</string>
+    <string name="cap_model_pick_or_type" formatted="false">"اختر طرازًا أو اكتب معرِّفه"</string>
+    <string name="cap_model_save_failed" formatted="false">"تعذَّر حفظ الطراز"</string>
+    <string name="cap_model_saved" formatted="false">"تم حفظ الطراز تلقائيًا"</string>
+    <string name="cap_no_request_yet" formatted="false">"لا توجد طلبات ترجمة بعد. اضبط API واختر لغة الترجمة التلقائية ثم حدّث التشخيص."</string>
+    <string name="cap_off" formatted="false">"متوقف"</string>
+    <string name="cap_on" formatted="false">"مفعّل"</string>
+    <string name="cap_opacity" formatted="false">"عتامة الخلفية"</string>
+    <string name="cap_opacity_hint" formatted="false">"0% شفاف، 100% معتم؛ يُحفظ عند الإفلات"</string>
+    <string name="cap_preview" formatted="false">"معاينة بملء الشاشة بالوضع الأفقي"</string>
+    <string name="cap_preview_hint" formatted="false">"معاينة النمط (ملء الشاشة)"</string>
+    <string name="cap_preview_sample" formatted="false">"العالم واسع. لنكتشفه معًا!"</string>
     <string name="cap_profile_add" formatted="false">"إضافة ملف"</string>
-    <string name="cap_profiles_summary" formatted="false">"إدارة الملف الحالي"</string>
-    <string name="cap_profile_name_error" formatted="false">"أدخل اسمًا من 1 إلى 60 حرفًا"</string>
-    <string name="cap_profile_limit" formatted="false">"يمكن حفظ 30 ملفًا كحد أقصى"</string>
-    <string name="cap_profile_invalid_edits" formatted="false">"صحح الحقول غير المكتملة قبل تبديل الملف"</string>
     <string name="cap_profile_add_failed" formatted="false">"تعذرت الإضافة. تحقق من الحقول وحد 30 ملفًا."</string>
-    <string name="cap_profile_manage" formatted="false">"إدارة الملف الحالي"</string>
-    <string name="cap_profile_close" formatted="false">"إغلاق"</string>
-    <string name="cap_profile_save" formatted="false">"حفظ"</string>
-    <string name="cap_profile_current" formatted="false">"الملف الحالي"</string>
-    <string name="cap_profile_delete" formatted="false">"حذف الملف"</string>
     <string name="cap_profile_clear_key" formatted="false">"مسح مفتاح API لهذا الملف"</string>
-    <string name="cap_profile_keep_one" formatted="false">"يجب إبقاء ملف واحد على الأقل. يمكنك مسح مفتاح API الخاص به."</string>
-    <string name="cap_profile_new_summary" formatted="false">"تتضمن الملفات الجديدة تعليمات ترجمة افتراضية دون مفتاح أو نموذج. أكمل الحقول في صفحة الإعدادات."</string>
-    <string name="cap_profile_delete_summary" formatted="false">"يحذف عنوان هذا الملف ونموذجه وتعليمات ترجمته ومفتاحه المشفر من الجهاز. تبقى الملفات الأخرى وإعدادات الترجمة محفوظة. إذا كان نشطًا، يُفعّل أول ملف متبقٍ. لا يمكن التراجع."</string>
     <string name="cap_profile_clear_key_summary" formatted="false">"يمسح المفتاح المحفوظ وإدخال المفتاح غير المحفوظ لهذا الملف فقط. يبقي العنوان والنموذج والتعليمات والملفات الأخرى. لا يلغي المفتاح لدى المزوّد."</string>
-    <string name="cap_prompt_summary" formatted="false">"تُحفظ لهذا الملف. امسح لاستعادة التعليمات الافتراضية بلغة الواجهة. يبقى النص المخصص دون تغيير."</string>
-    <string name="cap_default_prompt" formatted="false">"ترجم بأمانة وبأسلوب طبيعي وموجز إلى اللغة المستهدفة وبصياغة مألوفة لأهلها. حافظ على الأسماء والمصطلحات والأرقام والنبرة وعلامات الترقيم اللازمة. لا تضف شروحًا غير موجودة في المصدر."</string>
-    <string name="cap_profile_more" formatted="false">"إجراءات الملف"</string>
+    <string name="cap_profile_close" formatted="false">"إغلاق"</string>
     <string name="cap_profile_collapse" formatted="false">"طي الإجراءات"</string>
-    <string name="cap_profile_finish_name" formatted="false">"احفظ تعديل الاسم أو ألغِه أولاً."</string>
-    <string name="cap_profile_delete_inline" formatted="false">"هل تريد حذف هذا الملف ومفتاحه المحفوظ من الجهاز؟ تبقى الملفات الأخرى. لا يمكن التراجع."</string>
-    <string name="cap_profile_delete_switch" formatted="false">"بعد الحذف، تفعيل:"</string>
-    <string name="cap_profile_keep" formatted="false">"الإبقاء على الملف"</string>
     <string name="cap_profile_confirm_delete" formatted="false">"تأكيد الحذف"</string>
+    <string name="cap_profile_current" formatted="false">"الملف الحالي"</string>
+    <string name="cap_profile_default" formatted="false">"الإعداد الأصلي"</string>
+    <string name="cap_profile_delete" formatted="false">"حذف الملف"</string>
+    <string name="cap_profile_delete_inline" formatted="false">"هل تريد حذف هذا الملف ومفتاحه المحفوظ من الجهاز؟ تبقى الملفات الأخرى. لا يمكن التراجع."</string>
+    <string name="cap_profile_delete_summary" formatted="false">"يحذف عنوان هذا الملف ونموذجه وتعليمات ترجمته ومفتاحه المشفر من الجهاز. تبقى الملفات الأخرى وإعدادات الترجمة محفوظة. إذا كان نشطًا، يُفعّل أول ملف متبقٍ. لا يمكن التراجع."</string>
+    <string name="cap_profile_delete_switch" formatted="false">"بعد الحذف، تفعيل:"</string>
+    <string name="cap_profile_finish_name" formatted="false">"احفظ تعديل الاسم أو ألغِه أولاً."</string>
+    <string name="cap_profile_invalid_edits" formatted="false">"صحح الحقول غير المكتملة قبل تبديل الملف"</string>
+    <string name="cap_profile_keep" formatted="false">"الإبقاء على الملف"</string>
+    <string name="cap_profile_keep_one" formatted="false">"يجب إبقاء ملف واحد على الأقل. يمكنك مسح مفتاح API الخاص به."</string>
+    <string name="cap_profile_limit" formatted="false">"يمكن حفظ 30 ملفًا كحد أقصى"</string>
+    <string name="cap_profile_manage" formatted="false">"إدارة الملف الحالي"</string>
+    <string name="cap_profile_more" formatted="false">"إجراءات الملف"</string>
+    <string name="cap_profile_name" formatted="false">"اسم الملف"</string>
+    <string name="cap_profile_name_error" formatted="false">"أدخل اسمًا من 1 إلى 60 حرفًا"</string>
+    <string name="cap_profile_new_summary" formatted="false">"تتضمن الملفات الجديدة تعليمات ترجمة افتراضية دون مفتاح أو نموذج. أكمل الحقول في صفحة الإعدادات."</string>
+    <string name="cap_profile_rename" formatted="false">"إعادة تسمية"</string>
+    <string name="cap_profile_save" formatted="false">"حفظ"</string>
+    <string name="cap_profiles_summary" formatted="false">"إدارة الملف الحالي"</string>
+    <string name="cap_profiles_title" formatted="false">"ملفات إعداد API"</string>
+    <string name="cap_prompt_summary" formatted="false">"تُحفظ لهذا الملف. امسح لاستعادة التعليمات الافتراضية بلغة الواجهة. يبقى النص المخصص دون تغيير."</string>
+    <string name="cap_quality_outcome" formatted="false">"التحقق المحلي: مقبول / مرفوض (الجودة)"</string>
+    <string name="cap_recent_trace" formatted="false">"الأحداث الأخيرة: "</string>
+    <string name="cap_refresh" formatted="false">"تحديث"</string>
+    <string name="cap_reset_position" formatted="false">"إعادة ضبط الموضع"</string>
+    <string name="cap_save_diagnostics" formatted="false">"حفظ التشخيص الكامل"</string>
+    <string name="cap_save_failed" formatted="false">"تعذَّر الحفظ: %1$s"</string>
+    <string name="cap_save_ok" formatted="false">"تم الحفظ في Download/%1$s"</string>
+    <string name="cap_saved" formatted="false">"تم الحفظ تلقائيًا"</string>
+    <string name="cap_selected_suffix" formatted="false">"محدَّد"</string>
+    <string name="cap_shorts_flyout_summary" formatted="false">"إظهار الاختصار في قائمة Shorts المنبثقة. إخفاؤه لا يعطِّل ترجمات الذكاء الاصطناعي؛ يُطبَّق عند إعادة فتح القائمة."</string>
+    <string name="cap_shorts_flyout_title" formatted="false">"مفتاح ترجمة الذكاء الاصطناعي في قائمة Shorts"</string>
+    <string name="cap_size" formatted="false">"حجم الخط"</string>
+    <string name="cap_size_hint" formatted="false">"قياسي: تفاصيل الفيديو 44.5px · ملء الشاشة 55.5px"</string>
+    <string name="cap_size_tier_hint" formatted="false">"%1$s: تفاصيل الفيديو %2$spx · ملء الشاشة %3$spx"</string>
+    <string name="cap_size_tier_l" formatted="false">"كبير"</string>
+    <string name="cap_size_tier_s" formatted="false">"صغير"</string>
+    <string name="cap_size_tier_standard" formatted="false">"قياسي"</string>
+    <string name="cap_size_tier_xl" formatted="false">"كبير جدًا"</string>
+    <string name="cap_size_tier_xs" formatted="false">"صغير جدًا"</string>
     <string name="cap_source_retry" formatted="false">"انقطع اتصال الترجمة. جارٍ إعادة المحاولة…"</string>
     <string name="cap_source_unavailable" formatted="false">"الترجمة الأصلية غير متاحة. أعد اختيار مسار الترجمة."</string>
-    <string name="cap_caption_overflow" formatted="false">"الترجمة طويلة جدًا — النص الأصلي غير متاح"</string>
-    <string name="cap_quality_outcome" formatted="false">"التحقق المحلي: مقبول / مرفوض (الجودة)"</string>
+    <string name="cap_style" formatted="false">"نمط الترجمة النصية"</string>
+    <string name="cap_switch_failed" formatted="false">"تعذّر التبديل؛ تمت استعادة الوضع السابق"</string>
+    <string name="cap_test_api" formatted="false">"اختبار API"</string>
+    <string name="cap_text_debug" formatted="false">"تصحيح نص الترجمة"</string>
+    <string name="cap_timing_decisions" formatted="false">"المراجع الزمنية والأخطاء (مع الطوابع الزمنية): "</string>
+    <string name="cap_translation" formatted="false">"الترجمة"</string>
+    <string name="cap_translation_requirements" formatted="false">"تعليمات الترجمة"</string>
+    <string name="cap_use_ai" formatted="false">"استخدام الذكاء الاصطناعي"</string>
+    <string name="cap_use_youtube" formatted="false">"استخدام YouTube"</string>
+    <string name="cap_ai_quick_toggle_on" formatted="false">"ترجمة الترجمة المصاحبة بالذكاء الاصطناعي · مفعّلة"</string>
+    <string name="cap_ai_quick_toggle_off" formatted="false">"ترجمة الترجمة المصاحبة بالذكاء الاصطناعي · معطّلة"</string>
+    <string name="cap_ai_summary" formatted="false">"بعد التفعيل، اختر لغة من قائمة «الترجمة التلقائية» في YouTube لترجمة الترجمة النصية فورًا باستخدام خدمة الذكاء الاصطناعي التي أعددتها."</string>
+    <string name="cap_languages_title" formatted="false">"لغات الترجمة التلقائية"</string>
+    <string name="cap_languages_summary" formatted="false">"أضف اللغات المحددة إلى قائمة «الترجمة التلقائية» في YouTube. يمكنك اختيار عدة لغات."</string>
+    <string name="cap_languages_count" formatted="false">"تم اختيار %1$d لغة"</string>
+    <string name="cap_languages_save" formatted="false">"حفظ"</string>
+    <string name="cap_languages_existing" formatted="false">"متاحة بالفعل"</string>
+    <string name="cap_languages_new" formatted="false">"مضافة"</string>
+    <string name="cap_languages_unavailable" formatted="false">"غير متاحة"</string>
+    <string name="cap_languages_empty" formatted="false">"لم يتم اختيار لغات؛ لن تتغير القائمة الأصلية"</string>
+    <string name="cap_languages_entry" formatted="false">"%1$s · %2$s"</string>
+    <string name="cap_model_empty" formatted="false">"لا يمكن ترك معرّف النموذج فارغًا"</string>
+    <string name="cap_api_address_invalid" formatted="false">"أدخل عنوان HTTP(S) أساسيًا صالحًا ومتوافقًا مع OpenAI، دون بيانات اعتماد مضمنة أو جزء مرجعي."</string>
+    <string name="cap_language_zh_hans" formatted="false">"الصينية (المبسطة)"</string>
+    <string name="cap_language_zh_hant" formatted="false">"الصينية (التقليدية)"</string>
+    <string name="cap_paste" formatted="false">"لصق"</string>
+    <string name="cap_select_all" formatted="false">"تحديد الكل"</string>
+    <string name="cap_value_retained" formatted="false">"%1$s؛ تم الاحتفاظ بآخر قيمة صالحة"</string>
+    <string name="cap_model_ids_empty" formatted="false">"لم تُرجع نقطة النهاية معرّفات نماذج قابلة للاختيار"</string>
+    <string name="cap_diagnostics_loading" formatted="false">"جارٍ تحميل التشخيص…"</string>
 </resources>

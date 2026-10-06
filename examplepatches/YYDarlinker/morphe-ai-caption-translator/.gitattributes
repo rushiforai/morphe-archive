@@ -7,3 +7,10 @@
 # These are Windows script files and should use crlf
 *.bat           text eol=crlf
 
+# The N9 device diagnostic is byte-fingerprinted by the offline scoreboard.
+/caption-diagnostics-1.3.5-20260929-155802.txt text eol=lf
+
+
+# N30 verbatim user-provided regression fixtures: preserve whitespace and exact bytes.
+extensions/extension/src/test/resources/n30/*.vtt -text -whitespace
+extensions/extension/src/test/resources/n30/*.json3 -text -whitespace

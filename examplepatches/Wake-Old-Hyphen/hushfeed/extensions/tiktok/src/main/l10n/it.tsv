@@ -1486,6 +1486,8 @@ Show only LIVEs with this many people watching.	Mostra solo i LIVE con questo nu
 LIVE followers range	Intervallo dei follower LIVE
 Show only LIVEs from creators with this many followers.	Mostra solo i LIVE dei creator con questo numero di follower.
 Hide the comment bar on opened videos	Nascondi la barra dei commenti nei video aperti
+Hide the Clear display controls	Nascondi i controlli della vista pulita
+While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.	Con la vista pulita attiva, nascondi anche la barra di avanzamento, il pulsante di chiusura e i pulsanti di pausa e velocità in basso. Per uscire dalla vista pulita, tieni premuto il video e tocca Ripristina visualizzazione.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Togli la barra per scrivere un commento dai video che apri da un profilo, un hashtag, un audio o dalla ricerca, così il video riempie lo schermo fino in fondo. Il pulsante dei commenti a destra continua ad aprire i commenti.
 Build details	Dettagli della build
 Copy or save patch-time choices and build identity.	Copia o salva le scelte fatte durante l'applicazione delle patch e l'identità della build.

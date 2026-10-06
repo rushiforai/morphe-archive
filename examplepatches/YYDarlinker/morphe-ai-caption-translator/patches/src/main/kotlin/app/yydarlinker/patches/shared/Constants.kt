@@ -15,6 +15,8 @@ object Constants {
             "3d7a1223019aa39d9ea0e3436ab7c0896bfb4fb679f4de5fe7c23f326c8f994a"
         ),
         targets = listOf(
+            AppTarget(version = "21.16.256", minSdk = 28),
+            AppTarget(version = "21.13.164", minSdk = 28),
             AppTarget(version = "21.07.247", minSdk = 28)
         )
     )

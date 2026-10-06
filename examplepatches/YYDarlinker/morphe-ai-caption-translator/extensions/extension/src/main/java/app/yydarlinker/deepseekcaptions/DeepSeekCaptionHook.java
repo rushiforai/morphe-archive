@@ -24,6 +24,7 @@ public final class DeepSeekCaptionHook {
         try {
             if (activity != null) appContext = activity.getApplicationContext();
             TokenCostAudit.install(appContext);
+            CaptionPlayerTransitionGuard.installAuthorityListener();
             CaptionPlayerTransitionGuard.setActivity(activity);
             DynamicCaptionController.setMainActivity(activity);
             CaptionLifecycleRestore.install(activity);
@@ -35,6 +36,7 @@ public final class DeepSeekCaptionHook {
 
     public static void onVideoId(String videoId) {
         try {
+            CaptionPlayerAuthority.setVideo(videoId);
             TokenCostAudit.onVideoId(context(), videoId);
             DynamicCaptionController.onVideoId(videoId);
             CaptionButtonController.onVideoId(videoId);
@@ -42,15 +44,46 @@ public final class DeepSeekCaptionHook {
         }
     }
 
-    public static void onPlayerType(Enum<?> playerType) {
-        try {
-            if (playerType != null) {
-                String type = playerType.name();
-                DynamicCaptionController.onPlayerType(type);
-                CaptionPlayerTransitionGuard.onPlayerType(type);
-            }
-        } catch (Throwable ignored) {
+    private static final android.os.Handler PLAYER_MAIN=new android.os.Handler(android.os.Looper.getMainLooper());
+    private static final Object PLAYER_NOTIFICATION_LOCK=new Object();
+    private static Enum<?> queuedPlayerType;
+    private static boolean queuedPlayerOuter, playerNotificationPosted;
+    private static long queuedPlayerOwnerEpoch;
+    /**
+     * Off-main player notifications are coalesced to the newest type and merged on the main thread.
+     * The guard is the player <em>owner</em> epoch, not a caption render identity: a caption clear, an
+     * AI toggle or a style change must not be able to discard a valid player callback, while a real
+     * Activity/video change still rejects the stale notification.
+     */
+    static boolean deferPlayerNotification(Enum<?> type,boolean outer) {
+        if(android.os.Looper.myLooper()==android.os.Looper.getMainLooper())return false;
+        synchronized(PLAYER_NOTIFICATION_LOCK) {
+            long capturedEpoch=CaptionPlayerAuthority.ownerEpoch();
+            if(!playerNotificationPosted || queuedPlayerOwnerEpoch!=capturedEpoch)queuedPlayerOuter=false;
+            queuedPlayerType=type;queuedPlayerOuter|=outer;queuedPlayerOwnerEpoch=capturedEpoch;
+            if(!playerNotificationPosted){playerNotificationPosted=true;PLAYER_MAIN.post(()->{
+                Enum<?> next;boolean full;long epoch;
+                synchronized(PLAYER_NOTIFICATION_LOCK){next=queuedPlayerType;full=queuedPlayerOuter;epoch=queuedPlayerOwnerEpoch;queuedPlayerType=null;queuedPlayerOuter=false;playerNotificationPosted=false;}
+                if(epoch!=CaptionPlayerAuthority.ownerEpoch())return;
+                if(full)DeepSeekCaptionHookV2.onPlayerType(next);else onPlayerType(next);
+            });}
         }
+        return true;
+    }
+    /** Main-thread outer callback scope; the original public inner seam remains the delivery path. */
+    static boolean deliveringOuterPlayerNotification;
+    public static void onPlayerType(Enum<?> playerType) {
+        if(deferPlayerNotification(playerType,false))return;
+        applyPlayerNotification(playerType,deliveringOuterPlayerNotification);
+    }
+    static void applyPlayerNotification(Enum<?> playerType,boolean outer) {
+        try {
+            if(playerType!=null){
+                String type=playerType.name();
+                DynamicCaptionController.onPlayerType(type);
+                CaptionPlayerTransitionGuard.onPlayerType(type,outer);
+            }
+        }catch(Throwable ignored){}
     }
 
     public static void onVideoTime(long timeMs) {
@@ -71,7 +104,7 @@ public final class DeepSeekCaptionHook {
             // Fall through to the ordinary caption path rather than breaking YouTube captions.
         }
 
-        if(initialContext==null || !DeepSeekConfig.enabled(initialContext))return originalUrl;
+        if(!CaptionAddonSupport.aiInstalled() || initialContext==null || !DeepSeekConfig.enabled(initialContext))return originalUrl;
 
         // Prefetched/departed Shorts requests are not selections of the foreground video.
         // Never replace the visible session (or its overlay) with another video's source URL.
@@ -129,7 +162,7 @@ public final class DeepSeekCaptionHook {
                 CaptionDiagnostics.mark(
                         initialContext,
                         "CONTEXTUAL_OWNER_UNRESOLVED_PASSTHROUGH",
-                        "当前请求缺少可验证 video owner；保持 YouTube timed-text 原生直连"
+                        "Current request lacks a verifiable video owner; keeping YouTube timed-text native passthrough"
                 );
             }
             DynamicCaptionController.observeTimedTextUrl(selectedUrl);

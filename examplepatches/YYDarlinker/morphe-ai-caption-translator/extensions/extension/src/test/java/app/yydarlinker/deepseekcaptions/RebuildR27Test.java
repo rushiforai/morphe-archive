@@ -27,7 +27,8 @@ public class RebuildR27Test {
     RebuildProtocol.Plan p=plan(15);
     assertTrue(p.issues.stream().anyMatch(x->x.code.equals("possible_omission")&&x.from==689));
     assertTrue(RebuildReview.shouldRepair(p,1,0,0,10000));
-    assertFalse(RebuildReview.shouldRepair(p,2,0,0,10000));
+    assertTrue(RebuildReview.shouldRepair(p,2,1,0,10000));
+    assertFalse(RebuildReview.shouldRepair(p,3,2,0,10000));
     assertFalse(RebuildReview.shouldRepair(p,1,RebuildReview.MAX_SESSION_REPAIRS,0,10000));
     assertFalse(RebuildReview.shouldRepair(p,1,0,10000,10000));
     assertNotNull(p.at(214000)); // soft evidence alone must not become a 26-second English block.

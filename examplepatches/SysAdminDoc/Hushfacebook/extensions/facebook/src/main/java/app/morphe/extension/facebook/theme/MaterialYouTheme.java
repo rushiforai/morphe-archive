@@ -18,6 +18,8 @@ import androidx.annotation.Nullable;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -26,6 +28,7 @@ import app.morphe.extension.facebook.settings.SettingsStatus;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 /**
  * Helper for the "Material You theme" patch: Facebook's dark mode in the colours of the phone's
@@ -416,6 +419,24 @@ public final class MaterialYouTheme {
     static TonePalette palette() {
         if (!bound) bind();
         return palette;
+    }
+
+    /** The [MATERIAL YOU] section of the diagnostic report, with the theme in the build. */
+    public static final LogBufferManager.ReportSection REPORT = new LogBufferManager.ReportSection() {
+        @Override public String title() { return "MATERIAL YOU"; }
+        @Override public List<String> lines() {
+            return SettingsStatus.materialYouTheme() ? Collections.singletonList(reportLine(palette())) : Collections.emptyList();
+        }
+        @Override public boolean isAppState() { return true; }
+    };
+
+    /** Where the palette came from and how colourful its accent is. No colours: they follow the wallpaper. */
+    static String reportLine(@Nullable TonePalette p) {
+        if (p == null || !p.dynamic) return "Facebook's blue palette: no wallpaper palette before Android 12, or it couldn't be read";
+        String chroma = String.format(Locale.US, "%.1f", p.accentChroma);
+        return p.accentReplaced
+                ? "wallpaper palette; its accent (chroma " + chroma + ") is too grey to tell from its greys, so Facebook's blue stands in"
+                : "wallpaper palette; accent chroma " + chroma;
     }
 
     /**

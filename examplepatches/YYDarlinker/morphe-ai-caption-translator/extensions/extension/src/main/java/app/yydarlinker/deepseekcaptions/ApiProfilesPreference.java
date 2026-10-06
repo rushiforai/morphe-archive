@@ -13,7 +13,7 @@ import java.util.*;
 
 /** One settings row; per-profile management stays inside the existing selector dialog. */
 @SuppressWarnings("deprecation")
-public final class ApiProfilesPreference extends android.preference.Preference {
+public final class ApiProfilesPreference extends CaptionSettingPreference {
     private Dialog dialog;
     private Dialog listDialog;
     private LinearLayout listBody;

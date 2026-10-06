@@ -47,7 +47,7 @@ public final class L10nTranslations {
     }
 
     private static Map<String, String> buildDe() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillDe0(table);
         fillDe1(table);
         fillDe2(table);
@@ -100,6 +100,8 @@ public final class L10nTranslations {
                 "Android hat diese App f\u00fcr die Webadressen von Threads best\u00e4tigt, deshalb \u00f6ffnen sich ihre Links hier.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "Die Android-Einstellungen f\u00fcr diese App lie\u00dfen sich nicht \u00f6ffnen. \u00d6ffne die App-Info \u00fcber das Threads-Symbol, dann \u201eStandardm\u00e4\u00dfig \u00f6ffnen\u201c.");
+        table.put("Appearance",
+                "Darstellung");
         table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
                 "Fragt GitHub einmal t\u00e4glich beim Start ab und zeigt neue Versionen in der \u00dcbersicht. Standardm\u00e4\u00dfig aus. Es wird nichts heruntergeladen.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -154,6 +156,8 @@ public final class L10nTranslations {
                 "HushThreads lie\u00df sich nicht wieder einschalten. Versuche es noch einmal.");
         table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
                 "Die Abdeckung wurde in diesem Build nicht erfasst. Patche erneut, um die gefundenen Adresstypen zu sehen.");
+        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
+                "Der Dunkelmodus zeigt Schwarz statt Dunkelgrau. Schalte in Threads den Dunkelmodus ein, um das zu sehen.");
         table.put("Debug logging",
                 "Debug-Protokollierung");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -172,13 +176,13 @@ public final class L10nTranslations {
                 "Einstellungen exportieren");
         table.put("Feed",
                 "Feed");
+    }
+
+    private static void fillDe1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "Ab dem n\u00e4chsten Start verh\u00e4lt sich jeder Schalter au\u00dfer der Debug-Protokollierung, als w\u00e4re er aus. Was beim Patchen festgelegt wurde, bleibt aktiv, und deine Auswahl bleibt gespeichert.");
         table.put("Full report saved to %1$s",
                 "Vollst\u00e4ndiger Bericht gespeichert unter %1$s");
-    }
-
-    private static void fillDe1(Map<String, String> table) {
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, mit den Hinweisen der Projekte, auf denen es aufbaut");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -261,6 +265,8 @@ public final class L10nTranslations {
                 "Pause, Sicherung und Diagnose");
         table.put("Privacy",
                 "Datenschutz");
+        table.put("Pure black dark mode",
+                "Rein schwarzer Dunkelmodus");
         table.put("Re-signed build fix",
                 "Fix f\u00fcr neu signierte Builds");
         table.put("Reading the settings file",
@@ -293,15 +299,15 @@ public final class L10nTranslations {
                 "Einstellungen suchen");
         table.put("Selecting links by hand",
                 "Links von Hand ausw\u00e4hlen");
+    }
+
+    private static void fillDe2(Map<String, String> table) {
         table.put("Set when you patched",
                 "Beim Patchen festgelegt");
         table.put("Settings couldn't open",
                 "Einstellungen lie\u00dfen sich nicht \u00f6ffnen");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "Die Einstellungen lie\u00dfen sich nicht vollst\u00e4ndig aktualisieren. \u00d6ffne sie neu und versuche es noch einmal.");
-    }
-
-    private static void fillDe2(Map<String, String> table) {
         table.put("Settings exported.",
                 "Einstellungen exportiert.");
         table.put("Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.",
@@ -416,21 +422,21 @@ public final class L10nTranslations {
                 "Deine Auswahl bleibt gespeichert. Tippe auf Fortsetzen und starte Threads dann neu.");
         table.put("Your controls are active.",
                 "Deine Einstellungen sind aktiv.");
+    }
+
+    private static void fillDe3(Map<String, String> table) {
         table.put("Your switches already match that file, so nothing will change.",
                 "Deine Schalter entsprechen bereits dieser Datei, es \u00e4ndert sich also nichts.");
         table.put("none",
                 "keine");
         table.put("the re-signed build fix",
                 "der Fix f\u00fcr neu signierte Builds");
-    }
-
-    private static void fillDe3(Map<String, String> table) {
         table.put("the removed advertising ID permission",
                 "die entfernte Berechtigung f\u00fcr die Werbe-ID");
     }
 
     private static Map<String, String> buildEs() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillEs0(table);
         fillEs1(table);
         fillEs2(table);
@@ -483,6 +489,8 @@ public final class L10nTranslations {
                 "Android verific\u00f3 esta app para las direcciones web de Threads, as\u00ed que sus enlaces se abren aqu\u00ed.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "No se abrieron los ajustes de Android para esta app. Abre Informaci\u00f3n de la app desde el icono de Threads y luego Abrir de forma predeterminada.");
+        table.put("Appearance",
+                "Apariencia");
         table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
                 "Consulta GitHub una vez al d\u00eda al iniciar y muestra nuevas versiones en el resumen. Desactivado por defecto. No descarga nada.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -537,6 +545,8 @@ public final class L10nTranslations {
                 "No se pudo volver a activar HushThreads. Int\u00e9ntalo de nuevo.");
         table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
                 "La cobertura no se registr\u00f3 en esta compilaci\u00f3n. Vuelve a aplicar los parches para ver los tipos de direcciones detectados.");
+        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
+                "El modo oscuro usa negro en lugar de gris oscuro. Activa el modo oscuro en Threads para verlo.");
         table.put("Debug logging",
                 "Registro de depuraci\u00f3n");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -555,13 +565,13 @@ public final class L10nTranslations {
                 "Exportar configuraci\u00f3n");
         table.put("Feed",
                 "Feed");
+    }
+
+    private static void fillEs1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "Desde el pr\u00f3ximo inicio, todos los interruptores, salvo el Registro de depuraci\u00f3n, funcionan como si estuvieran desactivados. Lo que se aplic\u00f3 al parchear se mantiene, y tus preferencias quedan guardadas.");
         table.put("Full report saved to %1$s",
                 "Informe completo guardado en %1$s");
-    }
-
-    private static void fillEs1(Map<String, String> table) {
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, con los avisos de los proyectos en los que se basa");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -644,6 +654,8 @@ public final class L10nTranslations {
                 "Pausa, copia de seguridad y diagn\u00f3stico");
         table.put("Privacy",
                 "Privacidad");
+        table.put("Pure black dark mode",
+                "Modo oscuro negro puro");
         table.put("Re-signed build fix",
                 "Arreglo para la nueva firma");
         table.put("Reading the settings file",
@@ -676,15 +688,15 @@ public final class L10nTranslations {
                 "Buscar ajustes");
         table.put("Selecting links by hand",
                 "Seleccionar enlaces a mano");
+    }
+
+    private static void fillEs2(Map<String, String> table) {
         table.put("Set when you patched",
                 "Aplicado al parchear");
         table.put("Settings couldn't open",
                 "No se pudo abrir la configuraci\u00f3n");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "No se pudo actualizar la configuraci\u00f3n por completo. Vuelve a abrirla e int\u00e9ntalo de nuevo.");
-    }
-
-    private static void fillEs2(Map<String, String> table) {
         table.put("Settings exported.",
                 "Configuraci\u00f3n exportada.");
         table.put("Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.",
@@ -799,21 +811,21 @@ public final class L10nTranslations {
                 "Tus preferencias est\u00e1n guardadas. Toca Reanudar y luego reinicia Threads.");
         table.put("Your controls are active.",
                 "Tus controles est\u00e1n activos.");
+    }
+
+    private static void fillEs3(Map<String, String> table) {
         table.put("Your switches already match that file, so nothing will change.",
                 "Tus interruptores ya coinciden con ese archivo, as\u00ed que no cambiar\u00e1 nada.");
         table.put("none",
                 "ninguna");
         table.put("the re-signed build fix",
                 "el arreglo para la nueva firma");
-    }
-
-    private static void fillEs3(Map<String, String> table) {
         table.put("the removed advertising ID permission",
                 "el permiso del ID de publicidad eliminado");
     }
 
     private static Map<String, String> buildIn() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillIn0(table);
         fillIn1(table);
         fillIn2(table);
@@ -866,6 +878,8 @@ public final class L10nTranslations {
                 "Android telah memverifikasi aplikasi ini untuk alamat web Threads, jadi tautannya terbuka di sini.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "Pengaturan Android untuk aplikasi ini tidak terbuka. Buka Info aplikasi dari ikon Threads, lalu Buka secara default.");
+        table.put("Appearance",
+                "Tampilan");
         table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
                 "Periksa GitHub sekali sehari saat mulai dan tampilkan rilis baru di ringkasan. Mati secara bawaan. Tidak mengunduh apa pun.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -920,6 +934,8 @@ public final class L10nTranslations {
                 "HushThreads tidak dapat diaktifkan lagi. Coba lagi.");
         table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
                 "Cakupan tidak dicatat dalam build ini. Terapkan patch lagi untuk melihat jenis alamat yang ditemukan.");
+        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
+                "Mode gelap memakai warna hitam, bukan abu-abu gelap. Aktifkan mode gelap di Threads untuk melihatnya.");
         table.put("Debug logging",
                 "Pencatatan debug");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -938,13 +954,13 @@ public final class L10nTranslations {
                 "Ekspor pengaturan");
         table.put("Feed",
                 "Feed");
+    }
+
+    private static void fillIn1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "Mulai peluncuran berikutnya, semua sakelar kecuali Pencatatan debug dianggap nonaktif. Yang diatur saat Anda menambal tetap aktif, dan pilihan Anda tetap tersimpan.");
         table.put("Full report saved to %1$s",
                 "Laporan lengkap disimpan ke %1$s");
-    }
-
-    private static void fillIn1(Map<String, String> table) {
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, beserta pemberitahuan dari proyek yang menjadi dasarnya");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -1027,6 +1043,8 @@ public final class L10nTranslations {
                 "Jeda, cadangan, dan diagnostik");
         table.put("Privacy",
                 "Privasi");
+        table.put("Pure black dark mode",
+                "Mode gelap hitam pekat");
         table.put("Re-signed build fix",
                 "Perbaikan build yang ditandatangani ulang");
         table.put("Reading the settings file",
@@ -1059,15 +1077,15 @@ public final class L10nTranslations {
                 "Cari pengaturan");
         table.put("Selecting links by hand",
                 "Memilih tautan secara manual");
+    }
+
+    private static void fillIn2(Map<String, String> table) {
         table.put("Set when you patched",
                 "Diatur saat Anda menambal");
         table.put("Settings couldn't open",
                 "Pengaturan tidak dapat dibuka");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "Pengaturan tidak dapat dimuat ulang sepenuhnya. Buka kembali pengaturan lalu coba lagi.");
-    }
-
-    private static void fillIn2(Map<String, String> table) {
         table.put("Settings exported.",
                 "Pengaturan diekspor.");
         table.put("Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.",
@@ -1182,21 +1200,21 @@ public final class L10nTranslations {
                 "Pilihan Anda tersimpan. Ketuk Lanjutkan, lalu mulai ulang Threads.");
         table.put("Your controls are active.",
                 "Kontrol Anda aktif.");
+    }
+
+    private static void fillIn3(Map<String, String> table) {
         table.put("Your switches already match that file, so nothing will change.",
                 "Sakelar Anda sudah sesuai dengan file itu, jadi tidak ada yang akan berubah.");
         table.put("none",
                 "tidak ada");
         table.put("the re-signed build fix",
                 "perbaikan build yang ditandatangani ulang");
-    }
-
-    private static void fillIn3(Map<String, String> table) {
         table.put("the removed advertising ID permission",
                 "izin ID iklan yang dihapus");
     }
 
     private static Map<String, String> buildPt_rBR() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillPt_rBR0(table);
         fillPt_rBR1(table);
         fillPt_rBR2(table);
@@ -1249,6 +1267,8 @@ public final class L10nTranslations {
                 "O Android verificou este app para os endere\u00e7os web do Threads, ent\u00e3o os links deles abrem aqui.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "As configura\u00e7\u00f5es do Android para este app n\u00e3o abriram. Abra Informa\u00e7\u00f5es do app pelo \u00edcone do Threads e depois Abrir por padr\u00e3o.");
+        table.put("Appearance",
+                "Apar\u00eancia");
         table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
                 "Consulta o GitHub uma vez por dia ao iniciar e mostra novas vers\u00f5es na vis\u00e3o geral. Desativado por padr\u00e3o. Nada \u00e9 baixado.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -1303,6 +1323,8 @@ public final class L10nTranslations {
                 "N\u00e3o foi poss\u00edvel reativar o HushThreads. Tente novamente.");
         table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
                 "A cobertura n\u00e3o foi registrada nesta compila\u00e7\u00e3o. Aplique os patches novamente para ver os tipos de endere\u00e7o encontrados.");
+        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
+                "O modo escuro usa preto em vez de cinza-escuro. Ative o modo escuro no Threads para v\u00ea-lo.");
         table.put("Debug logging",
                 "Registro de depura\u00e7\u00e3o");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -1321,13 +1343,13 @@ public final class L10nTranslations {
                 "Exportar configura\u00e7\u00f5es");
         table.put("Feed",
                 "Feed");
+    }
+
+    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "A partir da pr\u00f3xima abertura, todas as op\u00e7\u00f5es, menos o Registro de depura\u00e7\u00e3o, funcionam como se estivessem desligadas. O que foi definido ao aplicar os patches continua ativo, e suas escolhas ficam salvas.");
         table.put("Full report saved to %1$s",
                 "Relat\u00f3rio completo salvo em %1$s");
-    }
-
-    private static void fillPt_rBR1(Map<String, String> table) {
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, com os avisos dos projetos em que o HushThreads se baseia");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -1410,6 +1432,8 @@ public final class L10nTranslations {
                 "Pausa, backup e diagn\u00f3stico");
         table.put("Privacy",
                 "Privacidade");
+        table.put("Pure black dark mode",
+                "Modo escuro preto puro");
         table.put("Re-signed build fix",
                 "Corre\u00e7\u00e3o para vers\u00e3o com nova assinatura");
         table.put("Reading the settings file",
@@ -1442,15 +1466,15 @@ public final class L10nTranslations {
                 "Buscar configura\u00e7\u00f5es");
         table.put("Selecting links by hand",
                 "Selecionar links manualmente");
+    }
+
+    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Set when you patched",
                 "Definido ao aplicar os patches");
         table.put("Settings couldn't open",
                 "N\u00e3o foi poss\u00edvel abrir as configura\u00e7\u00f5es");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "N\u00e3o foi poss\u00edvel atualizar completamente as configura\u00e7\u00f5es. Reabra as configura\u00e7\u00f5es e tente novamente.");
-    }
-
-    private static void fillPt_rBR2(Map<String, String> table) {
         table.put("Settings exported.",
                 "Configura\u00e7\u00f5es exportadas.");
         table.put("Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.",
@@ -1565,21 +1589,21 @@ public final class L10nTranslations {
                 "Suas escolhas est\u00e3o salvas. Toque em Retomar e depois reinicie o Threads.");
         table.put("Your controls are active.",
                 "Seus controles est\u00e3o ativos.");
+    }
+
+    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("Your switches already match that file, so nothing will change.",
                 "Suas op\u00e7\u00f5es j\u00e1 correspondem \u00e0s desse arquivo, ent\u00e3o nada ser\u00e1 alterado.");
         table.put("none",
                 "nenhum");
         table.put("the re-signed build fix",
                 "a corre\u00e7\u00e3o para vers\u00e3o reassinada");
-    }
-
-    private static void fillPt_rBR3(Map<String, String> table) {
         table.put("the removed advertising ID permission",
                 "a permiss\u00e3o do ID de publicidade removida");
     }
 
     private static Map<String, String> buildTr() {
-        Map<String, String> table = new HashMap<>(362);
+        Map<String, String> table = new HashMap<>(368);
         fillTr0(table);
         fillTr1(table);
         fillTr2(table);
@@ -1632,6 +1656,8 @@ public final class L10nTranslations {
                 "Android bu uygulamay\u0131 Threads'in web adresleri i\u00e7in do\u011frulad\u0131, bu y\u00fczden ba\u011flant\u0131lar\u0131 burada a\u00e7\u0131l\u0131r.");
         table.put("Android's settings for this app didn't open. Open App info from Threads' icon, then Open by default.",
                 "Bu uygulaman\u0131n Android ayarlar\u0131 a\u00e7\u0131lamad\u0131. Threads simgesinden Uygulama bilgileri'ni, ard\u0131ndan Varsay\u0131lan olarak a\u00e7'\u0131 a\u00e7\u0131n.");
+        table.put("Appearance",
+                "G\u00f6r\u00fcn\u00fcm");
         table.put("Ask GitHub once a day at startup and show newer releases on the overview. Off by default. Nothing is downloaded.",
                 "Ba\u015flang\u0131\u00e7ta g\u00fcnde bir kez GitHub'\u0131 kontrol eder ve yeni s\u00fcr\u00fcmleri genel bak\u0131\u015fta g\u00f6sterir. Varsay\u0131lan olarak kapal\u0131d\u0131r. Hi\u00e7bir \u015fey indirilmez.");
         table.put("Asks GitHub for the newest release right now, even with the switch above off.",
@@ -1686,6 +1712,8 @@ public final class L10nTranslations {
                 "HushThreads yeniden a\u00e7\u0131lamad\u0131. Tekrar dene.");
         table.put("Coverage wasn't recorded in this build. Patch again to see the matched address kinds.",
                 "Bu derlemede kapsam kaydedilmedi. Bulunan adres t\u00fcrlerini g\u00f6rmek i\u00e7in yeniden yama uygula.");
+        table.put("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
+                "Karanl\u0131k mod koyu gri yerine siyah g\u00f6r\u00fcn\u00fcr. G\u00f6rmek i\u00e7in Threads'te karanl\u0131k modu a\u00e7.");
         table.put("Debug logging",
                 "Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc");
         table.put("Diagnostic data cleared. Tap again to put it back.",
@@ -1704,13 +1732,13 @@ public final class L10nTranslations {
                 "Ayarlar\u0131 d\u0131\u015fa aktar");
         table.put("Feed",
                 "Ak\u0131\u015f");
+    }
+
+    private static void fillTr1(Map<String, String> table) {
         table.put("From the next start, every switch but Debug logging acts as if it were off. Changes made when you patched stay in, and your choices stay saved.",
                 "Sonraki a\u00e7\u0131l\u0131\u015ftan itibaren Hata ay\u0131klama g\u00fcnl\u00fc\u011f\u00fc d\u0131\u015f\u0131ndaki her anahtar kapal\u0131ym\u0131\u015f gibi davran\u0131r. Yamalad\u0131\u011f\u0131nda ayarlananlar devrede kal\u0131r ve tercihlerin kay\u0131tl\u0131 kal\u0131r.");
         table.put("Full report saved to %1$s",
                 "Tam rapor \u015furaya kaydedildi: %1$s");
-    }
-
-    private static void fillTr1(Map<String, String> table) {
         table.put("GPL-3.0, with the notices of the projects this is built on",
                 "GPL-3.0, \u00fczerine kuruldu\u011fu projelerin lisans bildirimleriyle");
         table.put("GitHub is turning away checks from this network for now. Try again later.",
@@ -1793,6 +1821,8 @@ public final class L10nTranslations {
                 "Duraklatma, yedekleme ve tan\u0131lama");
         table.put("Privacy",
                 "Gizlilik");
+        table.put("Pure black dark mode",
+                "Saf siyah karanl\u0131k mod");
         table.put("Re-signed build fix",
                 "Yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
         table.put("Reading the settings file",
@@ -1825,15 +1855,15 @@ public final class L10nTranslations {
                 "Ayarlarda ara");
         table.put("Selecting links by hand",
                 "Ba\u011flant\u0131lar\u0131 elle se\u00e7me");
+    }
+
+    private static void fillTr2(Map<String, String> table) {
         table.put("Set when you patched",
                 "Yamalad\u0131\u011f\u0131nda ayarlananlar");
         table.put("Settings couldn't open",
                 "Ayarlar a\u00e7\u0131lamad\u0131");
         table.put("Settings couldn't refresh completely. Reopen settings and try again.",
                 "Ayarlar tamamen yenilenemedi. Ayarlar\u0131 yeniden a\u00e7\u0131p tekrar dene.");
-    }
-
-    private static void fillTr2(Map<String, String> table) {
         table.put("Settings exported.",
                 "Ayarlar d\u0131\u015fa aktar\u0131ld\u0131.");
         table.put("Settings exported. The app holding the file wouldn't let HushThreads read it back, so it wasn't checked.",
@@ -1948,15 +1978,15 @@ public final class L10nTranslations {
                 "Tercihleriniz kay\u0131tl\u0131. Devam et'e dokunun, sonra Threads'i yeniden ba\u015flat\u0131n.");
         table.put("Your controls are active.",
                 "Kontrolleriniz etkin.");
+    }
+
+    private static void fillTr3(Map<String, String> table) {
         table.put("Your switches already match that file, so nothing will change.",
                 "Anahtarlar\u0131n zaten o dosyayla ayn\u0131, bu y\u00fczden hi\u00e7bir \u015fey de\u011fi\u015fmeyecek.");
         table.put("none",
                 "yok");
         table.put("the re-signed build fix",
                 "yeniden imzalanm\u0131\u015f s\u00fcr\u00fcm d\u00fczeltmesi");
-    }
-
-    private static void fillTr3(Map<String, String> table) {
         table.put("the removed advertising ID permission",
                 "kald\u0131r\u0131lan reklam kimli\u011fi izni");
     }

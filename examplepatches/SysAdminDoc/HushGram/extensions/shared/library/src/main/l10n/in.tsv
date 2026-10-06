@@ -273,6 +273,7 @@ Undo is available until %1$s. Restarting Instagram discards Undo.	Pembatalan ter
 No settings import to undo.	Tidak ada impor pengaturan yang dapat dibatalkan.
 No document picker is available. Your settings haven't changed.	Pemilih dokumen tidak tersedia. Pengaturan Anda tidak berubah.
 Couldn't use that settings file. Your settings haven't changed.	File pengaturan tersebut tidak dapat digunakan. Pengaturan Anda tidak berubah.
+That's an overrides file, not a settings file. Turn on Allow importing overrides under Developer, then use Import overrides. Your settings haven't changed.	Itu file nilai pengganti, bukan file pengaturan. Aktifkan Izinkan impor nilai pengganti di Pengembang, lalu gunakan Impor nilai pengganti. Pengaturan Anda tidak berubah.
 HushGram settings exported.	Pengaturan HushGram diekspor.
 Couldn't export HushGram settings. Try another file.	Pengaturan HushGram tidak dapat diekspor. Coba file lain.
 Settings restored.	Pengaturan dipulihkan.

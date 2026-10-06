@@ -15,7 +15,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(openxr_headers)
 
 add_library(gxr_controller_velocity_frame SHARED src/controller_velocity_frame_layer.cpp)
-target_link_libraries(gxr_controller_velocity_frame PRIVATE OpenXR::headers log)
+target_link_libraries(gxr_controller_velocity_frame PRIVATE OpenXR::headers log dl)
 target_compile_definitions(gxr_controller_velocity_frame PRIVATE XR_USE_PLATFORM_ANDROID)
 target_link_options(gxr_controller_velocity_frame PRIVATE
     -Wl,-z,max-page-size=16384 -Wl,--no-undefined -Wl,-s)

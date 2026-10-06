@@ -72,7 +72,7 @@ val hidePinMenuItemsPatch = bytecodePatch(
             val rowRegister = (result as OneRegisterInstruction).registerA
             if (rowRegister > 15) throw PatchException("Pin-menu row register exceeds the hook invocation format")
             val at = callIndex + 2
-            val scratch = constructor.freeLocalsAt("Pin-menu ${title.name}", at, 1).single()
+            val scratch = constructor.freeLocalsAt("Pin-menu ${title.name}", at, 1, reads = listOf(rowRegister)).single()
             rows += Row(at, rowRegister, scratch, title.name)
         }
         val found = rows.map { it.key }.toSet()

@@ -40,7 +40,7 @@ public class AutomaticClearDisplayTest {
         RememberClearDisplayPatch.resetForTests();
         Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
         Settings.CLEAR_DISPLAY.save(false);
-        RememberClearDisplayPatch.firstFrame("reset", () -> true, value -> {});
+        RememberClearDisplayPatch.firstFrame("reset", () -> true, value -> true);
         Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
         Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(1000);
     }
@@ -384,7 +384,7 @@ public class AutomaticClearDisplayTest {
         var fail = new java.util.concurrent.atomic.AtomicBoolean(true);
         RememberClearDisplayPatch.ClearEvent receiver = value -> {
             if (value && fail.getAndSet(false)) throw new IllegalStateException("receiver unavailable");
-            events.add(value);
+            return events.add(value);
         };
         RememberClearDisplayPatch.firstFrame("first", () -> true, receiver);
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
@@ -403,6 +403,167 @@ public class AutomaticClearDisplayTest {
         RememberClearDisplayPatch.firstFrame("next", () -> true, events::add);
         Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
         assertEquals("old event delivery cancelled the next item's timer", List.of(false, false, true), events);
+    }
+
+    @Test public void rejectedNativeEntryRetriesOnMatchingProgressWithoutRepeatingTheChosenDelay() {
+        Object controller = new Object();
+        org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                "currentController", new java.lang.ref.WeakReference<>(controller));
+        var ready = new java.util.concurrent.atomic.AtomicBoolean();
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("first", () -> true, value -> {
+            events.add(value);
+            Event ownEvent = new Event(value, 0);
+            RememberClearDisplayPatch.beginNativeDispatch(ownEvent, value);
+            RememberClearDisplayPatch.rememberClearDisplayEvent(ownEvent);
+            return !value || ready.get();
+        });
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+        assertFalse("posting without applying claimed success", RememberClearDisplayPatch.isClearDisplayNow());
+        assertFalse(org.robolectric.util.ReflectionHelpers.getStaticField(RememberClearDisplayPatch.class, "applied"));
+        ready.set(true);
+        RememberClearDisplayPatch.onPlaybackProgress(new Object(), "first");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "other");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(List.of(false, true), events);
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "first");
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "first");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("retry must coalesce and retain the elapsed deadline", List.of(false, true, true), events);
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        RememberClearDisplayPatch.onPlaybackProgress(controller, "first");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(3, events.size());
+    }
+
+    @Test public void canceledOrManualOrDisabledEntryNeverRetriesFromQueuedProgress() {
+        for (int stop = 0; stop < 4; stop++) {
+            RememberClearDisplayPatch.resetForTests();
+            Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
+            Object controller = new Object();
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(controller));
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("first", () -> true, value -> {
+                events.add(value);
+                return !value;
+            });
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            RememberClearDisplayPatch.onPlaybackProgress(controller, "first");
+            if (stop == 0) RememberClearDisplayPatch.cancel();
+            else if (stop == 1) RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+            else if (stop == 2) Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+            else app.morphe.extension.shared.settings.PausedProcess.set(true);
+            try {
+                Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+                assertEquals("withdrawn request retried: " + stop, List.of(false, true), events);
+            } finally { app.morphe.extension.shared.settings.PausedProcess.set(false); }
+        }
+    }
+
+    public static final class NativeItem {
+        public String getAid() { return "same"; }
+    }
+    public static final class NativeCell {
+        NativeItem item = new NativeItem();
+        public NativeItem getAweme() { return item; }
+    }
+
+    @Test public void onlyTheDispatchedEventAndCurrentCellCanAcknowledgeNativeCompletion() {
+        try (var current = Robolectric.buildActivity(android.app.Activity.class).setup().visible()) {
+            current.windowFocusChanged(true);
+            RememberClearDisplayPatch.observeWindow(current.get().getWindow().getDecorView());
+            RememberClearDisplayPatch.firstFrame("same", () -> true, value -> true);
+            Object event = new Object();
+            NativeCell cell = new NativeCell();
+            Object controller = new Object();
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(controller));
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentModel", new java.lang.ref.WeakReference<>(cell.item));
+            RememberClearDisplayPatch.beginNativeDispatch(event, true);
+            RememberClearDisplayPatch.beforeNativeApply(new Object(), cell, controller);
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertFalse(RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.beforeNativeApply(event, cell, new Object());
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertFalse("same model on another controller acknowledged", RememberClearDisplayPatch.finishNativeDispatch());
+            NativeCell sameId = new NativeCell();
+            RememberClearDisplayPatch.beforeNativeApply(event, sameId, controller);
+            RememberClearDisplayPatch.onNativeApplied(sameId, true);
+            assertFalse("same ID on another model acknowledged", RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.beforeNativeApply(event, cell, controller);
+            assertFalse("the early native return acknowledged", RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.onNativeApplied(new NativeCell(), true);
+            RememberClearDisplayPatch.onNativeApplied(cell, false);
+            assertFalse(RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertTrue(RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.beforeNativeApply(event, new NativeCell(), new Object());
+            RememberClearDisplayPatch.beforeNativeApply(new Object(), cell, controller);
+            assertTrue("another subscriber discarded the current cell's completion",
+                    RememberClearDisplayPatch.finishNativeDispatch());
+            NativeCell replacement = new NativeCell();
+            replacement.item = cell.item;
+            RememberClearDisplayPatch.beforeNativeApply(event, replacement, controller);
+            assertFalse("replacement cell reused the previous cell's completion",
+                    RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.onNativeApplied(replacement, true);
+            assertTrue(RememberClearDisplayPatch.finishNativeDispatch());
+            RememberClearDisplayPatch.cancel();
+            assertFalse("a canceled generation acknowledged", RememberClearDisplayPatch.finishNativeDispatch());
+        }
+    }
+
+    @Test public void nativeCompletionCannotAcknowledgeAReplacedOwnerOrItemOrLostEligibility() {
+        for (int stale = 0; stale < 5; stale++) {
+            RememberClearDisplayPatch.resetForTests();
+            var eligible = new java.util.concurrent.atomic.AtomicBoolean(true);
+            RememberClearDisplayPatch.firstFrame("same", eligible::get, value -> true);
+            Object controller = new Object();
+            NativeCell cell = new NativeCell();
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(controller));
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentModel", new java.lang.ref.WeakReference<>(cell.item));
+            Object event = new Object();
+            RememberClearDisplayPatch.beginNativeDispatch(event, true);
+            RememberClearDisplayPatch.beforeNativeApply(event, cell, controller);
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertTrue(RememberClearDisplayPatch.finishNativeDispatch());
+            if (stale == 0) org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(new Object()));
+            else if (stale == 1) org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentModel", new java.lang.ref.WeakReference<>(new NativeItem()));
+            else if (stale == 2) eligible.set(false);
+            else if (stale == 3) cell.item = new NativeItem();
+            else org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class, "activeId", "other");
+            RememberClearDisplayPatch.onNativeApplied(cell, true);
+            assertFalse("stale native completion was accepted: " + stale, RememberClearDisplayPatch.finishNativeDispatch());
+        }
+    }
+
+    @Test public void aForeignManualExitDuringDispatchCancelsTheAutomaticRequest() {
+        for (boolean accepted : new boolean[] {false, true}) {
+            RememberClearDisplayPatch.resetForTests();
+            Object controller = new Object();
+            org.robolectric.util.ReflectionHelpers.setStaticField(RememberClearDisplayPatch.class,
+                    "currentController", new java.lang.ref.WeakReference<>(controller));
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("same", () -> true, value -> {
+                events.add(value);
+                RememberClearDisplayPatch.beginNativeDispatch(new Event(value, 0), value);
+                if (value) RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 2));
+                return accepted;
+            });
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(1));
+            RememberClearDisplayPatch.onPlaybackProgress(controller, "same");
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofSeconds(2));
+            assertEquals(List.of(false, true), events);
+            assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+            assertFalse(Settings.CLEAR_DISPLAY.get());
+        }
     }
     @Test public void standaloneControlsShowDelayInMilliseconds() throws Exception {
         try (var owner = Robolectric.buildActivity(

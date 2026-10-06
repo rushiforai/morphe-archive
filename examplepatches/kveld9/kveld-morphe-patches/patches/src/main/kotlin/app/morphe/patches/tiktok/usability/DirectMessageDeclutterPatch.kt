@@ -11,13 +11,18 @@ import app.morphe.patches.shared.ensureRegisterCount
 import app.morphe.patches.shared.replaceWithReturnBoolean
 import app.morphe.patches.shared.replaceWithReturnNull
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 val directMessageDeclutterPatch = bytecodePatch(
     name = "Direct Message Declutter",
-    description = "Removes visual clutter in direct messages and chat list, including the call button, reaction tray, message forward button, camera icons, and input action buttons.",
-    default = true,
+    description = "Removes visual clutter in direct messages and chat list, including the call button, reaction tray, message forward button, camera icons, input action buttons, try effect button, and sticker reply suggestions.",
+    default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK)
 
@@ -85,6 +90,22 @@ val directMessageDeclutterPatch = bytecodePatch(
         required = false,
     )
 
+    val hideTryEffectButton by booleanOption(
+        key = "hideTryEffectButton",
+        title = "Hide Try Effect Button",
+        description = "Removes the 'Try effect' camera button shown on shared videos that use an effect in direct messages.",
+        default = true,
+        required = false,
+    )
+
+    val hideStickerReplySuggestions by booleanOption(
+        key = "hideStickerReplySuggestions",
+        title = "Hide Sticker Reply Suggestions",
+        description = "Removes the automatic 'Tap a sticker to reply' suggestion panel above the input bar. The manual sticker reply button keeps working.",
+        default = true,
+        required = false,
+    )
+
     execute {
         if (hideChatListCamera != true &&
             hideCallButton != true &&
@@ -93,7 +114,9 @@ val directMessageDeclutterPatch = bytecodePatch(
             hideInputCamera != true &&
             hideGalleryButton != true &&
             hideEmojiButton != true &&
-            hideVoiceRecordButton != true
+            hideVoiceRecordButton != true &&
+            hideTryEffectButton != true &&
+            hideStickerReplySuggestions != true
         ) {
             println("[Direct Message Declutter] All toggles disabled -> nothing to patch.")
             return@execute
@@ -203,33 +226,43 @@ val directMessageDeclutterPatch = bytecodePatch(
             val sideSlotClassFp = Fingerprint(
                 definingClass = "Lcom/ss/android/ugc/aweme/im/sdk/chat/ui/slots/SideMessageStatusReusedSkeletonUISlot;",
             )
-            val vsMethod = sideSlotClassFp.classDef.methods.first {
-                AccessFlags.STATIC.isSet(it.accessFlags) &&
-                    it.parameters.size == 1 &&
-                    it.returnType != "V"
+            val sideSlotClass = sideSlotClassFp.classDef
+            val getterMethod = sideSlotClass.methods.first {
+                !AccessFlags.STATIC.isSet(it.accessFlags) &&
+                    it.parameterTypes.isEmpty() &&
+                    it.returnType == "Lcom/bytedance/tux/icon/TuxIconView;"
             }
-            val vsImpl = vsMethod.implementation
-            if (vsImpl != null) {
-                val enumType = vsMethod.returnType
-                var hooked = false
-                for ((index, instruction) in vsImpl.instructions.withIndex()) {
-                    if (instruction is ReferenceInstruction) {
-                        val fieldRef = instruction.reference as? FieldReference
-                        if (fieldRef?.name == "FORWARD") {
-                            vsMethod.removeInstructions(index, 1)
-                            vsMethod.addInstructions(
-                                index,
-                                "sget-object v0, $enumType->NOTHING:$enumType",
-                            )
-                            hooked = true
-                            break
-                        }
-                    }
-                }
-                if (hooked) {
-                    println("[Direct Message Declutter] Hooked SideMessageStatusReusedSkeletonUISlot.vs -> NOTHING.")
-                    patched++
-                }
+            val bindForwardMethod = sideSlotClass.methods.first {
+                !AccessFlags.STATIC.isSet(it.accessFlags) &&
+                    it.parameterTypes.size == 1 &&
+                    it.returnType == "V" &&
+                    it.implementation?.instructions?.any { ins ->
+                        ins is ReferenceInstruction &&
+                            (ins.reference as? MethodReference)?.let { mRef ->
+                                mRef.definingClass == sideSlotClass.type &&
+                                    mRef.name == getterMethod.name
+                            } == true
+                    } == true
+            }
+            val bindImpl = bindForwardMethod.implementation
+            if (bindImpl != null) {
+                bindForwardMethod.clearTryBlocks()
+                bindForwardMethod.ensureRegisterCount(4)
+                bindForwardMethod.removeInstructions(0, bindImpl.instructions.count())
+                bindForwardMethod.addInstructions(
+                    0,
+                    """
+                        invoke-virtual {p0}, ${sideSlotClass.type}->${getterMethod.name}()Lcom/bytedance/tux/icon/TuxIconView;
+                        move-result-object v0
+                        if-eqz v0, :cond_skip_forward
+                        const/16 v1, 0x8
+                        invoke-virtual {v0, v1}, Landroid/view/View;->setVisibility(I)V
+                        :cond_skip_forward
+                        return-void
+                    """.trimIndent(),
+                )
+                println("[Direct Message Declutter] Hooked ${sideSlotClass.type}.${bindForwardMethod.name} -> Forward TuxIconView GONE.")
+                patched++
             }
         }
 
@@ -334,6 +367,80 @@ val directMessageDeclutterPatch = bytecodePatch(
                 println("[Direct Message Declutter] Hooked IMImageBtnViewAssem.Wr -> View.GONE.")
                 patched++
             }
+
+            val isAlbumViewConfigMethod: (Method) -> Boolean = { method ->
+                AccessFlags.STATIC.isSet(method.accessFlags) &&
+                    method.parameterTypes.size == 3 &&
+                    method.parameterTypes[1] == "Ljava/lang/Object;" &&
+                    method.parameterTypes[2] == "Ljava/lang/Object;" &&
+                    method.implementation?.instructions?.any { ins ->
+                        val methodRef = (ins as? ReferenceInstruction)?.reference as? MethodReference
+                        methodRef?.parameterTypes?.size == 1 &&
+                            methodRef.parameterTypes[0] == "Lcom/bytedance/assem/arch/core/UIAssem;" &&
+                            methodRef.returnType == "V"
+                    } == true &&
+                    method.implementation?.instructions?.any { ins ->
+                        val methodRef = (ins as? ReferenceInstruction)?.reference as? MethodReference
+                        methodRef?.name == "setMarginEnd"
+                    } == true
+            }
+
+            val redesignedAlbumClassFp = Fingerprint(
+                custom = { _, classDef ->
+                    classDef.methods.any(isAlbumViewConfigMethod)
+                },
+            )
+            val albumMethods = redesignedAlbumClassFp.classDef.methods.filter(isAlbumViewConfigMethod)
+            var hookedAlbumCount = 0
+            for (redesignedMethod in albumMethods) {
+                val instructions = redesignedMethod.implementation?.instructions?.toList()
+                if (instructions != null) {
+                    val unitIndex = instructions.indexOfLast { ins ->
+                        ((ins as? ReferenceInstruction)?.reference as? FieldReference)?.definingClass == "Lkotlin/Unit;"
+                    }
+                    if (unitIndex >= 0) {
+                        redesignedMethod.ensureRegisterCount(6)
+                        val layoutParamsType = "Landroid/view/ViewGroup\$LayoutParams;"
+                        val marginLayoutParamsType = "Landroid/view/ViewGroup\$MarginLayoutParams;"
+                        redesignedMethod.addInstructions(
+                            unitIndex,
+                            """
+                                move-object/from16 v0, p2
+                                if-eqz v0, :cond_skip_album
+                                instance-of v1, v0, Landroid/view/View;
+                                if-eqz v1, :cond_skip_album
+                                check-cast v0, Landroid/view/View;
+                                const/4 v1, 0x0
+                                invoke-virtual {v0, v1}, Landroid/view/View;->setClickable(Z)V
+                                invoke-virtual {v0, v1}, Landroid/view/View;->setEnabled(Z)V
+                                invoke-virtual {v0, v1}, Landroid/view/View;->setScaleX(F)V
+                                invoke-virtual {v0, v1}, Landroid/view/View;->setScaleY(F)V
+                                const/16 v1, 0x8
+                                invoke-virtual {v0, v1}, Landroid/view/View;->setVisibility(I)V
+                                invoke-virtual {v0}, Landroid/view/View;->getLayoutParams()$layoutParamsType
+                                move-result-object v1
+                                if-eqz v1, :cond_skip_album
+                                const/4 v2, 0x0
+                                iput v2, v1, $layoutParamsType->width:I
+                                iput v2, v1, $layoutParamsType->height:I
+                                instance-of v2, v1, $marginLayoutParamsType
+                                if-eqz v2, :cond_skip_margin
+                                check-cast v1, $marginLayoutParamsType
+                                const/4 v2, 0x0
+                                invoke-virtual {v1, v2}, $marginLayoutParamsType->setMarginEnd(I)V
+                                :cond_skip_margin
+                                invoke-virtual {v0, v1}, Landroid/view/View;->setLayoutParams($layoutParamsType)V
+                                :cond_skip_album
+                            """.trimIndent(),
+                        )
+                        hookedAlbumCount++
+                    }
+                }
+            }
+            if (hookedAlbumCount > 0) {
+                println("[Direct Message Declutter] Hooked redesigned input SCALING_ALBUM_BTN slot setup ($hookedAlbumCount targets) -> 0x0, scale 0, disabled, GONE.")
+                patched++
+            }
         }
 
         // 7. Feature: Hide Emoji/Stickers Button inside input field
@@ -361,6 +468,73 @@ val directMessageDeclutterPatch = bytecodePatch(
                 )
                 println("[Direct Message Declutter] Hooked InputEmojiButtonUIAssem.onViewCreated -> View.GONE.")
                 patched++
+            }
+
+            val redesignedEmojiBtnId = 0x7f0a3aba
+
+            val isRedesignedEmojiSetId: (Instruction, Instruction) -> Boolean = { a, b ->
+                val isLiteral = (a as? NarrowLiteralInstruction)?.narrowLiteral == redesignedEmojiBtnId ||
+                    (a as? WideLiteralInstruction)?.wideLiteral == redesignedEmojiBtnId.toLong()
+                val methodRef = (b as? ReferenceInstruction)?.reference as? MethodReference
+                isLiteral &&
+                    methodRef?.definingClass == "Landroid/view/View;" &&
+                    methodRef.name == "setId" &&
+                    methodRef.returnType == "V" &&
+                    methodRef.parameterTypes.size == 1 &&
+                    methodRef.parameterTypes[0] == "I"
+            }
+
+            val isKotlinUnitField: (Instruction) -> Boolean = { ins ->
+                ((ins as? ReferenceInstruction)?.reference as? FieldReference)?.definingClass == "Lkotlin/Unit;"
+            }
+
+            val redesignedEmojiFp = Fingerprint(
+                returnType = "Ljava/lang/Object;",
+                custom = { method, _ ->
+                    AccessFlags.STATIC.isSet(method.accessFlags) &&
+                        method.parameterTypes.size == 3 &&
+                        method.parameterTypes[1] == "Ljava/lang/Object;" &&
+                        method.parameterTypes[2] == "Ljava/lang/Object;" &&
+                        method.implementation?.instructions?.zipWithNext()?.any { (a, b) -> isRedesignedEmojiSetId(a, b) } == true
+                },
+            )
+            val redesignedMethod = redesignedEmojiFp.method
+            val instructions = redesignedMethod.implementation?.instructions?.toList()
+            if (instructions != null) {
+                val setIdIndex = instructions.zipWithNext().indexOfFirst { (a, b) -> isRedesignedEmojiSetId(a, b) } + 1
+                if (setIdIndex > 0) {
+                    val unitIndex = instructions.withIndex().firstOrNull { (index, ins) ->
+                        index > setIdIndex && isKotlinUnitField(ins)
+                    }?.index
+                    if (unitIndex != null) {
+                        val layoutParamsType = "Landroid/view/ViewGroup\$LayoutParams;"
+                        val marginLayoutParamsType = "Landroid/view/ViewGroup\$MarginLayoutParams;"
+                        redesignedMethod.addInstructions(
+                            unitIndex,
+                            """
+                                const/4 v0, 0x0
+                                iput v0, v1, $layoutParamsType->width:I
+                                iput v0, v1, $layoutParamsType->height:I
+                                invoke-virtual {v1, v0}, $marginLayoutParamsType->setMarginEnd(I)V
+                                invoke-virtual {p2, v1}, Landroid/view/View;->setLayoutParams($layoutParamsType)V
+                                invoke-virtual {p2, v0}, Landroid/view/View;->setClickable(Z)V
+                                invoke-virtual {p2, v0}, Landroid/view/View;->setEnabled(Z)V
+                                invoke-virtual {p2, v0}, Landroid/view/View;->setScaleX(F)V
+                                invoke-virtual {p2, v0}, Landroid/view/View;->setScaleY(F)V
+                                const/16 v0, 0x8
+                                invoke-virtual {p2, v0}, Landroid/view/View;->setVisibility(I)V
+                            """.trimIndent(),
+                        )
+                        println("[Direct Message Declutter] Hooked redesigned input EMOJI_BTN slot setup -> 0x0, scale 0, disabled, GONE.")
+                        patched++
+                    } else {
+                        println("[Direct Message Declutter] Skipped redesigned EMOJI_BTN hook: Unit return anchor not found.")
+                    }
+                } else {
+                    println("[Direct Message Declutter] Skipped redesigned EMOJI_BTN hook: setId anchor not found.")
+                }
+            } else {
+                println("[Direct Message Declutter] Skipped redesigned EMOJI_BTN hook: no implementation.")
             }
         }
 
@@ -390,6 +564,109 @@ val directMessageDeclutterPatch = bytecodePatch(
                 println("[Direct Message Declutter] Hooked RecordBtnAssem.onViewCreated -> View.GONE.")
                 patched++
             }
+        }
+
+        // 9. Feature: Hide Try Effect Button on shared video cards
+        if (hideTryEffectButton == true) {
+            val isTryEffectSiblingGate: (Method) -> Boolean = { m ->
+                AccessFlags.STATIC.isSet(m.accessFlags) &&
+                    m.returnType == "Z" &&
+                    m.parameterTypes.size == 4 &&
+                    m.parameterTypes[0].startsWith("L") &&
+                    m.parameterTypes[1] == "Lcom/ss/android/ugc/aweme/im/chatroom/api/model/SessionInfo;" &&
+                    m.parameterTypes[2] == "Ljava/lang/String;" &&
+                    m.parameterTypes[3] == "Z"
+            }
+
+            val tryEffectFp = Fingerprint(
+                returnType = "Z",
+                custom = { method, classDef ->
+                    AccessFlags.STATIC.isSet(method.accessFlags) &&
+                        method.parameterTypes.size == 5 &&
+                        method.parameterTypes[0] == "Landroidx/fragment/app/Fragment;" &&
+                        method.parameterTypes[1].startsWith("L") &&
+                        method.parameterTypes[2] == "Lcom/ss/android/ugc/aweme/im/chatroom/api/model/SessionInfo;" &&
+                        method.parameterTypes[3] == "Ljava/lang/String;" &&
+                        method.parameterTypes[4] == "Z" &&
+                        classDef.methods.any(isTryEffectSiblingGate)
+                },
+            )
+            val gateClass = tryEffectFp.classDef
+            val method5Arg = tryEffectFp.method
+            val method4Arg = gateClass.methods.first(isTryEffectSiblingGate)
+
+            method5Arg.replaceWithReturnBoolean(false)
+            println("[Direct Message Declutter] Hooked ${gateClass.type}.${method5Arg.name} -> Try effect CTA disabled.")
+            patched++
+
+            method4Arg.replaceWithReturnBoolean(false)
+            println("[Direct Message Declutter] Hooked ${gateClass.type}.${method4Arg.name} -> Try effect CTA disabled.")
+            patched++
+        }
+
+        // 10. Feature: Hide Sticker Reply Suggestions above input bar
+        if (hideStickerReplySuggestions == true) {
+            val stickerRecommendationFp = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/im/sdk/chat/feature/replytosticker/ReplyToStickerRecommendationViewModel;",
+                returnType = "V",
+                custom = { method, _ ->
+                    AccessFlags.STATIC.isSet(method.accessFlags) &&
+                        method.parameterTypes.size == 4 &&
+                        method.parameterTypes[0] == "Lcom/ss/android/ugc/aweme/im/sdk/chat/feature/replytosticker/ReplyToStickerRecommendationViewModel;" &&
+                        method.parameterTypes[1] == "Z" &&
+                        method.parameterTypes[3] == "I"
+                },
+            )
+            val stickerMethod = stickerRecommendationFp.method
+            stickerMethod.addInstructions(
+                0,
+                """
+                    and-int/lit8 v0, p3, 0x2
+                    if-eqz v0, :keep_sticker_reply
+                    return-void
+                    :keep_sticker_reply
+                """.trimIndent(),
+            )
+            println("[Direct Message Declutter] Hooked ReplyToStickerRecommendationViewModel.${stickerMethod.name} -> automatic sticker reply suggestions disabled.")
+            patched++
+
+            Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/im/sdk/chat/ui/base/assems/preshown/PreshownStickerBannerProtocol;",
+                name = "isEnabled",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.replaceWithReturnBoolean(false)
+            println("[Direct Message Declutter] Hooked PreshownStickerBannerProtocol.isEnabled -> preshown sticker reply banner disabled.")
+            patched++
+
+            val interceptFp = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/im/sdk/chat/ui/base/assems/preshown/PreshownStickerBannerProtocol;",
+                name = "intercept",
+                returnType = "Ljava/util/List;",
+                parameters = listOf("Ljava/util/List;"),
+            )
+            val interceptMethod = interceptFp.method
+            val interceptImpl = interceptMethod.implementation
+            if (interceptImpl != null) {
+                interceptMethod.clearTryBlocks()
+                interceptMethod.removeInstructions(0, interceptImpl.instructions.count())
+                interceptMethod.addInstructions(
+                    0,
+                    """
+                        return-object p1
+                    """.trimIndent(),
+                )
+                println("[Direct Message Declutter] Hooked PreshownStickerBannerProtocol.intercept -> passthrough message list.")
+                patched++
+            }
+
+            Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/im/sdk/chat/ui/base/assems/input/typingrecommendation/TypingRecommendationPanelAssem;",
+                returnType = "Z",
+                parameters = emptyList(),
+            ).method.replaceWithReturnBoolean(false)
+            println("[Direct Message Declutter] Hooked TypingRecommendationPanelAssem -> typing sticker recommendations disabled.")
+            patched++
         }
 
         println("[Direct Message Declutter] Applied $patched hooks -> direct messages decluttered.")

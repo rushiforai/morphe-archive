@@ -18,6 +18,9 @@ internal object AppCompatibilities {
         packageName = "all.in.one.calculator",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x455A64,
+        signatures = setOf(
+            "e84de8a3c91c9806d2eefe29e4caf433d2672dcdcc8def0c5d55e98da40138bd",
+        ),
         targets = listOf(AppTarget(version = "3.4.0", versionCode = 340, minSdk = 24)),
     )
 
@@ -75,6 +78,9 @@ internal object AppCompatibilities {
         packageName = "ipnossoft.rma.free",
         apkFileType = ApkFileType.APKS_REQUIRED,
         appIconColor = 0x1D204B,
+        signatures = setOf(
+            "22c4c3a7776a3b54b9380a6021fa86cea27fd6844792ea6c579ba9ad0d2dbd71",
+        ),
         targets = listOf(AppTarget(version = "26.17", versionCode = 26910, minSdk = 26)),
     )
 
@@ -108,6 +114,7 @@ internal object AppCompatibilities {
         targets = listOf(
             AppTarget(version = "2.7.8", versionCode = 278, minSdk = 21),
             AppTarget(version = "2.7.9", versionCode = 279, minSdk = 21),
+            AppTarget(version = "2.8.1", versionCode = 281, minSdk = 32),
         ),
     )
 
@@ -127,6 +134,9 @@ internal object AppCompatibilities {
         packageName = "com.gstarmc.android",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x1AACAC,
+        signatures = setOf(
+            "8fdce506f048af0e813622bbe20448a49fccd7606808e7b3c00c5634aa03ec5f",
+        ),
         targets = listOf(
             AppTarget(version = "5.19.4", versionCode = 614, minSdk = 26),
             AppTarget(version = "5.19.6", versionCode = 616, minSdk = 26),
@@ -224,6 +234,17 @@ internal object AppCompatibilities {
         appIconColor = 0x53FC18,
     )
 
+    val KEEPA = Compatibility(
+        name = "Keepa",
+        packageName = "com.keepa.mobile",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x256A93,
+        signatures = setOf(
+            "43329e3a67415def40f307e5a7b3343498db9a821f436785d0a5487c636b9bcd",
+        ),
+        targets = listOf(AppTarget(version = "6.2.1", versionCode = 56014, minSdk = 30)),
+    )
+
     val KLASSIK_RADIO = Compatibility(
         name = "Klassik Radio+",
         packageName = "de.klassikradio.app",
@@ -260,6 +281,9 @@ internal object AppCompatibilities {
         packageName = "com.community.oneroom",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x30E66D,
+        signatures = setOf(
+            "03d4b741632d136bc23e2de4c6adcdb7712f1980b619c183221801730bbd0410",
+        ),
         targets = listOf(
             AppTarget(version = "4.0.02.0828.03", versionCode = 50020125, minSdk = 29),
             AppTarget(version = "4.0.02.0831.03", versionCode = 50020126, minSdk = 29),
@@ -299,6 +323,7 @@ internal object AppCompatibilities {
         targets = listOf(
             AppTarget(version = "0.4.72", versionCode = 284, minSdk = 32),
             AppTarget(version = "0.4.97", versionCode = 309, minSdk = 32),
+            AppTarget(version = "0.4.98", versionCode = 310, minSdk = 32),
         ),
     )
 
@@ -441,7 +466,10 @@ internal object AppCompatibilities {
         packageName = "org.readera",
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x0061BD,
-        targets = listOf(AppTarget(version = "26.05.20+2300", versionCode = 2300, minSdk = 16)),
+        targets = listOf(
+            AppTarget(version = "26.05.20+2300", versionCode = 2300, minSdk = 16),
+            AppTarget(version = "26.09.29+2320", versionCode = 2320, minSdk = 23),
+        ),
     )
 
     val REALME_LINK = Compatibility(
@@ -511,7 +539,9 @@ internal object AppCompatibilities {
             AppTarget(version = "14.0.0", versionCode = 127708, minSdk = 28),
             AppTarget(version = "14.1.0", versionCode = 127734, minSdk = 32),
             AppTarget(version = "15.0.1", versionCode = 127798, minSdk = 32),
+            AppTarget(version = "15.1.0", versionCode = 127812, minSdk = 32),
             AppTarget(version = "14.0.0 TV", versionCode = 227708, minSdk = 32),
+            AppTarget(version = "15.1.0 TV", versionCode = 227812, minSdk = 32),
         ),
     )
 
@@ -520,6 +550,9 @@ internal object AppCompatibilities {
         packageName = "com.dubox.drive",
         apkFileType = ApkFileType.XAPK,
         appIconColor = 0x226DF6,
+        signatures = setOf(
+            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993",
+        ),
         targets = listOf(
             AppTarget(version = "4.26.0", versionCode = 698, minSdk = 23),
             AppTarget(version = "4.26.5", versionCode = 699, minSdk = 23),
@@ -534,6 +567,7 @@ internal object AppCompatibilities {
         targets = listOf(
             AppTarget(version = "407.0.0.178994", versionCode = 1278994, minSdk = 26),
             AppTarget(version = "415.0.0.182623", versionCode = 1282623, minSdk = 26),
+            AppTarget(version = "415.0.0.182626", versionCode = 1282626, minSdk = 26),
         ),
     )
 
@@ -562,6 +596,7 @@ internal object AppCompatibilities {
         targets = listOf(
             AppTarget(version = "2.32.0", versionCode = 23200, minSdk = 32),
             AppTarget(version = "2.33.0", versionCode = 23300, minSdk = 32),
+            AppTarget(version = "2.33.1", versionCode = 23301, minSdk = 32),
         ),
     )
 

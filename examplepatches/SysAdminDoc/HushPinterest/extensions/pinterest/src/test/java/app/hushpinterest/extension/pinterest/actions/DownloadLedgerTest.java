@@ -16,6 +16,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.net.Uri;
 import android.os.Looper;
 
 import org.junit.After;
@@ -495,6 +496,44 @@ public class DownloadLedgerTest {
         assertArrayEquals(new long[]{id}, nativeJobs.queries.get(0));
     }
 
+    @Test public void onlyAFinishedImageIsHandedToSetAsWithAReadGrant() throws Exception {
+        long image = owned("123", DownloadManager.STATUS_SUCCESSFUL);
+        long video = owned("456", DownloadManager.STATUS_SUCCESSFUL);
+        long running = owned("789", DownloadManager.STATUS_RUNNING);
+        nativeJobs.mimes.put(video, "video/mp4");
+        List<DownloadLedger.Job> jobs = new DownloadLedger(app).reconcile();
+        DownloadLedger.Job finished = jobs.stream().filter(job -> job.id == image).findFirst().get();
+        assertTrue(finished.canSetAs());
+        assertFalse(jobs.stream().filter(job -> job.id == video).findFirst().get().canSetAs());
+        assertFalse(jobs.stream().filter(job -> job.id == running).findFirst().get().canSetAs());
+        assertTrue(DownloadLedger.setAs(app, finished));
+        settle();
+        Intent chooser = Shadows.shadowOf(app).getNextStartedActivity();
+        assertEquals(Intent.ACTION_CHOOSER, chooser.getAction());
+        Intent attach = chooser.getParcelableExtra(Intent.EXTRA_INTENT);
+        assertEquals(Intent.ACTION_ATTACH_DATA, attach.getAction());
+        assertEquals("content://downloads/all_downloads/" + image, attach.getDataString());
+        assertEquals("image/jpeg", attach.getType());
+        assertEquals(Intent.FLAG_GRANT_READ_URI_PERMISSION, attach.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        assertEquals("image/jpeg", attach.getStringExtra("mimeType"));
+    }
+
+    @Test public void setAsRechecksTheRequestAndTheSwitchBeforeOpeningAnything() throws Exception {
+        long image = owned("123", DownloadManager.STATUS_SUCCESSFUL);
+        DownloadLedger.Job finished = new DownloadLedger(app).reconcile().get(0);
+        status(image, DownloadManager.STATUS_RUNNING);
+        assertTrue(DownloadLedger.setAs(app, finished));
+        settle();
+        assertNull(Shadows.shadowOf(app).getNextStartedActivity());
+        assertEquals("This download isn't a finished image anymore. Check Downloads.", ShadowToast.getTextOfLatestToast());
+        status(image, DownloadManager.STATUS_SUCCESSFUL);
+        PauseForTests.pause(HushPinterestPause.Reason.SWITCH);
+        assertTrue(DownloadLedger.setAs(app, finished));
+        settle();
+        assertNull(Shadows.shadowOf(app).getNextStartedActivity());
+        assertEquals("Resume HushPinterest and turn on Download pins to use this.", ShadowToast.getTextOfLatestToast());
+    }
+
     @Test public void workerRejectionSettlesCallbacksAndDoesNotMutateOrEnqueue() throws Exception {
         long id = owned("123", DownloadManager.STATUS_FAILED);
         String before = preferences().getString(DownloadLedger.RECORDS, "");
@@ -692,6 +731,13 @@ public class DownloadLedgerTest {
             cursor.addRow(new Object[]{id, request.getStatus(), reasons.getOrDefault(id, 0),
                     sources.containsKey(id) ? sources.get(id) : request.getUri().toString(),
                     mimes.containsKey(id) ? mimes.get(id) : request.getMimeType()});
+        }
+
+        @Implementation protected Uri getUriForDownloadedFile(long id) {
+            DownloadManager.Request original = getRequest(id);
+            if (original == null) return null;
+            ShadowDownloadManager.ShadowRequest request = Shadow.extract(original);
+            return request.getStatus() == DownloadManager.STATUS_SUCCESSFUL ? Uri.parse("content://downloads/all_downloads/" + id) : null;
         }
 
         @Implementation @Override protected int remove(long... ids) {

@@ -1,0 +1,115 @@
+{
+  "task": "N13b A14 stronger-model single-block A/B",
+  "recorded_at_utc": "2026-09-29T10:58:28.702279+00:00",
+  "scope": "Only b17_1219_1299, frozen request 22 repair; no neighbor block, no device display claim",
+  "baseline": "qwen3.8-flash; frozen N13 original two attempts in n13-live-ledger-20260929.json; not added to N13b usage",
+  "catalog": {
+    "archive": "live-n13b-models-20260929T104950156832Z.json",
+    "method": "GET /models on N13 endpoint",
+    "api_attempts": 1,
+    "http_status": 200,
+    "wall_ms": 375.0,
+    "catalog_model_count": 261,
+    "relevant_same_series_ids": [
+      "qwen3.8-max-0902",
+      "qwen3.8-flash",
+      "qwen3.8-27b",
+      "qwen3.8-2.4t-a95b",
+      "qwen3.8-max"
+    ],
+    "chosen": "qwen3.8-max",
+    "choice_reason": "Same provider and same qwen3.8 series, explicit non-flash max tier; do not infer price/accuracy from catalog."
+  },
+  "frozen_checks": {
+    "prompt_sha256": "d841cf104e07cb2330f3143c538981979f8ba062dc6582c322f6dc8460ad0379",
+    "payload_sha256": "d2dfffdc60d627c5274e3511fc16e9d3607c436e7e9a6cd63ca63f1daecc84b8",
+    "diagnostic_sha256": "13b1f29cdf6ea180dadb67bf91de6a7b085412fb132880d8cd07585cf5ac5171",
+    "endpoint_sha256": "a967e3df0dbb1b78e18b35b8d60a72465bd89f9d2847073cc7f1cdf0a97a6527",
+    "output_budget_tokens": 1520,
+    "http_request_only_model_field_changed": true,
+    "response_format_and_presence_penalty_same_as_n13_flash": true,
+    "credentials_written": false,
+    "persistent_model_config_changed": false
+  },
+  "api_calls_including_catalog": 3,
+  "generation_attempts": 2,
+  "max_allowed_calls_including_catalog": 3,
+  "generation_totals": {
+    "prompt_tokens": 4590,
+    "completion_tokens": 610,
+    "total_tokens": 5200,
+    "wall_ms": 11469.0,
+    "provider_reported_all": true
+  },
+  "attempts": [
+    {
+      "sequence": 1,
+      "captured_at_utc": "2026-09-29T10:50:59.215503+00:00",
+      "model": "qwen3.8-max",
+      "api_attempts": 1,
+      "archive": "live-n13b-block17-20260929T105059215503Z.json",
+      "raw_sha256": "6d14ae5e862f734d0709d404618d770b0001080823f393eb4e9f326b717746ea",
+      "parser_audit": "n13b-parser-20260929T105059215503Z.json",
+      "wall_ms": 6469.0,
+      "finish_reason": "stop",
+      "prompt_tokens": 2295,
+      "completion_tokens": 305,
+      "total_tokens": 2600,
+      "provider_reported": true,
+      "production_parse_bound_passed": true,
+      "review_risks": 0,
+      "repair_issues": [],
+      "actor_is_independent_deng_subject": false,
+      "manual_semantic_pass": false,
+      "quoted_events_1219_1240": [
+        {
+          "from": 1219,
+          "to": 1228,
+          "text": "外国投资和随之而来的经济爆发式增长"
+        },
+        {
+          "from": 1229,
+          "to": 1240,
+          "text": "使邓降低了GDP中用于解放军的比例"
+        }
+      ]
+    },
+    {
+      "sequence": 2,
+      "captured_at_utc": "2026-09-29T10:53:25.081318+00:00",
+      "model": "qwen3.8-max",
+      "api_attempts": 1,
+      "archive": "live-n13b-block17-20260929T105325081318Z.json",
+      "raw_sha256": "4a677fe635e0cf98da67f1278c48765c4d8ebdfd14e39425758c6ad48e3de95a",
+      "parser_audit": "n13b-parser-20260929T105325081318Z.json",
+      "wall_ms": 5000.0,
+      "finish_reason": "stop",
+      "prompt_tokens": 2295,
+      "completion_tokens": 305,
+      "total_tokens": 2600,
+      "provider_reported": true,
+      "production_parse_bound_passed": true,
+      "review_risks": 0,
+      "repair_issues": [],
+      "actor_is_independent_deng_subject": false,
+      "manual_semantic_pass": false,
+      "quoted_events_1219_1240": [
+        {
+          "from": 1219,
+          "to": 1228,
+          "text": "外国投资和随之而来的经济爆发式增长"
+        },
+        {
+          "from": 1229,
+          "to": 1240,
+          "text": "使邓降低了GDP中用于解放军的比例"
+        }
+      ]
+    }
+  ],
+  "verdict": "FAIL: both source coverage and production parseBound pass with review risk=0, but text adds false causative connection; no explicit independent Deng Xiaoping as subject of reduced. No display-ready correction.",
+  "manual_semantic_reason": "The adjacent verbatim fragments make foreign investment/growth cause Deng to reduce the PLA GDP share (使邓降低), instead of stating 邓小平降低了... as an independent action. Risk=0 is not semantic proof.",
+  "cache_isolation": "Verified statically: RebuildCache.identity incorporates Snapshot.fingerprint; DeepSeekConfig.Snapshot.fingerprint includes baseUrl, model, prompt. No cache code change or live cache writes. Prior N12 local test covers model-key invalidation; this machine's rerun was unverified because Robolectric/ASM under JDK25 rejects class file major 69.",
+  "next_step_not_executed": "Keep A14 original-text fallback; if considering escalation, separately decide whether to strengthen semantic checks and validate with more frozen cases. Do not enable automatic model upgrade.",
+  "raw_archives_locally_ignored": true
+}

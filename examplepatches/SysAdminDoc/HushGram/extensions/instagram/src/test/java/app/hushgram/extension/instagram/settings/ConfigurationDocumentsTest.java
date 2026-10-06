@@ -255,6 +255,23 @@ public class ConfigurationDocumentsTest {
         }
     }
 
+    /** Instagram's own overrides file, picked from the settings import, says which import takes it. */
+    @Test public void anOverridesFileNamesTheOverridesImport() throws Exception {
+        try (ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class).setup()) {
+            HushgramPreferenceFragment page = DownloadSettingsTest.pageIn(activity);
+            Shadows.shadowOf(activity.get().getContentResolver()).registerInputStream(DOCUMENT, new ByteArrayInputStream(
+                    "{\"70831:\":[\"15: : true\",\"11: : false\"],\"_qe_overrides_\":[]}".getBytes(StandardCharsets.UTF_8)));
+            ShadowActivity.IntentForResult picked = pick(page, activity.get(), "hushgram_import_configuration");
+            Shadows.shadowOf(activity.get()).receiveResult(picked.intent, Activity.RESULT_OK, new Intent().setData(DOCUMENT));
+            finish();
+            assertTrue(Settings.HIDE_ADS.savedValue());
+            assertFalse(ConfigurationBackup.canUndo());
+            assertEquals("That's an overrides file, not a settings file. Turn on Allow importing overrides under Developer, "
+                    + "then use Import overrides. Your settings haven't changed.",
+                    page.findPreference("hushgram_import_configuration").getSummary().toString());
+        }
+    }
+
     @Test public void theCompleteReceiptSurvivesClosingAndReopeningSettings() throws Exception {
         PatchFamily.inBuildForTests = EnumSet.of(PatchFamily.DISABLE_ANALYTICS);
         Settings.DISABLE_ANALYTICS.resetToDefault();

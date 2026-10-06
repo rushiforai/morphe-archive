@@ -16,7 +16,11 @@ import app.morphe.patches.pinterest.misc.extension.PatchLogCapture
 import app.morphe.patches.pinterest.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import java.io.File
 import org.junit.Assert.assertEquals
@@ -84,13 +88,26 @@ class UiFixtureTest {
             assertTrue("${build.name} pin-menu entry hooks",
                 menu.calls().count { it.definingClass == INTERFACE_CONTROLS && it.name == "pinMenuItem" } >= 4)
             assertTrue(menu.strings().containsAll(FILTERABLE_PIN_MENU_TITLES))
+            assertDistinctArguments("${build.name} pin-menu", menu.instructions(), "pinMenuItem")
             val navType = classes.single { owner ->
                 owner.methods.any { "BottomNavBar tab insertion out of range" in it.strings() }
             }.type
             val nav = context.mutableClassDefBy(navType)
-            assertEquals(1, nav.methods.sumOf { method ->
+            val bound = nav.methods.filter { method ->
+                method.calls().any { it.definingClass == INTERFACE_CONTROLS && it.name == "bindNavigation" }
+            }
+            assertEquals("${build.name}: the tab binding and the tab replacement each bind once", 2, bound.sumOf { method ->
                 method.calls().count { it.definingClass == INTERFACE_CONTROLS && it.name == "bindNavigation" }
             })
+            val swap = bound.single { method -> method.calls().any { it.name == "removeViewAt" } }
+            val body = swap.instructions()
+            val hook = body.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "bindNavigation" }
+            assertEquals("${build.name}: the replacement binds right after the new view's ID", "setId",
+                ((body[hook - 3] as ReferenceInstruction).reference as MethodReference).name)
+            assertEquals(Opcode.INVOKE_INTERFACE, body[hook - 2].opcode)
+            // 0.0.4's first replacement hook took v3 as scratch while v3 still held the new view, and
+            // ART then refused the whole bar class, so the bar never appeared.
+            bound.forEach { assertDistinctArguments("${build.name} ${it.name}", it.instructions(), "bindNavigation") }
             assertTrue(nav.methods.single { it.name == "onMeasure" }.calls().any {
                 it.definingClass == INTERFACE_CONTROLS && it.name == "refreshNavigation"
             })
@@ -143,6 +160,19 @@ class UiFixtureTest {
         }
         assertFalse("${build.name}: no vendor targets", found.isEmpty())
         return found.values.toList()
+    }
+
+    /** Each hook gets the original view and a separate value; one register twice means a scratch replaced the view. */
+    private fun assertDistinctArguments(what: String, body: List<Instruction>, hook: String) {
+        val sites = body.filter { instruction ->
+            ((instruction as? ReferenceInstruction)?.reference as? MethodReference)
+                ?.let { it.definingClass == INTERFACE_CONTROLS && it.name == hook } == true
+        }
+        assertTrue("$what: no $hook call", sites.isNotEmpty())
+        for (site in sites) {
+            val call = site as FiveRegisterInstruction
+            assertTrue("$what: $hook passes v${call.registerC} twice", call.registerC != call.registerD)
+        }
     }
 
     private fun assertFlag(context: BytecodePatchContext, name: String, enabled: Boolean) {

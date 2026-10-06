@@ -4,6 +4,24 @@ Release and changelog policy: [docs/release.md](docs/release.md#changelog-policy
 
 ## Unreleased
 
+## [1.8.0](https://github.com/zeldrisho/morphe-patches/compare/v1.7.2...v1.8.0) (2026-10-06)
+
+### ✨ New Features
+* **Zalo - Enable avatar saving:** Restores the “Save photo” action for avatars opened from a profile and allows screenshots without changing protection for other screens.
+* **Zalo - Enable profile cover saving:** Restores the “Save photo” action and allows screenshots for profile cover photos.
+
+### 🐛 Bug Fixes
+* **Zalo - Suppress outbound seen status:** Drops shared ACK requests only when they carry `seen=true`, covering legacy and last-message receipt paths while preserving delivery acknowledgements and incoming status display.
+* **Zalo - Change package name:** Renamed clones can sign in to Google Drive with the microG Drive support patch.
+* **Zalo - microG Drive support:** Fixes token requests from renamed clones by preserving their real caller identity while using Zalo's original OAuth identity.
+* **Zalo - Configurable native backup interval:** Fixes patching for the supported Zalo APK.
+
+## [1.7.2](https://github.com/zeldrisho/morphe-patches/compare/v1.7.1...v1.7.2) (2026-10-05)
+
+### 🔧 Improvements
+* **Threads - Change app name:** Makes launcher-name customization opt-in; without it, the app keeps its original name.
+* **Zalo - Enable Google Drive photo backup:** Bypasses Zalo's local Drive-account eligibility check and forces its media-backup feature flag on, exposing the existing option to accounts that would otherwise not see it.
+
 ## [1.7.1](https://github.com/zeldrisho/morphe-patches/compare/v1.7.0...v1.7.1) (2026-10-03)
 
 ### 🐛 Bug Fixes

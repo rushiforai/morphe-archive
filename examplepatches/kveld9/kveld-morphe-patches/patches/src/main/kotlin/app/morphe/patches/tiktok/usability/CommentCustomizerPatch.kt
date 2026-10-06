@@ -4,17 +4,22 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.removeInstructions
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.Constants
+import app.morphe.patches.shared.clearTryBlocks
+import app.morphe.patches.shared.ensureRegisterCount
 import app.morphe.patches.shared.getReference
 import app.morphe.patches.shared.sharedExtensionPatch
 import app.morphe.patches.shared.replaceWithReturnBoolean
 import app.morphe.patches.shared.replaceWithReturnBooleanObject
 import app.morphe.patches.shared.replaceWithReturnIntegerObject
+import app.morphe.patches.shared.replaceWithReturnNull
+import app.morphe.patches.shared.replaceWithReturnVoid
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
@@ -31,6 +36,7 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 private const val COMMENT_CLASS_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/comment/model/Comment;"
 private const val CLIP_DATA_CLASS_DESCRIPTOR = "Landroid/content/ClipData;"
 private const val BASE_COMMENT_CELL_CLASS = "Lcom/ss/android/ugc/aweme/commentv2/commentlist/powercell/BaseCommentCell;"
+private const val COMMENT_LYNX_CELL_CLASS = "Lcom/ss/android/ugc/aweme/commentv2/commentlist/powercell/CommentLynxCell;"
 private const val COMMENT_ITEM_LIST_CLASS = "Lcom/ss/android/ugc/aweme/comment/model/CommentItemList;"
 
 private data class MethodSignature(
@@ -420,6 +426,126 @@ private fun BytecodePatchContext.applyHideCommentQuickActions(): Int {
     return patched
 }
 
+private fun BytecodePatchContext.applyHideCommentSurveys(): Int {
+    var patched = 0
+
+    // 1. Invalidate CommentSurveyDataItem provider so no survey model is built
+    Fingerprint(
+        returnType = "Lcom/ss/android/ugc/aweme/comment/experiment/CommentSurveyDataItem;",
+        parameters = emptyList(),
+    ).method.replaceWithReturnNull()
+    patched++
+
+    // 2. Disable comment survey display eligibility check (shouldShow)
+    Fingerprint(
+        returnType = "Z",
+        parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
+        strings = listOf("shouldShow return because"),
+    ).method.replaceWithReturnBoolean(false)
+    patched++
+
+    // 3. Disable pre-layout and hot feed survey insertion gate
+    Fingerprint(
+        returnType = "Z",
+        parameters = listOf("Lcom/ss/android/ugc/aweme/feed/model/Aweme;"),
+        custom = { _, classDef ->
+            classDef.methods.any { m ->
+                m.implementation?.instructions?.any { ins ->
+                    (ins as? ReferenceInstruction)?.reference?.toString()?.contains("LynxPreLayoutManager") == true
+                } == true
+            }
+        },
+    ).method.replaceWithReturnBoolean(false)
+    patched++
+
+    // 4. Neutralize CommentLynxCell binding to prevent Lynx view inflation and telemetry
+    Fingerprint(
+        definingClass = COMMENT_LYNX_CELL_CLASS,
+        name = "onBindItemView",
+    ).method.replaceWithReturnVoid()
+    patched++
+
+    // 5. Replace CommentLynxCell item view creation with an empty hidden GONE view
+    val onCreateItemViewMethod = Fingerprint(
+        definingClass = COMMENT_LYNX_CELL_CLASS,
+        name = "onCreateItemView",
+    ).method
+    val impl = onCreateItemViewMethod.implementation
+    if (impl != null) {
+        onCreateItemViewMethod.clearTryBlocks()
+        onCreateItemViewMethod.ensureRegisterCount(3)
+        onCreateItemViewMethod.removeInstructions(0, impl.instructions.count())
+        onCreateItemViewMethod.addInstructions(
+            0,
+            """
+                new-instance v0, Landroid/view/View;
+                invoke-virtual {p1}, Landroid/view/View;->getContext()Landroid/content/Context;
+                move-result-object v1
+                invoke-direct {v0, v1}, Landroid/view/View;-><init>(Landroid/content/Context;)V
+                const/16 v1, 0x8
+                invoke-virtual {v0, v1}, Landroid/view/View;->setVisibility(I)V
+                return-object v0
+            """.trimIndent(),
+        )
+        patched++
+    }
+
+    println("[Comment Customizer] In-comment surveys and feedback cards blocked.")
+    return patched
+}
+
+private fun BytecodePatchContext.applyHideStoryRings(): Int {
+    var patched = 0
+
+    val avatarRingClassDef = Fingerprint(
+        name = "setRingStrokeWidthByAvatarSize",
+        parameters = listOf("I"),
+        returnType = "V",
+        custom = { _, classDef ->
+            classDef.superclass == "Landroid/widget/FrameLayout;"
+        },
+    ).classDef
+
+    Fingerprint(
+        definingClass = avatarRingClassDef.type,
+        name = "setMode",
+        returnType = "V",
+    ).method.replaceWithReturnVoid()
+    patched++
+
+    val drawMethod = Fingerprint(
+        definingClass = avatarRingClassDef.type,
+        name = "draw",
+        returnType = "V",
+        parameters = listOf("Landroid/graphics/Canvas;"),
+    ).method
+    val drawImpl = drawMethod.implementation
+    if (drawImpl != null) {
+        drawMethod.clearTryBlocks()
+        drawMethod.ensureRegisterCount(2)
+        drawMethod.removeInstructions(0, drawImpl.instructions.count())
+        drawMethod.addInstructions(
+            0,
+            """
+                invoke-super {p0, p1}, Landroid/widget/FrameLayout;->draw(Landroid/graphics/Canvas;)V
+                return-void
+            """.trimIndent(),
+        )
+        patched++
+    }
+
+    Fingerprint(
+        definingClass = avatarRingClassDef.type,
+        name = "onInterceptTouchEvent",
+        returnType = "Z",
+        parameters = listOf("Landroid/view/MotionEvent;"),
+    ).method.replaceWithReturnBoolean(false)
+    patched++
+
+    println("[Comment Customizer] Profile photo story rings and click interceptors disabled on comment avatars.")
+    return patched
+}
+
 private fun BytecodePatchContext.applyEnableVoiceComments(): Int {
     var patched = 0
 
@@ -559,7 +685,7 @@ private fun BytecodePatchContext.applyAutoTranslate(): Int {
 
 val commentCustomizerPatch = bytecodePatch(
     name = "Comment Customizer",
-    description = "Customizes TikTok's comment section, including native sort controls, clean text copying, disabling suggested emojis bar, hiding comment quick actions, enabling voice comments, and automatic comment translation.",
+    description = "Customizes TikTok's comment section, including native sort controls, clean text copying, disabling suggested emojis bar, hiding comment quick actions, hiding in-comment surveys and feedback cards, hiding profile photo story rings, enabling voice comments, and automatic comment translation.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK)
@@ -597,6 +723,22 @@ val commentCustomizerPatch = bytecodePatch(
         required = false,
     )
 
+    val hideCommentSurveys by booleanOption(
+        key = "hideCommentSurveys",
+        default = true,
+        title = "Hide Comment Surveys & Feedback Cards",
+        description = "Hides surveys, opinion questionnaires, and feedback cards embedded within comment lists.",
+        required = false,
+    )
+
+    val hideStoryRings by booleanOption(
+        key = "hideStoryRings",
+        default = true,
+        title = "Hide Comment Story Rings",
+        description = "Removes profile photo story rings from avatars in the comment section.",
+        required = false,
+    )
+
     val enableVoiceComments by booleanOption(
         key = "enableVoiceComments",
         default = true,
@@ -618,6 +760,8 @@ val commentCustomizerPatch = bytecodePatch(
             copyWithoutUsername != true &&
             disableSuggestedEmojis != true &&
             hideCommentQuickActions != true &&
+            hideCommentSurveys != true &&
+            hideStoryRings != true &&
             enableVoiceComments != true &&
             autoTranslate != true
         ) {
@@ -641,6 +785,14 @@ val commentCustomizerPatch = bytecodePatch(
 
         if (hideCommentQuickActions == true) {
             patched += applyHideCommentQuickActions()
+        }
+
+        if (hideCommentSurveys == true) {
+            patched += applyHideCommentSurveys()
+        }
+
+        if (hideStoryRings == true) {
+            patched += applyHideStoryRings()
         }
 
         if (enableVoiceComments == true) {

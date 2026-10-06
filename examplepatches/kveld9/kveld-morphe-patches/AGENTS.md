@@ -36,7 +36,8 @@ morphe-patches/
 │       │   ├── nokoprint/   # Specific NokoPrint patch implementations
 │       │   ├── tiktok/      # Specific TikTok patch implementations
 │       │   ├── xiaomi/      # Specific Xiaomi Earbuds patch implementations
-│       │   └── shared/      # Centralized Compatibility contracts (Constants.kt)
+│       │   ├── shared/      # Centralized Compatibility contracts (Constants.kt) and shared helpers
+│       │   └── universal/   # Universal patches (no compatibleWith), applicable to any APK
 │       └── util/            # Patch list metadata generator (PatchListGenerator.kt)
 ├── extensions/              # MPE (Morphe Patch Extension) DEX Payloads
 │   └── extension/src/main/  # Companion Java runtime hooks (compiled to extension.mpe)
@@ -118,6 +119,11 @@ When adding or updating any patch, the following gates are **MANDATORY**:
    ./gradlew runPatchTest -Papp=<targetApp> -PallOptions=true
    ```
    The patching run MUST complete with **100% success** (0 failed patches, 0 fingerprint errors, 0 smali compile errors, 0 exceptions).
+   **Quiet Gate Invocation (Agents)**: Agents should send the full log to a git-ignored file and read only the verdict, e.g.:
+   ```bash
+   ./gradlew runPatchTest -Papp=<targetApp> --console=plain > build/patchtest-<targetApp>.log 2>&1; rc=$?; sed -n '/FINAL PATCHING RESULT/,$p' build/patchtest-<targetApp>.log | grep -v '^\s*at ' || tail -40 build/patchtest-<targetApp>.log; echo "exit=$rc"
+   ```
+   This is safe because `patches/src/main/kotlin/util/PatchExecutionTest.kt` intercepts the complete stdout/stderr itself, lists every fingerprint mismatch, smali compile error and failed patch inside the `FINAL PATCHING RESULT` block, and exits non-zero; filtering afterwards cannot hide a failure. The verdict is the exit code plus that block, never the filtered text alone. If the block is missing (build or setup failure before patching), the tail is shown instead. Grep the saved log when more context is needed. The same pattern applies to `./gradlew check` (full log to `build/`, show the tail plus `FAILED`/`error:` lines).
    **Zero-Smali-Compile-Error Invariant**: The inline smali compiler silently drops any instruction it cannot assemble (e.g. `[6,8] Invalid register: v22`) instead of failing. Non-range invokes (`invoke-* {...}`) can only address `v0`-`v15`; in large methods `p` registers map above that, so use the `/range` form or copy values into low registers first. The runner fails on these errors (`Detected Smali Compile Errors`).
    **Zero-Fingerprint-Mismatch Invariant (Definitive Completion Gate)**:
    A patch update or the creation of a new patch is **NEVER** complete if there is even a single `Failed to match the fingerprint` or `fingerprint mismatch` in the patcher logs (standard or verbose).
@@ -129,7 +135,7 @@ When adding or updating any patch, the following gates are **MANDATORY**:
 3. **Smoke Launch Verification (Zero-Crash Baseline)**: Verify that the patched APK launches cleanly without runtime crashes or uncaught startup exceptions.
 
 ### Step 5: `ADVERSARIAL RISK GATE & AUDIT`
-For non-trivial logic, Smali hooks, native ARM64 patching (`libchrome.so`), or shared compatibility changes (`Constants.kt`), invoke the `adversarial-pr-breaker` subagent or perform a rigorous red-team audit before declaring completion.
+For non-trivial logic, Smali hooks, native ARM64 patching (`libchrome.so`), or shared compatibility changes (`Constants.kt`), perform a rigorous post-change adversarial audit (correctness, integration, security/privacy, and repository hygiene, re-running the mandatory gates above) before declaring completion.
 
 ---
 
@@ -165,8 +171,7 @@ For non-trivial logic, Smali hooks, native ARM64 patching (`libchrome.so`), or s
     - All validation runtime outputs (`validation/runtime/`, `validation/physical_harness/results/`) must remain strictly excluded via `.gitignore` and sanitized by `scripts/clean_workspace.sh`.
 11. **Metadata Synchronization Integrity**:
     - When patch options, default values, or descriptions are modified in Kotlin source code, verify that patch catalog generator tasks (`./gradlew generatePatchesList`) are synchronized before release packaging.
-12. **DO NOT Declare Patch Tasks Complete Without In-Situ Morphe Patcher Verification & Zero Fingerprint Mismatches**:
-    - Never conclude any patch edit or declare a task complete without executing `./gradlew runPatchTest -Papp=<target>` with all corresponding patches active for that target app and asserting 100% success (0 failed patches, 0 exceptions, 0 smali compile errors, and 0 fingerprint mismatches/failed fingerprints in the logs). Any log line containing `Failed to match the fingerprint` or `fingerprint mismatch` constitutes an incomplete/broken patch that blocks completion.
+12. **DO NOT Declare Patch Tasks Complete Without the In-Situ Patching Gate**: see Section 3, Step 4 (`runPatchTest`, 100% success, zero fingerprint mismatches, zero smali compile errors).
 13. **Strict Prohibition of Emojis in Code, Scripts & Tooling**:
     - Under no circumstances should emojis or unicode pictographs be used anywhere in codebase source files, including Kotlin, Java, Python, Smali, Bash/Shell scripts, Gradle build files, configuration files, test files, diagnostic telemetry, or CLI/runtime logs.
     - All code, logs, comments, and console outputs MUST strictly use clean, standard ASCII / plain-text formatting (e.g. `[INFO]`, `[WARN]`, `[PASS]`, `[FAIL]`, `[AUDIT]`, `[BUILD]`). Emojis are tolerated exclusively in end-user documentation (such as `README.md`) if already present, but are strictly prohibited in codebase implementation files and tooling.
@@ -182,13 +187,12 @@ For non-trivial logic, Smali hooks, native ARM64 patching (`libchrome.so`), or s
       b) **Cross-Compatibility & Shared Contracts** (`feat(patches): ...` or `feat(shared): ...`): Isolated when bridging shared features across apps outside an individual patch unit.
       c) **Standalone Technical Documentation** (`docs(<app>): ...` or `docs: ...`): Strictly reserved for documentation-only changes that are NOT part of a patch creation or update (e.g. typos, global architecture notes, general README updates).
     - Each commit must adhere strictly to Conventional Commits to ensure clean `@semantic-release` changelog generation and bisectability.
-15. **Strict No-PR Policy (Direct Repository Workflow)**:
-    - This repository and maintainer DO NOT work with Pull Requests (PRs). Work is committed directly or managed locally without PRs.
-    - Under NO circumstances should you ask to proceed with the `commit -> push -> PR title/description generation` closing sequence.
-    - NEVER generate PR titles, PR descriptions, or suggest opening PRs.
-    - When an implementation unit is complete and verified, simply present the technical outcome, validation evidence, and conclude.
-16. **Prohibition of Multi-Version Target Retentions**:
-    - Under no circumstances should any target application declare multiple supported versions in `Constants.kt` or `README.md`. Always target strictly the latest supported version (`targets = listOf(AppTarget(version = ..., ...))`). Any residual compatibility blocks, fallbacks, or documentation references to older target versions must be completely eliminated upon updating.
+15. **Mandatory Direct Commit & Strict No-Push / No-PR Policy**:
+    - Automatically commit every completed, verified unit of work as soon as it is finished. Always commit; never ask whether to commit.
+    - **Strict No-Push**: NEVER push to remote (`git push` is strictly prohibited). Pushing is reserved exclusively for the user.
+    - **Strict No-PR**: This repository and maintainer DO NOT work with Pull Requests (PRs). Work is committed directly or managed locally without PRs. Under NO circumstances should you ask to proceed with push or PR closing sequences, and NEVER generate PR titles or PR descriptions.
+    - Commits MUST strictly be atomic, isolated, independent, clean, and concise.
+16. **Prohibition of Multi-Version Target Retentions**: see the Single Target Version Invariant in Section 2; this also covers `README.md` and every other documentation reference.
 17. **Strict Prohibition of In-App Settings Screens & Dynamic UI Panels**:
     - Never propose or implement in-app settings activities, preference menus, or overlay panels to toggle patches dynamically at runtime. Dynamic toggles introduce extreme ProGuard/DexGuard fragility across weekly upstream bumps and disk I/O overhead on performance-critical paths. All configurable parameters must be compile/patch-time options via Morphe Manager / CLI (`stringOption`), except for declarative AndroidX XML preference injections authorized in `docs/out-of-scope.md` (such as Gboard Enhancements). Authoritative boundary: `docs/out-of-scope.md`.
 18. **Strict Prohibition of Server-Side Bypasses, DRM, and Account Exploits**:

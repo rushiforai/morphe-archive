@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 
 import app.morphe.extension.facebook.ads.AffiliateLinks;
+import app.morphe.extension.facebook.ads.GameAds;
 import app.morphe.extension.facebook.ads.MarketplaceAdFilterForTests;
 import app.morphe.extension.facebook.ads.ProfileAdFilterForTests;
 import app.morphe.extension.facebook.ads.ReelsAdFilter;
@@ -66,16 +67,24 @@ import app.morphe.extension.facebook.feed.TypedFeedUnit;
 import app.morphe.extension.facebook.font.OwnFont;
 import app.morphe.extension.facebook.comments.DefaultCommentOrderForTests;
 import app.morphe.extension.facebook.composer.TagSuggestionsForTests;
+import app.morphe.extension.facebook.media.HdrBrightnessForTests;
+import app.morphe.extension.facebook.media.PictureInPictureForTests;
 import app.morphe.extension.facebook.media.QualityChoiceForTests;
 import app.morphe.extension.facebook.media.ReelSpeedForTests;
 import app.morphe.extension.facebook.media.ResumePlaybackForTests;
 import app.morphe.extension.facebook.media.TapToPlay;
 import app.morphe.extension.facebook.media.TapToPlayForTests;
 import app.morphe.extension.facebook.menu.MenuSectionsForTests;
+import app.morphe.extension.facebook.misc.AnalyticsUploads;
+import app.morphe.extension.facebook.misc.Haptics;
+import app.morphe.extension.facebook.misc.ScreenshotDetection;
+import app.morphe.extension.facebook.misc.ScreenTransitionsForTests;
+import app.morphe.extension.facebook.misc.Screenshots;
 import app.morphe.extension.facebook.misc.ExternalBrowser;
 import app.morphe.extension.facebook.misc.LinkCleaner;
 import app.morphe.extension.facebook.navigation.BottomTabBar;
 import app.morphe.extension.facebook.navigation.MarketplaceOnlyForTests;
+import app.morphe.extension.facebook.navigation.HiddenTabsForTests;
 import app.morphe.extension.facebook.navigation.ReelsTabForTests;
 import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
 import app.morphe.extension.facebook.notifications.NotificationKindsForTests;
@@ -222,10 +231,10 @@ public class PausedHooksTest {
                 () -> FeedGuardForTests.hides(Category.ORGANIC, FeedGuardForTests.storiesRow(true)),
                 // Your own profile's People you may know carousel builds nothing.
                 ProfileSuggestionsForTests::hidesTheCarousel));
-        // Each of the feed's two Stories tray adapters returns nothing.
+        // Each of the feed's two Stories tray adapters, new to the hook, counts no rows.
         probes.put(PatchFamily.STORIES_TRAY, Arrays.asList(
-                () -> FeedFilter.hideStoriesTray(FeedFilter.LEGACY_TRAY),
-                () -> FeedFilter.hideStoriesTray(FeedFilter.UNIFIED_TRAY)));
+                () -> FeedFilter.storiesTrayCount(new Object(), FeedFilter.LEGACY_TRAY, 1) == 0,
+                () -> FeedFilter.storiesTrayCount(new Object(), FeedFilter.UNIFIED_TRAY, 1) == 0));
         // A row of reels between posts, by its category and by its showcase story type, and the
         // Reels row the pre-EOF injector builds without passing the edge guard.
         probes.put(PatchFamily.FEED_REELS, Arrays.asList(
@@ -315,6 +324,9 @@ public class PausedHooksTest {
                 MarketplaceAdFilterForTests::asksTheFeedToSkipAds,
                 MarketplaceAdFilterForTests::holdsBackAnAdsQuery,
                 MarketplaceAdFilterForTests::dropsASearchAd));
+        // A game's ad load is answered with no ad.
+        probes.put(PatchFamily.GAME_ADS, Collections.singletonList(
+                () -> GameAds.heldPromise("{\"type\":\"loadadasync\",\"content\":{\"promiseID\":\"1\"}}") != null));
         // A reel's product card is answered away, and so are a feed post's product footer and the
         // comment sheet's floating card.
         probes.put(PatchFamily.AFFILIATE_LINKS, Arrays.asList(
@@ -424,6 +436,8 @@ public class PausedHooksTest {
                 ReelsTabForTests::dropsTheShortcut));
         // The tab bar's count for the Reels tab reads none.
         probes.put(PatchFamily.REELS_TAB_DOT, Collections.singletonList(ReelsTabForTests::clearsTheDot));
+        // The Friends tab comes off the bar.
+        probes.put(PatchFamily.HIDDEN_TABS, Collections.singletonList(HiddenTabsForTests::hidesTheTab));
         // Facebook's own override of where the tab bar goes reads YES, for the bottom, where it read NO.
         probes.put(PatchFamily.BOTTOM_TAB_BAR, Collections.singletonList(
                 () -> BottomTabBar.override(TriState.NO.ordinal()) == TriState.YES.ordinal()));
@@ -454,6 +468,32 @@ public class PausedHooksTest {
                 MetaAiSearchForTests::hidesAnswer,
                 MetaAiSearchForTests::dropsPrompts,
                 MetaAiSearchForTests::stopsSuggestionRoute));
+        // XAnalytics' upload and uploader resume are skipped, and the Papaya job finishes unrun.
+        probes.put(PatchFamily.ANALYTICS_UPLOADS, Arrays.asList(
+                AnalyticsUploads::holdXAnalyticsUpload,
+                () -> !AnalyticsUploads.papayaOn(true)));
+        // A haptic Facebook asks for doesn't play.
+        probes.put(PatchFamily.HAPTICS, Collections.singletonList(
+                () -> !Haptics.performHapticFeedback(new android.view.View(RuntimeEnvironment.getApplication()) {
+                    @Override
+                    public boolean performHapticFeedback(int feedbackConstant) {
+                        return true;
+                    }
+                }, android.view.HapticFeedbackConstants.LONG_PRESS)));
+        // ReelsPipUtil's check and the Reels viewer's gate say yes on Android 12 with the phone's feature.
+        probes.put(PatchFamily.PICTURE_IN_PICTURE, Arrays.asList(
+                PictureInPictureForTests::allowsWithTheFeature, PictureInPictureForTests::surfaceAllows));
+        // An HDR window comes out in the default colour mode, and a headroom as none.
+        probes.put(PatchFamily.HDR_BRIGHTNESS, Arrays.asList(
+                HdrBrightnessForTests::keepsAnHdrWindowInTheUsualRange, HdrBrightnessForTests::holdsTheHeadroom));
+        // A tab asked for shows without its slide.
+        probes.put(PatchFamily.SCREEN_TRANSITIONS, Collections.singletonList(() -> !ScreenTransitionsForTests.slides()));
+        // A window's secure flag comes out.
+        probes.put(PatchFamily.SCREENSHOTS, Collections.singletonList(
+                () -> Screenshots.layoutFlags(0x2000) == 0));
+        // A new picture in the photo library isn't looked at.
+        probes.put(PatchFamily.SCREENSHOT_DETECTION, Collections.singletonList(
+                ScreenshotDetection::ignoresChange));
         // A push of each kind a notification switch blocks isn't posted.
         probes.put(PatchFamily.PROMO_NOTIFICATIONS, Arrays.asList(
                 NotificationKindsForTests::blocksTrendingVideo,

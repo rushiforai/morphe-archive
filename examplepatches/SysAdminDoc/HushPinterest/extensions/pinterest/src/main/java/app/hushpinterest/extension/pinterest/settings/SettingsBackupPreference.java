@@ -416,6 +416,7 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_shopping": return L10n.t("Hide shopping and product pins");
             case "hushpinterest_disable_analytics": return L10n.t("Disable analytics");
             case "hushpinterest_strip_link_tracking": return L10n.t("Strip link tracking");
+            case "hushpinterest_hide_ad_id": return L10n.t("Hide advertising ID");
             case "hushpinterest_download_pins": return L10n.t("Download pins");
             case "hushpinterest_external_browser": return L10n.t("Open links in your browser");
             case "hushpinterest_system_share": return L10n.t("System share sheet");
@@ -423,12 +424,15 @@ public class SettingsBackupPreference extends Preference implements ImmediateAct
             case "hushpinterest_hide_search_history": return L10n.t("Hide search history");
             case "hushpinterest_hide_nav_create": return L10n.t("Hide Create button");
             case "hushpinterest_hide_nav_notifications": return L10n.t("Hide Notifications button");
+            case "hushpinterest_hide_nav_search": return L10n.t("Hide Search button");
             case "hushpinterest_hide_header_buttons": return L10n.t("Hide header buttons");
             case "hushpinterest_hide_pin_menu_collage": return L10n.t("Hide collage menu items");
             case "hushpinterest_hide_pin_menu_visual_search": return L10n.t("Hide Search image menu item");
             case "hushpinterest_hide_pin_menu_pin_boost": return L10n.t("Hide Promote pin menu item");
             case "hushpinterest_hide_comments": return L10n.t("Hide comments");
             case "hushpinterest_quiet_email_reminder": return L10n.t("Quiet email reminders");
+            case "hushpinterest_hide_save_toasts": return L10n.t("Hide save toasts");
+            case "hushpinterest_original_images": return L10n.t("Original-quality images");
             case "hushpinterest_disable_update_nag": return L10n.t("Disable update nag");
             default: throw new IllegalArgumentException("Unlisted backup switch");
         }

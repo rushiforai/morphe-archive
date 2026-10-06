@@ -136,3 +136,12 @@ node_modules/
 # Ignore IDEA files
 .idea/
 local.properties
+/scoreboard/results/live-*.json
+/scoreboard/results/live-*.tmp
+/scoreboard/__pycache__/
+# Local frozen acceptance inputs (hash-checked by the scoreboard).
+/caption-diagnostics-1.3.5-20260927-084217.txt
+/China's Military Modernisation Speedrun - Budgets, Industry, and Purchasing Power Parity *.en.srt
+
+# Editor compilation output; the current Gradle build supplies all distributed code.
+/patches/bin/

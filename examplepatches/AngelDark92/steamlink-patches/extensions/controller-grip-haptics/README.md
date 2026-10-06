@@ -19,8 +19,9 @@ not offer `XR_FB_haptic_pcm` (`xrCreateInstance` fails with `XR_ERROR_EXTENSION_
 
 So the call is made from a [Shizuku](https://github.com/RikkaApps/Shizuku) user service:
 
-- `java/gxr/haptic/HapticProvider` (a `ShizukuProvider`) asks Shizuku for permission when
-  Steam Link starts, binds the user service and hands its binder to the layer.
+- The shared [Shizuku bridge](../shizuku-bridge/README.md) asks Shizuku for permission when
+  Steam Link starts and binds the user service; `java/gxr/haptic/HapticBridge` hands its
+  binder to the layer.
 - `java/gxr/haptic/HapticService` runs in the user service process with shell rights and
   relays waveforms, pulses and stops to the HAL.
 - `src/controller_grip_haptics_layer.cpp` is an OpenXR API layer that wraps
@@ -46,6 +47,8 @@ request only changes what is generated next, as in
   20 ms). They play as a short tone of 130, 100 or 60 Hz by sent amplitude, light to strong.
 - A vibration that keeps repeating (requests less than 50 ms apart) is held for at least
   60 ms per request, so it plays as one continuous tone, and so do ticks in quick succession.
+- While both controllers play the same tone and nothing else (crossed sabers in Beat Saber),
+  one chunk is sent to both of them at once instead of a chunk each; see below.
 - Zero-amplitude requests are ignored. Beat Saber sends about 70 of them per second per hand
   while nothing vibrates; treated as a stop they cut every vibration short.
 - An OpenXR amplitude `a` is sent as `min + (max - min) * a^gamma`. A plain multiplier strong
@@ -67,7 +70,8 @@ SteamVR dashboard ticks and in Beat Saber.
 | `debug.gxr.haptic.gamma` | `0.5` | curve between them; below 1 lifts weak requests, 1 is linear |
 | `debug.gxr.haptic.minms` | `10` | shortest vibration in milliseconds, at least 10 |
 | `debug.gxr.haptic.streamms` | `60` | how long a repeating request is held |
-| `debug.gxr.haptic.chunkms` | `40` | chunk length for one controller; doubled while both vibrate |
+| `debug.gxr.haptic.chunkms` | `40` | chunk length for one controller; doubled while both vibrate differently |
+| `debug.gxr.haptic.shared` | `1` | `1` one chunk for both controllers while they play the same tone, `0` always a chunk each |
 | `debug.gxr.haptic.hzscale` | `0.5` | multiplier for the requested frequency |
 | `debug.gxr.haptic.maxhz` | `130` | highest tone played |
 | `debug.gxr.haptic.hz` | `0` | fixed tone in Hz for everything, `0` = from the request |
@@ -90,6 +94,16 @@ Found by sending waveforms by hand from `adb shell` and by reading the HAL
 - The HAL needs about 14 ms per chunk and handles both controllers in one queue. With 10 ms
   chunks it played 371 of 500 and the tone rattled; 20, 30 and 60 ms chunks all played, and
   20 ms felt clean on one controller. 40 ms is the value used in games.
+- Device 2 is both controllers. The HAL has a third controller descriptor next to left (0)
+  and right (1), `KxrControllerDescBoth`, with the radio group left + right, and
+  `performHapticFeedback` accepts it: the log shows `VcmPlay: group = Peripheral` and one
+  upload plays in both grips (felt on 2026-10-05, 1.4 s of 80 ms chunks, no errors).
+  `getDeviceStatus` knows no device 2, so the user service checks both controllers and sends
+  to the connected one when the other is asleep. Sent separately, the left controller's chunk
+  goes first and the right one's follows about 20 ms later in the same queue; in Beat Saber
+  the right grip was reported to go on for about half a second after crossed sabers were
+  parted while the left one stopped at once, although the HAL log showed the same chunks for
+  both. The shared chunk has not been run in a game yet.
 - Long waveforms are unusable: the controller buffers about a second, after that an upload
   takes as long as the sound and the HAL queues the rest. Ten 1 s waveforms sent 0.5 s apart
   played one after another, the last 3.5 s late.
@@ -153,13 +167,12 @@ $ndk = "$sdk\ndk\28.2.13676358"
 & "$cmake\cmake.exe" --build <short build dir> --target gxr_haptic_main
 ```
 
-Java extension: take `classes.jar` out of the `api`, `provider`, `aidl` and `shared` AARs of
-`dev.rikka.shizuku` 13.1.5 (Maven Central, Apache-2.0), then
+Java extension (the Shizuku API itself is in the Shizuku bridge's extension):
 
 ```powershell
-javac --release 8 -cp "<android.jar>;api.jar;provider.jar;aidl.jar;shared.jar" -d classes java/gxr/haptic/*.java
+javac --release 8 -cp "<android.jar>" -d classes java/gxr/haptic/*.java
 jar cf gxr.jar -C classes gxr
-d8 --release --min-api 29 --lib <android.jar> --output <dir> gxr.jar api.jar provider.jar aidl.jar shared.jar
+d8 --release --min-api 29 --lib <android.jar> --output <dir> gxr.jar
 ```
 
 Copy `libgxr_haptic_main.so` to `patches/src/main/resources/steamlink/androidxr/` and

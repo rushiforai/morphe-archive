@@ -82,6 +82,7 @@ public class HushThreadsPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.SANITIZE_SHARING_LINKS, "Remove tracking from shared links");
         ROW_TITLES.put(PatchFamily.EXTERNAL_BROWSER, "Open links in your browser");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop analytics uploads");
+        ROW_TITLES.put(PatchFamily.PURE_BLACK, "Pure black dark mode");
         ROW_TITLES.put(PatchFamily.REMOVE_AD_ID, "Advertising ID removed");
         ROW_TITLES.put(PatchFamily.RESTORE_TRUST, "Re-signed build fix");
     }
@@ -190,6 +191,7 @@ public class HushThreadsPreferenceFragmentTest {
                         || build.contains(PatchFamily.DISABLE_ANALYTICS)) {
                     expected.add("Privacy");
                 }
+                if (build.contains(PatchFamily.PURE_BLACK)) expected.add("Appearance");
                 expected.addAll(EVERY_BUILD.subList(0, 2));
                 if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)) {
                     expected.add("Set when you patched");
@@ -231,9 +233,13 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. "
                     + "Turn this off to use the original addresses.",
                     String.valueOf(page.findPreference(Settings.DISABLE_ANALYTICS.key).getSummary()));
-            // Every selected feed/privacy switch ships on.
+            assertEquals("Pure black dark mode", String.valueOf(page.findPreference(Settings.PURE_BLACK.key).getTitle()));
+            assertEquals("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
+                    String.valueOf(page.findPreference(Settings.PURE_BLACK.key).getSummary()));
+            // Every selected feed, privacy and appearance switch ships on.
             for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS, Settings.BLOCK_RETURN_REFRESH,
-                    Settings.DISABLE_VIDEO_AUTOPLAY, Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY, Settings.DISABLE_ANALYTICS)) {
+                    Settings.DISABLE_VIDEO_AUTOPLAY, Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY, Settings.DISABLE_ANALYTICS,
+                    Settings.PURE_BLACK)) {
                 assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             // The time limit holds until someone lifts it.
