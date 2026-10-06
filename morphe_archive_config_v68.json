@@ -2481,6 +2481,22 @@
                 "sortOrder": 333,
                 "createdAt": 1791173860744,
                 "updatedAt": 1791173860744
+            },
+            {
+                "name": "railone-patches",
+                "source": "https://raw.githubusercontent.com/VipinVIP/railone-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 334,
+                "createdAt": 1791264057218,
+                "updatedAt": 1791264057218
+            },
+            {
+                "name": "morphe-patches",
+                "source": "https://raw.githubusercontent.com/bartlomiejfornalczyk/morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 335,
+                "createdAt": 1791264059433,
+                "updatedAt": 1791264059433
             }
         ]
     }
