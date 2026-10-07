@@ -5,24 +5,31 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import app.morphe.extension.tiktok.SettingsContextRule;
+import app.morphe.extension.tiktok.StallingMediaProvider;
 import android.content.Context;
 import android.os.Environment;
+import android.os.Looper;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowToast;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = Config.NONE, sdk = 28)
 public class LogBufferManagerExportTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
+    @Rule public final TemporaryFolder temporary = new TemporaryFolder();
     @Test public void anOlderAndroidSaysNothingAboutTheLastExit() {
         // The history arrived in API 30 and this bundle runs from 23, so the section has to be
         // absent rather than empty or guessed at.
@@ -89,6 +96,70 @@ public class LogBufferManagerExportTest {
         String when = utc.format(new java.util.Date(1757260800000L));
         assertTrue("the time it happened was left out or in another format: " + report,
                 report.contains(when));
+    }
+
+    @Test @Config(sdk = 30)
+    public void aFullSharedPoolNoLongerHoldsUpTheDiagnosticSave() throws Exception {
+        // The save ran on the shared pool, so other work filling it turned the save away. It has
+        // a thread of its own now and saves while every shared worker is busy.
+        Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        reportAMissingView();
+        StallingMediaProvider media = StallingMediaProvider.register(context, temporary.newFile());
+        ShadowToast.reset();
+        try (var saturation = app.morphe.extension.shared.BackgroundPoolSaturation.fill()) {
+            LogBufferManager.exportToFile();
+            awaitToast("Full report saved to ");
+        }
+        assertTrue(media.published);
+        assertTrue(new String(Files.readAllBytes(media.file.toPath()), StandardCharsets.UTF_8)
+                .startsWith("MORPHE DIAGNOSTIC REPORT\n"));
+    }
+
+    @Test @Config(sdk = 30)
+    public void aSecondTapWhileTheMediaStoreStallsStartsNoSecondDiagnosticWriter() throws Exception {
+        // One save is out at a time, and the slot comes back when a stalled one finally returns.
+        Context context = RuntimeEnvironment.getApplication();
+        app.morphe.extension.shared.Utils.setContext(context);
+        reportAMissingView();
+        StallingMediaProvider media = StallingMediaProvider.register(context, temporary.newFile()).hold();
+        ShadowToast.reset();
+        LogBufferManager.exportToFile();
+        assertTrue("the save never reached the media store", media.awaitInserting());
+
+        LogBufferManager.exportToFile();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(String.valueOf(ShadowToast.getTextOfLatestToast()),
+                String.valueOf(ShadowToast.getTextOfLatestToast()).startsWith("A diagnostic report is already being saved"));
+
+        media.release();
+        app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("a second tap started another writer", 1, media.inserts.get());
+        assertTrue(String.valueOf(ShadowToast.getTextOfLatestToast()).startsWith("Full report saved to "));
+
+        LogBufferManager.exportToFile();
+        app.morphe.extension.shared.Utils.awaitBackgroundTasksForTests();
+        assertEquals("the slot stayed taken after the stalled save returned", 2, media.inserts.get());
+    }
+
+    private static void reportAMissingView() {
+        app.morphe.extension.shared.settings.BaseSettings.DEBUG_LOG_FILTERS.save("all");
+        app.morphe.extension.shared.diagnostics.HookStatus.clear();
+        LogBufferManager.clearLogBuffer();
+        app.morphe.extension.shared.diagnostics.HookStatus.missingViewId("comments", "jlk");
+    }
+
+    private static String awaitToast(String prefix) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline) {
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            String said = String.valueOf(ShadowToast.getTextOfLatestToast());
+            if (said.startsWith(prefix)) return said;
+            Thread.sleep(10);
+        }
+        throw new AssertionError("no toast starting \"" + prefix + "\"; the last said: "
+                + ShadowToast.getTextOfLatestToast());
     }
 
     @Test public void repeatedLegacyExportsUseTheRealUniqueDocumentsPaths() throws Exception {

@@ -530,6 +530,7 @@ public class SettingsNavigationTest {
         summaryContains(Settings.HIDE_PIN_MENU_VISUAL_SEARCH.key, "Search image", "newly created pin menus", "existing menu won't change");
         summaryContains(Settings.HIDE_PIN_MENU_PIN_BOOST.key, "Promote pin", "newly created pin menus", "existing menu won't change");
         summaryContains(Settings.HIDE_COMMENTS.key, "comments panels and previews under pins", "next layout or visibility update", "doesn't change who can comment");
+        summaryContains(Settings.HIDE_TOPIC_SUGGESTIONS.key, "\"Ideas you might love\" row of topic bubbles under pins", "next time Pinterest shows it", "Comments and related pins stay");
         summaryContains(Settings.QUIET_EMAIL_REMINDER.key, "newly created optional confirm-email reminders", "open reminder won't change", "Verification and sign-in checks still apply");
     }
 

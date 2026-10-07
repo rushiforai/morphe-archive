@@ -20,7 +20,8 @@ import java.util.Map;
  * <p>The file name reads a post's owner, actors, name and creation time through the kept
  * {@code getTree}, {@code getTreeList}, {@code getString} and {@code getTimeValue}, by the same
  * hashes, after asking {@code isValidGraphServicesJNIModel}. Like Facebook's, a field the tree
- * doesn't hold reads as null, an empty list or 0.
+ * doesn't hold reads as null, an empty list or 0. A photo's image sizes read through the kept
+ * {@code getIntValue}, the same way.
  */
 public class TreeJNI {
     public final int mTypeTag;
@@ -29,6 +30,7 @@ public class TreeJNI {
     private final Map<Integer, TreeJNI> trees = new HashMap<>();
     private final Map<Integer, List<? extends TreeJNI>> lists = new HashMap<>();
     private final Map<Integer, Long> times = new HashMap<>();
+    private final Map<Integer, Integer> numbers = new HashMap<>();
     private final String typeName;
     private boolean valid = true;
     public int booleanReads;
@@ -90,6 +92,12 @@ public class TreeJNI {
         return this;
     }
 
+    /** Sets the int field named {@code field}, as an image holds its width and height. */
+    public TreeJNI number(String field, int value) {
+        numbers.put(field.hashCode(), value);
+        return this;
+    }
+
     /** A tree whose native side is gone, as after Facebook releases it. */
     public TreeJNI releasedTree() {
         valid = false;
@@ -141,6 +149,12 @@ public class TreeJNI {
         nativeRead();
         Long seconds = times.get(field);
         return seconds == null ? 0 : seconds;
+    }
+
+    public final int getIntValue(int field) {
+        nativeRead();
+        Integer value = numbers.get(field);
+        return value == null ? 0 : value;
     }
 
     /** The string field [field] as a model's own cache would answer it, with no native read. */

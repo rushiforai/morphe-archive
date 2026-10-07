@@ -27,6 +27,16 @@ public final class Settings {
     public static final BooleanSetting HIDE_SUBSCRIPTION_PROMOTIONS =
             new BooleanSetting("hide_subscription_promotions", false);
 
+    /** Hide Twitch's Go Ad-Free/Turbo control in the Following feed. */
+    public static final BooleanSetting HIDE_TURBO_UPSELL =
+            new BooleanSetting("hide_turbo_upsell", true);
+    /** Hide the Continue Watching / resume-watching section from the Following feed. */
+    public static final BooleanSetting HIDE_RESUME_WATCHING =
+            new BooleanSetting("hide_resume_watching", true);
+    /** Hide the Offline Channels section from the Following feed. */
+    public static final BooleanSetting HIDE_OFFLINE_CHANNELS =
+            new BooleanSetting("hide_offline_channels", true);
+
     public static final BooleanSetting DANMAKU_ENABLED =
             new BooleanSetting("danmaku_enabled", false);
     public static final BooleanSetting DANMAKU_PORTRAIT =

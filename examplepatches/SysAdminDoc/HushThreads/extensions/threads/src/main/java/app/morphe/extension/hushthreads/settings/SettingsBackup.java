@@ -78,10 +78,14 @@ public final class SettingsBackup {
             Settings.BLOCK_RETURN_REFRESH,
             Settings.RETURN_REFRESH_NO_LIMIT,
             Settings.DISABLE_VIDEO_AUTOPLAY,
+            Settings.MAX_IMAGE_QUALITY,
             Settings.SANITIZE_SHARING_LINKS,
             Settings.OPEN_LINKS_EXTERNALLY,
             Settings.DISABLE_ANALYTICS,
-            Settings.PURE_BLACK));
+            Settings.DISABLE_SCREENSHOT_DETECTION,
+            Settings.PURE_BLACK,
+            Settings.SAVE_MEDIA,
+            Settings.DOWNLOAD_COMPATIBLE));
 
     /**
      * Bounds for the parser, well past anything this class writes, so a file built to be

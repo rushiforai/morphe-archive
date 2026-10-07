@@ -56,7 +56,14 @@ class PureBlackFixtureTest {
     fun `every declared build loads the dark gray in its theme and passes it to its dark scheme as a background`() {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = fixture(build)
-            assertTrue(build.name, fixture.theme.darkLoads().isNotEmpty())
+            // 450 moved the theme's dark literals into a helper it calls; 448 and 449 load them in the theme.
+            val loaders = fixture.builders.filter { it.darkLoads().isNotEmpty() }.map { it.signature() }
+            if (build.name.startsWith("threads-450.")) {
+                assertEquals(build.name, 1, loaders.size)
+                assertTrue(build.name, loaders.single() in fixture.helpers.map { it.signature() })
+            } else {
+                assertEquals(build.name, listOf(fixture.theme.signature()), loaders)
+            }
             val scheme = context(fixture).darkScheme(fixture.theme)
             assertEquals(build.name, fixture.holder, scheme.holder)
             // Threads 448 and 449 each pass the gray twice: the screen's background and the feed's.
@@ -82,18 +89,21 @@ class PureBlackFixtureTest {
             val scheme = context.darkScheme(fixture.theme)
             pureBlackPatch.execute(context)
 
-            val loads = fixture.theme.darkLoads()
-            val before = fixture.theme.body()
-            val after = context.method(fixture.theme)
-            fun moved(index: Int) = index + 2 * loads.count { it < index }
-            assertEquals(build.name, before.size + 2 * loads.size, after.size)
-            for (load in loads) {
-                val register = (before[load] as OneRegisterInstruction).registerA
-                assertTrue(build.name, after[moved(load)].isWide(THREADS_DARK))
-                after[moved(load) + 1].assertAsks(build.name, argb, register)
+            for (builder in fixture.builders) {
+                val label = "${build.name} ${builder.signature()}"
+                val loads = builder.darkLoads()
+                val before = builder.body()
+                val after = context.method(builder)
+                fun moved(index: Int) = index + 2 * loads.count { it < index }
+                assertEquals(label, before.size + 2 * loads.size, after.size)
+                for (load in loads) {
+                    val register = (before[load] as OneRegisterInstruction).registerA
+                    assertTrue(label, after[moved(load)].isWide(THREADS_DARK))
+                    after[moved(load) + 1].assertAsks(label, argb, register)
+                }
+                val hooks = loads.flatMap { listOf(moved(it) + 1, moved(it) + 2) }.toSet()
+                assertEquals(label, before.map { it.opcode }, after.filterIndexed { i, _ -> i !in hooks }.map { it.opcode })
             }
-            val hooks = loads.flatMap { listOf(moved(it) + 1, moved(it) + 2) }.toSet()
-            assertEquals(build.name, before.map { it.opcode }, after.filterIndexed { i, _ -> i !in hooks }.map { it.opcode })
 
             val initializer = scheme.initializer.body()
             val patched = context.method(scheme.initializer)
@@ -115,9 +125,11 @@ class PureBlackFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = fixture(build)
             val context = context(fixture)
-            val theme = context.mutableMethod(fixture.theme)
-            for (load in fixture.theme.darkLoads()) {
-                theme.replaceInstruction(load, "const-wide v${(theme.body()[load] as OneRegisterInstruction).registerA}, 0xff121212L")
+            for (builder in fixture.builders) {
+                val method = context.mutableMethod(builder)
+                for (load in builder.darkLoads()) {
+                    method.replaceInstruction(load, "const-wide v${(method.body()[load] as OneRegisterInstruction).registerA}, 0xff121212L")
+                }
             }
             val error = assertThrows(build.name, PatchException::class.java) { pureBlackPatch.execute(context) }
             assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("no longer loads #101010"))
@@ -175,7 +187,7 @@ class PureBlackFixtureTest {
             val fixture = fixture(build)
             val context = context(fixture)
             val scheme = context.darkScheme(fixture.theme)
-            for (method in listOf(fixture.theme, scheme.initializer)) {
+            for (method in fixture.builders + scheme.initializer) {
                 assertFalse(build.name, context.method(method).any {
                     (it as? ReferenceInstruction)?.reference?.toString()?.startsWith(PURE_BLACK) == true
                 })
@@ -184,11 +196,25 @@ class PureBlackFixtureTest {
         }
     }
 
-    private data class Fixture(val classes: Collection<ClassDef>, val theme: Method, val holder: String, val scheme: String)
+    private data class Fixture(
+        val classes: Collection<ClassDef>,
+        val theme: Method,
+        val helpers: List<Method>,
+        val holder: String,
+        val scheme: String,
+    ) {
+        /** The theme and the helpers it builds its colors in. */
+        val builders get() = listOf(theme) + helpers
+    }
 
     private fun fixture(build: File): Fixture = fixtures.getOrPut(build) {
         val themeClasses = FixtureDex.classesWhere(build, { true }) { it.holdsNote(BDS_THEME) }
         val theme = themeClasses.flatMap { it.methods }.single { it.holdsNote(BDS_THEME) }
+        val helperReferences = theme.themeHelpers()
+        val helperClasses = FixtureDex.classes(build, helperReferences.map { it.definingClass }.toSet())
+        val helpers = helperReferences.mapNotNull { reference ->
+            helperClasses[reference.definingClass]?.methods?.single { it.signature() == reference.toString() }
+        }
         // Every class the theme reads a static field of, and every type it reads: the scheme
         // holder and the scheme among them, and the others the patch has to tell apart from them.
         val fields = theme.body().filter { it.opcode == Opcode.SGET_OBJECT }.mapNotNull { it.getReference<FieldReference>() }
@@ -198,8 +224,10 @@ class PureBlackFixtureTest {
             read[type]?.methods?.any { m -> m.name == "<init>" && m.parameterTypes.size >= 20 && m.parameterTypes.all { it.toString() == "J" } } == true
         }
         val holder = fields.filter { it.type == scheme }.map { it.definingClass }.distinct().single()
-        Fixture((themeClasses + read.values).distinctBy { it.type }, theme, holder, scheme)
+        Fixture((themeClasses + read.values + helperClasses.values).distinctBy { it.type }, theme, helpers, holder, scheme)
     }
+
+    private fun Method.signature() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
 
     private fun context(fixture: Fixture) = PatchContexts.of(ExtensionDex.classes() + fixture.classes)
 

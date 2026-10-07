@@ -4,9 +4,11 @@
  */
 package app.morphe.patches.facebook.misc.transitions
 
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 
@@ -17,7 +19,8 @@ import app.morphe.patches.shared.compat.AppCompatibilities
  * onCreate, and from those callbacks the extension's ScreenTransitions asks Android for no
  * transition once this patch says it's in the build. A tab and the Menu are Facebook's own view
  * animations, and for those the patch asks the extension where Facebook decides to slide
- * (TransitionAnchors.kt).
+ * (TransitionAnchors.kt). A tab strip inside a screen asks its pager for the page, and the patch
+ * asks the extension first in the two places a tap goes through (PagerTabs.kt).
  *
  * Off in the default selection: Facebook's transitions are a matter of taste, not something it
  * does to you. Picked, its switch starts on.
@@ -26,8 +29,9 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 val turnOffScreenTransitionsPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Turn off screen transitions",
-    description = "Shows Facebook's tabs, its Menu and the screens that open over it at once, without the slide " +
-        "between them. Swiping and animations inside a page stay. Its switch starts on, under Appearance.",
+    description = "Shows Facebook's tabs, the tab strips inside its screens, its Menu and the screens that open over it " +
+        "at once, without the slide between them. Swiping and animations inside a page stay. Its switch starts on, " +
+        "under Appearance.",
     default = false,
 ) {
     category("Interface")
@@ -40,6 +44,18 @@ val turnOffScreenTransitionsPatch = bytecodePatch(
         val snapToPanel = SnapToPanelFingerprint.method
         showTab.quietTabSwitch()
         snapToPanel.quietPanelSnap()
+
+        // Tab strips inside a screen: see PagerTabs.kt. A build that draws them another way keeps the rest.
+        try {
+            val setPage = pagerTabClick(pagerTabStrip()).quietPagerTabTap()
+            try {
+                PickerSetTabFingerprint.method.quietPickerTab(setPage)
+            } catch (moved: PatchException) {
+                patchLog.warning("${moved.message}. The patch goes on without the Feelings and Activities tabs.")
+            }
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on without the tab strips inside a screen.")
+        }
         enableStatus("turnOffScreenTransitions")
     }
 }

@@ -1,3 +1,58 @@
+## 1.7.1 (2026-10-07)
+
+### ✨ New Features
+
+* **nicoid:** Add a bold-comments setting.
+* **nicoid:** Add a comment retrieval target in 500-comment steps, up to 10,000 comments, and merge additional modern comment history without duplicates.
+* **nicoid:** Add a search-suggestions toggle.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Restore video titles and thumbnails in Android media controls during normal playback. ([#28](https://github.com/chikuwadon/nicoid-re-patches/issues/28))
+* **nicoid:** Apply dark-mode and Material You colors consistently to NG input fields and the empty saved-NG message. ([#27](https://github.com/chikuwadon/nicoid-re-patches/issues/27))
+* **nicoid:** Restore single-tap expansion of truncated comments, reserve NG actions for long presses, and recognize rapid double taps correctly. ([#31](https://github.com/chikuwadon/nicoid-re-patches/issues/31))
+* **nicoid:** Keep auto-follow and sort controls visible while scrolling, and retain auto-follow until manually disabled. ([#34](https://github.com/chikuwadon/nicoid-re-patches/issues/34))
+* **nicoid:** Follow the last comment at or before the current playback position and align it with the bottom of the list. ([#36](https://github.com/chikuwadon/nicoid-re-patches/issues/36))
+* **nicoid:** Prevent internal video navigation from triggering app-switch background playback, and let other videos open normally during background playback. ([#37](https://github.com/chikuwadon/nicoid-re-patches/issues/37))
+* **nicoid:** Rebind media controls and clear the previous player session when switching between background videos, fixing stopped playback and stale playback times. ([#37](https://github.com/chikuwadon/nicoid-re-patches/issues/37))
+* **nicoid:** Align search and NG-input carets with their underlines and use theme-aware video-ID input backgrounds.
+* **nicoid:** Complete missing Japanese, English, and Traditional Chinese translations, including reset buttons, startup options, and comment settings.
+
+### 🔧 Improvements
+
+* **nicoid:** Use subdued NG buttons, reduce delete-button size, and confirm before deleting a saved NG rule.
+* **nicoid:** Center comment text vertically and reduce comment-list text size to display more rows.
+* **nicoid:** Move tap behavior below link behavior in General and remove the empty Video list category.
+* **nicoid:** Save debug logs to Downloads after confirmation using `nicoid-re_log_yyyyMMddHHmmss.txt` filenames.
+* **nicoid:** Shorten the cast comment-reduction description and clarify the comment retrieval summary.
+* **nicoid:** Reduce settings-translation work and comment-history parsing allocations to improve responsiveness.
+
+## 1.7.0 (2026-10-06)
+
+### ✨ New Features
+
+* **nicoid:** Add Android media controls for normal, background, and popup playback, including lock-screen controls. ([#28](https://github.com/chikuwadon/nicoid-re-patches/issues/28))
+* **nicoid:** Add an AMOLED dark theme with pure-black backgrounds. ([#30](https://github.com/chikuwadon/nicoid-re-patches/issues/30))
+* **nicoid:** Jump to a comment’s playback time by double-tapping it in the comment list. ([#31](https://github.com/chikuwadon/nicoid-re-patches/issues/31))
+* **nicoid:** Adjust scrolling-comment speed through the comment display-duration setting. ([#33](https://github.com/chikuwadon/nicoid-re-patches/issues/33))
+* **nicoid:** Automatically follow the current playback position in the comment list, including after seeking. ([#34](https://github.com/chikuwadon/nicoid-re-patches/issues/34))
+* **nicoid:** Show nicoru counts and selected states, send and undo nicoru reactions, and sort comments by nicoru count. ([#35](https://github.com/chikuwadon/nicoid-re-patches/issues/35))
+* **nicoid:** Add video likes with a rounded outline and a fixed label.
+* **nicoid:** Add a startup-screen selector, search suggestions, and a separate mobile-data quality setting.
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix unreadable NG-registration input fields in dark mode and Material You. ([#27](https://github.com/chikuwadon/nicoid-re-patches/issues/27))
+* **nicoid:** Increase comment sizes for full-screen Shorts and keep comments within the viewport. ([#29](https://github.com/chikuwadon/nicoid-re-patches/issues/29))
+* **nicoid:** Redraw comment sorting immediately and keep nicoru buttons enabled for undo. ([#35](https://github.com/chikuwadon/nicoid-re-patches/issues/35))
+* **nicoid:** Fix ranking refresh behavior and refine playback and popup handling.
+
+### 🔧 Improvements
+
+* **nicoid:** Add sliders for comment size, opacity, shadow size, maximum rows, and display duration.
+* **nicoid:** Show saved NG rules with per-item deletion and rounded theme-aware registration/deletion buttons.
+* **nicoid:** Refine reaction icons, ranking period selection, search suggestions, and theme consistency.
+
 ## 1.6.3 (2026-10-05)
 
 ### ✨ New Features

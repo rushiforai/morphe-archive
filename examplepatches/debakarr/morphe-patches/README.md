@@ -80,6 +80,16 @@ Products in `catalogs[]` / `products[]` are sorted by `catalog_reviews_summary.r
 
 > **Verified on a device (Redmi 3S, Android 13):** **Flipkart 9.15**, **Amazon India 32.18.0.300**, **Myntra 4.2609.30** and **Meesho 29.6** — the sort modes, 4★+, Hide ads, the Ranked list across pages (e.g. 111 of 137 on Flipkart; Amazon's "Load 5 more pages" took one search from 20 to 120 products), and tapping a row to open the product in the app. Field names were confirmed against real responses: Meesho's average is `catalog_reviews_summary.average_rating`, and its product link code is the base-36 of the catalog's `hero_pid` (not its `id`); Myntra's V2 tiles keep the full name in `onLongPress.modalData.productName` and prices as strings like `₹558`. Flipkart row titles are the brand plus the app's own description text, so they follow the app's language. Where a field is missing the row shows less, never a made-up number. Not tested: Meesho 29.5, Flipkart 9.13, Amazon (`com.amazon.mShop.android.shopping`) 32.13 and 32.16.
 
+## Install next to the original app
+
+Every app also gets the **Install alongside original** patch (on by default). The patched app is installed under its own package name and name — for example **Meesho Sorted** (`com.meesho.supply.sorted`) — so the original app stays installed, and you never have to uninstall it (which would erase its data). This is the same approach the YouTube and YouTube Music patches use.
+
+- It renames the package, provider authorities and custom permissions, gives the launcher a new name, and rewrites code and font resources that hard-code the old authorities.
+- Options: *Package name suffix* (default `sorted`) and *App name* (default `<App> Sorted`). Each copy installed on one device needs its own suffix.
+- Turn the patch off to replace the original app instead. Don't combine it with Morphe's own "Clone app" patch.
+- Limits: push notifications and some sign-in options (anything tied to the original package or signature, such as Google sign-in) may not work in the renamed copy.
+- Original apps ship as split APKs. Patch from an `.xapk` (or let Morphe Manager merge them): splits can't follow a renamed base.
+
 ## Add to Morphe
 
 1. Open **Morphe Manager**

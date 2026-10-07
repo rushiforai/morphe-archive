@@ -55,6 +55,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -63,6 +64,8 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.settings.SettingsJson;
 import app.morphe.extension.tiktok.settings.SettingsOperationJournal;
+import app.morphe.extension.tiktok.settings.preference.DocumentOperation;
+import app.morphe.extension.tiktok.settings.preference.SettingsActionBanner;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 
 @SuppressWarnings({"deprecation", "SetTextI18n"})
@@ -97,11 +100,19 @@ public final class FeatureGateLabFragment extends Fragment {
     };
     private static final long SEARCH_DELAY_MS = 160;
     private static final java.util.concurrent.atomic.AtomicBoolean CHANGING = new java.util.concurrent.atomic.AtomicBoolean();
-    private static final ExecutorService FILE_IO_EXECUTOR = Executors.newSingleThreadExecutor(runnable -> {
-        Thread thread = new Thread(runnable, "MorpheGateFileIO");
-        thread.setDaemon(true);
-        return thread;
-    });
+    /**
+     * The Lab's loaded-value import or export, null when none is out. A file app can keep a read
+     * or write waiting as long as it likes, and the one file thread these used to share queued
+     * every later import and export behind a stalled one, with nothing on screen, to run whenever
+     * the stall ended. Main thread only.
+     */
+    private static DocumentOperation fileOperation;
+    private static boolean fileOperationExports;
+    /** Whether the stop has been offered for the operation's stall, so it's offered once. */
+    private static boolean stopOffered;
+    /** The Lab on screen, for an import or export that outlives the Lab it started from. */
+    private static volatile java.lang.ref.WeakReference<FeatureGateLabFragment> shown =
+            new java.lang.ref.WeakReference<>(null);
     private static final ExecutorService SEARCH_EXECUTOR = Executors.newSingleThreadExecutor(runnable -> {
         Thread thread = new Thread(runnable, "MorpheGateSearch");
         thread.setDaemon(true);
@@ -137,7 +148,8 @@ public final class FeatureGateLabFragment extends Fragment {
     private final java.util.LinkedHashMap<String, FeatureGateCatalog.Entry> selection =
             new java.util.LinkedHashMap<>();
 
-    private FeatureGateCatalog.Snapshot snapshot;
+    /** Written on the main thread, and read by the worker that reviews an import against it. */
+    private volatile FeatureGateCatalog.Snapshot snapshot;
     private GateAdapter adapter;
     private TextView count;
     private TextView empty;
@@ -185,7 +197,11 @@ public final class FeatureGateLabFragment extends Fragment {
     }
 
     static void awaitFileIoForTests() throws Exception {
-        FILE_IO_EXECUTOR.submit(() -> { }).get(5, TimeUnit.SECONDS);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (DocumentOperation.busy(DocumentOperation.Kind.LAB_FILE)) {
+            if (System.nanoTime() > deadline) throw new TimeoutException("The Lab's file worker is still out");
+            Thread.sleep(5);
+        }
     }
 
     static void awaitSearchForTests() throws Exception {
@@ -202,12 +218,15 @@ public final class FeatureGateLabFragment extends Fragment {
 
     static void resetForTests() {
         CHANGING.set(false);
+        fileOperation = null;
+        stopOffered = false;
         lastSearchThreadForTests = null;
         searchWorkHookForTests = null;
     }
 
     @Override
     public View onCreateView(android.view.LayoutInflater inflater, ViewGroup container, Bundle state) {
+        shown = new java.lang.ref.WeakReference<>(this);
         Context context = getActivity();
         SettingsOperationJournal.initialize(context == null ? null : context.getApplicationContext());
         SettingsOperationJournal.showRecoveryNotice(context);
@@ -570,6 +589,9 @@ public final class FeatureGateLabFragment extends Fragment {
         super.onResume();
         systemBack.register(getActivity(), this::handleSystemBack);
         if (adapter != null) adapter.notifyDataSetChanged();
+        // A stall that began in a window since rebuilt, or while the Lab was out of sight.
+        DocumentOperation acting = fileOperation;
+        if (acting != null && acting.offersStop()) offerStop(getActivity());
     }
 
     @Override
@@ -593,6 +615,7 @@ public final class FeatureGateLabFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        if (shown.get() == this) shown = new java.lang.ref.WeakReference<>(null);
         rebuildGeneration.incrementAndGet();
         searchHandler.removeCallbacks(delayedSearch);
         if (search != null) searchQuery = search.getText().toString();
@@ -1288,28 +1311,28 @@ public final class FeatureGateLabFragment extends Fragment {
     private void showPresets() {
         if (getActivity() == null) return;
         try {
-            JSONObject presets = FeatureGateLabStore.reviewedPresets();
-            List<String> builds = new ArrayList<>();
+            // Only the installed build's presets. With every preset reviewed for each catalog
+            // build, listing them all put three copies of each row on the screen, two of which
+            // could only say they weren't for this TikTok.
+            String build = app.morphe.extension.shared.BuildNames.runningBuild();
+            JSONObject version = FeatureGateLabStore.reviewedPresets().optJSONObject(build);
+            if (version == null || version.length() == 0) {
+                postToast(L10n.f(getContext(), "No presets have been reviewed for TikTok %1$s yet", build));
+                return;
+            }
             List<String> ids = new ArrayList<>();
             List<String> labels = new ArrayList<>();
-            java.util.Iterator<String> versions = presets.keys();
-            while (versions.hasNext()) {
-                String build = versions.next();
-                JSONObject version = presets.getJSONObject(build);
-                java.util.Iterator<String> names = version.keys();
-                while (names.hasNext()) {
-                    String id = names.next();
-                    builds.add(build);
-                    ids.add(id);
-                    String title = version.getJSONObject(id).getString("title");
-                    // One sentence to translate, not pieces glued in English word order.
-                    labels.add(L10n.f(getContext(), "%1$s (TikTok %2$s)", L10n.t(getContext(), title), build));
-                }
+            java.util.Iterator<String> names = version.keys();
+            while (names.hasNext()) {
+                String id = names.next();
+                ids.add(id);
+                String title = version.getJSONObject(id).getString("title");
+                labels.add(L10n.t(getContext(), title));
             }
             AlertDialog dialog = new AlertDialog.Builder(getActivity())
-                    .setTitle(L10n.t(getContext(), "Reviewed presets"))
+                    .setTitle(L10n.f(getContext(), "Reviewed presets for TikTok %1$s", build))
                     .setItems(labels.toArray(new String[0]),
-                            (ignored, index) -> showPreset(builds.get(index), ids.get(index)))
+                            (ignored, index) -> showPreset(build, ids.get(index)))
                     .setNegativeButton(L10n.t(getContext(), "Cancel"), null).create();
             showStyled(dialog);
         } catch (Exception error) {
@@ -1374,6 +1397,7 @@ public final class FeatureGateLabFragment extends Fragment {
                 postToast(L10n.t(Utils.getContext(), "Couldn't open the file picker to export. Try again."));
                 return;
             }
+            if (fileSlotTaken()) return;
             if (snapshot == null) {
                 postToast(L10n.t(Utils.getContext(),
                         "Loaded values are still being read. Try again in a moment."));
@@ -1395,6 +1419,7 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void chooseLoadedValuesFile() {
         try {
+            if (fileSlotTaken()) return;
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT)
                     .addCategory(Intent.CATEGORY_OPENABLE)
                     .setType("*/*")
@@ -1409,54 +1434,199 @@ public final class FeatureGateLabFragment extends Fragment {
 
     private void writeLoadedValuesFile(Uri uri) {
         Activity activity = getActivity();
-        android.content.Context context = activity == null ? Utils.getContext() : activity.getApplicationContext();
-        ContentResolver resolver = context == null ? null : context.getContentResolver();
-        FILE_IO_EXECUTOR.execute(() -> {
-            try {
-                if (activity == null || resolver == null) throw new IllegalStateException("Activity detached");
-                ExportPayload payload = buildExportPayload();
-                try (OutputStream output = resolver.openOutputStream(uri, "w")) {
-                    if (output == null) throw new IllegalStateException("Document provider returned no output stream");
-                    output.write(payload.gzipBytes);
-                }
-                postToast(L10n.quantity(Utils.getContext(), payload.count,
-                        "Exported 1 loaded value", "Exported %1$d loaded values"));
-            } catch (Throwable throwable) {
-                Logger.printException(() -> "Loaded-value file export failed", throwable);
-                boolean removed = deleteCreatedDocument(resolver, uri);
-                String message = L10n.t(Utils.getContext(), "Loaded-value file export failed")
-                        + (removed ? "" : " " + L10n.t(Utils.getContext(),
-                        "The partial file couldn't be removed. Delete it from the folder you chose."));
-                postToast(message);
-            }
-        });
+        Context context = activity == null ? Utils.getContext() : activity.getApplicationContext();
+        // The values the Lab showed when Export was tapped, whatever it reads after.
+        FeatureGateCatalog.Snapshot values = snapshot;
+        startFileOperation(context, uri, true, file -> exportTo(context, uri, values, file));
     }
 
     private void readLoadedValuesFile(Uri uri) {
         Activity activity = getActivity();
-        ContentResolver resolver = activity == null ? null : activity.getContentResolver();
-        if (resolver == null) {
+        Context context = activity == null ? null : activity.getApplicationContext();
+        if (context == null) {
             postToast(L10n.t(Utils.getContext(),
                     "The loaded-values file you chose couldn't be read. Try again."));
             return;
         }
-        FILE_IO_EXECUTOR.execute(() -> {
-            try {
-                byte[] encoded;
-                try (InputStream input = resolver.openInputStream(uri)) {
-                    if (input == null) throw new IllegalStateException("Document provider returned no input stream");
-                    encoded = readLimited(input, MAX_COMPRESSED_IMPORT_BYTES);
-                }
-                reviewLoadedImport(readLoadedJson(encoded));
-            } catch (Throwable throwable) {
-                Logger.printException(() -> "Loaded-value file import failed", throwable);
-                // A refusal the review could name says what it was. A file from another build
-                // used to be reported as invalid or too large, the same as a corrupt one.
-                postToast(throwable instanceof Refused
-                        ? throwable.getMessage()
-                        : L10n.t(Utils.getContext(), "That file isn't a loaded-values export, or it's larger than the Lab accepts"));
+        startFileOperation(context, uri, false, file -> importFrom(context, uri, file));
+    }
+
+    /**
+     * Starts a loaded-value read or write on a worker of its own. While a file app keeps one
+     * waiting it holds only the Lab's slot: a later tap says so instead of queueing behind it, and
+     * after the stall threshold the Lab offers to stop waiting. Main thread.
+     */
+    private static void startFileOperation(Context context, Uri uri, boolean exports,
+            DocumentOperation.Work work) {
+        DocumentOperation[] started = new DocumentOperation[1];
+        started[0] = DocumentOperation.start(DocumentOperation.Kind.LAB_FILE, work,
+                () -> fileOperationChanged(started[0]));
+        if (started[0] != null) {
+            fileOperation = started[0];
+            fileOperationExports = exports;
+            stopOffered = false;
+            return;
+        }
+        // The picker made a document for this export, and nothing will fill it now.
+        if (exports && context != null) {
+            ContentResolver resolver = context.getContentResolver();
+            Utils.runOnOwnThread("Hushfeed-LabCleanup",
+                    () -> DocumentOperation.removeUnsaved(resolver, uri, false));
+        }
+        if (DocumentOperation.busy(DocumentOperation.Kind.LAB_FILE)) {
+            tellFileOut();
+        } else {
+            fileNotice(L10n.t(context, "Couldn't start the Lab change. Try again in a moment."));
+        }
+    }
+
+    /**
+     * Writes the loaded values out once the file app has been asked for the document. It's opened
+     * "wt": a plain "w" left the end of a longer file the user chose to replace, and a gzip reader
+     * then found a broken file.
+     */
+    private static void exportTo(Context context, Uri uri, FeatureGateCatalog.Snapshot values,
+            DocumentOperation file) {
+        ContentResolver resolver = context.getContentResolver();
+        boolean opened = false;
+        try {
+            ExportPayload payload = buildExportPayload(values);
+            if (!file.publish()) {
+                DocumentOperation.removeUnsaved(resolver, uri, false);
+                return;
             }
-        });
+            try (OutputStream output = file.openForWrite(resolver, uri, "wt")) {
+                opened = true;
+                output.write(payload.gzipBytes);
+            }
+            file.finish();
+            fileNotice(L10n.quantity(context, payload.count,
+                    "Exported 1 loaded value", "Exported %1$d loaded values"));
+        } catch (Exception | OutOfMemoryError error) {
+            // Stopped before the file app had anything: the stop has said what happened.
+            if (file.stage() == DocumentOperation.Stage.STOPPED) {
+                DocumentOperation.removeUnsaved(resolver, uri, false);
+                return;
+            }
+            Logger.printException(() -> "Loaded-value file export failed", error);
+            String message = file.stage() == DocumentOperation.Stage.STOPPED_WHILE_PUBLISHING
+                    ? L10n.t(context, "The export wasn't saved. Export again when the file app is ready.")
+                    : L10n.t(context, "Loaded-value file export failed");
+            if (!DocumentOperation.removeUnsaved(resolver, uri, opened)) {
+                message += " " + L10n.t(context,
+                        "The partial file couldn't be removed. Delete it from the folder you chose.");
+            }
+            fileNotice(message);
+        }
+    }
+
+    /**
+     * Reads the chosen file and hands it to the Lab on screen for review. Showing the review is
+     * the commit: a stop before it leaves the Lab as it was, and one after it can't take it back.
+     */
+    private void importFrom(Context context, Uri uri, DocumentOperation file) {
+        try {
+            byte[] encoded;
+            try (InputStream input = file.openForRead(context.getContentResolver(), uri)) {
+                encoded = readLimited(input, MAX_COMPRESSED_IMPORT_BYTES);
+            }
+            JSONObject imported = readLoadedJson(encoded);
+            if (!file.commit()) return;
+            // A Lab rebuilt while the file app had the file reviews it against what it shows now.
+            FeatureGateLabFragment now = shown.get();
+            FeatureGateLabFragment lab = now != null && now.isAdded() ? now : this;
+            FeatureGateCatalog.Snapshot current = lab.snapshot != null ? lab.snapshot : snapshot;
+            lab.reviewLoadedImport(imported, current);
+        } catch (Exception | OutOfMemoryError error) {
+            if (file.stage() == DocumentOperation.Stage.STOPPED) return;
+            Logger.printException(() -> "Loaded-value file import failed", error);
+            // A refusal the review could name says what it was. A file from another build
+            // used to be reported as invalid or too large, the same as a corrupt one.
+            fileNotice(error instanceof Refused
+                    ? error.getMessage()
+                    : L10n.t(context, "That file isn't a loaded-values export, or it's larger than the Lab accepts"));
+        }
+    }
+
+    /** The Lab's file operation changed stage, stalled or ended. Main thread. */
+    private static void fileOperationChanged(DocumentOperation operation) {
+        if (operation == null || operation != fileOperation) return;
+        Context context = window();
+        if (!DocumentOperation.busy(DocumentOperation.Kind.LAB_FILE)) {
+            fileOperation = null;
+            SettingsActionBanner.dismissShowing(stillWaiting(context));
+            return;
+        }
+        if (operation.offersStop()) {
+            if (!stopOffered) {
+                stopOffered = true;
+                offerStop(context);
+            }
+        } else if (!operation.isStopped()) {
+            // Past the gate, where a stop can't do anything any more.
+            SettingsActionBanner.dismissShowing(stillWaiting(context));
+        }
+    }
+
+    private static void offerStop(Context context) {
+        String waiting = stillWaiting(context);
+        SettingsActionBanner.showAction(context, waiting, L10n.t(context, "Stop waiting"),
+                () -> stopWaiting(context), waiting);
+    }
+
+    private static String stillWaiting(Context context) {
+        return L10n.t(context, "Still waiting for the file app.");
+    }
+
+    /** Main thread, from the banner's Stop waiting. */
+    private static void stopWaiting(Context context) {
+        DocumentOperation operation = fileOperation;
+        if (operation == null) return;
+        switch (operation.stop()) {
+            case STOPPED:
+                fileNotice(fileOperationExports
+                        ? L10n.t(context, "Stopped waiting for the file app. Nothing was exported.")
+                        : L10n.t(context, "Stopped waiting for the file app. Nothing was imported."));
+                break;
+            case STOPPED_WHILE_PUBLISHING:
+                fileNotice(L10n.t(context,
+                        "Stopped waiting for the file app. It hasn't said yet whether the export was saved."));
+                break;
+            default:
+                // Past the gate: the review or the export's result comes on its own.
+                break;
+        }
+    }
+
+    /** Whether the Lab's file slot is out, saying why a new import or export can't start. Main thread. */
+    private static boolean fileSlotTaken() {
+        if (!DocumentOperation.busy(DocumentOperation.Kind.LAB_FILE)) return false;
+        tellFileOut();
+        return true;
+    }
+
+    private static void tellFileOut() {
+        Context context = window();
+        DocumentOperation operation = fileOperation;
+        if (DocumentOperation.heldAfterStop(DocumentOperation.Kind.LAB_FILE)) {
+            fileNotice(L10n.t(context,
+                    "The file app still has the last file. Try again once it lets go, or restart TikTok."));
+        } else if (operation != null && operation.offersStop()) {
+            offerStop(context);
+        } else {
+            fileNotice(stillWaiting(context));
+        }
+    }
+
+    /** Where file results are said: the Lab on screen, else the TikTok window in front. */
+    private static Context window() {
+        FeatureGateLabFragment lab = shown.get();
+        Activity activity = lab == null ? null : lab.getActivity();
+        return activity != null ? activity : Utils.getContext();
+    }
+
+    private static void fileNotice(String message) {
+        SettingsActionBanner.showNotice(window(), message);
     }
 
     /** A change or a loaded-value file turned down, with the reason already in the reader's words. */
@@ -1466,10 +1636,10 @@ public final class FeatureGateLabFragment extends Fragment {
         }
     }
 
-    private void reviewLoadedImport(JSONObject imported) throws Exception {
+    private void reviewLoadedImport(JSONObject imported, FeatureGateCatalog.Snapshot currentSnapshot)
+            throws Exception {
         Context context = getActivity();
         if (context == null) context = Utils.getContext();
-        FeatureGateCatalog.Snapshot currentSnapshot = snapshot;
         if (currentSnapshot == null) {
             throw new Refused(L10n.t(context,
                     "Loaded values are still being read. Try again in a moment."));
@@ -1609,8 +1779,8 @@ public final class FeatureGateLabFragment extends Fragment {
         showStyled(dialog);
     }
 
-    private ExportPayload buildExportPayload() throws Exception {
-        FeatureGateCatalog.Snapshot currentSnapshot = snapshot;
+    private static ExportPayload buildExportPayload(FeatureGateCatalog.Snapshot currentSnapshot)
+            throws Exception {
         if (currentSnapshot == null) throw new IllegalStateException("No loaded Feature Gate Lab snapshot");
 
         JSONArray rules = new JSONArray();
@@ -1677,16 +1847,6 @@ public final class FeatureGateLabFragment extends Fragment {
             output.write(buffer, 0, read);
         }
         return output.toByteArray();
-    }
-
-    private static boolean deleteCreatedDocument(ContentResolver resolver, Uri uri) {
-        if (resolver == null || uri == null) return false;
-        try {
-            return android.provider.DocumentsContract.deleteDocument(resolver, uri);
-        } catch (Throwable cleanupError) {
-            Logger.printException(() -> "Loaded-value export cleanup failed", cleanupError);
-            return false;
-        }
     }
 
     private static boolean isPrimitiveType(String type) {

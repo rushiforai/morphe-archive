@@ -2,6 +2,17 @@
 
 Every HushPinterest release, newest first.
 
+## 0.0.5 (2026-10-06)
+
+Unreleased source changes. The published release remains 0.0.4.
+
+* **Pinterest:** New Spoof signature for Google sign-in patch, off by default. It adds Pinterest's original signing certificate to the manifest so Google sign-in can work in the patched app. That only matters with microG-RE in place of Google Play services, or with the XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, and email and password sign-in never needed it.
+* **Pinterest:** New optional Hide topic suggestions patch. It hides the "Ideas you might love" row of topic bubbles under a pin, and the space it took closes up too. The switch starts off. Turn it off again, or pause HushPinterest, and the row comes back the next time Pinterest lays it out. Comments and related pins aren't touched.
+* **Pinterest:** Download pin now saves image pins. Pinterest's app is sent display sizes rather than the original for most pins, and the pin menu used to show "Download unavailable" for all of them. Now the download asks Pinterest's media host for the original behind the largest size and saves it, or saves that largest size when there's no original. Copy media link copies the same address, and Supplied media details says which size it describes. Refs #2
+* **Pinterest:** Original-quality images now reaches pin closeups, not only collages. With it on, HushPinterest asks Pinterest for each pin's original along with its display sizes, and the closeup shows the original instead of the large size. Download pin then saves that original directly. Pins Pinterest already loaded keep their size until it loads them again.
+* **Pinterest:** New Remove ad tracking permissions patch, on by default. It takes Google's advertising ID permission and Android's Privacy Sandbox ad services permissions and configuration out of Pinterest's manifest. There's no switch for it, so it stays until you patch again without it. While it's in, Google Play services hands Pinterest an all-zero ad ID even with Hide advertising ID turned off.
+* **Pinterest:** Disable analytics now also turns off Firebase Crashlytics and Performance collection in the manifest, stops Google Analytics from collecting the ad ID, and sets Google's default consent for analytics storage, ad storage, ad user data and ad personalization to denied. Pinterest shipped all four consent defaults as granted. Like the Firebase Analytics flag, this stays until you patch again without the patch.
+
 ## 0.0.4 (2026-10-05)
 
 * **Tooling:** A hook can no longer borrow a register that its own call still reads, and the patch checks refuse a hook call that passes one register twice unless Pinterest's own call already did.

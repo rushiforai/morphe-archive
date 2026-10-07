@@ -1109,6 +1109,7 @@ private val haiagaruBytecodePatch = bytecodePatch {
                 patchBbsMenuUrl("a", "Lo/a7a\$read;")
                 patchLegacy5chIoCompatibility()
                 patchLegacyBeSpanBoundary("Lo/o8;")
+                patchLegacyTalkWriteUrlParsing()
                 patchLegacyTalkDatLoading()
                 patchLegacyTalkAuthIntegrity()
                 patchLegacyCellularNetworkSelection()
@@ -2208,6 +2209,28 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchPreIoTalkPostInte
     // reflected invocation boundary, which is the proven 1.3.0 behavior.
 }
 
+/** Normalize 191's legacy Talk read.cgi URL before BBSUrlInfo parses a post target. */
+private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkWriteUrlParsing() {
+    val urlInfoClass = mutableClassDefBy("Ljp/syoboi/a2chMate/client/BBSUrlInfo;")
+    val parser = urlInfoClass.methods.single { method ->
+        method.name == "c"
+            && method.returnType == "Ljp/syoboi/a2chMate/client/BBSUrlInfo;"
+            && method.parameters.map(CharSequence::toString) == listOf("Ljava/lang/String;")
+    }
+    check(parser.implementation != null) {
+        "ChMate 191 BBSUrlInfo URL parser has no implementation"
+    }
+    // p0 is the URL argument. The helper is a no-op for all non-Talk URLs and
+    // for Talk URLs already using /boards/<board>/<thread>.
+    parser.addInstructionsWithLabels(
+        0,
+        """
+            invoke-static/range {p0 .. p0}, $EXTENSION->normalizeLegacyTalkWriteUrl(Ljava/lang/String;)Ljava/lang/String;
+            move-result-object p0
+        """.trimIndent(),
+    )
+}
+
 /**
  * ChMate 0.8.10.191 builds every Talk request through a dynamically restored
  * authentication class. Re-signing makes that class enter its decoy arithmetic
@@ -2265,6 +2288,23 @@ private fun app.morphe.patcher.patch.BytecodePatchContext.patchLegacyTalkDatLoad
             nop
         """.trimIndent(),
     )
+
+    // Normalizing the URL model's transport to type 1 avoids ChMate 191's
+    // re-signed type-4 loader trap, but the same model is also used by the
+    // response list to decide whether posting is supported. Restore its
+    // original Talk type on every normal return path after DAT loading.
+    val returnIndices = method.implementation?.instructions
+        ?.mapIndexedNotNull { index, instruction ->
+            index.takeIf { instruction.opcode == Opcode.RETURN_OBJECT }
+        } ?: error("ChMate legacy Talk thread loader has no return instructions")
+    check(returnIndices.isNotEmpty()) { "ChMate legacy Talk thread loader has no object returns" }
+    returnIndices.asReversed().forEach { index ->
+        method.addInstruction(
+            index,
+            "invoke-static/range {p1 .. p1}, " +
+                "$EXTENSION->restoreLegacyTalkTransport(Ljava/lang/Object;)V",
+        )
+    }
 }
 
 /**

@@ -16,6 +16,12 @@ jobs:
           java-version: '21'
       - name: Build
         run: ./build-local.sh
+      - name: Verify legacy and modern app post filtering
+        run: python3 testing/app-posts-regression.py
+      - name: Verify NSFW click lifecycle and account acknowledgements
+        run: python3 testing/nsfw-regression.py
+      - name: Verify vertical feed ownership and scroll synchronization
+        run: python3 testing/vertical-regression.py
       - name: Verify Android patch classes
         run: |
           unzip -p reddit-mode.mpp classes.dex > /tmp/reddit-patches.dex

@@ -10,9 +10,10 @@ import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 
 /**
- * Stands in for the two calls the patch writes into {@link FeedAds}. Unpatched they answer
- * nothing, so no item is ever an ad and a filter that runs can't be told from one that doesn't.
- * Here an item is its own post, and {@link #AD} is the one post Threads' check calls an ad.
+ * Stands in for the calls the patch writes into {@link FeedAds}. Unpatched they answer nothing, so
+ * no item is ever an ad and a filter that runs can't be told from one that doesn't. Here an item is
+ * its own post, {@link #AD} is the one post Threads' check calls an ad, and an enum constant is its
+ * own unit type.
  *
  * <p>A test that uses it names this class in its Config's shadows and FeedAds' package in its
  * instrumentedPackages, so Robolectric routes the two calls here.
@@ -51,6 +52,11 @@ public class ShadowFeedAds {
     @Implementation
     protected static Object itemMedia(Object item) {
         return item;
+    }
+
+    @Implementation
+    protected static Object itemUnitType(Object item) {
+        return item instanceof Enum ? item : null;
     }
 
     @Implementation

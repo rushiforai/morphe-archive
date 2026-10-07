@@ -5,7 +5,7 @@ include:
 
 variables:
   # renovate: datasource=docker depName=ghcr.io/renovatebot/renovate
-  CI_RENOVATE_IMAGE: ghcr.io/renovatebot/renovate:44.115.10-full@sha256:b55183772d4e5a5cff7a0b647e18e40e620da998eabc82d42d1b2328ad3fb7dc
+  CI_RENOVATE_IMAGE: ghcr.io/renovatebot/renovate:44.141.0-full@sha256:c3cdf31b799385dbd3e0a7fa8f16e970d8ade775517b1e1d13bab21096b8b7f8
 
 renovate:
   stage: automate

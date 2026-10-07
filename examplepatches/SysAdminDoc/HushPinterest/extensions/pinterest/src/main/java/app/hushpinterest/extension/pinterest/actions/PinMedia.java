@@ -8,8 +8,13 @@ package app.hushpinterest.extension.pinterest.actions;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import app.hushpinterest.extension.pinterest.ads.ModelFields;
 
@@ -109,20 +114,85 @@ final class PinMedia {
                     largest = area;
                 }
             }
-            if (best != null) return new Resolution(id, best, null, selected);
+            if (best != null) return new Resolution(id, best, null, selected, null);
             // A supplied playlist still identifies a video when is_video was omitted.
             if (!((Map<?, ?>) videoList).isEmpty()) {
-                return new Resolution(id, null, adaptive ? Refusal.ADAPTIVE_VIDEO : Refusal.MP4_MISSING, unsupported);
+                return new Resolution(id, null, adaptive ? Refusal.ADAPTIVE_VIDEO : Refusal.MP4_MISSING, unsupported, null);
             }
         }
         // A video thumbnail is not the video the user asked to save.
-        if (Boolean.TRUE.equals(field(pin, "is_video"))) return new Resolution(id, null, Refusal.MP4_MISSING, null);
-        Object original = field(field(pin, "images"), "orig");
+        if (Boolean.TRUE.equals(field(pin, "is_video"))) return new Resolution(id, null, Refusal.MP4_MISSING, null, null);
+        // An idea pin keeps its video in its pages rather than in videos, and says how long it runs.
+        Object duration = field(field(pin, "story_pin_data"), "total_video_duration");
+        if (duration instanceof String && ((String) duration).matches(".*[1-9].*")) {
+            return new Resolution(id, null, Refusal.MP4_MISSING, null, null);
+        }
+        Object images = field(pin, "images");
+        // Pinterest's web models name the original orig; the app's own image models read originals.
+        String supplied = field(images, ORIGINAL) != null ? ORIGINAL : ORIGINALS;
+        Object original = field(images, supplied);
         Object url = field(original, "url");
         Source source = sourceUrl(url, false);
-        Refusal refusal = source != null ? null : !(url instanceof String) ? Refusal.ORIGINAL_MISSING
-                : mediaUri((String) url) == null ? Refusal.PUBLIC_LINK : Refusal.ORIGINAL_TYPE;
-        return new Resolution(id, source, refusal, original);
+        if (source != null) return new Resolution(id, source, null, original, supplied);
+        // Pinterest's app asks its API for display sizes only, so a live pin seldom carries orig.
+        // The largest uncropped size it did supply stands in, and downloads look for its original.
+        Object refused = original;
+        if (images instanceof Map<?, ?>) {
+            // A size key bounds the width, so a wider key is never a smaller image. Keys with a
+            // height too, such as 150x150, are crops of it.
+            Source largest = null;
+            Object selected = null;
+            String size = null;
+            int bound = -1, widest = -1;
+            for (Map.Entry<?, ?> entry : ((Map<?, ?>) images).entrySet()) {
+                if (!(entry.getKey() instanceof String) || !((String) entry.getKey()).matches("[1-9][0-9]{0,4}x")) continue;
+                String key = (String) entry.getKey();
+                int width = Integer.parseInt(key.substring(0, key.length() - 1));
+                // Without an original, the widest size Pinterest supplied explains a refusal.
+                if (!(url instanceof String) && field(entry.getValue(), "url") instanceof String && width > widest) {
+                    refused = entry.getValue();
+                    widest = width;
+                }
+                Source candidate = sourceUrl(field(entry.getValue(), "url"), false);
+                if (candidate == null || width <= bound) continue;
+                largest = candidate;
+                selected = entry.getValue();
+                size = key;
+                bound = width;
+            }
+            if (largest != null) return new Resolution(id, largest, null, selected, size);
+        }
+        Object link = field(refused, "url");
+        Refusal refusal = !(link instanceof String) ? Refusal.IMAGE_MISSING
+                : mediaUri((String) link) == null ? Refusal.PUBLIC_LINK : Refusal.IMAGE_TYPE;
+        return new Resolution(id, null, refusal, refused, null);
+    }
+
+    /** Pinterest's keys for the original upload in a pin's images. */
+    static final String ORIGINAL = "orig", ORIGINALS = "originals";
+
+    /** A supplied size's media-host path: the size, three folders named for the hash's start, then the hash. */
+    private static final Pattern SIZED = Pattern.compile("/[1-9][0-9]{0,4}x/((?:[0-9a-f]{2}/){3})([0-9a-f]{16,64})\\.[a-z]{3,4}");
+
+    /**
+     * Where Pinterest's media host keeps the original behind a supplied size, one address per
+     * image type it may have been uploaded as, in the order to ask. Empty for any other address.
+     */
+    static List<Source> originals(Source supplied) {
+        URI uri = supplied == null ? null : mediaUri(supplied.url);
+        if (uri == null || uri.getRawQuery() != null || uri.getRawFragment() != null || uri.getRawPath() == null) {
+            return Collections.emptyList();
+        }
+        Matcher sized = SIZED.matcher(uri.getRawPath());
+        if (!sized.matches()) return Collections.emptyList();
+        String folders = sized.group(1), hash = sized.group(2);
+        if (!hash.startsWith(folders.replace("/", ""))) return Collections.emptyList();
+        List<Source> found = new ArrayList<>();
+        for (String suffix : new String[]{".jpg", ".png", ".gif", ".webp"}) {
+            Source original = sourceUrl("https://" + uri.getHost() + "/originals/" + folders + hash + suffix, false);
+            if (original != null) found.add(original);
+        }
+        return found;
     }
 
     private static double dimension(Object value) {
@@ -136,7 +206,7 @@ final class PinMedia {
         return number > 0 && number == Math.rint(number) ? (int) number : null;
     }
 
-    enum Refusal { ORIGINAL_MISSING, ORIGINAL_TYPE, PUBLIC_LINK, MP4_MISSING, ADAPTIVE_VIDEO }
+    enum Refusal { IMAGE_MISSING, IMAGE_TYPE, PUBLIC_LINK, MP4_MISSING, ADAPTIVE_VIDEO }
 
     static final class Resolution {
         final String id;
@@ -144,11 +214,14 @@ final class PinMedia {
         final Refusal refusal;
         final Integer width, height;
         final String urlType;
+        /** The images key the source came from: orig, a stand-in size such as 736x, or null for a video. */
+        final String size;
 
-        private Resolution(String id, Source source, Refusal refusal, Object supplied) {
+        private Resolution(String id, Source source, Refusal refusal, Object supplied, String size) {
             this.id = id;
             this.source = source;
             this.refusal = refusal;
+            this.size = size;
             width = suppliedDimension(field(supplied, "width"));
             height = suppliedDimension(field(supplied, "height"));
             // Type comes only from a supported supplied URL, never a probe or a thumbnail.
@@ -167,6 +240,12 @@ final class PinMedia {
         if (path.endsWith(".webp")) return new Source(uri.toString(), "image/webp", ".webp");
         if (path.endsWith(".gif")) return new Source(uri.toString(), "image/gif", ".gif");
         return null;
+    }
+
+    /** True when the source is a supplied size standing in for an original Pinterest didn't supply. */
+    static boolean standIn(Resolution media) {
+        return media != null && media.source != null && media.size != null &&
+                !ORIGINAL.equals(media.size) && !ORIGINALS.equals(media.size);
     }
 
     static final class Source {

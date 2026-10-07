@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">អំពីកម្មវិធីនេះ</string>
   <string name="morphe_settings_screen_01_ads_title">ពាណិជ្ជកម្ម</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">រូបតូចៗបន្ទាប់បន្សំ</string>
   <string name="morphe_settings_screen_03_feed_title">ព័ត៌មាន</string>
   <string name="morphe_settings_screen_04_general_title">ជាទូទៅ</string>
   <string name="morphe_settings_screen_05_player_title">ការីចាក់</string>
@@ -54,6 +53,7 @@ Second \"item\" text"</string>
           This button usually appears when in fullscreen for live-streamed videos after opening live chat. -->
   <!-- 'Pull up for precise seeking', 'Release to cancel' and '2x' should be translated using the same localized wording YouTube displays for the hints.
           These hints appear in the video player while dragging the seekbar or holding to speed up playback. -->
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
   <!-- 'Community' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Join' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Store' should be translated using the same localized wording YouTube displays for the button. -->
@@ -102,7 +102,7 @@ Second \"item\" text"</string>
   <!-- Button does not have any text and is only shown as an icon, and only when the video information area is collapsed to a compact state. -->
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Hype' should be translated using the same localized wording YouTube displays for the button.
@@ -187,7 +187,6 @@ Second \"item\" text"</string>
   <!-- layout.playbackinfeeds.playbackInFeedsPatch -->
   <string name="morphe_playback_in_feeds_entry_off">បិទ</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
-  <string name="morphe_restore_original_titles_type_entry_original">ច្បាប់ដើម</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <!-- layout.miniplayer.miniplayerPatch -->
   <!-- misc.fix.fixBackToExitGesturePatch -->
@@ -198,7 +197,8 @@ Second \"item\" text"</string>
   <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_7'. -->
   <string name="morphe_header_logo_entry_5">ផ្ទាល់ខ្លួន</string>
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->

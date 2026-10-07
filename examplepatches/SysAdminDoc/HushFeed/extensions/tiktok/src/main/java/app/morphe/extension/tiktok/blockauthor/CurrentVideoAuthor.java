@@ -202,6 +202,7 @@ public final class CurrentVideoAuthor {
             SessionBudgetNotice.showIntervalNoticeIfDue();
             app.morphe.extension.tiktok.interaction.TapConfirmation.onVideoChanged();
             app.morphe.extension.tiktok.captions.CaptionTools.onVideoChanged(newId);
+            app.morphe.extension.tiktok.feed.AuthorRegion.onVideoChanged();
 
             if (item != null && item.aweme != null) {
                 CurrentVideoSound.update(item.aweme);

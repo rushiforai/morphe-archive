@@ -46,6 +46,8 @@ public final class SettingsStatus {
     public static boolean linkTracking() { return false; }
     public static boolean hideAdvertisingId() { return false; }
     public static boolean advertisingId() { return false; }
+    public static boolean removeAdTrackingPermissions() { return false; }
+    public static boolean spoofSignature() { return false; }
     public static boolean downloadPins() { return false; }
     public static boolean pinDownloads() { return false; }
     public static boolean externalBrowser() { return false; }
@@ -64,12 +66,15 @@ public final class SettingsStatus {
     public static boolean pinMenuItems() { return false; }
     public static boolean hideComments() { return false; }
     public static boolean comments() { return false; }
+    public static boolean hideTopicSuggestions() { return false; }
+    public static boolean topicSuggestions() { return false; }
     public static boolean quietEmailReminder() { return false; }
     public static boolean emailReminder() { return false; }
     public static boolean hideSaveToasts() { return false; }
     public static boolean saveToasts() { return false; }
     public static boolean originalImages() { return false; }
     public static boolean imageChooser() { return false; }
+    public static boolean closeupImage() { return false; }
     public static boolean disableUpdateNag() { return false; }
     public static boolean updateNag() { return false; }
 }

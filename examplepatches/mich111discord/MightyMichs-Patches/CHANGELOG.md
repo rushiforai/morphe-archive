@@ -1,3 +1,10 @@
+## [1.8.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.7.0...v1.8.0) (2026-10-06)
+
+### ✨ New Features
+
+* Added Login Bypass to sofascore [skip ci] ([6e28529](https://github.com/mich111discord/MightyMichs-Patches/commit/6e28529ed7fcb807478c05f46321a55aa397be9c))
+* Added unlock premium patch for Sofascore [skip ci] ([68c7349](https://github.com/mich111discord/MightyMichs-Patches/commit/68c7349d527ff4f00c8286a8ba45d2f4ba286b29))
+
 ## [1.7.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.6.6...v1.7.0) (2026-10-03)
 
 ### ✨ New Features

@@ -43,6 +43,7 @@ import android.widget.CheckedTextView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Switch;
 
@@ -375,6 +376,8 @@ public final class SettingsUi {
     /** Keyed tags in the app's id space, which a plain tag and the chevron's string tag leave alone. */
     private static final int TAG_ROW_PAINT = 0x7f7f4001;
     private static final int TAG_SWITCH_PAINT = 0x7f7f4002;
+    /** The row params the widget frame had before it moved in beside the title, to go back to. */
+    private static final int TAG_WIDGET_ROW_PARAMS = 0x7f7f4003;
 
     /** What a row was last painted as, kept on the row so a rebind of the same view costs nothing. */
     private static final class RowPaint {
@@ -397,6 +400,69 @@ public final class SettingsUi {
         }
         row.setBackground(groupedRow(row.getContext(), first, last));
         row.setTag(TAG_ROW_PAINT, new RowPaint(first, last, dark));
+    }
+
+    /**
+     * A switch row whose text column would be narrower than this many ems of its title moves
+     * the switch under the text and gives the text the whole row.
+     */
+    static final int NARROW_TITLE_EMS = 10;
+
+    /**
+     * Gives a switch row the shape its width can hold. The 44 dp switch and its 16 dp gap sit
+     * beside the text, and at twice the text size on a 320 dp phone that leaves the title about
+     * a dozen characters a line: "Kommentare automatisch übersetzen" came out as Kom-, mentare,
+     * automatisch, übersetzen, with the summary wrapped in the same narrow column. When the
+     * column would be under {@link #NARROW_TITLE_EMS} of the title's size, the switch moves
+     * under the text, at the end of the row, and the title and summary take the whole width.
+     * A switch beside the title alone still left the title that narrow column. The title's size
+     * is read back from the view, so the user's text size and Android 14's curve both count. The
+     * width is the row's own, so a wide list at a large size keeps the usual shape, and a row
+     * recycled from one shape into the other goes back.
+     *
+     * @param rowWidth the width the row is laid out at, in pixels; nothing happens for zero
+     */
+    public static void reflowSwitchRow(View row, int rowWidth) {
+        TextView title = row.findViewById(android.R.id.title);
+        TextView summary = row.findViewById(android.R.id.summary);
+        ViewGroup widget = row.findViewById(android.R.id.widget_frame);
+        if (title == null || summary == null || widget == null || rowWidth <= 0) return;
+        if (!(title.getParent() instanceof RelativeLayout) || summary.getParent() != title.getParent()) return;
+        if (findSwitch(widget) == null) return;
+        RelativeLayout text = (RelativeLayout) title.getParent();
+        int column = rowWidth - row.getPaddingLeft() - row.getPaddingRight() - dp(row.getContext(), 44 + 16);
+        boolean narrow = column < title.getTextSize() * NARROW_TITLE_EMS;
+        if (narrow == (widget.getParent() == text)) return;
+        if (narrow) {
+            widget.setTag(TAG_WIDGET_ROW_PARAMS, widget.getLayoutParams());
+            ((ViewGroup) widget.getParent()).removeView(widget);
+            // Under the summary, or under the title when the summary is gone: RelativeLayout
+            // follows a gone view's own anchor.
+            RelativeLayout.LayoutParams under = new RelativeLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            under.addRule(RelativeLayout.BELOW, android.R.id.summary);
+            under.addRule(RelativeLayout.ALIGN_PARENT_END);
+            text.addView(widget, under);
+        } else {
+            text.removeView(widget);
+            Object kept = widget.getTag(TAG_WIDGET_ROW_PARAMS);
+            ((ViewGroup) row).addView(widget, kept instanceof ViewGroup.LayoutParams
+                    ? (ViewGroup.LayoutParams) kept
+                    : new android.widget.LinearLayout.LayoutParams(
+                            ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        }
+    }
+
+    private static Switch findSwitch(View view) {
+        if (view instanceof Switch) return (Switch) view;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                Switch found = findSwitch(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
     }
 
     public static void styleSwitch(Switch control) {

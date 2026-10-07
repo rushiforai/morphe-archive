@@ -37,7 +37,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public final class CreatorExceptions {
     /**
      * The filters a chosen creator's post passes: those on a post's kind, its labels, its age,
-     * its length and its numbers. A preference about posts in general, not about this one.
+     * its length, its numbers and whether TikTok picked it for the reader. A preference about
+     * posts in general, not about this one.
      */
     static final Set<Class<? extends IFilter>> SUBJECTIVE = Set.of(
             StoryFilter.class,
@@ -48,6 +49,7 @@ public final class CreatorExceptions {
             ContentMarkerFilters.PlaylistFilter.class,
             AdvancedFeedRules.PublicationAgeFilter.class,
             AdvancedFeedRules.QualityFilter.class,
+            AdvancedFeedRules.UnpersonalizedForYouFilter.class,
             ViewCountFilter.class,
             LikeCountFilter.class,
             CommentCountFilter.class,

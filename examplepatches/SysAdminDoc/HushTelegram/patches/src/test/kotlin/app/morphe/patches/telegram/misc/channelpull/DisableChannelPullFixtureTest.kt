@@ -49,36 +49,46 @@ class DisableChannelPullFixtureTest {
             val beforeOthers = hosts(build).flatMap { owner -> context.mutableClassDefBy(owner.type).methods }
                 .filter { it !== sites.scroll && it !== sites.touch }.associate { key(it) to it.state() }
             assertEquals(emptyList<String>(), PatchLogCapture.warnings { disableChannelPullPatch.execute(context) })
-            assertStock(build.name, scroll, sites.scroll, sites.scrollGate, 6)
-            assertStock(build.name, touch, sites.touch, sites.releaseGate, 6)
+            assertStock(build.name, scroll, sites.scroll, sites.scrollGate, GUARD)
+            assertStock(build.name, touch, sites.touch, sites.releaseGate, GUARD)
             assertEquals("${build.name}: direct opening and its saved state aren't changed", beforeOpener, opener.state())
             assertEquals("${build.name}: all other host methods are untouched", beforeOthers,
                 hosts(build).flatMap { owner -> context.mutableClassDefBy(owner.type).methods }
                     .filter { it !== sites.scroll && it !== sites.touch }.associate { key(it) to it.state() })
             val scrolling = sites.scroll.instructions()
             assertEquals(sites.topic, scrolling[sites.scrollGate].field())
+            assertEquals(GUARD_OPCODES, scrolling.subList(sites.scrollGate, sites.scrollGate + GUARD).map { it.opcode.anyGoto() })
             assertEquals("$CHANNEL_PULL->stopBottomPull()Z", scrolling[sites.scrollGate + 2].ref())
-            assertEquals(Opcode.IGET, scrolling[sites.scrollGate + 6].opcode)
-            assertEquals(sites.offset, scrolling[sites.scrollGate + 6].field())
+            assertEquals("$FORUM_TOPIC_PULL->stopTopicPull()Z", scrolling[sites.scrollGate + 6].ref())
+            assertEquals(Opcode.IGET, scrolling[sites.scrollGate + GUARD].opcode)
+            assertEquals(sites.offset, scrolling[sites.scrollGate + GUARD].field())
             val scrollFlow = ControlFlow.of(sites.scroll)
-            assertEquals("eligible non-topic pull uses stock overscroll cleanup", setOf(sites.scrollGate + 5, sites.scrollExit + 6),
+            assertEquals("Telegram's topic flag picks the switch", setOf(sites.scrollGate + 2, sites.scrollGate + 6),
+                scrollFlow.normal[sites.scrollGate + 1].toSet())
+            assertEquals("eligible non-topic pull uses stock overscroll cleanup", setOf(sites.scrollGate + 5, sites.scrollExit + GUARD),
                 scrollFlow.normal[sites.scrollGate + 4].toSet())
+            assertEquals("a kept channel pull skips the topic hook", listOf(sites.scrollGate + 9), scrollFlow.normal[sites.scrollGate + 5])
+            assertEquals("eligible topic pull uses the same stock cleanup", setOf(sites.scrollGate + 9, sites.scrollExit + GUARD),
+                scrollFlow.normal[sites.scrollGate + 8].toSet())
             val released = sites.touch.instructions()
             assertEquals(sites.topic, released[sites.releaseGate].field())
-            assertEquals(listOf(Opcode.IGET_BOOLEAN, Opcode.IF_NEZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.NOP),
-                released.subList(sites.releaseGate, sites.releaseGate + 6).map { it.opcode })
+            assertEquals(GUARD_OPCODES, released.subList(sites.releaseGate, sites.releaseGate + GUARD).map { it.opcode.anyGoto() })
             assertEquals("$CHANNEL_PULL->keepChannelStill()Z", released[sites.releaseGate + 2].ref())
+            assertEquals("$FORUM_TOPIC_PULL->keepTopicStill()Z", released[sites.releaseGate + 6].ref())
             val releaseFlow = ControlFlow.of(sites.touch)
-            assertEquals("topic release resumes stock", setOf(sites.releaseGate + 2, sites.releaseGate + 5),
+            assertEquals("topic release asks the topic switch", setOf(sites.releaseGate + 2, sites.releaseGate + 6),
                 releaseFlow.normal[sites.releaseGate + 1].toSet())
-            assertEquals("channel suppression takes stock retraction", setOf(sites.releaseGate + 5, sites.retract + 6),
+            assertEquals("channel suppression takes stock retraction", setOf(sites.releaseGate + 5, sites.retract + GUARD),
                 releaseFlow.normal[sites.releaseGate + 4].toSet())
-            assertFalse("retraction can't open the next channel", sites.transitionCall + 6 in reachable(releaseFlow, sites.retract + 6))
+            assertEquals("a kept channel release resumes stock", listOf(sites.releaseGate + 9), releaseFlow.normal[sites.releaseGate + 5])
+            assertEquals("topic suppression takes the same stock retraction", setOf(sites.releaseGate + 9, sites.retract + GUARD),
+                releaseFlow.normal[sites.releaseGate + 8].toSet())
+            assertFalse("retraction can't open the next channel or topic", sites.transitionCall + GUARD in reachable(releaseFlow, sites.retract + GUARD))
             assertFlag(context, true)
         }
     }
 
-    @Test fun `stock channel group topic and bot choices survive and only broadcast bottom pulls stop`() {
+    @Test fun `stock channel group topic and bot choices survive and each switch stops only its own pull`() {
         for (build in Fixtures.declaredBuilds()) {
             val context = contextFor(build)
             val sites = context.resolveChannelPullSites()
@@ -88,16 +98,17 @@ class DisableChannelPullFixtureTest {
                 for (topic in listOf(false, true)) for (bot in listOf(false, true)) {
                     val expectedStock = channel && !group || topic && !bot
                     assertEquals("${build.name}: stock positive/negative controls", expectedStock,
-                        eligible(stock, sites, false, false, channel, group, topic, bot))
-                    assertEquals("${build.name}: disabled preserves every stock choice", expectedStock,
-                        eligible(sites.scroll, sites, true, false, channel, group, topic, bot))
-                    assertEquals("${build.name}: enabled keeps the complete topic fallback", expectedStock && topic,
-                        eligible(sites.scroll, sites, true, true, channel, group, topic, bot))
+                        eligible(stock, sites, false, false, false, channel, group, topic, bot))
+                    for (channelOn in listOf(false, true)) for (topicOn in listOf(false, true)) {
+                        assertEquals("${build.name}: channel switch $channelOn, topic switch $topicOn",
+                            expectedStock && !(if (topic) topicOn else channelOn),
+                            eligible(sites.scroll, sites, true, channelOn, topicOn, channel, group, topic, bot))
+                    }
                 }
             }
-            for (enabled in listOf(false, true)) for (topic in listOf(false, true)) {
-                assertEquals("${build.name}: an existing non-topic pull retracts only when enabled", enabled && !topic,
-                    retracts(sites, enabled, topic))
+            for (channelOn in listOf(false, true)) for (topicOn in listOf(false, true)) for (topic in listOf(false, true)) {
+                assertEquals("${build.name}: an existing pull retracts only when its own switch is on", if (topic) topicOn else channelOn,
+                    retracts(sites, channelOn, topicOn, topic))
             }
         }
     }
@@ -157,9 +168,11 @@ class DisableChannelPullFixtureTest {
         for (build in Fixtures.declaredBuilds()) {
             val absent = contextFor(build, runtime = false)
             refusedUntouched(build, "absent runtime", absent)
-            for (name in listOf("stopBottomPull", "keepChannelStill")) for (mutation in 0..6) {
+            refusedUntouched(build, "absent topic runtime", contextFor(build, topicRuntime = false))
+            for ((owner, name) in listOf(CHANNEL_PULL to "stopBottomPull", CHANNEL_PULL to "keepChannelStill",
+                    FORUM_TOPIC_PULL to "stopTopicPull", FORUM_TOPIC_PULL to "keepTopicStill")) for (mutation in 0..6) {
                 val context = contextFor(build)
-                val runtime = context.mutableClassDefBy(CHANNEL_PULL)
+                val runtime = context.mutableClassDefBy(owner)
                 val method = runtime.methods.single { it.name == name }
                 when (mutation) {
                     0 -> runtime.accessFlags = runtime.accessFlags and AccessFlags.PUBLIC.value.inv()
@@ -189,7 +202,7 @@ class DisableChannelPullFixtureTest {
     }
 
     private fun refusedUntouched(build: File, case: String, context: BytecodePatchContext, statusPresent: Boolean = true) {
-        val types = (hosts(build).map { it.type } + CHANNEL_PULL + SETTINGS_STATUS).filter { context.classDefByOrNull(it) != null }
+        val types = (hosts(build).map { it.type } + CHANNEL_PULL + FORUM_TOPIC_PULL + SETTINGS_STATUS).filter { context.classDefByOrNull(it) != null }
         val before = types.associateWith { context.mutableClassDefBy(it).state() }
         assertThrows("${build.name}: $case", PatchException::class.java) { disableChannelPullPatch.execute(context) }
         assertEquals("${build.name}: $case keeps the complete prior state", before,
@@ -214,11 +227,11 @@ class DisableChannelPullFixtureTest {
     }
 
     /** Executes the fixture's channel/topic predicate region with concrete stock and hook answers. */
-    private fun eligible(method: Method, sites: ChannelPullSites, patched: Boolean, enabled: Boolean,
+    private fun eligible(method: Method, sites: ChannelPullSites, patched: Boolean, enabled: Boolean, topicEnabled: Boolean,
                          channel: Boolean, group: Boolean, topic: Boolean, bot: Boolean): Boolean {
         val body = method.instructions()
         val flow = ControlFlow.of(method)
-        val extra = if (patched) 6 else 0
+        val extra = if (patched) GUARD else 0
         val joined = sites.scrollGate + extra
         val exit = sites.scrollExit + extra
         val registers = IntArray(method.implementation!!.registerCount)
@@ -247,6 +260,7 @@ class DisableChannelPullFixtureTest {
                     "isChannel" -> if (channel) 1 else 0
                     "isBotForum" -> if (bot) 1 else 0
                     "stopBottomPull" -> if (enabled) 1 else 0
+                    "stopTopicPull" -> if (topicEnabled) 1 else 0
                     "getScrollState" -> 1 // The caller is dragging.
                     else -> 0 // Telegram's report predicate refuses no movement here.
                 }
@@ -261,6 +275,10 @@ class DisableChannelPullFixtureTest {
                     at = if (same == (instruction.opcode == Opcode.IF_EQ)) flow.normal[at].single { it != at + 1 } else at + 1
                     return@repeat
                 }
+                Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32 -> {
+                    at = flow.normal[at].single()
+                    return@repeat
+                }
                 Opcode.NOP -> Unit
                 else -> error("unexpected predicate opcode ${instruction.opcode}")
             }
@@ -269,21 +287,25 @@ class DisableChannelPullFixtureTest {
         error("predicate never leaves its region")
     }
 
-    /** Topic and disabled controls fall through the hook. A true channel guard takes stock bounce. */
-    private fun retracts(sites: ChannelPullSites, enabled: Boolean, topic: Boolean): Boolean {
+    /** Telegram's topic flag picks the hook. A switched-off guard resumes stock, a true one takes stock bounce. */
+    private fun retracts(sites: ChannelPullSites, enabled: Boolean, topicEnabled: Boolean, topic: Boolean): Boolean {
         val flow = ControlFlow.of(sites.touch)
         val body = sites.touch.instructions()
         var at = sites.releaseGate
         var value = false
-        repeat(6) {
-            if (at == sites.releaseGate + 5) return false
-            if (at == sites.retract + 6) return true
+        repeat(GUARD) {
+            if (at == sites.releaseGate + GUARD - 1) return false
+            if (at == sites.retract + GUARD) return true
             when (body[at].opcode) {
                 Opcode.IGET_BOOLEAN -> value = topic
-                Opcode.INVOKE_STATIC -> value = enabled
+                Opcode.INVOKE_STATIC -> value = if (body[at].call()!!.definingClass == FORUM_TOPIC_PULL) topicEnabled else enabled
                 Opcode.MOVE_RESULT -> Unit
                 Opcode.IF_NEZ -> {
                     at = if (value) flow.normal[at].single { it != at + 1 } else at + 1
+                    return@repeat
+                }
+                Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32 -> {
+                    at = flow.normal[at].single()
                     return@repeat
                 }
                 else -> error("unexpected release opcode")
@@ -315,8 +337,8 @@ class DisableChannelPullFixtureTest {
         (layouts + dependencies.values + parents).also { HOSTS[build.absolutePath] = SoftReference(it) }
     }
 
-    private fun contextFor(build: File, runtime: Boolean = true) = PatchContexts.of(
-        ExtensionDex.classes().filter { runtime || it.type != CHANNEL_PULL } + hosts(build))
+    private fun contextFor(build: File, runtime: Boolean = true, topicRuntime: Boolean = true) = PatchContexts.of(
+        ExtensionDex.classes().filter { (runtime || it.type != CHANNEL_PULL) && (topicRuntime || it.type != FORUM_TOPIC_PULL) } + hosts(build))
     private fun assertFlag(context: BytecodePatchContext, expected: Boolean) {
         val body = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "disableChannelPull" }.instructions()
         assertEquals(if (expected) 1 else 0, (body[0] as NarrowLiteralInstruction).narrowLiteral)
@@ -347,5 +369,13 @@ class DisableChannelPullFixtureTest {
     private fun Instruction.ref() = (this as? ReferenceInstruction)?.reference?.toString()
     private fun Instruction.field(): FieldReference? = (this as? ReferenceInstruction)?.reference as? FieldReference
     private fun Instruction.call(): MethodReference? = (this as? ReferenceInstruction)?.reference as? MethodReference
-    private companion object { val HOSTS = mutableMapOf<String, SoftReference<List<ClassDef>>>() }
+    /** The patcher picks the jump's width; any width is the same jump. */
+    private fun Opcode.anyGoto() = if (this == Opcode.GOTO_16 || this == Opcode.GOTO_32) Opcode.GOTO else this
+    private companion object {
+        val HOSTS = mutableMapOf<String, SoftReference<List<ClassDef>>>()
+        /** Topic flag, channel hook with its answer and branch, a jump past the topic hook, topic hook with its answer and branch, the stock label. */
+        const val GUARD = 10
+        val GUARD_OPCODES = listOf(Opcode.IGET_BOOLEAN, Opcode.IF_NEZ, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ,
+            Opcode.GOTO, Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ, Opcode.NOP)
+    }
 }

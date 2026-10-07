@@ -295,7 +295,26 @@ class NativeMediaControlsTest {
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val classes = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
             val discovered = findControls(classes)
-            validateControls(discovered, setOf("ai_sticker_cell", "screenshot_viewers"))
+            validateControls(discovered, setOf("ai_sticker_cell", "screenshot_viewers", EMOJI_DRAWER, ANALYTICS_UPLOADS, MESSAGE_LOG))
+            // The emoji drawer rides on the same discovery: every flag read takes the helper and nothing else moves.
+            val drawerReads = discovered.getValue(EMOJI_DRAWER).sumOf { assertEmojiDrawerInjected(it, "$code ${it.hookId()}") }
+            assertEquals(if (code.startsWith("3462")) 9 else 2, drawerReads, code)
+            // So do the analytics uploads: each entry point keeps every original instruction after the switch's guard.
+            for (native in discovered.getValue(ANALYTICS_UPLOADS)) {
+                val method = MutableMethod(native)
+                val before = method.implementation!!.instructions.toList()
+                method.injectAnalyticsUpload()
+                val after = method.implementation!!.instructions.toList()
+                assertEquals(before, after.drop(after.size - before.size), "$code ${native.hookId()}")
+            }
+            // The message log lands on the one new-message notification constructor and keeps its body after the guard.
+            val notification = discovered.getValue(MESSAGE_LOG).single()
+            assertEquals(activeProfile.hooks.getValue(MESSAGE_LOG).single(), notification.hookId(), code)
+            val logMethod = MutableMethod(notification)
+            val logBefore = logMethod.implementation!!.instructions.toList()
+            logMethod.injectMessageLog()
+            val logAfter = logMethod.implementation!!.instructions.toList()
+            assertEquals(logBefore, logAfter.drop(logAfter.size - logBefore.size), "$code ${notification.hookId()}")
             val cell = discovered.getValue("ai_sticker_cell").single()
             assertEquals(activeProfile.hooks.getValue("ai_sticker_cell").single(), cell.hookId())
             val viewers = discovered.getValue("screenshot_viewers")

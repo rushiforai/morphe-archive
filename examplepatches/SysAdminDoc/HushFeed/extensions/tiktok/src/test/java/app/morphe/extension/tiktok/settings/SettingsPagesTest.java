@@ -1355,6 +1355,8 @@ public class SettingsPagesTest {
             assertNotNull("the page description is not in Spanish", caption);
             assertTextFits(caption);
             assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
+            assertTrue("no switch row was on screen, so this proves nothing",
+                    assertSwitchRowsReflowed(page.getView().findViewById(android.R.id.list), false) > 0);
             UiCapture.save(page.getView(), "pages/dark/comments-spanish-large.png", 320, 800);
         }
     }
@@ -1374,6 +1376,8 @@ public class SettingsPagesTest {
             assertNotNull(caption);
             assertTextFits(caption);
             assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
+            assertTrue("no switch row was on screen, so this proves nothing",
+                    assertSwitchRowsReflowed(page.getView().findViewById(android.R.id.list), false) > 0);
             assertEditorRowFits(page, "comment_blocked_keywords", activity, 320, 800, 1);
             // Captured here: the fragment is replaced below, and its view goes with it.
             UiCapture.save(page.getView(), "pages/light/two-times-text.png", 320, 800);
@@ -1411,6 +1415,7 @@ public class SettingsPagesTest {
                 assertNotNull(section, heading);
                 assertTextFits(heading);
                 assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
+                assertSwitchRowsReflowed(page.getView().findViewById(android.R.id.list), false);
                 if ("COMMENTS".equals(section)) {
                     UiCapture.save(page.getView(), "pages/dark/two-times-text.png", 320, 800);
                 }
@@ -1442,6 +1447,8 @@ public class SettingsPagesTest {
 assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
             assertBackArrowPointsTheWayTheReaderReads(page.getView());
             assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
+            assertTrue("no switch row was on screen, so this proves nothing",
+                    assertSwitchRowsReflowed(page.getView().findViewById(android.R.id.list), true) > 0);
             TextView heading = page.getView().findViewWithTag("hushfeed_page_title");
             assertNotNull(heading);
             assertTextFits(heading);
@@ -1459,6 +1466,7 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
                 assertNotNull(section, title);
                 assertTextFits(title);
                 assertRowsReadable(other.getView().findViewById(android.R.id.list), 48);
+                assertSwitchRowsReflowed(other.getView().findViewById(android.R.id.list), true);
             }
         }
     }
@@ -1493,7 +1501,188 @@ assertEquals(View.LAYOUT_DIRECTION_RTL, configuration.getLayoutDirection());
             assertNotNull(heading);
             assertTextFits(heading);
             assertRowsReadable(page.getView().findViewById(android.R.id.list), 48);
+            assertTrue("no switch row was on screen, so this proves nothing",
+                    assertSwitchRowsReflowed(page.getView().findViewById(android.R.id.list), true) > 0);
             UiCapture.save(page.getView(), "pages/light/rtl-large.png", 320, 800);
+        }
+    }
+
+    /**
+     * At twice the text size a 320 dp phone leaves a title about a dozen characters a line
+     * beside its switch, and the German Comments page read Kom-, mentare, automatisch,
+     * übersetzen with the description wrapped in the same column. The switch now moves under
+     * the text, at the end of the row, and the title and description take the whole width.
+     * Checked on the rows, not the picture: the frame sits below the text at the row's end, a
+     * title or description that wraps runs into the switch's old column, and no title breaks
+     * inside a word that fits.
+     */
+    @Test @Config(qualifiers = "de-rDE-w320dp-h800dp-night-mdpi")
+    public void narrowSwitchRowsPutTheSwitchUnderTheTextAndGiveTheTextTheRow() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            var configuration = activity.getResources().getConfiguration();
+            configuration.fontScale = 2.0f;
+            activity.getResources().updateConfiguration(configuration, activity.getResources().getDisplayMetrics());
+            TikTokPreferenceFragment page = attachSection(activity, "COMMENTS");
+            layout(page.getView(), 320, 800);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            ListView list = page.getView().findViewById(android.R.id.list);
+            assertTrue("no switch row was on screen, so this proves nothing",
+                    assertSwitchRowsReflowed(list, false) > 0);
+            assertRowsReadable(list, 48);
+
+            // The row still works as a switch with the control inside the text block.
+            int position = firstSwitchPosition(list);
+            View row = list.getChildAt(position - list.getFirstVisiblePosition());
+            android.preference.TwoStatePreference toggle =
+                    (android.preference.TwoStatePreference) list.getAdapter().getItem(position);
+            boolean before = toggle.isChecked();
+            try {
+                assertTrue(list.performItemClick(row, position, list.getAdapter().getItemId(position)));
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertEquals("the tap did not flip the setting", !before, toggle.isChecked());
+                assertEquals("the switch does not show the new state", !before, findSwitch(row).isChecked());
+            } finally {
+                toggle.setChecked(before);
+            }
+
+            // A row recycled into a wide list goes back to the usual shape, and back again.
+            app.morphe.extension.tiktok.settings.preference.SettingsUi.reflowSwitchRow(row, 2000);
+            assertSwitchRowBesideTheText(row);
+            app.morphe.extension.tiktok.settings.preference.SettingsUi.reflowSwitchRow(row, 320);
+            layout(page.getView(), 320, 800);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue(assertSwitchRowsReflowed(list, false) > 0);
+        }
+    }
+
+    /** The same on Android 14, whose text scaling is a curve rather than a factor. */
+    @Test @Config(sdk = 34, qualifiers = "de-rDE-w320dp-h800dp-night-mdpi")
+    public void narrowSwitchRowsReflowUnderAndroid14TextScalingToo() throws Exception {
+        narrowSwitchRowsPutTheSwitchUnderTheTextAndGiveTheTextTheRow();
+    }
+
+    /**
+     * A wide list keeps the switch beside the whole text block, at twice the text size too. At
+     * the normal size even a 320 dp list keeps this shape, so only the large size shows the width
+     * deciding: the same rows at a 320 dp phone's width move the switch under the text.
+     */
+    @Test @Config(qualifiers = "de-rDE-w960dp-h800dp-night-mdpi")
+    public void wideSwitchRowsKeepTheSwitchBesideTheText() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            var configuration = activity.getResources().getConfiguration();
+            configuration.fontScale = 2.0f;
+            activity.getResources().updateConfiguration(configuration, activity.getResources().getDisplayMetrics());
+            TikTokPreferenceFragment page = attachSection(activity, "COMMENTS");
+            layout(page.getView(), 960, 800);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            ListView list = page.getView().findViewById(android.R.id.list);
+            int rows = 0;
+            for (int i = 0; i < list.getChildCount(); i++) {
+                View row = list.getChildAt(i);
+                if (findSwitch(row) == null) continue;
+                assertSwitchRowBesideTheText(row);
+                View text = (View) row.findViewById(android.R.id.title).getParent();
+                View widget = row.findViewById(android.R.id.widget_frame);
+                assertTrue("the text block runs under the switch", text.getRight() <= widget.getLeft());
+
+                app.morphe.extension.tiktok.settings.preference.SettingsUi.reflowSwitchRow(row, 320);
+                assertSame("at a 320 dp phone's width this text size keeps the switch beside the text, "
+                        + "so the wide list proved nothing", text, widget.getParent());
+                app.morphe.extension.tiktok.settings.preference.SettingsUi.reflowSwitchRow(row, list.getWidth());
+                assertSwitchRowBesideTheText(row);
+                rows++;
+            }
+            assertTrue("no switch row was on screen, so this proves nothing", rows > 0);
+        }
+    }
+
+    private static int firstSwitchPosition(ListView list) {
+        for (int i = 0; i < list.getChildCount(); i++) {
+            if (findSwitch(list.getChildAt(i)) != null) return list.getFirstVisiblePosition() + i;
+        }
+        throw new AssertionError("no switch row on screen");
+    }
+
+    private static android.widget.Switch findSwitch(View view) {
+        if (view instanceof android.widget.Switch) return (android.widget.Switch) view;
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                android.widget.Switch found = findSwitch(group.getChildAt(i));
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    /** Every switch row on screen is in the narrow shape; returns how many there were. */
+    private static int assertSwitchRowsReflowed(ListView list, boolean rtl) {
+        float density = list.getResources().getDisplayMetrics().density;
+        int rows = 0;
+        for (int i = 0; i < list.getChildCount(); i++) {
+            View row = list.getChildAt(i);
+            android.widget.Switch control = findSwitch(row);
+            if (control == null) continue;
+            rows++;
+            TextView title = row.findViewById(android.R.id.title);
+            TextView summary = row.findViewById(android.R.id.summary);
+            View widget = row.findViewById(android.R.id.widget_frame);
+            View text = (View) title.getParent();
+            String name = String.valueOf(title.getText());
+            assertSame("the switch of " + name + " is still beside the whole text block", text, widget.getParent());
+            View last = summary != null && summary.getVisibility() == View.VISIBLE ? summary : title;
+            assertTrue(name + ": the switch frame is not under the text", widget.getTop() >= last.getBottom());
+            assertEquals(name + ": the switch is not at the end of the row",
+                    rtl ? text.getPaddingLeft() : text.getWidth() - text.getPaddingRight(),
+                    rtl ? widget.getLeft() : widget.getRight());
+            // Only text that needs more than a line has a reason to reach the switch's old column.
+            for (TextView line : new TextView[]{title, summary}) {
+                if (line == null || line.getVisibility() != View.VISIBLE || line.getLineCount() < 2) continue;
+                assertTrue(name + ": wrapped text still stops short of the switch's old column",
+                        rtl ? line.getLeft() < widget.getRight() : line.getRight() > widget.getLeft());
+            }
+            assertTrue(name + ": the switch is smaller than its touch target",
+                    control.getHeight() >= Math.round(48 * density));
+            assertTrue(name + ": the switch is clipped by its frame",
+                    control.getTop() >= 0 && control.getBottom() <= widget.getHeight());
+            assertTrue(name + ": the switch frame leaves the row",
+                    widget.getLeft() >= 0 && widget.getRight() <= text.getWidth()
+                            && widget.getBottom() <= text.getHeight());
+            assertNoBreakInsideAWordThatFits(title);
+        }
+        return rows;
+    }
+
+    private static void assertSwitchRowBesideTheText(View row) {
+        TextView title = row.findViewById(android.R.id.title);
+        View widget = row.findViewById(android.R.id.widget_frame);
+        android.view.ViewGroup group = (android.view.ViewGroup) row;
+        assertSame(title.getText() + ": the switch is not back beside the text block", row, widget.getParent());
+        assertSame(title.getText() + ": the switch is back in the row but not at its end",
+                widget, group.getChildAt(group.getChildCount() - 1));
+    }
+
+    /** A line may end inside a word only when that word is wider than the text's own width. */
+    private static void assertNoBreakInsideAWordThatFits(TextView text) {
+        android.text.Layout layout = text.getLayout();
+        assertNotNull(layout);
+        CharSequence chars = layout.getText();
+        int width = text.getWidth() - text.getCompoundPaddingLeft() - text.getCompoundPaddingRight();
+        for (int line = 0; line < layout.getLineCount() - 1; line++) {
+            int end = layout.getLineEnd(line);
+            if (end <= 0 || end >= chars.length()) continue;
+            if (Character.isWhitespace(chars.charAt(end - 1)) || Character.isWhitespace(chars.charAt(end))) continue;
+            int start = end;
+            while (start > 0 && !Character.isWhitespace(chars.charAt(start - 1))) start--;
+            int stop = end;
+            while (stop < chars.length() && !Character.isWhitespace(chars.charAt(stop))) stop++;
+            String word = chars.subSequence(start, stop).toString();
+            assertTrue("\"" + text.getText() + "\" breaks inside \"" + word + "\", which fits its " + width + " px",
+                    text.getPaint().measureText(word) > width);
         }
     }
 

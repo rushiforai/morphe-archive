@@ -380,7 +380,8 @@ public final class StoryDownloads {
                 MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
                 File temp = MediaCache.createTempFile(app, "story-photo-", ".tmp");
                 temporary.add(temp);
-                String extension = RemoteMedia.fetch(photos.get(index), temp, RemoteMedia.Kind.IMAGE);
+                String extension = PhotoToJpeg.convert(app, temp,
+                        RemoteMedia.fetch(photos.get(index), temp, RemoteMedia.Kind.IMAGE));
                 String mime = "jpg".equals(extension) ? "image/jpeg" : "image/" + extension;
                 String named = names.get(index);
                 String name = named.substring(0, named.lastIndexOf('.') + 1) + extension;

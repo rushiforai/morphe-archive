@@ -71,7 +71,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     private static final String ARG_SECTION = "morphe_settings_section";
     private static final String ARG_SEARCH = "morphe_settings_search";
     private static final String ARG_TARGET_KEY = "morphe_settings_target_key";
-    private static TikTokPreferenceFragment activeFragment;
+    /** A checklist row's one box: the setting key of the member search landed on. */
+    private static final String ARG_TARGET_MEMBER = "morphe_settings_target_member";
+    // Volatile: a file read or write's worker looks it up to report in the page open now.
+    private static volatile TikTokPreferenceFragment activeFragment;
     /** Pinned to the top of this page while a restart is owed; off the page otherwise. */
     private RestartPendingPreference restartPending;
     /** Rows on this page whose sentence was swapped for "Restart pending.", to swap back. */
@@ -128,17 +131,36 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         final String title;
         final String summary;
         final String category;
+        /** The setting key of one box in a checklist row, or null for a row of its own. */
+        final String member;
         /** Folded once when the index is built: it never changes, and a query is typed a letter
          *  at a time over about 170 of these. */
         final String normalized;
 
         SearchResult(Section section, String key, String title, String summary, String category) {
+            this(section, key, null, title, summary, category, title + " " + summary + " " + category);
+        }
+
+        private SearchResult(Section section, String key, String member, String title,
+                String summary, String category, String searched) {
             this.section = section;
             this.key = key;
+            this.member = member;
             this.title = title;
             this.summary = summary;
             this.category = category;
-            this.normalized = normalizeSearchText(title + " " + summary + " " + category);
+            this.normalized = normalizeSearchText(searched);
+        }
+
+        /**
+         * One box in a checklist row. Its second line names the row it sits in, but the row's
+         * title is not searched: "hide buttons" would otherwise list all seven boxes under the
+         * row that already answers it.
+         */
+        static SearchResult member(Section section, String key, String member, String label,
+                String rowTitle, String category) {
+            return new SearchResult(section, key, member, label, rowTitle, category,
+                    label + " " + category);
         }
 
         String displaySummary() {
@@ -644,6 +666,15 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             if (targetKey != null) {
                 scrollToPreference(list, targetKey);
                 list.post(() -> scrollToPreference(list, targetKey));
+                // Only on arrival. A recreated page brings back the dialog it had open, with the
+                // boxes as they were, and one closed before the recreation stays closed.
+                String member = getArguments().getString(ARG_TARGET_MEMBER);
+                Preference row = findPreference(targetKey);
+                if (state == null && member != null && row instanceof SwitchListPreference) {
+                    list.post(() -> {
+                        if (isAdded()) ((SwitchListPreference) row).showChoicesAt(member);
+                    });
+                }
             }
         }
     }
@@ -720,12 +751,20 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
             return;
         }
 
+        // A hit on a whole word comes first, each group in page order. "counts" listed Hide
+        // verified accounts and Blocked creators, where it sits inside "accounts", above the
+        // rows that are about counts.
         List<SearchResult> matches = new ArrayList<>();
+        List<SearchResult> insideWords = new ArrayList<>();
         for (SearchResult result : searchIndex) {
-            if (result.normalized.contains(normalizedQuery)) {
+            if (!result.normalized.contains(normalizedQuery)) continue;
+            if (app.morphe.extension.tiktok.settings.SearchText.containsWord(result.normalized, normalizedQuery)) {
                 matches.add(result);
+            } else {
+                insideWords.add(result);
             }
         }
+        matches.addAll(insideWords);
         if (searchInput != null) searchInput.showResultCount(matches.size());
         if (matches.isEmpty()) {
             // A switch from a patch left unticked in the Manager is on no page and in no index, and
@@ -749,7 +788,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                 } else if (MorpheTikTokAboutPreference.KEY.equals(result.key)) {
                     Utils.openLink(MorpheTikTokAboutPreference.SOURCE_URL);
                 } else {
-                    openSection(result.section, result.key);
+                    openSection(result.section, result.key, result.member);
                 }
                 return true;
             });
@@ -929,6 +968,15 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
                     summary == null ? "" : summary.toString(),
                     categoryTitle
             ));
+            // The row's summary names only the boxes that are ticked, so "counts" found nothing
+            // while Counts under the buttons sat unticked inside it. Every box is a result of
+            // its own, in the row's place, and opening one opens the row's dialog on that box.
+            if (preference instanceof SwitchListPreference) {
+                for (SwitchListPreference.Item item : ((SwitchListPreference) preference).items()) {
+                    results.add(SearchResult.member(section, preference.getKey(), item.setting.key,
+                            item.label, title.toString(), categoryTitle));
+                }
+            }
         }
     }
 
@@ -990,7 +1038,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
     }
 
-    private static void highlightRow(ListView list, int position) {
+    static void highlightRow(ListView list, int position) {
         list.post(() -> {
             int first = list.getFirstVisiblePosition();
             int index = position - first;
@@ -1290,6 +1338,26 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
 
     void refreshBackupSettings() { updateUIToSettingValues(); }
 
+    /**
+     * The settings page in front now, or null. After a rotation or a return from the file picker
+     * it is not the page a file read or write started on, and that page is gone.
+     */
+    static TikTokPreferenceFragment active() {
+        TikTokPreferenceFragment current = activeFragment;
+        return current != null && current.isAdded() ? current : null;
+    }
+
+    /**
+     * Where a file read or write reports its outcome: the page open now, else the window it
+     * started in, else the fallback, which the banner turns into a toast.
+     */
+    static Context reportWindow(java.lang.ref.WeakReference<Activity> started, Context fallback) {
+        TikTokPreferenceFragment open = active();
+        Activity activity = open != null ? open.getActivity() : null;
+        if (activity == null) activity = started.get();
+        return activity != null ? activity : fallback;
+    }
+
     /** Reconciles a preset's batch write with the rows and the restart debt on this page. */
     static void onSettingsBatchChanged(java.util.Map<Setting<?>, Object> previousValues) {
         app.morphe.extension.tiktok.feed.FeedTextSize.onSettingChanged();
@@ -1344,10 +1412,10 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
     }
 
     private void openSection(Section section) {
-        openSection(section, null);
+        openSection(section, null, null);
     }
 
-    private void openSection(Section section, String targetKey) {
+    private void openSection(Section section, String targetKey, String targetMember) {
         FragmentManager manager = getFragmentManager();
         if (manager == null || getId() == 0) {
             Utils.showToastShort(L10n.t("Couldn't open that settings section. Reopen settings and try again."));
@@ -1363,6 +1431,7 @@ public class TikTokPreferenceFragment extends AbstractPreferenceFragment {
         }
         if (targetKey != null) {
             arguments.putString(ARG_TARGET_KEY, targetKey);
+            if (targetMember != null) arguments.putString(ARG_TARGET_MEMBER, targetMember);
         }
         fragment.setArguments(arguments);
 

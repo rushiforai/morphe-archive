@@ -5,7 +5,7 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 
 /**
- * Player theme-background targets (Anghami 8.0.28, verified in base.apk smali).
+ * Player theme-background targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Used by the "Player theme background" patch.
  *
@@ -13,18 +13,18 @@ import app.morphe.patcher.methodCall
  * `SongViewHolder` sibling that owns `layout_player`) is the ONE place the
  * player's background is coloured from the current song:
  *
- *   Song.hexColor  (server-supplied per-song hex, `Song.smali:310`)
+ *   Song.hexColor  (server-supplied per-song hex, `Song:310`)
  *     -> g9/i.s(Context, k9/g, String hexColor, int default, callback)
- *        (`g9/i.smali:1016`) which either `Color.parseColor`s it or, when
+ *        (`g9/i:1016`) which either `Color.parseColor`s it or, when
  *        it is empty, extracts the dominant colour from the cover bitmap
  *        (`g9/i.f` -> `g9/h`, the "Falling back to default grayDark"
  *        error path) and then runs
  *        `view.setBackgroundColor(colour)`
- *        (`g9/i.smali:3557-3570`) on `p0` = `player/ui/d.e` — the inflated
+ *        (`g9/i:3557-3570`) on `p0` = `player/ui/d.e` — the inflated
  *        `layout_player` root.
  *     -> the disposable is stored in `player/ui/l.n`.
  *
- * `L0()` has 3 call sites (`l.smali:1447 / 4250 / 7002`) and is the only
+ * `L0()` has 3 call sites (`l:1447 / 4250 / 7002`) and is the only
  * caller of `g9/i.s` in the player; the other caller is `V5/c` (an
  * unrelated `app/base/r` screen), which is why the hook is placed here
  * rather than in `g9/i.s` itself.
@@ -52,7 +52,7 @@ object PlayerCoverTintFingerprint : Fingerprint(
 )
 
 /**
- * Queue-row white-text target (Anghami 8.0.28, verified in base.apk smali).
+ * Queue-row white-text target (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Used by the "Player: readable queue in day mode" patch.
  *
@@ -103,7 +103,7 @@ object QueueRowInverseFingerprint : Fingerprint(
 )
 
 /**
- * Queue-row bind target (Anghami 8.0.28, verified in base.apk smali).
+ * Queue-row bind target (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * The `inverseColors()` no-op (see above) only covers the Epoxy
  * `inverseColorsOnce()` path. The white is repainted on EVERY bind by
@@ -133,10 +133,10 @@ object RowModelBindFingerprint : Fingerprint(
 )
 
 /**
- * Player song-update target (Anghami 8.0.28, verified in base.apk smali).
+ * Player song-update target (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * `com.anghami.player.ui.l.U0()` runs on every song/state update and owns
- * the like/save/download visibility block (`l.smali:4040-4130`, fields
+ * the like/save/download visibility block (`l:4040-4130`, fields
  * `v`/`x`/`z`) plus the like-state sync (`i.g()`). Currently UNUSED by
  * any patch (the lottie tint moved to the `app:lottie_colorFilter`
  * resource attr after `setColorFilter` proved a no-op on
@@ -158,7 +158,7 @@ object PlayerSongUpdateFingerprint : Fingerprint(
 )
 
 /**
- * Day-mode action-icon targets (Anghami 8.0.28, verified in base.apk).
+ * Day-mode action-icon targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * - Like/save/download are `LottieAnimationView`s (fields `v`/`x`/`z`),
  *   tinted via the `app:lottie_colorFilter` resource attr (ctor registers
@@ -189,11 +189,11 @@ object ShareViewCtorFingerprint : Fingerprint(
 )
 
 /**
- * Lottie re-tint funnels (Anghami 8.0.28, verified in base.apk smali).
+ * Lottie re-tint funnels (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * The `app:lottie_colorFilter` XML attr only sticks to the FIRST
  * composition: `LottieAnimationView.<init>` registers the KeyPath("**")
- * filter on the drawable (`LottieAnimationView.smali:792-805`, queued in
+ * filter on the drawable (`LottieAnimationView:792-805`, queued in
  * `S3/H.g` while no composition is loaded), but every later
  * `setComposition` builds fresh layers without it. The player swaps
  * animations on every state change, so like/download render white
@@ -266,7 +266,7 @@ object LikeAnimJFingerprint : Fingerprint(
     )
 )
 /**
- * Queue pill-colors target (Anghami 8.0.28, verified in base.apk smali).
+ * Queue pill-colors target (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * `com.anghami.app.playerfeed.c.m0(c$d, Bundle)` (onViewHolderCreated)
  * overwrites BOTH pill buttons' `AnghamiButton.b` models AFTER inflation
@@ -296,7 +296,7 @@ object QueuePillColorsFingerprint : Fingerprint(
 )
 
 /**
- * Now-playing highlight target (Anghami 8.0.28, verified in base.apk).
+ * Now-playing highlight target (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * `SongRowModel.setSongHighlight()` paints the playing row: title +
  * subtitle via `getColor(dark_3)` (near-black — invisible on the dark
@@ -325,7 +325,7 @@ object SongHighlightFingerprint : Fingerprint(
 )
 
 /**
- * Unselected-row target (Anghami 8.0.28, verified in base.apk smali).
+ * Unselected-row target (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * `SongRowModel.removeSongHighlight()` repaints highlight-capable but
  * currently-unselected rows: title via `getColor(app_color)` when NOT

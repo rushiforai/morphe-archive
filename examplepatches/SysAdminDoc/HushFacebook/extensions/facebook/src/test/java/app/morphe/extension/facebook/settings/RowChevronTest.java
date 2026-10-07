@@ -70,8 +70,8 @@ public class RowChevronTest {
     private static final Set<String> OPENS_SOMETHING = new LinkedHashSet<>(Arrays.asList(
             "Jump to a section", "Reels in the feed", "Reels that play by themselves", "The Reels tab",
             "Everything except Marketplace",
-            "Tab to open on", "Feeds opens on", "Words to hide", "Words that keep a post", "Comment order", "Playback quality", "Font file", "Download quality", "Save to", "Save folder",
-            "Video file name", "When you tap Download", "App to send to", "Supported links", "Meta App Manager", "Messenger", "Instagram",
+            "Tab to open on", "Feeds opens on", "Words to hide", "Words that keep a post", "People, Pages and sites to hide", "Comment order", "Playback quality", "Font file", "Download quality", "Save to", "Save folder",
+            "Video file name", "Photo file name", "When you tap Download", "App to send to", "Supported links", "Meta App Manager", "Messenger", "Instagram",
             "Export settings", "Import settings",
             "Export diagnostic report", "Source code and issues", "Licenses"));
 

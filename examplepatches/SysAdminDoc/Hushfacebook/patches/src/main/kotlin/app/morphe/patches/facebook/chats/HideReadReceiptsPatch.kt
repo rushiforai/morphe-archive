@@ -1,0 +1,50 @@
+/*
+ * Copyright 2026 Hushfacebook contributors
+ * https://github.com/SysAdminDoc/Hushfacebook
+ */
+package app.morphe.patches.facebook.chats
+
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
+import app.morphe.patches.facebook.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+
+/**
+ * Keeps Facebook from telling the sender that you've read a chat that opens inside Facebook. See
+ * ReadReceiptAnchors.kt for where the hook goes, and the extension's ReadReceipts for when.
+ *
+ * Off in the default selection, like the rest of Privacy. Picked, its switch starts on.
+ */
+@Suppress("unused")
+val hideReadReceiptsPatch = bytecodePatch(
+    // The README table check reads this literal; READ_RECEIPTS_PATCH carries the same text for the messages.
+    name = "Hide read receipts",
+    description = "People you chat with in a chat that opens inside Facebook don't see that you've read their messages. " +
+        "The chat can stay unread on this phone, and replying may still show you've read it. Its switch starts on, under Privacy.",
+    default = false,
+) {
+    category("Privacy")
+    dependsOn(settingsPatch, facebookExtensionPatch)
+    compatibleWith(*AppCompatibilities.facebook())
+
+    execute {
+        hideReadReceipts()
+        enableStatus("readReceipts")
+    }
+}
+
+/** Puts the hook in Mailbox's one mark-read method. */
+internal fun BytecodePatchContext.hideReadReceipts() {
+    val found = mutableListOf<Pair<String, String>>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        classDef.methods.filter(::isMailboxMarkRead).forEach { found += classDef.type to it.name }
+    }
+    val (owner, name) = found.singleOrNull()
+        ?: throw PatchException("$READ_RECEIPTS_PATCH: expected one Mailbox mark-read holding \"$MAILBOX_MARK_READ\", found ${found.size}")
+    mutableClassDefBy(owner).methods.single { it.name == name && isMailboxMarkRead(it) }.holdBackRead()
+}

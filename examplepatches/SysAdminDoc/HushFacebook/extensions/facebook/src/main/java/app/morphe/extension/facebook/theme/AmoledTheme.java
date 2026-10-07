@@ -247,6 +247,30 @@ public final class AmoledTheme {
     }
 
     /**
+     * The Data mode banner of Facebook Flex, issue #86. Carriers with Flex (free Facebook in text
+     * mode) show it as a strip across the page under the top bar, but its wrapper asks for
+     * CARD_BACKGROUND, so route one gave it a card's near black ({@code #121213} on black) and it
+     * read as a grey band on the black page. The patch sends the wrapper's colour here, after route
+     * one.
+     *
+     * @return the background colour, in Facebook's dark mode, for a dark grey or for what route one
+     * makes of a card: up to {@link #MAX_RAISED_CHANNEL} less {@link #RAISED_SHIFT} above the
+     * background colour in each channel, which may have a hue of its own (issue #34). Otherwise, as
+     * in light mode, {@code color} unchanged.
+     */
+    public static int flexBanner(int color) {
+        HookStatus.invoked(FamilyNames.AMOLED_THEME);
+        if (!DarkMode.on() || (color >>> 24) != 0xFF) return color;
+        if (isDarkNeutral(color, MAX_CHANNEL)) return background;
+        int red = ((color >> 16) & 0xFF) - ((background >> 16) & 0xFF);
+        int green = ((color >> 8) & 0xFF) - ((background >> 8) & 0xFF);
+        int blue = (color & 0xFF) - (background & 0xFF);
+        int high = Math.max(red, Math.max(green, blue));
+        int low = Math.min(red, Math.min(green, blue));
+        return low >= 0 && high <= MAX_RAISED_CHANNEL - RAISED_SHIFT && high - low <= MAX_SPREAD ? background : color;
+    }
+
+    /**
      * Route four: a colour that the server sends as text.
      *
      * <p>The patch replaces each call to {@link Color#parseColor} in the app with a call to this

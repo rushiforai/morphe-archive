@@ -614,6 +614,44 @@ public class FeatureGatePagesTest {
     }
 
     /**
+     * Turn on overrides on a gate's page hands over every control on it.
+     *
+     * <p>A boolean gate's Forced result stayed greyed out until the page was reopened, so the
+     * one value the page offered couldn't be changed right after the action said overrides were on.
+     */
+    @Test public void turningOverridesOnFromTheGatePageEnablesTheForcedResult() throws Exception {
+        try (var owner = Robolectric.buildActivity(PageActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            FeatureGateLabStore.resetAllLabData();
+            FeatureGateLabStore.setMasterEnabled(false);
+            var entry = new FeatureGateCatalog.Entry("held_gate", "Held gate", "abmock",
+                    "BOOLEAN", true, true, List.of(), List.of(), List.of(), "", "",
+                    true, "true", "BOOLEAN");
+            var cached = FeatureGateCatalog.class.getDeclaredField("cachedSnapshot");
+            cached.setAccessible(true);
+            cached.set(null, new FeatureGateCatalog.Snapshot(
+                    List.of(entry), Map.of(entry.identity(), entry), 0, 0, true));
+
+            FeatureGateDetailFragment detail = FeatureGateDetailFragment.forEntry(
+                    entry.manager, entry.key, entry.type);
+            attach(activity, detail);
+            Switch forced = fieldOf(detail, "booleanValue", Switch.class);
+            assertNotNull("the detail page has no forced-result switch", forced);
+            assertFalse("overrides are off, so the page starts read-only", forced.isEnabled());
+
+            View turnOn = detail.getView().findViewWithTag("feature_gate_enable_overrides");
+            assertNotNull("the page has no Turn on overrides action", turnOn);
+            turnOn.performClick();
+            FeatureGateDetailFragment.awaitChangesForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertTrue(FeatureGateLabStore.masterEnabled());
+            assertTrue("Forced result stayed disabled after Turn on overrides", forced.isEnabled());
+        }
+    }
+
+    /**
      * A save that fails puts the switch back where the store is.
      *
      * <p>The toast said it could not save and the switch stayed where the finger left it, so the

@@ -7,7 +7,10 @@
 package app.morphe.extension.tiktok.feed;
 
 import android.app.Activity;
+import android.app.Application;
 import android.graphics.Rect;
+import android.os.Bundle;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,14 +24,17 @@ import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.interaction.GestureActions;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
- * Puts the country a video was posted from next to the creator's name on the feed.
+ * Puts the country a video was posted from next to the creator's name on the feed, and on a
+ * video opened from search, a profile or a sound, which plays in a detail pager of its own.
  *
  * The name lives in a {@code title} button, which is a generic id the comment rows use as
  * well, so the row is identified structurally instead: the feed's author row is the parent
@@ -56,6 +62,12 @@ public final class AuthorRegion {
     /** Exactly what was written over it, so a row TikTok has since rebound is left alone. */
     private static CharSequence decoratedText;
 
+    /** What that text was asked to say, so a name shortened to fit still counts as settled. */
+    private static String decoratedHandle;
+    private static String decoratedRegion;
+
+    private static WeakReference<Application> followed = new WeakReference<>(null);
+
     /** The region is read by reflection, so it is resolved once per video, not per frame. */
     private static WeakReference<Object> regionAweme = new WeakReference<>(null);
     private static String regionValue;
@@ -66,34 +78,67 @@ public final class AuthorRegion {
     private AuthorRegion() {
     }
 
-    /** Called from the patched {@code MainActivity.onCreate}; the work is posted. */
+    /** Called from the patched {@code MainActivity.onCreate} and {@code DetailActivity.onCreate}; the work is posted. */
     public static void install(Activity activity) {
         if (activity == null) {
             return;
         }
-        Utils.runOnMainThread(() -> installNow(activity));
+        Utils.runOnMainThread(() -> {
+            follow(activity.getApplication());
+            installNow(activity);
+        });
+    }
+
+    /**
+     * A video opened from search, a profile or a sound plays in its own activity, with the same
+     * author row, and the hook only watched the main feed's window, so those videos never got a
+     * country (#75). The hook moves to whichever feed window comes to the front.
+     */
+    private static void follow(Application application) {
+        if (application == null || followed.get() == application) {
+            return;
+        }
+        followed = new WeakReference<>(application);
+        application.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+            @Override public void onActivityResumed(Activity resumed) {
+                if (FeedVisibility.isFeedWindow(resumed) && resumed != activityReference.get()) {
+                    installNow(resumed);
+                }
+            }
+
+            @Override public void onActivityCreated(Activity created, Bundle state) { }
+            @Override public void onActivityStarted(Activity started) { }
+            @Override public void onActivityPaused(Activity paused) { }
+            @Override public void onActivityStopped(Activity stopped) { }
+            @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
+            @Override public void onActivityDestroyed(Activity destroyed) { }
+        });
     }
 
     private static void installNow(Activity activity) {
         try {
-            if (activity.isFinishing()) {
-                LAYOUT_HOOK.detach();
+            if (activity != activityReference.get()) {
+                // The row in the window left behind gets its own name back.
                 restore();
+            }
+            if (activity.isFinishing()) {
+                stop();
                 return;
             }
             ViewGroup root = activity.findViewById(android.R.id.content);
             if (root == null) {
-                LAYOUT_HOOK.detach();
-                restore();
+                stop();
                 Logger.printInfo(() -> "Author region found no content view to watch");
                 return;
             }
             // The running package, not TikTok's: a cloned build renames it, resource table and all (#59).
-            nameViewId = activity.getResources().getIdentifier(NAME_ID, "id", activity.getPackageName());
-            postTimeViewId = activity.getResources().getIdentifier(POST_TIME_ID, "id", activity.getPackageName());
+            // Both windows share it, so once found the ids hold for the process.
             if (nameViewId == 0 || postTimeViewId == 0) {
-                LAYOUT_HOOK.detach();
-                restore();
+                nameViewId = activity.getResources().getIdentifier(NAME_ID, "id", activity.getPackageName());
+                postTimeViewId = activity.getResources().getIdentifier(POST_TIME_ID, "id", activity.getPackageName());
+            }
+            if (nameViewId == 0 || postTimeViewId == 0) {
+                stop();
                 Logger.printInfo(() -> "Author region could not resolve the feed name row");
                 return;
             }
@@ -108,6 +153,29 @@ public final class AuthorRegion {
         }
     }
 
+    /**
+     * Takes the hook off and forgets the window it was on. Remembering it would leave the feed
+     * bare: a detail page that finishes as it resumes takes the hook, and when the feed comes
+     * back it still looks like the window the hook is on, so nothing installs it again.
+     */
+    private static void stop() {
+        LAYOUT_HOOK.detach();
+        restore();
+        activityReference = new WeakReference<>(null);
+    }
+
+    /**
+     * The player moved on to another video. A layout pass usually follows and does this anyway,
+     * but a detail page lays out first while the feed's video is still the current one, and
+     * nothing on it may lay out again once its own video starts.
+     */
+    public static void onVideoChanged() {
+        if (!SettingsStatus.authorRegionEnabled || activityReference.get() == null) {
+            return;
+        }
+        Utils.runOnMainThread(AuthorRegion::apply);
+    }
+
     private static void apply() {
         try {
             Activity activity = activityReference.get();
@@ -116,8 +184,7 @@ public final class AuthorRegion {
                 return;
             }
             if (activity.isFinishing()) {
-                LAYOUT_HOOK.detach();
-                restore();
+                stop();
                 return;
             }
 
@@ -156,8 +223,14 @@ public final class AuthorRegion {
         }
         List<TextView> names = new ArrayList<>(3);
         collectNames(root, names);
-        if (names.size() <= 1) {
-            return names.isEmpty() ? null : names.get(0);
+        if (names.isEmpty()) {
+            return null;
+        }
+        // Outside the pager there is no neighbour to mistake it for. Inside, a lone row still
+        // has to be on screen: on a LIVE preview or an ad with no author row, the only row left
+        // can be the cell beside it, and it would take this video's country.
+        if (names.size() == 1 && GestureActions.cellOf(names.get(0)) == names.get(0)) {
+            return names.get(0);
         }
         Rect visible = new Rect();
         TextView best = null;
@@ -174,14 +247,16 @@ public final class AuthorRegion {
 
     /** Every author row's name under {@code view}, skipping whatever is hidden. */
     private static void collectNames(View view, List<TextView> names) {
-        if (view.getVisibility() != View.VISIBLE) {
-            return;
-        }
+        // The post time marks the row even while it's hidden: TikTok keeps it GONE in the feed
+        // unless the publish date is shown, and the name beside it still needs the country.
         if (view.getId() == postTimeViewId && view.getParent() instanceof ViewGroup) {
             View name = ((ViewGroup) view.getParent()).findViewById(nameViewId);
-            if (name instanceof TextView) {
+            if (name instanceof TextView && name.getVisibility() == View.VISIBLE) {
                 names.add((TextView) name);
             }
+        }
+        if (view.getVisibility() != View.VISIBLE) {
+            return;
         }
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
@@ -207,12 +282,11 @@ public final class AuthorRegion {
         boolean ours = name == decoratedName.get() && current != null && written != null
                 && current.toString().equals(written.toString());
 
-        if (ours) {
-            CharSequence settled = build(originalName, handle, region);
-            if (settled != null && settled.toString().equals(current.toString())) {
-                // Already saying this. Every layout pass lands here.
-                return;
-            }
+        if (ours && Objects.equals(handle, decoratedHandle) && Objects.equals(region, decoratedRegion)) {
+            // Already saying this. Every layout pass lands here, and the first one after the
+            // write is when a name TikTok cut short can be fitted.
+            refit(name, originalName, handle, region);
+            return;
         }
 
         // Put back whatever was written before, then read the name again: on a video
@@ -229,7 +303,44 @@ public final class AuthorRegion {
         decoratedName = new WeakReference<>(name);
         originalName = text;
         decoratedText = updated;
+        decoratedHandle = handle;
+        decoratedRegion = region;
         name.setText(updated);
+        // A row with a fixed width takes the new text without a layout pass, so no later pass
+        // would come to fit it. Its layout is already rebuilt here; a wrap_content row has none
+        // yet and is fitted on the pass it asked for.
+        refit(name, text, handle, region);
+    }
+
+    private static void refit(TextView name, CharSequence original, String handle, String region) {
+        CharSequence fitted = fit(name, label(original, handle), region);
+        if (fitted != null && !fitted.toString().equals(String.valueOf(name.getText()))) {
+            decoratedText = fitted;
+            name.setText(fitted);
+        }
+    }
+
+    /**
+     * TikTok cuts a long name short with an ellipsis, and the country after it went with it
+     * (#75). Once the row has been laid out cut, the name itself is shortened so the country
+     * reads whole. Null when the row fits, isn't laid out yet, or has no room for the country.
+     */
+    static CharSequence fit(TextView name, CharSequence label, String region) {
+        if (label == null || region == null) {
+            return null;
+        }
+        Layout layout = name.getLayout();
+        if (layout == null || layout.getLineCount() != 1 || layout.getEllipsisCount(0) == 0) {
+            return null;
+        }
+        String tail = SEPARATOR + region;
+        float room = name.getWidth() - name.getCompoundPaddingLeft() - name.getCompoundPaddingRight()
+                - name.getPaint().measureText(tail);
+        if (room <= 0) {
+            return null;
+        }
+        CharSequence shortened = TextUtils.ellipsize(label, name.getPaint(), room, TextUtils.TruncateAt.END);
+        return shortened.length() == 0 ? null : TextUtils.concat(shortened, tail);
     }
 
     /**
@@ -238,11 +349,19 @@ public final class AuthorRegion {
      * styled name keeps its spans.
      */
     private static CharSequence build(CharSequence original, String handle, String region) {
+        CharSequence text = label(original, handle);
+        if (text == null) {
+            return null;
+        }
+        return region == null ? text : TextUtils.concat(text, SEPARATOR + region);
+    }
+
+    /** The name part of the row: the handle when asked for, otherwise TikTok's own name. */
+    private static CharSequence label(CharSequence original, String handle) {
         if (original == null) {
             return null;
         }
-        CharSequence text = handle == null ? original : "@" + handle;
-        return region == null ? text : TextUtils.concat(text, SEPARATOR + region);
+        return handle == null ? original : "@" + handle;
     }
 
     /** Lets a test drive the ids the activity's resources would otherwise supply. */
@@ -306,6 +425,8 @@ public final class AuthorRegion {
         decoratedName = new WeakReference<>(null);
         originalName = null;
         decoratedText = null;
+        decoratedHandle = null;
+        decoratedRegion = null;
 
         if (name == null || previous == null || written == null) {
             return;

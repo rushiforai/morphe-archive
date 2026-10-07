@@ -5,7 +5,7 @@ import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
 
 /**
- * Upsell feature-button targets (Anghami 8.0.28, verified in base.apk smali).
+ * Upsell feature-button targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Used by the "Hide upsell feature buttons" patch. Each hides through the
  * app's own visibility branch, so no empty cells or layout gaps remain:
@@ -68,6 +68,36 @@ object MixAIButtonPlaylistFingerprint : Fingerprint(
         methodCall(
             definingClass = "Lcom/anghami/ghost/local/Account;",
             name = "getBooleanAttribute",
+        ),
+    )
+)
+
+object KaraokeShowFingerprint : Fingerprint(
+    definingClass = "Lcom/anghami/ghost/local/Account;",
+    name = "isShowKaraoke",
+    // NOTE: no accessFlags; class + name + signature pin it. Trivial getter
+    // on the server `showKaraoke` flag; feeds B5/f setupKaraokeVolumeBar
+    // (lyrics-view karaoke bar/button visibility).
+    returnType = "Z",
+    parameters = listOf(),
+    filters = listOf(
+        fieldAccess(
+            smali = "Lcom/anghami/ghost/local/Account;->showKaraoke:Z"
+        ),
+    )
+)
+
+object KaraokeCanUseFingerprint : Fingerprint(
+    definingClass = "Lcom/anghami/ghost/local/Account;",
+    name = "isCanUseKaraoke",
+    // NOTE: no accessFlags; class + name + signature pin it. Trivial getter
+    // on the server `canUseKaraoke` flag; the karaoke FEATURE gate in B5/f
+    // (distinct from the upsell-button flag above).
+    returnType = "Z",
+    parameters = listOf(),
+    filters = listOf(
+        fieldAccess(
+            smali = "Lcom/anghami/ghost/local/Account;->canUseKaraoke:Z"
         ),
     )
 )

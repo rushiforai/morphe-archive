@@ -848,7 +848,9 @@ public class Mp4JoinTest {
     @Test(timeout = 12_000)
     public void nonzeroToolsFailWithTheirPrintedDiagnostic() throws Exception {
         File marker = temp.newFile("fail-pids.txt");
-        AssertionError failure = assertThrows(AssertionError.class, () -> run(3_000, tool("fail", marker)));
+        // Room for a cold JVM start on a loaded machine: the gate ran beside two other builds on
+        // 2026-10-06 and three seconds read as a timeout. The point is the nonzero exit, not speed.
+        AssertionError failure = assertThrows(AssertionError.class, () -> run(10_000, tool("fail", marker)));
         assertTrue(failure.getMessage(), failure.getMessage().contains("encoder-error"));
         assertFalse("nonzero exit was misclassified as a timeout", failure.getMessage().startsWith("timed out:"));
         dead(marker);

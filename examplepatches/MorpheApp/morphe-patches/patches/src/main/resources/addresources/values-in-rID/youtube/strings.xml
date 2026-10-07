@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Tentang</string>
   <string name="morphe_settings_screen_01_ads_title">Iklan</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Thumbnail alternatif</string>
   <string name="morphe_settings_screen_03_feed_title">Feed</string>
   <string name="morphe_settings_screen_04_general_title">Umum</string>
   <string name="morphe_settings_screen_05_player_title">Pemutar</string>
@@ -65,6 +64,8 @@ Perubahan termasuk:
   <string name="morphe_hide_artist_cards_title">Sembunyikan kartu artis</string>
   <string name="morphe_hide_artist_cards_summary">Menyembunyikan kartu artis di bagian atas hasil pencarian</string>
   <string name="morphe_hide_auto_dubbed_label_title">Sembunyikan label \'Sulih suara Otomatis\'</string>
+  <string name="morphe_hide_channel_buttons_title">Sembunyikan tombol saluran</string>
+  <string name="morphe_hide_channel_buttons_summary">Menyembunyikan tombol seperti Subscribe, Lihat Saluran, Komunitas, dan YouTube Music dari profil saluran di hasil penelusuran</string>
   <string name="morphe_hide_community_posts_title">Sembunyikan postingan komunitas</string>
   <string name="morphe_hide_compact_banner_title">Sembunyikan spanduk ringkas</string>
   <string name="morphe_hide_compact_banner_summary">Menyembunyikan banner ringkas dan spasi antara beberapa komponen</string>
@@ -76,7 +77,6 @@ Perubahan termasuk:
   <string name="morphe_hide_floating_microphone_button_summary">Menyembunyikan tombol mikrofon yang mengambang di sudut kanan bawah layar saran pencarian</string>
   <string name="morphe_hide_get_premium_button_title">Sembunyikan tombol \'Dapatkan Premium\'</string>
   <string name="morphe_hide_history_shelf_title">Sembunyikan rak Riwayat</string>
-  <string name="morphe_hide_history_shelf_summary">Menyembunyikan rak Riwayat di tab Anda</string>
   <string name="morphe_hide_horizontal_shelves_title">Sembunyikan rak-rak mendatar</string>
   <string name="morphe_hide_horizontal_shelves_summary">Rak horizontal disembunyikan, seperti Berita terkini, Postingan komunitas yang mungkin Anda sukai, Lanjutkan menonton, Jelajahi lebih banyak saluran, Jelajahi lebih banyak topik, Untuk Anda, Video terbaru, Paling relevan, Postingan dari Komunitas Kreator, Belanja dan Tonton lagi</string>
   <string name="morphe_hide_hyped_label_title">Sembunyikan label Hype</string>
@@ -110,7 +110,8 @@ Perubahan termasuk:
   <string name="morphe_hide_show_more_button_title">Sembunyikan tombol \'Tampilkan selengkapnya\'</string>
   <string name="morphe_hide_show_more_button_summary">Menyembunyikan tombol perluas di bawah video pada hasil pencarian</string>
   <string name="morphe_hide_subscribed_channels_bar_title">Sembunyikan bilah saluran yang di-subscribe</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">Sembunyikan nama saluran di bar saluran yang diikuti</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">Sembunyikan nama saluran di-subscribe</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">Menyembunyikan nama saluran di bilah saluran yang di-subscribe</string>
   <string name="morphe_hide_surveys_title">Sembunyikan survei</string>
   <string name="morphe_hide_surveys_summary">Sembunyikan survei dan pengingat mengenai akurasi rekomendasi feed</string>
   <string name="morphe_hide_ticket_shelf_title">Sembunyikan rak tiket</string>
@@ -159,6 +160,11 @@ Perubahan termasuk:
   <string name="morphe_hide_sync_button_title">Sembunyikan tombol \'Sinkronkan ke video\'</string>
   <string name="morphe_hide_timed_reactions_title">Sembunyikan reaksi terjadwal</string>
   <string name="morphe_hide_timed_reactions_summary">Menyembunyikan fitur yang memungkinkan pengguna memberikan reaksi dengan emoji di bagian komentar dan live chat</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">Sembunyikan \'Bantuan &amp; saran\' di menu</string>
+  <string name="morphe_hide_help_feedback_menu_summary">Menyembunyikan \'Bantuan &amp; saran\' di menu tiga titik pada bilah aplikasi, seperti menu hasil penelusuran</string>
+  <string name="morphe_hide_handle_title">Sembunyikan handle</string>
+  <string name="morphe_hide_handle_summary">Menyembunyikan handle saluran di tab \'Anda\'</string>
   <string name="morphe_hide_video_title_title">Sembunyikan judul video</string>
   <string name="morphe_hide_video_title_summary">Menyembunyikan judul video dalam mode layar penuh</string>
   <string name="morphe_sanitize_video_subtitle_title">Bersihkan teks subtitel video</string>
@@ -681,7 +687,7 @@ Untuk mengatasinya, aktifkan 'Palsukan aliran video' dan ubah 'Klien bawaan' men
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Sembunyikan tombol Sambungkan</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Sembunyikan tombol Laporkan</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Sembunyikan tombol Remix</string>
@@ -1075,10 +1081,7 @@ Batasan: Jika 'Kembalikan bilah tindakan video lama' dinonaktifkan, hamparan 'Vi
   <string name="morphe_playback_in_feeds_entry_off">Nonaktif</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">Pulihkan judul asli</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">Diterjemahkan</string>
-  <string name="morphe_restore_original_titles_type_entry_original">Asli</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">Diterjemahkan dengan DeArrow</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">Asli dengan DeArrow</string>
+  <string name="morphe_restore_original_titles_summary">Menampilkan judul video asli, deskripsi video, dan deskripsi saluran, bukan yang diterjemahkan secara otomatis</string>
   <string name="morphe_restore_original_titles_loading">Memuat judul…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">Nonaktifkan penyegaran feed otomatis</string>
@@ -1152,39 +1155,42 @@ Batasan: Jika 'Kembalikan bilah tindakan video lama' dinonaktifkan, hamparan 'Vi
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Abaikan pembatasan wilayah gambar</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Mengalihkan permintaan thumbnail ke server alternatif untuk memperbaiki gambar yang hilang di negara yang dibatasi</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">Judul DeArrow</string>
+  <string name="morphe_dearrow_titles_summary">Mengganti judul video dengan judul hasil kontribusi komunitas yang dikirimkan ke DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_title">Tampilkan ikon DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_summary">Menampilkan ikon DeArrow pada judul video kontribusi pengguna</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">Untuk tab Beranda</string>
+  <string name="morphe_dearrow_thumbnail_home_title">Untuk tab Beranda</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">Untuk tab Subscription</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">Untuk tab Subscription</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">Untuk tab Anda</string>
-  <string name="morphe_alt_thumbnail_player_title">Untuk daftar putar &amp; rekomendasi pemutar</string>
-  <string name="morphe_alt_thumbnail_search_title">Untuk hasil pencarian</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Thumbnail asli</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Thumbnail asli</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Tangkapan diam</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Tangkapan diam</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow menyediakan thumbnail yang dikumpulkan dari pengguna untuk video YouTube. Thumbnail ini seringkali lebih relevan daripada yang disediakan oleh YouTube
+  <string name="morphe_dearrow_thumbnail_library_title">Untuk tab Anda</string>
+  <string name="morphe_dearrow_thumbnail_player_title">Untuk daftar putar &amp; rekomendasi pemutar</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Untuk hasil pencarian</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Thumbnail asli</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Thumbnail asli</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Tangkapan diam</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Tangkapan diam</string>
+  <string name="morphe_dearrow_about_summary">"DeArrow menyediakan judul dan gambar mini hasil kontribusi komunitas untuk video YouTube. Judul dan gambar mini ini sering kali lebih relevan daripada yang disediakan YouTube
 
-Jika diaktifkan, URL video akan dikirim ke server API dan tidak ada data lain yang dikirim. Jika sebuah video tidak memiliki thumbnail dari DeArrow, maka gambar asli atau tangkapan layar akan ditampilkan
+Jika diaktifkan, URL video akan dikirim ke server API dan tidak ada data lain yang dikirim. Jika video tidak memiliki gambar mini DeArrow, gambar mini asli atau bingkai diam akan ditampilkan
 
 Ketuk di sini untuk membuka DeArrow.ajay.app"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Tampilkan peringatan kesalahan sambungan</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Menampilkan notifikasi saat server DeArrow tidak tersedia</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">Titik akhir API DeArrow</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">URL titik akhir cache thumbnail DeArrow</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Tangkapan video diam</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Tangkapan diam diambil dari awal / tengah / akhir di setiap video. Gambar-gambar ini dibuat di YouTube dan tidak ada API eksternal yang digunakan</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Gunakan tangkapan diam cepat</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">Meningkatkan kecepatan pemuatan dengan menggunakan gambar berkualitas sedang. Siaran langsung, video yang belum dirilis, dan video lama mungkin menampilkan thumbnail kosong</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Ekstrak bingkai video dari</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Awal</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Tengah</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Akhir</string>
+  <string name="morphe_dearrow_connection_toast_title">Tampilkan peringatan kesalahan sambungan</string>
+  <string name="morphe_dearrow_connection_toast_summary">Menampilkan notifikasi saat server DeArrow tidak tersedia</string>
+  <string name="morphe_dearrow_api_url_title">Titik akhir API DeArrow</string>
+  <string name="morphe_dearrow_api_url_summary">URL titik akhir cache thumbnail DeArrow</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Tangkapan video diam</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Tangkapan diam diambil dari awal / tengah / akhir di setiap video. Gambar-gambar ini dibuat di YouTube dan tidak ada API eksternal yang digunakan</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Ekstrak bingkai video dari</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Awal</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Tengah</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Akhir</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow sementara tidak tersedia (kode status: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow sementara tidak tersedia</string>
+  <string name="morphe_dearrow_error">DeArrow sementara tidak tersedia (kode status: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow sementara tidak tersedia</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Kembalikan gaya tombol pemutar lama</string>

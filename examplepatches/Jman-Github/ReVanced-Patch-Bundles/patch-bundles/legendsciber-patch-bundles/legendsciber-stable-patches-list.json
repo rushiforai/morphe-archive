@@ -1,5 +1,5 @@
 {
-    "version": "v1.41.9",
+    "version": "v1.43.6",
     "patches": [
         {
             "compatiblePackages": [
@@ -181,7 +181,7 @@
             ],
             "default": true,
             "dependencies": [],
-            "description": "Rewarded ads pay out instantly: no video plays, the engine receives the started and completed callbacks straight away so the reward is granted offline too.",
+            "description": "Rewarded ads pay out instantly: the engine is told a rewarded video is available and receives the started and completed callbacks straight away, so no video plays and every reward is granted offline.",
             "name": "Hill Climb Racing Instant Rewarded Video Rewards",
             "options": []
         },

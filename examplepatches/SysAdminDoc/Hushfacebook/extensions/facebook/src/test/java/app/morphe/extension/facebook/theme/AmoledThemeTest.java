@@ -378,6 +378,31 @@ public class AmoledThemeTest {
         assertEquals("the navigation bar", NAVY, AmoledTheme.navigationBar(0xFF252728, true));
     }
 
+    /**
+     * Issue #86: Data mode's banner wrapper asks for a card's colour, and takes the page's instead of
+     * the near black route one gives a card, on black and on a Background colour with a hue.
+     */
+    @Test
+    public void theDataModeBannerTakesThePageColour() {
+        assertEquals("a card's near black", BLACK, AmoledTheme.flexBanner(AmoledTheme.apply(0xFF333334, Token.CARD_BACKGROUND)));
+        assertEquals("a dark grey", BLACK, AmoledTheme.flexBanner(0xFF242526));
+        AmoledTheme.useBackground(NAVY);
+        assertEquals("a card above navy", NAVY, AmoledTheme.flexBanner(AmoledTheme.apply(0xFF333334, Token.CARD_BACKGROUND)));
+    }
+
+    /** The mutation controls for #86: a lighter grey, a hue, a translucent colour and light mode keep theirs. */
+    @Test
+    public void theDataModeBannerLeavesWhatIsNoCard() {
+        assertEquals("a grey further up than a card goes", 0xFF333334, AmoledTheme.flexBanner(0xFF333334));
+        assertEquals("a colour with a hue", 0xFF9A3BBE, AmoledTheme.flexBanner(0xFF9A3BBE));
+        assertEquals("a translucent near black", 0x80121213, AmoledTheme.flexBanner(0x80121213));
+        AmoledTheme.useBackground(NAVY);
+        assertEquals("a grey further above navy than a card goes", 0xFF3A3B3C, AmoledTheme.flexBanner(0xFF3A3B3C));
+        DarkMode.answer(false);
+        assertEquals("light mode's white card", 0xFFFFFFFF, AmoledTheme.flexBanner(0xFFFFFFFF));
+        assertEquals("light mode", 0xFF121213, AmoledTheme.flexBanner(0xFF121213));
+    }
+
     /** The mutation controls for #34: Facebook's black, light mode and what AMOLED never touched keep theirs. */
     @Test
     public void aBackgroundColourLeavesTheRestAlone() {

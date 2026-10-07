@@ -120,6 +120,7 @@ internal val expectedHooks = mapOf(
     "people_search" to setOf("LX/CX5;->DLP(LX/EA8;Ljava/lang/Object;)LX/EBu;"),
     "people_story" to setOf("Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;->" +
         "A0Y(Lcom/facebook/messaging/montage/viewer/MontageViewerFragment;)V"),
+    INBOX_REFRESH_HOOK to setOf("$INBOX_SUPPLIER->A0B()$IMMUTABLE_LIST"),
     "allow_screenshot" to setOf(
         "LX/N2h;->run()V",
         "Lcom/facebook/screenshot/ScreenshotContentObserver;->onChange(ZLandroid/net/Uri;)V",
@@ -131,6 +132,7 @@ internal val expectedHooks = mapOf(
     "read_mailbox" to setOf("LX/9sm;->A01(Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V"),
     "keep_unsent" to setOf("LX/SH3;->A01(Landroid/content/Intent;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;)V"),
     "anonymous_stories" to setOf("LX/HNV;->C1V(${MONTAGE_CARD}Z)V"),
+    APP_ICONS to setOf("LX/7Ya;->A02($FB_USER_SESSION)Z", "LX/7Ya;->A03($FB_USER_SESSION)Z"),
     "save_stories" to setOf("LX/JgG;->onClick(Landroid/view/View;)V"),
     "growth_notes" to setOf("Lcom/facebook/presence/note/ui/nux/controller/NotesNuxController;->" +
         "A01(Landroidx/fragment/app/Fragment;LX/Ocr;Ljava/util/List;LX/5MS;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;"),
@@ -141,7 +143,23 @@ internal val expectedHooks = mapOf(
     "ai_search" to setOf("LX/5OA;->A0A(LX/5OA;)Z", "LX/5OA;->A0B(LX/5OA;)Z"),
     "ai_search_chip" to setOf("LX/D8E;->render(LX/2MZ;)LX/1GG;"),
     "emoji_typeface" to setOf("LX/1KV;->A00()Landroid/graphics/Typeface;"),
+    ANALYTICS_UPLOADS to setOf(
+        "LX/0c0;->onStartCommand(Landroid/content/Intent;II)I",
+        "LX/0c0;->onStartJob(Landroid/app/job/JobParameters;)Z",
+        "Lcom/facebook/analytics2/logger/GooglePlayUploadService;->onStartCommand(Landroid/content/Intent;II)I",
+        "Lcom/facebook/analytics2/logger/legacy/uploader/AlarmBasedUploadService;->onStartCommand(Landroid/content/Intent;II)I",
+        "Lcom/facebook/analytics2/logger/legacy/uploader/HighPriUploadRetryReceiver;->onReceive(Landroid/content/Context;Landroid/content/Intent;)V",
+        "Lcom/facebook/analytics2/logger/legacy/uploader/LollipopUploadService;->onStartCommand(Landroid/content/Intent;II)I",
+        "Lcom/facebook/analytics2/logger/legacy/uploader/LollipopUploadService;->onStartJob(Landroid/app/job/JobParameters;)Z",
+        "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartCommand(Landroid/content/Intent;II)I",
+        "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartJob(Landroid/app/job/JobParameters;)Z",
+    ),
+    MESSAGE_LOG to setOf(newMessageNotificationCtor("LX/5qJ;", "LX/5Yc;")),
+    EMOJI_DRAWER to setOf("Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A02()Z",
+        "LX/H1n;->invoke(Ljava/lang/Object;)Ljava/lang/Object;"),
     "original_photo" to setOf(TRANSCODE_IMAGE, TRANSCODE_IMAGE_ASYNC),
+    ORIGINAL_VIDEO to setOf(VIDEO_TRANSCODE),
+    SYSTEM_CAMERA to setOf("LX/7Jp;->DXV($MONTAGE_PARAMS$NAVIGATION_TRIGGER)V"),
     "avatar_tabs" to setOf("Lcom/facebook/messaging/msys/thread/composer/configuration/xapp/BaseXappComposerConfigurationFactory;->A0P()$IMMUTABLE_LIST"),
     "menu_settings" to setOf(
         "LX/9rv;->A1i()V",
@@ -235,8 +253,11 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             break
         }
     }
+    val appIconManagers = findAppIconManagers(classes)
     var searchFieldRender: Method? = null
     var changedViewer = false
+    val drawerReaders = mutableListOf<Method>()
+    val drawerAnchors = mutableListOf<Method>()
     for (cls in classes) {
         val original = cls.fields.firstOrNull { it.name == "__redex_internal_original_name" }
             ?.initialValue.let { (it as? StringEncodedValue)?.value }
@@ -253,6 +274,8 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             val refs = instructions.mapNotNull { (it as? ReferenceInstruction)?.reference }
             val strings = refs.filterIsInstance<StringReference>().map { it.string }.toSet()
             val gate = method.returnType == "Z" && method.parameterTypes.isEmpty()
+            if (instructions.any { it.isEmojiDrawerFlag() }) drawerReaders.add(method)
+            if (EMOJI_DRAWER_ANCHOR in strings) drawerAnchors.add(method)
             if (method.returnType == "Z" && (method.parameterTypes.isEmpty() ||
                 (AccessFlags.STATIC.isSet(method.accessFlags) && method.parameterTypes == listOf(cls.type)))) {
                 for ((key, spec) in pluginGates) if (strings.any { it in spec.anchors }) add(key)
@@ -260,6 +283,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             if (adContract && method.returnType == IMMUTABLE_LIST && method.parameterTypes.size == 3 &&
                 strings.containsAll(setOf("messaging.inbox.itemlistprocessor.ItemListProcessorInterfaceSpec", "processItems", "new_friend_bump_threads"))) add("ads")
             if (gate && "com.facebook.messaging.friendsinboxunit.plugins.inboxunit.FriendsInboxUnitKillSwitch" in strings) add("stories")
+            if (cls.type in appIconManagers && method.isAppIconGate()) add(APP_ICONS)
             if (gate && instructions.any {
                 it.opcode == Opcode.NEW_INSTANCE &&
                     ((it as? ReferenceInstruction)?.reference as? TypeReference)?.type in facebookPlugins
@@ -293,6 +317,9 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
                 strings.containsAll(setOf(PEOPLE_SEARCH_SOURCE, "Failed to load people you may know"))) add("people_search")
             if (AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.parameterTypes == listOf(cls.type) &&
                 STORY_SUGGESTIONS_QUERY in strings) add("people_story")
+            // The chat list supplier's items read, which first traces under its own name.
+            if (cls.type == INBOX_SUPPLIER && !AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == IMMUTABLE_LIST &&
+                method.parameterTypes.isEmpty() && INBOX_ITEMS_TRACE in strings) add(INBOX_REFRESH_HOOK)
             if (cls.type == "Lcom/facebook/screenshot/ScreenshotContentObserver;" && method.name == "onChange" &&
                 method.returnType == "V") add("allow_screenshot")
             // Android 14 and newer report a screenshot here, and Messenger turns it into the in-chat notice.
@@ -304,6 +331,7 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
                 instructions.any { (it as? NarrowLiteralInstruction)?.narrowLiteral == FLAG_SECURE } &&
                 refs.any { it.toString() == "Landroid/view/Window;->addFlags(I)V" }) add("allow_screenshot")
             if (cls.type == MEDIA_TRANSCODER && method.hookId().let { it == TRANSCODE_IMAGE || it == TRANSCODE_IMAGE_ASYNC }) add("original_photo")
+            if (method.isVideoTranscode(strings)) add(ORIGINAL_VIDEO)
             if (method.returnType == "V" && method.parameterTypes.size == 3 &&
                 method.parameterTypes[0] == "Landroid/content/Intent;" &&
                 strings.any { "ACTION_REVOKE_MESSAGE" in it }) add("keep_unsent")
@@ -406,6 +434,11 @@ internal fun findControls(classes: Iterable<ClassDef>, community: CommunityInbox
             ?.let { found.getValue("ai_search_chip").add(it) }
     }
     if (changedViewer) found.getValue("screenshot_viewers").clear()
+    found.getValue(EMOJI_DRAWER).addAll(connectEmojiDrawer(drawerReaders, drawerAnchors))
+    found.getValue(ANALYTICS_UPLOADS).addAll(findAnalyticsUploads(classes))
+    found.getValue(MESSAGE_LOG).addAll(findMessageLogHook(classes))
+    messageLogContract = resolveMessageLogContract(classes)
+    found.getValue(SYSTEM_CAMERA).addAll(findSystemCamera(classes))
     return found
 }
 
@@ -585,19 +618,6 @@ internal fun MutableMethod.validateSwitch() {
     if (returnType != "V" && returnType != "Z" && !returnType.startsWith("L")) {
         throw PatchException("Unexpected hook return type: $returnType")
     }
-}
-
-internal fun MutableMethod.injectEmojiTypeface() {
-    validateScratch()
-    if (returnType != "Landroid/graphics/Typeface;") {
-        throw PatchException("Expected Typeface return for emoji hook: ${hookId()}")
-    }
-    addInstructionsWithLabels(0, """
-        invoke-static {}, $SETTINGS->systemEmojiTypeface()Landroid/graphics/Typeface;
-        move-result-object v0
-        if-eqz v0, :stock_behavior
-        return-object v0
-    """.trimIndent(), ExternalLabel("stock_behavior", getInstruction(0)))
 }
 
 internal fun MutableMethod.validateOriginalPhoto() {

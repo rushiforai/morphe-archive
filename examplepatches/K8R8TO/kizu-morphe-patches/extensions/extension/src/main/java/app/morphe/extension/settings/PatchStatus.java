@@ -24,4 +24,8 @@ public final class PatchStatus {
     public static boolean blockAds() {
         return false;
     }
+
+    public static boolean homeCleanup() {
+        return false;
+    }
 }

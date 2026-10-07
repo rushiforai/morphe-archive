@@ -40,6 +40,31 @@ final class PinTransfer {
         HttpURLConnection open(URI uri) throws IOException;
     }
 
+    static final Connection NETWORK = uri -> (HttpURLConnection) uri.toURL().openConnection();
+
+    /**
+     * True when the media host answers a HEAD request for the address with a 200 and the image
+     * type the address names. It follows no redirect.
+     */
+    static boolean present(PinMedia.Source source, Connection factory) throws IOException {
+        URI uri = PinMedia.mediaUri(source.url);
+        if (uri == null) throw new IOException("Not a public Pinterest media URL");
+        HttpURLConnection head = factory.open(uri);
+        try {
+            head.setRequestMethod("HEAD");
+            head.setInstanceFollowRedirects(false);
+            head.setUseCaches(false);
+            head.setConnectTimeout(5000);
+            head.setReadTimeout(5000);
+            head.setRequestProperty("Accept-Encoding", "identity");
+            if (head.getResponseCode() != HttpURLConnection.HTTP_OK) return false;
+            String type = head.getContentType();
+            return type != null && type.split(";", 2)[0].trim().equalsIgnoreCase(source.mime);
+        } finally {
+            head.disconnect();
+        }
+    }
+
     /** Only an owned destination proved incomplete is safe for the caller to remove. */
     static final class SaveFailure extends IOException {
         final boolean incomplete;
@@ -50,8 +75,7 @@ final class PinTransfer {
     }
 
     static void save(Context context, Uri destination, String source) throws SaveFailure {
-        save(context, destination, source, uri -> (HttpURLConnection) uri.toURL().openConnection(),
-                System::nanoTime, TIME_LIMIT_MS, BYTE_LIMIT);
+        save(context, destination, source, NETWORK, System::nanoTime, TIME_LIMIT_MS, BYTE_LIMIT);
     }
 
     static void save(Context context, Uri destination, String source, Connection factory,

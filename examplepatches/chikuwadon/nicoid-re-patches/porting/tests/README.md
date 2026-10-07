@@ -60,3 +60,12 @@ java -cp /tmp/nicoid-account-history-tests:/tmp/nicoid-json.jar e.e.a.AccountHis
 動画情報の統計表示: `VideoInfoCountsTest` は公式順序、全桁表示、取得できない項目の省略、実際の0、64bitの数値を確認します。`VideoInfoDexTest patched.apk` は単独・再生画面内の共通情報パネルからアイコン描画への接続と、既存メタデータ応答の統計取得フックを確認します。動画情報の数値は通常の太さで表示し、統計行の上下に2dpずつ余白を追加します。
 
 `InfoStatisticsPayload.java` は変更前の method-delta.dex と6.49の元APKを入力として、上記2フックを追加した今回のpayloadを生成する再現用ツールです（既にフックを含むpayloadへの再適用は不要）。
+
+## Background playback switching
+
+```sh
+javac -d /tmp/nicoid-routing-tests extensions/extension/src/main/java/e/e/a/PlaybackRouting.java porting/tests/PlaybackRoutingTest.java
+java -cp /tmp/nicoid-routing-tests e.e.a.PlaybackRoutingTest
+```
+
+Checks distinguish background sessions from popup routing and reject stale media bindings after a player or video changes, including recreation of the same video. On a device, switch background video A to background video B and verify B's title, duration, play/pause and seeking. Open B normally while A plays in the background and confirm B stays in the normal player; also verify popup-to-popup switching.

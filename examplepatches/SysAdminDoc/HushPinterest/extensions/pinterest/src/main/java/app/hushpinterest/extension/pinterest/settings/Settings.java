@@ -82,6 +82,8 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushpinterest_hide_pin_menu_pin_boost", FALSE);
     public static final BooleanSetting HIDE_COMMENTS =
             new BooleanSetting("hushpinterest_hide_comments", FALSE);
+    public static final BooleanSetting HIDE_TOPIC_SUGGESTIONS =
+            new BooleanSetting("hushpinterest_hide_topic_suggestions", FALSE);
     public static final BooleanSetting QUIET_EMAIL_REMINDER =
             new BooleanSetting("hushpinterest_quiet_email_reminder", FALSE);
     public static final BooleanSetting HIDE_SAVE_TOASTS =

@@ -2,7 +2,7 @@
 
 Morphe-compatible patches for the Twitch Android app, maintained for Kizu's Twitch enhancements.
 
-This repository contains **Twitch patches only**. It does not contain the Boost for Reddit / Random NSFW patches or any other Reddit patches.
+This repository contains **Twitch patches only**.
 
 ## Included patches
 

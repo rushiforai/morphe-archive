@@ -45,6 +45,8 @@ public final class SettingsStatus {
     public static boolean cachedProxyDialog() { return false; }
     public static boolean cachedProxyFilters() { return false; }
     public static boolean hidePopularApps() { return false; }
+    public static boolean hideContactsBlock() { return false; }
+    public static boolean hideGreetingStickers() { return false; }
     public static boolean disableChatSwipe() { return false; }
     public static boolean disableChannelPull() { return false; }
     public static boolean normalPaste() { return false; }
@@ -57,6 +59,24 @@ public final class SettingsStatus {
     public static boolean previewDoubleTapReaction() { return false; }
     public static boolean quietContactsNag() { return false; }
     public static boolean holidayLook() { return false; }
+    public static boolean useSystemFont() { return false; }
+    public static boolean amoledBlack() { return false; }
+    public static boolean hideTranslateBar() { return false; }
+    public static boolean exactNumbers() { return false; }
+    public static boolean revealSpoilers() { return false; }
+    public static boolean hideKeyboardOnScroll() { return false; }
+    public static boolean keepVideosMuted() { return false; }
+    public static boolean swipeBackOnProfiles() { return false; }
+    public static boolean hidePhoneNumber() { return false; }
+    public static boolean messageSeconds() { return false; }
+    public static boolean allowChatBlur() { return false; }
+    public static boolean voiceOneAtATime() { return false; }
+    public static boolean noHaptics() { return false; }
+    public static boolean reactionEffectsOff() { return false; }
+    public static boolean hideFolderCounters() { return false; }
+    public static boolean forwardHideSender() { return false; }
+    public static boolean voiceMusicPlayer() { return false; }
+    public static boolean silenceNonContacts() { return false; }
     public static boolean storyRequests() { return false; }
     public static boolean storyBar() { return false; }
     public static boolean storyCamera() { return false; }

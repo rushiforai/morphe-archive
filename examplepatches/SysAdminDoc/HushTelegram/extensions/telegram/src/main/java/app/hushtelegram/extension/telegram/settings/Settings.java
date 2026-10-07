@@ -62,6 +62,20 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_POPULAR_APPS =
             new BooleanSetting("hushtelegram_hide_popular_apps", TRUE);
 
+    /**
+     * The chat list's Your contacts on Telegram heading, rows and loading rows only; chats, folders,
+     * contact sync and search stay stock.
+     */
+    public static final BooleanSetting HIDE_CONTACTS_BLOCK =
+            new BooleanSetting("hushtelegram_hide_contacts_block", FALSE);
+
+    /**
+     * The sticker an empty private chat offers to send as a greeting only; the empty chat's text,
+     * business introductions, Premium and paid-message notices and the sticker picker stay stock.
+     */
+    public static final BooleanSetting HIDE_GREETING_STICKERS =
+            new BooleanSetting("hushtelegram_hide_greeting_stickers", FALSE);
+
     /** The chat list's sideways swipe on a chat row only; long-press, drag to reorder and folder swipes stay stock. */
     public static final BooleanSetting DISABLE_CHAT_SWIPE =
             new BooleanSetting("hushtelegram_disable_chat_swipe", FALSE);
@@ -69,6 +83,10 @@ public class Settings extends BaseSettings {
     /** Bottom pulls stay in the current channel; explicit chat opening keeps its normal behavior. */
     public static final BooleanSetting DISABLE_CHANNEL_PULL =
             new BooleanSetting("hushtelegram_disable_channel_pull", TRUE);
+
+    /** Bottom pulls stay in the current forum topic; opening topics from the topic list stays stock. */
+    public static final BooleanSetting DISABLE_TOPIC_PULL =
+            new BooleanSetting("hushtelegram_disable_topic_pull", FALSE);
 
     public static final BooleanSetting NORMAL_PASTE =
             new BooleanSetting("hushtelegram_normal_paste", FALSE);
@@ -92,6 +110,117 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HOLIDAY_LOOK =
             new BooleanSetting("hushtelegram_holiday_look", FALSE);
+
+    /**
+     * Medium, italic, extra bold, condensed and monospace text in the phone's own font instead of
+     * Telegram's bundled Roboto files. Telegram keeps the faces it loaded, so a change waits for a restart.
+     */
+    public static final BooleanSetting USE_SYSTEM_FONT =
+            new BooleanSetting("hushtelegram_use_system_font", FALSE, true);
+
+    /**
+     * Pure black backgrounds for Telegram's built-in Night and Dark themes. Telegram keeps the colors
+     * it loaded until it applies a theme again, so a change waits for a restart.
+     */
+    public static final BooleanSetting AMOLED_BLACK =
+            new BooleanSetting("hushtelegram_amoled_black", FALSE, true);
+
+    /** No translate bar at the top of a chat in another language unless the chat is being translated. */
+    public static final BooleanSetting HIDE_TRANSLATE_BAR =
+            new BooleanSetting("hushtelegram_hide_translate_bar", FALSE);
+
+    /**
+     * Member, subscriber, view, reply and reaction counts written in full instead of shortened to
+     * 12.3K.
+     */
+    public static final BooleanSetting EXACT_NUMBERS =
+            new BooleanSetting("hushtelegram_exact_numbers", FALSE);
+
+    /**
+     * Spoiler text, photos and videos shown without the cover. View-once media, sensitive content and
+     * login codes stay covered.
+     */
+    public static final BooleanSetting REVEAL_SPOILERS =
+            new BooleanSetting("hushtelegram_reveal_spoilers", FALSE);
+
+    /**
+     * The keyboard closes when a finger starts scrolling through a chat, not only during a search.
+     */
+    public static final BooleanSetting HIDE_KEYBOARD_ON_SCROLL =
+            new BooleanSetting("hushtelegram_hide_keyboard_on_scroll", FALSE);
+
+    /**
+     * Volume keys in a chat change the volume instead of playing the video on screen with sound.
+     */
+    public static final BooleanSetting KEEP_VIDEOS_MUTED =
+            new BooleanSetting("hushtelegram_keep_videos_muted", FALSE);
+
+    /**
+     * A swipe to the right on a profile's photos or media tabs goes back instead of to the previous
+     * photo or tab.
+     */
+    public static final BooleanSetting SWIPE_BACK_ON_PROFILES =
+            new BooleanSetting("hushtelegram_swipe_back_on_profiles", FALSE);
+
+    /**
+     * Your own phone number shows with its digits covered wherever Telegram displays it.
+     */
+    public static final BooleanSetting HIDE_PHONE_NUMBER =
+            new BooleanSetting("hushtelegram_hide_phone_number", FALSE);
+
+    /**
+     * The time on each message shows seconds too.
+     */
+    public static final BooleanSetting MESSAGE_SECONDS =
+            new BooleanSetting("hushtelegram_message_seconds", FALSE);
+
+    /**
+     * Phones Telegram rates as slow can use its blurred chat header and panels.
+     */
+    public static final BooleanSetting ALLOW_CHAT_BLUR =
+            new BooleanSetting("hushtelegram_allow_chat_blur", FALSE);
+
+    /**
+     * A voice or video message stops when it ends instead of playing the next one.
+     */
+    public static final BooleanSetting VOICE_ONE_AT_A_TIME =
+            new BooleanSetting("hushtelegram_voice_one_at_a_time", FALSE);
+
+    /**
+     * Telegram stops vibrating for taps, long presses, swipes and wrong entries.
+     */
+    public static final BooleanSetting NO_HAPTICS =
+            new BooleanSetting("hushtelegram_no_haptics", FALSE);
+
+    /**
+     * Reactions land on the message without the fly-in and burst effect.
+     */
+    public static final BooleanSetting REACTION_EFFECTS_OFF =
+            new BooleanSetting("hushtelegram_reaction_effects_off", FALSE);
+
+    /**
+     * Folder tabs above the chat list show no unread counts.
+     */
+    public static final BooleanSetting HIDE_FOLDER_COUNTERS =
+            new BooleanSetting("hushtelegram_hide_folder_counters", FALSE);
+
+    /**
+     * Forwards start with Telegram's Hide sender's name option turned on.
+     */
+    public static final BooleanSetting FORWARD_HIDE_SENDER =
+            new BooleanSetting("hushtelegram_forward_hide_sender", FALSE);
+
+    /**
+     * Tapping the bar above a chat while a voice message plays opens the full music player.
+     */
+    public static final BooleanSetting VOICE_MUSIC_PLAYER =
+            new BooleanSetting("hushtelegram_voice_music_player", FALSE);
+
+    /**
+     * A private message from someone outside your contacts notifies without sound or vibration.
+     */
+    public static final BooleanSetting SILENCE_NON_CONTACTS =
+            new BooleanSetting("hushtelegram_silence_non_contacts", FALSE);
 
     /**
      * The device statistics report the server can ask for (a storage-type boolean, sent as a

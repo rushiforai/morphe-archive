@@ -1,5 +1,6 @@
 package io.github.bakwudo.uyu.patches.twitch.appearance
 
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -7,6 +8,9 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import io.github.bakwudo.uyu.patches.twitch.settings.setPatchIncluded
 import io.github.bakwudo.uyu.patches.twitch.settings.settingsPatch
 import io.github.bakwudo.uyu.patches.twitch.shared.Constants.COMPATIBILITY_TWITCH
@@ -22,22 +26,71 @@ private const val EXTENSION_CLASS = "$EXTENSION_PACKAGE/appearance/HidePromotion
 
 internal val hidePromotionsPatch = bytecodePatch {
     compatibleWith(COMPATIBILITY_TWITCH)
-
     dependsOn(settingsPatch, nativeTheatrePatch)
 
     execute {
         setPatchIncluded("hidePromotions")
         hookViewDelegates()
+        hookFollowingContentSections()
+        hookFollowingGoAdFreeButton()
         hookCommunityHighlights()
     }
 }
 
 /**
- * Lets the extension find the views to hide in every view delegate Twitch creates.
+ * Hooks the exact Twitch 31.3.1 Following-feed builder found in the supplied APKM.
+ * The two lists passed to the verified ResumeWatching and OfflineChannels constructors are
+ * freshly-created lists. We keep their original contents and conditionally clear them before
+ * the section models are constructed.
  */
+private fun BytecodePatchContext.hookFollowingContentSections() {
+    val instructions = FollowingContentBuilderFingerprint.method.instructions
+
+    fun findConstructor(type: String): Pair<Int, FiveRegisterInstruction> {
+        val index = instructions.indexOfFirst { instruction ->
+            if (instruction.opcode != Opcode.INVOKE_DIRECT) return@indexOfFirst false
+            val reference = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+            reference?.definingClass == type &&
+                reference.name == "<init>" &&
+                reference.returnType == "V" &&
+                reference.parameterTypes.map { it.toString() } == listOf("Ljava/util/List;")
+        }
+        if (index < 0) throw PatchException("Following $type constructor call not found.")
+
+        val invoke = instructions[index] as? FiveRegisterInstruction
+            ?: throw PatchException("Following $type constructor call is not a five-register invoke.")
+        if (invoke.registerCount != 2) {
+            throw PatchException("Following $type constructor call does not take exactly two registers.")
+        }
+        return index to invoke
+    }
+
+    val resume = findConstructor("Ll2i;")
+    val offline = findConstructor("Lj2i;")
+
+    listOf(
+        resume to "filterResumeWatchingList",
+        offline to "filterOfflineChannelsList",
+    ).sortedByDescending { it.first.first }.forEach { (match, helper) ->
+        val register = match.second.registerD
+        FollowingContentBuilderFingerprint.method.addInstructions(
+            match.first,
+            "invoke-static { v$register }, $EXTENSION_CLASS->$helper(Ljava/util/List;)V",
+        )
+    }
+}
+
+private fun BytecodePatchContext.hookFollowingGoAdFreeButton() {
+    FollowingGoAdFreeButtonFingerprint.method.apply {
+        addInstructions(
+            0,
+            "invoke-static/range { p1 .. p1 }, $EXTENSION_CLASS->bindGoAdFree(Landroid/view/View;)V",
+        )
+    }
+}
+
 private fun BytecodePatchContext.hookViewDelegates() {
     BaseViewDelegateConstructorFingerprint.method.apply {
-        // p2, the root view, is passed to the extension at the end.
         val viewRegister = thisRegister + 2
         if (writesRegister(viewRegister)) {
             throw PatchException("BaseViewDelegate constructor reuses the register of the view.")
@@ -55,14 +108,7 @@ private fun BytecodePatchContext.hookViewDelegates() {
     }
 }
 
-/**
- * Drops the community highlights that advertise subscriptions (SUBtember, gift discounts)
- * before they are added. Other highlights, such as predictions and hype trains, use the same
- * view, so it cannot be hidden.
- */
 private fun BytecodePatchContext.hookCommunityHighlights() {
-    // The event that adds a highlight holds the highlight, which holds its type. Every type
-    // extends one base class, which holds the type id ("subtember").
     val addEvent = AddCommunityHighlightToStringFingerprint.classDef
     val highlightField = addEvent.fields.singleOrNull { !AccessFlags.STATIC.isSet(it.accessFlags) }
         ?: throw PatchException("Highlight field not found in ${addEvent.type}.")
@@ -89,8 +135,6 @@ private fun BytecodePatchContext.hookCommunityHighlights() {
         """,
     )
 
-    // Every highlight is added through this method of the presenter, which takes all highlight
-    // events. The events share the superclass of the add event.
     val presenter = mutableClassDefBy(CommunityHighlightPresenterFingerprint.classDef.type)
     val eventType = addEvent.superclass
     val takeEvent = presenter.methods.singleOrNull {
@@ -99,7 +143,6 @@ private fun BytecodePatchContext.hookCommunityHighlights() {
     } ?: throw PatchException("Community highlight event method not found in ${presenter.type}.")
 
     takeEvent.apply {
-        // v0 is used before the method's own code runs, so it must not be a parameter.
         if (thisRegister == 0) throw PatchException("Community highlight event method has no free register.")
         addInstructionsWithLabels(
             0,

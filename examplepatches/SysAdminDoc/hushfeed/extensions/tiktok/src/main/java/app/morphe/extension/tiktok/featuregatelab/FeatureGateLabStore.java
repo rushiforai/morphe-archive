@@ -508,12 +508,105 @@ public final class FeatureGateLabStore {
         return new ImportReview(accepted, rejected);
     }
 
-    /** Bundled JSON, since the injected extension carries code but no Android resources. */
+    /**
+     * One reviewed preset: AB rules written as key:TYPE:value, and the builds whose catalogs they
+     * were checked against. Most turn on what other TikTok mods force on by flag; the values are
+     * the ones those mods ship. FeatureGatePresetsTest reads every listed build's shipped catalog
+     * and fails on a key the build doesn't register, a type it registers differently or a value
+     * the Lab would refuse. A preset may pin the in-code default, since the server overrides it.
+     */
+    static final class Preset {
+        final String id;
+        final String title;
+        final String[] builds;
+        final String[] rules;
+
+        Preset(String id, String title, String[] builds, String... rules) {
+            this.id = id;
+            this.title = title;
+            this.builds = builds;
+            this.rules = rules;
+        }
+
+        JSONObject toJson() throws JSONException {
+            JSONArray array = new JSONArray();
+            for (String rule : rules) {
+                String[] parts = rule.split(":", 3);
+                array.put(new JSONObject().put("manager", MANAGER_ABMOCK).put("key", parts[0])
+                        .put("type", parts[1]).put("value", parts[2]));
+            }
+            return new JSONObject().put("title", title).put("rules", array);
+        }
+    }
+
+    private static final String[] CATALOG_BUILDS = GeneratedGateCatalogBuilds.BUILDS;
+
+    static final Preset[] PRESETS = {
+            new Preset("see_translation", TRANSLATION_PRESET_TITLE, CATALOG_BUILDS,
+                    "feed_translation_reverse:INT:0", "cla_translate_button_weaken_v2:INT:0"),
+            new Preset("comment_reposts", "Repost with a comment", CATALOG_BUILDS,
+                    "tt_comment_repost_interaction:INT:1", "repost_support_reply:INT:1",
+                    "repost_support_digg:INT:1"),
+            new Preset("profile_layout", "Profile banner and new profile layout", CATALOG_BUILDS,
+                    "profile_bg_in_allow_list:INT:1", "profile_bg_enable_consumption_group:INT:3",
+                    "tux_profile_icon_update:INT:1", "profile_left_align:INT:1",
+                    "profile_left_align_ab_group:INT:11", "profile_left_align_avatar_and_info_merge:INT:1",
+                    "profile_left_align_pronouns:INT:1", "profile_left_align_recommend_card:INT:1",
+                    "profile_left_align_avatar_opt:BOOLEAN:true",
+                    "profile_left_align_avatar_at_right_opt:BOOLEAN:true",
+                    "profile_left_align_right_avatar_nickname_opt_v2:BOOLEAN:true",
+                    "enable_profile_left_align_second_line_two_lines_show:BOOLEAN:true",
+                    "profile_left_align_relation_info_font_size_opt:BOOLEAN:true",
+                    "profile_left_align_right_avatar_large_font_opt:BOOLEAN:true",
+                    "profile_left_align_bio_style_opt:BOOLEAN:true",
+                    "profile_left_align_cta_style_opt:BOOLEAN:true",
+                    "profile_left_align_advance_feature_style_opt:BOOLEAN:true",
+                    "profile_left_align_right_avatar_nickname_wordbreak_opt:BOOLEAN:true"),
+            new Preset("comment_media", "Comment with live photos, the camera or audio", CATALOG_BUILDS,
+                    "comment_enable_live_photo:INT:1", "comment_by_shooting:INT:1",
+                    "audio_comment_publish:INT:1"),
+            new Preset("comment_favorites", "Save comments to Favorites", CATALOG_BUILDS,
+                    "add_comments_to_favorites:INT:3", "enable_favorite_long_click:INT:2"),
+            new Preset("comment_dislike", "Comment sort and dislike styles", CATALOG_BUILDS,
+                    "comment_sort_opt_style:INT:1", "comment_hate_opt:INT:1",
+                    "tt_comment_hate_animation_opt:INT:2"),
+            new Preset("messages", "Message bubble colors, Inbox archive and sharing to more chats", CATALOG_BUILDS,
+                    "dm_customize_message_bubble:INT:1", "inbox_bb_archive_enable:INT:1",
+                    "im_contacts_multi_select_limit:INT:999"),
+            new Preset("manage_topics", "Manage topics", CATALOG_BUILDS,
+                    "manage_topics_enable:BOOLEAN:true"),
+            new Preset("visual_search", "Visual search", CATALOG_BUILDS,
+                    "show_visual_search_entrance:BOOLEAN:true"),
+            new Preset("ai_self", "AI Self", CATALOG_BUILDS,
+                    "ai_self_enable:BOOLEAN:true", "ai_self_effects_panel_enabled:BOOLEAN:true",
+                    "ai_self_free_create_enable:BOOLEAN:true"),
+            new Preset("long_press_menu", "Long-press menu on every post", CATALOG_BUILDS,
+                    "feed_long_press_panel_support_all_type:BOOLEAN:true"),
+            new Preset("hold_to_speed_up", "TikTok's hold to speed up", CATALOG_BUILDS,
+                    "long_press_speed_up_enable:BOOLEAN:true", "long_press_speed_up_lock:INT:120"),
+            new Preset("background_play", "TikTok's background play and auto-scroll", CATALOG_BUILDS,
+                    "background_play_enable:INT:1", "fyp_auto_scroll:INT:1"),
+            new Preset("feed_timestamps", "Post dates in the feed", CATALOG_BUILDS,
+                    "feed_title_timestamp_trial:STRING:v3"),
+    };
+
+    /**
+     * Bundled JSON, since the injected extension carries code but no Android resources. Build,
+     * then preset id, in {@link #PRESETS} order.
+     */
     static JSONObject reviewedPresets() throws JSONException {
-        return new JSONObject("{\"47.1.3\":{\"see_translation\":{"
-                + "\"title\":\"" + TRANSLATION_PRESET_TITLE + "\",\"rules\":["
-                + "{\"manager\":\"abmock\",\"key\":\"feed_translation_reverse\",\"type\":\"INT\",\"value\":\"0\"},"
-                + "{\"manager\":\"abmock\",\"key\":\"cla_translate_button_weaken_v2\",\"type\":\"INT\",\"value\":\"0\"}]}}}");
+        JSONObject byBuild = new JSONObject();
+        for (Preset preset : PRESETS) {
+            for (String build : preset.builds) {
+                JSONObject version = byBuild.optJSONObject(build);
+                if (version == null) {
+                    version = new JSONObject();
+                    byBuild.put(build, version);
+                }
+                version.put(preset.id, preset.toJson());
+            }
+        }
+        return byBuild;
     }
 
     static ImportReview reviewPreset(String build, String id,

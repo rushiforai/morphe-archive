@@ -13,7 +13,11 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  *
  * - TRY SING ALONG (player M0 container via Q0, song rows via
  *   y8/a -> F8/X.j): isShowKaraokeUpsellButton -> false is the sole gate.
- *   The karaoke FEATURE gate (isCanUseKaraoke) is untouched.
+ * - Karaoke FEATURE itself (server-gated Gold): isShowKaraoke and
+ *   isCanUseKaraoke -> false, so the lyrics-view karaoke bar/button in
+ *   B5/f never shows. Flag-forcing is used because song.hasKaraoke is
+ *   GSON-set (no method to hook); these trivial getters are the app's
+ *   own gates.
  * - Player AI MIX switch + label (G0/H0 via U0): the single
  *   `iget-boolean v0, v0, Account;->showMixAIButtonPlayer:Z` is swapped to
  *   `const/4 v0, 0x0` so the branch falls to GONE. Same-register
@@ -31,7 +35,7 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 @Suppress("unused")
 val hideFeatureButtonsPatch = bytecodePatch(
     name = "Hide upsell feature buttons",
-    description = "Hides TRY SING ALONG karaoke upsell, the player AI MIX switch, and the playlist AI MIX button. Feature gates untouched.",
+    description = "Hides TRY SING ALONG karaoke upsell, disables the karaoke feature itself, and hides the player/playlist AI MIX buttons. Feature UI stays hidden rather than paywalled.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_ANGHAMI_8_0_28)
@@ -39,6 +43,20 @@ val hideFeatureButtonsPatch = bytecodePatch(
 
     execute {
         KaraokeUpsellButtonFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """
+        )
+        KaraokeShowFingerprint.method.addInstructions(
+            0,
+            """
+                const/4 v0, 0x0
+                return v0
+            """
+        )
+        KaraokeCanUseFingerprint.method.addInstructions(
             0,
             """
                 const/4 v0, 0x0

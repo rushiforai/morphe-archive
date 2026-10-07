@@ -412,6 +412,36 @@ class TikTokPatchAnchorsMatchFixturesTest {
         }
     }
 
+    /**
+     * AdsFilter.isPseudoAd reads the commerce struct by name. TikTok's own AwemeExtKt.isPseudoAd
+     * has to read exactly those three members on every build, or the two tests have drifted apart.
+     * Its shape is pinned too: each read returns false early, so only the flag and the ad data
+     * together make a pseudo ad, which is how AdsFilter combines them.
+     */
+    @Test
+    fun `pseudo ad check reads the members TikTok's own isPseudoAd reads on every fixture`() {
+        val model = "Lcom/ss/android/ugc/aweme/feed/model/"
+        val commerce = "Lcom/ss/android/ugc/aweme/commerce/AwemeCommerceStruct;"
+        for (apk in fixtures()) {
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val check = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .single { it.type == "${model}AwemeExtKt;" }
+                .methods.single { it.name == "isPseudoAd" && it.parameterTypes == listOf("${model}Aweme;") }
+            assertEquals("${apk.name}: TikTok's pseudo ad test", listOf(
+                "${model}Aweme;->getCommerceVideoAuthInfo()$commerce",
+                "$commerce->isPseudoAd()Z",
+                "$commerce->getPseudoAdData()${model}AwemeRawAd;",
+            ), check.implementation!!.instructions.filterIsInstance<ReferenceInstruction>().map { it.reference.toString() })
+            assertEquals("${apk.name}: TikTok's pseudo ad test needs both signals", listOf(
+                "invoke-virtual", "move-result-object", "const/4", "if-nez", "return",
+                "invoke-virtual", "move-result", "if-nez", "return",
+                "invoke-virtual", "move-result-object", "if-nez", "return",
+                "const/4", "return",
+            ), check.implementation!!.instructions.map { it.opcode.name })
+        }
+    }
+
     @Test
     fun `main feed items getter exists once on every fixture`() {
         val apks = fixtures()

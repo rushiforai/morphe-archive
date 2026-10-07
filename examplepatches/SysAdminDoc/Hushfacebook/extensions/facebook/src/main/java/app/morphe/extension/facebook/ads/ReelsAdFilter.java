@@ -10,10 +10,13 @@ package app.morphe.extension.facebook.ads;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import app.morphe.extension.facebook.reels.ReelSections;
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -72,6 +75,26 @@ public final class ReelsAdFilter {
 
     /** What the diagnostic report counts each time the ad pool is held to no ad. */
     static final String POOL_HELD = "Reels ad pool held to no ad";
+
+    /** What the diagnostic report counts each time an ad-break fetch is answered with a failure. */
+    static final String AD_BREAK_FETCH_HELD = "Ad-break fetch held";
+
+    /**
+     * What the diagnostic report counts each time the comment pill asks about an ad's button and
+     * hears no. The pill asks about every plugin it has on each draw, before Facebook's own check of
+     * whether the ad has a button, so this counts the answers, not buttons that would have shown.
+     */
+    static final String AD_PILL_HELD = "Ad button checks answered no";
+
+    /**
+     * The comment sheet's floating buttons for a reel, Watch or in-stream ad, by the class name of
+     * the pill plugin that draws each. The pill's other plugins stay: a message button, affiliate
+     * links and visual search aren't ads, and the Permalink and Flyout ad buttons belong to feed ads.
+     */
+    static final Set<String> AD_PILLS = new HashSet<>(Arrays.asList(
+            "com.facebook.feedback.comments.plugins.indicatorpill.reelsadsfloatingcta.ReelsAdsFloatingCtaPlugin",
+            "com.facebook.feedback.comments.plugins.indicatorpill.watchadsfloatingcta.WatchAdsFloatingCtaPlugin",
+            "com.facebook.feedback.comments.plugins.indicatorpill.instreamadsfloatingcta.InstreamAdsFloatingCtaPlugin"));
 
     /** Whether the first hold of this process has been logged. */
     private static volatile boolean poolHoldLogged;
@@ -266,6 +289,30 @@ public final class ReelsAdFilter {
             Logger.diagnosticDebug(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
                     () -> "the Reels ad pool was asked for an ad and held to none");
         }
+        return true;
+    }
+
+    /**
+     * Injection point, run by each ad-break fetch the patch answers with a failed future: a banner
+     * over a reel, a video's ad break, the Reels idle query or an extended break. Those stay held
+     * while Hushfacebook is paused, so this only counts them for the diagnostic report.
+     */
+    public static void heldAdBreakFetch() {
+        HookStatus.invoked(FamilyNames.SPONSORED_REELS);
+        HookStatus.counted(FamilyNames.SPONSORED_REELS, AD_BREAK_FETCH_HELD);
+    }
+
+    /**
+     * Injection point, first in the comment pill's check of whether a plugin's button shows, with
+     * that plugin's class name: true answers no. An ad that still reaches a reel or a video then
+     * opens its comments without the floating button. Any other plugin, off, or asked before the
+     * settings are ready, and Facebook decides. Never throws.
+     */
+    public static boolean holdsAdPill(String plugin) {
+        HookStatus.invoked(FamilyNames.SPONSORED_REELS);
+        if (!AD_PILLS.contains(plugin) || !switchedOn()) return false;
+
+        HookStatus.counted(FamilyNames.SPONSORED_REELS, AD_PILL_HELD);
         return true;
     }
 

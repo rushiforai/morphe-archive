@@ -68,6 +68,20 @@ public final class FacebookTabs {
     public static final String GAMING_CONTROLLER_CLASS = "com.facebook.games.tab.GamesTabWithSNESControllerIcon";
     public static final String EVENTS_CLASS = "com.facebook.events.targetedtab.EventsTab";
 
+    /** Tabs Facebook gives some accounts, which only Hide tabs takes off the bar. Gemstone is Dating. */
+    public static final String DATING_CLASS = "com.facebook.gemstone.tab.GemstoneTab";
+    public static final String PROFESSIONAL_DASHBOARD_CLASS = "com.facebook.professionaldashboard.tab.ProfessionalDashboardTab";
+    /** A second tab class for the Professional dashboard. */
+    public static final String PROFESSIONAL_DASHBOARD_PLAIN_CLASS =
+            "com.facebook.professionaldashboard.tab.ProfessionalDashboardTabWithoutComponentHelper";
+    public static final String SAVED_CLASS = "com.facebook.saved2.tab.SavedTab";
+    public static final String AD_CENTER_CLASS = "com.facebook.adinterfaces.adcenter.AdCenterTab";
+    /** The Create tab, a plus in a circle that opens the composer. */
+    public static final String CREATE_CLASS = "com.facebook.creator.tab.CreatorToolComposerTab";
+    /** The Explore tab, a compass that opens fb_explore. Its class keeps an older name. */
+    public static final String EXPLORE_CLASS = "com.facebook.notifications.discoverhub.tab.DiscoverHubTab";
+    public static final String JOBS_CLASS = "com.facebook.jobsv2.tab.JobsV2Tab";
+
     private FacebookTabs() {
     }
 }

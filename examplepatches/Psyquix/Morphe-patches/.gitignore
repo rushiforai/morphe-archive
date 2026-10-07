@@ -1,0 +1,7 @@
+.worktrees/
+.superpowers/
+.gradle/
+build/
+patches/build/
+extensions/extension/build/
+.local/

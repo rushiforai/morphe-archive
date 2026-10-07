@@ -102,6 +102,7 @@ public final class ThemeChoice {
         if (!c.getTheme().resolveAttribute(attr, v, true)) return fallback;
         return v.resourceId == 0 ? v.data : c.getResources().getColor(v.resourceId);
     }
+    public static int accent(Context c) { return color(c, 0x7f03005e, isNight(c) ? 0xffb6c4f4 : 0xff006b5b); }
     public static int textColor(View v) { return color(v.getContext(), android.R.attr.textColorPrimary, isNight(v.getContext()) ? 0xffeeeeee : 0xff202124); }
     public static void background(View v) { v.setBackgroundColor(color(v.getContext(), android.R.attr.colorBackground, isNight(v.getContext()) ? 0xff191b20 : 0xffffffff)); }
     public static void button(android.widget.Button b) {

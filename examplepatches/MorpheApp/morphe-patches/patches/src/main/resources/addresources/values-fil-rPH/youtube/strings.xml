@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Tungkol</string>
   <string name="morphe_settings_screen_01_ads_title">Patalastas</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Mga alternatibong thumbnail</string>
   <string name="morphe_settings_screen_03_feed_title">Feed</string>
   <string name="morphe_settings_screen_04_general_title">Pangkalahatan</string>
   <string name="morphe_settings_screen_05_player_title">Manlalaro</string>
@@ -65,6 +64,8 @@ Kasama sa mga pagbabago ang:
   <string name="morphe_hide_artist_cards_title">Itago ang mga artist card</string>
   <string name="morphe_hide_artist_cards_summary">Itinatago ang card ng artist sa itaas ng mga resulta ng paghahanap</string>
   <string name="morphe_hide_auto_dubbed_label_title">Itago ang label na \'Auto-dubbed\'</string>
+  <string name="morphe_hide_channel_buttons_title">Itago ang mga button ng channel</string>
+  <string name="morphe_hide_channel_buttons_summary">Itinatago ang mga button tulad ng Mag-subscribe, Tingnan ang Channel, Komunidad, at YouTube Music mula sa mga profile ng channel sa mga resulta ng paghahanap</string>
   <string name="morphe_hide_community_posts_title">Itago ang mga post ng komunidad</string>
   <string name="morphe_hide_compact_banner_title">Itago ang mga compact banner</string>
   <string name="morphe_hide_compact_banner_summary">Itinatago ang mga compact banner at espasyo sa pagitan ng ilang component</string>
@@ -76,7 +77,6 @@ Kasama sa mga pagbabago ang:
   <string name="morphe_hide_floating_microphone_button_summary">Itinatago ang lumulutang na button ng microphone sa ibabang-kanang sulok ng search suggestions screen</string>
   <string name="morphe_hide_get_premium_button_title">Itago ang button na \'Kumuha ng Premium\'</string>
   <string name="morphe_hide_history_shelf_title">Itago ang History shelf</string>
-  <string name="morphe_hide_history_shelf_summary">Itinatago ang History shelf sa tab na You</string>
   <string name="morphe_hide_horizontal_shelves_title">Itago ang mga horizontal shelf</string>
   <string name="morphe_hide_horizontal_shelves_summary">Itinatago ang mga pahalang na shelf tulad ng Breaking news, Mga post sa Komunidad na maaaring magustuhan mo, Ipagpatuloy ang panonood, Galugarin ang higit pang mga channel, Galugarin ang higit pang mga paksa, Para sa Iyo, Pinakabagong mga video, Pinaka-nauugnay, Mga post mula sa Komunidad ng Creator, Shopping, at Panoorin itong muli</string>
   <string name="morphe_hide_hyped_label_title">Itago ang Hyped label</string>
@@ -110,7 +110,8 @@ Kasama sa mga pagbabago ang:
   <string name="morphe_hide_show_more_button_title">Itago ang button na \'Magpakita ng higit pa\'</string>
   <string name="morphe_hide_show_more_button_summary">Itinatago ang expand button sa ilalim ng mga video sa mga resulta ng paghahanap</string>
   <string name="morphe_hide_subscribed_channels_bar_title">Itago ang subscribed channels bar</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">Itago ang mga pangalan ng channel sa bar ng mga naka-subscribe na channel</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">Itago ang mga pangalan ng mga naka-subscribe na channel</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">Itinatago ang mga pangalan ng channel sa bar ng mga naka-subscribe na channel</string>
   <string name="morphe_hide_surveys_title">Itago ang mga pagsusuri</string>
   <string name="morphe_hide_surveys_summary">Itinatago ang mga survey at mga pahiwatig tungkol sa katumpakan ng rekomendasyon ng feed</string>
   <string name="morphe_hide_ticket_shelf_title">Itago ang ticket shelf</string>
@@ -159,6 +160,11 @@ Kasama sa mga pagbabago ang:
   <string name="morphe_hide_sync_button_title">Itago ang button na \'I-sync sa video\'</string>
   <string name="morphe_hide_timed_reactions_title">Itago ang mga nakatakdang reaksyon</string>
   <string name="morphe_hide_timed_reactions_summary">Itinatago ang feature na nagbibigay-daan sa mga user na mag-react gamit ang mga emoji sa seksyon ng mga komento at live chat</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">Itago ang \'Tulong at feedback\' sa mga menu</string>
+  <string name="morphe_hide_help_feedback_menu_summary">Itinatago ang \'Tulong at feedback\' sa mga menu na may tatlong tuldok ng app bar, tulad ng menu ng mga resulta ng paghahanap</string>
+  <string name="morphe_hide_handle_title">Itago ang handle</string>
+  <string name="morphe_hide_handle_summary">Itinatago ang iyong channel handle sa tab na \'Ikaw\'</string>
   <string name="morphe_hide_video_title_title">Itago ang pamagat ng video</string>
   <string name="morphe_hide_video_title_summary">Itinatago ang pamagat ng video sa fullscreen mode</string>
   <string name="morphe_sanitize_video_subtitle_title">Linisin ang subtitle ng video</string>
@@ -681,7 +687,7 @@ Para ayusin ito, i-on ang 'I-spoof ang mga video stream' at baguhin ang 'Default
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Itago ang button na Sumali</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Itago ang Report button</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Itago ang Remix button</string>
@@ -1073,10 +1079,7 @@ Limitasyon: Kung ang 'Ibalik ang lumang video action bar' ay naka-off, maaaring 
   <string name="morphe_playback_in_feeds_entry_off">Naka-off</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">Ibalik ang orihinal na mga pamagat</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">Isinalin</string>
-  <string name="morphe_restore_original_titles_type_entry_original">Orihinal</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">Isinalin gamit ang DeArrow</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">Orihinal na may DeArrow</string>
+  <string name="morphe_restore_original_titles_summary">Ipinapakita ang orihinal na mga pamagat ng video, mga paglalarawan ng video at mga paglalarawan ng channel sa halip na mga awtomatikong isinalin</string>
   <string name="morphe_restore_original_titles_loading">Naglo-load ng pamagat…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">I-disable ang awtomatikong pag-refresh ng feed</string>
@@ -1150,39 +1153,42 @@ Limitasyon: Kung ang 'Ibalik ang lumang video action bar' ay naka-off, maaaring 
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Bypass image region restrictions</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Nagre-redirect ng mga request ng thumbnail sa isang alternatibong server para ayusin ang mga nawawalang imahe sa mga restricted country</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">Mga pamagat ng DeArrow</string>
+  <string name="morphe_dearrow_titles_summary">Pinapalitan ang mga pamagat ng video ng mga pamagat na galing sa publiko at isinumite sa DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_title">Ipakita ang icon ng DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_summary">Ipinapakita ang icon ng DeArrow sa mga pamagat ng video na mula sa karamihan</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">Para sa Home tab</string>
+  <string name="morphe_dearrow_thumbnail_home_title">Para sa Home tab</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">Para sa Subscriptions tab</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">Para sa Subscriptions tab</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">Para sa You tab</string>
-  <string name="morphe_alt_thumbnail_player_title">Para sa player playlists &amp; recommendations</string>
-  <string name="morphe_alt_thumbnail_search_title">Para sa search results</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Mga orihinal na thumbnail</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Mga orihinal na thumbnail</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Kinukuha pa rin</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Kinukuha pa rin</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"Ang DeArrow ay nagbibigay ng mga thumbnail na pinagsama-sama ng publiko para sa mga video sa YouTube. Ang mga thumbnail na ito ay madalas na mas may kaugnayan kaysa sa mga ibinigay ng YouTube
+  <string name="morphe_dearrow_thumbnail_library_title">Para sa You tab</string>
+  <string name="morphe_dearrow_thumbnail_player_title">Para sa player playlists &amp; recommendations</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Para sa search results</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Mga orihinal na thumbnail</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Mga orihinal na thumbnail</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Kinukuha pa rin</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Kinukuha pa rin</string>
+  <string name="morphe_dearrow_about_summary">"Ang DeArrow ay nagbibigay ng mga pamagat at thumbnail na galing sa publiko para sa mga video sa YouTube. Kadalasan, mas may kaugnayan ang mga ito kaysa sa mga ibinibigay ng YouTube.
 
-Kung pinagana, ang mga URL ng video ay ipapadala sa server ng API at walang ibang data ang ipapadala. Kung ang isang video ay walang mga thumbnail ng DeArrow, kung gayon ang mga orihinal o still captures ang ipinapakita
+Kung pinagana, ang mga URL ng video ay ipapadala sa server ng API at walang ibang datos na ipapadala. Kung walang mga thumbnail ng DeArrow ang isang video, ipapakita ang orihinal o mga still capture.
 
 I-tap dito upang buksan ang DeArrow.ajay.app"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Ipakita ang mga alerto ng error sa koneksyon</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Ipinapakita ang isang notification kapag hindi magagamit ang DeArrow server</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API endpoint</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">Ang URL ng DeArrow thumbnail cache endpoint</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Still video captures</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Kinukuha pa rin ang mga grabing larawan mula sa simula / gitna / dulo ng bawat video. Ang mga larawang ito ay binuo sa YouTube at walang panlabas na API na ginagamit</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Gumamit ng mabilis na still captures</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">Pinapabuti ang bilis ng paglo-load sa pamamagitan ng paggamit ng medium-quality images. Ang mga live stream, hindi pa nailalabas at mas lumang video ay maaaring magpakita ng blangkong thumbnail</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Kumuha ng frame ng video mula sa</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Simula</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Gitna</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Tapos na</string>
+  <string name="morphe_dearrow_connection_toast_title">Ipakita ang mga alerto ng error sa koneksyon</string>
+  <string name="morphe_dearrow_connection_toast_summary">Ipinapakita ang isang notification kapag hindi magagamit ang DeArrow server</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API endpoint</string>
+  <string name="morphe_dearrow_api_url_summary">Ang URL ng DeArrow thumbnail cache endpoint</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Still video captures</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Kinukuha pa rin ang mga grabing larawan mula sa simula / gitna / dulo ng bawat video. Ang mga larawang ito ay binuo sa YouTube at walang panlabas na API na ginagamit</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Kumuha ng frame ng video mula sa</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Simula</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Gitna</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Tapos na</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">Ang DeArrow ay pansamantalang hindi magagamit (status code: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">Ang DeArrow ay pansamantalang hindi magagamit</string>
+  <string name="morphe_dearrow_error">Ang DeArrow ay pansamantalang hindi magagamit (status code: %s)</string>
+  <string name="morphe_dearrow_error_generic">Ang DeArrow ay pansamantalang hindi magagamit</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Ibalik ang lumang estilo ng button ng player</string>

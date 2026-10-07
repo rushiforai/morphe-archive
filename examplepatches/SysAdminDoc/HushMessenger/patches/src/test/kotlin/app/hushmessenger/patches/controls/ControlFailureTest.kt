@@ -8,6 +8,8 @@ import app.morphe.patcher.patch.ResourcePatch
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.resource.ResourceMode
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import java.nio.file.Path
 import java.nio.file.Files
 import org.junit.jupiter.api.io.TempDir
@@ -48,14 +50,15 @@ class ControlFailureTest {
     @Test fun successfulControlStateDoesNotLeakIntoTheNextFailedRun(@TempDir temporary: Path) {
         val feature = hidePeoplePatch.dependencies.filterIsInstance<ResourcePatch>().single()
         val discovery = hidePeoplePatch.dependencies.filterIsInstance<BytecodePatch>().single()
-        for (broken in listOf(false, true)) withResourceContext(temporary.resolve("run-$broken")) { resources, config ->
+        for (broken in listOf("none", "gate", "route")) withResourceContext(temporary.resolve("run-$broken")) { resources, config ->
             val anchor = pluginGates.getValue("people").anchors.single()
             val listEnd = pluginGates.getValue("people_list_end").anchors.single()
-            // A supported APK supplies all six suggestion placements the control selects.
+            // A supported APK supplies all six suggestion placements the control selects, and the chat list supplier.
+            // An observer that no longer sets the listed count fails the whole control before any edit.
             val classes = listOf(
                 fixtureMethod("LX/1pm;->A0C()Z", pluginBody(anchor)),
                 fixtureMethod("LX/1pm;->A0B()Z", pluginBody(listEnd)),
-                fixtureMethod("LX/2Wl;->A04()Z", pluginBody(anchor, if (broken) "if-ne" else "if-eq")),
+                fixtureMethod("LX/2Wl;->A04()Z", pluginBody(anchor, if (broken == "gate") "if-ne" else "if-eq")),
                 fixtureMethod("LX/2Wl;->A03()Z", pluginBody(listEnd)),
                 peopleJewelMethod(),
                 peopleTabMethod(),
@@ -63,7 +66,8 @@ class ControlFailureTest {
                 peopleSearchMethod(),
                 peopleStoryMethod(),
             ).groupBy { it.definingClass }.map { (type, methods) -> fixtureClass(type, methods) }
-                .plus(peopleJewelKeyHolder()).plus(screenHostClasses()).toSet()
+                .plus(peopleJewelKeyHolder()).plus(screenHostClasses())
+                .plus(if (broken == "route") listOf(inboxSupplierClass(), inboxObserverClass(low = 0)) else inboxRefreshClasses()).toSet()
             val context = BytecodePatchContext::class.java.declaredConstructors.single()
                 .newInstance(config, resources.packageMetadata) as BytecodePatchContext
             val patchClasses = Class.forName("app.morphe.patcher.util.PatchClasses")
@@ -73,12 +77,18 @@ class ControlFailureTest {
                 feature.execute(resources)
                 discovery.execute(context)
                 try {
-                    if (broken) assertFailsWith<PatchException> { hidePeoplePatch.execute(context) }
+                    if (broken != "none") assertFailsWith<PatchException> { hidePeoplePatch.execute(context) }
                     else hidePeoplePatch.execute(context)
                     feature.finalize(resources)
-                    assertEquals(!broken, resources.hasPeopleFeature())
+                    assertEquals(broken == "none", resources.hasPeopleFeature())
                     // A Root Mount install reads the same list from the patched code.
-                    assertEquals(if (broken) emptySet() else setOf("people"), bundledControls.toSet())
+                    assertEquals(if (broken != "none") emptySet() else setOf("people"), bundledControls.toSet())
+                    val route = context.mutableClassDefBy(HOST_SCREENS).methods.single { it.hookId() == INBOX_REFRESH_ROUTE }
+                    assertEquals(if (broken == "none") INBOX_ROUTE.toString() else "",
+                        ((route.implementation!!.instructions.first() as ReferenceInstruction).reference as StringReference).string, broken)
+                    val items = context.mutableClassDefBy(INBOX_SUPPLIER).methods.single { it.hookId() == INBOX_ITEMS_HOOK }
+                    assertEquals(if (broken == "none") INBOX_ITEMS_CALL else INBOX_ITEMS_TRACE,
+                        (items.implementation!!.instructions.first() as ReferenceInstruction).reference.let { (it as? StringReference)?.string ?: it.toString() }, broken)
                 } finally {
                     discovery.finalize(context)
                 }

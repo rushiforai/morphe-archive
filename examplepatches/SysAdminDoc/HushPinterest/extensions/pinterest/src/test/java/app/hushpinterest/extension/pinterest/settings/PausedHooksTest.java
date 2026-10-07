@@ -157,6 +157,20 @@ public class PausedHooksTest {
         }
     }
 
+    /** A topic suggestion row Pinterest binds: true when the hook hid it. */
+    private static boolean hidesTopicRow() {
+        View row = new View(RuntimeEnvironment.getApplication());
+        UiHooks.topicSuggestions(row);
+        return row.getVisibility() == View.GONE;
+    }
+
+    /** A topic suggestion row Pinterest binds and then measures: true when the measure folded. */
+    private static boolean foldsTopicRow() {
+        View row = new View(RuntimeEnvironment.getApplication());
+        UiHooks.topicSuggestions(row);
+        return UiHooks.topicSuggestionsMeasureSpec(row, MEASURE_SPEC) != MEASURE_SPEC;
+    }
+
     private static Map<BooleanSetting, List<Probe>> probes() {
         // Every hook is in this build, so the filter reads each family's switch.
         PatchFamily.capabilitiesForTests = EnumSet.allOf(PatchFamily.Capability.class);
@@ -245,9 +259,14 @@ public class PausedHooksTest {
                 () -> UiHooks.commentsVisibility(View.INVISIBLE) != View.INVISIBLE,
                 () -> UiHooks.commentsMeasureSpec(MEASURE_SPEC) != MEASURE_SPEC,
                 () -> !UiHooks.commentsVisible(true)));
+        probes.put(Settings.HIDE_TOPIC_SUGGESTIONS, Arrays.asList(PausedHooksTest::hidesTopicRow, PausedHooksTest::foldsTopicRow));
         probes.put(Settings.QUIET_EMAIL_REMINDER, Collections.singletonList(UiHooks::quietEmailReminder));
         probes.put(Settings.HIDE_SAVE_TOASTS, Collections.singletonList(PausedHooksTest::dropsSaveToast));
-        probes.put(Settings.ORIGINAL_IMAGES, Collections.singletonList(UiHooks::originalImages));
+        probes.put(Settings.ORIGINAL_IMAGES, Arrays.asList(UiHooks::originalImages, () -> {
+            Set<String> sizes = new HashSet<>();
+            UiHooks.imageSizes(sizes);
+            return !sizes.isEmpty();
+        }));
         probes.put(Settings.DISABLE_UPDATE_NAG, Collections.singletonList(UiHooks::disableUpdateNag));
         return probes;
     }

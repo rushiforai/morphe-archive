@@ -4,11 +4,17 @@
  *
  * Built on SysAdminDoc/Hushfacebook (GPL-3.0). The hook's place, the feed cache's merge, is the one
  * zeldrisho/morphe-patches found: https://github.com/zeldrisho/morphe-patches
+ * The feed unit types read as ads are the ones MrxSiN/ThreadsHideAds named (2.0.0, GPL-3.0):
+ * https://github.com/MrxSiN/ThreadsHideAds
  */
 package app.morphe.extension.hushthreads.ads;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import app.morphe.extension.hushthreads.settings.FamilyNames;
 import app.morphe.extension.hushthreads.settings.Settings;
@@ -28,7 +34,10 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>An item is an ad when the post it carries is one: Threads' own check reads the post's
  * "injected" data, the block the server attaches to a sponsored post, and this asks that same check.
  * A thread unit counts by its first post, which is the one the feed shows, the same post Threads'
- * own item reads for its media.
+ * own item reads for its media. An item also counts as an ad by its unit type: every feed item
+ * carries an enum saying what kind of unit it is, Threads keeps that enum's constant names, and the
+ * ad kinds in {@link #AD_UNIT_TYPES} come out whatever they carry. Suggestion units (the NETEGO and
+ * SUGGESTED kinds) and ordinary posts aren't ad kinds.
  *
  * <p>The typed methods at the bottom have no body of their own here. Their answers are Threads'
  * obfuscated names, which change with every build, so the patch finds them by what they do and
@@ -128,11 +137,33 @@ public final class FeedAds {
         }
     }
 
-    /** Whether the post this feed item carries is an ad. */
+    /**
+     * The feed unit types that are ads, matched whole: an ad, an ad for ads, the two ad pivots and
+     * the ads feedback prompts.
+     */
+    static final Set<String> AD_UNIT_TYPES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "AD", "AD4AD", "INTENT_AWARE_AD_PIVOT", "STAND_ALONE_MULTI_AD_PIVOT", "ADS_FEEDBACK_INTERFACE",
+            "ADS_FEEDBACK_INTERFACE_INTERESTS_PICKER", "ADS_FEEDBACK_INTERFACE_REPETITION")));
+
+    /** Whether this feed item is an ad unit, or the post it carries is an ad. */
     static boolean isAdItem(Object item) {
         if (item == null) return false;
+        if (isAdUnitType(itemUnitType(item))) return true;
         Object media = itemMedia(item);
         return media != null && isAd(media);
+    }
+
+    /** Whether a feed item's unit type is one of the ad kinds. Anything but an enum constant isn't. */
+    static boolean isAdUnitType(Object unitType) {
+        return unitType instanceof Enum && AD_UNIT_TYPES.contains(((Enum<?>) unitType).name());
+    }
+
+    /**
+     * The feed item's unit type, an enum constant, or null for an item of another class or one whose
+     * type isn't set. The patch writes the read of the item's field in.
+     */
+    static Object itemUnitType(Object item) {
+        return null;
     }
 
     /**

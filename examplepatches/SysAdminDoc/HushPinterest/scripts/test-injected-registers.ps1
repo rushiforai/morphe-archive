@@ -596,8 +596,11 @@ try {
     Assert-True ($otherRules.Count -eq 0) `
         ("The contract file holds rules this suite builds no bad fixtures for:`n$($otherRules -join "`n")")
     $families = @(Get-Content -LiteralPath $featureContracts | Where-Object { $_.StartsWith('family|') } |
-        ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',') } })
-    Assert-True ($families.Count -eq 19) 'Every one of the 19 installed families needs a compiled contract.'
+        ForEach-Object { $values = $_ -split '\|'; [pscustomobject]@{ Flag = $values[1]; Name = $values[2]; Caps = @($values[3] -split ',' | Where-Object { $_ }) } })
+    Assert-True ($families.Count -eq 22) 'Every one of the 22 installed families needs a compiled contract.'
+    # A manifest-only family declares no capability and is the only kind that may.
+    $manifestOnly = @($families | Where-Object { $_.Caps.Count -eq 0 } | ForEach-Object { $_.Flag })
+    Assert-True (($manifestOnly -join ',') -ceq 'removeAdTrackingPermissions,spoofSignature') "Only Remove ad tracking permissions and Spoof signature for Google sign-in change no bytecode, not: $($manifestOnly -join ', ')"
     $declaredFlags = @($families | ForEach-Object { $_.Flag; $_.Caps } | Sort-Object)
     $statusSource = Join-Path $Root 'extensions/pinterest/src/main/java/app/hushpinterest/extension/pinterest/settings/SettingsStatus.java'
     $sourceFlags = @([regex]::Matches([IO.File]::ReadAllText($statusSource), 'public static boolean ([A-Za-z0-9]+)\(\)') |
@@ -667,7 +670,12 @@ try {
         'feature-optional-unrelated' = $true
     }
     foreach ($family in $families) {
-        $featureCases["feature-installed-missing-$($family.Flag)"] = $false
+        if ($family.Caps.Count -eq 0) {
+            $featureCases["feature-installed-only-$($family.Flag)"] = $true
+            $featureCases["feature-installed-unselected-$($family.Flag)"] = $false
+        } else {
+            $featureCases["feature-installed-missing-$($family.Flag)"] = $false
+        }
         $featureCases["feature-selected-missing-$($family.Flag)"] = $false
     }
     foreach ($shortcut in $shortcutCalls) { $featureCases["feature-shortcuts-unreachable-$($shortcut.Call)"] = $false }
@@ -705,7 +713,7 @@ try {
             Assert-True ($result.ExitCode -ne 0 -and $findings.Categories.Count -gt 0 -and
                 @($findings.Categories | Where-Object { $_ -ne 'contract' }).Count -eq 0) "Unsafe family fixture $name was not refused for contracts alone.`n$text"
         }
-        if ($name -like 'feature-selected-missing-*') {
+        if ($name -like 'feature-selected-missing-*' -or $name -like 'feature-installed-unselected-*') {
             Assert-True ($text.Contains('installed flag disagrees with selected patches and clean capability')) "Selected failed family $name was not distinguished from an intentionally unselected family.`n$text"
         }
         if ($name -eq 'feature-guard-interior-bad') {
@@ -946,7 +954,15 @@ try {
             "once-call $hookRef after $executeRef holding alpha",
             "once-call $hookRef in instance ()V",
             "once-call $hookRef in sometimes ()V holding alpha",
-            "once-call $hookRef in instance holding alpha")) {
+            "once-call $hookRef in instance holding alpha",
+            # A family may leave only its capability column empty, and only all of it.
+            'family|hideAds|Hide ads',
+            'family||Hide ads|feedAds',
+            'family|hideAds||feedAds',
+            'family|hideAds|Hide ads|feedAds,',
+            'family|hideAds|Hide ads|,',
+            'family|hideAds|Hide ads| feedAds',
+            'family|hideAds|Hide ads||')) {
         [System.IO.File]::WriteAllText($badContract, "# a comment line first`n$line`n")
         $unreadableFirstCall = Invoke-DexDiff -Clean $cleanApk -Patched (Join-Path $caseRoot 'good.apk') `
             -Allowlist $emptyAllowlist -Name 'bad-first-call-contract' -Contracts $badContract

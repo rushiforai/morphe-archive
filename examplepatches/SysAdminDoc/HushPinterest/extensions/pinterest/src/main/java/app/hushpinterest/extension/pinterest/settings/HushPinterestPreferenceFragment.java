@@ -263,17 +263,28 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
         if (!Collections.disjoint(build, PatchFamily.PRIVACY_PAGE)) {
             PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
             patchToggle(privacy, context, build, PatchFamily.DISABLE_ANALYTICS, Settings.DISABLE_ANALYTICS,
-                    L10n.t("Disable analytics"), L10n.t("Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch."), SettingsIcons.BLOCK);
+                    L10n.t("Disable analytics"), L10n.t("Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch."), SettingsIcons.BLOCK);
             patchToggle(privacy, context, build, PatchFamily.STRIP_LINK_TRACKING, Settings.STRIP_LINK_TRACKING,
                     L10n.t("Strip link tracking"), L10n.t("Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them."), SettingsIcons.LINKS);
             patchToggle(privacy, context, build, PatchFamily.HIDE_ADVERTISING_ID, Settings.HIDE_ADVERTISING_ID,
                     L10n.t("Hide advertising ID"), L10n.t("Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings."), SettingsIcons.BLOCK);
+            // A patch-time fact with no switch: an explanation, so it takes the info mark.
+            if (build.contains(PatchFamily.REMOVE_AD_TRACKING_PERMISSIONS)) {
+                privacy.addPreference(mark(info(context, L10n.t("Remove ad tracking permissions"),
+                        L10n.t("Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.")),
+                        SettingsIcons.ABOUT));
+            }
+            if (build.contains(PatchFamily.SPOOF_SIGNATURE)) {
+                privacy.addPreference(mark(info(context, L10n.t("Spoof signature for Google sign-in"),
+                        L10n.t("Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.")),
+                        SettingsIcons.ABOUT));
+            }
         }
 
         if (!Collections.disjoint(build, PatchFamily.ACTIONS_PAGE)) {
             PreferenceCategory actions = category(screen, L10n.t("Pin actions"));
             patchToggle(actions, context, build, PatchFamily.DOWNLOAD_PINS, Settings.DOWNLOAD_PINS,
-                    L10n.t("Download pins"), L10n.t("Download a pin or select visible grid pins. Saves supplied original images and videos."), SettingsIcons.DOWNLOADS);
+                    L10n.t("Download pins"), L10n.t("Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied."), SettingsIcons.DOWNLOADS);
             if (build.contains(PatchFamily.DOWNLOAD_PINS)) {
                 actions.addPreference(mark(new DownloadHistoryPreference(context), SettingsIcons.DOWNLOADS));
                 if (Build.VERSION.SDK_INT == 28) actions.addPreference(mark(new PendingSavesPreference(context), SettingsIcons.DOWNLOADS));
@@ -311,6 +322,9 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
             patchToggle(ui, context, build, PatchFamily.HIDE_COMMENTS, Settings.HIDE_COMMENTS,
                     L10n.t("Hide comments"),
                     L10n.t("Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment."), SettingsIcons.BLOCK);
+            patchToggle(ui, context, build, PatchFamily.HIDE_TOPIC_SUGGESTIONS, Settings.HIDE_TOPIC_SUGGESTIONS,
+                    L10n.t("Hide topic suggestions"),
+                    L10n.t("Hides the \"Ideas you might love\" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay."), SettingsIcons.BLOCK);
             patchToggle(ui, context, build, PatchFamily.QUIET_EMAIL_REMINDER, Settings.QUIET_EMAIL_REMINDER,
                     L10n.t("Quiet email reminders"),
                     L10n.t("Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply."), SettingsIcons.BELL);
@@ -319,7 +333,7 @@ public final class HushPinterestPreferenceFragment extends AbstractPreferenceFra
                     L10n.t("Saving a pin no longer pops up \"Saved to\" your board or a suggestion to follow its creator. The pin is still saved."), SettingsIcons.BELL);
             patchToggle(ui, context, build, PatchFamily.ORIGINAL_IMAGES, Settings.ORIGINAL_IMAGES,
                     L10n.t("Original-quality images"),
-                    L10n.t("Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload."), SettingsIcons.FEED);
+                    L10n.t("Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again."), SettingsIcons.FEED);
         }
 
         // In every build: a patched Pinterest isn't verified for its own links, so Android opens them

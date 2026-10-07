@@ -32,7 +32,7 @@ public class SetupSummaryTest {
 
     private void installedFeatures(String... keys) throws Exception {
         var app = RuntimeEnvironment.getApplication();
-        var info = app.getPackageManager().getPackageInfo(app.getPackageName(), PackageManager.GET_META_DATA);
+        var info = app.getPackageManager().getPackageInfo(app.getPackageName(), PackageManager.GET_META_DATA | PackageManager.GET_PROVIDERS);
         info.versionName = "580.0.0.49.91";
         info.setLongVersionCode((7L << 32) | 346013387L);
         info.applicationInfo.metaData = new Bundle();
@@ -62,14 +62,14 @@ public class SetupSummaryTest {
             assertTrue(clip.getDescription().getExtras().getBoolean(ClipDescription.EXTRA_IS_SENSITIVE));
             String text = clip.getItemAt(0).getText().toString();
             assertTrue(text.startsWith("HushMessenger v" + BuildConfig.VERSION_NAME + "\n"));
-            assertTrue(text.contains("\nHost package: " + activity.getPackageName() + "\n"));
+            assertTrue(text.contains("\nHost package: " + activity.getPackageName() + "\nSettings provider: found\n"));
             assertTrue(text.contains("\nHost version: 580.0.0.49.91\n"));
             assertTrue(text.contains("\nHost version code: " + ((7L << 32) | 346013387L) + "\n"));
             assertTrue(text.contains("\nAndroid API: " + Build.VERSION.SDK_INT + "\nPaused: false\nSafe mode: false\n"));
             assertTrue(text.contains("people: installed=true, selected=true, active=true,"));
             assertTrue(text.contains("stories: installed=false, selected=true, active=false,"));
             assertTrue(text.matches("(?s).*\nFacebook caller checks: trusted=\\d+, signer_differs=\\d+, meta_signed_build=\\d+, not_family=\\d+, error=\\d+\n"));
-            assertEquals(40, text.split("\n").length);
+            assertEquals(ExpectedTotals.SETUP_LINES, text.split("\n").length);
             assertFalse(text.contains("private-"));
             assertFalse(text.contains("account-secret"));
             assertFalse(text.contains("account_id"));
@@ -212,7 +212,7 @@ public class SetupSummaryTest {
             assertTrue(text, text.matches("(?s).*\nFacebook caller checks: [^\n]*\nHook errors:\n"
                 + "avatar_stickers: java\\.lang\\.UnsupportedOperationException at Settings\\.removeAvatarTabs:\\d+" + time
                 + "menu_row: java\\.lang\\.IllegalStateException at SetupSummaryTest\\.aFailedHookShowsInCopySetupAndOnItsSwitchWithoutTheExceptionMessage:\\d+" + time));
-            assertEquals(43, text.split("\n").length);
+            assertEquals(ExpectedTotals.SETUP_LINES_WITH_ERRORS, text.split("\n").length);
             assertFalse(text.contains("private-"));
             assertFalse(Settings.preferences.getAll().toString().contains("private-"));
         }

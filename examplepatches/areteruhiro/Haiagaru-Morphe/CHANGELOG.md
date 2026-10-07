@@ -4,6 +4,22 @@
 > Format inspired by Morphe patches CHANGELOG.
 > Release dates and commit links are omitted because they are not present in the supplied source history.
 
+## [1.7.1]
+
+**Channel:** Stable
+
+### 🐛 Bug Fixes
+
+* 専用必死チェッカービュワーをOFFにした場合、ChMate内WebViewへ固定せずAndroidの通常URL処理に戻すよう修正
+* ChMate 191 devでTalkの旧形式スレURLから書き込みフォームを開けない問題を修正
+* Talk読み込み中だけ変更する通信種別を読み込み後に復元し、書き込み先判定への影響を防止
+* エッヂ記者IDを含むスレタイの記号処理を修正
+
+### 📝 Notes
+
+* Android向けMorphe MPPを配布します。
+* 詳細は[1.7.1の更新内容](release-notes-1.7.1.md)をご覧ください。
+
 ## \[1.7.0]
 
 **Channel:** Stable

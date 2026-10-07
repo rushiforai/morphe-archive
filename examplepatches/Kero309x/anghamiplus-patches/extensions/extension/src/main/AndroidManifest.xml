@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The bundled extension is a plain dex payload that the patcher merges into the
+  target application, so it declares no components of its own. The Android
+  namespace of this module is configured in build.gradle.kts.
+-->
+<manifest />

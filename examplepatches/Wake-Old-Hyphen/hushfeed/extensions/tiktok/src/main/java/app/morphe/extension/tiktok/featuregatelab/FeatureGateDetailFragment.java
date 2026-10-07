@@ -589,6 +589,7 @@ public final class FeatureGateDetailFragment extends Fragment {
     private void setControlsEditable(boolean editable) {
         if (values != null) values.setEnabled(editable);
         if (force != null) force.setEnabled(editable);
+        if (booleanValue != null) booleanValue.setEnabled(editable);
         for (ObjectFieldEditor editor : objectEditors) editor.setEditable(editable);
         setFieldsDirty(fieldsDirty);
     }

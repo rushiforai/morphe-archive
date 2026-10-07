@@ -27,6 +27,22 @@ internal object SplashPreloadTaskFingerprint : Fingerprint(
     parameters = listOf("Landroid/content/Context;"),
 )
 
+/** Downloads the next TopView takeover ad's assets at startup. */
+internal object TopViewPreloadTaskFingerprint : Fingerprint(
+    definingClass = "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/topview/TopViewPreloadTask;",
+    name = "run",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
+/** Starts the real-time splash manager, which asks the ad server for a splash at launch. */
+internal object RealTimeSplashTaskFingerprint : Fingerprint(
+    definingClass = "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/topview/RealTimeSplashTask;",
+    name = "run",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;"),
+)
+
 internal object SplashPreloadEntryFingerprint : Fingerprint(
     definingClass = "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/SplashAdManagerPreloadTaskEntry;",
     name = "run",

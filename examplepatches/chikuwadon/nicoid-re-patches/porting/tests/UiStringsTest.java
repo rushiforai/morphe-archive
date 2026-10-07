@@ -4,6 +4,16 @@ public final class UiStringsTest {
     private static void check(boolean ok, String message) { if (!ok) throw new AssertionError(message); }
     public static void main(String[] args) {
         check("Shorts".equals(UiStrings.translate("ショート", Locale.US)), "English Shorts title");
+        check("Bold comments".equals(UiStrings.translate("コメントを太字にする", Locale.US)), "English bold comments");
+        check("粗體留言".equals(UiStrings.translate("コメントを太字にする", Locale.TAIWAN)), "Chinese bold comments");
+        check("デフォルトに戻す".equals(UiStrings.translate("Reset to default", Locale.JAPAN)), "English reset action returns Japanese");
+        check("Reset to default".equals(UiStrings.translate("デフォルトに戻す", Locale.US)), "Japanese reset action translates to English");
+        check("還原預設值".equals(UiStrings.translate("デフォルトに戻す", Locale.TAIWAN)), "Reset action translates to Chinese");
+        check("使用しない".equals(UiStrings.translate("Never", Locale.JAPAN)), "English setting entry returns Japanese");
+        check("設定".equals(UiStrings.translate("Setting", Locale.JAPAN)), "English upstream setting alias returns Japanese");
+        check("キャッシュのみを使用し再生".equals(UiStrings.translate("Use cached files for offline playback", Locale.JAPAN)), "English cache entry returns Japanese");
+        check("モバイル通信時のみ".equals(UiStrings.translate("On mobile data only", Locale.JAPAN)), "English mobile data entry returns Japanese");
+        check("不使用".equals(UiStrings.translate("使用しない", Locale.TAIWAN)), "Setting entry translates to Chinese");
         check("短片".equals(UiStrings.translate("ショート", Locale.TAIWAN)), "Traditional Chinese Shorts title");
         check("ショート".equals(UiStrings.translate("ショート", Locale.JAPAN)), "Japanese unchanged");
         check("App language".equals(UiStrings.translate("Language of the entire application", Locale.US)), "Improve old English");
@@ -23,8 +33,10 @@ public final class UiStringsTest {
             Locale.setDefault(Locale.US);
             check("Save playback position".equals(UiStrings.translate("再生位置の保存")), "Uses selected app locale");
             Locale.setDefault(Locale.TAIWAN);
-            check("分享偵錯紀錄".equals(UiStrings.translate("デバッグログを共有")), "Locale switch works");
+            check("儲存偵錯記錄".equals(UiStrings.translate("デバッグログを共有")), "Locale switch works");
         } finally { Locale.setDefault(previous); }
+        check("デバッグログの保存".equals(UiStrings.translate("デバッグログを共有", Locale.JAPAN)), "Native Japanese menu saves logs");
+        check("Save debug log".equals(UiStrings.translate("デバッグログを共有", Locale.US)), "Native English menu saves logs");
         String format = UiStrings.translate("再生:%,d  コメント:%,d  マイリス:%,d  いいね:%,d", Locale.US);
         check(String.format(Locale.US, format, 1, 2, 3, 4).contains("Likes: 4"), "Count format keeps all arguments");
         for (String source : new String[]{"ログイン方法", "通常ログイン", "Cookie手動入力", "保存",
@@ -40,6 +52,20 @@ public final class UiStringsTest {
         }
         String follow = UiStrings.translate("%s をフォローしますか？", Locale.TAIWAN);
         check(String.format(follow, "nicoid").contains("nicoid"), "Follow placeholder preserved");
+        for (String source : new String[]{"再生位置に自動追従","再生時間順","ニコる数順","ランキング","通常の画質設定に従う","コメントの影の種類","コメントの影の大きさ","コメントの最大行数","コメントの表示時間","10行","5秒","コメント取得数"}) {
+            check(!source.equals(UiStrings.translate(source, Locale.US)), "Missing-screen English: " + source);
+            check(!source.equals(UiStrings.translate(source, Locale.TAIWAN)), "Missing-screen Chinese: " + source);
+        }
+        for (String source : new String[]{"取得数：","次回の再生から反映されます。追加取得数は動画やログイン状態により異なります。","再生状況や通信エラーなどの診断ログを Download フォルダに保存します。不具合報告時に利用できます。"}) {
+            check(!source.equals(UiStrings.translate(source, Locale.US)), "English updated copy: " + source);
+            check(!source.equals(UiStrings.translate(source, Locale.TAIWAN)), "Chinese updated copy: " + source);
+        }
+        for (String source : new String[]{"I will change the language of the entire application.","External memory (SD card)","None (view all)","Are you sure you want to delete all the cache?","I set the comment drawing frame rate limit.","I will change the display method suitable for each tablet, smartphone","I will change the method of playing videos (streaming / cache)","I will change the language of the comment and video information. (The default is subject to the language of the entire application.)","And what to do when you tap the video list. (Item other than that you set will be displayed by tapping the triangle in the bottom right-hand corner.)","Video List of cached (Viewable offline)","Keywords video, tag search","Language","Pop-up playback"}) {
+            check(!source.equals(UiStrings.translate(source, Locale.JAPAN)), "English resource translated to Japanese: " + source);
+            check(!source.equals(UiStrings.translate(source, Locale.TAIWAN)), "English resource translated to Chinese: " + source);
+        }
+        check(UiStrings.translate("取得数：", Locale.JAPAN).endsWith("："), "Target summary uses a colon");
+        check(UiStrings.translate("件。", Locale.US).contains(". "), "English comment target summary punctuation");
         System.out.println("UI translation checks passed");
     }
 }

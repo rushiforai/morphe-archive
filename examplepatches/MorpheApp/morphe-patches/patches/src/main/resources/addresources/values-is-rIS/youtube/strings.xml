@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Um Morphe</string>
   <string name="morphe_settings_screen_01_ads_title">Auglýsingar</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Aðrar smámyndir</string>
   <string name="morphe_settings_screen_03_feed_title">Straumur</string>
   <string name="morphe_settings_screen_04_general_title">Almennt</string>
   <string name="morphe_settings_screen_05_player_title">Spilari</string>
@@ -65,6 +64,8 @@ Breytingarnar fela í sér:
   <string name="morphe_hide_artist_cards_title">Fela listamannaspjöld</string>
   <string name="morphe_hide_artist_cards_summary">Felur listamannaspjaldið efst í leitarniðurstöðum</string>
   <string name="morphe_hide_auto_dubbed_label_title">Fela merkið „Sjálfvirkt talsett“</string>
+  <string name="morphe_hide_channel_buttons_title">Fela rásahnappa</string>
+  <string name="morphe_hide_channel_buttons_summary">Felur hnappa eins og Gerast áskrifandi, Skoða rás, Samfélag og YouTube Music úr rásasniðum í leitarniðurstöðum</string>
   <string name="morphe_hide_community_posts_title">Fela samfélagsfærslur</string>
   <string name="morphe_hide_compact_banner_title">Fela þétta borða</string>
   <string name="morphe_hide_compact_banner_summary">Felur þétta borða og bil á milli sumra viðmótshluta</string>
@@ -76,7 +77,6 @@ Breytingarnar fela í sér:
   <string name="morphe_hide_floating_microphone_button_summary">Felur fljótandi hljóðnemahnapp neðst í hægra horninu á skjá leitaruppástungna</string>
   <string name="morphe_hide_get_premium_button_title">Fela hnappinn \'Fá Premium\'</string>
   <string name="morphe_hide_history_shelf_title">Fela spilunarsöguhilluna</string>
-  <string name="morphe_hide_history_shelf_summary">Felur spilunarsöguhilluna í Þú-flipanum</string>
   <string name="morphe_hide_horizontal_shelves_title">Fela láréttar raðir</string>
   <string name="morphe_hide_horizontal_shelves_summary">Felur láréttar raðir eins og Fréttir, Samfélagsfærslur sem þú gætir haft áhuga á, Halda áfram að horfa, Fleiri rásir, Fleiri efni, Fyrir þig, Nýjustu myndbönd, Mest viðeigandi, Samfélagsfærslur höfunda, Verslun og Horfa aftur</string>
   <string name="morphe_hide_hyped_label_title">Fela „Hyped“ merkið</string>
@@ -110,7 +110,8 @@ Breytingarnar fela í sér:
   <string name="morphe_hide_show_more_button_title">Fela \'Sýna meira\' hnappinn</string>
   <string name="morphe_hide_show_more_button_summary">Hyl leiðbeiningar listunum</string>
   <string name="morphe_hide_subscribed_channels_bar_title">Fela áskriftarrásastiku</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">Fela nöfn rása í áskriftastiku</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">Fela nöfn áskriftarrása</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">Felur nöfn rásanna í áskriftarrásastikunni</string>
   <string name="morphe_hide_surveys_title">Fela kannelana</string>
   <string name="morphe_hide_surveys_summary">Hylur kannanir og hröggur um nákvæmni um tillögur um umhverfi</string>
   <string name="morphe_hide_ticket_shelf_title">Fela miðaskjá</string>
@@ -159,6 +160,11 @@ Breytingarnar fela í sér:
   <string name="morphe_hide_sync_button_title">Fela \'Samstilla við myndband\' hnappinn</string>
   <string name="morphe_hide_timed_reactions_title">Fela tímabilsbundnar viðbrögð</string>
   <string name="morphe_hide_timed_reactions_summary">Felur eiginleikann sem gerir notendum kleift að bregðast við með emojis í athugasmdum og lifandi streymi</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">Fela \'Hjálp &amp; endurgjöf\' í valmyndum</string>
+  <string name="morphe_hide_help_feedback_menu_summary">Felur \'Hjálp &amp; endurgjöf\' í þriggja punkta valmyndum verkstikunnar, eins og leitarniðurstöðuvalmyndinni</string>
+  <string name="morphe_hide_handle_title">Fela handfang</string>
+  <string name="morphe_hide_handle_summary">Felur rásarhandfangið þitt í flipanum \'Þú\'</string>
   <string name="morphe_hide_video_title_title">Fela myndbandsheiti</string>
   <string name="morphe_hide_video_title_summary">Felur vídeótitilinn í fullskjástillingu</string>
   <string name="morphe_sanitize_video_subtitle_title">Hreinsa undirtitla myndbands</string>
@@ -679,7 +685,7 @@ Til að laga þetta skaltu kveikja á 'Spoofa myndstreymi' og breyta 'Sjálfgefn
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Fela Connect hnappinn</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Felur Tilkynna hnappinn</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Felur Endurgerði hnappinn</string>
@@ -1070,10 +1076,7 @@ Takmörkun: Ef 'Endurskapa gamla stjórnbara myndbands' er slökkt, gæti 'Fleir
   <string name="morphe_playback_in_feeds_entry_off">Slökkt</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">Endurheimta upprunalega titla</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">Þýtt</string>
-  <string name="morphe_restore_original_titles_type_entry_original">Upprunalegur</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">Þýddur með DeArrow</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">Upprunalegur með DeArrow</string>
+  <string name="morphe_restore_original_titles_summary">Sýnir upprunalega myndbandstitla, myndbandslýsingar og rásarlýsingar í stað sjálfþýddra</string>
   <string name="morphe_restore_original_titles_loading">Hleð titil…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">Slökkva á sjálfvirkri endurnýjun straums</string>
@@ -1147,39 +1150,42 @@ Takmörkun: Ef 'Endurskapa gamla stjórnbara myndbands' er slökkt, gæti 'Fleir
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Umfarð myndaðsvernd</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Leitarstöðvar umferðarstaða</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">DeArrow titlar</string>
+  <string name="morphe_dearrow_titles_summary">Skiptir út myndbandstitlum fyrir hópunna titla sem lagðir hafa verið fram til DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_title">Sýna DeArrow táknið</string>
+  <string name="morphe_dearrow_titles_icon_summary">Sýnir DeArrow táknið á hópsöfnuðum myndbandstitlum</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">Fyrir valmyndina Heim</string>
+  <string name="morphe_dearrow_thumbnail_home_title">Fyrir valmyndina Heim</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">Fyrir valmyndina Áskrifenda</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">Fyrir valmyndina Áskrifenda</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">Fyrir valmyndina Þú</string>
-  <string name="morphe_alt_thumbnail_player_title">Fyrir spilalistar og ráðleggingar</string>
-  <string name="morphe_alt_thumbnail_search_title">Fyrir leitarúrslit</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Upprunalega smámyndirnar</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Upprunalegar smámyndir</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Stillmyndir</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Stillmyndir</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow veitir samvinnuhraða myndmerki fyrir YouTube myndbönd. Þessi myndmerki eru oft relevant en þau sem veitt eru af YouTube.
+  <string name="morphe_dearrow_thumbnail_library_title">Fyrir valmyndina Þú</string>
+  <string name="morphe_dearrow_thumbnail_player_title">Fyrir spilalistar og ráðleggingar</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Fyrir leitarúrslit</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Upprunalega smámyndirnar</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Upprunalegar smámyndir</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Stillmyndir</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Stillmyndir</string>
+  <string name="morphe_dearrow_about_summary">"DeArrow veitir titla og smámyndir sem eru hópunnin fyrir YouTube myndbönd. Þetta er oft viðeigandi en það sem YouTube veitir
 
-Ef virkjað, verða myndbandstengingar sendar á API netþjóninn og engin önnur gögn eru send. Ef myndbandið hefur ekki DeArrow myndmerki, þá verða upprunalega eða skjámyndirnar sýndar.
+Ef það er virkt, verða slóðir myndbanda sendar til API-þjónsins og engin önnur gögn verða send. Ef myndband hefur engar DeArrow-smámyndir, þá eru upprunalegu myndirnar eða kyrrmyndirnar sýndar
 
-Bankaðu hér til að opna DeArrow.ajay.app"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Sýnir tilkynningum um tengslatruflanir</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Sýnir tilkynningu þegar DeArrow netþjónninn er óskár</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API endapunktur</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">URL DeArrow smámynda minnisins</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Stillmyndum af myndböndum</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Stöðumyndir eru teknar frá upphafi / miðju / lokum hvers vídeó. Þessar myndir eru innbyggðar í YouTube og engin utanaðkomandi API er notuð</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Notaðu fljótlegt stillmyndagerð</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">Bætir álagshraða með því að nota myndir á miðstigi. Lifandi streymir, útgáfur og eldri myndbönd gætu sýnt tómar myndabræður</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Taktu mynd frá</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Upphafið</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Miðjan</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Lok</string>
+Snertið hér til að opna DeArrow.ajay.app"</string>
+  <string name="morphe_dearrow_connection_toast_title">Sýnir tilkynningum um tengslatruflanir</string>
+  <string name="morphe_dearrow_connection_toast_summary">Sýnir tilkynningu þegar DeArrow netþjónninn er óskár</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API endapunktur</string>
+  <string name="morphe_dearrow_api_url_summary">URL DeArrow smámynda minnisins</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Stillmyndum af myndböndum</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Stöðumyndir eru teknar frá upphafi / miðju / lokum hvers vídeó. Þessar myndir eru innbyggðar í YouTube og engin utanaðkomandi API er notuð</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Taktu mynd frá</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Upphafið</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Miðjan</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Lok</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow er brátt óvirkt (staðastaðakóði: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow er brátt óvirkt</string>
+  <string name="morphe_dearrow_error">DeArrow er brátt óvirkt (staðastaðakóði: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow er brátt óvirkt</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Endurheimta gamla spilara</string>

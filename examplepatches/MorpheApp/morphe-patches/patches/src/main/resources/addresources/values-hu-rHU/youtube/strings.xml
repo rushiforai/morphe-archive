@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Névjegy</string>
   <string name="morphe_settings_screen_01_ads_title">Hirdetések</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Alternatív indexképek</string>
   <string name="morphe_settings_screen_03_feed_title">Feed</string>
   <string name="morphe_settings_screen_04_general_title">Általános</string>
   <string name="morphe_settings_screen_05_player_title">Lejátszó</string>
@@ -65,6 +64,8 @@ A változások a következőket tartalmazzák:
   <string name="morphe_hide_artist_cards_title">Előadó kártyák elrejtése</string>
   <string name="morphe_hide_artist_cards_summary">Elrejti az előadói kártyát a keresési találatok tetején</string>
   <string name="morphe_hide_auto_dubbed_label_title">​„Automatikus szinkron” címke elrejtése</string>
+  <string name="morphe_hide_channel_buttons_title">Csatornagombok elrejtése</string>
+  <string name="morphe_hide_channel_buttons_summary">Elrejti az olyan gombokat, mint a Feliratkozás, Csatorna megtekintése, Közösség és a YouTube Music a csatornaprofilokon a keresési találatokban</string>
   <string name="morphe_hide_community_posts_title">Közösségi posztok elrejtése</string>
   <string name="morphe_hide_compact_banner_title">Kompakt szalaghirdetések elrejtése</string>
   <string name="morphe_hide_compact_banner_summary">Kompakt szalagképek és az egyes összetevők közötti térköz elrejtése</string>
@@ -76,7 +77,6 @@ A változások a következőket tartalmazzák:
   <string name="morphe_hide_floating_microphone_button_summary">A keresési javaslatok képernyő jobb alsó sarkában lévő lebegő mikrofon gomb elrejtése</string>
   <string name="morphe_hide_get_premium_button_title">\"Prémium előfizetés\" gomb elrejtése</string>
   <string name="morphe_hide_history_shelf_title">Előzmények polc elrejtése</string>
-  <string name="morphe_hide_history_shelf_summary">Elrejti az Előzmények polcot a Neked lapon</string>
   <string name="morphe_hide_horizontal_shelves_title">Vízszintes polcok elrejtése</string>
   <string name="morphe_hide_horizontal_shelves_summary">Olyan vízszintes polcok elrejtése, mint a Friss hírek, Közösségi bejegyzések, amik érdekelhetnek, Megtekintés folytatása, További csatornák felfedezése, További témák felfedezése, Neked, Legújabb videók, Legrelevánsabb, Bejegyzések az alkotói közösségtől, Vásárlás és Megtekintés újra</string>
   <string name="morphe_hide_hyped_label_title">Hájpolt címke elrejtése</string>
@@ -110,7 +110,8 @@ A változások a következőket tartalmazzák:
   <string name="morphe_hide_show_more_button_title">„Továbbiak” gomb elrejtése</string>
   <string name="morphe_hide_show_more_button_summary">Kibontás gomb elrejtése a keresési találatok alatt</string>
   <string name="morphe_hide_subscribed_channels_bar_title">Feliratkozott csatornák sávjának elrejtése</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">Csatornanevek elrejtése a feliratkozott csatornák sávjában</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">Feliratkozott csatornák neveinek elrejtése</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">Elrejti a csatornaneveket a feliratkozott csatornák sávjában</string>
   <string name="morphe_hide_surveys_title">Felmérések elrejtése</string>
   <string name="morphe_hide_surveys_summary">Értékelési felmérések és javaslatok elrejtése a hírcsatorna pontosságával kapcsolatban</string>
   <string name="morphe_hide_ticket_shelf_title">Jegyértékesítési polc elrejtése</string>
@@ -159,6 +160,11 @@ A változások a következőket tartalmazzák:
   <string name="morphe_hide_sync_button_title">„Szinkronizálás videóval” gomb elrejtése</string>
   <string name="morphe_hide_timed_reactions_title">Időzített reakciók elrejtése</string>
   <string name="morphe_hide_timed_reactions_summary">Kikapcsolja az emojikkal való reagálást a kommenteknél és az élő chaten</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">„Súgó &amp; visszajelzés” elrejtése a menükben</string>
+  <string name="morphe_hide_help_feedback_menu_summary">Elrejti a „Súgó &amp; visszajelzés” elemet az alkalmazássáv hárompontos menüiben, például a keresési találatok menüjében</string>
+  <string name="morphe_hide_handle_title">Handle elrejtése</string>
+  <string name="morphe_hide_handle_summary">Elrejti a csatornád handle-jét a „Neked” lapon</string>
   <string name="morphe_hide_video_title_title">Videócímek elrejtése</string>
   <string name="morphe_hide_video_title_summary">Elrejti a videó címét teljes képernyős módban</string>
   <string name="morphe_sanitize_video_subtitle_title">Videofeliratok ellenőrzése</string>
@@ -681,7 +687,7 @@ A javításhoz kapcsolja be a „Videostreamek meghamisítása” beállítást,
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Rejtse el a Csatlakozás gombot</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Jelentés gomb elrejtése</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Remix gomb elrejtése</string>
@@ -1075,10 +1081,7 @@ Korlátozás: Ha a „Régi videós eszköztár visszaállítása” ki van kapc
   <string name="morphe_playback_in_feeds_entry_off">Ki</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">Eredeti címek visszaállítása</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">Fordított</string>
-  <string name="morphe_restore_original_titles_type_entry_original">Eredeti</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">DeArrow-val fordított</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">DeArrow-val eredeti</string>
+  <string name="morphe_restore_original_titles_summary">Az eredeti videócímek, videóleírások és csatornaleírások megjelenítése az automatikusan lefordítottak helyett</string>
   <string name="morphe_restore_original_titles_loading">Cím betöltése…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">Automatikus hírcsatorna-frissítés letiltása</string>
@@ -1152,39 +1155,42 @@ Korlátozás: Ha a „Régi videós eszköztár visszaállítása” ki van kapc
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Területi kép-korlátozások megkerülése</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Az URL-átirányítások megkerülése, így a céloldalak közvetlenül nyíljanak meg</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">DeArrow-címek</string>
+  <string name="morphe_dearrow_titles_summary">A videócímeket lecseréli a DeArrow-ba beküldött közösségi címekre</string>
+  <string name="morphe_dearrow_titles_icon_title">DeArrow ikon megjelenítése</string>
+  <string name="morphe_dearrow_titles_icon_summary">Megjeleníti a DeArrow ikont a közösségi videócímeken</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">A Home laphoz</string>
+  <string name="morphe_dearrow_thumbnail_home_title">A Home laphoz</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">A Feliratkozások laphoz</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">A Feliratkozások laphoz</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">A Te laphoz</string>
-  <string name="morphe_alt_thumbnail_player_title">A lejátszó lejátszási listákhoz és ajánlásokhoz</string>
-  <string name="morphe_alt_thumbnail_search_title">A keresési eredményekhez</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Eredeti indexképek</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow és eredeti indexképek</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Állóképek</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Pillanatképek</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"A DeArrow tömegforrásból származó miniatűr képeket biztosít a YouTube-videókhoz. Ezek a miniatűr képek gyakran relevánsabbak, mint a YouTube által biztosítottak
+  <string name="morphe_dearrow_thumbnail_library_title">A Te laphoz</string>
+  <string name="morphe_dearrow_thumbnail_player_title">A lejátszó lejátszási listákhoz és ajánlásokhoz</string>
+  <string name="morphe_dearrow_thumbnail_search_title">A keresési eredményekhez</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Eredeti indexképek</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow és eredeti indexképek</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Állóképek</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Pillanatképek</string>
+  <string name="morphe_dearrow_about_summary">"A DeArrow közösségi címeket és bélyegképeket biztosít a YouTube-videókhoz. Ezek gyakran relevánsabbak, mint a YouTube által biztosítottak.
 
-Ha engedélyezve van, akkor a videók URL-jeit elküldjük az API kiszolgálónak, és más adatokat nem küldünk. Ha egy videónak nincs DeArrow miniatűr képe, akkor az eredeti vagy állókép miniatűr kép lesz megjelenítve
+Ha engedélyezve van, a videók URL-jei elküldésre kerülnek az API-kiszolgálóra, és semmilyen más adat nem kerül elküldésre. Ha egy videónak nincs DeArrow-bélyegképe, akkor az eredeti vagy kimerevített képkockák jelennek meg.
 
-Érintse meg itt, hogy többet megtudjon a DeArrow-ról"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Kapcsolati hibaüzenetek megjelenítése</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Értesítést jelenít meg, ha a DeArrow szerver nem érhető el</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API végpont</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">A DeArrow bélyegkép cache végpont URL-je</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Videó pillanatképek</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Pillanatképek minden videó elejéről/közepéről/végéről készülnek. Ezek a képek be vannak építve a YouTube-ba és nem használnak külső API-t</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Gyors pillanatképek használata</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">A terhelés gyorsítása közepes minőségű képek használatával. Életközvetítések, kiadatlan és újabb videók esetén üres képek jelenhetnek meg</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Keret kinyerése a videóból</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Kezdőpont</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Közép</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Végpont</string>
+Koppintson ide a DeArrow.ajay.app megnyitásához"</string>
+  <string name="morphe_dearrow_connection_toast_title">Kapcsolati hibaüzenetek megjelenítése</string>
+  <string name="morphe_dearrow_connection_toast_summary">Értesítést jelenít meg, ha a DeArrow szerver nem érhető el</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API végpont</string>
+  <string name="morphe_dearrow_api_url_summary">A DeArrow bélyegkép cache végpont URL-je</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Videó pillanatképek</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Pillanatképek minden videó elejéről/közepéről/végéről készülnek. Ezek a képek be vannak építve a YouTube-ba és nem használnak külső API-t</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Keret kinyerése a videóból</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Kezdőpont</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Közép</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Végpont</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">A DeArrow átmenetileg nem érhető el (állapotkód: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">A DeArrow átmenetileg nem érhető el</string>
+  <string name="morphe_dearrow_error">A DeArrow átmenetileg nem érhető el (állapotkód: %s)</string>
+  <string name="morphe_dearrow_error_generic">A DeArrow átmenetileg nem érhető el</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Régi lejátszó gomb stílusának visszaállítása</string>

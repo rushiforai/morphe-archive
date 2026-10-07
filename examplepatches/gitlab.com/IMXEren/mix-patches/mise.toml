@@ -1,5 +1,14 @@
 [tools]
+android-sdk = "22.0"
 java = "temurin-21"
 jq = "1.8.2"
 node = "24"
 python = "3.12"
+
+[vars]
+android_compile_sdk = "36"
+android_build_tools = "36.0.0"
+
+[tasks.android-sdk]
+description = "Install Android SDK packages"
+run = 'android sdk install "platform-tools" "platforms/android-{{vars.android_compile_sdk}}" "build-tools/{{vars.android_build_tools}}"'

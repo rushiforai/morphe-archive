@@ -494,15 +494,43 @@ public final class Shapes {
     }
 
     private static void restoreTheme(Context c) {
+        restoreTheme(c, true, true);
+    }
+
+    /** Puts back the captured value of each setting asked for, then forgets the capture. */
+    private static void restoreTheme(Context c, boolean dark, boolean nav) {
         try {
             SharedPreferences ours = prefs(c);
             String d = ours.getString(KEY_PREV_DARK, null), n = ours.getString(KEY_PREV_NAV, null);
             SharedPreferences.Editor e = c.getSharedPreferences("settings_preference", Context.MODE_PRIVATE).edit();
-            if (d == null || ABSENT.equals(d)) e.remove("dark_mode"); else e.putString("dark_mode", d);
-            if (n == null || ABSENT.equals(n)) e.remove(KEY_NAV_SCHEME); else e.putString(KEY_NAV_SCHEME, n);
+            if (dark) { if (d == null || ABSENT.equals(d)) e.remove("dark_mode"); else e.putString("dark_mode", d); }
+            if (nav) { if (n == null || ABSENT.equals(n)) e.remove(KEY_NAV_SCHEME); else e.putString(KEY_NAV_SCHEME, n); }
             e.commit();
             ours.edit().remove(KEY_PREV_DARK).remove(KEY_PREV_NAV).commit();
         } catch (Throwable ignored) {}
+    }
+
+    /**
+     * Black theme only ever writes dark_mode=ON and the navigation scheme FORCE_NIGHT, so
+     * once it has taken them over, anything else there was picked by the user in Maps' own
+     * Settings. Re-pinning dark at the next Activity made "Always in light theme" come back
+     * dark after every restart, so Black theme steps aside instead: it switches itself off,
+     * keeps what they picked, and puts the other setting back the way it was before.
+     */
+    private static boolean themePickedInMaps(Context c) {
+        try {
+            SharedPreferences ours = prefs(c);
+            if (!ours.contains(KEY_PREV_DARK)) return false;   // not taken over yet
+            SharedPreferences sp = c.getSharedPreferences("settings_preference", Context.MODE_PRIVATE);
+            boolean dark = !"ON".equals(sp.getString("dark_mode", null));
+            boolean nav = !"FORCE_NIGHT".equals(sp.getString(KEY_NAV_SCHEME, null));
+            if (!dark && !nav) return false;
+            ours.edit().putBoolean(KEY_BLACK, false).commit();
+            restoreTheme(c, !dark, !nav);
+            return true;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     private static void enforceDark(Context c) {
@@ -528,7 +556,8 @@ public final class Shapes {
      * entirely. Black needs the dark palette underneath, so ON pins
      * dark_mode=ON and the navigation scheme to FORCE_NIGHT. Switching Black
      * OFF puts back whatever the user had before, captured by saveTheme() on
-     * the way in.
+     * the way in. Picking a theme in Maps' own Settings also switches it off,
+     * see themePickedInMaps().
      */
     public static void setBlackEnabled(Context c, boolean on) {
         if (on) saveTheme(c);                   // capture the user's Light/Dark/System choice first
@@ -546,7 +575,7 @@ public final class Shapes {
     public static Context wrap(Context base) {
         try {
             RECT = enabled(base);
-            BLACK = blackEnabled(base);
+            BLACK = blackEnabled(base) && !themePickedInMaps(base);
             HIDE_ADS = hideAdsEnabled(base);
             HIDE_EXPLORE = hideExploreEnabled(base);
             HIDE_TABS = hideTabsEnabled(base);
@@ -565,7 +594,7 @@ public final class Shapes {
             if (RECT) c.mnc = MNC_RECT;
             if (BLACK) {
                 c.mcc = MCC_BLACK;   // night itself comes from Maps' own dark_mode setting, see setBlackEnabled
-                enforceDark(base);   // ...which Maps' own Settings page could flip back: re-pin it on every Activity
+                enforceDark(base);   // ...pinned again at every Activity, unless the user changed it (themePickedInMaps)
             }
             // Maps applies its own theme setting to its AppCompat screens (Settings and its
             // pages) by updating each Activity's configuration after it is attached, and a
@@ -586,6 +615,23 @@ public final class Shapes {
         if ("ON".equals(mode)) return Configuration.UI_MODE_NIGHT_YES;
         if ("OFF".equals(mode)) return Configuration.UI_MODE_NIGHT_NO;
         return 0;
+    }
+
+    /**
+     * {left, top, right, bottom} of the system bars, plus the keyboard when ime is set.
+     * WindowInsets.Type is Android 11+, and people also patch a 26.36.04 build that runs
+     * on Android 10 (issue #8), where it crashed every screen of ours; there the older
+     * system-window insets carry the same sizes.
+     */
+    static int[] barInsets(android.view.WindowInsets in, boolean ime) {
+        if (android.os.Build.VERSION.SDK_INT >= 30) {
+            int types = android.view.WindowInsets.Type.systemBars();
+            if (ime) types |= android.view.WindowInsets.Type.ime();
+            android.graphics.Insets i = in.getInsets(types);
+            return new int[] {i.left, i.top, i.right, i.bottom};
+        }
+        return new int[] {in.getSystemWindowInsetLeft(), in.getSystemWindowInsetTop(),
+                in.getSystemWindowInsetRight(), in.getSystemWindowInsetBottom()};
     }
 
     /** Relaunch the app so every Activity is recreated with the new resources. */
@@ -1539,10 +1585,13 @@ public final class Shapes {
         int right = decor.getWidth(), top = 0;
         try {
             android.view.WindowInsets wi = decor.getRootWindowInsets();
-            if (wi != null) {
+            if (wi != null && android.os.Build.VERSION.SDK_INT >= 30) {
                 android.graphics.Insets in = wi.getInsets(android.view.WindowInsets.Type.systemBars()
                         | android.view.WindowInsets.Type.displayCutout());
                 right -= in.right; top = in.top;
+            } else if (wi != null) {
+                int[] in = barInsets(wi, false);
+                right -= in[2]; top = in[1];
             }
         } catch (Throwable t) { }
         int cx = right - Math.round((20f + FACE_DP / 2f) * d), cy = top + Math.round((24f + FACE_DP / 2f) * d);

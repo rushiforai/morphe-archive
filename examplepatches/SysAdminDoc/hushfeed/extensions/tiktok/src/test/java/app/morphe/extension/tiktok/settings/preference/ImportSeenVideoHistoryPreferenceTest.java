@@ -45,6 +45,7 @@ public class ImportSeenVideoHistoryPreferenceTest {
     private Activity activity;
     private TikTokPreferenceFragment fragment;
     private TimeZone originalZone;
+    private app.morphe.extension.tiktok.DocumentExportProvider provider;
 
     @Before public void setUp() throws Exception {
         originalZone = TimeZone.getDefault();
@@ -180,9 +181,7 @@ public class ImportSeenVideoHistoryPreferenceTest {
     @Test public void choosingTheReviewedFileShowsAccurateCountsAndRepeatingItAddsNothing() throws Exception {
         Settings.HIDE_SEEN_VIDEOS.save(true);
         Settings.SEEN_VIDEO_RETENTION_DAYS.save(0);
-        Uri uri = Uri.parse("content://watch-history-test/export.json");
-        Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
-                getClass().getResourceAsStream("/seen/reviewed-watch-history.json"));
+        Uri uri = reviewedFile();
         ImportSeenVideoHistoryPreference.pickFile(fragment);
         fragment.onActivityResult(ImportSeenVideoHistoryPreference.REQUEST_IMPORT, Activity.RESULT_OK,
                 new Intent().setData(uri));
@@ -190,8 +189,7 @@ public class ImportSeenVideoHistoryPreferenceTest {
         assertTrue(row().isEnabled());
         assertTrue(SeenVideoHistory.shouldHide("7420104946231577888"));
         assertTrue(bannerMessage().startsWith("15 watched videos added. 3 entries skipped."));
-        Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
-                getClass().getResourceAsStream("/seen/reviewed-watch-history.json"));
+        // The same document again: the file app hands it over as often as it's asked.
         ImportSeenVideoHistoryPreference.pickFile(fragment);
         fragment.onActivityResult(ImportSeenVideoHistoryPreference.REQUEST_IMPORT, Activity.RESULT_OK,
                 new Intent().setData(uri));
@@ -243,11 +241,128 @@ public class ImportSeenVideoHistoryPreferenceTest {
                 "watch-history/import-completed-" + theme + ".png", 480, 960);
     }
 
-    private Uri reviewedFile() {
-        Uri uri = Uri.parse("content://watch-history-test/export.json");
-        Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
-                getClass().getResourceAsStream("/seen/reviewed-watch-history.json"));
-        return uri;
+    /**
+     * The reviewed export as a file app's document. The read goes through the descriptor the file
+     * app hands over, so a stream registered with the resolver would never be read.
+     */
+    private Uri reviewedFile() throws Exception {
+        try (java.io.InputStream export = getClass().getResourceAsStream("/seen/reviewed-watch-history.json")) {
+            provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity)
+                    .contents(export.readAllBytes());
+            return provider.uri;
+        }
+    }
+
+    /**
+     * A file app that keeps the read waiting can be stopped waiting on once it stalls, and the
+     * import that never got its file adds nothing.
+     */
+    @Test public void aReadStoppedWhileTheFileAppHoldsItImportsNothing() throws Exception {
+        Settings.HIDE_SEEN_VIDEOS.save(true);
+        Settings.SEEN_VIDEO_RETENTION_DAYS.save(0);
+        Uri uri = reviewedFile();
+        provider.honorCancel = true;
+        java.util.concurrent.CountDownLatch release = provider.holdOpens();
+        try {
+            ImportSeenVideoHistoryPreference.pickFile(fragment);
+            fragment.onActivityResult(ImportSeenVideoHistoryPreference.REQUEST_IMPORT, Activity.RESULT_OK,
+                    new Intent().setData(uri));
+            assertTrue(provider.awaitOpening());
+            ImportSeenVideoHistoryPreference row = row();
+            assertFalse(row.isEnabled());
+            assertEquals("Reading watch history", row.getSummary().toString());
+            Shadows.shadowOf(android.os.Looper.getMainLooper())
+                    .idleFor(java.time.Duration.ofMillis(DocumentOperation.stallMillis));
+            assertTrue("the row didn't come back as the way to stop", row.isEnabled());
+            assertEquals("Still waiting for the file app. Tap to stop waiting.", row.getSummary().toString());
+
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            assertEquals("Stopped waiting for the file app. Nothing was imported.", bannerMessage());
+            finishWorkers();
+            assertEquals("the cancellation never reached the file app", 1, provider.cancels.get());
+            assertTrue(provider.handedOut.isEmpty());
+            assertFalse("a stopped import added history", SeenVideoHistory.shouldHide("7420104946231577888"));
+            assertTrue(row().isEnabled());
+            assertTrue(row().getSummary().toString().contains("this phone's time zone"));
+            assertFalse(DocumentOperation.busy(DocumentOperation.Kind.WATCH_HISTORY_FILE));
+        } finally {
+            release.countDown();
+            finishWorkers();
+        }
+    }
+
+    /**
+     * A cloud file app hands the file over at once and trickles the data. Stopping closes the
+     * descriptor under the read, which wakes it, and the import adds nothing.
+     */
+    @Test public void aReadStoppedWhileTheFileAppTricklesItImportsNothing() throws Exception {
+        Settings.HIDE_SEEN_VIDEOS.save(true);
+        Settings.SEEN_VIDEO_RETENTION_DAYS.save(0);
+        Uri uri = reviewedFile();
+        java.util.concurrent.CountDownLatch release = new java.util.concurrent.CountDownLatch(1);
+        SlowTransfers transfers = SlowTransfers.install(provider, release);
+        try {
+            ImportSeenVideoHistoryPreference.pickFile(fragment);
+            fragment.onActivityResult(ImportSeenVideoHistoryPreference.REQUEST_IMPORT, Activity.RESULT_OK,
+                    new Intent().setData(uri));
+            assertTrue("the read never started", transfers.awaitStarted());
+            Shadows.shadowOf(android.os.Looper.getMainLooper())
+                    .idleFor(java.time.Duration.ofMillis(DocumentOperation.stallMillis));
+            ImportSeenVideoHistoryPreference row = row();
+            assertEquals("Still waiting for the file app. Tap to stop waiting.", row.getSummary().toString());
+
+            row.getOnPreferenceClickListener().onPreferenceClick(row);
+            assertEquals("Stopped waiting for the file app. Nothing was imported.", bannerMessage());
+            assertFalse("the stop left the read's descriptor open",
+                    provider.handedOut.get(0).getFileDescriptor().valid());
+            finishWorkers();
+            assertEquals("the read's end said something after the stop",
+                    "Stopped waiting for the file app. Nothing was imported.", bannerMessage());
+            assertFalse("a stopped import added history", SeenVideoHistory.shouldHide("7420104946231577888"));
+            assertTrue(row().isEnabled());
+            assertTrue(row().getSummary().toString().contains("this phone's time zone"));
+            assertFalse(DocumentOperation.busy(DocumentOperation.Kind.WATCH_HISTORY_FILE));
+        } finally {
+            release.countDown();
+            finishWorkers();
+            DocumentOperation.streams = null;
+        }
+    }
+
+    /** An account switch while the file app is slow to hand the file over adds nothing anywhere. */
+    @Test public void anAccountSwitchDuringASlowReadImportsNothing() throws Exception {
+        Settings.HIDE_SEEN_VIDEOS.save(true);
+        Settings.SEEN_VIDEO_RETENTION_DAYS.save(0);
+        Uri uri = reviewedFile();
+        String chooser = SignedInUser.idForTests;
+        String switched = "switched-account-" + System.nanoTime();
+        java.util.concurrent.CountDownLatch release = provider.holdOpens();
+        try {
+            ImportSeenVideoHistoryPreference.pickFile(fragment);
+            fragment.onActivityResult(ImportSeenVideoHistoryPreference.REQUEST_IMPORT, Activity.RESULT_OK,
+                    new Intent().setData(uri));
+            assertTrue(provider.awaitOpening());
+            SignedInUser.idForTests = switched;
+        } finally {
+            release.countDown();
+            finishWorkers();
+        }
+        assertEquals("Your TikTok account changed. Choose the file again for this account.", bannerMessage());
+        assertFalse(SeenVideoHistory.shouldHide("7420104946231577888"));
+        Field database = SeenVideoHistory.class.getDeclaredField("database");
+        database.setAccessible(true);
+        Object helper = database.get(null);
+        // No database yet means nothing was ever written to one.
+        if (helper != null) {
+            android.database.sqlite.SQLiteDatabase db =
+                    ((android.database.sqlite.SQLiteOpenHelper) helper).getReadableDatabase();
+            try (android.database.Cursor cursor = db.rawQuery(
+                    "SELECT COUNT(*) FROM seen_videos WHERE account IN (?, ?)", new String[]{chooser, switched})) {
+                assertTrue(cursor.moveToFirst());
+                assertEquals("the import landed after the account changed", 0, cursor.getInt(0));
+            }
+        }
+        assertTrue(row().isEnabled());
     }
 
     private String bannerMessage() {
@@ -281,6 +396,7 @@ public class ImportSeenVideoHistoryPreferenceTest {
     private static void resetPicker() throws Exception {
         field("pending").set(null, null);
         field("busyLine").set(null, null);
+        field("reading").set(null, null);
         ((AtomicBoolean) field("BUSY").get(null)).set(false);
     }
 }

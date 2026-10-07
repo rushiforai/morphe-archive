@@ -144,6 +144,7 @@
     {
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/GenAiLabel.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/AiCharacterPosts.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/aidetected/**"
       ],
       "origin": "original",
@@ -152,7 +153,7 @@
         "https://github.com/SapitoSucio/FroggoMorphePatches"
       ],
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the rule that hides feed posts Facebook's own detection marked as made with AI. The idea follows the Facebook 573 AI filter of FroggoMorphePatches, which ArunTS96/FroggoMorphePatches and mben25/morphe-patches carry too. No code of it is here: that filter writes down 573's obfuscated names, while this finds GraphQLStory's accessor in 577 and 580 by the schema keys it loads, holds it to the flag Facebook's own GenAiTransparencyPlugin reads, and reads the flag through kept members. The opt-in creator label switch reads the plugin's second flag, was_self_disclosed_as_ai_generated, through GraphQLStory's self-disclosure accessor, found and held the same way."
+      "changes": "Written for Hushfacebook: the rule that hides feed posts Facebook's own detection marked as made with AI. The idea follows the Facebook 573 AI filter of FroggoMorphePatches, which ArunTS96/FroggoMorphePatches and mben25/morphe-patches carry too. No code of it is here: that filter writes down 573's obfuscated names, while this finds GraphQLStory's accessor in 577 and 580 by the schema keys it loads, holds it to the flag Facebook's own GenAiTransparencyPlugin reads, and reads the flag through kept members. The opt-in creator label switch reads the plugin's second flag, was_self_disclosed_as_ai_generated, through GraphQLStory's self-disclosure accessor, found and held the same way. Hide Meta AI in the feed takes out the Meta AI cards Facebook adds between posts by their type name, and the opt-in Hide AI character posts switch takes out posts featuring one of Meta's AI characters through the finder Facebook's own attachment renderers ask for that style, found in 577, 580 and 581 by the literal they hand it."
     },
     {
       "paths": [
@@ -446,6 +447,15 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredreels/AdPills.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the floating ad button on a reel or video ad's comments. In Facebook 577, 580 and 581 the comment sheet's indicator pill numbers its eight plugins, one static method turns a number into the plugin's class name, and one static check beside it decides whether that plugin's button shows. The patch finds the name table by the Reels ad plugin's class name and the check by its shape, and has the check ask the extension first with the table's name for its number. While the switch is on, the Reels, Watch and in-stream ad buttons answer no. The pill's other plugins are Facebook's call."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredreels/ReelsAdPool.kt"
       ],
       "origin": "original",
@@ -499,6 +509,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: hiding feed posts by words the person lists. In Facebook 577 and 580 GraphQLStory has one accessor that asks getCachedModel for the field keyed message as the type tagged TextWithEntities, and GraphQLStory's own toString calls it, labels its text message.text and reads that with a static helper that is getCachedString of the key text. The patch finds that accessor and the one of attached_story as Story by their keys, holds the first to toString's reading, and fills two stubs in PostText with them. The rule runs in the shared feed guard: the extension reads both texts through the kept getCachedString after checking the model's type tag, folds them and the two bounded phrase lists with NFKC case folding, lets a keep phrase win, keeps any post whose text it can't read, and reports only counts."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/PostSources.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: hiding feed posts from people, Pages and sites the person lists. In Facebook 581 GraphQLStory reads its authors with an accessor that asks getCachedModelList for the field keyed actors as the type tagged Actor, and its attachments the same way as StoryAttachment. The patch finds both by their keys and fills two stubs in PostSources. The extension reads each author's id and name and each attachment's url through the kept getCachedString, follows Facebook's l.facebook.com redirect to the site it carries, reads a shared post the same way, matches ids, whole names and sites with their subdomains against the bounded list, keeps any post it can't read, and reports only which line matched by number."
     },
     {
       "paths": [
@@ -640,6 +659,39 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/chats/TypingIndicator.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/chats/HideTypingIndicatorPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/chats/TypingAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Hide typing indicator, an idea shared with HushMessenger's Hide typing indicator and the ConversationTypingContext runnable De-Vanced and ReVanced find, written here from Facebook 577, 580 and 581. Mailbox's typing setter hands its flag to the extension first, and the chat and comment typing runnables, found by the names Redex keeps, ask the extension before they send."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoSave.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/DownloadPhotoPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/PhotoSaveAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the photo viewer's two reads of can_viewer_download ask the switch, and Save photo's kept newSavePhotoAction hands its listener to the extension, which saves the photo's biggest image through Hushfacebook's downloader and falls back to Facebook's own save."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/chats/ReadReceipts.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/chats/HideReadReceiptsPatch.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/chats/ReadReceiptAnchors.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Hide read receipts, an idea shared with HushMessenger's Hide read receipts, written here from Facebook 577, 580 and 581. Mailbox's mark-read, found by its API name, asks the extension once its future is made and hands that future back unsent while the switch is on."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/PictureInPicture.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/pip/PictureInPicturePatch.kt"
       ],
@@ -660,15 +712,26 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/MarketplaceSellerProfile.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/navigation/sellerprofile/ShowSellerViewProfilePatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581 and their React Native bundle, for issue #68: a seller's Marketplace page offers View profile only while the experiment flag qe_marketplace_commerce_profile_page:contextual_view_header_enabled reads true, so the config module's getBool and getBoolWithoutLogging ask the extension first, which answers true for that one name while the switch is on. No Facebook code was copied."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/ScreenTransitions.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/transitions/Fingerprints.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/transitions/PagerTabs.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/transitions/TransitionAnchors.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/transitions/TurnOffScreenTransitionsPatch.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: Turn off screen transitions, an idea from De-Vanced's Facebook clean-up patch, written here from Facebook 577, 580 and 581. The activity callbacks the settings patch registers ask Android for no transition as a screen comes to the front and as it closes, and the tab bar's pager controller and the sliding panel ask the extension before they decide to slide."
+      "changes": "Written for Hushfacebook: Turn off screen transitions, an idea from De-Vanced's Facebook clean-up patch, written here from Facebook 577, 580 and 581. The activity callbacks the settings patch registers ask Android for no transition as a screen comes to the front and as it closes, and the tab bar's pager controller and the sliding panel ask the extension before they decide to slide. Tab strips inside a screen ask too: the listener Facebook's TabbedViewPagerIndicator puts on each tab, found from the Redex name of the strip's onPageSelected runnable, hands its slide flag to the extension first, and the composer's kept MinutiaeTabbedPickerActivity.setTab calls the pager's two-argument setCurrentItem with no slide while the switch is on."
     },
     {
       "paths": [
@@ -690,6 +753,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Hide tabs, an idea Loukious has for the Marketplace and Games tabs, written here as another rule of the tab bar filter. Each hideable tab is known by the class Facebook keeps for it (FeedsTab and MostRecentFeedTab, FriendRequestsTab, MarketplaceTab, GroupsTargetedTab, GamesTab and GamesTabWithSNESControllerIcon, EventsTab), and a start meant for a hidden tab opens Home."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/ads/FeedAdPills.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the floating ad button on a feed ad's comments. Hide sponsored posts puts its own question in front of the comment pill's check that AdPills.kt hooks for Hide sponsored reels, and this answers no for the permalink and flyout ad plugins while the sponsored posts switch is on. Each patch finds the check whether or not the other asked first."
     }
   ]
 }

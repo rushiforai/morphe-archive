@@ -7,7 +7,8 @@
 
 package app.mix.patches.reddit.sync.profile
 
-import app.mix.patches.reddit.sync.extension.sharedExtensionPatch
+
+import app.mix.patches.reddit.sync.cosmetics.archiveSourceBadgePatch
 import app.mix.patches.reddit.sync.shared.Constants.COMPATIBILITY_SYNC
 import app.mix.patches.reddit.sync.shared.postsRequestConstructorFingerprint
 import app.mix.patches.reddit.sync.shared.postsUrlResultIndex
@@ -19,8 +20,8 @@ import app.morphe.util.indexOfFirstInstructionOrThrow
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION_CLASS = "Lapp/mix/extension/syncforreddit/ProfileFeedMerger;"
-private const val RATE_LIMIT_CLASS = "Lapp/mix/extension/syncforreddit/RateLimitThrottle;"
-private const val SOURCE_BADGE_CLASS = "Lapp/mix/extension/syncforreddit/ArchiveSourceBadge;"
+private const val RATE_LIMIT_CLASS = "Lapp/mix/extension/reddit/ArcticShiftRateLimit;"
+
 
 private val MethodReference.smaliReference
     get() = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
@@ -31,7 +32,7 @@ val mergeProfileFeedsPatch = bytecodePatch(
     description = "Merges profile submissions and comments from Arctic Shift and Reddit.",
 ) {
     compatibleWith(COMPATIBILITY_SYNC)
-    dependsOn(sharedExtensionPatch)
+    dependsOn(archiveSourceBadgePatch)
 
     execute {
         val applicationContextMethod = applicationContextFingerprint.method.smaliReference
@@ -118,18 +119,5 @@ val mergeProfileFeedsPatch = bytecodePatch(
             invoke-static {v0, v1}, $RATE_LIMIT_CLASS->observe(Ljava/lang/String;Lcom/android/volley/NetworkResponse;)V
             """,
         )
-
-        listOf(postDescriptionFingerprint, commentDescriptionFingerprint).forEach { fingerprint ->
-            fingerprint.method.apply {
-                addInstructions(
-                    implementation!!.instructions.size - 1,
-                    """
-                    move-object/from16 v0, p0
-                    move-object/from16 v1, p1
-                    invoke-static {v0, v1}, $SOURCE_BADGE_CLASS->decorate(Landroid/widget/TextView;Ljava/lang/Object;)V
-                    """,
-                )
-            }
-        }
     }
 }

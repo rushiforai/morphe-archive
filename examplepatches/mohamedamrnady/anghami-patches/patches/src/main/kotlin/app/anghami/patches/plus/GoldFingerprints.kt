@@ -7,7 +7,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * Gold-visibility targets (Anghami 8.0.28, verified in base.apk smali).
+ * Gold-visibility targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Rationale: Gold features are server-authorized (planType=Gold, artist
  * badges, live-radio roles). Spoofing isGold=true (as the Kero module does)

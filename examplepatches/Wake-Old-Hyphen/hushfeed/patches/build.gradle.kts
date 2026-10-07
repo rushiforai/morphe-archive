@@ -402,6 +402,69 @@ dependencies {
 }
 
 val documentationClasses = listOf("app/morphe/ReadmePatchNamesTest.class", "app/morphe/MarketingHeroTest.class")
+// The patch tests that read extension sources or the extension bundle. They stay in :patches:test,
+// which a runtime Java edit reruns. Every other patch test runs in nativeTest, whose inputs leave
+// the extensions out, so that edit reuses the long fixture fingerprint scans. nativeTest refuses
+// to run a test outside this list that reads extensions.
+val extensionClasses = listOf(
+    "app/morphe/ExtensionBridgeLookupTest.class",
+    "app/morphe/ExtensionHostsTest.class",
+    "app/morphe/ObfuscatedIdentityTest.class",
+    "app/morphe/OriginNoticeMirrorsTest.class",
+    "app/morphe/RuntimeViewIdAnchorsTest.class",
+    "app/morphe/gatecatalog/GateCatalogFixturesTest.class",
+    "app/morphe/patches/tiktok/ExtensionReferencesResolveTest.class",
+    "app/morphe/patches/tiktok/TikTokPatchAnchorsMatchFixturesTest.class",
+    "app/morphe/patches/tiktok/interaction/downloads/StickerSourceFixturesTest.class",
+    "app/morphe/patches/tiktok/interaction/downloads/StoryHoldFixturesTest.class",
+    "app/morphe/patches/tiktok/misc/diagnostics/BuildDetailsPatchTest.class",
+    "app/morphe/patches/tiktok/misc/featuregatelab/FeatureGateLabFramesTest.class",
+)
+// The plugin copies extensions/*.mpe into the main resources. nativeTest reads this copy instead,
+// so rebuilding the extension doesn't change its classpath.
+val nativeTestResources = tasks.register<Sync>("nativeTestResources") {
+    from(tasks.processResources)
+    exclude("extensions/**")
+    into(layout.buildDirectory.dir("resources/nativeTest"))
+}
+val nativeTest = tasks.register<Test>("nativeTest") {
+    group = "verification"
+    description = "Runs the patch tests that read neither extension sources nor the extension bundle."
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    val mainResources = sourceSets.main.get().output.resourcesDir
+    classpath = sourceSets.test.get().runtimeClasspath.filter { it != mainResources } + files(nativeTestResources)
+    exclude(documentationClasses + extensionClasses)
+    inputs.property("suiteSelection", provider {
+        (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns
+    })
+    failOnNoDiscoveredTests.set(provider {
+        (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns.isEmpty()
+    })
+    val testRoot = file("src/test/kotlin")
+    val testSources = fileTree(testRoot) { include("**/*.kt") }
+    // By package path, the way include and exclude match: a listed test moved to another
+    // package would otherwise still pass here by its name while test no longer ran it.
+    val listed = extensionClasses.map { it.removeSuffix(".class") }.toSet()
+    doFirst {
+        val readsExtensions = Regex("""["/\\]extensions[/\\"]""")
+        val unlisted = testSources.files
+            .filter {
+                it.relativeTo(testRoot).invariantSeparatorsPath.removeSuffix(".kt") !in listed &&
+                    readsExtensions.containsMatchIn(it.readText())
+            }
+            .map { it.relativeTo(projectDir).invariantSeparatorsPath }.sorted()
+        check(unlisted.isEmpty()) {
+            "These test sources read extensions, but nativeTest ignores extension changes. " +
+                "Add their test classes to extensionClasses in patches/build.gradle.kts, or fix " +
+                "an entry whose test moved: $unlisted"
+        }
+        val selected = (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns
+        if (selected.isNotEmpty()) {
+            setTestNameIncludePatterns(selected.toList())
+            filter.isFailOnNoMatchingTests = false
+        }
+    }
+}
 val documentationTest = tasks.register<Test>("documentationTest") {
     group = "verification"
     description = "Checks the README, source catalog and approved artwork."
@@ -428,14 +491,14 @@ val documentationTest = tasks.register<Test>("documentationTest") {
 
 // A finalizer also runs when the native partition is UP-TO-DATE or NO-SOURCE.
 val verifyPatchTestSelection = tasks.register("verifyPatchTestSelection") {
-    mustRunAfter(tasks.test, documentationTest)
+    mustRunAfter(tasks.test, nativeTest, documentationTest)
     doLast {
         val parser = DocumentBuilderFactory.newInstance().apply {
             setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
         }.newDocumentBuilder()
         val suites = mutableSetOf<String>()
         var total = 0
-        for (partition in listOf("test", "documentationTest")) {
+        for (partition in listOf("test", "nativeTest", "documentationTest")) {
             val reports = layout.buildDirectory.dir("test-results/$partition").get().asFile
             for (report in reports.listFiles().orEmpty().filter { it.name.startsWith("TEST-") && it.extension == "xml" }) {
                 val suite = parser.parse(report).documentElement
@@ -454,16 +517,21 @@ val verifyPatchTestSelection = tasks.register("verifyPatchTestSelection") {
                 "Incomplete patch test run. Missing: ${expected - ran}; orphaned: ${ran - expected}"
             }
         }
-        logger.lifecycle("Patch tests across both partitions: $total")
+        logger.lifecycle("Patch tests across all three partitions: $total")
     }
 }
 
-tasks.withType<Test>().matching { it.name == "test" || it.name == "documentationTest" }.configureEach {
-    val contractFiles = if (name == "documentationTest") rootProject.files(
-        "patches/src", "README.md", "patches-list.json", "patches-bundle.json",
-        "assets/readme-hero.png", "patches-bundle.png", "concepts/marketing/2026-09-12"
-    ) else rootProject.files(fileTree("src"), rootProject.file("patches-list.json"),
-        rootProject.fileTree("extensions") { include("**/src/**"); exclude("**/build/**") })
+val patchTestPartitions = setOf("test", "nativeTest", "documentationTest")
+tasks.withType<Test>().matching { it.name in patchTestPartitions }.configureEach {
+    val contractFiles = when (name) {
+        "documentationTest" -> rootProject.files(
+            "patches/src", "README.md", "patches-list.json", "patches-bundle.json",
+            "assets/readme-hero.png", "patches-bundle.png", "concepts/marketing/2026-09-12"
+        )
+        "nativeTest" -> rootProject.files(fileTree("src"), rootProject.file("patches-list.json"))
+        else -> rootProject.files(fileTree("src"), rootProject.file("patches-list.json"),
+            rootProject.fileTree("extensions") { include("**/src/**"); exclude("**/build/**") })
+    }
     // These contracts read raw files beyond the compiled classpath. Hash content directly so
     // equal size/mtime replacements also invalidate Gradle's cached file fingerprints.
     val contractContent = provider {
@@ -496,48 +564,57 @@ tasks.withType<Test>().matching { it.name == "test" || it.name == "documentation
     }
 }
 
+// The fixture tests skip when this is unset and read the folder when it is set. Blank counts as
+// unset, as Fixtures.kt reads it; File("") would be the whole project.
+val fixtureDirectory = providers.environmentVariable("HUSHFEED_FIXTURE_DIR")
+// Gradle's file-hash cache can reuse a digest after an external file is replaced with the same
+// size and timestamp, so the fixture bytes are read independently. Once per build: both
+// partitions that open the APKs declare the same digests.
+val fixtureDigests by lazy {
+    fixtureDirectory.map { directory ->
+        val fixtures = if (directory.isBlank()) emptyList() else File(directory).listFiles()
+            ?.filter { it.isFile && it.extension in setOf("apk", "apkm") }.orEmpty()
+        fixtures.associate { fixture ->
+            val digest = MessageDigest.getInstance("SHA-256")
+            fixture.inputStream().use { stream ->
+                val buffer = ByteArray(65_536)
+                while (true) {
+                    val read = stream.read(buffer)
+                    if (read < 0) break
+                    digest.update(buffer, 0, read)
+                }
+            }
+            fixture.name to digest.digest().joinToString("") { "%02x".format(it) }
+        }
+    }.getOrElse(emptyMap())
+}
+// Both partitions that open TikTok APKs.
+tasks.withType<Test>().matching { it.name == "test" || it.name == "nativeTest" }.configureEach {
+    // GateCatalogFixturesTest runs the catalog generator on each declared build, and the
+    // generator holds a whole APK's dex (some 430 MB on 47.1.3, feature modules included)
+    // while it walks it; the fixture scans in nativeTest hold the same dex. Gradle's default
+    // test heap is 512 MB, where that ran out of memory.
+    maxHeapSize = "4g"
+    // What the folder holds is the input, not its name: a run whose APK was swapped, re-signed
+    // or deleted under the same path has to run again, not come back up to date or out of the
+    // build cache with the last folder's verdict. Relative, so where the folder sits on this
+    // machine does not count, and an APK moved into or out of a subfolder does: the tests read
+    // only the folder's top level, and name only would call that move no change.
+    inputs.files(fixtureDirectory.map { if (it.isBlank()) emptyList() else listOf(File(it)) }.orElse(emptyList()))
+        .withPropertyName("fixtures")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.property("fixtureBytes", provider { fixtureDigests })
+}
+
 tasks {
     test {
-        dependsOn(documentationTest)
+        dependsOn(documentationTest, nativeTest)
         finalizedBy(verifyPatchTestSelection)
-        exclude(documentationClasses)
-        // A --tests selection may belong only to the documentation partition. The finalizer
-        // checks both result sets so an unmatched selection still fails, as it did before.
+        include(extensionClasses)
+        // A --tests selection may belong only to another partition. The finalizer checks every
+        // result set so an unmatched selection still fails, as it did before.
         filter.isFailOnNoMatchingTests = false
         failOnNoDiscoveredTests.set(false)
-        // GateCatalogFixturesTest runs the catalog generator on each declared build, and the
-        // generator holds a whole APK's dex (some 430 MB on 47.1.3, feature modules included)
-        // while it walks it. Gradle's default test heap is 512 MB, where that ran out of memory.
-        maxHeapSize = "4g"
-        // The fixture tests skip when this is unset and read the folder when it is set. What the
-        // folder holds is the input, not its name: a run whose APK was swapped, re-signed or
-        // deleted under the same path has to run again, not come back up to date or out of the
-        // build cache with the last folder's verdict. Relative, so where the folder sits on this
-        // machine does not count, and an APK moved into or out of a subfolder does: the tests
-        // read only the folder's top level, and name only would call that move no change.
-        // Blank counts as unset, as Fixtures.kt reads it; File("") would be the whole project.
-        val fixtureDirectory = providers.environmentVariable("HUSHFEED_FIXTURE_DIR")
-        inputs.files(fixtureDirectory.map { if (it.isBlank()) emptyList() else listOf(File(it)) }.orElse(emptyList()))
-            .withPropertyName("fixtures")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        // Gradle's file-hash cache can reuse a digest after an external file is replaced with
-        // the same size and timestamp. Read fixture bytes independently before checking reuse.
-        inputs.property("fixtureBytes", fixtureDirectory.map { directory ->
-            val fixtures = if (directory.isBlank()) emptyList() else File(directory).listFiles()
-                ?.filter { it.isFile && it.extension in setOf("apk", "apkm") }.orEmpty()
-            fixtures.associate { fixture ->
-                val digest = MessageDigest.getInstance("SHA-256")
-                fixture.inputStream().use { stream ->
-                    val buffer = ByteArray(65_536)
-                    while (true) {
-                        val read = stream.read(buffer)
-                        if (read < 0) break
-                        digest.update(buffer, 0, read)
-                    }
-                }
-                fixture.name to digest.digest().joinToString("") { "%02x".format(it) }
-            }
-        }.orElse(emptyMap()))
     }
     // The bundle a release publishes lives in build/release, not build/libs. The plugin's
     // buildAndroid merges the DEX payload into the jar task's own output in place, so any later

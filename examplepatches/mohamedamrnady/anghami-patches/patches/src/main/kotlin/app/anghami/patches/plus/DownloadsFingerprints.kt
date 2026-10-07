@@ -9,7 +9,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * Download-gate targets (Anghami 8.0.28, verified in base.apk smali).
+ * Download-gate targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Used by the "Unlock downloads" patch. `isOnLimitedPlan` body is
  * `maxOfflineSongs <= 100 && > 0`, NOT an isPlusUser call.

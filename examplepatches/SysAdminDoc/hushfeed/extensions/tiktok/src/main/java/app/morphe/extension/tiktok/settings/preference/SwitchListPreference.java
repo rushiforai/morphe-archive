@@ -179,6 +179,14 @@ public final class SwitchListPreference extends Preference {
                 }
                 boolean success = saved;
                 app.morphe.extension.shared.Utils.runOnMainThread(() -> {
+                    // A recreation while the save ran took this dialog's window with the old
+                    // activity, and dismissing a window that's gone throws. The restored page
+                    // shows its own dialog, so this one only reports.
+                    if (!onScreen(dialog)) {
+                        if (success) notifyChanged();
+                        else reportSaveFailure();
+                        return;
+                    }
                     setChoicesEnabled(dialog, true);
                     if (success) {
                         notifyChanged();
@@ -258,6 +266,11 @@ public final class SwitchListPreference extends Preference {
                 return new OpenState[size];
             }
         };
+    }
+
+    private static boolean onScreen(AlertDialog dialog) {
+        return dialog.isShowing() && dialog.getWindow() != null
+                && dialog.getWindow().getDecorView().isAttachedToWindow();
     }
 
     private static void setChoicesEnabled(AlertDialog dialog, boolean enabled) {

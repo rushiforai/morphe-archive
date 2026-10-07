@@ -18,7 +18,7 @@ body:
     attributes:
       label: HushThreads and Threads versions
       description: Long-press the Threads icon and tap HushThreads, or open Threads' App info page and tap Additional settings in the app. Copy the version line under the HushThreads title. If the screen opens on category pages, open More settings, then About, and copy the Version line.
-      placeholder: Version 0.0.11 for Threads 449.0.0.54.82
+      placeholder: Version 0.0.11 for Threads 450.0.0.51.78
     validations:
       required: true
   - type: input
@@ -73,16 +73,22 @@ body:
       multiple: true
       options:
         - Block background-return feed refresh
+        - Change version code
         - Disable analytics
+        - Disable screenshot detection
         - Disable video autoplay
         - Hide ads
         - Hide suggested users
         - HushThreads settings
+        - Max image quality
         - Open links in browser
         - Pure black dark mode
+        - Remove share targets
         - Remove the advertising ID
         - Restore screens on re-signed builds
         - Sanitize sharing links
+        - Save photos and videos
+        - Trust user-added certificates
     validations:
       required: true
   - type: dropdown

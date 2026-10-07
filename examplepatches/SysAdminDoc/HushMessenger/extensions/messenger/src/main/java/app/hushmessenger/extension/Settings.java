@@ -167,10 +167,70 @@ public final class Settings {
     }
 
     private static final Object META_AI_TAB = new Object();
+
+    /** First answer this process gave for the emoji drawer, or null before Messenger asked. */
+    static volatile Boolean oldEmojiDrawer;
+    private static final Object EMOJI_DRAWER = new Object();
+
+    /**
+     * Messenger reads its redesigned emoji drawer flag in each part of the drawer as it builds it, and the parts have to
+     * agree, the way Meta's server flag never changes while Messenger runs. So the first answer holds until a restart,
+     * and a switch, Pause or safe-mode change can't leave half the drawer redesigned. This only ever turns a yes into a no.
+     */
+    public static boolean redesignedEmojiDrawer(boolean original) {
+        Boolean old = oldEmojiDrawer;
+        if (old == null) {
+            synchronized (EMOJI_DRAWER) {
+                if (oldEmojiDrawer == null) oldEmojiDrawer = wouldUse("emoji_drawer");
+                old = oldEmojiDrawer;
+            }
+        }
+        if (!original || !old) return original;
+        activeAt.put("emoji_drawer", System.currentTimeMillis());
+        return false;
+    }
+
     public static boolean showSubtabs(boolean original) { return original && !enabled("subtabs"); }
     public static boolean hidePeopleSection(boolean original) { return original || enabled("people"); }
     public static boolean keepPeopleSection(boolean original) { return original && !enabled("people"); }
     public static boolean suppressTyping() { return enabled("typing"); }
+    /** Every analytics upload service, job and retry asks this as it starts, so a change applies to the next upload. */
+    public static boolean stopAnalyticsUploads() { return enabled("analytics_uploads"); }
+    /** Messenger's own original-upload check allows 25 MB, so a bigger video keeps its re-encode. */
+    static final long ORIGINAL_VIDEO_MAX_BYTES = 25L * 1024 * 1024;
+    /**
+     * The video transcoder's size check before it re-encodes. A negative answer sends the file through Messenger's own
+     * passthrough. Off, Pause, safe mode and a file over 25 MB get Messenger's comparison back unchanged.
+     */
+    public static int videoPassthrough(int comparison, long bytes) {
+        if (comparison < 0 || bytes <= 0 || bytes > ORIGINAL_VIDEO_MAX_BYTES) return comparison;
+        return enabled("original_video") ? -1 : comparison;
+    }
+
+    /** The notification hook asks this before it reads a message, so nothing is read when the switch is off or paused. */
+    public static boolean logReceivedMessages() { return wouldUse("message_log"); }
+
+    /** The notification hook hands the message here; the log stores it off this thread and swallows its own failures. */
+    public static void recordReceivedMessage(String text, String thread) { MessageLog.record(text, thread); }
+    /**
+     * The chat camera button's intent, right before Messenger starts it. With the switch on it opens the capture screen,
+     * which uses the phone's camera app. Off, Pause, safe mode and an install without the capture screen get Messenger's.
+     */
+    public static android.content.Intent systemCamera(android.content.Intent original) {
+        try {
+            Context context = appContext;
+            if (original == null || context == null || !wouldUse(CameraActivity.KEY)) return original;
+            android.content.Intent capture = CameraActivity.captureIntent(context);
+            return capture != null && enabled(CameraActivity.KEY) ? capture : original;
+        } catch (RuntimeException error) {
+            hookFailed(CameraActivity.KEY, "Can't open the phone's camera app", error);
+            return original;
+        }
+    }
+    /** The chat reads a photo from another app back under its own request code, so the capture screen starts with that one. */
+    public static int cameraRequestCode(android.content.Intent intent, int requestCode) {
+        return CameraActivity.isCapture(appContext, intent) ? CameraActivity.EXTERNAL_MEDIA_REQUEST : requestCode;
+    }
     /** Encrypted chats send typing through one mailbox call; "not typing" is always allowed through. */
     public static boolean outgoingTyping(boolean typing) { return typing && !enabled("typing"); }
     static boolean available(String key) {
@@ -193,6 +253,8 @@ public final class Settings {
         return preferences.getBoolean(BUBBLE_CHAT_HEADS, false) ? "chat_heads" : "native";
     }
     public static boolean allowScreenshot() { return enabled("allow_screenshot"); }
+    /** Messenger's subscription check for its built-in launcher icons. Off, paused or safe mode keeps Messenger's answer. */
+    public static boolean unlockAppIcons() { return enabled("app_icons"); }
     public static void addScreenshotFlags(Window window, int flags) {
         window.addFlags(allowScreenshot() ? flags & ~WindowManager.LayoutParams.FLAG_SECURE : flags);
     }
@@ -359,6 +421,7 @@ public final class Settings {
             // Glyph 0 is the missing-glyph box: the phone has no emoji font, so Messenger's set should stay.
             if (glyphs.glyphCount() == 0 || glyphs.getGlyphId(0) == 0) return null;
             android.graphics.fonts.Font font = glyphs.getFont(0);
+            systemEmojiShaped = font;
             java.io.File file = font.getFile();
             android.graphics.Typeface typeface;
             if (file != null && file.canRead()) {
@@ -374,6 +437,54 @@ public final class Settings {
             android.util.Log.w("HushMessenger", "Can't find the phone's emoji font, using " + NOTO_EMOJI_FONT, error);
             return null;
         }
+    }
+
+    /** The android.graphics.fonts.Font Android shaped the emoji probe with; Object so Android 9 never resolves the type. */
+    static Object systemEmojiShaped;
+    /** Messenger's downloaded FacebookEmoji.ttf, recorded as Messenger loads it. */
+    static volatile java.io.File messengerEmojiFile;
+    static java.io.File mergedEmojiFile;
+    static android.graphics.Typeface mergedEmoji;
+
+    /** Messenger's emoji font holder hands over its font file as Messenger builds it. */
+    public static void messengerEmojiFont(java.io.File file) {
+        messengerEmojiFile = file;
+    }
+
+    /**
+     * Wraps every return of Messenger's emoji typeface getter. The phone's emoji font has no glyph for Messenger's own
+     * Like (U+F0000) and similar private characters, so Android 10 and newer draw those from Messenger's font (#34).
+     */
+    public static android.graphics.Typeface systemEmojiTypeface(android.graphics.Typeface messenger) {
+        android.graphics.Typeface system = systemEmojiTypeface();
+        if (system == null) return messenger;
+        java.io.File file = messengerEmojiFile;
+        if (messenger == null || file == null || android.os.Build.VERSION.SDK_INT < 29) return system;
+        synchronized (Settings.class) {
+            if (!file.equals(mergedEmojiFile)) {
+                mergedEmojiFile = file;
+                mergedEmoji = null;
+                try {
+                    mergedEmoji = withMessengerFallback(file);
+                } catch (Exception error) {
+                    // The phone's emoji still apply; only Messenger's private characters stay as boxes.
+                    hookFailedPrivately("use_system_emoji", "Can't add Messenger's emoji font behind the phone's", error);
+                }
+            }
+            return mergedEmoji != null ? mergedEmoji : system;
+        }
+    }
+
+    @android.annotation.TargetApi(29)
+    static android.graphics.Typeface withMessengerFallback(java.io.File messengerFont) throws java.io.IOException {
+        android.graphics.fonts.Font system = systemEmojiShaped instanceof android.graphics.fonts.Font
+            ? (android.graphics.fonts.Font) systemEmojiShaped
+            : new android.graphics.fonts.Font.Builder(new java.io.File(systemEmojiSource)).build();
+        return new android.graphics.Typeface.CustomFallbackBuilder(new android.graphics.fonts.FontFamily.Builder(system).build())
+            .addCustomFallback(new android.graphics.fonts.FontFamily.Builder(
+                new android.graphics.fonts.Font.Builder(messengerFont).build()).build())
+            .setSystemFallback("sans-serif")
+            .build();
     }
 
     /** Null means return the exact original list. Only typed ad rows are removed. */

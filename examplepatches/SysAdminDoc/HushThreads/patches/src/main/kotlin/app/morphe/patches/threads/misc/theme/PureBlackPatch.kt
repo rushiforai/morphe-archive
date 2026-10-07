@@ -2,7 +2,7 @@
  * Copyright 2026 HushThreads contributors
  * https://github.com/SysAdminDoc/HushThreads
  *
- * Found by reading 449 and 448 (2026-10-05).
+ * Found by reading 449 and 448 (2026-10-05), and 450 (2026-10-06).
  */
 package app.morphe.patches.threads.misc.theme
 
@@ -35,6 +35,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val PATCH = "Pure black dark mode"
 internal const val PURE_BLACK = "$EXTENSION_PACKAGE/theme/PureBlack;"
@@ -58,7 +59,8 @@ private const val SCHEME_COLORS = 20
  * Threads builds its Compose colors in its theme, BdsTheme. For dark mode it either builds them
  * there from literals or takes a ready color scheme, and Threads holds a dark and a light one of
  * those in static fields of one class. #101010 is the dark background in both. Each place the
- * theme loads #101010 asks the extension first, and so does each argument of the dark scheme that's
+ * theme, or a helper it builds its colors in, loads #101010 asks the extension first, and so does
+ * each argument of the dark scheme that's
  * #101010 where the light scheme has white. The light scheme's own #101010, a dark color on light
  * backgrounds, isn't one of those, so light mode stays as Threads draws it. The grays of menus,
  * sheets and pressed rows are other colors and stay too.
@@ -82,17 +84,20 @@ val pureBlackPatch = bytecodePatch(
         requireStatusMethod("pureBlack")
         val theme = theme()
         val scheme = darkScheme(theme)
-        val loads = theme.darkLoads().ifEmpty { throw PatchException("$PATCH: Threads' theme no longer loads #101010") }
-        // From the last, so the earlier indices still point where they did.
-        for (index in loads.sortedDescending()) {
-            val register = (theme.implementation!!.instructions[index] as OneRegisterInstruction).registerA
-            theme.addInstructions(
-                index + 1,
-                """
-                    invoke-static/range { v$register .. v${register + 1} }, $PURE_BLACK->argb(J)J
-                    move-result-wide v$register
-                """,
-            )
+        val builders = (listOf(theme) + themeHelpers(theme)).map { it to it.darkLoads() }.filter { it.second.isNotEmpty() }
+            .ifEmpty { throw PatchException("$PATCH: Threads' theme no longer loads #101010") }
+        for ((builder, loads) in builders) {
+            // From the last, so the earlier indices still point where they did.
+            for (index in loads.sortedDescending()) {
+                val register = (builder.implementation!!.instructions[index] as OneRegisterInstruction).registerA
+                builder.addInstructions(
+                    index + 1,
+                    """
+                        invoke-static/range { v$register .. v${register + 1} }, $PURE_BLACK->argb(J)J
+                        move-result-wide v$register
+                    """,
+                )
+            }
         }
         mutableClassDefBy(scheme.holder).findMutableMethodOf(scheme.initializer).addInstructions(
             scheme.call,
@@ -130,6 +135,24 @@ private fun Instruction.loadsWide(value: Long) = when (opcode) {
     Opcode.CONST_WIDE, Opcode.CONST_WIDE_32, Opcode.CONST_WIDE_16, Opcode.CONST_WIDE_HIGH16 ->
         (this as WideLiteralInstruction).wideLiteral == value
     else -> false
+}
+
+/**
+ * The static methods [this] theme calls that build the same kind of colors it does: each returns a
+ * type the theme constructs itself. 450 builds its dark colors from literals in one of those, where
+ * 448 and 449 build them in the theme.
+ */
+internal fun Method.themeHelpers(): List<MethodReference> {
+    val body = implementation!!.instructions
+    val built = body.filter { it.opcode == Opcode.NEW_INSTANCE }.mapNotNull { it.getReference<TypeReference>()?.type }.toSet()
+    return body.filter { it.opcode == Opcode.INVOKE_STATIC || it.opcode == Opcode.INVOKE_STATIC_RANGE }
+        .mapNotNull { it.getReference<MethodReference>() }
+        .filter { it.returnType in built }
+        .distinctBy { it.toString() }
+}
+
+private fun BytecodePatchContext.themeHelpers(theme: Method): List<MutableMethod> = theme.themeHelpers().mapNotNull { reference ->
+    classDefByOrNull(reference.definingClass)?.let { mutableClassDefBy(reference.definingClass).findMutableMethodOf(reference) }
 }
 
 private fun BytecodePatchContext.theme(): MutableMethod {

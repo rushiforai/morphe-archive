@@ -11,17 +11,25 @@ import android.content.Context;
 import android.graphics.Typeface;
 import android.os.Looper;
 import android.text.SpannableString;
+import android.text.TextUtils;
 import android.text.Spanned;
 import android.text.style.StyleSpan;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import com.ss.android.ugc.aweme.common.widget.VerticalViewPager;
+import com.ss.android.ugc.aweme.detail.ui.DetailActivity;
+import com.ss.android.ugc.aweme.main.MainActivity;
+
+import java.lang.reflect.Method;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,6 +40,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.GraphicsMode;
 
 /**
  * The feed's author row and a comment row both carry a {@code title} view, so the row is
@@ -137,6 +146,17 @@ public class AuthorRegionTest {
         // Switching the option off, or leaving the feed, puts the name back.
         AuthorRegion.restore();
         assertEquals("My path forward", name.getText().toString());
+    }
+
+    /** TikTok keeps the post time GONE unless the publish date shows; the row is still the author's (#75). */
+    @Test
+    public void aHiddenPostTimeStillMarksTheAuthorRow() {
+        LinearLayout row = feedRow("My path forward");
+        row.getChildAt(1).setVisibility(View.GONE);
+        assertSame(row.getChildAt(0), AuthorRegion.findName(row));
+
+        row.getChildAt(0).setVisibility(View.GONE);
+        assertNull(AuthorRegion.findName(row));
     }
 
     @Test
@@ -378,6 +398,226 @@ public class AuthorRegionTest {
             pager.setVisibility(View.INVISIBLE);
 
             assertNull(AuthorRegion.findName(activity.findViewById(android.R.id.content)));
+        }
+    }
+
+    /** Stands in for VideoItemParams, which hands the player its Aweme. */
+    public static final class Params {
+        public final Clip aweme;
+
+        Params(Clip aweme) {
+            this.aweme = aweme;
+        }
+    }
+
+    /** Tells CurrentVideoAuthor this clip is the one playing, the way the player hooks do. */
+    private static void play(Clip clip) throws Exception {
+        Method update = CurrentVideoAuthor.class.getDeclaredMethod("update", Object.class);
+        update.setAccessible(true);
+        update.invoke(null, new Params(clip));
+        Method onPlaying = CurrentVideoAuthor.class.getDeclaredMethod("onPlaying", String.class);
+        onPlaying.setAccessible(true);
+        onPlaying.invoke(null, clip.aid);
+    }
+
+    private static void layOut(View root) {
+        root.measure(View.MeasureSpec.makeMeasureSpec(400, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(800, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, 400, 800);
+    }
+
+    /** #75: a video opened from search plays in a detail pager of its own, and gets the country too. */
+    @Test
+    public void aVideoOpenedInTheDetailPagerGetsTheCountry() throws Exception {
+        Method reset = CurrentVideoAuthor.class.getDeclaredMethod("resetForTests");
+        reset.setAccessible(true);
+        reset.invoke(null);
+        Settings.SHOW_AUTHOR_HANDLE.save(false);
+        Settings.SHOW_AUTHOR_REGION.save(true);
+        try (ActivityController<MainActivity> feed = Robolectric.buildActivity(MainActivity.class).setup().visible()) {
+            Utils.setContext(feed.get());
+            AuthorRegion.install(feed.get());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            feed.pause();
+
+            try (ActivityController<DetailActivity> pager = Robolectric.buildActivity(DetailActivity.class).setup().visible()) {
+                LinearLayout row = feedRow("aittaac");
+                pager.get().setContentView(row);
+                play(new Clip("opened", "aittaac", "aittaac", "AZ"));
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                layOut(row.getRootView());
+                row.getViewTreeObserver().dispatchOnGlobalLayout();
+
+                assertEquals("aittaac · AZ", ((TextView) row.getChildAt(0)).getText().toString());
+                pager.pause().stop();
+            }
+        } finally {
+            AuthorRegion.restore();
+            Settings.SHOW_AUTHOR_HANDLE.resetToDefault();
+            Settings.SHOW_AUTHOR_REGION.resetToDefault();
+            reset.invoke(null);
+        }
+    }
+
+    /** #75: TikTok cuts a long name with an ellipsis, and the country after it went too. */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aLongNameIsShortenedSoTheCountryStaysWhole() {
+        LinearLayout row = longNameRow(LONG_NAME);
+        TextView name = (TextView) row.getChildAt(0);
+
+        AuthorRegion.decorate(name, null, "AZ");
+        layOut(row);
+        assertTrue("the fixture name isn't long enough to be cut", name.getLayout().getEllipsisCount(0) > 0);
+
+        // The next layout pass fits it.
+        AuthorRegion.decorate(name, null, "AZ");
+        layOut(row);
+        String shown = name.getText().toString();
+        assertTrue(shown, shown.endsWith(" · AZ"));
+        assertTrue(shown, shown.startsWith("Aysel_"));
+        assertTrue(shown, shown.contains("…"));
+        assertEquals(shown, 0, name.getLayout().getEllipsisCount(0));
+
+        // Settled, so later passes leave it as it is.
+        AuthorRegion.decorate(name, null, "AZ");
+        assertEquals(shown, name.getText().toString());
+
+        AuthorRegion.restore();
+        assertEquals(LONG_NAME, name.getText().toString());
+    }
+
+    private static final String LONG_NAME = "Aysel_Salehli_Coach_Yasam_Kocu_Spiritual_Mentor_Official";
+
+    /** A single-line name 160 px wide that TikTok cuts with an ellipsis, beside a hidden post time. */
+    private LinearLayout longNameRow(String full) {
+        LinearLayout row = new LinearLayout(context);
+        TextView name = new TextView(context);
+        name.setId(NAME_ID);
+        name.setSingleLine(true);
+        name.setEllipsize(TextUtils.TruncateAt.END);
+        name.setText(full);
+        row.addView(name, new LinearLayout.LayoutParams(160, ViewGroup.LayoutParams.WRAP_CONTENT));
+        TextView postTime = new TextView(context);
+        postTime.setId(POST_TIME_ID);
+        postTime.setVisibility(View.GONE);
+        row.addView(postTime);
+        return row;
+    }
+
+    /**
+     * A row with a fixed width takes new text with a redraw and no layout pass, so nothing would
+     * come back to fit it. It's fitted as it's written.
+     */
+    @Test
+    @GraphicsMode(GraphicsMode.Mode.NATIVE)
+    public void aFixedWidthRowIsFittedWithoutWaitingForALayoutPass() {
+        LinearLayout row = longNameRow(LONG_NAME);
+        TextView name = (TextView) row.getChildAt(0);
+        layOut(row);
+
+        AuthorRegion.decorate(name, null, "AZ");
+        String shown = name.getText().toString();
+        assertTrue(shown, shown.endsWith(" · AZ"));
+        assertTrue(shown, shown.contains("…"));
+
+        AuthorRegion.restore();
+        assertEquals(LONG_NAME, name.getText().toString());
+    }
+
+    /** On a LIVE preview or an ad with no author row, the only row left can be the cell beside it. */
+    @Test
+    public void aLoneRowOffScreenIsNotTheVideosRow() {
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = controller.get();
+            VerticalViewPager pager = feed(activity, "neighbour");
+            View content = activity.findViewById(android.R.id.content);
+
+            pager.scrollTo(0, PAGE_HEIGHT);
+            assertNull(AuthorRegion.findName(content));
+
+            pager.scrollTo(0, 0);
+            assertSame(nameIn(pager, 0), AuthorRegion.findName(content));
+        }
+    }
+
+    /**
+     * A detail page that finishes as it resumes (a trampoline, a video that's gone) took the hook
+     * off the feed, and the feed coming back still looked like the window the hook was on.
+     */
+    @Test
+    public void aDetailPageClosingAsItOpensLeavesTheFeedHooked() throws Exception {
+        Method reset = CurrentVideoAuthor.class.getDeclaredMethod("resetForTests");
+        reset.setAccessible(true);
+        reset.invoke(null);
+        Settings.SHOW_AUTHOR_HANDLE.save(false);
+        Settings.SHOW_AUTHOR_REGION.save(true);
+        try (ActivityController<MainActivity> feed = Robolectric.buildActivity(MainActivity.class).setup().visible()) {
+            LinearLayout row = feedRow("aittaac");
+            feed.get().setContentView(row);
+            Utils.setContext(feed.get());
+            AuthorRegion.install(feed.get());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            feed.pause();
+
+            try (ActivityController<DetailActivity> detail = Robolectric.buildActivity(DetailActivity.class).create().start()) {
+                detail.get().finish();
+                detail.resume();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+            }
+            feed.resume();
+            play(new Clip("feed", "aittaac", "aittaac", "AZ"));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            layOut(row.getRootView());
+            row.getViewTreeObserver().dispatchOnGlobalLayout();
+
+            assertEquals("aittaac · AZ", ((TextView) row.getChildAt(0)).getText().toString());
+        } finally {
+            AuthorRegion.restore();
+            Settings.SHOW_AUTHOR_HANDLE.resetToDefault();
+            Settings.SHOW_AUTHOR_REGION.resetToDefault();
+            reset.invoke(null);
+        }
+    }
+
+    /**
+     * A detail page started with no feed behind it (a share link) is hooked from its own onCreate.
+     * It lays out while the feed's video is still the current one, and its own video starting is
+     * what puts the right country on it.
+     */
+    @Test
+    public void aDetailPageCatchesUpWhenItsOwnVideoStarts() throws Exception {
+        Method reset = CurrentVideoAuthor.class.getDeclaredMethod("resetForTests");
+        reset.setAccessible(true);
+        reset.invoke(null);
+        boolean enabled = SettingsStatus.authorRegionEnabled;
+        SettingsStatus.authorRegionEnabled = true;
+        Settings.SHOW_AUTHOR_HANDLE.save(false);
+        Settings.SHOW_AUTHOR_REGION.save(true);
+        try (ActivityController<DetailActivity> pager = Robolectric.buildActivity(DetailActivity.class).setup().visible()) {
+            LinearLayout row = feedRow("aittaac");
+            pager.get().setContentView(row);
+            Utils.setContext(pager.get());
+            AuthorRegion.install(pager.get());
+            play(new Clip("feed", "aittaac", "aittaac", "US"));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            layOut(row.getRootView());
+            row.getViewTreeObserver().dispatchOnGlobalLayout();
+            TextView name = (TextView) row.getChildAt(0);
+            assertEquals("aittaac · US", name.getText().toString());
+            // The write's own relayout runs now, so the next video gets no layout pass to ride on.
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("aittaac · US", name.getText().toString());
+
+            play(new Clip("opened", "aittaac", "aittaac", "AZ"));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("aittaac · AZ", name.getText().toString());
+        } finally {
+            AuthorRegion.restore();
+            SettingsStatus.authorRegionEnabled = enabled;
+            Settings.SHOW_AUTHOR_HANDLE.resetToDefault();
+            Settings.SHOW_AUTHOR_REGION.resetToDefault();
+            reset.invoke(null);
         }
     }
 }

@@ -20,12 +20,19 @@ class ControlProfileTest {
     @Test fun eachBuildListsTheSameControlsWithTheSameNumberOfHooks() {
         for (profile in controlProfiles.values) {
             assertEquals(BASE_PROFILE.hooks.keys, profile.hooks.keys)
-            for (key in BASE_PROFILE.hooks.keys) {
+            for (key in BASE_PROFILE.hooks.keys - EMOJI_DRAWER) {
                 assertEquals(BASE_PROFILE.hooks.getValue(key).size, profile.hooks.getValue(key).size, key)
             }
         }
-        assertEquals(100, PROFILE_346013370.hooks.values.sumOf { it.size })
-        assertEquals(100, PROFILE_346013423.hooks.values.sumOf { it.size })
+        // 581 inlined 580's one emoji drawer flag helper into each drawer component, so only that count follows the release.
+        for ((version, codes) in MessengerTarget.VERSIONS) {
+            assertEquals(1, codes.map { controlProfileFor(it.toString()).hooks.getValue(EMOJI_DRAWER).size }.toSet().size, version)
+        }
+        assertEquals(2, BASE_PROFILE.hooks.getValue(EMOJI_DRAWER).size)
+        assertEquals(8, PROFILE_346213494.hooks.getValue(EMOJI_DRAWER).size)
+        assertEquals(ExpectedTotals.HOOKS_580, PROFILE_346013370.hooks.values.sumOf { it.size })
+        assertEquals(ExpectedTotals.HOOKS_580, PROFILE_346013423.hooks.values.sumOf { it.size })
+        assertEquals(ExpectedTotals.HOOKS_581, PROFILE_346213494.hooks.values.sumOf { it.size })
     }
 
     @Test fun theVersionCodePicksTheProfile() {

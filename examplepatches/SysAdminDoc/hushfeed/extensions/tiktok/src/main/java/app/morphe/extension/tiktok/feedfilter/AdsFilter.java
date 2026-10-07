@@ -4,6 +4,7 @@
  */
 package app.morphe.extension.tiktok.feedfilter;
 
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
@@ -13,6 +14,8 @@ import org.json.JSONObject;
 public class AdsFilter implements IFilter {
     private static final String DISCLOSURE_HOOK_FAMILY = "feed ad disclosures";
     private static final String PANEL_DISCLOSURE = "panel_top_disclosure_label";
+    /** The filter report's count of ads caught by a signal other than TikTok's own ad flag. */
+    static final String AD_SIGNALS_SOURCE = "AdSignals";
 
     @Override
     public boolean getEnabled() {
@@ -25,8 +28,24 @@ public class AdsFilter implements IFilter {
                 || item.isSoftAd()
                 || item.getAwemeRawAd() != null
                 || item.isWithPromotionalMusic()
+                || isPseudoAd(item)
                 || hasCreatorCommissionDisclosure(item)
                 || ContentMarkerFilters.hasPaidPartnershipMarker(item);
+    }
+
+    /**
+     * A creator's own post that TikTok runs as an ad. isAd and the raw ad stay empty on it, so
+     * TikTok's AwemeExtKt.isPseudoAd reads the commerce struct instead, and needs both its
+     * isPseudoAd flag and the ad data it carries: either one alone is not an ad to TikTok. This
+     * is that same test. The struct itself rides along on most of the feed.
+     */
+    static boolean isPseudoAd(Aweme item) {
+        Object commerce = Reflect.property(item, "getCommerceVideoAuthInfo", "commerceVideoAuthInfo");
+        if (commerce == null) return false;
+        boolean pseudo = Boolean.TRUE.equals(Reflect.property(commerce, "isPseudoAd", "isPseudoAd"))
+                && Reflect.property(commerce, "getPseudoAdData", "pseudoAdData") != null;
+        if (pseudo) FeedFilterCounters.sawKind(AD_SIGNALS_SOURCE, "pseudo ad");
+        return pseudo;
     }
 
     /**

@@ -38,6 +38,7 @@ Every icon comes from the app's own APK, at the version and resource listed belo
 | `qrscanner.png` | QR & Barcode Scanner (`com.gamma.scan`) | Gamma Play | APK 2.2.224, `res/mipmap-xxxhdpi-v4/ic_launcher_round.png` |
 | `cx.png` | Cx File Explorer (`com.cxinventor.file.explorer`) | Cx File Explorer | APK 2.7.8, adaptive icon `res/mipmap-anydpi-v26/app_icon.xml` |
 | `notesnook.png` | Notesnook (`com.streetwriters.notesnook`) | Streetwriters (Private) Limited | APK 3.4.13, adaptive icon `res/mipmap-anydpi-v26/ic_launcher.xml` |
+| `raindrop.png` | Raindrop.io (`io.raindrop.raindropio`) | Rustem Mussabekov | APK 4.7.44, adaptive icon `res/mipmap-anydpi-v26/ic_launcher.xml` |
 | `rubberbands.png` | Rubber Bands (`app.rubberbands.fit`) | Rubber Bands LLC | APK 3.9, `res/mipmap-xxxhdpi-v4/ic_launcher_round.webp` |
 | `photoeditorpro.png` | Photo Editor Pro (`photo.editor.photoeditor.photoeditorpro`) | InShot Inc. | APK 1.791.265, adaptive round icon |
 | `oneweather.png` | 1Weather (`com.handmark.expressweather`) | 1Weather LLC | APK 12.9.3, `res/mipmap-xxxhdpi-v4/ic_launcher_round.webp` |
@@ -62,6 +63,7 @@ Every icon comes from the app's own APK, at the version and resource listed belo
 | `echoequalizer.png` | Echo Equalizer (`com.hapibits.soundlift`) | HapiBits | APK 9.2, `res/mipmap-xxxhdpi-v4/ic_launcher_round.png` |
 | `ledblinker.png` | LED Blinker (`com.ledblinker`) | Mario Ostwald | APK 26.01.08, `res/mipmap-xxxhdpi-v4/ic_launcher_new.webp` |
 | `fddb.png` | Fddb (`com.fddb`) | Fddb | APK v7.8.4, `res/mipmap-xxxhdpi-v4/ic_launcher.png` |
+| `faststlviewer.png` | Fast STL Viewer (`com.performance.meshview`) | Fast STL Viewer | APK 2.84, `res/Gd.png`, cut to a circle |
 | `cxxdroid.png` | Cxxdroid (`ru.iiec.cxxdroid`) | IIEC | APK 6.0_arm64, `mipmap/ic_launcher`, xxxhdpi |
 | `jvdroid.png` | Jvdroid (`ru.iiec.jvdroid`) | Lider Soft KZ | APK 2.8, `mipmap/ic_launcher`, xxxhdpi |
 | `pydroid.png` | Pydroid 3 (`ru.iiec.pydroid3`) | Lider Soft KZ | APK 8.6_arm64, `mipmap/app_icon_pydroid3`, xxxhdpi |
@@ -73,6 +75,7 @@ Every icon comes from the app's own APK, at the version and resource listed belo
 | `pocketwhip.png` | Pocket Whip (`com.greenstone.pocketwhip`) | Original Pocket Whip | APK 2.3, `res/mipmap-hdpi-v4/pocket_whip_icon_round.png` |
 | `memoneet.png` | MemoNeet (`com.adithya.memoneet`) | MemoNeet | APK 62.6, `res/mipmap-xxxhdpi-v4/ic_launcher.png`, cut to a circle |
 | `keepa.png` | Keepa (`com.keepa.mobile`) | Keepa.com | APK 6.2.1, `res/mipmap-xxxhdpi-v4/ic_launcher_round.png` |
+| `joyn.png` | Joyn (`de.prosiebensat1digital.seventv`) | SevenOne Entertainment Group GmbH | APK 6.9.0-AOS-609012264, `res/mipmap-xxxhdpi-v4/ic_launcher.png`, cut to a circle |
 
 Showly's icon is also published under GPLv3 in [`trakt/showly`](https://github.com/trakt/showly),
 so its copyright terms are compatible with this one. The rest are used under nominative fair

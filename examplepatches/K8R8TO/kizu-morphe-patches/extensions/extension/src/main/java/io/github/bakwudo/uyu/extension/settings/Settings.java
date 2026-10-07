@@ -21,6 +21,8 @@ public final class Settings {
             new BooleanSetting("hide_gift_leaderboard", false);
     public static final BooleanSetting HIDE_SUBSCRIPTION_PROMOTIONS =
             new BooleanSetting("hide_subscription_promotions", false);
+    public static final BooleanSetting HIDE_TURBO_UPSELL =
+            new BooleanSetting("hide_turbo_upsell", true);
 
     public static final BooleanSetting DANMAKU_ENABLED =
             new BooleanSetting("danmaku_enabled", false);
@@ -135,6 +137,28 @@ public final class Settings {
             new BooleanSetting("hide_featured_clips", true);
     public static final BooleanSetting FORCE_SEARCH_BUTTON =
             new BooleanSetting("force_search_button", true);
+    public static final BooleanSetting HIDE_RESUME_WATCHING =
+            new BooleanSetting("hide_resume_watching", true);
+    public static final BooleanSetting HIDE_OFFLINE_CHANNELS =
+            new BooleanSetting("hide_offline_channels", true);
+    public static final BooleanSetting HIDE_UPCOMING_STREAMS =
+            new BooleanSetting("hide_upcoming_streams", true);
+    public static final BooleanSetting HIDE_GAME_SECTION =
+            new BooleanSetting("hide_game_section", true);
+    public static final BooleanSetting HIDE_HOME_LEADERBOARDS =
+            new BooleanSetting("hide_home_leaderboards", true);
+    public static final BooleanSetting FULL_FOLLOWED_CARDS =
+            new BooleanSetting("full_followed_cards", true);
+    public static final BooleanSetting HIDE_CREATE_BUTTON =
+            new BooleanSetting("hide_create_button", true);
+    public static final BooleanSetting HIDE_PLAYER_CREATE_CLIP_BUTTON =
+            new BooleanSetting("hide_player_create_clip_button", true);
+    public static final BooleanSetting HIDE_PLAYER_LIVE_SHARE_BUTTON =
+            new BooleanSetting("hide_player_live_share_button", true);
+    public static final BooleanSetting HIDE_CAST_BUTTON =
+            new BooleanSetting("hide_cast_button", true);
+    public static final BooleanSetting DISABLE_LINK_DISCLAIMER =
+            new BooleanSetting("disable_link_disclaimer", true);
 
     // Privacy.
     public static final BooleanSetting DISABLE_COMSCORE =

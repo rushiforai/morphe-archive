@@ -37,6 +37,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean maxImageQuality() {
+        return false;
+    }
+
+    public static boolean saveMedia() {
+        return false;
+    }
+
     public static boolean sanitizeSharingLinks() {
         return false;
     }
@@ -54,6 +62,10 @@ public final class SettingsStatus {
         return 0;
     }
 
+    public static boolean disableScreenshotDetection() {
+        return false;
+    }
+
     public static boolean pureBlack() {
         return false;
     }
@@ -63,6 +75,18 @@ public final class SettingsStatus {
     }
 
     public static boolean restoreTrust() {
+        return false;
+    }
+
+    public static boolean versionCode() {
+        return false;
+    }
+
+    public static boolean removeShareTargets() {
+        return false;
+    }
+
+    public static boolean trustUserCertificates() {
         return false;
     }
 }

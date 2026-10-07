@@ -45,18 +45,27 @@ public enum PatchFamily {
             Settings.BLOCK_RETURN_REFRESH, Settings.RETURN_REFRESH_NO_LIMIT),
     VIDEO_AUTOPLAY(FamilyNames.VIDEO_AUTOPLAY, "disableVideoAutoplay", null,
             Settings.DISABLE_VIDEO_AUTOPLAY),
+    MAX_IMAGE_QUALITY(FamilyNames.MAX_IMAGE_QUALITY, "maxImageQuality", null,
+            Settings.MAX_IMAGE_QUALITY),
     SANITIZE_SHARING_LINKS(FamilyNames.SANITIZE_SHARING_LINKS, "sanitizeSharingLinks", null,
             Settings.SANITIZE_SHARING_LINKS),
     EXTERNAL_BROWSER(FamilyNames.EXTERNAL_BROWSER, "openLinksExternally", null,
             Settings.OPEN_LINKS_EXTERNALLY),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics", null,
             Settings.DISABLE_ANALYTICS),
+    SCREENSHOT_DETECTION(FamilyNames.SCREENSHOT_DETECTION, "disableScreenshotDetection", null,
+            Settings.DISABLE_SCREENSHOT_DETECTION),
+    SAVE_MEDIA(FamilyNames.SAVE_MEDIA, "saveMedia", null,
+            Settings.SAVE_MEDIA, Settings.DOWNLOAD_COMPATIBLE),
     PURE_BLACK(FamilyNames.PURE_BLACK, "pureBlack", null,
             Settings.PURE_BLACK),
     // A manifest can't be switched at run time: the permission is gone from the APK whether or not
     // HushThreads is paused.
     REMOVE_AD_ID(FamilyNames.REMOVE_AD_ID, "removeAdId", "the removed advertising ID permission"),
-    RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix");
+    RESTORE_TRUST(FamilyNames.RESTORE_TRUST, "restoreTrust", "the re-signed build fix"),
+    VERSION_CODE(FamilyNames.VERSION_CODE, "versionCode", "the raised version code"),
+    REMOVE_SHARE_TARGETS(FamilyNames.REMOVE_SHARE_TARGETS, "removeShareTargets", "the removed share sheet entry"),
+    TRUST_USER_CERTIFICATES(FamilyNames.TRUST_USER_CERTIFICATES, "trustUserCertificates", "the user certificate trust");
 
     /** The patch's name in Morphe Manager. */
     public final String patchName;
@@ -90,7 +99,7 @@ public enum PatchFamily {
     /** Manager's defaults, held to patches-list.json by PatchFamilyTest (Hushfacebook 814acd23). */
     static final Set<PatchFamily> DEFAULT_SELECTION = Collections.unmodifiableSet(EnumSet.of(
             HIDE_ADS, HIDE_SUGGESTED_USERS, SANITIZE_SHARING_LINKS, EXTERNAL_BROWSER,
-            DISABLE_ANALYTICS, REMOVE_AD_ID, RESTORE_TRUST));
+            DISABLE_ANALYTICS, SAVE_MEDIA, REMOVE_AD_ID, RESTORE_TRUST));
 
     /** The families a test says this build carries, instead of asking {@link SettingsStatus}. */
     @Nullable

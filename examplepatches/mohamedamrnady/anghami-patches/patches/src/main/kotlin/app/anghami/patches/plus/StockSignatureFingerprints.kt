@@ -5,8 +5,8 @@ import app.morphe.patcher.methodCall
 import app.morphe.patcher.string
 
 /**
- * Request-signing target (Anghami 8.0.28, verified in base.apk smali
- * `smali_classes3/com/anghami/ghost/utils/SignatureUtils.smali:437`).
+ * Request-signing target (Anghami 8.0.28, verified in Anghami 8.0.28
+ * `classes3/com/anghami/ghost/utils/SignatureUtils:437`).
  *
  * Reads the live signing cert via PackageManager.getPackageInfo(...).
  * signatures[0], base64(SHA-1(cert)) + salt -> SHA-256 hex over that +

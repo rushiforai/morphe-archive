@@ -927,7 +927,7 @@ public class SettingsNavigationTest {
         String before = Settings.FILENAME_TEMPLATE.savedValue();
         name.showDialog(null);
         name.getEditText().setText("Example_{video_id}");
-        assertEquals("Example_123456.mp4", ValueRows.FileNameRow.previewName("Example_{video_id}", new java.util.Date(0)));
+        assertEquals("Example_123456.mp4", ValueRows.FileNameRow.previewName("Example_{video_id}", new java.util.Date(0), false));
         ((AlertDialog) name.getDialog()).getButton(AlertDialog.BUTTON_NEGATIVE).performClick();
         assertEquals(before, Settings.FILENAME_TEMPLATE.savedValue());
     }

@@ -33,7 +33,7 @@ public final class VerticalHomeFeedPatch {
     public static synchronized BytecodePatch getVerticalHomeFeedPatch() {
         if (patch != null) return patch;
         patch = PatchKt.bytecodePatch("Reddit - Vertical home feed",
-            "Adds a bottom bar button for a vertical Home feed viewer.", false,
+            "Adds a vertical media viewer for post feeds, with community navigation and synchronized scrolling.", false,
             builder -> {
                 builder.compatibleWith(new Compatibility("com.reddit.frontpage", "Reddit", null,
                     ApkFileType.APKM, 0xFF4500, null,
@@ -229,6 +229,39 @@ public final class VerticalHomeFeedPatch {
                         Opcode.INVOKE_STATIC_RANGE, scrollSelf, 2, ref("rememberPosition",
                             Arrays.asList("Ljava/lang/Object;", "Ljava/lang/Object;"), "V")));
 
+                    // All native post feeds use this model, including profile panes.
+                    MutableMethod feed = one(context.mutableClassDefBy(
+                        "Lcom/reddit/feeds/impl/ui/RedditFeedViewModel;"),
+                        "V", "Lcom/reddit/feeds/ui/p;", 1);
+                    int feedSelf = feed.getImplementation().getRegisterCount() - 2;
+                    feed.getImplementation().addInstruction(0, new BuilderInstruction3rc(
+                        Opcode.INVOKE_STATIC_RANGE, feedSelf, 1, ref("rememberFeed",
+                            Collections.singletonList("Ljava/lang/Object;"), "V")));
+                    MutableMethodImplementation feedImpl = feed.getImplementation();
+                    List<Instruction> feedCode = new ArrayList<>(feedImpl.getInstructions());
+                    int renderedHooks = 0;
+                    for (int i = feedCode.size() - 1; i >= 0; i--) {
+                        Instruction ins = feedCode.get(i);
+                        if (ins.getOpcode() != Opcode.RETURN_OBJECT) continue;
+                        int result = ((OneRegisterInstruction) ins).getRegisterA();
+                        if (feedSelf < 2) throw new IllegalStateException("No feed scratch registers");
+                        feedImpl.replaceInstruction(i,
+                            new BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, 1, result));
+                        feedImpl.addInstruction(i + 1,
+                            new BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, feedSelf));
+                        feedImpl.addInstruction(i + 2, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
+                            0, 2, ref("rememberRendered", Arrays.asList("Ljava/lang/Object;", "Ljava/lang/Object;"),
+                                "Ljava/lang/Object;")));
+                        feedImpl.addInstruction(i + 3, new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, result));
+                        feedImpl.addInstruction(i + 4, new BuilderInstruction21c(Opcode.CHECK_CAST, result,
+                            new ImmutableTypeReference("Lcom/reddit/feeds/ui/p;")));
+                        feedImpl.addInstruction(i + 5, new BuilderInstruction11x(Opcode.RETURN_OBJECT, result));
+                        renderedHooks++;
+                    }
+                    if (renderedHooks != 1) throw new IllegalStateException("Feed view state changed: " + renderedHooks);
+                    hookScreen(context.mutableClassDefBy(
+                        "Lcom/reddit/fullbleedplayer/common/FbpActivity;"), "onDestroy", "closeViewer");
+
                     MutableClass dataSource = context.mutableClassDefBy("Lcom/reddit/fullbleedplayer/data/j;");
                     MutableMethod update = one(dataSource, "l", "V", 1);
                     int updateSelf = update.getImplementation().getRegisterCount() - 2;
@@ -339,6 +372,32 @@ public final class VerticalHomeFeedPatch {
                         viewHooks++;
                     }
                     if (viewHooks != 1) throw new IllegalStateException("Full bleed view state changed: " + viewHooks);
+
+                    MutableMethod overlay = one(context.mutableClassDefBy(
+                        "Lcom/reddit/fullbleedplayer/ui/composables/m;"),
+                        "invoke", "Ljava/lang/Object;", 2);
+                    MutableMethodImplementation overlayImpl = overlay.getImplementation();
+                    List<Instruction> overlayCode = new ArrayList<>(overlayImpl.getInstructions());
+                    int communityHooks = 0;
+                    for (int i = overlayCode.size() - 1; i >= 0; i--) {
+                        Instruction ins = overlayCode.get(i);
+                        if (ins.getOpcode() != Opcode.SGET_OBJECT || !(ins instanceof ReferenceInstruction)
+                            || !"Lcom/reddit/fullbleedplayer/ui/ChainingMode;->Horizontal:Lcom/reddit/fullbleedplayer/ui/ChainingMode;"
+                                .equals(((ReferenceInstruction) ins).getReference().toString())) continue;
+                        int expected = ((OneRegisterInstruction) ins).getRegisterA();
+                        int self = overlayImpl.getRegisterCount() - 3;
+                        // Reuse the enum destination; no other live register is overwritten.
+                        overlayImpl.replaceInstruction(i,
+                            new BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, expected, self));
+                        overlayImpl.addInstruction(i + 1, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
+                            expected, 1, ref("communityOrientation", Collections.singletonList("Ljava/lang/Object;"),
+                                "Ljava/lang/Object;")));
+                        overlayImpl.addInstruction(i + 2, new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, expected));
+                        overlayImpl.addInstruction(i + 3, new BuilderInstruction21c(Opcode.CHECK_CAST, expected,
+                            new ImmutableTypeReference("Lcom/reddit/fullbleedplayer/ui/ChainingMode;")));
+                        communityHooks++;
+                    }
+                    if (communityHooks != 1) throw new IllegalStateException("Community overlay changed: " + communityHooks);
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;

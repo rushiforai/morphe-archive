@@ -41,10 +41,15 @@ public class AdvancedDownloadsTest {
         private final String url;
         private final long size;
         private int width, height;
+        private List<String> encodings;
         Address(String url, long size) { this.url = url; this.size = size; }
         /** The frame size 47.0.3's UrlModel carries (getWidth, getHeight); 0 is unknown. */
         Address frame(int w, int h) { width = w; height = h; return this; }
-        @Override public List<String> getUrlList() { return url == null ? List.of() : List.of(url); }
+        /** One photo in several encodings, listed the way TikTok lists them. */
+        Address encodings(String... urls) { encodings = List.of(urls); return this; }
+        @Override public List<String> getUrlList() {
+            return encodings != null ? encodings : url == null ? List.of() : List.of(url);
+        }
         @Override public long getSize() { return size; }
         public int getWidth() { return width; }
         public int getHeight() { return height; }
@@ -109,6 +114,7 @@ public class AdvancedDownloadsTest {
         /** 47.0.3's live photo: the struct whose videoModel is what the flag saves as video. */
         public LivePhoto livePhotoStruct;
         Photo(String url) { displayImageNoWatermark = new Address(url, 100); }
+        Photo(Address source) { displayImageNoWatermark = source; }
         Photo live() { livePhotoStruct = new LivePhoto(); return this; }
     }
     public static final class LivePhoto {
@@ -287,9 +293,39 @@ public class AdvancedDownloadsTest {
     @Test public void photosUseOrderedSourceImagesAndNeverThumbnails() {
         Post post = new Post(List.of(new Photo("https://example.com/one"), new Photo("https://example.com/two")));
         assertEquals(List.of(List.of("https://example.com/one"), List.of("https://example.com/two")), OriginalPhotos.sources(post));
-        post.photoModeImageInfo.imageList = List.of(new Photo(null));
+        post.photoModeImageInfo.imageList = List.of(new Photo((String) null));
         assertTrue(OriginalPhotos.sources(post).isEmpty());
         assertTrue(OriginalPhotos.sources(new Object()).isEmpty());
+    }
+
+    /**
+     * TikTok leads a photo's list with a HEIF encoding, and that was what got saved: a .heif
+     * that plenty of galleries can't open (#105). The JPEG copy goes first, and a JPEG named only
+     * in the query doesn't count. The WebP comes before the HEIF, since a Samsung can't decode
+     * TikTok's HEIF to make a JPEG of it (S22, 47.0.3, every photo listed as "heic, webp").
+     */
+    @Test public void photosTryJpegThenWebpBeforeHeif() {
+        String heic = "https://p16-sign.example.com/obj/abc~tplv-photomode-image.heic?x-expires=1&name=a.jpeg";
+        String webp = "https://p16-sign.example.com/obj/abc~tplv-photomode-image.webp?x-expires=1";
+        String jpeg = "https://p16-sign.example.com/obj/abc~tplv-photomode-image.jpeg?x-expires=1";
+        String upper = "https://p19-sign.example.com/obj/def~tplv-photomode-image.JPG";
+        String avif = "https://p16-sign.example.com/obj/ghi~tplv-photomode-image.avif?x-expires=1";
+        String png = "https://p16-sign.example.com/obj/ghi~tplv-photomode-image.png";
+        Post post = new Post(List.of(
+                new Photo(new Address(null, 100).encodings(heic, webp, jpeg)),
+                new Photo(new Address(null, 100).encodings(webp, upper)),
+                new Photo(new Address(null, 100).encodings(heic, webp)),
+                new Photo(new Address(null, 100).encodings(avif, heic, png, webp))));
+        assertEquals(List.of(List.of(jpeg, webp, heic), List.of(upper, webp), List.of(webp, heic),
+                        List.of(png, webp, avif, heic)),
+                OriginalPhotos.sources(post));
+        // What a debug report says of each list: the path's ending only, never the signed query.
+        assertEquals(List.of("heic", "webp", "jpeg", "jpg", "?"), OriginalPhotos.encodings(
+                List.of(heic, webp, jpeg, upper, "https://p16-sign.example.com/obj/abc")));
+        // The log redacts before it prints, and "encodings: [heic" lost its heic to it.
+        String listing = OriginalPhotos.listing(1, List.of(heic, webp));
+        assertEquals("Original photo 1 is listed as heic, webp", listing);
+        assertEquals(listing, app.morphe.extension.shared.diagnostics.DiagnosticRedactor.redact(listing));
     }
 
     /**
@@ -380,7 +416,7 @@ public class AdvancedDownloadsTest {
             assertEquals("The generic download entry must reach the image job",
                     MediaJobScheduler.busyMessage("photos " + post.getAid()),
                     org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
-            post.photoModeImageInfo.imageList = List.of(new Photo(null));
+            post.photoModeImageInfo.imageList = List.of(new Photo((String) null));
             assertFalse("Missing original URLs must leave the generic photo save to TikTok",
                     OriginalPhotos.start(post, RuntimeEnvironment.getApplication()));
             Shadows.shadowOf(Looper.getMainLooper()).idle();

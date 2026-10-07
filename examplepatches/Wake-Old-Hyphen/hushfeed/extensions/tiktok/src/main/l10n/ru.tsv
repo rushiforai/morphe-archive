@@ -942,7 +942,7 @@ Save	Сохранить
 Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.	Сохранять файлы SRT вместе с видео. Они сохраняются в Movies на Android 11+, в Download на Android 10 и в папку с видео на более старых версиях. На Android 11+ при включённой функции «Сохранять детали рядом с видео» видео перемещается в Download или Documents, а файлы SRT остаются в Movies.
 Save a profile picture on a long press	Сохранять фото профиля долгим нажатием
 Save a story on a long press	Сохранять историю долгим нажатием
-Save every photo in the post as TikTok received it, not as the screen shows it.	Сохранять каждое фото публикации в том виде, в каком его получил TikTok, а не как оно показано на экране.
+Save every photo in the post at full size as a JPEG, not as the screen shows it.	Сохранять каждое фото публикации в полном размере в формате JPEG, а не как оно показано на экране.
 Save field values	Сохранить значения полей
 Save full report	Сохранить полный отчёт
 Save media	Сохранение медиафайлов
@@ -1513,7 +1513,6 @@ Changes in Hushfeed %1$s	Изменения в Hushfeed %1$s
 Reviewed presets	Проверенные предустановки
 Show See translation	Показывать «Посмотреть перевод»
 Reviewed for TikTok %1$s	Проверено для TikTok %1$s
-%1$s (TikTok %2$s)	%1$s (TikTok %2$s)
 Value: %1$s to %2$s	Значение: от %1$s до %2$s
 The presets couldn't load. Open the Lab again.	Не удалось загрузить предустановки. Откройте Lab ещё раз.
 Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.	«Применить» включает эти переопределения. «Отменить последнее изменение Lab» вернёт ваши прежние правила, пока вы не измените что-то ещё в Lab.
@@ -1649,3 +1648,36 @@ Buttons on videos	Кнопки на видео
 Seen videos put back: %1$s of %2$s	Восстановлено просмотренных видео: %1$s из %2$s
 No cleared videos fit the current history limits.	Ни одно удалённое видео не укладывается в текущие ограничения истории.
 Putting seen videos back	Восстановление просмотренных видео
+# context: a line above the What's new release notes, which come from the English changelog and are not translated.
+These notes are in English.	Эти заметки на английском языке.
+Still waiting for the file app. Tap to stop waiting.	Приложение для файлов всё ещё не ответило. Нажмите, чтобы перестать ждать.
+Stopped waiting for the file app. Nothing was changed.	Ожидание приложения для файлов остановлено. Ничего не изменено.
+Stopped waiting for the file app. It hasn't said yet whether the backup was saved.	Ожидание приложения для файлов остановлено. Оно ещё не сообщило, сохранена ли резервная копия.
+The backup wasn't saved. Back up again when the file app is ready.	Резервная копия не сохранена. Создайте её снова, когда приложение для файлов будет готово.
+The file app still has the last file. Try again once it lets go, or restart TikTok.	Приложение для файлов всё ещё держит последний файл. Повторите попытку, когда оно его отпустит, или перезапустите TikTok.
+Waiting for the file app to let go of the last file. Restart TikTok if it doesn't.	Ждём, пока приложение для файлов отпустит последний файл. Если этого не произойдёт, перезапустите TikTok.
+Stopped waiting for the file app. Nothing was imported.	Ожидание приложения для файлов остановлено. Ничего не импортировано.
+The last report is still being saved	Последний отчёт всё ещё сохраняется
+Still waiting for the file app.	Приложение для файлов всё ещё не ответило.
+Stop waiting	Перестать ждать
+Stopped waiting for the file app. Nothing was exported.	Ожидание приложения для файлов остановлено. Ничего не экспортировано.
+Stopped waiting for the file app. It hasn't said yet whether the export was saved.	Ожидание приложения для файлов остановлено. Оно ещё не сообщило, сохранён ли экспорт.
+The export wasn't saved. Export again when the file app is ready.	Экспорт не сохранён. Экспортируйте снова, когда приложение для файлов будет готово.
+Hide unpersonalized For You videos	Скрывать неперсонализированные видео в Рекомендациях
+Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.	Скрывать видео-заполнители, которые TikTok отправляет в Рекомендации, не подбирая их для вас. Если вся партия состоит из заполнителей, она остаётся, чтобы лента не опустела.
+Unpersonalized For You videos	Неперсонализированные видео в Рекомендациях
+Reviewed presets for TikTok %1$s	Проверенные предустановки для TikTok %1$s
+No presets have been reviewed for TikTok %1$s yet	Для TikTok %1$s пока нет проверенных предустановок
+Repost with a comment	Репост с комментарием
+Profile banner and new profile layout	Баннер профиля и новый вид профиля
+Comment with live photos, the camera or audio	Комментарии с живыми фото, камерой или аудио
+Save comments to Favorites	Сохранять комментарии в Избранное
+Comment sort and dislike styles	Сортировка комментариев и стили дизлайков
+Message bubble colors, Inbox archive and sharing to more chats	Цвета пузырей сообщений, архив Входящих и отправка в большее число чатов
+Manage topics	Управление темами
+Visual search	Визуальный поиск
+AI Self	AI Self
+Long-press menu on every post	Меню долгого нажатия на каждой публикации
+TikTok's hold to speed up	Ускорение удержанием от TikTok
+TikTok's background play and auto-scroll	Фоновое воспроизведение и автопрокрутка от TikTok
+Post dates in the feed	Даты публикаций в ленте

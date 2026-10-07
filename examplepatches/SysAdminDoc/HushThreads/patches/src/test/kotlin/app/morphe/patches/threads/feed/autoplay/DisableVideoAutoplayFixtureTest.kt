@@ -39,9 +39,9 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Disable video autoplay on each declared build: PostVideo's fifth boolean is the one it plays its
- * video by, each feed post's call to PostVideo hands that flag to the extension first, and
- * PostVideo, its playback effect and the full-screen viewer are left as they were.
+ * Disable video autoplay on each declared build: PostVideo plays its video by its fifth boolean
+ * (the fourth in 450), each feed post's call to PostVideo hands that flag to the extension first,
+ * and PostVideo, its playback effect and the full-screen viewer are left as they were.
  */
 class DisableVideoAutoplayFixtureTest {
     private val play = "$VIDEO_AUTOPLAY->play(Z)Z"
@@ -55,13 +55,15 @@ class DisableVideoAutoplayFixtureTest {
     }
 
     @Test
-    fun `every declared build plays a post video by its fifth boolean, from single and carousel posts`() {
+    fun `every declared build plays a post video by the boolean it tests, from single and carousel posts`() {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = fixture(build)
-            fixture.effect.requirePlaybackEffect()
+            val effectTypes = fixture.effect.parameterTypes.map { it.toString() }
+            assertEquals(build.name, effectTypes.indexOf("Z"), fixture.effect.requirePlaybackEffect())
             val types = fixture.postVideo.parameterTypes.map { it.toString() }
-            val fifth = types.indices.filter { types[it] == "Z" }[4]
-            assertEquals(build.name, fifth, fixture.postVideo.playParameter(fixture.effect))
+            // 450 dropped a boolean ahead of the play flag, so it's the fourth there.
+            val ordinal = if (build.name.startsWith("threads-450.")) 3 else 4
+            assertEquals(build.name, types.indices.filter { types[it] == "Z" }[ordinal], fixture.postVideo.playParameter(fixture.effect))
             assertTrue(build.name, fixture.sites.any { it.method.holdsNote(POST_SINGLE_MEDIA) })
             assertTrue(build.name, fixture.sites.any { it.method.holdsNote(POST_CAROUSEL) })
             // The viewer reaches PostVideo another way, and holds neither note.
@@ -110,22 +112,32 @@ class DisableVideoAutoplayFixtureTest {
     }
 
     @Test
-    fun `PostVideo that plays by another flag is refused`() {
+    fun `PostVideo that plays by another boolean is followed, and by anything else is refused`() {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = fixture(build)
             val postVideo = fixture.postVideo
-            val parameter = postVideo.implementation!!.registerCount - postVideo.parameterTypes.size +
-                postVideo.argumentOffset(postVideo.playParameter(fixture.effect))
+            val play = postVideo.playParameter(fixture.effect)
+            val base = postVideo.implementation!!.registerCount - postVideo.parameterTypes.size
+            val parameter = base + postVideo.argumentOffset(play)
+            val types = postVideo.parameterTypes.map { it.toString() }
+            val firstBoolean = types.indexOf("Z")
+            assertEquals(build.name, "I", types[firstBoolean - 1])
 
             // PostVideo copies the flag before testing it. Copy the boolean before it instead, as a
-            // build with its booleans in another order would.
-            val shuffled = context(fixture)
-            val other = shuffled.mutableMethod(postVideo)
-            val copy = other.body().indexOfFirst { it.opcode.name.startsWith("move") && (it as? TwoRegisterInstruction)?.registerB == parameter }
-            assertTrue(build.name, copy >= 0)
-            other.replaceInstruction(copy, "move/from16 v${(other.body()[copy] as TwoRegisterInstruction).registerA}, v${parameter - 1}")
-            val noTest = assertThrows(build.name, PatchException::class.java) { disableVideoAutoplayPatch.execute(shuffled) }
-            assertTrue(noTest.message.orEmpty(), noTest.message.orEmpty().contains("never tests its fifth boolean"))
+            // build with its booleans in another order would, and the patch follows that one.
+            fun repointed(register: Int) = context(fixture).also { context ->
+                val other = context.mutableMethod(postVideo)
+                val copy = other.body().indexOfFirst { it.opcode.name.startsWith("move") && (it as? TwoRegisterInstruction)?.registerB == parameter }
+                assertTrue(build.name, copy >= 0)
+                other.replaceInstruction(copy, "move/from16 v${(other.body()[copy] as TwoRegisterInstruction).registerA}, v$register")
+            }
+            assertEquals(build.name, play - 1, repointed(parameter - 1).mutableMethod(postVideo).playParameter(fixture.effect))
+
+            // An int ahead of the booleans isn't a play flag.
+            val noTest = assertThrows(build.name, PatchException::class.java) {
+                disableVideoAutoplayPatch.execute(repointed(base + postVideo.argumentOffset(firstBoolean - 1)))
+            }
+            assertTrue(noTest.message.orEmpty(), noTest.message.orEmpty().contains("never tests one of its booleans"))
 
             val computed = context(fixture)
             val copied = computed.mutableMethod(postVideo)
@@ -133,7 +145,22 @@ class DisableVideoAutoplayFixtureTest {
             val register = (copied.body()[write] as OneRegisterInstruction).registerA
             copied.replaceInstruction(write, "move/from16 v$register, v0")
             val notLiteral = assertThrows(build.name, PatchException::class.java) { disableVideoAutoplayPatch.execute(computed) }
-            assertTrue(notLiteral.message.orEmpty(), notLiteral.message.orEmpty().contains("isn't set from its fifth boolean"))
+            assertTrue(notLiteral.message.orEmpty(), notLiteral.message.orEmpty().contains("isn't set from the boolean it tests"))
+
+            // A build that plays when the boolean is false, or never plays, isn't one the hook can hold.
+            val shape = postVideo.playTest(fixture.effect)
+            for (value in listOf<(Int) -> Int>({ 1 - it }, { 0 })) {
+                val flipped = context(fixture)
+                val method = flipped.mutableMethod(postVideo)
+                (shape.test + 1 until shape.call).filter {
+                    (method.body()[it] as? OneRegisterInstruction)?.registerA == shape.argument && method.body()[it] is NarrowLiteralInstruction
+                }.forEach { at ->
+                    val literal = (method.body()[at] as NarrowLiteralInstruction).narrowLiteral
+                    method.replaceInstruction(at, "const/16 v${shape.argument}, ${value(literal)}")
+                }
+                val error = assertThrows(build.name, PatchException::class.java) { disableVideoAutoplayPatch.execute(flipped) }
+                assertTrue(error.message.orEmpty(), error.message.orEmpty().contains("doesn't follow the boolean it tests"))
+            }
         }
     }
 
@@ -217,7 +244,7 @@ class DisableVideoAutoplayFixtureTest {
     private fun Method.playWrite(effect: Method): Int {
         val body = body()
         val call = body.indices.single { body[it].reference() == effect.reference() }
-        val playArgument = body[call].argumentRegister(4)!!
+        val playArgument = body[call].argumentRegister(effect.argumentOffset(effect.requirePlaybackEffect()))!!
         return (call - 1 downTo 0).first {
             (body[it] as? OneRegisterInstruction)?.registerA == playArgument && body[it] is NarrowLiteralInstruction
         }

@@ -870,7 +870,7 @@ Save	Guardar
 Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.	Guardar los archivos SRT junto al vídeo. Van a Movies en Android 11 y superior, a Download en Android 10 y a tu carpeta de vídeos en versiones anteriores. En Android 11 y superior, con Guardar detalles activado, el vídeo pasa a Download o Documents y los archivos SRT se quedan en Movies.
 Save a profile picture on a long press	Guardar una foto de perfil con una pulsación larga
 Save a story on a long press	Guardar una historia con una pulsación larga
-Save every photo in the post as TikTok received it, not as the screen shows it.	Guardar cada foto de la publicación tal como la recibió TikTok, no como la muestra la pantalla.
+Save every photo in the post at full size as a JPEG, not as the screen shows it.	Guardar cada foto de la publicación a tamaño completo como JPEG, no como la muestra la pantalla.
 Save field values	Guardar los valores de los campos
 Save full report	Guardar informe completo
 Save media	Guardar el contenido
@@ -1375,7 +1375,6 @@ Changes in Hushfeed %1$s	Cambios en Hushfeed %1$s
 Reviewed presets	Ajustes verificados
 Show See translation	Mostrar la opción de traducir
 Reviewed for TikTok %1$s	Verificado para TikTok %1$s
-%1$s (TikTok %2$s)	%1$s (TikTok %2$s)
 Value: %1$s to %2$s	Valor: de %1$s a %2$s
 The presets couldn't load. Open the Lab again.	No se pudieron cargar los ajustes. Abre el laboratorio de nuevo.
 Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.	Aplicar activa estas modificaciones. Deshacer el último cambio del Lab recupera tus reglas anteriores hasta que cambies otra cosa en el Lab.
@@ -1513,3 +1512,34 @@ No cleared videos fit the current history limits.	Ningún vídeo borrado cabe de
 Putting seen videos back	Recuperando vídeos vistos
 # context: a line above the What's new release notes, which come from the English changelog and are not translated.
 These notes are in English.	Estas notas están en inglés.
+Still waiting for the file app. Tap to stop waiting.	Todavía esperando a la app de archivos. Toca para dejar de esperar.
+Stopped waiting for the file app. Nothing was changed.	Se dejó de esperar a la app de archivos. No se cambió nada.
+Stopped waiting for the file app. It hasn't said yet whether the backup was saved.	Se dejó de esperar a la app de archivos. Todavía no ha dicho si la copia de seguridad se guardó.
+The backup wasn't saved. Back up again when the file app is ready.	La copia de seguridad no se guardó. Vuelve a hacerla cuando la app de archivos esté lista.
+The file app still has the last file. Try again once it lets go, or restart TikTok.	La app de archivos todavía tiene el último archivo. Inténtalo de nuevo cuando lo suelte o reinicia TikTok.
+Waiting for the file app to let go of the last file. Restart TikTok if it doesn't.	Esperando a que la app de archivos suelte el último archivo. Reinicia TikTok si no lo hace.
+Stopped waiting for the file app. Nothing was imported.	Se dejó de esperar a la app de archivos. No se importó nada.
+The last report is still being saved	Todavía se está guardando el último informe
+Still waiting for the file app.	Todavía esperando a la app de archivos.
+Stop waiting	Dejar de esperar
+Stopped waiting for the file app. Nothing was exported.	Se dejó de esperar a la app de archivos. No se exportó nada.
+Stopped waiting for the file app. It hasn't said yet whether the export was saved.	Se dejó de esperar a la app de archivos. Todavía no ha dicho si la exportación se guardó.
+The export wasn't saved. Export again when the file app is ready.	La exportación no se guardó. Vuelve a exportar cuando la app de archivos esté lista.
+Hide unpersonalized For You videos	Ocultar vídeos de Para ti no personalizados
+Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.	Ocultar los vídeos de relleno que TikTok manda a Para ti sin elegirlos para ti. Si todo un lote es de relleno, se queda para que el feed no se quede vacío.
+Unpersonalized For You videos	Vídeos de Para ti no personalizados
+Reviewed presets for TikTok %1$s	Ajustes verificados para TikTok %1$s
+No presets have been reviewed for TikTok %1$s yet	Todavía no hay ajustes verificados para TikTok %1$s
+Repost with a comment	Republicar con un comentario
+Profile banner and new profile layout	Banner de perfil y nuevo diseño de perfil
+Comment with live photos, the camera or audio	Comentar con fotos en vivo, la cámara o audio
+Save comments to Favorites	Guardar comentarios en Favoritos
+Comment sort and dislike styles	Orden de comentarios y estilos de No me gusta
+Message bubble colors, Inbox archive and sharing to more chats	Colores de las burbujas de mensajes, archivo de la Bandeja de entrada y compartir con más chats
+Manage topics	Gestionar temas
+Visual search	Búsqueda visual
+AI Self	AI Self
+Long-press menu on every post	Menú de pulsación larga en cada publicación
+TikTok's hold to speed up	Mantener pulsado para acelerar de TikTok
+TikTok's background play and auto-scroll	Reproducción en segundo plano y desplazamiento automático de TikTok
+Post dates in the feed	Fechas de publicación en el feed

@@ -1,0 +1,88 @@
+name: Check upstream Reddit
+
+permissions:
+  contents: write
+  pull-requests: write
+  packages: read
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.retarget.outputs.changed }}
+      version: ${{ steps.retarget.outputs.version }}
+      branch: ${{ steps.retarget.outputs.branch }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check upstream version
+        id: retarget
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x scripts/check-upstream-reddit.sh
+          set +e
+          OUT=$(./scripts/check-upstream-reddit.sh --apply 2>&1)
+          CODE=$?
+          set -e
+          echo "$OUT"
+          if [ "$CODE" -eq 10 ]; then
+            NEW_VER="$(echo "$OUT" | head -n 1)"
+            BRANCH="chore/reddit-retarget-${NEW_VER}"
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git checkout -b "$BRANCH"
+            git add reddit-target.txt \
+              patches/src/main/kotlin/app/morphe/patches/reddit/shared/Constants.kt \
+              README.md
+            git commit -m "chore: retarget reddit to $NEW_VER"
+            git push origin "$BRANCH"
+            gh pr create --head "$BRANCH" --base master \
+              --title "chore: retarget reddit to $NEW_VER" \
+              --body "Upstream Reddit target moved to $NEW_VER (target, patch compat and README updated). Test-gated build runs on this PR; no auto-merge. After merge, the release workflow publishes $NEW_VER automatically." \
+              --label upstream-retarget
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "version=$NEW_VER" >> "$GITHUB_OUTPUT"
+            echo "branch=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Test gate for the retarget PR: tests must pass before build runs.
+  # (The PR itself also triggers build.yml via pull_request.) No auto-merge.
+  test-gated-build:
+    needs: check
+    if: needs.check.outputs.changed == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout retarget branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.check.outputs.branch }}
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Make gradlew executable
+        run: chmod +x gradlew
+
+      - name: Run tests (gate)
+        run: ./gradlew test
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build patches
+        run: ./gradlew :patches:buildAndroid
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

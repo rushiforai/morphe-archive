@@ -49,6 +49,9 @@ public final class ScreenTransitions {
     /** Counted for each panel, the Menu or the tabs beside it, shown without its slide. */
     static final String PANEL = "panel shown without its slide";
 
+    /** Counted for each page a tab strip inside a screen shows without its slide. */
+    static final String PAGE = "page shown without its slide";
+
     private static final String FAMILY = FamilyNames.SCREEN_TRANSITIONS;
 
     /** Whether a test says the patch is in this build, instead of asking {@link SettingsStatus}. */
@@ -125,6 +128,22 @@ public final class ScreenTransitions {
             return false;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "panel", failure);
+            return slides;
+        }
+    }
+
+    /**
+     * Injection point, where a tab strip inside a screen asks its pager for a page: whether the
+     * page slides in. False while the switch is on, else [slides], Facebook's own answer.
+     */
+    public static boolean pageSlides(boolean slides) {
+        try {
+            if (!slides || !on()) return slides;
+            HookStatus.bound(FAMILY, "tab strip");
+            HookStatus.counted(FAMILY, PAGE);
+            return false;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "tab strip", failure);
             return slides;
         }
     }

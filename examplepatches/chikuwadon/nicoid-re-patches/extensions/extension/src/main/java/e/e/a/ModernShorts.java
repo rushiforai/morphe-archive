@@ -207,7 +207,6 @@ public final class ModernShorts {
     public static void settings(PreferenceActivity a) {
         UiStrings.selectLanguage(prefs(a).getString("app_lang", "0"));
         PreferenceScreen screen = a.getPreferenceScreen(); if (screen == null) return;
-        UiText.preferences(screen);
         PreferenceGroup group = (PreferenceGroup)a.findPreference("player"); if (group == null) group = screen;
         if (a.findPreference("show_shorts_menu") == null) {
             CheckBoxPreference p = new CheckBoxPreference(a); p.setKey("show_shorts_menu");
@@ -245,8 +244,8 @@ public final class ModernShorts {
             for (int n = 0; n < screen.getPreferenceCount(); n++) sections.add(screen.getPreference(n));
             for (int n = 0; n < sections.size(); n++) sections.get(n).setOrder(n < after ? n * 2 : n * 2 + 2);
             debug.setOrder(after * 2 - 1); screen.addPreference(debug);
-            Preference share = new Preference(a); share.setKey("nicoid_share_debug"); share.setTitle("デバッグログを共有");
-            share.setSummary("再生エラーや通信先、応答コードなどの診断ログを共有します。不具合の報告時に利用できます。共有前にログの内容と送信先を確認してください。");
+            Preference share = new Preference(a); share.setKey("nicoid_share_debug"); share.setTitle("デバッグログの保存");
+            share.setSummary("再生状況や通信エラーなどの診断ログを Download フォルダに保存します。不具合報告時に利用できます。");
             share.setOnPreferenceClickListener(v -> {
                 try { Class.forName("e.e.a.ModernDebug").getMethod("share", Context.class).invoke(null, a); }
                 catch (Exception e) { log(e); }

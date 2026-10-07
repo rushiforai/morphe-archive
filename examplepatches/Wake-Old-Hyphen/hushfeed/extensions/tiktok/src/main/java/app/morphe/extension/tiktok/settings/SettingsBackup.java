@@ -298,14 +298,22 @@ public final class SettingsBackup {
 
     private static String restoreFrom(Context context, InputStream input, boolean saveUndo,
             boolean holdRuleLists) throws Exception {
-        String text;
+        String text = readForRestore(input);
+        restore(context, text, saveUndo, holdRuleLists);
+        return text;
+    }
+
+    /**
+     * Reads a backup the way a restore does, refusing an unreadable or oversized file with a
+     * reason, and changes nothing. A restore that has to be stoppable while a file app hands the
+     * file over reads with this, then calls {@link #restore} once it is past the point of stopping.
+     */
+    public static String readForRestore(InputStream input) throws RestoreException {
         try {
-            text = read(input);
+            return read(input);
         } catch (Exception error) {
             throw RestoreException.rejected(error);
         }
-        restore(context, text, saveUndo, holdRuleLists);
-        return text;
     }
     /**
      * Whether an undo copy can be read. AtomicFile keeps the last durable copy in .bak while a

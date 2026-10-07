@@ -11,6 +11,7 @@ import app.morphe.patches.facebook.feed.BASE_MODEL_WITH_TREE
 import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
 import app.morphe.patches.facebook.feed.TREE_JNI
+import app.morphe.patches.facebook.feed.aidetected.attachmentsAccessors
 import app.morphe.patches.facebook.feed.hasPublicTypeTag
 import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
@@ -30,8 +31,9 @@ import org.junit.Test
  * A post's text accessor on every declared Facebook build, found the way Hide posts by words finds
  * it: GraphQLStory's one accessor of `message` as TextWithEntities, which its own toString labels
  * "message.text" and reads as the field `text` through `getCachedString`, and its one accessor of
- * `attached_story`. The patch is then run on each build's classes and the extension's stubs, and
- * each stub has to call the accessor found. Reads the fixture bundles from HUSHFACEBOOK_FIXTURE_DIR
+ * `attached_story`, then its one accessor of `actors` and of `attachments`, for the people, Pages and
+ * sites list. The patch is then run on each build's classes and the extension's stubs, and each stub
+ * has to call the accessor found. Reads the fixture bundles from HUSHFACEBOOK_FIXTURE_DIR
  * and skips without it.
  */
 class PostTextFixtureTest {
@@ -101,12 +103,23 @@ class PostTextFixtureTest {
                 assertTrue("${bundle.name}: no public TreeJNI.mTypeTag", hasPublicTypeTag(kept(TREE_JNI)))
 
                 // The patch on this build's classes: each stub calls the accessor found above.
+                val actors = actorsAccessors(story)
+                assertEquals("${bundle.name}: ${actors.map { it.name }}", 1, actors.size)
+                val attachments = attachmentsAccessors(story)
+                assertEquals("${bundle.name}: ${attachments.map { it.name }}", 1, attachments.size)
+
                 val context = PatchContexts.of(classes.values + owners.values + ExtensionDex.classDef(POST_TEXT) +
-                    ExtensionDex.classDef(SETTINGS_STATUS))
+                    ExtensionDex.classDef(POST_SOURCES) + ExtensionDex.classDef(SETTINGS_STATUS))
                 hidePostsByWordsPatch.execute(context)
-                val stubs = context.mutableClassDefBy(POST_TEXT).methods
-                for ((stub, accessor) in listOf(MESSAGE_STUB to message, ATTACHED_STORY_STUB to attached.single())) {
-                    val body = stubs.single { it.name == stub }.implementation!!.instructions.toList()
+                val stubs = listOf(
+                    Triple(POST_TEXT, MESSAGE_STUB, message),
+                    Triple(POST_TEXT, ATTACHED_STORY_STUB, attached.single()),
+                    Triple(POST_SOURCES, ACTORS_STUB, actors.single()),
+                    Triple(POST_SOURCES, SOURCE_ATTACHMENTS_STUB, attachments.single()),
+                )
+                for ((owner, stub, accessor) in stubs) {
+                    val body = context.mutableClassDefBy(owner).methods.single { it.name == stub }
+                        .implementation!!.instructions.toList()
                     assertEquals("${bundle.name}: $stub's first instruction", Opcode.CHECK_CAST, body[0].opcode)
                     val call = (body[1] as ReferenceInstruction).reference as MethodReference
                     assertEquals("${bundle.name}: what $stub calls", "$GRAPHQL_STORY->${accessor.name}()${accessor.returnType}",
@@ -118,7 +131,8 @@ class PostTextFixtureTest {
                 assertEquals("${bundle.name}: postWords() answers true", listOf(Opcode.CONST_4, 1),
                     listOf(answer.opcode, (answer as NarrowLiteralInstruction).narrowLiteral))
 
-                checked[version] = "${message.name}() and ${attached.single().name}()"
+                checked[version] = "${message.name}(), ${attached.single().name}(), ${actors.single().name}() and " +
+                    "${attachments.single().name}()"
             }
         }
         assertEquals("a declared build went unchecked: $checked", versions, checked.keys)

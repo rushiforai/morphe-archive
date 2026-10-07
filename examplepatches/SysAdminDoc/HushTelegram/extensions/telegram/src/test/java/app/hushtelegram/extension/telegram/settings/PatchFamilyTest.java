@@ -72,6 +72,26 @@ public class PatchFamilyTest {
         Settings.NORMAL_PASTE.resetToDefault();
         Settings.SHOW_LOCAL_IDS.resetToDefault();
         Settings.DISABLE_DOUBLE_TAP_REACTIONS.resetToDefault();
+        Settings.HIDE_CONTACTS_BLOCK.resetToDefault();
+        Settings.HIDE_GREETING_STICKERS.resetToDefault();
+        Settings.USE_SYSTEM_FONT.resetToDefault();
+        Settings.AMOLED_BLACK.resetToDefault();
+        Settings.HIDE_TRANSLATE_BAR.resetToDefault();
+        Settings.EXACT_NUMBERS.resetToDefault();
+        Settings.REVEAL_SPOILERS.resetToDefault();
+        Settings.HIDE_KEYBOARD_ON_SCROLL.resetToDefault();
+        Settings.KEEP_VIDEOS_MUTED.resetToDefault();
+        Settings.SWIPE_BACK_ON_PROFILES.resetToDefault();
+        Settings.HIDE_PHONE_NUMBER.resetToDefault();
+        Settings.MESSAGE_SECONDS.resetToDefault();
+        Settings.ALLOW_CHAT_BLUR.resetToDefault();
+        Settings.VOICE_ONE_AT_A_TIME.resetToDefault();
+        Settings.NO_HAPTICS.resetToDefault();
+        Settings.REACTION_EFFECTS_OFF.resetToDefault();
+        Settings.HIDE_FOLDER_COUNTERS.resetToDefault();
+        Settings.FORWARD_HIDE_SENDER.resetToDefault();
+        Settings.VOICE_MUSIC_PLAYER.resetToDefault();
+        Settings.SILENCE_NON_CONTACTS.resetToDefault();
         HookStatus.clear();
     }
 
@@ -79,6 +99,171 @@ public class PatchFamilyTest {
      * A switch is a family's, or the settings entry's own (the release check), and never both: a
      * switch in neither list goes unmentioned by the screen and the tests that hold Pause to it.
      */
+    @Test
+    public void silenceNonContactsHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.SILENCE_NON_CONTACTS;
+        assertEquals("Silence people outside your contacts", family.patchName);
+        assertEquals(Collections.singletonList(Settings.SILENCE_NON_CONTACTS), family.switches);
+        assertFalse(Settings.SILENCE_NON_CONTACTS.defaultValue);
+        assertFalse(Settings.SILENCE_NON_CONTACTS.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void voiceMusicPlayerHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.VOICE_MUSIC_PLAYER;
+        assertEquals("Voice messages in the music player", family.patchName);
+        assertEquals(Collections.singletonList(Settings.VOICE_MUSIC_PLAYER), family.switches);
+        assertFalse(Settings.VOICE_MUSIC_PLAYER.defaultValue);
+        assertFalse(Settings.VOICE_MUSIC_PLAYER.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void forwardHideSenderHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.FORWARD_HIDE_SENDER;
+        assertEquals("Hide sender names when forwarding", family.patchName);
+        assertEquals(Collections.singletonList(Settings.FORWARD_HIDE_SENDER), family.switches);
+        assertFalse(Settings.FORWARD_HIDE_SENDER.defaultValue);
+        assertFalse(Settings.FORWARD_HIDE_SENDER.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void hideFolderCountersHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.HIDE_FOLDER_COUNTERS;
+        assertEquals("Hide folder tab counters", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_FOLDER_COUNTERS), family.switches);
+        assertFalse(Settings.HIDE_FOLDER_COUNTERS.defaultValue);
+        assertFalse(Settings.HIDE_FOLDER_COUNTERS.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void reactionEffectsOffHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.REACTION_EFFECTS_OFF;
+        assertEquals("Turn off reaction effects", family.patchName);
+        assertEquals(Collections.singletonList(Settings.REACTION_EFFECTS_OFF), family.switches);
+        assertFalse(Settings.REACTION_EFFECTS_OFF.defaultValue);
+        assertFalse(Settings.REACTION_EFFECTS_OFF.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void noHapticsHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.NO_HAPTICS;
+        assertEquals("Turn off haptic feedback", family.patchName);
+        assertEquals(Collections.singletonList(Settings.NO_HAPTICS), family.switches);
+        assertFalse(Settings.NO_HAPTICS.defaultValue);
+        assertFalse(Settings.NO_HAPTICS.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void voiceOneAtATimeHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.VOICE_ONE_AT_A_TIME;
+        assertEquals("Play voice messages one at a time", family.patchName);
+        assertEquals(Collections.singletonList(Settings.VOICE_ONE_AT_A_TIME), family.switches);
+        assertFalse(Settings.VOICE_ONE_AT_A_TIME.defaultValue);
+        assertFalse(Settings.VOICE_ONE_AT_A_TIME.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void allowChatBlurHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.ALLOW_CHAT_BLUR;
+        assertEquals("Allow chat blur on slower phones", family.patchName);
+        assertEquals(Collections.singletonList(Settings.ALLOW_CHAT_BLUR), family.switches);
+        assertFalse(Settings.ALLOW_CHAT_BLUR.defaultValue);
+        assertFalse(Settings.ALLOW_CHAT_BLUR.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void messageSecondsHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.MESSAGE_SECONDS;
+        assertEquals("Message times with seconds", family.patchName);
+        assertEquals(Collections.singletonList(Settings.MESSAGE_SECONDS), family.switches);
+        assertFalse(Settings.MESSAGE_SECONDS.defaultValue);
+        assertFalse(Settings.MESSAGE_SECONDS.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void hidePhoneNumberHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.HIDE_PHONE_NUMBER;
+        assertEquals("Hide phone number", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_PHONE_NUMBER), family.switches);
+        assertFalse(Settings.HIDE_PHONE_NUMBER.defaultValue);
+        assertFalse(Settings.HIDE_PHONE_NUMBER.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void swipeBackOnProfilesHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.SWIPE_BACK_ON_PROFILES;
+        assertEquals("Swipe back on profiles", family.patchName);
+        assertEquals(Collections.singletonList(Settings.SWIPE_BACK_ON_PROFILES), family.switches);
+        assertFalse(Settings.SWIPE_BACK_ON_PROFILES.defaultValue);
+        assertFalse(Settings.SWIPE_BACK_ON_PROFILES.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void keepVideosMutedHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.KEEP_VIDEOS_MUTED;
+        assertEquals("Keep videos muted on volume keys", family.patchName);
+        assertEquals(Collections.singletonList(Settings.KEEP_VIDEOS_MUTED), family.switches);
+        assertFalse(Settings.KEEP_VIDEOS_MUTED.defaultValue);
+        assertFalse(Settings.KEEP_VIDEOS_MUTED.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void keyboardOnScrollHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.HIDE_KEYBOARD_ON_SCROLL;
+        assertEquals("Hide keyboard on scroll", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_KEYBOARD_ON_SCROLL), family.switches);
+        assertFalse(Settings.HIDE_KEYBOARD_ON_SCROLL.defaultValue);
+        assertFalse(Settings.HIDE_KEYBOARD_ON_SCROLL.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void revealSpoilersHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.REVEAL_SPOILERS;
+        assertEquals("Reveal spoilers", family.patchName);
+        assertEquals(Collections.singletonList(Settings.REVEAL_SPOILERS), family.switches);
+        assertFalse(Settings.REVEAL_SPOILERS.defaultValue);
+        assertFalse(Settings.REVEAL_SPOILERS.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void exactNumbersHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.EXACT_NUMBERS;
+        assertEquals("Exact numbers", family.patchName);
+        assertEquals(Collections.singletonList(Settings.EXACT_NUMBERS), family.switches);
+        assertFalse(Settings.EXACT_NUMBERS.defaultValue);
+        assertFalse(Settings.EXACT_NUMBERS.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
     @Test
     public void everySwitchBelongsToExactlyOneFamily() {
         Map<BooleanSetting, String> owners = new HashMap<>();
@@ -148,6 +333,60 @@ public class PatchFamilyTest {
         assertEquals(EnumSet.of(PatchFamily.Capability.READ_METRICS),
                 PatchFamily.DISABLE_ANALYTICS.installedCapabilities());
         assertEquals("capabilities must never become saved settings", 0, SettingsStatus.class.getDeclaredFields().length);
+    }
+
+    @Test
+    public void contactsBlockHasItsOwnOffByDefaultSwitchApartFromTheContactsPrompt() {
+        PatchFamily family = PatchFamily.HIDE_CONTACTS_BLOCK;
+        assertEquals("Hide contacts on Telegram", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_CONTACTS_BLOCK), family.switches);
+        assertFalse(Settings.HIDE_CONTACTS_BLOCK.defaultValue);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertFalse(PatchFamily.QUIET_CONTACTS_NAG.switches.contains(Settings.HIDE_CONTACTS_BLOCK));
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void translateBarHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.HIDE_TRANSLATE_BAR;
+        assertEquals("Hide translate bar", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_TRANSLATE_BAR), family.switches);
+        assertFalse(Settings.HIDE_TRANSLATE_BAR.defaultValue);
+        assertFalse(Settings.HIDE_TRANSLATE_BAR.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void amoledBlackHasItsOwnOffByDefaultSwitchThatWaitsForARestart() {
+        PatchFamily family = PatchFamily.AMOLED_BLACK;
+        assertEquals("AMOLED black", family.patchName);
+        assertEquals(Collections.singletonList(Settings.AMOLED_BLACK), family.switches);
+        assertFalse(Settings.AMOLED_BLACK.defaultValue);
+        assertTrue(Settings.AMOLED_BLACK.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void systemFontHasItsOwnOffByDefaultSwitchThatWaitsForARestart() {
+        PatchFamily family = PatchFamily.USE_SYSTEM_FONT;
+        assertEquals("Use system font", family.patchName);
+        assertEquals(Collections.singletonList(Settings.USE_SYSTEM_FONT), family.switches);
+        assertFalse(Settings.USE_SYSTEM_FONT.defaultValue);
+        assertTrue(Settings.USE_SYSTEM_FONT.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void greetingStickersHaveTheirOwnOffByDefaultSwitch() {
+        PatchFamily family = PatchFamily.HIDE_GREETING_STICKERS;
+        assertEquals("Hide greeting stickers", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_GREETING_STICKERS), family.switches);
+        assertFalse(Settings.HIDE_GREETING_STICKERS.defaultValue);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
     }
 
     @Test
@@ -271,7 +510,7 @@ public class PatchFamilyTest {
         assertEquals(Arrays.asList(
                 "Hide ads: on (hushtelegram_hide_ads=on)",
                 "Disable analytics: disabled by its switch (hushtelegram_disable_analytics=off)",
-                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration",
+                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Hide contacts on Telegram, Hide greeting stickers, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Use system font, AMOLED black, Hide translate bar, Exact numbers, Reveal spoilers, Hide keyboard on scroll, Keep videos muted on volume keys, Swipe back on profiles, Hide phone number, Message times with seconds, Allow chat blur on slower phones, Play voice messages one at a time, Turn off haptic feedback, Turn off reaction effects, Hide folder tab counters, Hide sender names when forwarding, Voice messages in the music player, Silence people outside your contacts, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration",
                 "Hide ads coverage: channel ads, video ads, search ads",
                 "Disable analytics coverage: device statistics reports, channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"),
                 running);

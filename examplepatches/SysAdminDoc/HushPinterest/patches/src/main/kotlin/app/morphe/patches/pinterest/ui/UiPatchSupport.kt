@@ -100,7 +100,8 @@ internal fun BytecodePatchContext.refreshOnMeasure(view: MutableClass, helper: S
     else addOverride(view, "onMeasure", parameters, code)
 }
 
-private fun addOverride(view: MutableClass, name: String, parameters: List<String>, prefix: String) {
+/** Adds [name] to [view], running [prefix] and then the superclass's own [name] with the same arguments. */
+internal fun addOverride(view: MutableClass, name: String, parameters: List<String>, prefix: String) {
     val method = ImmutableMethod(
         view.type, name, parameters.map { ImmutableMethodParameter(it, null, null) }, "V",
         AccessFlags.PUBLIC.value, null, null, MutableMethodImplementation(parameters.size + 1),

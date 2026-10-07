@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.41.0",
+  "version": "1.43.0",
   "patches": [
     {
       "name": "AMOLED dark theme",
@@ -74,6 +74,18 @@
               },
               "isExperimental": false,
               "minSdk": 21,
+              "description": null
+            },
+            {
+              "version": "2.8.1",
+              "versionCodes": {
+                "ARM64_V8A": 281,
+                "ARMEABI_V7A": 281,
+                "X86_64": 281,
+                "X86": 281
+              },
+              "isExperimental": false,
+              "minSdk": 32,
               "description": null
             }
           ]
@@ -715,6 +727,69 @@
       ]
     },
     {
+      "name": "Clone app",
+      "description": "Installs TeraBox as a separate app alongside the original, with its own account. Each copy needs a different clone number.",
+      "default": false,
+      "dependencies": [
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "com.dubox.drive",
+          "name": "TeraBox",
+          "description": null,
+          "apkFileType": "XAPK",
+          "appIconColor": "#226DF6",
+          "signatures": [
+            "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
+          ],
+          "targets": [
+            {
+              "version": "4.26.0",
+              "versionCodes": {
+                "ARM64_V8A": 698,
+                "ARMEABI_V7A": 698,
+                "X86_64": 698,
+                "X86": 698
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            },
+            {
+              "version": "4.26.5",
+              "versionCodes": {
+                "ARM64_V8A": 699,
+                "ARMEABI_V7A": 699,
+                "X86_64": 699,
+                "X86": 699
+              },
+              "isExperimental": false,
+              "minSdk": 23,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": [
+        {
+          "key": "packageName",
+          "title": "Package name",
+          "description": "Package name of this copy.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "com.dubox.drive.clone1",
+          "values": {
+            "Clone 1": "com.dubox.drive.clone1",
+            "Clone 2": "com.dubox.drive.clone2",
+            "Clone 3": "com.dubox.drive.clone3",
+            "Clone 4": "com.dubox.drive.clone4",
+            "Clone 5": "com.dubox.drive.clone5"
+          }
+        }
+      ]
+    },
+    {
       "name": "Custom accent color",
       "description": "Changes the accent color. Choose a color in the patches menu.",
       "default": true,
@@ -919,6 +994,18 @@
               },
               "isExperimental": false,
               "minSdk": 21,
+              "description": null
+            },
+            {
+              "version": "2.8.1",
+              "versionCodes": {
+                "ARM64_V8A": 281,
+                "ARMEABI_V7A": 281,
+                "X86_64": 281,
+                "X86": 281
+              },
+              "isExperimental": false,
+              "minSdk": 32,
               "description": null
             }
           ]
@@ -1596,6 +1683,43 @@
       "options": []
     },
     {
+      "name": "GmsCore support",
+      "description": "Signs in with Google through GmsCore instead of Google Play Services. Requires GmsCore to be installed.",
+      "default": false,
+      "dependencies": [
+        "BytecodePatch",
+        "ResourcePatch",
+        "ResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "io.raindrop.raindropio",
+          "name": "Raindrop.io",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#1988E0",
+          "signatures": [
+            "ddd75c66578654d085424804cb27c7b6e04fd36616045bfee140d9756ffca563"
+          ],
+          "targets": [
+            {
+              "version": "4.7.44",
+              "versionCodes": {
+                "ARM64_V8A": 8698961,
+                "ARMEABI_V7A": 8698961,
+                "X86_64": 8698961,
+                "X86": 8698961
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide Shorts",
       "description": "Hides the 1Weather Shorts card from the Today screen.",
       "default": true,
@@ -1828,6 +1952,39 @@
     },
     {
       "name": "Hide ads",
+      "description": "Removes ads before and during videos. Live TV requires a German IP address.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "de.prosiebensat1digital.seventv",
+          "name": "Joyn",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#000F15",
+          "signatures": [
+            "71733196d1b3d681ee981cb02563e6778585f1891ed74b1d31604c1444c6b10a"
+          ],
+          "targets": [
+            {
+              "version": "6.9.0-AOS-609012264",
+              "versionCodes": {
+                "ARM64_V8A": 609012264,
+                "ARMEABI_V7A": 609012264,
+                "X86_64": 609012264,
+                "X86": 609012264
+              },
+              "isExperimental": false,
+              "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide ads",
       "description": "Adds an option to hide banner, interstitial, app-open and rewarded ads.",
       "default": true,
       "dependencies": [
@@ -1988,6 +2145,18 @@
                 "ARMEABI_V7A": 1282623,
                 "X86_64": 1282623,
                 "X86": 1282623
+              },
+              "isExperimental": false,
+              "minSdk": 26,
+              "description": null
+            },
+            {
+              "version": "415.0.0.182626",
+              "versionCodes": {
+                "ARM64_V8A": 1282626,
+                "ARMEABI_V7A": 1282626,
+                "X86_64": 1282626,
+                "X86": 1282626
               },
               "isExperimental": false,
               "minSdk": 26,
@@ -2501,6 +2670,41 @@
       "options": []
     },
     {
+      "name": "Hide upgrade promotions",
+      "description": "Hides the Go Pro entry in Settings.",
+      "default": true,
+      "dependencies": [
+        "RawResourcePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "io.raindrop.raindropio",
+          "name": "Raindrop.io",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#1988E0",
+          "signatures": [
+            "ddd75c66578654d085424804cb27c7b6e04fd36616045bfee140d9756ffca563"
+          ],
+          "targets": [
+            {
+              "version": "4.7.44",
+              "versionCodes": {
+                "ARM64_V8A": 8698961,
+                "ARMEABI_V7A": 8698961,
+                "X86_64": 8698961,
+                "X86": 8698961
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Hide video recommendations",
       "description": "Hides the recommended videos below the video player.",
       "default": true,
@@ -2935,7 +3139,7 @@
     },
     {
       "name": "Remove nags",
-      "description": "Removes the rate this app dialog and the promotional dialogs shown on startup.",
+      "description": "Removes the rate this app dialog, the promotional dialogs shown on startup and the Premium button in the toolbar.",
       "default": true,
       "dependencies": [],
       "compatiblePackages": [
@@ -2957,6 +3161,18 @@
               },
               "isExperimental": false,
               "minSdk": 16,
+              "description": null
+            },
+            {
+              "version": "26.09.29+2320",
+              "versionCodes": {
+                "ARM64_V8A": 2320,
+                "ARMEABI_V7A": 2320,
+                "X86_64": 2320,
+                "X86": 2320
+              },
+              "isExperimental": false,
+              "minSdk": 23,
               "description": null
             }
           ]
@@ -4100,6 +4316,18 @@
               "isExperimental": false,
               "minSdk": 21,
               "description": null
+            },
+            {
+              "version": "2.8.1",
+              "versionCodes": {
+                "ARM64_V8A": 281,
+                "ARMEABI_V7A": 281,
+                "X86_64": 281,
+                "X86": 281
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
             }
           ]
         }
@@ -4169,6 +4397,39 @@
               },
               "isExperimental": false,
               "minSdk": 32,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock premium",
+      "description": "Unlocks slice view, colors, lighting, normals, measurements, printability analysis and transform, and removes ads.",
+      "default": true,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "com.performance.meshview",
+          "name": "Fast STL Viewer",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#1A73B2",
+          "signatures": [
+            "925c7b1df5689fef2371e1f6e71e98a3956295df95221baa06145222aa89f769"
+          ],
+          "targets": [
+            {
+              "version": "2.84",
+              "versionCodes": {
+                "ARM64_V8A": 309,
+                "ARMEABI_V7A": 309,
+                "X86_64": 309,
+                "X86": 309
+              },
+              "isExperimental": false,
+              "minSdk": 24,
               "description": null
             }
           ]
@@ -4584,6 +4845,18 @@
                 "ARMEABI_V7A": 309,
                 "X86_64": 309,
                 "X86": 309
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            },
+            {
+              "version": "0.4.98",
+              "versionCodes": {
+                "ARM64_V8A": 310,
+                "ARMEABI_V7A": 310,
+                "X86_64": 310,
+                "X86": 310
               },
               "isExperimental": false,
               "minSdk": 32,
@@ -5126,12 +5399,36 @@
               "description": null
             },
             {
+              "version": "15.1.0",
+              "versionCodes": {
+                "ARM64_V8A": 127812,
+                "ARMEABI_V7A": 127812,
+                "X86_64": 127812,
+                "X86": 127812
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            },
+            {
               "version": "14.0.0 TV",
               "versionCodes": {
                 "ARM64_V8A": 227708,
                 "ARMEABI_V7A": 227708,
                 "X86_64": 227708,
                 "X86": 227708
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
+            },
+            {
+              "version": "15.1.0 TV",
+              "versionCodes": {
+                "ARM64_V8A": 227812,
+                "ARMEABI_V7A": 227812,
+                "X86_64": 227812,
+                "X86": 227812
               },
               "isExperimental": false,
               "minSdk": 32,
@@ -5245,6 +5542,18 @@
               "isExperimental": false,
               "minSdk": 32,
               "description": null
+            },
+            {
+              "version": "2.33.1",
+              "versionCodes": {
+                "ARM64_V8A": 23301,
+                "ARMEABI_V7A": 23301,
+                "X86_64": 23301,
+                "X86": 23301
+              },
+              "isExperimental": false,
+              "minSdk": 32,
+              "description": null
             }
           ]
         }
@@ -5322,6 +5631,41 @@
               },
               "isExperimental": false,
               "minSdk": 24,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock pro",
+      "description": "Unlocks reminders and highlight notes. Adds duplicate and broken link filters, collection and tag suggestions, full-text search of saved pages, Wayback Machine copies and a weekly bookmark export to Downloads. Requires a signed-in account.",
+      "default": true,
+      "dependencies": [
+        "BytecodePatch"
+      ],
+      "compatiblePackages": [
+        {
+          "packageName": "io.raindrop.raindropio",
+          "name": "Raindrop.io",
+          "description": null,
+          "apkFileType": "APKS",
+          "appIconColor": "#1988E0",
+          "signatures": [
+            "ddd75c66578654d085424804cb27c7b6e04fd36616045bfee140d9756ffca563"
+          ],
+          "targets": [
+            {
+              "version": "4.7.44",
+              "versionCodes": {
+                "ARM64_V8A": 8698961,
+                "ARMEABI_V7A": 8698961,
+                "X86_64": 8698961,
+                "X86": 8698961
+              },
+              "isExperimental": false,
+              "minSdk": 32,
               "description": null
             }
           ]

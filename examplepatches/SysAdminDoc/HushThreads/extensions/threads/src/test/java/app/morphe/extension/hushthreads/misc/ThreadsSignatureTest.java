@@ -10,6 +10,7 @@ package app.morphe.extension.hushthreads.misc;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -164,5 +165,30 @@ public class ThreadsSignatureTest {
             other.packageName = name;
             keepsItsOwn(other);
         }
+    }
+
+    /**
+     * FBNS hashes this app's one signer from PackageInfo.signatures: it gets Threads' original
+     * certificate, and every other package keeps the array the system reported.
+     */
+    @Test
+    public void fbnsReadsThreadsCertificateForThisAppOnly() throws Exception {
+        Signature resigned = new Signature(new byte[] {1, 2, 3});
+        Signature[] reported = {resigned};
+
+        Signature[] own = ThreadsSignature.fbnsSigners(self(THREADS), reported);
+        assertEquals(1, own.length);
+        byte[] sha256 = MessageDigest.getInstance("SHA-256").digest(own[0].toByteArray());
+        StringBuilder hex = new StringBuilder();
+        for (byte b : sha256) hex.append(String.format("%02x", b));
+        assertEquals(THREADS_SHA256, hex.toString());
+        assertEquals(FamilyNames.RESTORE_TRUST + ": invoked 1, 0 found, 0 missing", statusLine());
+
+        HookStatus.clear();
+        assertSame(reported, ThreadsSignature.fbnsSigners(installed(THREADS, OTHER_UID), reported));
+        assertSame(reported, ThreadsSignature.fbnsSigners(installed("com.instagram.android", OTHER_UID), reported));
+        assertSame(reported, ThreadsSignature.fbnsSigners(null, reported));
+        assertNull(ThreadsSignature.fbnsSigners(installed("com.facebook.katana", OTHER_UID), null));
+        assertNull("counted a package it didn't answer for", statusLine());
     }
 }

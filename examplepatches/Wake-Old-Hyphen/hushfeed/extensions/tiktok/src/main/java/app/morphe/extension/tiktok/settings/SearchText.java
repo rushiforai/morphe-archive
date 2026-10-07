@@ -37,4 +37,21 @@ public final class SearchText {
         if (length > 0 && normalized.charAt(length - 1) == ' ') normalized.setLength(length - 1);
         return normalized.toString();
     }
+
+    /**
+     * Whether {@code query} stands in {@code text} as whole words, with no letter or digit
+     * touching it on either side. Both are already {@link #normalize normalized}, and the test is
+     * Character.isLetterOrDigit, so a translated table's words count the same as English ones.
+     */
+    public static boolean containsWord(String text, String query) {
+        if (text == null || query == null || query.isEmpty()) return false;
+        for (int at = text.indexOf(query); at >= 0; at = text.indexOf(query, at + 1)) {
+            int end = at + query.length();
+            if ((at == 0 || !Character.isLetterOrDigit(text.charAt(at - 1)))
+                    && (end == text.length() || !Character.isLetterOrDigit(text.charAt(end)))) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

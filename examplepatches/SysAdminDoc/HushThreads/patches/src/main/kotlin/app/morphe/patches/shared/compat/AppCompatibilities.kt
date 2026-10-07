@@ -34,18 +34,19 @@ internal object AppCompatibilities {
 
     /**
      * SHA-256 of Threads' newer signing certificate, the APK v3.1 signer Android reads from API 33,
-     * whose lineage the original authorizes. Both declared builds carry these signers.
+     * whose lineage the original authorizes. Every declared build carries these signers.
      */
     const val THREADS_ROTATED_SIGNER_SHA256 = "8f38da6b4dc34b1900353bde4630043198cbe3ef7214151f86679cd000c90500"
 
     /** The newest Threads build every patch here was applied to and read against. */
-    const val THREADS_TARGET_VERSION = "449.0.0.54.82"
+    const val THREADS_TARGET_VERSION = "450.0.0.51.78"
 
     /**
-     * The version code of the arm64-v8a build of [THREADS_TARGET_VERSION]: the 120-640dpi bundle,
-     * whose base APK carries the code every density variant shares.
+     * The version code of the arm64-v8a build of [THREADS_TARGET_VERSION] the fixtures were read
+     * from: the 240-480dpi bundle APKPure serves. 449 and 448 shipped one arm64 code for every
+     * density, 450 ships several.
      */
-    const val THREADS_TARGET_VERSION_CODE = 511908382
+    const val THREADS_TARGET_VERSION_CODE = 512008342
 
     /** Threads' own floor on this build, Android 9. */
     const val THREADS_TARGET_MIN_SDK = 28
@@ -61,6 +62,11 @@ internal object AppCompatibilities {
                 AppTarget(
                     version = THREADS_TARGET_VERSION,
                     versionCodes = mapOf(SupportedAbi.ARM64_V8A to THREADS_TARGET_VERSION_CODE),
+                    minSdk = THREADS_TARGET_MIN_SDK,
+                ),
+                AppTarget(
+                    version = "449.0.0.54.82",
+                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to 511908382),
                     minSdk = THREADS_TARGET_MIN_SDK,
                 ),
                 AppTarget(

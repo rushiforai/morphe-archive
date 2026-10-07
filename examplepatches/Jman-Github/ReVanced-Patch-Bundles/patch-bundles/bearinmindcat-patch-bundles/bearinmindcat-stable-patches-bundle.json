@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-09-30T15:33:33",
-  "description": "## [1.3.0](https://github.com/bearinmindcat/morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-30)\n\n### \u2728 New Features\n\n* add locally saved bookmarks & pins (also added timeline and recent searches) ([d6d4604](https://github.com/bearinmindcat/morphe-patches/commit/d6d460499327aa32b7de29c750d42313dec166ed))\n",
-  "download_url": "https://github.com/bearinmindcat/morphe-patches/releases/download/v1.3.0/patches-1.3.0.mpp",
+  "created_at": "2026-10-06T17:37:12",
+  "description": "## [1.4.4](https://github.com/bearinmindcat/morphe-patches/compare/v1.4.3...v1.4.4) (2026-10-06)\n\n### \ud83d\udc1b Bug Fixes\n\n* 120 refresh rate now keeps navigation smooth ([f323173](https://github.com/bearinmindcat/morphe-patches/commit/f32317373b574bbe89eb45964bac18c5addb0090))\n",
+  "download_url": "https://github.com/bearinmindcat/morphe-patches/releases/download/v1.4.4/patches-1.4.4.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.3.0"
+  "version": "v1.4.4"
 }

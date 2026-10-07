@@ -45,11 +45,15 @@ import app.morphe.extension.facebook.ads.AffiliateLinks;
 import app.morphe.extension.facebook.ads.GameAds;
 import app.morphe.extension.facebook.ads.MarketplaceAdFilterForTests;
 import app.morphe.extension.facebook.ads.ProfileAdFilterForTests;
+import app.morphe.extension.facebook.ads.FeedAdPills;
 import app.morphe.extension.facebook.ads.ReelsAdFilter;
 import app.morphe.extension.facebook.ads.SearchAdFilterForTests;
 import app.morphe.extension.facebook.chats.MessengerCardForTests;
 import app.morphe.extension.facebook.chats.MessengerIconForTests;
+import app.morphe.extension.facebook.chats.ReadReceipts;
+import app.morphe.extension.facebook.chats.TypingIndicator;
 import app.morphe.extension.facebook.download.MediaDownload;
+import app.morphe.extension.facebook.download.PhotoSave;
 import app.morphe.extension.facebook.download.PlayerSourcesForTests;
 import app.morphe.extension.facebook.download.ReelDownload;
 import app.morphe.extension.facebook.download.SaveRulesForTests;
@@ -84,6 +88,7 @@ import app.morphe.extension.facebook.misc.ExternalBrowser;
 import app.morphe.extension.facebook.misc.LinkCleaner;
 import app.morphe.extension.facebook.navigation.BottomTabBar;
 import app.morphe.extension.facebook.navigation.MarketplaceOnlyForTests;
+import app.morphe.extension.facebook.navigation.MarketplaceSellerProfileForTests;
 import app.morphe.extension.facebook.navigation.HiddenTabsForTests;
 import app.morphe.extension.facebook.navigation.ReelsTabForTests;
 import app.morphe.extension.facebook.navigation.StartTabRouteForTests;
@@ -219,7 +224,10 @@ public class PausedHooksTest {
         probes.put(PatchFamily.SPONSORED_POSTS, Arrays.asList(
                 () -> FeedGuardForTests.hides(Category.SPONSORED, new Object()),
                 () -> FeedGuardForTests.hides(Category.PROMOTION, new Object()),
-                () -> FeedGuardForTests.swapHides(Category.SPONSORED, new Object())));
+                () -> FeedGuardForTests.swapHides(Category.SPONSORED, new Object()),
+                // A feed ad's comments open without the floating ad button.
+                () -> FeedAdPills.holdsAdPill(
+                        "com.facebook.feedback.comments.plugins.indicatorpill.permalinkadsfloatingcta.PermalinkAdsFloatingCtaPlugin")));
         probes.put(PatchFamily.SUGGESTED_POSTS, Arrays.asList(
                 () -> FeedGuardForTests.hides(Category.ORGANIC, new GraphQLPagesYouMayLikeFeedUnit()),
                 // A story Facebook's own recommendation flag marks as suggested for you.
@@ -312,7 +320,9 @@ public class PausedHooksTest {
                     Section section = new Section(new ArrayList<>(Arrays.asList(new Reel(), ad)));
                     ReelsAdFilter.withoutAdSections(Collections.singletonList(section), AD);
                     return !section.items.contains(ad);
-                }));
+                },
+                () -> ReelsAdFilter.holdsAdPill(
+                        "com.facebook.feedback.comments.plugins.indicatorpill.reelsadsfloatingcta.ReelsAdsFloatingCtaPlugin")));
         // A search results page leaves its SEARCH_ADS module out.
         probes.put(PatchFamily.SPONSORED_SEARCH, Collections.singletonList(SearchAdFilterForTests::dropsAnAd));
         // A timeline story with sponsored data isn't drawn on a profile.
@@ -424,12 +434,17 @@ public class PausedHooksTest {
         probes.put(PatchFamily.VIDEO_DOWNLOAD, Arrays.asList(
                 VideoMenuItemForTests::addsAnItem,
                 PlayerSourcesForTests::recordsAVideoPlayer));
+        // Every photo the viewer opens offers Save photo.
+        probes.put(PatchFamily.PHOTO_DOWNLOAD, Collections.singletonList(() -> PhotoSave.offersSave(false)));
         // A start from the launcher icon asks Facebook for the chosen tab.
         probes.put(PatchFamily.START_TAB, Collections.singletonList(StartTabRouteForTests::routes));
         // The tab bar builder is told to leave Home out.
         probes.put(PatchFamily.MARKETPLACE_ONLY, Arrays.asList(
                 MarketplaceOnlyForTests::hidesHome, MarketplaceOnlyForTests::quietsNotifications,
                 MarketplaceOnlyForTests::skipsFeedPrefetch));
+        // A seller's Marketplace page is told its View profile flag is on.
+        probes.put(PatchFamily.SELLER_VIEW_PROFILE, Collections.singletonList(
+                MarketplaceSellerProfileForTests::givesSellersViewProfile));
         // The tab bar builder is told to leave the Reels tab out.
         // Facebook's push of its Reels launcher shortcut is held back too.
         probes.put(PatchFamily.REELS_TAB, Arrays.asList(ReelsTabForTests::hidesTheTab,
@@ -494,6 +509,12 @@ public class PausedHooksTest {
         // A new picture in the photo library isn't looked at.
         probes.put(PatchFamily.SCREENSHOT_DETECTION, Collections.singletonList(
                 ScreenshotDetection::ignoresChange));
+        // "Typing" goes out as "not typing", and the chat and comment runnables skip their send.
+        probes.put(PatchFamily.TYPING_INDICATOR, Arrays.asList(
+                () -> !TypingIndicator.chatTyping(true), TypingIndicator::holdsChatTyping,
+                TypingIndicator::holdsCommentTyping));
+        // Mailbox's mark-read hands back its future without sending the read.
+        probes.put(PatchFamily.READ_RECEIPTS, Collections.singletonList(ReadReceipts::holdsChatRead));
         // A push of each kind a notification switch blocks isn't posted.
         probes.put(PatchFamily.PROMO_NOTIFICATIONS, Arrays.asList(
                 NotificationKindsForTests::blocksTrendingVideo,

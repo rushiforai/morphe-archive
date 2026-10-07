@@ -167,14 +167,20 @@ Interface	Antarmuka
 Hide shopping and product pins	Sembunyikan belanja dan Pin produk
 Shoppable pins, shopping stories and featured boards	Pin belanja, cerita belanja, dan papan unggulan
 Disable analytics	Nonaktifkan analitik
-Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Menghentikan pengiriman data penggunaan dan tugas awal analitik. Firebase Analytics tetap nonaktif sampai Anda menambal ulang tanpa tambalan ini.
-Firebase Analytics collection is disabled	Pengumpulan data Firebase Analytics dinonaktifkan
+Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch.	Menghentikan pengiriman data penggunaan dan tugas awal analitik. Pengumpulan data Firebase dan Google Analytics tetap nonaktif sampai Anda menambal ulang tanpa tambalan ini.
+Firebase and Google Analytics collection is turned off	Pengumpulan data Firebase dan Google Analytics dinonaktifkan
 Analytics launch tasks	Tugas awal analitik
 Analytics uploads	Pengiriman data analitik
 Strip link tracking	Hapus pelacakan tautan
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Menghapus parameter pelacakan yang dikenal dari tautan yang disalin dan dibagikan. Tautan pendek tetap seperti yang dibuat Pinterest.
 Hide advertising ID	Sembunyikan ID iklan
 Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest dan kode iklan serta pelacakan di dalamnya membaca ID iklan berisi nol semua dengan pelacakan iklan dibatasi, seolah kamu sudah menghapus ID iklan di setelan Android.
+Remove ad tracking permissions	Hapus izin pelacakan iklan
+Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	Pinterest tidak lagi memiliki izin ID iklan Google maupun layanan iklan Android. Ini ditetapkan saat Anda menambal, dan hanya bisa dikembalikan dengan menambal ulang tanpa tambalan ini.
+Pinterest's access to the ad ID and Android's ad services is removed	akses Pinterest ke ID iklan dan layanan iklan Android dihapus
+Spoof signature for Google sign-in	Palsukan tanda tangan untuk login Google
+Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.	Manifes Pinterest mencantumkan sertifikat penandatanganan aslinya, agar login Google bisa berfungsi dengan microG-RE atau modul XSpoofSignatures. Layanan Google Play biasa mengabaikannya. Ini ditetapkan saat Anda menambal, dan hanya bisa dihapus dengan menambal ulang tanpa tambalan ini.
+Pinterest's original signing certificate is named in its manifest	sertifikat penandatanganan asli Pinterest tercantum di manifesnya
 Download pins	Unduh Pin
 Open links in your browser	Buka tautan di browser Anda
 Open pin Visit links and profile websites in your browser.	Buka tautan Kunjungi Pin dan situs web profil di browser Anda.
@@ -192,6 +198,7 @@ Hide collage menu items	Sembunyikan opsi kolase
 Hide Search image menu item	Sembunyikan opsi Cari gambar
 Hide Promote pin menu item	Sembunyikan opsi Promosikan Pin
 Hide comments	Sembunyikan komentar
+Hide topic suggestions	Sembunyikan saran topik
 Quiet email reminders	Sembunyikan pengingat email
 Disable update nag	Sembunyikan pemberitahuan pembaruan
 Download pin	Unduh Pin
@@ -276,6 +283,8 @@ Media link copied.	Tautan media disalin.
 Couldn't copy the media link. Open the pin again and try again.	Tautan media tidak dapat disalin. Buka Pin lagi dan coba lagi.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Detail ini berasal dari URL media dan metadata yang diberikan Pinterest. File belum diperiksa.
 Supplied width: %s	Lebar yang diberikan: %s
+Supplied size: %s. Downloads look for the original first.	Ukuran yang diberikan: %s. Unduhan mencari versi asli terlebih dahulu.
+Supplied size: the original image	Ukuran yang diberikan: gambar asli
 Supplied height: %s	Tinggi yang diberikan: %s
 Supplied URL type: %s	Jenis dari URL yang diberikan: %s
 %d pixels	%d piksel
@@ -284,8 +293,8 @@ Close	Tutup
 Couldn't show the supplied media details. Open the pin again and try again.	Detail media yang diberikan tidak dapat ditampilkan. Buka Pin lagi dan coba kembali.
 Pinterest supplied an adaptive video stream, but no downloadable MP4.	Pinterest memberikan aliran video adaptif, tetapi tidak ada MP4 yang dapat diunduh.
 Pinterest hasn't supplied a downloadable MP4 for this pin.	Pinterest belum memberikan MP4 yang dapat diunduh untuk Pin ini.
-Pinterest hasn't supplied an original image to download.	Pinterest belum memberikan gambar asli untuk diunduh.
-The supplied original image type isn't supported for download.	Jenis gambar asli yang diberikan tidak didukung untuk diunduh.
+Pinterest hasn't supplied an image to download.	Pinterest belum memberikan gambar untuk diunduh.
+The supplied image type isn't supported for download.	Jenis gambar yang diberikan tidak didukung untuk diunduh.
 The supplied media link isn't a supported public Pinterest link.	Tautan media yang diberikan bukan tautan publik Pinterest yang didukung.
 Couldn't start the download. Check system Downloads and try again.	Unduhan tidak dapat dimulai. Periksa Unduhan sistem dan coba lagi.
 Couldn't open a save location. Try again from the pin.	Lokasi penyimpanan tidak dapat dibuka. Coba lagi dari Pin.
@@ -321,11 +330,14 @@ Hides Add to collage and Remix collage in newly created pin menus. An existing m
 Hides Search image in newly created pin menus. An existing menu won't change.	Menyembunyikan Cari gambar di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Menyembunyikan Promosikan Pin di menu Pin yang baru dibuat. Menu yang sudah ada tidak berubah.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Menyembunyikan panel dan pratinjau komentar di bawah Pin saat tata letak atau visibilitasnya diperbarui berikutnya. Tidak mengubah siapa yang boleh berkomentar.
+Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Menyembunyikan baris "Ide yang mungkin Anda sukai" berisi gelembung topik di bawah Pin saat Pinterest menampilkannya lagi. Komentar dan Pin terkait tetap ada.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Menutup pengingat opsional konfirmasi email yang baru dibuat. Pengingat yang terbuka tidak berubah. Pemeriksaan verifikasi dan masuk tetap berlaku.
 Hide save toasts	Sembunyikan notifikasi simpan
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Menyimpan Pin tidak lagi memunculkan "Disimpan ke" papanmu atau saran untuk mengikuti pembuatnya. Pin tetap tersimpan.
 Original-quality images	Gambar kualitas asli
-Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Memilih gambar asli sebelum ukuran besar jika Pinterest menyediakannya. Memakai lebih banyak data. Gambar yang sudah tampil berubah saat dimuat ulang.
+collage images	gambar kolase
+pin closeups	tampilan dekat pin
+Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.	Menampilkan gambar asli sebagai ganti ukuran besar di tampilan dekat pin dan kolase, jika Pinterest mengirimkannya. Memakai lebih banyak data. Pin yang sudah dimuat tetap pada ukurannya sampai Pinterest memuatnya ulang.
 Save media	Simpan media
 Recent searches autocomplete	Pelengkapan otomatis pencarian terbaru
 Activity alerts	Notifikasi aktivitas
@@ -364,6 +376,6 @@ Unsupported	Tidak didukung
 Saved to the location you chose.	Disimpan ke lokasi yang Anda pilih.
 No download was queued. The selection was stopped, canceled or unavailable.	Tidak ada unduhan yang diantrekan. Pilihan dihentikan, dibatalkan, atau tidak tersedia.
 Pinterest didn't supply supported media for this pin.	Pinterest tidak menyediakan media yang didukung untuk Pin ini.
-Download a pin or select visible grid pins. Saves supplied original images and videos.	Unduh satu Pin atau pilih Pin yang terlihat di kisi. Menyimpan gambar asli dan video yang disediakan.
+Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.	Unduh satu Pin atau pilih Pin yang terlihat di kisi. Menyimpan video dan gambar asli, atau ukuran terbesar yang diberikan Pinterest.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 memakai pemilih file. Hasil pilihan Pin yang terlihat muncul di sini.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Hanya 32 unduhan dan hasil pilihan terbaru yang ditampilkan. File yang tersimpan tetap disimpan.

@@ -7,6 +7,7 @@
 package app.morphe.patches.tiktok.interaction.authorregion
 
 import app.morphe.util.addInstruction
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.interaction.blockauthor.blockAuthorPatch
@@ -17,6 +18,17 @@ import app.morphe.patches.tiktok.misc.settings.settingsPatch
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/tiktok/feed/AuthorRegion;"
+
+/**
+ * A share link or a process restored with a video open can start the detail page with no main
+ * feed behind it yet, and the hook in MainActivity.onCreate never runs before it.
+ */
+internal object DetailActivityOnCreateFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/detail/ui/DetailActivity;",
+    name = "onCreate",
+    returnType = "V",
+    parameters = listOf("Landroid/os/Bundle;"),
+)
 
 /**
  * Depends on the block author patch only for its tracking of which video is on screen; the
@@ -42,10 +54,12 @@ val showAuthorRegionPatch = bytecodePatch(
         )
 
         // p0 is the activity. /range because a parameter register is usually above v15.
-        MainActivityOnCreateFingerprint.method.addInstruction(
-            0,
-            "invoke-static/range { p0 .. p0 }, " +
-                "$EXTENSION_CLASS_DESCRIPTOR->install(Landroid/app/Activity;)V",
-        )
+        listOf(MainActivityOnCreateFingerprint, DetailActivityOnCreateFingerprint).forEach {
+            it.method.addInstruction(
+                0,
+                "invoke-static/range { p0 .. p0 }, " +
+                    "$EXTENSION_CLASS_DESCRIPTOR->install(Landroid/app/Activity;)V",
+            )
+        }
     }
 }

@@ -65,6 +65,13 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
                 .equals(((Preference) item).getKey());
     }
 
+    /** The width a row of this list gets: the list's own once it has one, the screen's before. */
+    private static int rowWidth(ViewGroup list) {
+        int width = list.getWidth() > 0 ? list.getWidth() : list.getMeasuredWidth();
+        if (width <= 0) width = list.getResources().getDisplayMetrics().widthPixels;
+        return width - list.getPaddingLeft() - list.getPaddingRight();
+    }
+
     @Override public View getView(int position, View convertView, ViewGroup parent) {
         View row = delegate.getView(position, convertView, parent);
         if (isErrorMessage(getItem(position))) {
@@ -75,6 +82,7 @@ final class SettingsListAdapter extends BaseAdapter implements WrapperListAdapte
         Preference preference = (Preference) getItem(position);
         SettingsUi.stylePreferenceRow(row);
         SettingsUi.applyGroupedRow(row, isBoundary(position - 1), isBoundary(position + 1));
+        if (preference instanceof SwitchPreference) SettingsUi.reflowSwitchRow(row, rowWidth(parent));
         // The recovery page's two actions were styled while the rows were bound, and the row
         // styling above painted over it, so Retry and Back came out as two identical rows.
         String key = preference.getKey();

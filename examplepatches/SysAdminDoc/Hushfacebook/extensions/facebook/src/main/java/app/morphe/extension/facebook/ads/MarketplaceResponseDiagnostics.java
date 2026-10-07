@@ -36,6 +36,9 @@ final class MarketplaceResponseDiagnostics {
     private static final String[] QUERIES = {
             "MarketplaceHomeFeedAdsThemedQuery",
             "MarketplaceProductDetailsPageRelatedAdsDetailQuery",
+            "MarketplacePDPBoostedListingAdsQuery",
+            "MarketplacePDPPersonalizedAdsQuery",
+            "MarketplaceHomeFeedThemedAdsFetch",
             "MarketplaceHomeFeedQueryRendererQuery",
             "MarketplaceHomeQuery",
             "MarketplacePlainHomeAppQuery",

@@ -1,6 +1,6 @@
 [versions]
-morphe-patcher = "1.10.0"
-morphe-patches-library = "1.6.2"
+morphe-patcher = "1.15.0"
+morphe-patches-library = "1.7.1"
 smali = "d92701d947"
 gson = "2.14.0"
 hiddenapi = "6.1"

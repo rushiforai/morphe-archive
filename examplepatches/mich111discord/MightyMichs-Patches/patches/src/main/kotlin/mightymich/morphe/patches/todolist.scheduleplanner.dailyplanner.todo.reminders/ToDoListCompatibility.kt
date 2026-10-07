@@ -11,7 +11,10 @@ object ToDoListCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5722,
         targets = listOf(
-            AppTarget(version = "1.02.94.0925")
+            AppTarget(
+                version = "1.02.94.0925"
+                version = "1.03.38.0924"
+            )
         )
     )
 }

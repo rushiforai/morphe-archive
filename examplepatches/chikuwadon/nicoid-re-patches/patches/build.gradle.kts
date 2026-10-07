@@ -31,11 +31,13 @@ patches {
 // generatePatchesList task but never bundled into the APK.
 val patchListGeneratorClasspath = configurations.create("patchListGeneratorClasspath")
 val nicoidD8 = configurations.create("nicoidD8")
+val nicoidSmali = configurations.create("nicoidSmali")
 
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
     add(nicoidD8.name, "com.android.tools:r8:9.4.28")
+    add(nicoidSmali.name, "org.smali:smali:2.5.2")
 }
 
 val androidJar = providers.provider {
@@ -85,6 +87,34 @@ val nicoidHelpersDex = tasks.register<JavaExec>("nicoidHelpersDex") {
         "--lib", System.getProperty("java.home"), "--output", output.get().asFile.absolutePath,
         nicoidHelpersJar.get().archiveFile.get().asFile.absolutePath)
 }
+val prepareNicoidSmali = tasks.register("prepareNicoidSmali") {
+    val sources = rootProject.file("porting/helpers-smali")
+    val staged = layout.buildDirectory.dir("nicoid/override-smali")
+    inputs.dir(sources)
+    inputs.property("patchVersion", providers.gradleProperty("version").orElse(project.version.toString()))
+    outputs.dir(staged)
+    doLast {
+        val version = providers.gradleProperty("version").orElse(project.version.toString()).get()
+        staged.get().asFile.deleteRecursively()
+        sources.walkTopDown().filter { it.isFile && it.extension == "smali" }.forEach { source ->
+            val target = staged.get().asFile.resolve(source.relativeTo(sources))
+            target.parentFile.mkdirs()
+            target.writeText(source.readText(Charsets.UTF_8).replace("@NICOID_PATCH_VERSION@", version), Charsets.UTF_8)
+        }
+    }
+}
+val assembleNicoidSmali = tasks.register<JavaExec>("assembleNicoidSmali") {
+    dependsOn(prepareNicoidSmali)
+    classpath = nicoidSmali
+    mainClass.set("org.jf.smali.Main")
+    val output = layout.buildDirectory.file("nicoid/overrides.dex")
+    inputs.dir(layout.buildDirectory.dir("nicoid/override-smali"))
+    outputs.file(output)
+    doFirst { output.get().asFile.parentFile.mkdirs() }
+    args("assemble", "--api", "35", "--output", output.get().asFile.absolutePath,
+        layout.buildDirectory.dir("nicoid/override-smali").get().asFile.absolutePath)
+}
+
 val compileNicoidDexMerger = tasks.register<JavaCompile>("compileNicoidDexMerger") {
     source(file("src/buildHelpers/java/NicoidDexMerger.java"))
     classpath = sourceSets["main"].compileClasspath
@@ -93,7 +123,7 @@ val compileNicoidDexMerger = tasks.register<JavaCompile>("compileNicoidDexMerger
     options.release.set(8)
 }
 val mergeNicoidHelpersDex = tasks.register<JavaExec>("mergeNicoidHelpersDex") {
-    dependsOn(nicoidHelpersDex, compileNicoidDexMerger)
+    dependsOn(nicoidHelpersDex, compileNicoidDexMerger, assembleNicoidSmali)
     classpath = files(compileNicoidDexMerger.flatMap { it.destinationDirectory }) + sourceSets["main"].compileClasspath
     mainClass.set("app.nicoid.patches.NicoidDexMerger")
     val generated = layout.buildDirectory.file("nicoid/helper-dex/classes.dex")
@@ -103,7 +133,8 @@ val mergeNicoidHelpersDex = tasks.register<JavaExec>("mergeNicoidHelpersDex") {
         output.get().asFile.parentFile.mkdirs()
         output.get().asFile.delete()
     }
-    args(generated.get().asFile.absolutePath, original.absolutePath, output.get().asFile.absolutePath)
+    args(generated.get().asFile.absolutePath, original.absolutePath,
+        layout.buildDirectory.file("nicoid/overrides.dex").get().asFile.absolutePath, output.get().asFile.absolutePath)
 }
 val prepareNicoidHelpers = tasks.register("prepareNicoidHelpers") {
     dependsOn(mergeNicoidHelpersDex)

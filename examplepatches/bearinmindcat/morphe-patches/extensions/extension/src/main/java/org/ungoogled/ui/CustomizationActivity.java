@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
-import android.view.WindowInsets;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -69,8 +68,8 @@ public final class CustomizationActivity extends Activity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(bg());
         root.setOnApplyWindowInsetsListener((v, insets) -> {
-            android.graphics.Insets sb = insets.getInsets(WindowInsets.Type.systemBars());
-            v.setPadding(sb.left, sb.top, sb.right, sb.bottom);
+            int[] sb = Shapes.barInsets(insets, false);
+            v.setPadding(sb[0], sb[1], sb[2], sb[3]);
             return insets;
         });
 
@@ -109,7 +108,7 @@ public final class CustomizationActivity extends Activity {
         if (Shapes.blackThemePatched()) {
             Switch black = new Switch(this);
             black.setChecked(Shapes.blackEnabled(this));
-            body.addView(toggleRow("Black theme", "Also disables light & dark theme", black));
+            body.addView(toggleRow("Black theme", "Choosing a theme in Maps settings turns this off", black));
             black.setOnCheckedChangeListener((CompoundButton b, boolean on) -> {
                 Shapes.setBlackEnabled(this, on);
                 restartSoon(b);
@@ -301,4 +300,23 @@ public final class CustomizationActivity extends Activity {
     }
 
     private int dp(int v) { return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, v, getResources().getDisplayMetrics()); }
+
+    /**
+     * The account sheet's "Customization" row: opens this screen and leaves the sheet open
+     * behind it (when Keep account sheet open is applied; otherwise the flag is unread).
+     * The row builder hands over its Activity, because the sheet calls row listeners with
+     * a null View.
+     */
+    public static final class Open implements View.OnClickListener {
+        private final android.content.Context context;
+
+        public Open(android.content.Context context) { this.context = context; }
+
+        @Override
+        public void onClick(View v) {
+            Shapes.SKIP_DISMISS = true;
+            context.startActivity(new android.content.Intent()
+                    .setClassName(context.getPackageName(), CustomizationActivity.class.getName()));
+        }
+    }
 }

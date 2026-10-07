@@ -45,6 +45,21 @@ public final class NuvioRemainingEpisodes {
 
     private NuvioRemainingEpisodes() {}
 
+    private static volatile Boolean newerLayout;
+
+    private static boolean beta4() throws Exception {
+        Boolean cached = newerLayout;
+        if (cached == null) {
+            Application app = (Application) Class.forName("android.app.ActivityThread")
+                .getMethod("currentApplication").invoke(null);
+            if (app == null) throw new IllegalStateException("Application is unavailable");
+            cached = "1.1.0-beta.4".equals(app.getPackageManager()
+                .getPackageInfo(app.getPackageName(), 0).versionName);
+            newerLayout = cached;
+        }
+        return cached.booleanValue();
+    }
+
     public static void register(Object nextUpInfo) {
         try {
             String id = (String) field(nextUpInfo, "a").get(nextUpInfo);
@@ -104,9 +119,15 @@ public final class NuvioRemainingEpisodes {
             });
             Object noop = Proxy.newProxyInstance(loader, new Class<?>[]{function0}, (proxy, method, args) ->
                 "invoke".equals(method.getName()) ? kotlinUnit(loader) : objectMethod(proxy, method, args));
-            Class<?> settings = Class.forName("fb.h3", false, loader);
-            Method row = findStatic(settings, "t", 7);
-            row.invoke(null, "Show remaining episodes", "Show aired, unwatched episode counts for Local, Trakt, Simkl, and other tracking sources.", stateValue(state), toggle, noop, composer, 24576);
+            String description = "Show aired, unwatched episode counts for Local, Trakt, Simkl, and other tracking sources.";
+            if (beta4()) {
+                Method row = findStatic(Class.forName("sa.eb", false, loader), "m", 13);
+                row.invoke(null, "Show remaining episodes", description, stateValue(state), toggle,
+                    null, noop, false, null, 0L, false, composer, 0, 1008);
+            } else {
+                Method row = findStatic(Class.forName("fb.h3", false, loader), "t", 7);
+                row.invoke(null, "Show remaining episodes", description, stateValue(state), toggle, noop, composer, 24576);
+            }
             Log.d(TAG, "renderSettings row rendered");
         } catch (Throwable error) {
             Log.e(TAG, "settings row rendering failed", error);
@@ -148,7 +169,7 @@ public final class NuvioRemainingEpisodes {
             // Subscribe every card to count changes, including cards whose count
             // is not available during their first composition.
             if (count == null) return;
-            Class<?> text = Class.forName("x5.i2", false, loader);
+            Class<?> text = Class.forName(beta4() ? "x5.g2" : "x5.i2", false, loader);
             Method method = findStatic(text, "b", 19);
             Object[] style = badgeStyle(loader, composer);
             method.invoke(null, Integer.toString(count), style[0], style[1], 0L, null, null, 0L, null, 0L,
@@ -161,18 +182,18 @@ public final class NuvioRemainingEpisodes {
 
     private static Object[] badgeStyle(ClassLoader loader, Object composer) throws Exception {
         Method compositionLocal = findMethod(composer.getClass(), "j", 1);
-        Class<?> colorsOwner = Class.forName("ib.x0", false, loader);
+        Class<?> colorsOwner = Class.forName(beta4() ? "va.x0" : "ib.x0", false, loader);
         Object colors = compositionLocal.invoke(composer, staticField(colorsOwner, "a").get(null));
         long surface = ((Number) field(colors, "a").get(colors)).longValue();
         long content = ((Number) field(colors, "l").get(colors)).longValue();
         long background = ((Number) findStatic(Class.forName("d2.z", false, loader), "b", 2)
             .invoke(null, Long.valueOf(surface), Float.valueOf(0.8f))).longValue();
 
-        Class<?> typographyOwner = Class.forName("x5.k2", false, loader);
+        Class<?> typographyOwner = Class.forName(beta4() ? "x5.i2" : "x5.k2", false, loader);
         Object typography = compositionLocal.invoke(composer, staticField(typographyOwner, "a").get(null));
         Object textStyle = field(typography, "o").get(typography);
 
-        Object dimensions = staticField(Class.forName("ib.l0", false, loader), "a").get(null);
+        Object dimensions = staticField(Class.forName(beta4() ? "va.l0" : "ib.l0", false, loader), "a").get(null);
         float horizontal = ((Number) field(dimensions, "e").get(dimensions)).floatValue();
         float vertical = ((Number) field(dimensions, "d").get(dimensions)).floatValue();
 
@@ -180,7 +201,7 @@ public final class NuvioRemainingEpisodes {
         Object modifier = staticField(modifierOwner, "b").get(null);
         modifier = findStatic(Class.forName("e0.b", false, loader), "u", 2)
             .invoke(null, modifier, Float.valueOf(horizontal));
-        Object shape = staticField(Class.forName("pa.g1", false, loader), "a").get(null);
+        Object shape = staticField(Class.forName(beta4() ? "ba.d3" : "pa.g1", false, loader), "a").get(null);
         modifier = findStatic(Class.forName("a2.j", false, loader), "b", 2)
             .invoke(null, modifier, shape);
         Object rectangle = staticField(Class.forName("d2.g0", false, loader), "b").get(null);
@@ -352,8 +373,8 @@ public final class NuvioRemainingEpisodes {
         synchronized (NuvioRemainingEpisodes.class) {
             result = enabledState;
             if (result == null) {
-                Class<?> compose = Class.forName("g1.h", false, loader);
-                result = findStatic(compose, "s", 1).invoke(null, Boolean.valueOf(enabled()));
+                Class<?> compose = Class.forName(beta4() ? "g1.j" : "g1.h", false, loader);
+                result = findStatic(compose, beta4() ? "r" : "s", 1).invoke(null, Boolean.valueOf(enabled()));
                 enabledState = result;
             }
         }
@@ -366,8 +387,8 @@ public final class NuvioRemainingEpisodes {
         synchronized (NuvioRemainingEpisodes.class) {
             result = revisionState;
             if (result == null) {
-                Class<?> compose = Class.forName("g1.h", false, loader);
-                result = findStatic(compose, "s", 1).invoke(null, Integer.valueOf(0));
+                Class<?> compose = Class.forName(beta4() ? "g1.j" : "g1.h", false, loader);
+                result = findStatic(compose, beta4() ? "r" : "s", 1).invoke(null, Integer.valueOf(0));
                 revisionState = result;
             }
         }

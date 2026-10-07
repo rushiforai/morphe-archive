@@ -167,14 +167,20 @@ Interface	Arayüz
 Hide shopping and product pins	Alışveriş ve ürün Pinlerini gizle
 Shoppable pins, shopping stories and featured boards	Satın alınabilir Pinler, alışveriş hikâyeleri ve öne çıkan panolar
 Disable analytics	Analizleri devre dışı bırak
-Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Kullanım verisi gönderimini ve analiz başlatma görevlerini durdurur. Firebase Analytics, bu yama olmadan yeniden yamalayana kadar kapalı kalır.
-Firebase Analytics collection is disabled	Firebase Analytics veri toplama kapalı
+Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch.	Kullanım verisi gönderimini ve analiz başlatma görevlerini durdurur. Firebase ve Google Analytics veri toplama, bu yama olmadan yeniden yamalayana kadar kapalı kalır.
+Firebase and Google Analytics collection is turned off	Firebase ve Google Analytics veri toplama kapalı
 Analytics launch tasks	Analiz başlatma görevleri
 Analytics uploads	Analiz veri gönderimi
 Strip link tracking	Bağlantı takibini kaldır
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Kopyalanan ve paylaşılan bağlantılardan bilinen takip parametrelerini kaldırır. Kısa bağlantılar Pinterest tarafından oluşturulduğu gibi kalır.
 Hide advertising ID	Reklam kimliğini gizle
 Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest ve içindeki reklam ve takip kodu, reklam takibi sınırlı olarak tamamı sıfır bir reklam kimliği okur. Reklam kimliğini Android ayarlarından silmişsin gibi olur.
+Remove ad tracking permissions	Reklam izleme izinlerini kaldır
+Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	Pinterest artık Google reklam kimliği iznine ve Android reklam hizmetlerine sahip değil. Bu, yamalarken ayarlandı ve yalnızca bu yama olmadan yeniden yamalayarak geri gelir.
+Pinterest's access to the ad ID and Android's ad services is removed	Pinterest'in reklam kimliğine ve Android reklam hizmetlerine erişimi kaldırıldı
+Spoof signature for Google sign-in	Google ile oturum açma için imzayı taklit et
+Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.	Pinterest'in manifest dosyası orijinal imza sertifikasını belirtir, böylece Google ile oturum açma microG-RE veya XSpoofSignatures modülüyle çalışabilir. Normal Google Play Hizmetleri bunu yok sayar. Bu, yamalarken ayarlandı ve yalnızca bu yama olmadan yeniden yamalayarak kaldırılır.
+Pinterest's original signing certificate is named in its manifest	Pinterest'in orijinal imza sertifikası manifest dosyasında belirtiliyor
 Download pins	Pinleri indir
 Open links in your browser	Bağlantıları tarayıcında aç
 Open pin Visit links and profile websites in your browser.	Pinlerin Ziyaret et bağlantılarını ve profil web sitelerini tarayıcında aç.
@@ -192,6 +198,7 @@ Hide collage menu items	Kolaj menü öğelerini gizle
 Hide Search image menu item	Görsel ara menü öğesini gizle
 Hide Promote pin menu item	Pin tanıt menü öğesini gizle
 Hide comments	Yorumları gizle
+Hide topic suggestions	Konu önerilerini gizle
 Quiet email reminders	E-posta hatırlatmalarını sustur
 Disable update nag	Güncelleme uyarısını kapat
 Download pin	Pini indir
@@ -276,6 +283,8 @@ Media link copied.	Medya bağlantısı kopyalandı.
 Couldn't copy the media link. Open the pin again and try again.	Medya bağlantısı kopyalanamadı. Pin'i yeniden açıp tekrar dene.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Bu ayrıntılar Pinterest'in sağladığı medya adresinden ve meta verilerden gelir. Dosya incelenmedi.
 Supplied width: %s	Sağlanan genişlik: %s
+Supplied size: %s. Downloads look for the original first.	Sağlanan boyut: %s. İndirmeler önce özgün görseli arar.
+Supplied size: the original image	Sağlanan boyut: özgün görsel
 Supplied height: %s	Sağlanan yükseklik: %s
 Supplied URL type: %s	Sağlanan adrese göre tür: %s
 %d pixels	%d piksel
@@ -284,8 +293,8 @@ Close	Kapat
 Couldn't show the supplied media details. Open the pin again and try again.	Sağlanan medya ayrıntıları gösterilemedi. Pin'i yeniden açıp tekrar deneyin.
 Pinterest supplied an adaptive video stream, but no downloadable MP4.	Pinterest uyarlanabilir bir video akışı sağladı, ancak indirilebilir MP4 sağlamadı.
 Pinterest hasn't supplied a downloadable MP4 for this pin.	Pinterest bu Pin için indirilebilir MP4 sağlamadı.
-Pinterest hasn't supplied an original image to download.	Pinterest indirilecek özgün bir görsel sağlamadı.
-The supplied original image type isn't supported for download.	Sağlanan özgün görsel türünün indirilmesi desteklenmiyor.
+Pinterest hasn't supplied an image to download.	Pinterest indirilecek bir görsel sağlamadı.
+The supplied image type isn't supported for download.	Sağlanan görsel türünün indirilmesi desteklenmiyor.
 The supplied media link isn't a supported public Pinterest link.	Sağlanan medya bağlantısı desteklenen herkese açık bir Pinterest bağlantısı değil.
 Couldn't start the download. Check system Downloads and try again.	İndirme başlatılamadı. Sistemin İndirilenler bölümünü kontrol edip tekrar deneyin.
 Couldn't open a save location. Try again from the pin.	Kaydetme konumu açılamadı. Pin'den tekrar deneyin.
@@ -321,11 +330,14 @@ Hides Add to collage and Remix collage in newly created pin menus. An existing m
 Hides Search image in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Görsel ara öğesini gizler. Mevcut bir menü değişmez.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Yeni oluşturulan Pin menülerinde Pin tanıt öğesini gizler. Mevcut bir menü değişmez.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Pinlerin altındaki yorum panellerini ve önizlemelerini sonraki düzen veya görünürlük güncellemesinde gizler. Kimlerin yorum yapabileceğini değiştirmez.
+Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Pinlerin altındaki konu baloncuklarından oluşan "Sevebileceğin fikirler" satırını, Pinterest onu bir sonraki gösterdiğinde gizler. Yorumlar ve ilgili Pinler yerinde kalır.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Yeni oluşturulan isteğe bağlı e-posta doğrulama hatırlatmalarını kapatır. Açık bir hatırlatma değişmez. Doğrulama ve oturum açma kontrolleri geçerliliğini korur.
 Hide save toasts	Kaydetme bildirimlerini gizle
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Bir Pin kaydettiğinde artık panona "Kaydedildi" uyarısı ya da oluşturan kişiyi takip etme önerisi çıkmaz. Pin yine kaydedilir.
 Original-quality images	Orijinal kalitede görseller
-Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Pinterest sağladığında büyük boyut yerine orijinal görseli seçer. Daha fazla veri kullanır. Ekrandaki görseller yeniden yüklendiğinde değişir.
+collage images	kolaj görselleri
+pin closeups	Pin yakın görünümleri
+Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.	Pinterest gönderdiğinde, Pin yakın görünümlerinde ve kolajlarda büyük boyut yerine orijinal görseli gösterir. Daha fazla veri kullanır. Zaten yüklenmiş Pinler, Pinterest onları yeniden yükleyene kadar boyutlarını korur.
 Save media	Medyayı kaydet
 Recent searches autocomplete	Son aramalarda otomatik tamamlama
 Activity alerts	Etkinlik uyarıları
@@ -364,6 +376,6 @@ Unsupported	Desteklenmiyor
 Saved to the location you chose.	Seçtiğiniz konuma kaydedildi.
 No download was queued. The selection was stopped, canceled or unavailable.	İndirme sıraya alınmadı. Seçim durduruldu, iptal edildi veya kullanılamıyordu.
 Pinterest didn't supply supported media for this pin.	Pinterest bu Pin için desteklenen bir medya sağlamadı.
-Download a pin or select visible grid pins. Saves supplied original images and videos.	Bir Pin indirin veya ızgarada görünen Pinleri seçin. Sağlanan özgün görselleri ve videoları kaydeder.
+Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.	Bir Pin indirin veya ızgarada görünen Pinleri seçin. Videoları ve özgün görselleri ya da Pinterest'in sağladığı en büyük boyutu kaydeder.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 dosya seçiciyi kullanır. Görünen Pin seçimlerinin sonuçları burada görünür.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Yalnızca en son 32 indirme ve seçim sonucu listelenir. Kaydedilen dosyalar korunur.

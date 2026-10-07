@@ -6,19 +6,28 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.os.Build;
+import android.os.Looper;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.StallingMediaProvider;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.concurrent.TimeUnit;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowToast;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class GateReportExportTest {
+    @Rule public final TemporaryFolder temporary = new TemporaryFolder();
+
     @Test public void multiMegabyteReportSavesInFullAndNeverReachesClipboard() throws Exception {
         Context context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
@@ -67,18 +76,62 @@ public class GateReportExportTest {
                 String.valueOf(ShadowToast.getTextOfLatestToast()));
     }
 
-    @Test public void aFullPoolSaysTheExportCouldNotStart() throws Exception {
-        // Save JSON used to hand the write to a pool that could refuse it and say nothing: the
-        // reader saw neither the saved path nor the failure sentence.
+    @Test @Config(sdk = 30)
+    public void aFullSharedPoolNoLongerHoldsUpTheSave() throws Exception {
+        // Save JSON ran on the shared pool, so a pool full of other work turned it away. It has a
+        // thread of its own now and saves while every shared worker is busy.
         Context context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
+        StallingMediaProvider media = StallingMediaProvider.register(context, temporary.newFile());
         ShadowToast.reset();
         try (var saturation = app.morphe.extension.shared.BackgroundPoolSaturation.fill()) {
-            GateReportExport.save(context, "{}");
-            org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
-            assertEquals("Couldn't start the report export. Try again in a moment.",
-                    String.valueOf(ShadowToast.getTextOfLatestToast()));
+            GateReportExport.save(context, "{\"gates\":[]}");
+            String said = awaitToast("Report saved to ");
+            assertTrue(said, said.startsWith("Report saved to Download/Hushfeed/hushfeed-gate-report-"));
         }
+        assertTrue(media.published);
+        assertEquals("{\"gates\":[]}", new String(Files.readAllBytes(media.file.toPath()), StandardCharsets.UTF_8));
+    }
+
+    @Test @Config(sdk = 30)
+    public void aSecondTapWhileTheMediaStoreStallsStartsNoSecondWriter() throws Exception {
+        // Each tap used to take another background thread, so a media store that stalled could
+        // be handed one writer per tap. One save is out at a time, and a tap while it waits says so.
+        Context context = RuntimeEnvironment.getApplication();
+        Utils.setContext(context);
+        StallingMediaProvider media = StallingMediaProvider.register(context, temporary.newFile()).hold();
+        ShadowToast.reset();
+        GateReportExport.save(context, "{\"gates\":[]}");
+        assertTrue("the save never reached the media store", media.awaitInserting());
+
+        GateReportExport.save(context, "{\"gates\":[1]}");
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("The last report is still being saved", String.valueOf(ShadowToast.getTextOfLatestToast()));
+
+        media.release();
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals("a second tap started another writer", 1, media.inserts.get());
+        assertTrue(String.valueOf(ShadowToast.getTextOfLatestToast()).startsWith("Report saved to "));
+        assertEquals("{\"gates\":[]}", new String(Files.readAllBytes(media.file.toPath()), StandardCharsets.UTF_8));
+
+        // Once the save is back, the next tap saves again.
+        GateReportExport.save(context, "{\"gates\":[2]}");
+        Utils.awaitBackgroundTasksForTests();
+        assertEquals(2, media.inserts.get());
+        assertEquals("{\"gates\":[2]}", new String(Files.readAllBytes(media.file.toPath()), StandardCharsets.UTF_8));
+    }
+
+    private static String awaitToast(String prefix) throws InterruptedException {
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        while (System.nanoTime() < deadline) {
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            String said = String.valueOf(ShadowToast.getTextOfLatestToast());
+            if (said.startsWith(prefix)) return said;
+            Thread.sleep(10);
+        }
+        throw new AssertionError("no toast starting \"" + prefix + "\"; the last said: "
+                + ShadowToast.getTextOfLatestToast());
     }
 
     @Test public void theSavedNameReadsAsADateInAHushfeedFolder() throws Exception {

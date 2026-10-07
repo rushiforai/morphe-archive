@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">O aplikácii</string>
   <string name="morphe_settings_screen_01_ads_title">Reklamy</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Alternatívne miniatúry</string>
   <string name="morphe_settings_screen_03_feed_title">Feed</string>
   <string name="morphe_settings_screen_04_general_title">Všeobecné</string>
   <string name="morphe_settings_screen_05_player_title">Prehrávač</string>
@@ -65,6 +64,8 @@ Zmeny zahŕňajú:
   <string name="morphe_hide_artist_cards_title">Skryť karty interpreta</string>
   <string name="morphe_hide_artist_cards_summary">Skryje kartu interpreta na vrchu výsledkov vyhľadávania</string>
   <string name="morphe_hide_auto_dubbed_label_title">Skryť popisku \'Automaticky nadabované\'</string>
+  <string name="morphe_hide_channel_buttons_title">Skryť tlačidlá kanálov</string>
+  <string name="morphe_hide_channel_buttons_summary">Skryje tlačidlá, ako sú Odoberať, Zobraziť kanál, Komunita a YouTube Music, z profilov kanálov vo výsledkoch vyhľadávania</string>
   <string name="morphe_hide_community_posts_title">Skryť komunitné príspevky</string>
   <string name="morphe_hide_compact_banner_title">Skryť kompaktné bannery</string>
   <string name="morphe_hide_compact_banner_summary">Skryje kompaktné bannery a medzery medzi niektorými komponentmi</string>
@@ -76,7 +77,6 @@ Zmeny zahŕňajú:
   <string name="morphe_hide_floating_microphone_button_summary">Skryje plávajúce tlačidlo mikrofónu v pravom dolnom rohu obrazovky návrhov vyhľadávania</string>
   <string name="morphe_hide_get_premium_button_title">Skryť tlačidlo \'Získať Premium\'</string>
   <string name="morphe_hide_history_shelf_title">Skryť panel História</string>
-  <string name="morphe_hide_history_shelf_summary">Skryje panel História na karte Vy</string>
   <string name="morphe_hide_horizontal_shelves_title">Skryť horizontálne police</string>
   <string name="morphe_hide_horizontal_shelves_summary">Skryje horizontálne police, ako napríklad Aktuality, Príspevky od komunity, ktoré by sa vám mohli páčiť, Pokračujte v sledovaní, Preskúmajte ďalšie kanály, Preskúmajte ďalšie témy, Pre vás, Najnovšie videá, Najrelevantnejšie, Príspevky z komunity tvorcu, Nakupovanie a Pozrite si to znova</string>
   <string name="morphe_hide_hyped_label_title">Skryť populárny štítok</string>
@@ -110,7 +110,8 @@ Zmeny zahŕňajú:
   <string name="morphe_hide_show_more_button_title">Skryť tlačidlo „Zobraziť viac“</string>
   <string name="morphe_hide_show_more_button_summary">Skryje tlačidlo rozbaliť pod videami vo výsledkoch vyhľadávania</string>
   <string name="morphe_hide_subscribed_channels_bar_title">Skryť panel odoberaných kanálov</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">Skryť názvy kanálov v paneli odoberaných kanálov</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">Skryť názvy odoberaných kanálov</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">Skryje názvy kanálov v lište odoberaných kanálov</string>
   <string name="morphe_hide_surveys_title">Skryť prieskumy</string>
   <string name="morphe_hide_surveys_summary">Skryje prieskumy a návrhy týkajúce sa presnosti odporúčania kanála</string>
   <string name="morphe_hide_ticket_shelf_title">Skryť policu lístkov</string>
@@ -159,6 +160,11 @@ Zmeny zahŕňajú:
   <string name="morphe_hide_sync_button_title">Skryť tlačidlo \'Synchronizovať s videom\'</string>
   <string name="morphe_hide_timed_reactions_title">Skryť časované reakcie</string>
   <string name="morphe_hide_timed_reactions_summary">Skryje funkciu, ktorá umožňuje používateľom reagovať emodži v sekcii komentárov a živom chate</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">Skryť \'Pomoc &amp; spätná väzba\' v ponukách</string>
+  <string name="morphe_hide_help_feedback_menu_summary">Skryje \'Pomoc &amp; spätná väzba\' v trojbodkových ponukách panela aplikácie, napríklad v ponuke výsledkov vyhľadávania</string>
+  <string name="morphe_hide_handle_title">Skryť popisovač</string>
+  <string name="morphe_hide_handle_summary">Skryje popisovač tvojho kanála na karte „You“</string>
   <string name="morphe_hide_video_title_title">Skryť názov videa</string>
   <string name="morphe_hide_video_title_summary">Skryje názov videa v režime na celú obrazovku</string>
   <string name="morphe_sanitize_video_subtitle_title">Vyčistiť titulky videa</string>
@@ -681,7 +687,7 @@ Ak to chcete vyriešiť, zapnite 'Spoofovať video streamy' a zmeňte 'Predvolen
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Skryť tlačidlo Pripojiť</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Skryť tlačidlo Nahlásiť</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Skryť tlačidlo Remixovať</string>
@@ -1074,10 +1080,7 @@ Obmedzenie: Ak je vypnutá možnosť 'Obnoviť starú lištu akcií videa', vrst
   <string name="morphe_playback_in_feeds_entry_off">Vypnuté</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">Obnoviť pôvodné názvy</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">Preložené</string>
-  <string name="morphe_restore_original_titles_type_entry_original">Pôvodná</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">Preložené s DeArrow</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">Originál s DeArrow</string>
+  <string name="morphe_restore_original_titles_summary">Zobrazuje pôvodné názvy videí, popisy videí a popisy kanálov namiesto automaticky preložených</string>
   <string name="morphe_restore_original_titles_loading">Načítava sa názov…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">Zakázať automatické obnovovanie kanála</string>
@@ -1151,39 +1154,42 @@ Obmedzenie: Ak je vypnutá možnosť 'Obnoviť starú lištu akcií videa', vrst
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Obejsť obmedzenia oblasti obrázka</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Obchádza obmedzenia regiónu obrázkov tým, že presmeruje požiadavky na obrázky na alternatívny server</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">Názvy DeArrow</string>
+  <string name="morphe_dearrow_titles_summary">Nahrádza názvy videí crowdsourcovanými názvami odoslanými do DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_title">Zobraziť ikonu DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_summary">Zobrazuje ikonu DeArrow pri crowdsourcovaných názvoch videí</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">Pre kartu Domov</string>
+  <string name="morphe_dearrow_thumbnail_home_title">Pre kartu Domov</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">Pre kartu Odbery</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">Pre kartu Odbery</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">Pre kartu Pre vás</string>
-  <string name="morphe_alt_thumbnail_player_title">Pre prehrávač</string>
-  <string name="morphe_alt_thumbnail_search_title">Pre výsledky vyhľadávania</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Pôvodné náhľady</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow a pôvodné náhľady</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow a statické snímky</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Statické snímky</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow poskytuje crowdsourcové náhľady pre videá YouTube. Tieto náhľady sú často relevantnejšie ako tie, ktoré poskytuje YouTube
+  <string name="morphe_dearrow_thumbnail_library_title">Pre kartu Pre vás</string>
+  <string name="morphe_dearrow_thumbnail_player_title">Pre prehrávač</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Pre výsledky vyhľadávania</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Pôvodné náhľady</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow a pôvodné náhľady</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow a statické snímky</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Statické snímky</string>
+  <string name="morphe_dearrow_about_summary">"DeArrow poskytuje crowdsourcované názvy a miniatúry pre YouTube videá. Tieto sú často relevantnejšie ako tie, ktoré poskytuje YouTube
 
-Ak je povolené, URL adresy videí sa odošlú na server API a neodosielajú sa žiadne iné údaje. Ak video nemá náhľady DeArrow, zobrazia sa pôvodné náhľady alebo snímky obrazovky
+Ak je zapnuté, adresy URL videí budú odoslané na API server a žiadne iné údaje sa neodosielajú. Ak video nemá miniatúry DeArrow, zobrazia sa pôvodné alebo statické zábery
 
-Ťuknite sem pre otvorenie DeArrow.ajay.app"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Zobraziť upozornenia na chyby pripojenia</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Zobrazuje upozornenie, ak server DeArrow nie je k dispozícii</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">API DeArrow</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">URL adresa koncové miesto cache pre náhľady DeArrow</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Statické snímky videa</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Zábery sa snímajú z začiatku, stredu alebo konca každého videa. Tieto obrázky sú zabudované do YouTube a nepoužívajú sa žiadne externé API.</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Použiť rýchle zábery</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">Zlepšuje rýchlosť načítania pomocou obrázkov strednej kvality. Živé prenosy, nové a staršie videá môžu zobrazovať prázdne miniatúry</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Extrahujte snímku videa z</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Začiatok</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Stred</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Koniec</string>
+Klepnite sem a otvorte DeArrow.ajay.app"</string>
+  <string name="morphe_dearrow_connection_toast_title">Zobraziť upozornenia na chyby pripojenia</string>
+  <string name="morphe_dearrow_connection_toast_summary">Zobrazuje upozornenie, ak server DeArrow nie je k dispozícii</string>
+  <string name="morphe_dearrow_api_url_title">API DeArrow</string>
+  <string name="morphe_dearrow_api_url_summary">URL adresa koncové miesto cache pre náhľady DeArrow</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Statické snímky videa</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Zábery sa snímajú z začiatku, stredu alebo konca každého videa. Tieto obrázky sú zabudované do YouTube a nepoužívajú sa žiadne externé API.</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Extrahujte snímku videa z</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Začiatok</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Stred</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Koniec</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow je dočasne nedostupný (kód stavu: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow je dočasne nedostupný</string>
+  <string name="morphe_dearrow_error">DeArrow je dočasne nedostupný (kód stavu: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow je dočasne nedostupný</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Obnoviť predchádzajúci štýl tlačidiel prehrávača</string>

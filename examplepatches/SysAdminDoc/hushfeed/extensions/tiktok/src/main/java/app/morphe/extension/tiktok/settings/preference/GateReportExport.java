@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicBoolean;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 import app.morphe.extension.tiktok.settings.L10n;
 
@@ -42,19 +43,34 @@ final class GateReportExport {
         }
     }
 
+    /**
+     * One save at a time, on a thread of its own. A MediaStore write that stalls used to hold one
+     * of the few shared background threads, and every further tap took another.
+     */
+    private static final AtomicBoolean SAVING = new AtomicBoolean();
+
     static void save(Context context, String report) {
         Context app = context.getApplicationContext();
-        boolean started = Utils.runOnBackgroundThread(() -> {
+        if (!SAVING.compareAndSet(false, true)) {
+            Utils.showToastShort(L10n.t("The last report is still being saved"));
+            return;
+        }
+        boolean started = Utils.runOnOwnThread("Hushfeed-gate-report", () -> {
             try {
                 Utils.showToastLong(L10n.f("Report saved to %1$s", write(app, report)));
             } catch (IOException | RuntimeException error) {
                 Logger.printException(() -> "Could not save gate report", error);
                 Utils.showToastLong(L10n.t("The report couldn't be saved. Try again."));
+            } finally {
+                SAVING.set(false);
             }
         });
-        // A full pool refuses the task, and nothing else would have said so: the reader tapped
-        // Save JSON and got neither the saved path nor the failure sentence.
-        if (!started) Utils.showToastShort(L10n.t("Couldn't start the report export. Try again in a moment."));
+        // Nothing else would say so: the reader tapped Save JSON and got neither the saved path
+        // nor the failure sentence.
+        if (!started) {
+            SAVING.set(false);
+            Utils.showToastShort(L10n.t("Couldn't start the report export. Try again in a moment."));
+        }
     }
 
     /** The folder under Download the report lands in, spelt the way a file manager shows it. */

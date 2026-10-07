@@ -12,7 +12,7 @@ object DevInfoCompatibility {
         appIconColor = 0x2196F3,
         targets = listOf(
             AppTarget(
-                version = "3.2.3.0" 
+                version = "v3.2.3.0"
             )
         )
     )

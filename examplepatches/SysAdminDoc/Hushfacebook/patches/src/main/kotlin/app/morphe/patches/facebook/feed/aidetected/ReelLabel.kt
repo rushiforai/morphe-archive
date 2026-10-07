@@ -95,24 +95,24 @@ private fun writes(instruction: Instruction, register: Int): Boolean {
 }
 
 /**
- * The static calls in [method] that are handed [TRANSPARENCY_ATTRIBUTION] as a String argument:
- * from each load of the literal, every static invoke passing its register in a String parameter's
- * place, until something writes that register again.
+ * The static calls in [method] that are handed [literal] as a String argument: from each load of
+ * the literal, every static invoke passing its register in a String parameter's place, until
+ * something writes that register again.
  */
-internal fun finderCalls(method: Method): List<MethodReference> {
+internal fun finderCalls(method: Method, literal: String = TRANSPARENCY_ATTRIBUTION): List<MethodReference> {
     val body = method.body()
     val calls = mutableListOf<MethodReference>()
     for ((index, load) in body.withIndex()) {
-        if (load.string != TRANSPARENCY_ATTRIBUTION) continue
-        val literal = (load as OneRegisterInstruction).registerA
+        if (load.string != literal) continue
+        val register = (load as OneRegisterInstruction).registerA
         for (next in body.subList(index + 1, body.size)) {
             val registers = argumentRegisters(next)
             val call = next.methodReference
-            if (call != null && next.opcode.name.startsWith("invoke-static") && literal in registers) {
-                val at = registers.indexOf(literal)
+            if (call != null && next.opcode.name.startsWith("invoke-static") && register in registers) {
+                val at = registers.indexOf(register)
                 if (call.parameterTypes.getOrNull(at)?.toString() == STRING) calls += call
             }
-            if (writes(next, literal)) break
+            if (writes(next, register)) break
         }
     }
     return calls
@@ -127,19 +127,20 @@ private fun MethodReference.signature() = "$definingClass->$name(${parameterType
 internal const val EXTENSION_CLASSES = "Lapp/morphe/extension/"
 
 /**
- * The attribution finder among [holders], the methods loading [TRANSPARENCY_ATTRIBUTION]: every
- * static call the literal is handed to has to be the same method, taking the reel model and the
- * name and answering a model. Two different ones would mean the rule no longer knows which finds
- * the attribution.
+ * The attribution finder among [holders], the methods loading [literal] ([TRANSPARENCY_ATTRIBUTION]
+ * unless another is given): every static call the literal is handed to has to be the same method,
+ * taking a model and the name and answering a model. Two different ones would mean the rule no
+ * longer knows which finds the attribution. The AI character rule finds an attachment's style
+ * finder the same way.
  *
  * A holder in the extension doesn't count. The patcher searches the APK with the extension merged
  * in, and the reel filter hands the same literal to its own stub, which both fixture builds counted
  * as a second finder until this left it out (2026-09-26).
  */
-internal fun attributionFinder(holders: List<Method>): Finder {
-    val calls = holders.filterNot { it.definingClass.startsWith(EXTENSION_CLASSES) }.flatMap(::finderCalls)
+internal fun attributionFinder(holders: List<Method>, literal: String = TRANSPARENCY_ATTRIBUTION): Finder {
+    val calls = holders.filterNot { it.definingClass.startsWith(EXTENSION_CLASSES) }.flatMap { finderCalls(it, literal) }
     if (calls.isEmpty()) {
-        return Finder(null, "no method holding \"$TRANSPARENCY_ATTRIBUTION\" hands it to a static call as a String")
+        return Finder(null, "no method holding \"$literal\" hands it to a static call as a String")
     }
     val distinct = calls.distinctBy { it.signature() }
     if (distinct.size != 1) {

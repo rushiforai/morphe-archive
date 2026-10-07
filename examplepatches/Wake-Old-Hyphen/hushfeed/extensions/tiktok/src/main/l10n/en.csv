@@ -17,7 +17,6 @@ source,target
 %1$d settings weren't in that file and were left as they are,%1$d settings weren't in that file and were left as they are
 %1$d unavailable,%1$d unavailable
 %1$s (%2$s),%1$s (%2$s)
-%1$s (TikTok %2$s),%1$s (TikTok %2$s)
 %1$s (TikTok value),%1$s (TikTok value)
 "%1$s (custom, unverified)","%1$s (custom, unverified)"
 %1$s (override returned),%1$s (override returned)
@@ -118,6 +117,7 @@ A message is already on its way,A message is already on its way
 A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.,A tap on Home or on the For You tab while For You is showing no longer reloads it. The video you're on stays.
 A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.,A video you paused stays paused when you come back to the app instead of starting again. One you left playing starts as usual. It works on Android 10 and newer.
 A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.,A web address someone left in a comment can be tapped instead of copied out by hand. Tapping anywhere else in the comment still does what it did.
+AI Self,AI Self
 AI-generated posts,AI-generated posts
 About,About
 About overrides,About overrides
@@ -286,6 +286,8 @@ Comma separated usernames or display names whose comments are hidden.,Comma sepa
 "Comma separated words, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Case doesn't matter.","Comma separated words, like music, chat. A LIVE is hidden when its category, topic tags or game name contains one. Case doesn't matter."
 "Comma separated. A comment is hidden if its text contains any of them. Case doesn't matter. Two phrases in quotes can be joined: ""a"" & ""b"" needs both, ""a"" !& ""b"" needs the first without the second.","Comma separated. A comment is hidden if its text contains any of them. Case doesn't matter. Two phrases in quotes can be joined: ""a"" & ""b"" needs both, ""a"" !& ""b"" needs the first without the second."
 Comment media filename,Comment media filename
+Comment sort and dislike styles,Comment sort and dislike styles
+"Comment with live photos, the camera or audio","Comment with live photos, the camera or audio"
 Comments,Comments
 Comments aren't available for this video,Comments aren't available for this video
 Comments beside the video,Comments beside the video
@@ -592,6 +594,7 @@ Hide the caption,Hide the caption
 Hide the comment bar on opened videos,Hide the comment bar on opened videos
 Hide the description under the creator's name on the feed.,Hide the description under the creator's name on the feed.
 Hide the event badge,Hide the event badge
+"Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.","Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry."
 Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.,Hide the flag button TikTok puts above the creator's picture in some regions. You can still report a video from the share menu.
 Hide the floating promotional badge over the feed.,Hide the floating promotional badge over the feed.
 Hide the follow button on the feed,Hide the follow button on the feed
@@ -627,6 +630,7 @@ Hide the track name beside the caption.,Hide the track name beside the caption.
 Hide the unread badges on the bottom tabs,Hide the unread badges on the bottom tabs
 "Hide the whole column on the right, from the avatar down to the music disc.","Hide the whole column on the right, from the avatar down to the music disc."
 Hide this creator on this phone,Hide this creator on this phone
+Hide unpersonalized For You videos,Hide unpersonalized For You videos
 Hide verified accounts,Hide verified accounts
 Hide verified creators' LIVEs,Hide verified creators' LIVEs
 Hide video actions,Hide video actions
@@ -748,10 +752,12 @@ Log diagnostics,Log diagnostics
 "Logging, hook status and reports","Logging, hook status and reports"
 Long press,Long press
 Long-press Home for Hushfeed settings,Long-press Home for Hushfeed settings
+Long-press menu on every post,Long-press menu on every post
 Look like the store app to TikTok's checks,Look like the store app to TikTok's checks
 Looking for apps,Looking for apps
 Lowest,Lowest
 Make TikTok yours.,Make TikTok yours.
+Manage topics,Manage topics
 Manager,Manager
 Marked as not interested,Marked as not interested
 Match locale and timezone to country,Match locale and timezone to country
@@ -764,6 +770,7 @@ Media,Media
 Media config (VE),Media config (VE)
 Media save,Media save
 Message,Message
+"Message bubble colors, Inbox archive and sharing to more chats","Message bubble colors, Inbox archive and sharing to more chats"
 "Messages, profiles and search still work.","Messages, profiles and search still work."
 Microphone in use,Microphone in use
 Mini dramas,Mini dramas
@@ -806,6 +813,7 @@ No matching diagnostics found,No matching diagnostics found
 No matching settings,No matching settings
 No other app takes shared text,No other app takes shared text
 No preset selected. Choose a preset above.,No preset selected. Choose a preset above.
+No presets have been reviewed for TikTok %1$s yet,No presets have been reviewed for TikTok %1$s yet
 No profile shortcuts have been seen yet,No profile shortcuts have been seen yet
 "No recording yet. Start one, use a feature, then return here.","No recording yet. Start one, use a feature, then return here."
 No seen videos recorded yet.,No seen videos recorded yet.
@@ -917,6 +925,7 @@ Playlist posts,Playlist posts
 Popular,Popular
 Popups,Popups
 Post age,Post age
+Post dates in the feed,Post dates in the feed
 Preset,Preset
 Preset applied. Restart TikTok to use it.,Preset applied. Restart TikTok to use it.
 Preset saved. Turn on overrides in the Lab to use it.,Preset saved. Turn on overrides in the Lab to use it.
@@ -930,6 +939,7 @@ Privacy and system,Privacy and system
 Problem detected.,Problem detected.
 Problem detected. Story views may still be reported. Check Ghost mode diagnostics. The warning stays until TikTok restarts.,Problem detected. Story views may still be reported. Check Ghost mode diagnostics. The warning stays until TikTok restarts.
 Profile,Profile
+Profile banner and new profile layout,Profile banner and new profile layout
 Profile picture,Profile picture
 Profile picture saved to %1$s,Profile picture saved to %1$s
 Profile share actions,Profile share actions
@@ -971,6 +981,7 @@ Removed %1$s,Removed %1$s
 Replace values when TikTok asks for them,Replace values when TikTok asks for them
 Report saved to %1$s,Report saved to %1$s
 Reporting calls were blocked here. Viewer-list privacy hasn't been verified. Online status is unchanged.,Reporting calls were blocked here. Viewer-list privacy hasn't been verified. Online status is unchanged.
+Repost with a comment,Repost with a comment
 Required,Required
 Researched,Researched
 Researched values,Researched values
@@ -1003,6 +1014,7 @@ Return after using a TikTok feature to see every gate read during the recording.
 Returns %1$s,Returns %1$s
 Reviewed for TikTok %1$s,Reviewed for TikTok %1$s
 Reviewed presets,Reviewed presets
+Reviewed presets for TikTok %1$s,Reviewed presets for TikTok %1$s
 Right column,Right column
 Rows,Rows
 SIM country preset,SIM country preset
@@ -1016,8 +1028,9 @@ Save a story on a long press,Save a story on a long press
 Save again,Save again
 Save build details,Save build details
 Save cancelled. Nothing was saved.,Save cancelled. Nothing was saved.
+Save comments to Favorites,Save comments to Favorites
 Save details beside the video,Save details beside the video
-"Save every photo in the post as TikTok received it, not as the screen shows it.","Save every photo in the post as TikTok received it, not as the screen shows it."
+"Save every photo in the post at full size as a JPEG, not as the screen shows it.","Save every photo in the post at full size as a JPEG, not as the screen shows it."
 Save field values,Save field values
 Save full report,Save full report
 Save media,Save media
@@ -1181,6 +1194,8 @@ Sticker saved to %1$s,Sticker saved to %1$s
 Still here. Nothing is waiting.,Still here. Nothing is waiting.
 Still reading the record. Tap again in a moment.,Still reading the record. Tap again in a moment.
 Still saving the last one,Still saving the last one
+Still waiting for the file app.,Still waiting for the file app.
+Still waiting for the file app. Tap to stop waiting.,Still waiting for the file app. Tap to stop waiting.
 "Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and crash reporting from being sent. TikTok's own diagnostics go quiet with them.","Stop ByteDance AppLog events, AppsFlyer attribution, explicit Firebase screen reports and crash reporting from being sent. TikTok's own diagnostics go quiet with them."
 "Stop TikTok asking the screen to run at the frame rate of the video it's playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included.","Stop TikTok asking the screen to run at the frame rate of the video it's playing. On a 90 or 120 Hz phone that ask slows the whole app down to the video's rate, scrolling included."
 "Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone.","Stop TikTok listening to the accelerometer, gyroscope, magnetometer and the other motion sensors it uses to fingerprint the phone."
@@ -1195,8 +1210,14 @@ Stop the bubble that asks you to share a video with friends after you like it.,S
 "Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through.","Stop the notifications TikTok sends about popular videos it picked for you. Messages, comments, likes, follows and videos from accounts you follow still come through."
 Stop video looping,Stop video looping
 Stop videos at the end instead of replaying them.,Stop videos at the end instead of replaying them.
+Stop waiting,Stop waiting
 Stopped after dismissing %1$s suggested accounts,Stopped after dismissing %1$s suggested accounts
 Stopped after dismissing one suggested account,Stopped after dismissing one suggested account
+Stopped waiting for the file app. It hasn't said yet whether the backup was saved.,Stopped waiting for the file app. It hasn't said yet whether the backup was saved.
+Stopped waiting for the file app. It hasn't said yet whether the export was saved.,Stopped waiting for the file app. It hasn't said yet whether the export was saved.
+Stopped waiting for the file app. Nothing was changed.,Stopped waiting for the file app. Nothing was changed.
+Stopped waiting for the file app. Nothing was exported.,Stopped waiting for the file app. Nothing was exported.
+Stopped waiting for the file app. Nothing was imported.,Stopped waiting for the file app. Nothing was imported.
 Stopping after this file,Stopping after this file
 Stories,Stories
 Story,Story
@@ -1268,19 +1289,23 @@ The activity status control leaves the Inbox header. Whether others see you as a
 "The add people icon leaves the Inbox header. Only the shortcut goes, so friend suggestions elsewhere are unchanged.","The add people icon leaves the Inbox header. Only the shortcut goes, so friend suggestions elsewhere are unchanged."
 The already-saved check failed. Try again.,The already-saved check failed. Try again.
 The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose.,The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose.
+The backup wasn't saved. Back up again when the file app is ready.,The backup wasn't saved. Back up again when the file app is ready.
 The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.,The catalog says this key is %1$s and this override is %2$s. Reset the override and make a new one.
 The comment button also opens a video's comments with its caption at the top. The caption over the video goes away while this is on.,The comment button also opens a video's comments with its caption at the top. The caption over the video goes away while this is on.
 The diagnostic report couldn't be saved yet. Try again in a moment.,The diagnostic report couldn't be saved yet. Try again in a moment.
 The diagnostic report couldn't be saved. Try again.,The diagnostic report couldn't be saved. Try again.
 The downloader app you chose isn't installed. Check Send links to another app under Downloads.,The downloader app you chose isn't installed. Check Send links to another app under Downloads.
+The export wasn't saved. Export again when the file app is ready.,The export wasn't saved. Export again when the file app is ready.
 "The feed dims over the last three quarters of a minute before the hold, so you arrive at it rather than land on it. Needs a time budget and a hold to arrive at.","The feed dims over the last three quarters of a minute before the hold, so you arrive at it rather than land on it. Needs a time budget and a hold to arrive at."
 The feed doesn't end. This is a fine time to leave it.,The feed doesn't end. This is a fine time to leave it.
 The feed is open again,The feed is open again
 The feed stops when this video ends.,The feed stops when this video ends.
 "The feed waits for one tap before it starts playing again when you come back to the app. Messages, profiles and search are still one tap away.","The feed waits for one tap before it starts playing again when you come back to the app. Messages, profiles and search are still one tap away."
+"The file app still has the last file. Try again once it lets go, or restart TikTok.","The file app still has the last file. Try again once it lets go, or restart TikTok."
 The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.,The file hushfeed-safe-mode couldn't be removed. Delete it from TikTok's folder under Android/data to turn Hushfeed back on.
 "The hour both budgets reset, on a 24 hour clock. Four in the morning by default, because someone still scrolling at one is having last night.","The hour both budgets reset, on a 24 hour clock. Four in the morning by default, because someone still scrolling at one is having last night."
 The last one is still waiting to start,The last one is still waiting to start
+The last report is still being saved,The last report is still being saved
 The live photo's clip couldn't be saved. Try again.,The live photo's clip couldn't be saved. Try again.
 The loaded-values file you chose couldn't be read. Try again.,The loaded-values file you chose couldn't be read. Try again.
 The message didn't go through. It tries again at %1$s.,The message didn't go through. It tries again at %1$s.
@@ -1316,6 +1341,7 @@ There is no diagnostic data to put back,There is no diagnostic data to put back
 There was nothing to put back,There was nothing to put back
 There were no saved videos to forget,There were no saved videos to forget
 These loaded values are for a different TikTok version.,These loaded values are for a different TikTok version.
+These notes are in English.,These notes are in English.
 This catalog entry is no longer available. Refresh the Lab and try again.,This catalog entry is no longer available. Refresh the Lab and try again.
 This change couldn't be saved. Try again.,This change couldn't be saved. Try again.
 This configuration has no fields that can be copied and changed safely on this build.,This configuration has no fields that can be copied and changed safely on this build.
@@ -1363,6 +1389,8 @@ TikTok refused the follow: %1$s,TikTok refused the follow: %1$s
 TikTok refused the follow: %1$s A hidden CAPTCHA may be the cause.,TikTok refused the follow: %1$s A hidden CAPTCHA may be the cause.
 TikTok runs as if it weren't patched. Your settings stay as they are.,TikTok runs as if it weren't patched. Your settings stay as they are.
 "TikTok sometimes tests how fast your phone is in a background process of its own, which can hold a lot of memory. This keeps that process from starting. One that's already running stops when TikTok restarts.","TikTok sometimes tests how fast your phone is in a background process of its own, which can hold a lot of memory. This keeps that process from starting. One that's already running stops when TikTok restarts."
+TikTok's background play and auto-scroll,TikTok's background play and auto-scroll
+TikTok's hold to speed up,TikTok's hold to speed up
 TikTok's messages didn't start in time. It tries again at %1$s.,TikTok's messages didn't start in time. It tries again at %1$s.
 "TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being.","TikTok's own daily screen-time reminder sends the app to the background instead of waiting to be dismissed. Coming straight back leaves the reminder on screen, so the limit stays reachable. Needs a daily limit set under TikTok's Settings and privacy, under Time and well-being."
 TikTok's own value,TikTok's own value
@@ -1419,6 +1447,7 @@ Undo forgetting saved videos,Undo forgetting saved videos
 Undo last Lab change,Undo last Lab change
 Undo last restore or reset,Undo last restore or reset
 Undoing the last change,Undoing the last change
+Unpersonalized For You videos,Unpersonalized For You videos
 "Until you choose here, this sheet follows your choices under Hide share actions.","Until you choose here, this sheet follows your choices under Hide share actions."
 "Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this.","Up to %1$d speeds from %2$s to %3$s, separated by commas. Example: 0.5, 1, 1.5, 2, 2.5, 3. Leave empty for TikTok's list. Restart TikTok to apply this."
 "Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption.","Use 0 for TikTok's size, or %1$d to %2$d. Applies to the next caption."
@@ -1458,9 +1487,11 @@ Video saved,Video saved
 Video saved with %1$s subtitles in %2$s,Video saved with %1$s subtitles in %2$s
 "Videos can't be saved to the folder in that file, so your video folder was kept","Videos can't be saved to the folder in that file, so your video folder was kept"
 Views range,Views range
+Visual search,Visual search
 Wait a day to loosen the budget,Wait a day to loosen the budget
 "Wait a day to loosen the budget is on, so Hushfeed stays on","Wait a day to loosen the budget is on, so Hushfeed stays on"
 Wait before hiding the controls.,Wait before hiding the controls.
+Waiting for the file app to let go of the last file. Restart TikTok if it doesn't.,Waiting for the file app to let go of the last file. Restart TikTok if it doesn't.
 Waiting to record. Go to the screen you want recorded.,Waiting to record. Go to the screen you want recorded.
 Waiting to save %1$s files,Waiting to save %1$s files
 Waiting to save one file,Waiting to save one file

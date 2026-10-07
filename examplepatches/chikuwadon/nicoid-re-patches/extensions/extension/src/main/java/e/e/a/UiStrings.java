@@ -6,10 +6,90 @@ import java.util.Map;
 
 /** Runtime UI translations use the locale selected by nicoid's app language setting. */
 public final class UiStrings {
-    private static final Map<String, String[]> TEXT = new HashMap<>();
+    private static final Map<String, String[]> TEXT = new java.util.LinkedHashMap<>();
+    private static final Map<String,String> JAPANESE_ALIASES = new HashMap<>();
+    private static final Map<String,String> JAPANESE_LOOKUP = new HashMap<>();
     // 0 = Japanese, 1 = English, 2 = Traditional Chinese; -1 follows the device locale.
     private static volatile int selectedLanguage = -1;
     static {
+        TEXT.put("コメントを太字にする", new String[]{"Bold comments", "粗體留言"});
+        TEXT.put("次の再生から反映されます", new String[]{"Applies on the next playback", "下次播放時生效"});
+        JAPANESE_ALIASES.put("I will change the language of the entire application.", "アプリ全体の言語を変更します。");
+        JAPANESE_ALIASES.put("External memory (SD card)", "外部メモリ（SDカード）");
+        JAPANESE_ALIASES.put("None (view all)", "指定なし（すべて表示）");
+        JAPANESE_ALIASES.put("Are you sure you want to delete all the cache?", "キャッシュをすべて削除しますか？");
+        JAPANESE_ALIASES.put("I set the comment drawing frame rate limit.", "コメント描画フレームレートの上限を設定します。");
+        JAPANESE_ALIASES.put("I will change the display method suitable for each tablet, smartphone", "タブレットやスマートフォンに適した表示方法を設定します。");
+        JAPANESE_ALIASES.put("I will change the method of playing videos (streaming / cache)", "動画の再生方法（ストリーミング／キャッシュ）を設定します。");
+        JAPANESE_ALIASES.put("I will change the language of the comment and video information. (The default is subject to the language of the entire application.)", "コメント・動画情報の言語を変更できます（デフォルトはアプリ全体の言語に従います）。");
+        JAPANESE_ALIASES.put("And what to do when you tap the video list. (Item other than that you set will be displayed by tapping the triangle in the bottom right-hand corner.)", "動画リストをタップしたときの動作を設定します（設定以外の項目は右下の三角をタップすると表示されます）。");
+        JAPANESE_ALIASES.put("Video List of cached (Viewable offline)", "キャッシュ取得済みの動画（オフライン視聴可能）");
+        JAPANESE_ALIASES.put("Keywords video, tag search", "動画のキーワード、タグ検索");
+        JAPANESE_ALIASES.put("Language", "言語");
+        JAPANESE_ALIASES.put("Pop-up playback", "ポップアップ再生");
+
+        TEXT.put("件。", new String[]{" comments. ", " 則留言。"});
+        TEXT.put("設定", new String[]{"Settings", "設定"});
+        TEXT.put("標準", new String[]{"Standard", "標準"});
+        TEXT.put("自動", new String[]{"Automatic", "自動"});
+        TEXT.put("速度", new String[]{"Speed", "速度"});
+        TEXT.put("倍", new String[]{"×", "倍"});
+        TEXT.put("最小", new String[]{"Minimum", "最小"});
+        TEXT.put("小", new String[]{"Small", "小"});
+        TEXT.put("大", new String[]{"Large", "大"});
+        TEXT.put("最大", new String[]{"Maximum", "最大"});
+        TEXT.put("料理", new String[]{"Cooking", "料理"});
+        TEXT.put("自然", new String[]{"Nature", "自然"});
+        TEXT.put("動物", new String[]{"Animals", "動物"});
+        TEXT.put("不登入使用", new String[]{"Use without signing in", "不登入使用"});
+        TEXT.put("播放模式", new String[]{"Playback mode", "播放模式"});
+        TEXT.put("已儲存設定", new String[]{"Settings saved", "已儲存設定"});
+        TEXT.put("Language", new String[]{"Language", "語言"});
+        TEXT.put("Pop-up playback", new String[]{"Pop-up playback", "懸浮視窗播放"});
+        TEXT.put("登入成功", new String[]{"Signed in successfully", "登入成功"});
+
+        TEXT.put("デフォルトに戻す", new String[]{"Reset to default", "還原預設值"});
+        TEXT.put("キャッシュのみを使用し再生", new String[]{"Play using cached files only", "僅使用快取播放"});
+        TEXT.put("常に使用", new String[]{"Always", "一律使用"});
+        TEXT.put("モバイル通信時のみ", new String[]{"On mobile data only", "僅使用行動網路時"});
+        TEXT.put("使用しない", new String[]{"Never", "不使用"});
+        TEXT.put("モバイル通信時の画質", new String[]{"Quality on mobile data", "行動網路畫質"});
+        TEXT.put("品質", new String[]{"Quality", "畫質"});
+        TEXT.put("コメント取得数", new String[]{"Comments to load", "留言載入數量"});
+        TEXT.put("取得数：", new String[]{"Target: ", "目標："});
+        TEXT.put("次回の再生から反映されます。追加取得数は動画やログイン状態により異なります。", new String[]{"Applies on the next playback. The number of additional comments depends on the video and sign-in status.", "下次播放時生效。可額外載入的留言數量依影片及登入狀態而異。"});
+        TEXT.put("デバッグログの保存", new String[]{"Save debug log", "儲存偵錯紀錄"});
+        TEXT.put("再生状況と通信結果をDownloadフォルダに保存", new String[]{"Save playback and network diagnostics to Downloads", "將播放與網路診斷記錄儲存至 Downloads"});
+        TEXT.put("再生状況や通信エラーなどの診断ログを Download フォルダに保存します。不具合報告時に利用できます。", new String[]{"Save diagnostic logs, including playback status and network errors, to the Downloads folder for troubleshooting.", "將播放狀態與網路錯誤等診斷記錄儲存至 Downloads 資料夾，以便排查問題。"});
+
+        TEXT.put("ニコる数順", new String[]{"Nicoru count", "Nico 讚數量順序"});
+        TEXT.put("コメント取得数", new String[]{"Comments to load", "留言載入數量"});
+        TEXT.put("標準（追加取得なし）", new String[]{"Standard (no additional loading)", "標準（不額外載入）"});
+        TEXT.put("次の再生から反映。追加取得できる件数は動画やログイン状態によって異なります", new String[]{"Applies on the next playback. Additional comments depend on the video and sign-in status.", "下次播放時生效。可額外載入的留言數量依影片及登入狀態而異。"});
+        TEXT.put("再生位置に自動追従", new String[]{"Follow playback position", "自動跟隨播放位置"});
+        TEXT.put("再生時間順", new String[]{"Playback time", "播放時間順序"});
+        TEXT.put("投稿時間順", new String[]{"Posting time", "發佈時間順序"});
+        TEXT.put("コメントの影の種類", new String[]{"Comment shadow style", "彈幕陰影樣式"});
+        TEXT.put("コメントの影の大きさ", new String[]{"Comment shadow size", "彈幕陰影大小"});
+        TEXT.put("コメントの最大行数", new String[]{"Maximum comment rows", "彈幕最大行數"});
+        TEXT.put("コメントの表示時間", new String[]{"Comment display duration", "彈幕顯示時間"});
+        TEXT.put("通常の画質設定に従う", new String[]{"Use the default quality setting", "使用預設畫質設定"});
+        TEXT.put("ランキング", new String[]{"Rankings", "排行榜"});
+
+        TEXT.put("旧コメント経路の取得上限", new String[]{"Legacy comment path limit", "舊留言路徑載入上限"});
+        TEXT.put("旧コメント経路にのみ適用。次の再生から反映", new String[]{"Legacy comment path only; applies on the next playback", "僅適用於舊留言路徑，下次播放時生效"});
+        TEXT.put("自動（動画の長さに応じて変更）", new String[]{"Automatic (based on video length)", "自動（依影片長度調整）"});
+        TEXT.put("件", new String[]{" comments", " 則"});
+        TEXT.put("デバッグログをDownloadフォルダに保存しますか？", new String[]{"Save the debug log to Downloads?", "要將偵錯紀錄儲存至 Downloads 嗎？"});
+        TEXT.put("保存", new String[]{"Save", "儲存"});
+        TEXT.put("\u691c\u7d22\u30b5\u30b8\u30a7\u30b9\u30c8", new String[]{"Search suggestions", "\u641c\u5c0b\u5efa\u8b70"});
+        TEXT.put("\u691c\u7d22\u5165\u529b\u6642\u306b\u5019\u88dc\u3092\u8868\u793a\u3057\u307e\u3059", new String[]{"Show suggestions while entering a search", "\u8f38\u5165\u641c\u5c0b\u6642\u986f\u793a\u5efa\u8b70"});
+        TEXT.put("\u52d5\u4f5c\u3092\u5b89\u5b9a\u3055\u305b\u308b\u305f\u3081\u8868\u793a\u3059\u308b\u30b3\u30e1\u30f3\u30c8\u91cf\u3092\u5c11\u306a\u304f\u3057\u30d5\u30ec\u30fc\u30e0\u30ec\u30fc\u30c8\u3092\u4f4e\u304f\u5236\u9650\u3057\u307e\u3059\u3002", new String[]{"Reduce displayed comments and frame rate for stable casting.", "\u6e1b\u5c11\u986f\u793a\u7684\u5f48\u5e55\u6578\u91cf\u4e26\u9650\u5236\u5f71\u683c\u7387\uff0c\u4ee5\u7a69\u5b9a\u6295\u653e\u3002"});
+        TEXT.put("\u30c7\u30d0\u30c3\u30b0\u30ed\u30b0\u306e\u4fdd\u5b58", new String[]{"Save debug log", "\u5132\u5b58\u5075\u932f\u8a18\u9304"});
+        TEXT.put("\u518d\u751f\u72b6\u6cc1\u3068\u901a\u4fe1\u7d50\u679c\u3092Download\u30d5\u30a9\u30eb\u30c0\u306b\u4fdd\u5b58", new String[]{"Save playback and network logs to Downloads", "\u5c07\u64ad\u653e\u8207\u7db2\u8def\u8a18\u9304\u5132\u5b58\u81f3 Downloads"});
+        TEXT.put("Download\u306b\u4fdd\u5b58\u3057\u307e\u3057\u305f", new String[]{"Saved to Downloads", "\u5df2\u5132\u5b58\u81f3 Downloads"});
+        TEXT.put("\u30ed\u30b0\u3092\u4fdd\u5b58\u3067\u304d\u307e\u305b\u3093\u3067\u3057\u305f", new String[]{"Could not save the log", "\u7121\u6cd5\u5132\u5b58\u8a18\u9304"});
+
         TEXT.put("テーマ", new String[]{"Theme", "主題"});
         TEXT.put("ライトモード", new String[]{"Light mode", "淺色模式"});
         TEXT.put("ダークモード", new String[]{"Dark mode", "深色模式"});
@@ -475,6 +555,36 @@ public final class UiStrings {
         TEXT.put("Pop up播放", new String[]{"Pop-up playback", "懸浮視窗播放"});
         TEXT.put("バックグラウンドでキャッシュを取得しますか？", new String[]{"Download the video cache in the background?", "要在背景下載影片快取嗎？"});
         TEXT.put("連続再生", new String[]{"Play continuously", "連續播放"});
+        buildJapaneseLookup();
+    }
+    private static String[] lookup(String source) {
+        String[] exact = TEXT.get(source);
+        if (exact != null) return exact;
+        if (source.matches("[0-9]+行")) { String n=source.substring(0,source.length()-1); return new String[]{n+" rows",n+" 行"}; }
+        if (source.matches("[0-9]+秒")) { String n=source.substring(0,source.length()-1); return new String[]{n+" seconds",n+" 秒"}; }
+        return null;
+    }
+    private static void buildJapaneseLookup() {
+        java.util.regex.Pattern englishKey = java.util.regex.Pattern.compile("[A-Za-z][A-Za-z0-9 ’'/-]*");
+        Map<String,String> canonicalKeys = new HashMap<>();
+        for (Map.Entry<String,String[]> entry : TEXT.entrySet()) {
+            String key=entry.getKey();String[] values=entry.getValue();
+            if (!englishKey.matcher(key).matches() && values!=null && values.length>0 && !canonicalKeys.containsKey(values[0])) canonicalKeys.put(values[0],key);
+        }
+        JAPANESE_LOOKUP.putAll(canonicalKeys);
+        for (Map.Entry<String,String[]> entry : TEXT.entrySet()) {
+            String key=entry.getKey();String[] values=entry.getValue();
+            if (!JAPANESE_LOOKUP.containsKey(key) && englishKey.matcher(key).matches() && values!=null && values.length>0 && !key.equals(values[0])) {
+                String canonical=canonicalKeys.get(values[0]);
+                if (canonical!=null) JAPANESE_LOOKUP.put(key,canonical);
+            }
+        }
+        JAPANESE_LOOKUP.putAll(JAPANESE_ALIASES);
+    }
+    private static String toJapanese(String source) {
+        if (source == null) return null;
+        String translated=JAPANESE_LOOKUP.get(source);
+        return translated == null ? source : translated;
     }
     private UiStrings() { }
     public static void selectLanguage(String preferenceValue) {
@@ -486,17 +596,22 @@ public final class UiStrings {
         else selectedLanguage = -1;
     }
     public static String translate(String source) {
+        if ("デバッグログを共有".equals(source)) source = "デバッグログの保存";
+        if ("再生状況と通信結果を送る".equals(source)) source = "再生状況と通信結果をDownloadフォルダに保存";
         int language = selectedLanguage;
         if (language < 0) return translate(source, Locale.getDefault());
-        if (source == null || language == 0) return source;
-        String[] translated = TEXT.get(source);
+        if (source == null) return null;
+        if (language == 0) return toJapanese(source);
+        String[] translated = lookup(source);
         return translated == null ? source : translated[language - 1];
     }
     public static String translate(String source, Locale locale) {
+        if ("デバッグログを共有".equals(source)) source = "デバッグログの保存";
+        if ("再生状況と通信結果を送る".equals(source)) source = "再生状況と通信結果をDownloadフォルダに保存";
         if (source == null) return null;
         String lang = locale.getLanguage();
-        if (!"en".equals(lang) && !"zh".equals(lang)) return source;
-        String[] translated = TEXT.get(source);
+        if (!"en".equals(lang) && !"zh".equals(lang)) return toJapanese(source);
+        String[] translated = lookup(source);
         return translated == null ? source : translated["en".equals(lang) ? 0 : 1];
     }
 }

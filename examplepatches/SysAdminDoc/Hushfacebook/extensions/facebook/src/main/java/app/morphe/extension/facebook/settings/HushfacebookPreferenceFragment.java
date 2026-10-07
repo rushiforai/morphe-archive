@@ -47,6 +47,7 @@ import app.morphe.extension.facebook.download.SaveControl;
 import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
+import app.morphe.extension.facebook.feed.PostSources;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.HiddenTabs;
@@ -67,6 +68,7 @@ import app.morphe.extension.facebook.settings.ValueRows.QualityRow;
 import app.morphe.extension.facebook.settings.ValueRows.SaveToRow;
 import app.morphe.extension.facebook.settings.ValueRows.SendAppRow;
 import app.morphe.extension.facebook.settings.ValueRows.StartTabRow;
+import app.morphe.extension.facebook.settings.ValueRows.SourcesRow;
 import app.morphe.extension.facebook.settings.ValueRows.WordsRow;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
@@ -1257,10 +1259,7 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
      * save all show the one template the save will use.
      */
     static FileNameRow fileNameRow(Context context) {
-        FileNameRow row = new FileNameRow(context);
-        row.setKey(Settings.FILENAME_TEMPLATE.key);
-        row.setTitle(L10n.t("Video file name"));
-        row.setDialogTitle(L10n.t("Video file name"));
+        FileNameRow row = nameRow(context, false, Settings.FILENAME_TEMPLATE, L10n.t("Video file name"));
         row.setDialogMessage(L10n.f("%1$s becomes the date and time of the save, %2$s the video's number on "
                         + "Facebook, %3$s who posted it, %4$s their profile's number on Facebook and %5$s the day it "
                         + "was posted. What a save doesn't know is left out, and a name with none of these gets the "
@@ -1269,16 +1268,38 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
                 L10n.isolate(FileNameTemplate.DATE), L10n.isolate(FileNameTemplate.VIDEO_ID),
                 L10n.isolate(FileNameTemplate.OWNER), L10n.isolate(FileNameTemplate.OWNER_ID),
                 L10n.isolate(FileNameTemplate.POSTED), L10n.isolate(FileNameTemplate.DEFAULT)));
+        return row;
+    }
+
+    /** The name every photo Save any photo keeps gets, the same way, under the video's. */
+    static FileNameRow photoNameRow(Context context) {
+        FileNameRow row = nameRow(context, true, Settings.PHOTO_FILENAME_TEMPLATE, L10n.t("Photo file name"));
+        row.setDialogMessage(L10n.f("%1$s becomes the date and time of the save, %2$s the photo's number on "
+                        + "Facebook, %3$s who posted it, %4$s their profile's number on Facebook and %5$s the day it "
+                        + "was posted. What a save doesn't know is left out, and a name with none of these gets the "
+                        + "date added. When the name is already in the folder, the time of the save goes on the end. "
+                        + "Invalid characters become underscores. Leave it blank to use the default, %6$s.",
+                L10n.isolate(FileNameTemplate.DATE), L10n.isolate(FileNameTemplate.PHOTO_ID),
+                L10n.isolate(FileNameTemplate.OWNER), L10n.isolate(FileNameTemplate.OWNER_ID),
+                L10n.isolate(FileNameTemplate.POSTED), L10n.isolate(FileNameTemplate.PHOTO_DEFAULT)));
+        return row;
+    }
+
+    private static FileNameRow nameRow(Context context, boolean photo, StringSetting setting, String title) {
+        FileNameRow row = new FileNameRow(context, photo);
+        row.setKey(setting.key);
+        row.setTitle(title);
+        row.setDialogTitle(title);
         row.setPositiveButtonText(L10n.t("Save"));
         // Android's own Cancel follows the activity's language, as the folder row's did.
         row.setNegativeButtonText(L10n.t("Cancel"));
         EditText field = row.getEditText();
         field.setSingleLine(true);
         field.setHint(L10n.t("File name"));
-        row.setText(Settings.FILENAME_TEMPLATE.savedValue());
+        row.setText(setting.savedValue());
         row.setOnPreferenceChangeListener((preference, typed) -> {
             String raw = typed == null ? "" : typed.toString();
-            String clean = FileNameTemplate.sanitize(raw);
+            String clean = photo ? FileNameTemplate.sanitizePhoto(raw) : FileNameTemplate.sanitize(raw);
             if (clean.equals(raw)) return true;
             // Keeps the clean template in place of what was typed, as the folder row does.
             ((FileNameRow) preference).setText(clean);
@@ -1288,10 +1309,14 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
         return row;
     }
 
-    /** "Videos are named FB_VID_{date}. Photos keep Facebook's own FB_IMG_ names." for [template]. */
+    /** "Videos are named FB_VID_{date}." for [template]. */
     static String fileNameSummary(String template) {
-        return L10n.f("Videos are named %1$s. Photos keep Facebook's own %2$s names.",
-                L10n.isolate(template), L10n.isolate(FileNameTemplate.PHOTO_PREFIX));
+        return L10n.f("Videos are named %1$s.", L10n.isolate(template));
+    }
+
+    /** "Photos are named FB_IMG_{date}." for [template]. */
+    static String photoNameSummary(String template) {
+        return L10n.f("Photos are named %1$s.", L10n.isolate(template));
     }
 
     /**
@@ -1443,6 +1468,64 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
             return false;
         });
         return row;
+    }
+
+    /**
+     * The list Hide posts from people, Pages and sites reads. What's typed is cleaned before it's
+     * kept, one rule per line within the bounds {@link PostSources} holds the list to, so the row,
+     * the setting and the filter all read the same rules. A dialog says how many lines were left
+     * out, never which.
+     */
+    SourcesRow sourcesRow(Context context) {
+        SourcesRow row = new SourcesRow(context);
+        row.setKey(Settings.HIDDEN_SOURCES.key);
+        String title = L10n.t("People, Pages and sites to hide");
+        row.setTitle(title);
+        row.setDialogTitle(title);
+        row.setDialogMessage(L10n.f("One per line, up to %1$d: a name as Facebook shows it, a profile or Page id, "
+                + "or a site like example.com, which takes its subdomains too. Capital letters don't matter. "
+                + "A Facebook link works when it has the id in it.",
+                PostSources.MAX_RULES));
+        row.setPositiveButtonText(L10n.t("Save"));
+        row.setNegativeButtonText(L10n.t("Cancel"));
+        EditText field = row.getEditText();
+        field.setSingleLine(false);
+        field.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+        // A landscape IME's extracted editor replaces the dialog and hides Save and Cancel.
+        field.setImeOptions(field.getImeOptions() | EditorInfo.IME_FLAG_NO_FULLSCREEN
+                | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+        field.setMinLines(3);
+        field.setHint(L10n.t("One name, id or site per line"));
+        row.setText(Settings.HIDDEN_SOURCES.savedValue());
+        row.setOnPreferenceChangeListener((preference, typed) -> {
+            String raw = typed == null ? "" : typed.toString();
+            String clean = PostSources.clean(raw);
+            if (clean.equals(raw)) return true;
+            // Keeps the clean list in place of what was typed, as the word lists do.
+            int leftOut = PostSources.leftOut(raw);
+            ((SourcesRow) preference).setText(clean);
+            if (leftOut > 0) {
+                String why = L10n.quantity(leftOut,
+                        "%1$d line was left out. A line holds up to %2$d characters, the list up to %3$d lines, "
+                                + "and one given twice counts once.",
+                        "%1$d lines were left out. A line holds up to %2$d characters, the list up to %3$d lines, "
+                                + "and one given twice counts once.",
+                        leftOut, PostSources.MAX_LENGTH, PostSources.MAX_RULES);
+                show(new AlertDialog.Builder(preference.getContext())
+                        .setTitle(title)
+                        .setMessage(why)
+                        .setPositiveButton(L10n.t("OK"), null));
+            }
+            return false;
+        });
+        return row;
+    }
+
+    /** What the people, Pages and sites row says: how many it holds. Counts only, never a name. */
+    static String sourcesSummary(String stored) {
+        int rules = PostSources.count(stored);
+        if (rules == 0) return L10n.t("Nobody listed yet, so no post is hidden.");
+        return L10n.quantity(rules, "%1$d person, Page or site.", "%1$d people, Pages or sites.", rules);
     }
 
     /**

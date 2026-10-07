@@ -8,7 +8,7 @@ private val EMPTY_BYTES = byteArrayOf()
 
 val creatorBloatSlimmerPatch = rawResourcePatch(
     name = "Studio & Creation De-bloat",
-    description = "Strips heavy video creation plugins, CapCut NLE editor SDKs, effect plugins, and AR camera face models to significantly reduce APK size.",
+    description = "Strips heavy video creation plugins, CapCut NLE editor SDKs, effect plugins, camera dynamic features, upload video encoders, on-device AI runtimes (LiteRT), and AR camera face models to significantly reduce APK size.",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK)
@@ -20,6 +20,21 @@ val creatorBloatSlimmerPatch = rawResourcePatch(
             "libttvesdk_plugin.so",
             "libEffectCreatorJni.so",
             "libILAMaterialSDK.so",
+            // CutSame template engine (NEEDED-depends on NLE editor + ttvesdk, creation-only)
+            "libCutSameJni.so",
+            "libDavinciResourceJni.so",
+            // Upload-path video encoders (playback uses ByteVC decoders linked by libttmplayer)
+            "libbytevc1enc.so",
+            "libbytevc1enc10b.so",
+            // Camera dynamic feature (df_ family). df_music_dsp is kept: it carries the viewer Add-to-Spotify/DSP flow that Fix Spotify Login hooks.
+            "libdex_df_camera_biz.so",
+            // On-device AI runtimes (LiteRT + client AI JNI, loaded via df_ship SPI for creation/assistant features; playback AI uses libbytenn.so)
+            "libLiteRtRuntimeCApi.so",
+            "libLiteRtOpenClAccelerator.so",
+            "liblitert_jni.so",
+            "libclient_ai_impl_jni.so",
+            "libclient_ai_impl_df_jni.so",
+            "libByteAINN.so",
         )
 
         var savedBytes = 0L

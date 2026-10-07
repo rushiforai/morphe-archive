@@ -1491,6 +1491,12 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
     @Override
     public void onLyricsChanged(LyricsManager.State state, @Nullable Lyrics newLyrics) {
         try {
+            // Refresh keeps the current rendering (including scroll and translations)
+            // until a replacement arrives.
+            if (state == LyricsManager.State.LOADING && newLyrics == lyrics
+                    && newLyrics != null && !newLyrics.isEmpty()) {
+                return;
+            }
             TrackInfo track = LyricsManager.getInstance().getCurrentTrack();
             if (track != lastKnownTrack) {
                 lastKnownTrack = track;
@@ -1530,7 +1536,11 @@ public final class LyricsPanelView extends FrameLayout implements LyricsManager.
 
             switch (state) {
                 case LOADING:
-                    showLoading();
+                    if (newLyrics == null || newLyrics.isEmpty()) {
+                        showLoading();
+                    } else {
+                        showLyrics(newLyrics);
+                    }
                     setOverlayVisible(true);
                     break;
                 case LOADED:

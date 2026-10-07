@@ -48,17 +48,3 @@ internal val volleyErrorDeliveryFingerprint = Fingerprint(
     returnType = "V",
     parameters = listOf("Lcom/android/volley/VolleyError;"),
 )
-
-internal val postDescriptionFingerprint = Fingerprint(
-    definingClass = "Lcom/laurencedawson/reddit_sync/ui/views/text/spannable/children/posts/PostDescriptionTextView;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf("L", "I", "Z", "Z", "Z"),
-)
-
-internal val commentDescriptionFingerprint = Fingerprint(
-    definingClass = "Lcom/laurencedawson/reddit_sync/ui/views/text/spannable/children/comments/CommentDescriptionTextView;",
-    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    returnType = "V",
-    parameters = listOf("L", "L", "Z"),
-)

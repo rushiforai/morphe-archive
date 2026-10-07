@@ -99,6 +99,23 @@ public class DownloadPickerTest {
         assertTrue(PinDownloads.start(pin, activity));
     }
 
+    @Test public void aStandInSizeOpensThePickerWithItsOwnTypeAndMarksTheSaveForTheSameTypeOriginal() {
+        try (MediaHostForTests host = MediaHostForTests.install()) {
+            assertTrue(PinDownloads.start(Map.of("id", "123456", "images", Map.of(
+                    "736x", Map.of("url", MediaHostForTests.STAND_IN))), activity));
+            Intent picker = Shadows.shadowOf(activity).getNextStartedActivity();
+            assertEquals("image/jpeg", picker.getType());
+            assertTrue(picker.getStringExtra(Intent.EXTRA_TITLE).endsWith(".jpg"));
+            Bundle args = fragment().getArguments();
+            assertEquals(MediaHostForTests.STAND_IN, args.getString("url"));
+            assertTrue(args.getBoolean("standIn"));
+            assertTrue("nothing is asked before a location is chosen", host.asked.isEmpty());
+            cancel();
+            assertTrue(PinDownloads.start(pin, activity));
+            assertFalse(fragment().getArguments().getBoolean("standIn"));
+        }
+    }
+
     @Test public void launchedPickerIsNotLaunchedAgainAfterFragmentStateRestoration() {
         assertTrue(PinDownloads.start(pin, activity));
         Shadows.shadowOf(activity).getNextStartedActivity();

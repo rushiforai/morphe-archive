@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Giới thiệu</string>
   <string name="morphe_settings_screen_01_ads_title">Quảng cáo</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Hình thu nhỏ thay thế</string>
   <string name="morphe_settings_screen_03_feed_title">Trang video</string>
   <string name="morphe_settings_screen_04_general_title">Chung</string>
   <string name="morphe_settings_screen_05_player_title">Trình phát</string>
@@ -64,6 +63,8 @@ Ví dụ:
   <string name="morphe_hide_artist_cards_title">Ẩn thẻ nghệ sĩ</string>
   <string name="morphe_hide_artist_cards_summary">Ẩn thẻ nghệ sĩ ở đầu kết quả tìm kiếm</string>
   <string name="morphe_hide_auto_dubbed_label_title">Ẩn nhãn \"Bản lồng tiếng\"</string>
+  <string name="morphe_hide_channel_buttons_title">Ẩn các nút kênh</string>
+  <string name="morphe_hide_channel_buttons_summary">Ẩn các nút như Đăng ký, Xem kênh, Cộng đồng và YouTube Music khỏi hồ sơ kênh trong kết quả tìm kiếm</string>
   <string name="morphe_hide_community_posts_title">Ẩn bài đăng cộng đồng</string>
   <string name="morphe_hide_compact_banner_title">Ẩn quảng cáo dưới video</string>
   <string name="morphe_hide_compact_banner_summary">Ẩn banner nhỏ gọn và khoảng cách giữa một số thành phần</string>
@@ -75,7 +76,6 @@ Ví dụ:
   <string name="morphe_hide_floating_microphone_button_summary">Ẩn nút micro nổi ở góc dưới bên phải của màn hình gợi ý tìm kiếm</string>
   <string name="morphe_hide_get_premium_button_title">Ẩn nút \"Mua Premium\"</string>
   <string name="morphe_hide_history_shelf_title">Ẩn ngăn Lịch sử</string>
-  <string name="morphe_hide_history_shelf_summary">Ẩn ngăn Lịch sử trong tab Bạn</string>
   <string name="morphe_hide_horizontal_shelves_title">Ẩn kệ cá nhân hoá</string>
   <string name="morphe_hide_horizontal_shelves_summary">Ẩn các kệ ngang như Tin nổi bật, Bài đăng bạn có thể thích, Tiếp tục xem, Khám phá các kênh khác, Khám phá các chủ đề khác, Dành cho bạn, Mới nhất, Phù hợp nhất, Bài đăng từ cộng đồng của nhà sáng tạo, Mua sắm, và Xem lại</string>
   <string name="morphe_hide_hyped_label_title">Ẩn nhãn nổi bật</string>
@@ -109,7 +109,8 @@ Ví dụ:
   <string name="morphe_hide_show_more_button_title">Ẩn nút \"Hiện thêm\"</string>
   <string name="morphe_hide_show_more_button_summary">Ẩn nút mở rộng dưới video trong kết quả tìm kiếm</string>
   <string name="morphe_hide_subscribed_channels_bar_title">Ẩn thanh kênh đã đăng ký</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">Ẩn tên kênh trên thanh các kênh đã đăng ký</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">Ẩn tên các kênh đã đăng ký</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">Ẩn tên các kênh trong thanh kênh đã đăng ký</string>
   <string name="morphe_hide_surveys_title">Ẩn khảo sát</string>
   <string name="morphe_hide_surveys_summary">Ẩn khảo sát ​​và đánh giá độ phù hợp của đề xuất trang video</string>
   <string name="morphe_hide_ticket_shelf_title">Ẩn kệ vé</string>
@@ -158,6 +159,11 @@ Ví dụ:
   <string name="morphe_hide_sync_button_title">Ẩn nút \"Đồng bộ với video\"</string>
   <string name="morphe_hide_timed_reactions_title">Ẩn phản ứng theo thời gian</string>
   <string name="morphe_hide_timed_reactions_summary">Ẩn tính năng cho phép người dùng phản hồi bằng biểu tượng cảm xúc trong phần bình luận và trò chuyện trực tiếp</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">Ẩn mục \'Trợ giúp &amp; phản hồi\' trong menu</string>
+  <string name="morphe_hide_help_feedback_menu_summary">Ẩn mục \'Trợ giúp &amp; phản hồi\' trong menu ba chấm của thanh ứng dụng, chẳng hạn như menu kết quả tìm kiếm</string>
+  <string name="morphe_hide_handle_title">Ẩn handle</string>
+  <string name="morphe_hide_handle_summary">Ẩn handle kênh của bạn trong tab \'Bạn\'</string>
   <string name="morphe_hide_video_title_title">Ẩn tiêu đề video</string>
   <string name="morphe_hide_video_title_summary">Ẩn tiêu đề video ở chế độ toàn màn hình</string>
   <string name="morphe_sanitize_video_subtitle_title">Lọc nội dung phụ đề video</string>
@@ -680,7 +686,7 @@ Lưu ý: Có thể không hoạt động với video phát trực tiếp"</strin
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Ẩn nút Kết nối</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Ẩn nút Báo vi phạm</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Ẩn nút Phối lại</string>
@@ -1074,10 +1080,7 @@ Hạn chế: Nếu tùy chọn \"Khôi phục thanh thao tác video cũ\" bị t
   <string name="morphe_playback_in_feeds_entry_off">Tắt</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">Khôi phục tiêu đề gốc</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">Đã dịch</string>
-  <string name="morphe_restore_original_titles_type_entry_original">Gốc</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">Được dịch bằng DeArrow</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">Bản gốc với DeArrow</string>
+  <string name="morphe_restore_original_titles_summary">Hiển thị tiêu đề video, mô tả video và mô tả kênh gốc thay vì các bản được tự động dịch</string>
   <string name="morphe_restore_original_titles_loading">Đang tải tiêu đề…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">Tắt tự động làm mới nguồn cấp dữ liệu</string>
@@ -1151,39 +1154,42 @@ Hạn chế: Nếu tùy chọn \"Khôi phục thanh thao tác video cũ\" bị t
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Xem hình ảnh không bị giới hạn khu vực</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Chuyển hướng các yêu cầu hình thu nhỏ đến một máy chủ khác để sửa lỗi hình ảnh bị thiếu ở các quốc gia bị hạn chế</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">Tiêu đề DeArrow</string>
+  <string name="morphe_dearrow_titles_summary">Thay thế tiêu đề video bằng các tiêu đề đóng góp từ cộng đồng được gửi đến DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_title">Hiển thị biểu tượng DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_summary">Hiển thị biểu tượng DeArrow trên các tiêu đề video do cộng đồng đóng góp</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">Dành cho thẻ Trang chủ</string>
+  <string name="morphe_dearrow_thumbnail_home_title">Dành cho thẻ Trang chủ</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">Dành cho thẻ Đăng ký</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">Dành cho thẻ Đăng ký</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">Dành cho thẻ Bạn</string>
-  <string name="morphe_alt_thumbnail_player_title">Dành cho danh sách phát và đề xuất của trình phát</string>
-  <string name="morphe_alt_thumbnail_search_title">Dành cho kết quả tìm kiếm</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Hình thu nhỏ gốc</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Hình thu nhỏ gốc</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Chụp tĩnh</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Chụp tĩnh</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow cung cấp hình thu nhỏ có nguồn gốc từ cộng đồng cho video YouTube. Những hình thu nhỏ này thường liên quan hơn so với những hình thu nhỏ do YouTube cung cấp
+  <string name="morphe_dearrow_thumbnail_library_title">Dành cho thẻ Bạn</string>
+  <string name="morphe_dearrow_thumbnail_player_title">Dành cho danh sách phát và đề xuất của trình phát</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Dành cho kết quả tìm kiếm</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Hình thu nhỏ gốc</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Hình thu nhỏ gốc</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Chụp tĩnh</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Chụp tĩnh</string>
+  <string name="morphe_dearrow_about_summary">"DeArrow cung cấp các tiêu đề và hình thu nhỏ do cộng đồng đóng góp cho video YouTube. Chúng thường phù hợp hơn những gì do YouTube cung cấp
 
-Nếu được bật, URL video sẽ được gửi đến máy chủ API và không có dữ liệu nào khác được gửi. Nếu video không có hình thu nhỏ DeArrow, thì hình thu nhỏ gốc hoặc ảnh chụp tĩnh sẽ được hiển thị
+Nếu được bật, URL video sẽ được gửi đến máy chủ API và không có dữ liệu nào khác được gửi. Nếu video không có hình thu nhỏ DeArrow, thì hình ảnh gốc hoặc ảnh tĩnh sẽ được hiển thị
 
-Nhấn vào đây để truy cập DeArrow.ajay.app"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Hiện cảnh báo lỗi kết nối</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Hiển thị thông báo khi máy chủ DeArrow không khả dụng</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">Điểm cuối API DeArrow</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">URL của điểm cuối bộ đệm hình thu nhỏ DeArrow</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Chụp tĩnh video</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Chụp tĩnh là lấy từ đầu/giữa/cuối của mỗi video. Những hình ảnh này được dựng sẵn trong Youtube và không dùng API bên ngoài</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Dùng hình chụp tĩnh nhanh</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">Tăng tốc độ tải bằng cách dùng hình ảnh chất lượng trung bình. Một số video phát trực tiếp, video chưa phát hành hoặc video cũ có thể không hiển thị hình thu nhỏ</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Trích khung video từ</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Đầu video</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Giữa video</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Cuối video</string>
+Nhấn vào đây để mở DeArrow.ajay.app"</string>
+  <string name="morphe_dearrow_connection_toast_title">Hiện cảnh báo lỗi kết nối</string>
+  <string name="morphe_dearrow_connection_toast_summary">Hiển thị thông báo khi máy chủ DeArrow không khả dụng</string>
+  <string name="morphe_dearrow_api_url_title">Điểm cuối API DeArrow</string>
+  <string name="morphe_dearrow_api_url_summary">URL của điểm cuối bộ đệm hình thu nhỏ DeArrow</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Chụp tĩnh video</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Chụp tĩnh là lấy từ đầu/giữa/cuối của mỗi video. Những hình ảnh này được dựng sẵn trong Youtube và không dùng API bên ngoài</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Trích khung video từ</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Đầu video</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Giữa video</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Cuối video</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow tạm thời không khả dụng (mã trạng thái: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow tạm thời không khả dụng</string>
+  <string name="morphe_dearrow_error">DeArrow tạm thời không khả dụng (mã trạng thái: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow tạm thời không khả dụng</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Khôi phục kiểu nút trình phát cũ</string>

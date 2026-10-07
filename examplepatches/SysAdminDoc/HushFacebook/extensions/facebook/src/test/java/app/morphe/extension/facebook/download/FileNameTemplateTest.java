@@ -120,6 +120,7 @@ public class FileNameTemplateTest {
     @After
     public void tearDown() {
         Settings.FILENAME_TEMPLATE.resetToDefault();
+        Settings.PHOTO_FILENAME_TEMPLATE.resetToDefault();
         MediaDownload.policyForTests = null;
         MediaDownload.detailsForTests = null;
         LogBufferManager.clearLogBuffer();
@@ -575,6 +576,82 @@ public class FileNameTemplateTest {
         assertTrue(report, report.contains("the file name asks for the video id and this save has none, "
                 + "so the date and time go on the end"));
         assertFalse(report, report.contains(ID));
+    }
+
+    /**
+     * A photo template names photos and leaves videos alone: the photo's id fills in when the save
+     * has one, the date and time go on the end when it doesn't, and the report names neither.
+     */
+    @Test
+    public void aPhotoTemplateNamesPhotosAndNotVideos() throws Exception {
+        Settings.PHOTO_FILENAME_TEMPLATE.save("Shot {photo_id}");
+        SaveProgressTest.Gallery gallery = gallery();
+        writable(gallery, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 1);
+        writable(gallery, MediaStore.Video.Media.EXTERNAL_CONTENT_URI, 2);
+        writable(gallery, MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 3);
+        new MediaStoreWriter(context, false, ID).open("image/jpeg").close();
+        new MediaStoreWriter(context, true, ID).open("video/mp4").close();
+        new MediaStoreWriter(context, false, (String) null).open("image/webp").close();
+        assertEquals("Shot " + ID + ".jpg", nameOf(gallery.rows.get(1L)));
+        assertTrue(nameOf(gallery.rows.get(2L)), nameOf(gallery.rows.get(2L)).matches("FB_VID_\\d{8}_\\d{6}\\.mp4"));
+        assertTrue(nameOf(gallery.rows.get(3L)), nameOf(gallery.rows.get(3L)).matches("Shot_\\d{8}_\\d{6}\\.webp"));
+
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains("the file name asks for the photo id and this save has none, "
+                + "so the date and time go on the end"));
+        assertFalse(report, report.contains(ID));
+    }
+
+    /** A photo template is held to the gallery's naming the way a video's is, with FB_IMG_ for its own. */
+    @Test
+    public void aPhotoTemplateIsCleanedLikeAVideosWithItsOwnPrefix() {
+        Map<String, String> cases = new LinkedHashMap<>();
+        cases.put(null, FileNameTemplate.PHOTO_DEFAULT);
+        cases.put("", FileNameTemplate.PHOTO_DEFAULT);
+        cases.put(" . ", FileNameTemplate.PHOTO_DEFAULT);
+        cases.put("FB_VID_{photo_id}", "FB_IMG_{photo_id}");
+        cases.put("fb_vid_{date}", "FB_IMG_{date}");
+        cases.put("FB_VID_", FileNameTemplate.PHOTO_DEFAULT);
+        cases.put("FB_IMG_{photo_id}", "FB_IMG_{photo_id}");
+        cases.put("../Shots/{photo_id}", "Shots_{photo_id}");
+        cases.put("{photo_id}.jpg", "{photo_id}");
+        cases.put("Shot", "Shot_{date}");
+        // A video's id is no photo's token, so the name still needs the date.
+        cases.put("{video_id}", "{video_id}_{date}");
+        cases.put("{owner}_{posted}", "{owner}_{posted}");
+        for (Map.Entry<String, String> entry : cases.entrySet()) {
+            String clean = FileNameTemplate.sanitizePhoto(entry.getKey());
+            assertEquals(String.valueOf(entry.getKey()), entry.getValue(), clean);
+            assertEquals("cleaning twice changes it: " + entry.getKey(), clean, FileNameTemplate.sanitizePhoto(clean));
+            assertTrue(clean, FileNameTemplate.isCleanPhoto(clean));
+            assertTrue(clean, FileNameTemplate.isImportablePhoto(clean));
+        }
+        for (String unclean : new String[]{"a/b{date}", "", null, " {date}", "Shot", "{date}.jpg", "FB_VID_{date}"}) {
+            assertFalse(String.valueOf(unclean), FileNameTemplate.isImportablePhoto(unclean));
+        }
+        // The video template stays the video's: FB_IMG_ starts none of its names.
+        assertEquals("FB_VID_{photo_id}_{date}", FileNameTemplate.sanitize("FB_IMG_{photo_id}"));
+
+        Date when = when();
+        assertEquals("FB_IMG_" + FileNameTemplate.stamp(when), FileNameTemplate.photoName(FileNameTemplate.PHOTO_DEFAULT,
+                when, PostDetails.of(ID)));
+        assertEquals("Shot_" + ID, FileNameTemplate.photoName("Shot_{photo_id}", when, PostDetails.of(ID)));
+        // Only digits fill in for the id.
+        assertEquals("Shot_" + FileNameTemplate.stamp(when),
+                FileNameTemplate.photoName("Shot_{photo_id}", when, PostDetails.of("12ab")));
+        assertEquals("Shot_" + ID + "_" + FileNameTemplate.clock(when),
+                FileNameTemplate.takenPhotoName("Shot_{photo_id}", when, PostDetails.of(ID)));
+        assertNull(FileNameTemplate.takenPhotoName(FileNameTemplate.PHOTO_DEFAULT, when, PostDetails.of(ID)));
+    }
+
+    /** The photo template a save reads is cleaned where it's read, and the default before settings are ready. */
+    @Test
+    public void thePhotoTemplateASaveReadsIsAlwaysClean() {
+        Settings.PHOTO_FILENAME_TEMPLATE.save("../My/{photo_id}");
+        assertEquals("My_{photo_id}", FileNameTemplate.currentPhoto());
+        Settings.PHOTO_FILENAME_TEMPLATE.save("FB_VID_x.jpg");
+        assertEquals("FB_IMG_x_{date}", FileNameTemplate.currentPhoto());
+        assertEquals(FileNameTemplate.DEFAULT, FileNameTemplate.current());
     }
 
     /**

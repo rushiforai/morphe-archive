@@ -303,6 +303,33 @@ public class Utils {
         }
     }
 
+    /**
+     * Runs work that can block inside another app's code for as long as that app likes, such as
+     * a file app opening a document, on a thread of its own so it never holds one of the shared
+     * pool's few threads. It counts as background work, so a test waiting for that waits for
+     * this too. False when no thread could be started.
+     */
+    public static boolean runOnOwnThread(String name, Runnable task) {
+        backgroundTasksInFlight.incrementAndGet();
+        Thread thread = new Thread(() -> {
+            try {
+                runAndLogFailure(task);
+            } finally {
+                backgroundTasksInFlight.decrementAndGet();
+            }
+        }, name);
+        thread.setDaemon(true);
+        try {
+            thread.start();
+            return true;
+        } catch (OutOfMemoryError noThread) {
+            // Android reports a thread it couldn't create as an OutOfMemoryError.
+            backgroundTasksInFlight.decrementAndGet();
+            Logger.printException(() -> "Could not start " + name, noThread);
+            return false;
+        }
+    }
+
     /** Waits until background work submitted before this call has finished. */
     public static void awaitBackgroundTasksForTests() throws Exception {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);

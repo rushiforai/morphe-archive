@@ -41,7 +41,8 @@ public enum PatchFamily {
             Settings.HIDE_SPONSORED_POSTS, Settings.HIDE_PROMOTED_POSTS),
     SUGGESTED_POSTS(FamilyNames.SUGGESTED_POSTS, "suggestedPosts", null,
             Settings.HIDE_SUGGESTED_POSTS, Settings.HIDE_SUGGESTED_FOR_YOU, Settings.HIDE_PEOPLE_YOU_MAY_KNOW,
-            Settings.HIDE_SUGGESTED_GROUPS, Settings.HIDE_STORIES_YOU_MIGHT_LIKE),
+            Settings.HIDE_SUGGESTED_GROUPS, Settings.HIDE_STORIES_YOU_MIGHT_LIKE, Settings.HIDE_FEED_MEMORIES,
+            Settings.HIDE_FEED_FRIEND_REQUESTS, Settings.HIDE_FRIENDS_LOCATIONS),
     STORIES_TRAY(FamilyNames.STORIES_TRAY, "storiesTray", null,
             Settings.HIDE_TOP_STORIES_TRAY, Settings.HIDE_STORIES_BETWEEN_POSTS),
     FEED_REELS(FamilyNames.FEED_REELS, "feedReels", null,
@@ -50,9 +51,9 @@ public enum PatchFamily {
             Settings.BLOCK_RETURN_REFRESH, Settings.RETURN_REFRESH_NO_LIMIT),
     AI_DETECTED_POSTS(FamilyNames.AI_DETECTED_POSTS, "aiDetectedPosts", null,
             Settings.HIDE_AI_DETECTED_POSTS, Settings.HIDE_AI_LABELLED_POSTS, Settings.HIDE_AI_DETECTED_REELS,
-            Settings.HIDE_META_AI_FEED_UNITS),
+            Settings.HIDE_META_AI_FEED_UNITS, Settings.HIDE_AI_CHARACTER_POSTS),
     POST_WORDS(FamilyNames.POST_WORDS, "postWords", null,
-            Settings.HIDE_POSTS_WITH_WORDS, Settings.POST_WORDS_WHOLE_WORDS),
+            Settings.HIDE_POSTS_WITH_WORDS, Settings.POST_WORDS_WHOLE_WORDS, Settings.HIDE_POSTS_FROM_SOURCES),
     POST_PROMPTS(FamilyNames.POST_PROMPTS, "postPrompts", null,
             Settings.HIDE_POST_PROMPTS),
     META_AI_QUESTIONS(FamilyNames.META_AI_QUESTIONS, "metaAiQuestions", null,
@@ -128,17 +129,23 @@ public enum PatchFamily {
             Settings.DOWNLOAD_REELS),
     VIDEO_DOWNLOAD(FamilyNames.VIDEO_DOWNLOAD, "videoDownload", null,
             Settings.DOWNLOAD_VIDEOS),
+    PHOTO_DOWNLOAD(FamilyNames.PHOTO_DOWNLOAD, "photoDownload", null,
+            Settings.DOWNLOAD_PHOTOS),
     START_TAB(FamilyNames.START_TAB, "startTab", null,
             Settings.OPEN_ON_CHOSEN_TAB),
     MARKETPLACE_ONLY(FamilyNames.MARKETPLACE_ONLY, "marketplaceOnly", null,
             Settings.MARKETPLACE_ONLY, Settings.MARKETPLACE_QUIET_NOTIFICATIONS, Settings.MARKETPLACE_SKIP_FEED_PREFETCH),
+    SELLER_VIEW_PROFILE(FamilyNames.SELLER_VIEW_PROFILE, "sellerViewProfile", null,
+            Settings.SHOW_SELLER_VIEW_PROFILE),
     REELS_TAB(FamilyNames.REELS_TAB, "reelsTab", null,
             Settings.HIDE_REELS_TAB),
     REELS_TAB_DOT(FamilyNames.REELS_TAB_DOT, "reelsTabDot", null,
             Settings.HIDE_REELS_TAB_DOT),
     HIDDEN_TABS(FamilyNames.HIDDEN_TABS, "hiddenTabs", null,
             Settings.HIDE_FEEDS_TAB, Settings.HIDE_FRIENDS_TAB, Settings.HIDE_MARKETPLACE_TAB, Settings.HIDE_GROUPS_TAB,
-            Settings.HIDE_GAMING_TAB, Settings.HIDE_EVENTS_TAB),
+            Settings.HIDE_GAMING_TAB, Settings.HIDE_EVENTS_TAB, Settings.HIDE_DATING_TAB,
+            Settings.HIDE_PROFESSIONAL_DASHBOARD_TAB, Settings.HIDE_SAVED_TAB, Settings.HIDE_AD_CENTER_TAB,
+            Settings.HIDE_CREATE_TAB, Settings.HIDE_EXPLORE_TAB, Settings.HIDE_JOBS_TAB),
     BOTTOM_TAB_BAR(FamilyNames.BOTTOM_TAB_BAR, "bottomTabBar", null,
             Settings.BOTTOM_TAB_BAR),
     FORCE_DARK_MODE(FamilyNames.FORCE_DARK_MODE, "forceDarkMode", null,
@@ -157,6 +164,10 @@ public enum PatchFamily {
             Settings.ALLOW_SCREENSHOTS),
     SCREENSHOT_DETECTION(FamilyNames.SCREENSHOT_DETECTION, "screenshotDetection", null,
             Settings.BLOCK_SCREENSHOT_DETECTION),
+    TYPING_INDICATOR(FamilyNames.TYPING_INDICATOR, "typingIndicator", null,
+            Settings.HIDE_CHAT_TYPING, Settings.HIDE_COMMENT_TYPING),
+    READ_RECEIPTS(FamilyNames.READ_RECEIPTS, "readReceipts", null,
+            Settings.HIDE_READ_RECEIPTS),
     PROMO_NOTIFICATIONS(FamilyNames.PROMO_NOTIFICATIONS, "promoNotifications", null,
             Settings.BLOCK_TRENDING_VIDEO_NOTIFICATIONS, Settings.BLOCK_MEMORY_NOTIFICATIONS,
             Settings.BLOCK_BIRTHDAY_NOTIFICATIONS, Settings.BLOCK_HIGHLIGHT_NOTIFICATIONS,
@@ -208,7 +219,7 @@ public enum PatchFamily {
             java.util.Arrays.asList(Settings.CHECK_FOR_RELEASES, Settings.SAVED_SHORTCUT));
 
     /**
-     * The switches the three download patches share and none of them owns: each shapes what every
+     * The switches the download patches share and none of them owns: each shapes what every
      * save picks, a story's, a reel's or a feed video's, so it's on the screen under Downloads
      * whenever one of them is in the build. Today that's saves other apps can open. Pause turns
      * them off like a family's switches, and a paused Facebook makes no Hushfacebook saves anyway.
@@ -217,7 +228,7 @@ public enum PatchFamily {
 
     /** The families whose saves read {@link #DOWNLOAD_SWITCHES}. */
     static final Set<PatchFamily> DOWNLOADS = Collections.unmodifiableSet(
-            EnumSet.of(STORY_DOWNLOAD, REEL_DOWNLOAD, VIDEO_DOWNLOAD));
+            EnumSet.of(STORY_DOWNLOAD, REEL_DOWNLOAD, VIDEO_DOWNLOAD, PHOTO_DOWNLOAD));
 
     /**
      * The patches Morphe Manager selects by default. One of them left out is the usual answer to a
@@ -231,7 +242,7 @@ public enum PatchFamily {
             SPONSORED_REELS, SPONSORED_SEARCH, SPONSORED_PROFILE_POSTS, SPONSORED_MARKETPLACE, GAME_ADS, AFFILIATE_LINKS,
             KEEP_REEL_SPEED,
             RESUME_LONG_VIDEOS, EXTERNAL_BROWSER, SANITIZE_SHARING_LINKS, UPDATE_PROMPTS, STORY_DOWNLOAD,
-            REEL_DOWNLOAD, MARKETPLACE_ONLY, REELS_TAB_DOT, HIDDEN_TABS, BOTTOM_TAB_BAR, FORCE_DARK_MODE, MESSENGER_CARD, MESSENGER_ICON, MENU_PROMOTIONS,
+            REEL_DOWNLOAD, PHOTO_DOWNLOAD, MARKETPLACE_ONLY, SELLER_VIEW_PROFILE, REELS_TAB_DOT, HIDDEN_TABS, BOTTOM_TAB_BAR, FORCE_DARK_MODE, MESSENGER_CARD, MESSENGER_ICON, MENU_PROMOTIONS,
             META_AI_SEARCH, PROMO_NOTIFICATIONS, AD_PREFETCH, AD_TELEMETRY, AUDIENCE_NETWORK, RESTORE_TRUST,
             TRANSLATED_START, INSTALL_BESIDE_META_APPS, MENU_SETTINGS_ROW));
 
@@ -352,7 +363,9 @@ public enum PatchFamily {
         for (BooleanSetting setting : switches) anyOn |= setting.savedValue();
         // Options cannot enable these families without their main switch.
         if (this == MARKETPLACE_ONLY) anyOn = Settings.MARKETPLACE_ONLY.savedValue();
-        if (this == POST_WORDS) anyOn = Settings.HIDE_POSTS_WITH_WORDS.savedValue();
+        if (this == POST_WORDS) {
+            anyOn = Settings.HIDE_POSTS_WITH_WORDS.savedValue() || Settings.HIDE_POSTS_FROM_SOURCES.savedValue();
+        }
         line.append(paused ? "disabled while paused (saved " : anyOn ? "on (" : "disabled by its switch (");
         for (int i = 0; i < switches.size(); i++) {
             if (i > 0) line.append(", ");

@@ -15,12 +15,20 @@ plugins {
 // makes for itself. The settings classpath is forced separately in settings.gradle.kts, which
 // resolves before this file exists.
 val reviewedBouncyCastle = libs.versions.bouncycastle.get()
+// Guava the same way, for the same reason: the patcher's own graph, the Robolectric test graph
+// and the Android test platform each ask for a release inside GHSA-xxph-c9ww-hj94, and the
+// catalog's pin reaches only :patches. The catalog says which release and why.
+val reviewedGuava = libs.versions.guava.get()
 allprojects {
     configurations.configureEach {
         resolutionStrategy.eachDependency {
             if (requested.group == "org.bouncycastle") {
                 useVersion(reviewedBouncyCastle)
                 because("The build classpath must use the reviewed Bouncy Castle release.")
+            }
+            if (requested.group == "com.google.guava" && requested.name == "guava") {
+                useVersion(reviewedGuava)
+                because("The build classpath must use the Guava release outside GHSA-xxph-c9ww-hj94.")
             }
         }
     }

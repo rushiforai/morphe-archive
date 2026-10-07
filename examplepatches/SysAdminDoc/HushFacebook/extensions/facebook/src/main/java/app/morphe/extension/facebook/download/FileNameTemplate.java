@@ -35,7 +35,8 @@ import app.morphe.extension.shared.Utils;
  *   <li>The extension is the writer's to give, from the bytes it checked, so a media extension typed
  *       at the end ({@code .mp4}, {@code .jpg}) goes.</li>
  *   <li>{@link #PHOTO_PREFIX} is how Facebook names a saved photo, so a video template that starts
- *       with it starts with {@code FB_VID_} instead.</li>
+ *       with it starts with {@code FB_VID_} instead, and a photo template that starts with
+ *       {@code FB_VID_} starts with {@code FB_IMG_}.</li>
  *   <li>MediaStore numbers a name that's taken, {@code (1)} to {@code (31)}, and then refuses the
  *       save. A template with no token at all names every video the same, so it gets {@code _{date}}
  *       on the end.</li>
@@ -52,8 +53,9 @@ import app.morphe.extension.shared.Utils;
  * folder, the writer takes {@link #takenVideoName} instead, the same name with the time of the save
  * on the end, before MediaStore's numbering can run out.
  *
- * <p>Photos keep Facebook's own {@code FB_IMG_} names. A photo has no video id, and one template
- * for both would name every photo a video.
+ * <p>Photos have a template of their own, {@link #PHOTO_DEFAULT} until it's set, with
+ * {@link #PHOTO_ID} where a video's has {@link #VIDEO_ID}. One template for both would name every
+ * photo a video. Everything above holds for it the same way.
  */
 public final class FileNameTemplate {
 
@@ -80,7 +82,7 @@ public final class FileNameTemplate {
     /** Every token, in the order the dialog names them. */
     static final String[] TOKENS = {DATE, VIDEO_ID, OWNER, OWNER_ID, POSTED};
 
-    /** What Facebook starts the name of a saved photo with. Photos keep it, whatever the template. */
+    /** What Facebook starts the name of a saved photo with. */
     public static final String PHOTO_PREFIX = "FB_IMG_";
 
     /** What Facebook starts the name of a saved video with. */
@@ -88,6 +90,39 @@ public final class FileNameTemplate {
 
     /** Facebook's own name for a saved video, the one every save used before the setting existed. */
     public static final String DEFAULT = VIDEO_PREFIX + DATE;
+
+    /** Fills in as the photo's number on Facebook, or nothing when the save doesn't know it. */
+    public static final String PHOTO_ID = "{photo_id}";
+
+    /** Every token a photo's template takes, in the order the dialog names them. */
+    static final String[] PHOTO_TOKENS = {DATE, PHOTO_ID, OWNER, OWNER_ID, POSTED};
+
+    /** Facebook's own name for a saved photo, the one every photo save used before the setting existed. */
+    public static final String PHOTO_DEFAULT = PHOTO_PREFIX + DATE;
+
+    /** What a video's names and a photo's differ in. */
+    private static final class Kind {
+        /** What the kind's names start with, as Facebook's own saves name them. */
+        final String prefix;
+        /** The other kind's prefix, which a template of this kind can't start with. */
+        final String other;
+        /** The token for the file's own number on Facebook. */
+        final String id;
+        /** The template a blank or empty one becomes. */
+        final String fallback;
+        final String[] tokens;
+
+        Kind(String prefix, String other, String id, String fallback, String[] tokens) {
+            this.prefix = prefix;
+            this.other = other;
+            this.id = id;
+            this.fallback = fallback;
+            this.tokens = tokens;
+        }
+    }
+
+    private static final Kind VIDEO = new Kind(VIDEO_PREFIX, PHOTO_PREFIX, VIDEO_ID, DEFAULT, TOKENS);
+    private static final Kind PHOTO = new Kind(PHOTO_PREFIX, VIDEO_PREFIX, PHOTO_ID, PHOTO_DEFAULT, PHOTO_TOKENS);
 
     /** The longest template kept, in code points: the folder name's bound. */
     static final int MAX_TEMPLATE_CODE_POINTS = SaveFolder.MAX_CODE_POINTS;
@@ -119,17 +154,36 @@ public final class FileNameTemplate {
         }
     }
 
+    /** The photo template the next photo save uses, the same way. */
+    public static String currentPhoto() {
+        try {
+            if (!Utils.settingsReady()) return PHOTO_DEFAULT;
+            return sanitizePhoto(Settings.PHOTO_FILENAME_TEMPLATE.get());
+        } catch (Throwable t) {
+            return PHOTO_DEFAULT;
+        }
+    }
+
     /**
      * The template to use for [raw]: cleaned like a folder name and held to the gallery's naming
      * (see the class), and {@link #DEFAULT} when nothing's left. Running it on its own answer
      * changes nothing.
      */
     public static String sanitize(String raw) {
-        String clean = asVideo(withoutMediaExtension(SaveFolder.clean(raw, MAX_TEMPLATE_CODE_POINTS)));
-        if (clean.isEmpty()) return DEFAULT;
+        return sanitize(VIDEO, raw);
+    }
 
-        if (!usesAnyToken(clean)) {
-            // Every video would get this one name. The date keeps them apart, and it has to fit.
+    /** The same for a photo's template, which is {@link #PHOTO_DEFAULT} when nothing's left. */
+    public static String sanitizePhoto(String raw) {
+        return sanitize(PHOTO, raw);
+    }
+
+    private static String sanitize(Kind kind, String raw) {
+        String clean = as(kind, withoutMediaExtension(SaveFolder.clean(raw, MAX_TEMPLATE_CODE_POINTS)));
+        if (clean.isEmpty()) return kind.fallback;
+
+        if (!usesAnyToken(kind, clean)) {
+            // Every file would get this one name. The date keeps them apart, and it has to fit.
             clean = SaveFolder.trim(firstCodePoints(clean, MAX_TEMPLATE_CODE_POINTS - 1 - DATE.length()));
             clean = joined(clean, DATE);
         }
@@ -142,6 +196,11 @@ public final class FileNameTemplate {
         return template != null && !template.isEmpty() && template.equals(sanitize(template));
     }
 
+    /** The same for a photo's template. */
+    public static boolean isCleanPhoto(String template) {
+        return template != null && !template.isEmpty() && template.equals(sanitizePhoto(template));
+    }
+
     /**
      * Whether a settings file's [template] may be taken, the way {@link SaveFolder#isImportable}
      * decides for a folder: a character this phone doesn't know yet counts as a plain symbol, and
@@ -152,9 +211,20 @@ public final class FileNameTemplate {
         return isClean(SaveFolder.withUnknownAsKnown(template));
     }
 
+    /** The same for a photo's template. */
+    public static boolean isImportablePhoto(String template) {
+        if (template == null || template.isEmpty()) return false;
+        return isCleanPhoto(SaveFolder.withUnknownAsKnown(template));
+    }
+
     /** Whether [template] asks for the video id. */
     public static boolean usesVideoId(String template) {
         return template != null && template.contains(VIDEO_ID);
+    }
+
+    /** Whether a photo's [template] asks for the photo id. */
+    public static boolean usesPhotoId(String template) {
+        return template != null && template.contains(PHOTO_ID);
     }
 
     /** Whether [template] fills in the date and time. */
@@ -179,7 +249,11 @@ public final class FileNameTemplate {
 
     /** Whether [template] has any token at all. Without one it names every video the same. */
     static boolean usesAnyToken(String template) {
-        for (String token : TOKENS) {
+        return usesAnyToken(VIDEO, template);
+    }
+
+    private static boolean usesAnyToken(Kind kind, String template) {
+        for (String token : kind.tokens) {
             if (template != null && template.contains(token)) return true;
         }
         return false;
@@ -193,8 +267,19 @@ public final class FileNameTemplate {
      */
     static boolean keepsApart(String template, boolean hasId, boolean hasOwner, boolean hasOwnerId,
                               boolean hasPosted) {
+        return keepsApart(VIDEO, template, hasId, hasOwner, hasOwnerId, hasPosted);
+    }
+
+    /** The same for a photo's [template], whose id is the photo's. */
+    static boolean keepsPhotosApart(String template, boolean hasId, boolean hasOwner, boolean hasOwnerId,
+                                    boolean hasPosted) {
+        return keepsApart(PHOTO, template, hasId, hasOwner, hasOwnerId, hasPosted);
+    }
+
+    private static boolean keepsApart(Kind kind, String template, boolean hasId, boolean hasOwner,
+                                      boolean hasOwnerId, boolean hasPosted) {
         if (usesDate(template)) return true;
-        if (usesVideoId(template) && hasId) return true;
+        if (template.contains(kind.id) && hasId) return true;
         boolean owner = usesOwner(template);
         boolean ownerId = usesOwnerId(template);
         boolean posted = usesPosted(template);
@@ -234,23 +319,41 @@ public final class FileNameTemplate {
         return videoName(template, when, details, true);
     }
 
+    /**
+     * The name, without its extension, of a photo saved at [when] under the photo [template], the
+     * way {@link #videoName} names a video. [details] carries the photo's own id where a video's
+     * would be.
+     */
+    public static String photoName(String template, Date when, PostDetails details) {
+        return name(PHOTO, template, when, details, false);
+    }
+
+    /** The same as {@link #takenVideoName}, for a photo. */
+    public static String takenPhotoName(String template, Date when, PostDetails details) {
+        return name(PHOTO, template, when, details, true);
+    }
+
     /** {@link #videoName} or, when [taken], {@link #takenVideoName}. */
     private static String videoName(String template, Date when, PostDetails details, boolean taken) {
+        return name(VIDEO, template, when, details, taken);
+    }
+
+    private static String name(Kind kind, String template, Date when, PostDetails details, boolean taken) {
         if (details == null) details = PostDetails.NONE;
         String stamp = stamp(when);
-        String clean = sanitize(template);
+        String clean = sanitize(kind, template);
         boolean hasId = details.hasVideoId();
         String rest = clean.replace(DATE, stamp)
-            .replace(VIDEO_ID, hasId ? details.videoId : "")
+            .replace(kind.id, hasId ? details.videoId : "")
             .replace(OWNER_ID, details.hasOwnerId() ? details.ownerId : "")
             .replace(POSTED, details.hasPosted() ? postedStamp(details.posted) : "");
         String owner = ownerFor(rest, details, MAX_NAME_BYTES);
-        String name = filledIn(rest, owner);
+        String name = filledIn(kind, rest, owner);
         // Nothing left but the separators typed between tokens the save didn't know ({owner}_{posted}
         // with neither) is nothing.
-        if (!hasLetterOrDigit(name)) return taken ? null : VIDEO_PREFIX + stamp;
+        if (!hasLetterOrDigit(name)) return taken ? null : kind.prefix + stamp;
 
-        if (!keepsApart(clean, hasId, !owner.isEmpty(), details.hasOwnerId(), details.hasPosted())) {
+        if (!keepsApart(kind, clean, hasId, !owner.isEmpty(), details.hasOwnerId(), details.hasPosted())) {
             // Something this template counts on is missing, so the date and time keep the name apart.
             return taken ? null : joined(cut(name, MAX_NAME_BYTES - 1 - stamp.length()), stamp);
         }
@@ -260,12 +363,12 @@ public final class FileNameTemplate {
         // Already in the folder: the time of the save goes on the end, and the poster's name makes room.
         String time = clock(when);
         int room = MAX_NAME_BYTES - 1 - time.length();
-        return joined(cut(filledIn(rest, ownerFor(rest, details, room)), room), time);
+        return joined(cut(filledIn(kind, rest, ownerFor(rest, details, room)), room), time);
     }
 
     /** [rest] with [owner] where {@link #OWNER} stands, cleaned the way the whole name is. */
-    private static String filledIn(String rest, String owner) {
-        return asVideo(SaveFolder.clean(rest.replace(OWNER, owner), Integer.MAX_VALUE));
+    private static String filledIn(Kind kind, String rest, String owner) {
+        return as(kind, SaveFolder.clean(rest.replace(OWNER, owner), Integer.MAX_VALUE));
     }
 
     /** The date and time of a save, in Western digits and the Gregorian calendar whatever the locale. */
@@ -307,10 +410,10 @@ public final class FileNameTemplate {
         return false;
     }
 
-    /** [name] with {@link #VIDEO_PREFIX} where it starts with {@link #PHOTO_PREFIX}, in any case. */
-    private static String asVideo(String name) {
-        if (!name.regionMatches(true, 0, PHOTO_PREFIX, 0, PHOTO_PREFIX.length())) return name;
-        return VIDEO_PREFIX + name.substring(PHOTO_PREFIX.length());
+    /** [name] with [kind]'s prefix where it starts with the other kind's, in any case. */
+    private static String as(Kind kind, String name) {
+        if (!name.regionMatches(true, 0, kind.other, 0, kind.other.length())) return name;
+        return kind.prefix + name.substring(kind.other.length());
     }
 
     /** [head] and [tail] with an underscore between them, unless [head] already ends in one or a hyphen. */

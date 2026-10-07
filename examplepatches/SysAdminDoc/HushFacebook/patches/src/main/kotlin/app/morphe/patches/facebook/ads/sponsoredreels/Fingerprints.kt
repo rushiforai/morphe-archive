@@ -89,6 +89,18 @@ internal object ReelsVideoAdQueryFingerprint : Fingerprint(
 
 internal const val REELS_VIDEO_AD_QUERY = "FBFetchReelsVideoAdsQuery"
 
+/**
+ * The extended break's fetch, on the ad-break controller: it builds its own query and hands it to
+ * the shared GraphQL executor, outside the ad-break server API the shared fetch uses.
+ */
+internal object ExtendedBreakQueryFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf(EXTENDED_BREAK_QUERY, EXTENDED_BREAK_FETCH_LOG),
+)
+
+internal const val EXTENDED_BREAK_QUERY = "InstreamExtendedBreakQuery"
+internal const val EXTENDED_BREAK_FETCH_LOG = "Kicking off extended breaks fetch"
+
 /** The name of the state that looks up where the ad breaks of a reel go. */
 internal object UnresolvedAdStateFingerprint : Fingerprint(
     returnType = "Ljava/lang/String;",

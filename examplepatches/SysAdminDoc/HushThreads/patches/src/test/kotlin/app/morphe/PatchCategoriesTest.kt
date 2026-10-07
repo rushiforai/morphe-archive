@@ -25,10 +25,11 @@ import org.junit.Test
 class PatchCategoriesTest {
     /**
      * One name per group, and no more than fits on a phone screen without scrolling. Hushfacebook's
-     * Downloads comes back when a Threads patch needs it.
+     * Downloads comes back when a Threads patch needs it. Updates holds what changes how Threads is
+     * updated, as in HushGram.
      */
     private val taxonomy = setOf(
-        "Ads", "Feed", "Interface", "Privacy", "Fixes", "Settings",
+        "Ads", "Feed", "Interface", "Privacy", "Updates", "Fixes", "Settings",
     )
 
     private fun shippedPatches() = run {

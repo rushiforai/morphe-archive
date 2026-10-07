@@ -83,6 +83,21 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_hide_stories_you_might_like", TRUE);
 
     /**
+     * Memories Facebook puts between posts, "On this day" and friendship anniversaries, found by
+     * their GraphQL type names. Off until picked, like the other kinds below.
+     */
+    public static final BooleanSetting HIDE_FEED_MEMORIES =
+            new BooleanSetting("hushfacebook_hide_feed_memories", FALSE);
+
+    /** The row of friend requests between posts, found by its GraphQL type name. */
+    public static final BooleanSetting HIDE_FEED_FRIEND_REQUESTS =
+            new BooleanSetting("hushfacebook_hide_feed_friend_requests", FALSE);
+
+    /** The card of where your friends are, between posts, found by its GraphQL type name. */
+    public static final BooleanSetting HIDE_FRIENDS_LOCATIONS =
+            new BooleanSetting("hushfacebook_hide_friends_locations", FALSE);
+
+    /**
      * The row of stories at the top of the feed. The feed's adapter list builds it as an adapter of
      * its own, and the patch has both tray adapters count no rows while this is on.
      */
@@ -125,11 +140,19 @@ public class Settings extends BaseSettings {
 
     /**
      * The Meta AI cards Facebook adds to the feed between posts, known by their GraphQL type name
-     * alone. On: they're Facebook's own promotion, not anyone's post, and the type can't match a
-     * post.
+     * alone. On: the cards are Facebook's own promotion, not anyone's post, and the type can't match
+     * a post.
      */
     public static final BooleanSetting HIDE_META_AI_FEED_UNITS =
             new BooleanSetting("hushfacebook_hide_meta_ai_feed_units", TRUE);
+
+    /**
+     * Feed posts whose attachment carries one of Meta's AI characters, known by the attachment
+     * style Facebook draws it with. Off: these are someone's posts, a creator's or a character's
+     * account's, and no feed here has been served one to show the rule tells them apart.
+     */
+    public static final BooleanSetting HIDE_AI_CHARACTER_POSTS =
+            new BooleanSetting("hushfacebook_hide_ai_character_posts", FALSE);
 
     /**
      * Reels and Watch videos Facebook's own detection marked as made with AI, read off the
@@ -164,6 +187,22 @@ public class Settings extends BaseSettings {
      */
     public static final StringSetting KEPT_WORDS =
             new StringSetting("hushfacebook_kept_words", "");
+
+    /**
+     * Feed posts written by a person or Page in {@link #HIDDEN_SOURCES}, or linking to a site in it,
+     * and shares of them ({@link app.morphe.extension.facebook.feed.PostSources}). Off by default,
+     * and with the list empty it reads nothing of any post.
+     */
+    public static final BooleanSetting HIDE_POSTS_FROM_SOURCES =
+            new BooleanSetting("hushfacebook_hide_posts_from_sources", FALSE);
+
+    /**
+     * The people, Pages and sites whose posts {@link #HIDE_POSTS_FROM_SOURCES} hides, one per line:
+     * a name, a profile or Page id, or a site's domain, bounded wherever it's read. It isn't a
+     * switch, and a paused Facebook reads it as empty.
+     */
+    public static final StringSetting HIDDEN_SOURCES =
+            new StringSetting("hushfacebook_hidden_sources", "");
 
     /** The four story bucket sources that splice ad cards into the story viewer. */
     public static final BooleanSetting HIDE_SPONSORED_STORIES =
@@ -224,6 +263,14 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_SPONSORED_MARKETPLACE_LISTINGS =
             new BooleanSetting("hushfacebook_hide_sponsored_marketplace_listings", TRUE);
+
+    /**
+     * A seller's Marketplace page always offers View profile, which opens the seller's regular
+     * Facebook profile ({@link app.morphe.extension.facebook.navigation.MarketplaceSellerProfile}).
+     * Off or paused, the page asks Facebook's experiment flag again, which shows it to some accounts.
+     */
+    public static final BooleanSetting SHOW_SELLER_VIEW_PROFILE =
+            new BooleanSetting("hushfacebook_show_seller_view_profile", TRUE);
 
     /**
      * The ads Instant Games ask Facebook for ({@link app.morphe.extension.facebook.ads.GameAds}): each
@@ -308,6 +355,23 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting BLOCK_SCREENSHOT_DETECTION =
             new BooleanSetting("hushfacebook_block_screenshot_detection", TRUE);
+
+    /**
+     * Others see that you're typing, in a chat that opens inside Facebook and in a comment box
+     * ({@link app.morphe.extension.facebook.chats.TypingIndicator}). Both on once the patch is picked.
+     */
+    public static final BooleanSetting HIDE_CHAT_TYPING =
+            new BooleanSetting("hushfacebook_hide_chat_typing", TRUE);
+
+    public static final BooleanSetting HIDE_COMMENT_TYPING =
+            new BooleanSetting("hushfacebook_hide_comment_typing", TRUE);
+
+    /**
+     * The sender sees that you've read a chat that opens inside Facebook
+     * ({@link app.morphe.extension.facebook.chats.ReadReceipts}). On once the patch is picked.
+     */
+    public static final BooleanSetting HIDE_READ_RECEIPTS =
+            new BooleanSetting("hushfacebook_hide_read_receipts", TRUE);
 
     /**
      * A double tap on a reel or a video left without Facebook's like: no heart, no like sent. A
@@ -546,6 +610,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_download_videos", TRUE);
 
     /**
+     * Save photo in the photo viewer's menu for every photo, saved at its biggest size where
+     * downloads go. Off, the item shows only where the poster allows it and saves through Facebook.
+     */
+    public static final BooleanSetting DOWNLOAD_PHOTOS =
+            new BooleanSetting("hushfacebook_download_photos", TRUE);
+
+    /**
      * A start from Facebook's launcher icon opens the tab in {@link #START_TAB} instead of the one
      * Facebook would choose. Notifications, links and shortcuts keep their own destination.
      */
@@ -606,6 +677,27 @@ public class Settings extends BaseSettings {
 
     public static final BooleanSetting HIDE_EVENTS_TAB =
             new BooleanSetting("hushfacebook_hide_events_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_DATING_TAB =
+            new BooleanSetting("hushfacebook_hide_dating_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_PROFESSIONAL_DASHBOARD_TAB =
+            new BooleanSetting("hushfacebook_hide_professional_dashboard_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_SAVED_TAB =
+            new BooleanSetting("hushfacebook_hide_saved_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_AD_CENTER_TAB =
+            new BooleanSetting("hushfacebook_hide_ad_center_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_CREATE_TAB =
+            new BooleanSetting("hushfacebook_hide_create_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_EXPLORE_TAB =
+            new BooleanSetting("hushfacebook_hide_explore_tab", FALSE, true);
+
+    public static final BooleanSetting HIDE_JOBS_TAB =
+            new BooleanSetting("hushfacebook_hide_jobs_tab", FALSE, true);
 
     /**
      * The tab bar goes to the bottom of the screen on accounts Facebook gives it at the top
@@ -706,12 +798,20 @@ public class Settings extends BaseSettings {
     /**
      * The name a saved video gets: {date}, {video_id}, {owner}, {owner_id} and {posted} fill in per
      * save, the last four only when the save knows them, and the default is Facebook's own FB_VID_
-     * name, so nothing changes for anyone who leaves it. Photos keep their FB_IMG_ names. Cleaned
-     * like the folder wherever it's read ({@link FileNameTemplate#sanitize}), and like the folder,
-     * it isn't a switch.
+     * name, so nothing changes for anyone who leaves it. Photos have {@link #PHOTO_FILENAME_TEMPLATE}.
+     * Cleaned like the folder wherever it's read ({@link FileNameTemplate#sanitize}), and like the
+     * folder, it isn't a switch.
      */
     public static final StringSetting FILENAME_TEMPLATE =
             new StringSetting("hushfacebook_filename_template", FileNameTemplate.DEFAULT);
+
+    /**
+     * The name a saved photo gets, the same way: {date}, {photo_id}, {owner}, {owner_id} and
+     * {posted}, and Facebook's own FB_IMG_ name by default. Cleaned wherever it's read
+     * ({@link FileNameTemplate#sanitizePhoto}).
+     */
+    public static final StringSetting PHOTO_FILENAME_TEMPLATE =
+            new StringSetting("hushfacebook_photo_filename_template", FileNameTemplate.PHOTO_DEFAULT);
 
     /**
      * What a tap on Download does for a reel or a feed or Watch video: save it here, the default,

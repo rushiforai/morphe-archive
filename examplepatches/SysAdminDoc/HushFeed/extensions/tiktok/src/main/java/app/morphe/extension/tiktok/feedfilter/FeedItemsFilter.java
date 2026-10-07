@@ -64,6 +64,17 @@ public final class FeedItemsFilter {
         new AdvancedFeedRules.PublicationAgeFilter(),
         new AdvancedFeedRules.QualityFilter()
     );
+    private static final AdvancedFeedRules.UnpersonalizedForYouFilter UNPERSONALIZED_FILTER =
+        new AdvancedFeedRules.UnpersonalizedForYouFilter();
+    static final String UNPERSONALIZED_REASON = "UnpersonalizedForYouFilter";
+    /** The For You batch's distribute sources, counted while the unpersonalized rule is on. */
+    static final String FOR_YOU_DISTRIBUTION_SOURCE = "ForYouDistribution";
+    static final String KEPT_WHOLE_KIND = "batches kept whole";
+    /**
+     * The main feed's rules: every content rule, then the one that reads For You's own
+     * distribution marks, which no other route carries.
+     */
+    private static final List<IFilter> FOR_YOU_FILTERS = forYouFilters();
     private static volatile List<IFilter> RANGE_FILTERS = createRangeFilters();
     private static final List<IFilter> AD_ONLY_FILTERS = List.of(ADS_FILTER);
     private static final List<IFilter> LATE_FOLLOW_FILTERS = List.of(ADS_FILTER, LOCATION_FILTER);
@@ -111,6 +122,12 @@ public final class FeedItemsFilter {
     private static ProbeSummary filterCallProbeSummary = new ProbeSummary(System.currentTimeMillis());
 
     private FeedItemsFilter() {}
+
+    private static List<IFilter> forYouFilters() {
+        List<IFilter> filters = new ArrayList<>(CONTENT_FILTERS);
+        filters.add(UNPERSONALIZED_FILTER);
+        return Collections.unmodifiableList(filters);
+    }
 
     private static List<IFilter> createRangeFilters() {
         return List.of(new ViewCountFilter(), new LikeCountFilter(), new CommentCountFilter(),
@@ -1046,13 +1063,15 @@ public final class FeedItemsFilter {
         if (list == null) return;
         FeedFilterCounters.sawList(source, list.size());
 
+        boolean forYou = phase == FilterPhase.RESPONSE && owner instanceof FeedItemList;
         List<IFilter> activeContentFilters = getActiveFilters(
-            phase == FilterPhase.RESPONSE ? CONTENT_FILTERS : LATE_FOLLOW_FILTERS
+            forYou ? FOR_YOU_FILTERS : phase == FilterPhase.RESPONSE ? CONTENT_FILTERS : LATE_FOLLOW_FILTERS
         );
         List<IFilter> activeRangeFilters = phase == FilterPhase.RESPONSE
             ? getActiveFilters(RANGE_FILTERS)
             : List.of();
         if (activeContentFilters.isEmpty() && activeRangeFilters.isEmpty()) return;
+        boolean countDistribution = forYou && activeContentFilters.contains(UNPERSONALIZED_FILTER);
 
         String filterMask = getFilterMask(activeContentFilters, activeRangeFilters);
         ListFingerprint beforeFingerprint = ListFingerprint.from(list, extractor);
@@ -1086,13 +1105,16 @@ public final class FeedItemsFilter {
         List rangeKept = new ArrayList(snapshot.size());
         Object qualityFallback = null;
         double closestDistance = Double.POSITIVE_INFINITY;
+        List unpersonalized = new ArrayList();
         OwnPosts own = new OwnPosts();
+        if (countDistribution) FeedFilterCounters.sawList(FOR_YOU_DISTRIBUTION_SOURCE, initialSize);
         for (Object container : snapshot) {
             Aweme item = extractor.extract(container);
             if (item == null) {
                 rangeKept.add(container);
                 continue;
             }
+            if (countDistribution) countDistribution(item);
 
             String contentReason = getFilterReason(activeContentFilters, item);
             String rangeReason = contentReason == null ? getFilterReason(activeRangeFilters, item) : null;
@@ -1107,6 +1129,9 @@ public final class FeedItemsFilter {
                         qualityFallback = container;
                         closestDistance = distance;
                     }
+                }
+                if (contentReason.equals(UNPERSONALIZED_REASON) && getFilterReason(activeRangeFilters, item) == null) {
+                    unpersonalized.add(container);
                 }
                 contentRemoved++;
                 incrementReason(reasonCounts, contentReason);
@@ -1125,6 +1150,26 @@ public final class FeedItemsFilter {
         }
 
         own.report();
+        // The unpersonalized rule is about what TikTok pads For You with, so a batch that is all
+        // padding stays whole rather than leave the feed nothing to move to. Its candidates
+        // passed every other rule, which is why they go back before the quality fallback.
+        if (rangeKept.isEmpty() && !unpersonalized.isEmpty()) {
+            rangeKept.addAll(unpersonalized);
+            contentRemoved -= unpersonalized.size();
+            int left = reasonCounts.get(UNPERSONALIZED_REASON) - unpersonalized.size();
+            if (left > 0) reasonCounts.put(UNPERSONALIZED_REASON, left);
+            else reasonCounts.remove(UNPERSONALIZED_REASON);
+            FeedFilterCounters.sawKind(FOR_YOU_DISTRIBUTION_SOURCE, KEPT_WHOLE_KIND);
+            int keptWhole = unpersonalized.size();
+            if (verbose) {
+                Logger.printInfo(() -> "[Morphe TikTok FeedFilter] " + source + " kept " + keptWhole
+                    + " unpersonalized For You videos, since hiding them would have left nothing");
+            }
+        }
+        if (countDistribution) {
+            Integer dropped = reasonCounts.get(UNPERSONALIZED_REASON);
+            FeedFilterCounters.removed(FOR_YOU_DISTRIBUTION_SOURCE, dropped == null ? 0 : dropped, UNPERSONALIZED_REASON);
+        }
         // Never restore ads, blocked creators/words, seen videos, or other hard rejects.
         if (rangeKept.isEmpty() && qualityFallback != null) rangeKept.add(qualityFallback);
         List kept = rangeKept;
@@ -1234,6 +1279,23 @@ public final class FeedItemsFilter {
             }
         }
         return activeFilters;
+    }
+
+    /**
+     * One For You video's distribute source for the filter report, so an export says how much of
+     * the feed TikTok sent as fill-in next to how much the rule took out. The source is TikTok's
+     * label for its pool, never anything from the video, and the counter caps how many it keeps.
+     */
+    private static void countDistribution(Aweme item) {
+        String kind;
+        try {
+            String source = item.getItemDistributeSource();
+            kind = source == null || source.isEmpty() ? "none"
+                : source.length() > 40 ? source.substring(0, 40) : source;
+        } catch (RuntimeException exception) {
+            kind = "unreadable";
+        }
+        FeedFilterCounters.sawKind(FOR_YOU_DISTRIBUTION_SOURCE, kind);
     }
 
     private static String getFilterReason(List<IFilter> activeFilters, Aweme item) {
@@ -1570,7 +1632,7 @@ public final class FeedItemsFilter {
 
     /** Every filter a feed response runs through, content then ranges, for the classification test. */
     static List<IFilter> allFiltersForTests() {
-        List<IFilter> all = new ArrayList<>(CONTENT_FILTERS);
+        List<IFilter> all = new ArrayList<>(FOR_YOU_FILTERS);
         all.addAll(RANGE_FILTERS);
         return all;
     }

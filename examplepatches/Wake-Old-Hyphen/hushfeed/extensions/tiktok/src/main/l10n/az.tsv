@@ -906,7 +906,7 @@ Save	Saxla
 Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.	SRT fayllarını video ilə birlikdə saxlayın. Onlar Android 11+ versiyasında Movies qovluğuna, Android 10 versiyasında Download qovluğuna, daha köhnə versiyalarda isə video qovluğunuza gedir. Android 11+ versiyasında Təfərrüatları saxla yandırılıbsa, video Download və ya Documents qovluğuna köçür, SRT faylları isə Movies qovluğunda qalır.
 Save a profile picture on a long press	Uzun basmaqla profil şəklini saxlayın
 Save a story on a long press	Uzun basmaqla hekayəni saxlayın
-Save every photo in the post as TikTok received it, not as the screen shows it.	Paylaşımdakı hər fotonu ekranda göründüyü kimi deyil, TikTok-un aldığı kimi saxlayın.
+Save every photo in the post at full size as a JPEG, not as the screen shows it.	Paylaşımdakı hər fotonu ekranda göründüyü kimi deyil, tam ölçüdə JPEG kimi saxlayın.
 Save field values	Sahə dəyərlərini saxlayın
 Save full report	Tam hesabatı saxlayın
 Save media	Medianı saxlayın
@@ -1375,7 +1375,6 @@ Changes in Hushfeed %1$s	Hushfeed %1$s versiyasındakı dəyişikliklər
 Reviewed presets	Yoxlanılmış hazır ayarlar
 Show See translation	Tərcüməyə bax düyməsini göstərin
 Reviewed for TikTok %1$s	TikTok %1$s üçün yoxlanılıb
-%1$s (TikTok %2$s)	%1$s (TikTok %2$s)
 Value: %1$s to %2$s	Dəyər: %1$s - %2$s
 The presets couldn't load. Open the Lab again.	Hazır ayarlar yüklənə bilmədi. Lab-ı yenidən açın.
 Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.	Tətbiq etmək bu əvəzləmələri yandırır. Son Lab dəyişikliyini geri qaytarın seçimi Lab-da başqa bir şeyi dəyişənə qədər əvvəlki qaydalarınızı geri qaytarır.
@@ -1511,3 +1510,36 @@ Buttons on videos	Videolardakı düymələr
 Seen videos put back: %1$s of %2$s	Bərpa edilən baxılmış videolar: %1$s / %2$s
 No cleared videos fit the current history limits.	Silinmiş videoların heç biri cari tarixçə limitlərinə uyğun gəlmir.
 Putting seen videos back	Baxılmış videolar bərpa edilir
+# context: a line above the What's new release notes, which come from the English changelog and are not translated.
+These notes are in English.	Bu qeydlər ingilis dilindədir.
+Still waiting for the file app. Tap to stop waiting.	Hələ də fayl tətbiqi gözlənilir. Gözləməni dayandırmaq üçün toxunun.
+Stopped waiting for the file app. Nothing was changed.	Fayl tətbiqini gözləmək dayandırıldı. Heç nə dəyişdirilmədi.
+Stopped waiting for the file app. It hasn't said yet whether the backup was saved.	Fayl tətbiqini gözləmək dayandırıldı. O, ehtiyat nüsxənin saxlanılıb-saxlanılmadığını hələ bildirməyib.
+The backup wasn't saved. Back up again when the file app is ready.	Ehtiyat nüsxə saxlanılmadı. Fayl tətbiqi hazır olanda yenidən ehtiyat nüsxə yaradın.
+The file app still has the last file. Try again once it lets go, or restart TikTok.	Fayl tətbiqi son faylı hələ də saxlayır. O, faylı buraxdıqdan sonra yenidən cəhd edin və ya TikTok-u yenidən başladın.
+Waiting for the file app to let go of the last file. Restart TikTok if it doesn't.	Fayl tətbiqinin son faylı buraxması gözlənilir. Buraxmasa, TikTok-u yenidən başladın.
+Stopped waiting for the file app. Nothing was imported.	Fayl tətbiqini gözləmək dayandırıldı. Heç nə idxal edilmədi.
+The last report is still being saved	Son hesabat hələ saxlanılır
+Still waiting for the file app.	Hələ də fayl tətbiqi gözlənilir.
+Stop waiting	Gözləməni dayandır
+Stopped waiting for the file app. Nothing was exported.	Fayl tətbiqini gözləmək dayandırıldı. Heç nə ixrac edilmədi.
+Stopped waiting for the file app. It hasn't said yet whether the export was saved.	Fayl tətbiqini gözləmək dayandırıldı. O, ixracın saxlanılıb-saxlanılmadığını hələ bildirməyib.
+The export wasn't saved. Export again when the file app is ready.	İxrac saxlanılmadı. Fayl tətbiqi hazır olanda yenidən ixrac edin.
+Hide unpersonalized For You videos	Fərdiləşdirilməmiş Sənin üçün videolarını gizlədin
+Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.	TikTok-un Sənin üçün lentinə sizin üçün seçmədən göndərdiyi doldurucu videoları gizlədin. Bütün partiya doldurucudursa, lent boş qalmasın deyə saxlanılır.
+Unpersonalized For You videos	Fərdiləşdirilməmiş Sənin üçün videoları
+Reviewed presets for TikTok %1$s	TikTok %1$s üçün yoxlanılmış hazır ayarlar
+No presets have been reviewed for TikTok %1$s yet	TikTok %1$s üçün hələ yoxlanılmış hazır ayar yoxdur
+Repost with a comment	Şərhlə yenidən paylaşın
+Profile banner and new profile layout	Profil banneri və yeni profil görünüşü
+Comment with live photos, the camera or audio	Canlı fotolar, kamera və ya səslə şərh yazın
+Save comments to Favorites	Şərhləri Sevimlilərə saxlayın
+Comment sort and dislike styles	Şərh sıralaması və bəyənməmə üslubları
+Message bubble colors, Inbox archive and sharing to more chats	Mesaj balonu rəngləri, Gələnlər arxivi və daha çox söhbətə paylaşma
+Manage topics	Mövzuları idarə edin
+Visual search	Vizual axtarış
+AI Self	AI Self
+Long-press menu on every post	Hər paylaşımda uzun basma menyusu
+TikTok's hold to speed up	TikTok-un basıb saxlayaraq sürətləndirməsi
+TikTok's background play and auto-scroll	TikTok-un arxa planda oynatma və avtomatik sürüşdürməsi
+Post dates in the feed	Lentdə paylaşım tarixləri

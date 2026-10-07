@@ -6,8 +6,6 @@ import android.net.Uri;
 
 /** Repairs the stock Hissi host filter before ChMate expands menu templates. */
 public final class HissiMenuCompatibility {
-    private static final String CHMATE_WEB_VIEW_ACTIVITY =
-            "jp.syoboi.a2chMate.activity.WebViewActivity";
     private static final String EDDI_ARCHIVE_HOST = "eddiarchive3rd.boy.jp";
     private static final String EDDI_SCHEME = "haiagaru-eddi";
     private HissiMenuCompatibility() {}
@@ -123,20 +121,22 @@ public final class HissiMenuCompatibility {
         if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)
                 && !"haiagaru-hissi".equalsIgnoreCase(scheme)
                 && !"haiagaru-hissis".equalsIgnoreCase(scheme)) return;
-        Context context = Haiagaru.applicationContextForExtension();
-        if (context == null) return;
         if (Haiagaru.dedicatedCheckerViewerAvailable()) {
-            intent.setClassName(context, HissiMenuActivity.class.getName());
-        } else {
-            // dedicatedCheckerViewer=false deliberately uses ChMate's own
-            // WebViewActivity rather than the Haiagaru viewer. This keeps the
-            // result in the app and avoids handing the checker to a browser.
-            if ("haiagaru-hissi".equalsIgnoreCase(scheme)
-                    || "haiagaru-hissis".equalsIgnoreCase(scheme)) {
-                intent.setData(uri.buildUpon().scheme("haiagaru-hissis".equalsIgnoreCase(scheme)
-                        ? "https" : "http").build());
+            Context context = Haiagaru.applicationContextForExtension();
+            if (context != null) {
+                intent.setClassName(context, HissiMenuActivity.class.getName());
+                return;
             }
-            intent.setClassName(context, CHMATE_WEB_VIEW_ACTIVITY);
+        }
+
+        // With the optional viewer disabled, do not pin the URL to ChMate's
+        // WebViewActivity. Let Android resolve the ordinary http(s) URL so the
+        // user's browser choice is respected. Convert legacy custom schemes
+        // that may remain in an already-expanded or saved menu entry.
+        if ("haiagaru-hissi".equalsIgnoreCase(scheme)
+                || "haiagaru-hissis".equalsIgnoreCase(scheme)) {
+            intent.setData(uri.buildUpon().scheme("haiagaru-hissis".equalsIgnoreCase(scheme)
+                    ? "https" : "http").build());
         }
     }
 

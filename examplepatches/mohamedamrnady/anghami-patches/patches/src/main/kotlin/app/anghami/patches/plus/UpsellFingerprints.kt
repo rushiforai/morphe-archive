@@ -8,14 +8,14 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * Upgrade-upsell targets (Anghami 8.0.28, verified in base.apk smali).
+ * Upgrade-upsell targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Used by the "Hide upgrade upsell" patch. Forcing isPlus=true does NOT
  * remove this UI because it is driven by server-provided payloads, not by
  * the isPlusUser gate:
  * - Nav-bar upgrade entry: PreferenceHelper.getPlusTab() feeds the static
  *   flag `Lcom/anghami/util/c;->a:Z` (read in MainActivity and
- *   app/base/o.smali). Force false.
+ *   app/base/o). Force false.
  * - Restricted-queue prompts: getHasRestrictedQueue ("restricted_queue"
  *   pref) feeds queue-restriction UI. Force false.
  * - Homepage/library blue banner: HeaderBar.setData(BlueBarItem) renders
@@ -96,8 +96,8 @@ object BlueBarFillMemCacheFingerprint : Fingerprint(
 // ("Remove popup promos" patch) so all interruptive popups are one toggle.
 
 /**
- * In-feed upsell card as ButtonModel (Anghami 8.0.28, verified in base.apk
- * smali + on device via uiautomator: tv_title inside title_desc_container).
+ * In-feed upsell card as ButtonModel (Anghami 8.0.28, verified in Anghami 8.0.28
+ * on device: tv_title inside title_desc_container).
  *
  * The Library purple Plus card is a classic-adapter ButtonModel built from a
  * server APIButton payload (A4/a section factory fallthrough -> default
@@ -170,7 +170,7 @@ object GetSettingsQuestionFingerprint : Fingerprint(
  * (filterModels is search-only in _flatten). Nulling this getter prevents
  * the model from ever being created — gap-free by construction — and
  * flatten() falls back to its own no-button layout (16dp spacing via
- * LibraryFilterData). Sole caller is S5/n (verified in 8.0.28 smali);
+ * LibraryFilterData). Sole caller is S5/n (verified in 8.0.28);
  * ButtonModel.getButton (different class) is untouched.
  */
 object LibraryPromoButtonFingerprint : Fingerprint(

@@ -19,6 +19,7 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
@@ -52,6 +53,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.HushThreadsPause;
+import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.shared.settings.preference.AbstractPreferenceFragment;
 import app.morphe.extension.shared.settings.preference.ClearLogBufferPreference;
 import app.morphe.extension.shared.settings.preference.ExportDiagnosticReportPreference;
@@ -120,6 +122,10 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
     @Nullable
     SettingsNavigation navigation;
 
+    /** The saves listed in Downloads, or null when this build has no save patch. */
+    @Nullable
+    SaveSettingsRows.Saves saves;
+
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
@@ -154,6 +160,13 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         super.onResume();
         SettingsBackupPreference.onPageResumed(this);
         showSupportedLinks();
+        if (saves != null) saves.resume(getContext());
+    }
+
+    @Override
+    public void onPause() {
+        if (saves != null) saves.pause();
+        super.onPause();
     }
 
     @Override
@@ -226,7 +239,8 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         Set<PatchFamily> build = PatchFamily.inThisBuild();
 
         if (build.contains(PatchFamily.HIDE_ADS) || build.contains(PatchFamily.HIDE_SUGGESTED_USERS)
-                || build.contains(PatchFamily.RETURN_REFRESH) || build.contains(PatchFamily.VIDEO_AUTOPLAY)) {
+                || build.contains(PatchFamily.RETURN_REFRESH) || build.contains(PatchFamily.VIDEO_AUTOPLAY)
+                || build.contains(PatchFamily.MAX_IMAGE_QUALITY)) {
             PreferenceCategory feed = category(screen, L10n.t("Feed"));
             if (build.contains(PatchFamily.HIDE_ADS)) feed.addPreference(toggle(context, Settings.HIDE_ADS, L10n.t("Hide ads"),
                     L10n.t("Sponsored posts come out of For you and Following before Threads shows them, so no gap is "
@@ -247,10 +261,14 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                 feed.addPreference(toggle(context, Settings.DISABLE_VIDEO_AUTOPLAY, L10n.t("Tap to play videos"),
                         L10n.t("Videos in your feed wait for a tap instead of playing as you scroll.")));
             }
+            if (build.contains(PatchFamily.MAX_IMAGE_QUALITY)) {
+                feed.addPreference(toggle(context, Settings.MAX_IMAGE_QUALITY, L10n.t("Full size photos"),
+                        L10n.t("Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.")));
+            }
         }
 
         if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS) || build.contains(PatchFamily.EXTERNAL_BROWSER)
-                || build.contains(PatchFamily.DISABLE_ANALYTICS)) {
+                || build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.SCREENSHOT_DETECTION)) {
             PreferenceCategory privacy = category(screen, L10n.t("Privacy"));
             if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS)) {
                 privacy.addPreference(toggle(context, Settings.SANITIZE_SHARING_LINKS,
@@ -285,6 +303,27 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                 }
                 privacy.addPreference(info(context, L10n.t("Analytics address coverage"), coverage));
             }
+            if (build.contains(PatchFamily.SCREENSHOT_DETECTION)) {
+                privacy.addPreference(toggle(context, Settings.DISABLE_SCREENSHOT_DETECTION,
+                        L10n.t("Hide screenshots from Threads"),
+                        L10n.t("Threads isn't told when you take a screenshot, so it can't log it or react to it.")));
+            }
+        }
+
+        saves = null;
+        if (build.contains(PatchFamily.SAVE_MEDIA)) {
+            PreferenceCategory downloads = category(screen, L10n.t("Downloads"));
+            downloads.addPreference(toggle(context, Settings.SAVE_MEDIA, L10n.t("Save photos and videos"),
+                    L10n.t("Adds a Save row to a post's menu. A post with several photos or videos saves them all, "
+                            + "in order. Off or paused, the menu is Threads' own.")));
+            // Every save reads it, so it's here above the quality it keeps within.
+            downloads.addPreference(toggle(context, Settings.DOWNLOAD_COMPATIBLE, L10n.t("Save videos other apps can open"),
+                    L10n.t("For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves "
+                            + "without sound. May lower quality.")));
+            downloads.addPreference(SaveSettingsRows.qualityRow(context));
+            downloads.addPreference(SaveSettingsRows.folderRow(context));
+            downloads.addPreference(SaveSettingsRows.fileNameRow(context));
+            saves = new SaveSettingsRows.Saves(downloads);
         }
 
         if (build.contains(PatchFamily.PURE_BLACK)) {
@@ -310,7 +349,9 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
         updates.addPreference(checkNowRow(context));
         ReleaseCheck.watch(this);
 
-        if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)) {
+        if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)
+                || build.contains(PatchFamily.VERSION_CODE) || build.contains(PatchFamily.REMOVE_SHARE_TARGETS)
+                || build.contains(PatchFamily.TRUST_USER_CERTIFICATES)) {
             PreferenceCategory patched = category(screen, L10n.t("Set when you patched"));
             if (build.contains(PatchFamily.REMOVE_AD_ID)) {
                 patched.addPreference(mark(info(context, L10n.t("Advertising ID removed"),
@@ -321,6 +362,25 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
                 patched.addPreference(mark(info(context, L10n.t("Re-signed build fix"),
                         L10n.t("Screens that check Threads' own signature open again on this re-signed build.")),
                         SettingsIcons.BUILD));
+            }
+            if (build.contains(PatchFamily.VERSION_CODE)) {
+                patched.addPreference(mark(info(context, L10n.t("Version code raised"),
+                        L10n.t("This build's version code is the highest Android allows, so Google Play doesn't offer "
+                                + "Meta's updates over it. Threads' checks against the version it was built as still see "
+                                + "the real one. To go back to stock Threads, uninstall this one first, which deletes "
+                                + "Threads' data on this phone. Later HushThreads builds need Change version code too, "
+                                + "or they won't install over this one.")), SettingsIcons.UPDATES));
+            }
+            if (build.contains(PatchFamily.REMOVE_SHARE_TARGETS)) {
+                patched.addPreference(mark(info(context, L10n.t("Share sheet entry removed"),
+                        L10n.t("Threads doesn't show up when you share from other apps. Sharing from Threads to other "
+                                + "apps still works.")), SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.TRUST_USER_CERTIFICATES)) {
+                patched.addPreference(mark(info(context, L10n.t("User certificates trusted"),
+                        L10n.t("Threads accepts certificates you've installed yourself where Android checks them. Its "
+                                + "own checks on Meta's certificates haven't changed, so a proxy still can't read most "
+                                + "of its traffic.")), SettingsIcons.TOOLS));
             }
             patched.addPreference(info(context, L10n.t("Changing these"),
                     L10n.t("They're chosen in Morphe Manager when you patch, and Pause doesn't turn them off. "
@@ -726,6 +786,16 @@ public final class HushThreadsPreferenceFragment extends AbstractPreferenceFragm
     @Override
     protected ErrorActionStyler errorActionStyler() {
         return ScreenColors::recoveryAction;
+    }
+
+    /** The quality row says what its choice does, where the shared page would show only its name. */
+    @Override
+    protected void updateListPreferenceSummary(ListPreference listPreference, Setting<?> setting) {
+        if (listPreference instanceof SaveSettingsRows.QualityRow) {
+            ((SaveSettingsRows.QualityRow) listPreference).showSummary();
+        } else {
+            super.updateListPreferenceSummary(listPreference, setting);
+        }
     }
 
     @Override

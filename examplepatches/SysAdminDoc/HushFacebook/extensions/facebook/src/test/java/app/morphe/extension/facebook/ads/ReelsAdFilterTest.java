@@ -323,6 +323,55 @@ public class ReelsAdFilterTest {
         }
     }
 
+    /**
+     * A reel, Watch or in-stream ad's floating button stays off its comments while the switch is on.
+     * The pill's other plugins, and every plugin with the switch off, are Facebook's call.
+     */
+    @Test
+    public void anAdsFloatingButtonStaysOffItsCommentsOnlyWhileTheSwitchIsOn() {
+        String pills = "com.facebook.feedback.comments.plugins.indicatorpill.";
+        HookStatus.clear();
+        try {
+            for (String plugin : ReelsAdFilter.AD_PILLS) {
+                assertTrue(plugin, ReelsAdFilter.holdsAdPill(plugin));
+            }
+            assertFalse(ReelsAdFilter.holdsAdPill(pills + "organicmessagefloatingcta.OrganicMessageFloatingCtaPlugin"));
+            assertFalse(ReelsAdFilter.holdsAdPill(pills + "permalinkadsfloatingcta.PermalinkAdsFloatingCtaPlugin"));
+            assertFalse(ReelsAdFilter.holdsAdPill(null));
+            Settings.HIDE_SPONSORED_REELS.save(false);
+            assertFalse(ReelsAdFilter.holdsAdPill(pills + "reelsadsfloatingcta.ReelsAdsFloatingCtaPlugin"));
+
+            String line = null;
+            for (String candidate : HookStatus.report()) {
+                if (candidate.startsWith("Hide sponsored reels:")) line = candidate;
+            }
+            assertNotNull(String.join("\n", HookStatus.report()), line);
+            assertTrue(line, line.contains(ReelsAdFilter.AD_PILL_HELD + " 3"));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /** Each ad-break fetch the patch fails is counted, switch on or off, since it stays held either way. */
+    @Test
+    public void eachHeldAdBreakFetchIsCounted() {
+        HookStatus.clear();
+        try {
+            ReelsAdFilter.heldAdBreakFetch();
+            Settings.HIDE_SPONSORED_REELS.save(false);
+            ReelsAdFilter.heldAdBreakFetch();
+
+            String line = null;
+            for (String candidate : HookStatus.report()) {
+                if (candidate.startsWith("Hide sponsored reels:")) line = candidate;
+            }
+            assertNotNull(String.join("\n", HookStatus.report()), line);
+            assertTrue(line, line.contains(ReelsAdFilter.AD_BREAK_FETCH_HELD + " 2"));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
     /** A page whose iteration fails, the way a list changed on another thread would. */
     private static List<Object> failingPage() {
         return new AbstractList<Object>() {

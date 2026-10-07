@@ -40,7 +40,6 @@ import java.util.TimeZone;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.RejectedExecutionException;
 
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -207,27 +206,26 @@ public final class LogBufferManager {
             Utils.showToastShort(say(alreadySavingMessage, "A diagnostic report is already being saved."));
             return;
         }
-        try {
-            Utils.submitOnBackgroundThread(() -> {
-                try {
-                    String exportText = buildDetailsOnly ? BuildDetails.report() : buildExportText();
-                    if (exportText.isEmpty()) {
-                        Utils.showToastShort(say(nothingToExportMessage, "No matching diagnostics found."));
-                    } else {
-                        String saved = writeToFile(app, exportText);
-                        Utils.showToastLong(String.format(say(savedToMessage, "Full report saved to %1$s"), saved));
-                    }
-                } catch (Exception ex) {
-                    Utils.showToastLong(say(exportFailedMessage, "The diagnostic report couldn't be saved. Try again."));
-                    Logger.printException(() -> "Failed to save diagnostics", ex);
-                } finally {
-                    FILE_EXPORT_RUNNING.set(false);
+        // A thread of its own: a MediaStore write that stalls would otherwise hold one of the few
+        // shared background threads for as long as it stalls.
+        boolean started = Utils.runOnOwnThread("morphe-diagnostic-export", () -> {
+            try {
+                String exportText = buildDetailsOnly ? BuildDetails.report() : buildExportText();
+                if (exportText.isEmpty()) {
+                    Utils.showToastShort(say(nothingToExportMessage, "No matching diagnostics found."));
+                } else {
+                    String saved = writeToFile(app, exportText);
+                    Utils.showToastLong(String.format(say(savedToMessage, "Full report saved to %1$s"), saved));
                 }
-                return null;
-            });
-        } catch (RejectedExecutionException error) {
+            } catch (Exception ex) {
+                Utils.showToastLong(say(exportFailedMessage, "The diagnostic report couldn't be saved. Try again."));
+                Logger.printException(() -> "Failed to save diagnostics", ex);
+            } finally {
+                FILE_EXPORT_RUNNING.set(false);
+            }
+        });
+        if (!started) {
             FILE_EXPORT_RUNNING.set(false);
-            Logger.printException(() -> "Could not start diagnostic export", error);
             Utils.showToastLong(say(couldNotStartMessage, "Couldn't start the report export. Try again shortly."));
         }
     }

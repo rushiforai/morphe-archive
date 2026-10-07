@@ -26,6 +26,7 @@ import com.ss.android.ugc.aweme.feed.model.AwemeStatistics;
 import com.ss.android.ugc.aweme.feed.model.FeedItemList;
 import com.ss.android.ugc.aweme.feed.model.PhotoModeImageInfo;
 import com.ss.android.ugc.aweme.feed.model.PhotoModeTextInfo;
+import com.ss.android.ugc.aweme.feed.model.RecReasonsStruct;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -141,7 +142,7 @@ public class CreatorExceptionsTest {
         boolean ad, promotionalMusic, liveReplay, story, paidContent;
         long liveId;
         int awemeType;
-        String shareUrl, region, captionLanguage;
+        String shareUrl, region, captionLanguage, distributeSource;
         String desc = "";
         List<Object> images;
         List<?> anchors;
@@ -167,6 +168,8 @@ public class CreatorExceptionsTest {
         @Override public PhotoModeTextInfo getPhotoModeTextInfo() { return null; }
         @Override public AwemeStatistics getStatistics() { return stats; }
         @Override public String getShareUrl() { return shareUrl; }
+        @Override public String getItemDistributeSource() { return distributeSource; }
+        @Override public RecReasonsStruct getRecReasonsStruct() { return null; }
         public Object getAuthor() { return author; }
         public String getDesc() { return desc; }
         public String getRegion() { return region; }
@@ -221,6 +224,8 @@ public class CreatorExceptionsTest {
                         item -> item.createTime = nowSeconds - 30L * 86_400L),
                 new Case("QualityFilter", () -> Settings.MAX_VIDEO_SECONDS.save(1),
                         item -> item.durationMs = 5_000),
+                new Case("UnpersonalizedForYouFilter", () -> Settings.HIDE_UNPERSONALIZED_FOR_YOU.save(true),
+                        item -> item.distributeSource = "for_you_page_999"),
                 new Case("ViewCountFilter", () -> range(Settings.MIN_MAX_VIEWS), item -> item.stats.views = 5),
                 new Case("LikeCountFilter", () -> range(Settings.MIN_MAX_LIKES), item -> item.stats.likes = 5),
                 new Case("CommentCountFilter", () -> range(Settings.MIN_MAX_COMMENTS),
@@ -273,7 +278,7 @@ public class CreatorExceptionsTest {
                 Settings.FILTER_LOCATION_VIDEOS, Settings.HIDE_AI_GENERATED, Settings.HIDE_VERIFIED,
                 Settings.HIDE_SERIES, Settings.HIDE_MINI_DRAMAS, Settings.HIDE_PLAYLIST_VIDEOS,
                 Settings.HIDE_INSERTED_CARDS, Settings.HIDE_SEEN_VIDEOS, Settings.HIDE_PROMOTIONAL_MUSIC,
-                Settings.HIDE_LIVE_REPLAYS,
+                Settings.HIDE_LIVE_REPLAYS, Settings.HIDE_UNPERSONALIZED_FOR_YOU,
         };
     }
 
@@ -631,7 +636,7 @@ public class CreatorExceptionsTest {
         assertEquals(new TreeSet<>(List.of("AiGeneratedFilter", "CommentCountFilter", "FavouriteCountFilter",
                 "ImageVideoFilter", "LikeCountFilter", "LocationBadgeFilter", "PlaylistFilter",
                 "PublicationAgeFilter", "QualityFilter", "ShareCountFilter", "StoryFilter",
-                "VerifiedFilter", "ViewCountFilter")), subjective);
+                "UnpersonalizedForYouFilter", "VerifiedFilter", "ViewCountFilter")), subjective);
     }
 
     @Test

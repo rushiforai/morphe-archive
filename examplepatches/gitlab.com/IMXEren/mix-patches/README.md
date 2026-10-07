@@ -7,7 +7,7 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.7.2](https://gitlab.com/IMXEren/mix-patches/-/releases/v1.7.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.8.0](https://gitlab.com/IMXEren/mix-patches/-/releases/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
 <summary>📦 RailOne&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -40,7 +40,7 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 </details>
 
 <details open>
-<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
+<summary>📦 Sync for Reddit&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -55,6 +55,7 @@ Custom patches using Morphe. 'Mix' originates from Morphe + IMXEren (also, mixed
 | [Fix random crash](#fix-random-crash) | Fixes an occasional crash while browsing Reddit. |  |
 | [Merge profile feeds](#merge-profile-feeds) | Merges profile submissions and comments from Arctic Shift and Reddit. |  |
 | [Open Redgifs links in WebView on failure](#open-redgifs-links-in-webview-on-failure) | Falls back to Sync's in-app WebView when native Redgifs playback fails. |  |
+| [Restore deleted posts](#restore-deleted-posts) | Restores deleted or removed post content from Arctic Shift when available. |  |
 
 </details>
 

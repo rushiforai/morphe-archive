@@ -347,13 +347,26 @@ public class SettingsL10nTest {
         assertFalse(repeatsItsName("The removed advertising ID permission (" + L10n.isolate("Remove the advertising ID")
                 + ").", "Remove the advertising ID"));
 
-        // Every family in this build has a switch, so none has a staysWhilePaused of its own to
-        // check here for real. staysWhilePausedForTests substitutes one that, correctly, doesn't
-        // repeat its patch's name, so the check above still runs against every shipped language.
+        // The real items, Analytics' manifest flags and the removed ad permissions, in every
+        // shipped language.
+        List<String> repeats = new ArrayList<>();
+        int real = 0;
+        for (PatchFamily family : PatchFamily.values()) {
+            if (family.staysWhilePaused == null) continue;
+            real++;
+            for (String language : new String[]{"en", "de", "es", "in-rID", "pt-rBR", "tr"}) {
+                RuntimeEnvironment.setQualifiers("+" + language);
+                String shown = PatchFamily.staysWhilePausedSummary(EnumSet.of(family));
+                if (repeatsItsName(shown, family.patchName)) repeats.add(language + ": " + shown);
+            }
+        }
+        assertEquals("real stays items checked", 3, real);
+
+        // staysWhilePausedForTests substitutes one more item that, correctly, doesn't repeat its
+        // patch's name, so the check also runs on a family whose item a test supplies.
         PatchFamily.staysWhilePausedForTests = Collections.singletonMap(PatchFamily.HIDE_ADS,
                 "the sponsored message cache cleared when you patched");
         try {
-            List<String> repeats = new ArrayList<>();
             for (String language : new String[]{"en", "de", "es", "in-rID", "pt-rBR", "tr"}) {
                 RuntimeEnvironment.setQualifiers("+" + language);
                 String shown = PatchFamily.staysWhilePausedSummary(EnumSet.of(PatchFamily.HIDE_ADS));

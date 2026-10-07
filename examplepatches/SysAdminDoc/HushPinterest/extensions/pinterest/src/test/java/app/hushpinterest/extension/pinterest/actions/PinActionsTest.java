@@ -220,6 +220,53 @@ public class PinActionsTest {
         assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
     }
 
+    @Test public void aStandInSizeQueuesTheOriginalTheMediaHostHasOrElseItself() throws Exception {
+        Map<String, Object> standIn = Map.of("id", "123456", "images", Map.of(
+                "236x", Map.of("url", "https://i.pinimg.com/236x/0b/b2/5b/0bb25b05de960e1fee5da5e9c4e8f12e.jpg"),
+                "736x", Map.of("url", MediaHostForTests.STAND_IN, "width", 736, "height", 1104)));
+        Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
+        await.setAccessible(true);
+        DownloadManager manager = (DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE);
+        ShadowDownloadManager downloads = Shadows.shadowOf(manager);
+        try (MediaHostForTests host = MediaHostForTests.install()) {
+            host.answer(MediaHostForTests.ORIGINALS + ".png", 200, "image/png");
+            assertTrue(PinDownloads.start(standIn, activity));
+            await.invoke(null);
+            assertEquals(1, downloads.getRequestCount());
+            ShadowDownloadManager.ShadowRequest original = Shadow.extract(downloads.getRequest(0));
+            assertEquals(MediaHostForTests.ORIGINALS + ".png", original.getUri().toString());
+            assertEquals("image/png", original.getMimeType());
+            assertTrue(original.getDestination().getLastPathSegment().matches("Pinterest_123456_[0-9]+\\.png"));
+            assertEquals(2, host.asked.size());
+
+            host.asked.clear();
+            host.answer(MediaHostForTests.ORIGINALS + ".png", 403, "application/xml");
+            assertTrue(PinDownloads.start(standIn, activity));
+            await.invoke(null);
+            assertEquals(2, downloads.getRequestCount());
+            ShadowDownloadManager.ShadowRequest largest = Shadow.extract(downloads.getRequest(1));
+            assertEquals(MediaHostForTests.STAND_IN, largest.getUri().toString());
+            assertEquals("image/jpeg", largest.getMimeType());
+            assertTrue(largest.getDestination().getLastPathSegment().endsWith(".jpg"));
+            assertEquals(4, host.asked.size());
+        }
+    }
+
+    @Test public void aSuppliedOriginalIsQueuedWithoutAskingTheMediaHost() throws Exception {
+        try (MediaHostForTests host = MediaHostForTests.install()) {
+            assertTrue(PinDownloads.start(Map.of("id", "123456", "images", Map.of(
+                    "orig", Map.of("url", MediaHostForTests.ORIGINALS + ".jpg"),
+                    "736x", Map.of("url", MediaHostForTests.STAND_IN))), activity));
+            Method await = Utils.class.getDeclaredMethod("awaitBackgroundTasksForTests");
+            await.setAccessible(true);
+            await.invoke(null);
+            ShadowDownloadManager downloads = Shadows.shadowOf((DownloadManager) activity.getSystemService(Context.DOWNLOAD_SERVICE));
+            ShadowDownloadManager.ShadowRequest request = Shadow.extract(downloads.getRequest(0));
+            assertEquals(MediaHostForTests.ORIGINALS + ".jpg", request.getUri().toString());
+            assertTrue(host.asked.isEmpty());
+        }
+    }
+
     @Test public void suppliedMp4QueuesItsOwnUrlAndType() throws Exception {
         assertTrue(PinDownloads.start(Map.of("id", "123456", "videos", Map.of("video_list", Map.of(
                 "mp4", Map.of("url", "https://v.pinimg.com/source.mp4", "width", 1920, "height", 1080)))), activity));
@@ -255,7 +302,7 @@ public class PinActionsTest {
     @Test public void knownUnsupportedPinsExplainTheRefusalWithoutQueuingAndUnknownModelsStayNative() {
         assertFalse(PinDownloads.start(Map.of("id", "123", "images", Map.of()), activity));
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        assertEquals("Pinterest hasn't supplied an original image to download.", ShadowToast.getTextOfLatestToast());
+        assertEquals("Pinterest hasn't supplied an image to download.", ShadowToast.getTextOfLatestToast());
         assertFalse(PinDownloads.start(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
                 "hls", Map.of("url", "https://v.pinimg.com/master.m3u8")))), activity));
         Shadows.shadowOf(Looper.getMainLooper()).idle();

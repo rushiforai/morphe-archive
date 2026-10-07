@@ -166,6 +166,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean typingIndicator() {
+        return false;
+    }
+
+    public static boolean readReceipts() {
+        return false;
+    }
+
     public static boolean audienceNetwork() {
         return false;
     }
@@ -214,11 +222,19 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean photoDownload() {
+        return false;
+    }
+
     public static boolean startTab() {
         return false;
     }
 
     public static boolean marketplaceOnly() {
+        return false;
+    }
+
+    public static boolean sellerViewProfile() {
         return false;
     }
 

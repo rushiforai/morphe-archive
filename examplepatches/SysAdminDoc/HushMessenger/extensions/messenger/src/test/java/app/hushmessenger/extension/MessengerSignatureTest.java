@@ -43,6 +43,7 @@ public class MessengerSignatureTest {
 
     private static void reset() {
         MessengerSignature.ownSigners = null;
+        MessengerSignature.ownPackage = null;
         for (int i = 0; i < MessengerSignature.CALLER_OUTCOMES.length; i++) MessengerSignature.callerCounts.set(i, 0);
     }
 
@@ -82,10 +83,34 @@ public class MessengerSignatureTest {
     }
 
     @Test public void messengerItselfAlwaysGetsMetasCertificate() throws Exception {
+        MessengerSignature.ownPackage = "com.facebook.orca";
         PackageInfo messenger = new PackageInfo();
         messenger.packageName = "com.facebook.orca";
         assertMetaCertificate(MessengerSignature.originalSigners(messenger));
         assertNull(MessengerSignature.originalSigners(null));
+    }
+
+    @Test public void aCloneAnswersForItsOwnNameAndNotForTheMessengerBesideIt() throws Exception {
+        MessengerSignature.ownPackage = "com.facebook.orca.hush";
+        PackageInfo clone = new PackageInfo();
+        clone.packageName = "com.facebook.orca.hush";
+        assertMetaCertificate(MessengerSignature.originalSigners(clone));
+        PackageInfo messenger = new PackageInfo();
+        messenger.packageName = "com.facebook.orca";
+        assertNull(MessengerSignature.originalSigners(messenger));
+    }
+
+    @Test public void theOwnPackageComesFromTheProcessName() {
+        String own = RuntimeEnvironment.getApplication().getPackageName();
+        assertEquals(own, android.app.Application.getProcessName());
+        assertEquals(own, MessengerSignature.ownPackage());
+        assertEquals(own, MessengerSignature.ownPackage);
+        PackageInfo self = new PackageInfo();
+        self.packageName = own;
+        assertNotNull(MessengerSignature.originalSigners(self));
+        PackageInfo messenger = new PackageInfo();
+        messenger.packageName = MessengerSignature.PACKAGE;
+        assertNull(MessengerSignature.originalSigners(messenger));
     }
 
     @Test public void sameKeyFacebookCallingMessengerIsAnsweredAsMetaSigned() throws Exception {
@@ -158,7 +183,9 @@ public class MessengerSignatureTest {
     }
 
     @Test public void aBuildStillCarryingMetasKeyStepsAside() throws Exception {
+        MessengerSignature.ownPackage = "com.facebook.orca";
         Signature meta = MessengerSignature.originalSigners(namedMessenger()).get(0);
+        MessengerSignature.ownPackage = null;
         install(RuntimeEnvironment.getApplication().getPackageName(), Process.myUid(), meta);
         PackageInfo facebook = callingFacebook(meta);
         assertNull(MessengerSignature.originalSigners(facebook));

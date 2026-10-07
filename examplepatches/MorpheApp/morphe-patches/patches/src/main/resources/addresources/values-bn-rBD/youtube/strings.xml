@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">সম্পর্কিত</string>
   <string name="morphe_settings_screen_01_ads_title">বিজ্ঞাপন</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">বিকল্প থাম্বনেইল</string>
   <string name="morphe_settings_screen_03_feed_title">ফিড</string>
   <string name="morphe_settings_screen_04_general_title">সাধারণ</string>
   <string name="morphe_settings_screen_05_player_title">প্লেয়ার</string>
@@ -65,6 +64,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_artist_cards_title">আর্টিস্ট কার্ড লুকান</string>
   <string name="morphe_hide_artist_cards_summary">অনুসন্ধান ফলাফলের শীর্ষে শিল্পীর কার্ডটি লুকিয়ে রাখে</string>
   <string name="morphe_hide_auto_dubbed_label_title">\'অটো-ডাবড\' লেবেল লুকান</string>
+  <string name="morphe_hide_channel_buttons_title">চ্যানেল বাটন লুকান</string>
+  <string name="morphe_hide_channel_buttons_summary">সাবস্ক্রাইব, ভিউ চ্যানেল, কমিউনিটি এবং YouTube Music এর মতো বাটনগুলো সার্চ ফলাফলে চ্যানেল প্রোফাইল থেকে লুকিয়ে রাখে</string>
   <string name="morphe_hide_community_posts_title">সম্প্রদায় পোস্ট লুকান</string>
   <string name="morphe_hide_compact_banner_title">সংক্ষিপ্ত ব্যানার লুকান</string>
   <string name="morphe_hide_compact_banner_summary">কম্প্যাক্ট ব্যানার এবং কিছু উপাদানের মধ্যে স্থান লুকিয়ে রাখে</string>
@@ -76,7 +77,6 @@ Second \"item\" text"</string>
   <string name="morphe_hide_floating_microphone_button_summary">অনুসন্ধান প্রস্তাবনার স্ক্রিনের নীচের-ডান কোণে ভাসমান মাইক্রোফোন বোতামটি লুকিয়ে রাখে</string>
   <string name="morphe_hide_get_premium_button_title">\'Get Premium\' বোতামটি লুকান</string>
   <string name="morphe_hide_history_shelf_title">ইতিহাস শেলফ লুকান</string>
-  <string name="morphe_hide_history_shelf_summary">আপনি ট্যাবে ইতিহাস শেলফটি লুকিয়ে রাখে</string>
   <string name="morphe_hide_horizontal_shelves_title">আনুভূমিক শেলফ লুকান</string>
   <string name="morphe_hide_horizontal_shelves_summary">ব্রেকিং নিউজ, কমিউনিটি পোস্ট যা আপনার ভালো লাগতে পারে, দেখা চালিয়ে যান, আরও চ্যানেল দেখুন, আরও বিষয় দেখুন, আপনার জন্য, নতুন ভিডিও, সবচেয়ে প্রাসঙ্গিক, নির্মাতার কমিউনিটি থেকে পোস্ট, শপিং এবং আবার দেখুন—এর মতো অনুভূমিক শেলফগুলি লুকায়।</string>
   <string name="morphe_hide_hyped_label_title">হাইপড লেবেল লুকান</string>
@@ -110,7 +110,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_show_more_button_title">\'আরও দেখান\' বোতাম লুকান</string>
   <string name="morphe_hide_show_more_button_summary">অনুসন্ধান ফলাফলে ভিডিওর নিচে Expand বোতামটি লুকায়</string>
   <string name="morphe_hide_subscribed_channels_bar_title">সাবস্ক্রাইব করা চ্যানেলগুলির তালিকা লুকান</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">সাবস্ক্রাইবড চ্যানেল বারে চ্যানেলের নামগুলো লুকান</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">সাবস্ক্রাইব করা চ্যানেলের নাম লুকান</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">সাবস্ক্রাইব করা চ্যানেল বারে চ্যানেলের নাম লুকিয়ে রাখে</string>
   <string name="morphe_hide_surveys_title">সার্ভে লুকান</string>
   <string name="morphe_hide_surveys_summary">ফিডের সুপারিশ নির্ভুলতা সম্পর্কে সমীক্ষা এবং নাজগুলি লুকায়।</string>
   <string name="morphe_hide_ticket_shelf_title">টিকিট তাক লুকান</string>
@@ -159,6 +160,11 @@ Second \"item\" text"</string>
   <string name="morphe_hide_sync_button_title">\'ভিডিওর সাথে সিঙ্ক করুন\' বোতামটি লুকিয়ে রাখুন</string>
   <string name="morphe_hide_timed_reactions_title">সময় অনুযায়ী প্রতিক্রিয়া লুকান</string>
   <string name="morphe_hide_timed_reactions_summary">মন্তব্য এবং লাইভ চ্যাট বিভাগে ইমোজি দিয়ে প্রতিক্রিয়া জানানোর বৈশিষ্ট্যটি লুকায়</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">মেনুতে \'সাহায্য &amp; মতামত\' লুকান</string>
+  <string name="morphe_hide_help_feedback_menu_summary">অ্যাপ বারের তিন-বিন্দু মেনুগুলোতে \'সাহায্য &amp; মতামত\' লুকিয়ে রাখে, যেমন অনুসন্ধান ফলাফল মেনুতে</string>
+  <string name="morphe_hide_handle_title">হ্যান্ডেল লুকান</string>
+  <string name="morphe_hide_handle_summary">আপনার চ্যানেল হ্যান্ডেল \'You\' ট্যাবে লুকিয়ে রাখে</string>
   <string name="morphe_hide_video_title_title">ভিডিওর শিরোনাম লুকান</string>
   <string name="morphe_hide_video_title_summary">ফুলস্ক্রিন মোডে ভিডিওর শিরোনাম লুকায়</string>
   <string name="morphe_sanitize_video_subtitle_title">ভিডিও সাবটাইটেল স্যানিটাইজ করুন</string>
@@ -681,7 +687,7 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">কানেক্ট বাটনটি লুকিয়ে রাখুন</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">রিপোর্ট লুকানোর বোতাম</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">রিমিক্স বোতামটি লুকান</string>
@@ -1060,10 +1066,7 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
   <string name="morphe_playback_in_feeds_entry_off">বন্ধ</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">মূল শিরোনাম পুনরুদ্ধার করুন</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">অনূদিত</string>
-  <string name="morphe_restore_original_titles_type_entry_original">মূল</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">DeArrow দিয়ে অনুবাদিত</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">DeArrow সহ মূল</string>
+  <string name="morphe_restore_original_titles_summary">স্বয়ংক্রিয় অনুবাদগুলির পরিবর্তে মূল ভিডিও শিরোনাম, ভিডিও বিবরণ এবং চ্যানেলের বিবরণ দেখায়</string>
   <string name="morphe_restore_original_titles_loading">শিরোনাম লোড হচ্ছে…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">স্বয়ংক্রিয় ফিড রিফ্রেশ নিষ্ক্রিয় করুন</string>
@@ -1137,39 +1140,42 @@ OpenRouter.ai ওপেন করতে এখানে ট্যাপ কর�
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">ছবি অঞ্চল সীমাবদ্ধতা বাইপাস করুন</string>
   <string name="morphe_bypass_image_region_restrictions_summary">সীমাবদ্ধ দেশে অনুপস্থিত ছবিগুলি ঠিক করার জন্য একটি বিকল্প সার্ভারে থাম্বনেইল অনুরোধগুলি পুনরায় ডিরেক্ট করে</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">DeArrow শিরোনাম</string>
+  <string name="morphe_dearrow_titles_summary">DeArrow-এ জমা দেওয়া ক্রাউডসোর্সড শিরোনাম দিয়ে ভিডিও শিরোনামগুলিকে প্রতিস্থাপন করে</string>
+  <string name="morphe_dearrow_titles_icon_title">DeArrow আইকন দেখান</string>
+  <string name="morphe_dearrow_titles_icon_summary">ক্রাউডসোর্সড ভিডিও শিরোনামে DeArrow আইকন দেখায়</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">হোম ট্যাবের জন্য</string>
+  <string name="morphe_dearrow_thumbnail_home_title">হোম ট্যাবের জন্য</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">সাবস্ক্রিপশন ট্যাবের জন্য</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">সাবস্ক্রিপশন ট্যাবের জন্য</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">আপনি ট্যাবের জন্য</string>
-  <string name="morphe_alt_thumbnail_player_title">প্লেয়ার প্লেলিস্ট এবং সুপারিশের জন্য</string>
-  <string name="morphe_alt_thumbnail_search_title">অনুসন্ধান ফলাফলের জন্য</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">মূল থাম্বনেইল</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; আসল থাম্বনেইল</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; স্থির ক্যাপচার</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">স্থির ছবি</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow ইউটিউব ভিডিওর জন্য ক্রাউডসোর্সড থাম্বনেইল সরবরাহ করে। এই থাম্বনেইলগুলো প্রায়শই ইউটিউবের দেওয়া থাম্বনেইলের চেয়ে বেশি প্রাসঙ্গিক হয়।
+  <string name="morphe_dearrow_thumbnail_library_title">আপনি ট্যাবের জন্য</string>
+  <string name="morphe_dearrow_thumbnail_player_title">প্লেয়ার প্লেলিস্ট এবং সুপারিশের জন্য</string>
+  <string name="morphe_dearrow_thumbnail_search_title">অনুসন্ধান ফলাফলের জন্য</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">মূল থাম্বনেইল</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; আসল থাম্বনেইল</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; স্থির ক্যাপচার</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">স্থির ছবি</string>
+  <string name="morphe_dearrow_about_summary">"DeArrow YouTube ভিডিওগুলির জন্য ক্রাউডসোর্সড শিরোনাম এবং থাম্বনেইল সরবরাহ করে। এগুলি প্রায়শই YouTube-এর দেওয়া শিরোনামগুলির চেয়ে বেশি প্রাসঙ্গিক।
 
-এটি চালু থাকলে, ভিডিওর URL এপিআই (API) সার্ভারে পাঠানো হবে এবং অন্য কোনো তথ্য পাঠানো হবে না। কোনো ভিডিওর DeArrow থাম্বনেইল না থাকলে, মূল থাম্বনেইল বা স্থিরচিত্র দেখানো হবে।
+সক্রিয় করা থাকলে, ভিডিওর URL-গুলো API সার্ভারে পাঠানো হবে এবং অন্য কোনো ডেটা পাঠানো হয় না। কোনো ভিডিওতে DeArrow থাম্বনেইল না থাকলে, মূল বা স্থির ক্যাপচার দেখানো হয়।
 
-DeArrow.ajay.app ওপেন করতে এখানে ট্যাপ করুন"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">সংযোগ ত্রুটি সতর্কতা দেখান</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">DeArrow সার্ভার উপলব্ধ না থাকলে একটি বিজ্ঞপ্তি দেখায়</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API এন্ডপয়েন্ট</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">DeArrow থাম্বনেইল ক্যাশ এন্ডপয়েন্টের URL</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">ভিডিওর স্থির ছবি</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">স্টিল ক্যাপচার প্রতিটি ভিডিওর শুরু/মাঝামাঝি/শেষ থেকে নেওয়া হয়। এই ছবিগুলি YouTube-এ তৈরি করা হয়েছে এবং কোনও বাহ্যিক API ব্যবহার করা হয় না</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">দ্রুততম স্থির চিত্র ব্যবহার করুন</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">উচ্চ মানের ছবি ব্যবহার করে লোডিং গতি উন্নত করে। লাইভ স্ট্রিম, অপ্রকাশিত এবং পুরানো ভিডিওগুলিতে ফাঁকা থাম্বনেইল প্রদর্শিত হতে পারে</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">ফ্রেম থেকে ভিডিও বের করুন</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">শুরু</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">মাঝামাঝি</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">শেষ</string>
+DeArrow.ajay.app খুলতে এখানে আলতো চাপুন"</string>
+  <string name="morphe_dearrow_connection_toast_title">সংযোগ ত্রুটি সতর্কতা দেখান</string>
+  <string name="morphe_dearrow_connection_toast_summary">DeArrow সার্ভার উপলব্ধ না থাকলে একটি বিজ্ঞপ্তি দেখায়</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API এন্ডপয়েন্ট</string>
+  <string name="morphe_dearrow_api_url_summary">DeArrow থাম্বনেইল ক্যাশ এন্ডপয়েন্টের URL</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">ভিডিওর স্থির ছবি</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">স্টিল ক্যাপচার প্রতিটি ভিডিওর শুরু/মাঝামাঝি/শেষ থেকে নেওয়া হয়। এই ছবিগুলি YouTube-এ তৈরি করা হয়েছে এবং কোনও বাহ্যিক API ব্যবহার করা হয় না</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">ফ্রেম থেকে ভিডিও বের করুন</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">শুরু</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">মাঝামাঝি</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">শেষ</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow সাময়িকভাবে উপলব্ধ নেই (স্ট্যাটাস কোড: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow সাময়িকভাবে উপলব্ধ নেই</string>
+  <string name="morphe_dearrow_error">DeArrow সাময়িকভাবে উপলব্ধ নেই (স্ট্যাটাস কোড: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow সাময়িকভাবে উপলব্ধ নেই</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">পুরানো প্লেয়ারের বোতামের স্টাইল পুনরুদ্ধার করুন</string>

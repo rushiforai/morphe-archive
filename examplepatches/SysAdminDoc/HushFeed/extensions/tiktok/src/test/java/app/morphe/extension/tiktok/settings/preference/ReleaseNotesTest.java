@@ -227,8 +227,12 @@ public class ReleaseNotesTest {
         android.widget.TextView body = texts.get(1);
         assertTrue("the notes are missing: " + body.getText(),
                 body.getText().toString().startsWith("Hushfeed 0.60.0"));
-        assertEquals("the notes are not marked as English for a screen reader",
-                java.util.Locale.ENGLISH, body.getTextLocale());
+        android.text.Spanned notes = (android.text.Spanned) body.getText();
+        android.text.style.LocaleSpan[] spans = notes.getSpans(0, notes.length(), android.text.style.LocaleSpan.class);
+        assertEquals("the notes are not marked as English for a screen reader", 1, spans.length);
+        assertEquals(java.util.Locale.ENGLISH, spans[0].getLocale());
+        assertEquals(0, notes.getSpanStart(spans[0]));
+        assertEquals(notes.length(), notes.getSpanEnd(spans[0]));
     }
 
     /** The text views in the What's new dialog's body, top to bottom. */

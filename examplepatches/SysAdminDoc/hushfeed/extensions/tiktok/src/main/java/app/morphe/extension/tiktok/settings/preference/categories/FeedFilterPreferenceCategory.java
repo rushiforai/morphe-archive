@@ -93,6 +93,12 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new TogglePreference(context, "Hide LIVE replays", "Hide recorded LIVE broadcasts from the feed.", Settings.HIDE_LIVE_REPLAYS));
         addPreference(new TogglePreference(
                 context,
+                "Hide unpersonalized For You videos",
+                "Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.",
+                Settings.HIDE_UNPERSONALIZED_FOR_YOU
+        ));
+        addPreference(new TogglePreference(
+                context,
                 "Hide stories", "Hide stories from the feed.",
                 Settings.HIDE_STORY
         ));

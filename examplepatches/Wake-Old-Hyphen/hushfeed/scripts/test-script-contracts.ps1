@@ -1535,9 +1535,9 @@ try {
         if ($Folder.StartsWith('patches/')) {
             # Only these input files exist in this deliberately small release fixture.
             $receiptPaths = @('patches-list.json', 'patches/src/test/kotlin/fixture/PatchTest.kt',
-                'patches/src/test/kotlin/fixture/DocumentationTest.kt')
+                'patches/src/test/kotlin/fixture/NativeTest.kt', 'patches/src/test/kotlin/fixture/DocumentationTest.kt')
             if ($Folder.EndsWith('/documentationTest')) { $receiptPaths += @('README.md', 'patches-bundle.json') }
-            else { $receiptPaths += 'extensions/tiktok/src/test/java/fixture/RuntimeTest.java' }
+            elseif ($Folder.EndsWith('/test')) { $receiptPaths += 'extensions/tiktok/src/test/java/fixture/RuntimeTest.java' }
             $lines = @($receiptPaths | Where-Object { Test-Path -LiteralPath (Join-Path $factsRoot $_) } |
                 ForEach-Object {
                     '{0} {1}' -f (Get-FileHash -LiteralPath (Join-Path $factsRoot $_) -Algorithm SHA256).Hash.ToLowerInvariant(), $_
@@ -1549,10 +1549,12 @@ try {
     $runtimeResults = 'extensions/tiktok/build/test-results/testDebugUnitTest'
     $patchResults = 'patches/build/test-results/test'
     $documentationResults = 'patches/build/test-results/documentationTest'
-    $patchNativeQuoted = $patchQuoted - 1
+    $nativeResults = 'patches/build/test-results/nativeTest'
+    $patchNativeQuoted = $patchQuoted - 2
     try {
         Write-FactsResults $runtimeResults 'RuntimeTest' $runtimeQuoted
         Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted
+        Write-FactsResults $nativeResults 'NativeTest' 1
         Write-FactsResults $documentationResults 'DocumentationTest' 1
         Invoke-StrictFacts
         Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
@@ -1574,7 +1576,8 @@ try {
         $runtimeSource = Join-Path $factsRoot 'extensions/tiktok/src/test/java/fixture/RuntimeTest.java'
         $patchSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/PatchTest.kt'
         $documentationSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/DocumentationTest.kt'
-        foreach ($source in @($runtimeSource, $patchSource, $documentationSource)) {
+        $nativeSource = Join-Path $factsRoot 'patches/src/test/kotlin/fixture/NativeTest.kt'
+        foreach ($source in @($runtimeSource, $patchSource, $nativeSource, $documentationSource)) {
             New-Item -ItemType Directory -Path (Split-Path -Parent $source) -Force | Out-Null
             Set-Content -LiteralPath $source -Value '' -Encoding ASCII
         }
@@ -1584,6 +1587,7 @@ try {
                 "skipped=`"0`" failures=`"0`" errors=`"0`"><testcase name=`"t1`" classname=`"fixture.$Suite`"/></testsuite>")
         }
         Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted
+        Write-FactsResults $nativeResults 'NativeTest' 1
         Write-FactsResults $documentationResults 'DocumentationTest' 1
         Write-FactsResults $runtimeResults 'RuntimeTest' ($runtimeQuoted - 1)
         Add-OrphanResult $runtimeResults 'GoneTest'
@@ -1623,16 +1627,28 @@ try {
         Assert-Throws { Invoke-StrictFacts } '*No patch test results*documentationTest*' `
             'A missing documentation partition was accepted.'
         Write-FactsResults $documentationResults 'DocumentationTest' 1
+        Remove-Item -LiteralPath (Join-Path (Join-Path $factsRoot $nativeResults) 'TEST-fixture.NativeTest.xml')
+        Assert-Throws { Invoke-StrictFacts } '*No patch test results*nativeTest*' `
+            'A missing native partition was accepted.'
+        Write-FactsResults $nativeResults 'NativeTest' 1
 
         # Content, not mtime, determines freshness in each partition.
-        foreach ($folder in @($patchResults, $documentationResults)) {
+        $partitionResults = [ordered]@{ $patchResults = @('PatchTest', $patchNativeQuoted)
+            $nativeResults = @('NativeTest', 1); $documentationResults = @('DocumentationTest', 1) }
+        function Write-OtherPartitions([string]$Stale) {
+            foreach ($other in @($partitionResults.Keys | Where-Object { $_ -ne $Stale })) {
+                Write-FactsResults $other $partitionResults[$other][0] $partitionResults[$other][1]
+            }
+        }
+        foreach ($folder in @($patchResults, $nativeResults, $documentationResults)) {
             $receiptPath = Join-Path (Join-Path $factsRoot $folder) 'source-inputs.sha256'
             $receiptBytes = [IO.File]::ReadAllBytes($receiptPath)
             try {
                 Remove-Item -LiteralPath $receiptPath
                 Assert-Throws { Invoke-StrictFacts } '*No patch input receipt*' 'Missing content evidence was accepted.'
             } finally { [IO.File]::WriteAllBytes($receiptPath, $receiptBytes) }
-            $inputPath = if ($folder -eq $patchResults) { $patchSource } else { Join-Path $factsRoot 'README.md' }
+            $inputPath = if ($folder -eq $patchResults) { $patchSource }
+                elseif ($folder -eq $nativeResults) { $nativeSource } else { Join-Path $factsRoot 'README.md' }
             $originalBytes = [IO.File]::ReadAllBytes($inputPath)
             $originalDate = (Get-Item -LiteralPath $inputPath).LastWriteTimeUtc
             try {
@@ -1640,16 +1656,33 @@ try {
                 Invoke-StrictFacts
                 [IO.File]::WriteAllBytes($inputPath, $originalBytes + [Text.Encoding]::UTF8.GetBytes("`n<!-- input changed -->`n"))
                 (Get-Item -LiteralPath $inputPath).LastWriteTimeUtc = $originalDate
-                if ($folder -eq $patchResults) { Write-FactsResults $documentationResults 'DocumentationTest' 1 }
-                else { Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted }
-                Assert-Throws { Invoke-StrictFacts } '*Patch test inputs changed*' `
+                Write-OtherPartitions $folder
+                $partitionName = Split-Path -Leaf $folder
+                Assert-Throws { Invoke-StrictFacts } "*Patch test inputs changed in $partitionName.*" `
                     "Fresh results in another partition hid changed $folder inputs."
             } finally {
                 [IO.File]::WriteAllBytes($inputPath, $originalBytes)
                 (Get-Item -LiteralPath $inputPath).LastWriteTimeUtc = $originalDate
-                Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted
-                Write-FactsResults $documentationResults 'DocumentationTest' 1
+                Write-OtherPartitions ''
             }
+        }
+        # A runtime-only edit leaves the native and documentation results valid: rerunning the
+        # partition that reads the extensions is enough. The time stays, so content decides.
+        $runtimeBytes = [IO.File]::ReadAllBytes($runtimeSource)
+        $runtimeDate = (Get-Item -LiteralPath $runtimeSource).LastWriteTimeUtc
+        try {
+            [IO.File]::WriteAllBytes($runtimeSource, [Text.Encoding]::UTF8.GetBytes('x' * ($runtimeBytes.Length + 1)))
+            (Get-Item -LiteralPath $runtimeSource).LastWriteTimeUtc = $runtimeDate
+            Assert-Throws { Invoke-StrictFacts } '*Patch test inputs changed in test.*' `
+                'A runtime-only edit left the results of the partition that reads the extensions valid.'
+            Write-FactsResults $patchResults 'PatchTest' $patchNativeQuoted
+            Invoke-StrictFacts
+            Assert-True ($LASTEXITCODE -eq 0 -or $null -eq $LASTEXITCODE) `
+                'A runtime-only edit invalidated native or documentation results that never read it.'
+        } finally {
+            [IO.File]::WriteAllBytes($runtimeSource, $runtimeBytes)
+            (Get-Item -LiteralPath $runtimeSource).LastWriteTimeUtc = $runtimeDate
+            Write-OtherPartitions ''
         }
         $indexInput = Join-Path $factsRoot 'patches-bundle.json'
         $indexBytes = [IO.File]::ReadAllBytes($indexInput)

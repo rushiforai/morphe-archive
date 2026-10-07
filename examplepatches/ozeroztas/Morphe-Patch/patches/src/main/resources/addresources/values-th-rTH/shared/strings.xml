@@ -75,7 +75,7 @@ Second \"item\" text"</string>
   <string name="morphe_settings_export_file_failed">การส่งออกการตั้งค่าล้มเหลว</string>
   <!-- String is also duplicated in Reddit about preference -->
   <string name="morphe_settings_about_links_body_version_current">คุณกำลังใช้ Morphe Patches เวอร์ชัน &lt;i&gt;%s&lt;/i&gt;</string>
-  <string name="morphe_settings_about_links_body_version_outdated">คุณกำลังใช้ Morphe Patches เวอร์ชัน &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;อัพเดตใหม่พร้อมให้ใช้: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;เพื่ออัพเดตแพทช์ของคุณ ให้ใช้ Morphe เพื่อแพทช์แอปพลิเคชันนี้ใหม่</string>
+  <string name="morphe_settings_about_links_body_version_outdated">คุณกำลังใช้ Morphe Patches เวอร์ชัน &lt;i&gt;%1$s&lt;/i&gt;&lt;br&gt;&lt;br&gt;&lt;b&gt;อัพเดตใหม่พร้อมให้ใช้: &lt;i&gt;%2$s&lt;/i&gt;&lt;/b&gt;&lt;br&gt;&lt;br&gt;เพื่ออัพเดตแพตช์ของคุณ ให้ใช้ Morphe เพื่อแพตช์แอปพลิเคชันนี้ใหม่</string>
   <string name="morphe_settings_about_links_dev_header">หมายเหตุ</string>
   <string name="morphe_settings_about_links_dev_body">เวอร์ชันนี้เป็นเวอร์ชันก่อนวางจำหน่ายและคุณอาจพบปัญหาที่ไม่คาดคิด</string>
   <string name="morphe_settings_about_links_header">ลิงก์อย่างเป็นทางการ</string>

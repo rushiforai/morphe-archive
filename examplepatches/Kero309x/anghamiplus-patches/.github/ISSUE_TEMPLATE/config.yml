@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Questions and existing reports
+    url: https://github.com/Kero309x/anghamiplus-patches/issues
+    about: Search the open and closed reports before opening a new issue.
+  - name: 🔐 Report a security vulnerability
+    url: https://github.com/Kero309x/anghamiplus-patches/security/advisories/new
+    about: Send security problems privately through a GitHub security advisory.

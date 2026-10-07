@@ -41,6 +41,8 @@ def main():
     run('python3', ROOT / 'player-cache.py', decoded)
     run('python3', ROOT / 'player-refinements.py', decoded)
     run('python3', ROOT / 'player-ui.py', decoded)
+    run('python3', ROOT / 'comment-bold.py', decoded)
+    run('python3', ROOT / 'background-playback.py', decoded)
     helper_classes, helper_dex = work / 'helper-classes', work / 'helper-dex'
     helper_classes.mkdir(); helper_dex.mkdir()
     sources = sorted((ROOT.parent / 'extensions/extension/src/main/java/e/e/a').glob('*.java'))

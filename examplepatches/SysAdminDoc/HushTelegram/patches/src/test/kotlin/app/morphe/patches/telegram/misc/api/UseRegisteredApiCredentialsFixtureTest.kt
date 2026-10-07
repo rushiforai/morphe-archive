@@ -116,7 +116,7 @@ class UseRegisteredApiCredentialsFixtureTest {
 
     @Test
     fun `registered IDs that shared the old low bits receive distinct native versions`() {
-        val versions = listOf(0, 1, 71129, 71159, 71179, Int.MAX_VALUE)
+        val versions = listOf(0, 1, 71129, 71159, 71179, 71239, Int.MAX_VALUE)
         val ids = listOf(1, 129, 127, 128, 255, 256, 257, 71129, 71159, 19077001, 19077129, Int.MAX_VALUE)
         for (build in Fixtures.declaredBuilds()) {
             val markers = versions.associateWith { mutableSetOf<Int>() }

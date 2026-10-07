@@ -228,7 +228,13 @@ public final class FeatureDexFixture {
 
     private static void enable(String name) {
         FLAGS.put(name, true);
-        for (String cap : FAMILIES.get(name)[1].split(",")) FLAGS.put(cap, true);
+        for (String cap : capabilities(name)) FLAGS.put(cap, true);
+    }
+
+    /** A family's capability flags; none for a manifest-only family, whose contract column is empty. */
+    private static List<String> capabilities(String family) {
+        String column = FAMILIES.get(family)[1];
+        return column.isEmpty() ? List.of() : List.of(column.split(","));
     }
 
     private static void reset() { FLAGS.replaceAll((key, value) -> false); }
@@ -493,10 +499,10 @@ public final class FeatureDexFixture {
         File root = new File(args[0]);
         Files.createDirectories(root.toPath());
         for (String line : Files.readAllLines(new File(args[1]).toPath(), StandardCharsets.UTF_8)) if (line.startsWith("family|")) {
-            String[] values = line.split("\\|");
+            String[] values = line.trim().split("\\|", -1);
             FAMILIES.put(values[1], new String[]{values[2], values[3]});
             FLAGS.put(values[1], false);
-            for (String cap : values[3].split(",")) FLAGS.put(cap, false);
+            for (String cap : capabilities(values[1])) FLAGS.put(cap, false);
         }
         Map<String, List<Method>> clean = hosts(false);
         screenshot(clean, "clean");
@@ -530,7 +536,12 @@ public final class FeatureDexFixture {
         write(root, "feature-status-copy", new LinkedHashMap<>(Map.of(STATUS, settings.get(STATUS))), false);
         for (String family : FAMILIES.keySet()) {
             reset(); enable(family);
-            write(root, "feature-installed-missing-" + family, new LinkedHashMap<>(settings), true, family);
+            // With no bytecode of its own, a manifest-only family installed and selected is complete,
+            // and the same flag installed without the patch selected is the failure to catch.
+            boolean manifestOnly = capabilities(family).isEmpty();
+            write(root, (manifestOnly ? "feature-installed-only-" : "feature-installed-missing-") + family,
+                    new LinkedHashMap<>(settings), true, family);
+            if (manifestOnly) write(root, "feature-installed-unselected-" + family, new LinkedHashMap<>(settings), true);
             reset();
             write(root, "feature-selected-missing-" + family, new LinkedHashMap<>(settings), true, family);
         }

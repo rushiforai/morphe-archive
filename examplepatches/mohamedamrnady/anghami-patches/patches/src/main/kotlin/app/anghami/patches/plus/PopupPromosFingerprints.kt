@@ -7,7 +7,7 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * Interruptive-promo targets (Anghami 8.0.28, verified in base.apk smali).
+ * Interruptive-promo targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Used by the "Remove popup promos" patch:
  * - `popupwindow/x.i(a)` is the single funnel for all 4 in-house popup

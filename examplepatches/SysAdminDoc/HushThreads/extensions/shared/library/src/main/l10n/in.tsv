@@ -196,3 +196,80 @@ Not in this build: %1$s. Morphe Manager selects them by default. Patch again wit
 Appearance	Tampilan
 Pure black dark mode	Mode gelap hitam pekat
 Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	Mode gelap memakai warna hitam, bukan abu-abu gelap. Aktifkan mode gelap di Threads untuk melihatnya.
+Turn features on or off	Aktifkan atau nonaktifkan fitur
+# Menyimpan foto dan video
+%1$d saved in lower quality than on Threads.	%1$d disimpan dengan kualitas lebih rendah daripada di Threads.
+%1$d saves stopped. Reopen the post and save again.	%1$d penyimpanan terhenti. Buka kembali postingan dan simpan lagi.
+%1$d saves were interrupted	%1$d penyimpanan terputus
+%1$s becomes the date and time of the save, %2$s the video's number on Threads, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s diganti dengan tanggal dan waktu penyimpanan, %2$s dengan nomor video di Threads, %3$s dengan nama pengunggahnya, dan %4$s dengan tanggal unggahnya. Yang tidak diketahui saat menyimpan akan dihilangkan, dan nama tanpa satu pun di antaranya akan ditambahi tanggal. Jika nama itu sudah ada di folder, waktu penyimpanan ditambahkan di akhir. Karakter yang tidak valid menjadi garis bawah. Kosongkan untuk memakai nama bawaan, %5$s.
+%1$s of %2$s	%1$s dari %2$s
+%1$s so far	%1$s terunduh
+A save stopped. Reopen the post and save again.	Penyimpanan terhenti. Buka kembali postingan dan simpan lagi.
+A save was interrupted	Penyimpanan terputus
+Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.	Menambahkan baris Simpan ke menu postingan. Postingan dengan beberapa foto atau video menyimpan semuanya secara berurutan. Jika dimatikan atau dijeda, menunya tetap menu Threads sendiri.
+Best	Terbaik
+Cancel saving this carousel	Batalkan penyimpanan carousel ini
+Cancel saving this photo	Batalkan penyimpanan foto ini
+Cancel saving this video	Batalkan penyimpanan video ini
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Carousel dibatalkan. Disimpan %1$d. Gagal %2$d. Dilewati %3$d.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Pilih nama folder di Movies dan Pictures. Karakter yang tidak valid menjadi garis bawah. Kosongkan untuk memakai folder bawaan, %1$s.
+Copying to the gallery	Menyalin ke galeri
+Download failed	Unduhan gagal
+Download quality	Kualitas unduhan
+Downloading	Mengunduh
+Downloads	Unduhan
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Setiap video disimpan dalam %1$s atau kualitas terdekat di bawahnya. Video yang tidak memiliki kualitas serendah itu disimpan dalam kualitas terdekat di atasnya.
+Each video saves at its lowest quality, for the smallest file.	Setiap video disimpan dengan kualitas terendahnya, agar ukuran filenya sekecil mungkin.
+Each video saves at the best quality the player streams.	Setiap video disimpan dengan kualitas streaming terbaik dari pemutar.
+Example without post details	Contoh tanpa detail postingan
+File name	Nama file
+File name set to %1$s.	Nama file diatur menjadi %1$s.
+Folder name	Nama folder
+Folder set to %1$s.	Folder diatur menjadi %1$s.
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Untuk WhatsApp, editor video seperti CapCut dan InShot, atau galeri atau pemutar yang memutar video tersimpan tanpa suara. Kualitas bisa lebih rendah.
+How far a photo or video you're saving has got, with a button to cancel it	Progres foto atau video yang sedang Anda simpan, dengan tombol untuk membatalkannya
+HushThreads saves	Penyimpanan HushThreads
+Joining the picture and sound	Menggabungkan gambar dan suara
+Last carousel save	Penyimpanan carousel terakhir
+Link expired. Reopen the post and try again	Tautan kedaluwarsa. Buka ulang postingan lalu coba lagi
+Not saved: a carousel can have at most %1$d pages	Tidak disimpan: carousel hanya boleh memiliki paling banyak %1$d halaman
+Not saved: that isn't a Threads photo or video	Tidak disimpan: itu bukan foto atau video Threads
+Not saved: the file is over 512 MB	Tidak disimpan: file lebih dari 512 MB
+Page %1$d of %2$d	Halaman %1$d dari %2$d
+Photos and videos you save from posts	Foto dan video yang Anda simpan dari postingan
+Reopen the post and save again.	Buka kembali postingan dan simpan lagi.
+Save	Simpan
+Save all	Simpan semua
+Save cancelled	Penyimpanan dibatalkan
+Save folder	Folder simpan
+Save photo	Simpan foto
+Save photos and videos	Simpan foto dan video
+Save video	Simpan video
+Save videos other apps can open	Simpan video yang bisa dibuka aplikasi lain
+Saved %1$d. Failed %2$d. Skipped %3$d.	Disimpan %1$d. Gagal %2$d. Dilewati %3$d.
+Saved to %1$s	Disimpan ke %1$s
+Saved to %1$s in lower quality than on Threads	Disimpan ke %1$s dengan kualitas lebih rendah daripada di Threads
+Saved to the gallery	Disimpan ke galeri
+Saved to the gallery in lower quality than on Threads	Disimpan ke galeri dengan kualitas lebih rendah daripada di Threads
+Saving a carousel	Menyimpan carousel
+Saving a photo	Menyimpan foto
+Saving a video	Menyimpan video
+Saving...	Menyimpan...
+Saving... Cancel: Downloads in HushThreads.	Menyimpan... Batal: Unduhan di HushThreads.
+Smallest	Terkecil
+Video file name	Nama file video
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Video diberi nama %1$s. Foto selalu diberi nama %2$s diikuti tanggal dan waktu.
+Videos go to %1$s and photos to %2$s.	Video disimpan ke %1$s dan foto ke %2$s.
+Version code raised	Kode versi dinaikkan
+This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Kode versi build ini adalah yang tertinggi yang diizinkan Android, jadi Google Play tidak menawarkan pembaruan Meta di atasnya. Pemeriksaan Threads terhadap versi saat ia dibuat tetap melihat kode aslinya. Untuk kembali ke Threads asli, copot pemasangan yang ini dulu, yang menghapus data Threads di ponsel ini. Build HushThreads berikutnya juga memerlukan Change version code, atau tidak akan bisa dipasang di atas yang ini.
+the raised version code	kode versi yang dinaikkan
+Share sheet entry removed	Entri lembar bagikan dihapus
+Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	Threads tidak muncul saat kamu berbagi dari aplikasi lain. Berbagi dari Threads ke aplikasi lain tetap berfungsi.
+the removed share sheet entry	entri lembar bagikan yang dihapus
+User certificates trusted	Sertifikat pengguna dipercaya
+Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.	Threads menerima sertifikat yang kamu pasang sendiri di tempat Android memeriksanya. Pemeriksaan Threads sendiri atas sertifikat Meta tidak berubah, jadi proxy tetap tidak bisa membaca sebagian besar lalu lintasnya.
+the user certificate trust	kepercayaan pada sertifikat pengguna
+Hide screenshots from Threads	Sembunyikan tangkapan layar dari Threads
+Threads isn't told when you take a screenshot, so it can't log it or react to it.	Threads tidak diberi tahu saat kamu mengambil tangkapan layar, jadi tidak bisa mencatat atau menanggapinya.
+Full size photos	Foto ukuran penuh
+Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	Foto dimuat dalam ukuran terbesar yang dimiliki Threads, bukan ukuran yang dipilih untuk layarmu. Foto terlihat lebih tajam dan memakai lebih banyak data.

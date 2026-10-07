@@ -14,8 +14,8 @@ import app.anghami.patches.shared.Constants.COMPATIBILITY_ANGHAMI_8_0_28
  * hardcodes only the cert-derived prefix and keeps the salt/body hashing
  * byte-identical to stock.
  *
- * Stock prefix derivation (verified locally, see REPORT.md §3):
- * - Cert: META-INF/BNDLTOOL.RSA in base.apk, O=Anghami serial 507febae,
+ * Stock prefix derivation (verified locally, see internal notes §3):
+ * - Cert: META-INF/BNDLTOOL.RSA in the stock APK, O=Anghami serial 507febae,
  *   SHA-1 fingerprint 85:EF:41:4D:83:39:5A:9A:41:82:D3:B9:AE:52:CB:B7:20:23:FA:4C
  * - `base64(SHA-1(DER cert))` = `he9BTYM5WppBgtO5rlLLtyAj+kw=`
  * - The trailing `\n` is load-bearing: the app calls

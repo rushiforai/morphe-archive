@@ -37,7 +37,7 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | **Usability** | **[Custom Share Sheet](#5-custom-share-sheet)** | `bytecodePatch` | Customizes and cleans the share menu via individual boolean toggles for third-party apps, essential actions, and direct message friend rows. |
 | **Usability** | **[Clean Share Panel](#6-clean-share-panel)** | `bytecodePatch` | Removes suggested quick emojis and the 'Send to new group' button from the direct share dialog. |
 | **Usability** | **Navigation & Header Declutter** | `bytecodePatch` | Removes clutter from the feed navigation and top header bar, including Nearby and Community tabs, top-left LIVE button, central '+' create content button, in-video bottom search bar, friend profile pictures on the Friends tab, and unread message badges on the Inbox tab. |
-| **Usability** | **[Feed Interface Declutter](#7-feed-interface-declutter-feedinterfacedeclutterpatch)** | `bytecodePatch` | Customizes and cleans feed video overlay elements via individual toggles for full screen button, repost pill, video descriptions, profile photo follow badges, story rings, playlist bottom bars, save buttons, and music discs. |
+| **Usability** | **[Feed Interface Declutter](#7-feed-interface-declutter-feedinterfacedeclutterpatch)** | `bytecodePatch` | Customizes and cleans feed video overlay elements via individual toggles for full screen button, repost pill, interest feedback pills, video descriptions, profile photo follow badges, story rings, playlist bottom bars, save buttons, and music discs. |
 | **Usability** | **Disable Profile Photo LIVE Status** | `bytecodePatch` | Removes pulsing LIVE ring/badge from creator avatars in feed and forces clicks directly to user profile. |
 | **Usability** | **Force Auto-Scroll** | `bytecodePatch` | Forces the activation of the native video auto-scroll experiment flag for accounts and regions that lack it due to A/B testing. |
 | **Usability** | **Hide Popular Lives In Search** | `bytecodePatch` | Removes the Popular LIVEs recommendation card and live stream broadcasts from the search discovery page. |
@@ -79,9 +79,10 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | **Performance** | **P2P Video Relay & Mesh CDN Blocker** | `rawResourcePatch` | Strips `libavmdlp2pv2.so` and `libp2plivevdp.so` to stop background P2P CDN seeding. |
 | **Performance** | **Disable Push Notifications** | `bytecodePatch` | Neutralizes background push socket polling and persistent wake locks. |
 | **Performance** | **Live Stream 3D Gift Optimizer** | `bytecodePatch` | Disables 3D gift particle effect engine to eliminate live frame drops. |
-| **Performance** | **Live Stream SDK & Minigame De-bloat** | `rawResourcePatch` | Strips `liblink_mic_sdk.so`, Lyrax RTC broadcaster libs, and battle minigames (~50 MB saved). |
+| **Performance** | **Live Stream SDK & Minigame De-bloat** | `rawResourcePatch` | Strips `liblink_mic_sdk.so`, Lyrax RTC broadcaster libs, DM call engine (`libvoip.so`), live RTM/base runtimes, and battle minigames. Breaks live viewing/broadcasting and DM voice/video calls. |
+| **Slimmer** | **Voice & Speech Engine De-bloat** | `rawResourcePatch` | Strips on-device voice recognition/synthesis engines (`libspeechspg.so`, `libspeechsdk.so`) and their loader stubs (`libspeechengine.so`, `libspeechepg.so`). Breaks voice search, voice input, and editor text-to-speech. |
 | **Slimmer** | **Core Asset De-bloat** | `rawResourcePatch` | Strips Microblink OCR models, C2PA AI libs, ByteDance TTWebView engine, non-Latin fonts, Python VM (~77 MB saved). |
-| **Slimmer** | **Studio & Creation De-bloat** | `rawResourcePatch` | Strips AR camera engine (`libeffect_plugin.so`) and video editor SDK (`libttvesdk_plugin.so`) (~101 MB saved). |
+| **Slimmer** | **Studio & Creation De-bloat** | `rawResourcePatch` | Strips AR camera engine (`libeffect_plugin.so`), video editor SDK (`libttvesdk_plugin.so`), CapCut NLE libs, CutSame/Davinci template engine, camera dynamic features, upload video encoders, and on-device AI runtimes (LiteRT). |
 | **Slimmer** | **Language Pack Purger** | `rawResourcePatch` | Strips unselected language string bundles from `assets/strings#lang_*`. |
 | **Universal Patches Suite** | Multiple | Optimization & Privacy | Compatible with universal slimmers and privacy patches (Screen Brightness Governor, Telemetry Neutralizer, Native Binary Trimmer, WebP/PNG Optimizers, DPI/Locale Slimmers). See [Universal Patch Reference](../universal-patches.md). |
 
@@ -290,7 +291,7 @@ The **`Direct Message Declutter`** patch cleans direct message conversations and
 | **Hide Sticker & Emoji Button** | `hideEmojiButton` | Boolean | `true` | Hides the sticker and emoji selector button on the right side of the chat message input field. |
 | **Hide Voice Record Button** | `hideVoiceRecordButton` | Boolean | `true` | Hides the microphone / voice recording button on the right side of the chat message input field. |
 | **Hide Try Effect Button** | `hideTryEffectButton` | Boolean | `true` | Removes the 'Try effect' camera button shown on shared videos that use an effect in direct messages. |
-| **Hide Sticker Reply Suggestions** | `hideStickerReplySuggestions` | Boolean | `true` | Removes the automatic 'Tap a sticker to reply' suggestion panel above the input bar. The manual sticker reply button keeps working. |
+| **Hide Sticker Reply Suggestions** | `hideStickerReplySuggestions` | Boolean | `true` | Removes the automatic 'Tap a sticker to reply' suggestion panel and the typing-triggered sticker/GIF strip above the input bar. The manual sticker reply button keeps working. |
 
 ### 11. Popups & Prompts Suppressor
 
@@ -391,6 +392,7 @@ The **`Popups & Prompts Suppressor`** patch suppresses intrusive dialogs, bottom
   - **`hideSaveButton` (default: false)**: Hides the bookmark/favorite save button on the right-side action rail of feed videos across standard and landscape modes (`VideoFavoriteAssem`, `LandscapeVideoFavoriteAssem`), enforcing `View.GONE` (`0x8`) in `onViewCreated` and stubbing `z4`.
   - **`hideMusicCover` (default: false)**: Hides the rotating vinyl music album cover disc at the bottom right corner of feed videos. Enforces `View.GONE` (`0x8`) in `VideoMusicCoverAssem.onViewCreated`, stubs `z4`, and neutralizes rotation animators (`Tr`, `Wr`).
   - **`hideFullscreenButton` (default: false)**: Hides the floating 'Full screen' button on horizontal/landscape feed videos. Hooks `LandscapeEntranceAssem.Kr()Z` -> `false`, `Aa()Z` -> `false`, `bf()Z` -> `false`, enforces `View.GONE` (`0x8`) in `LandscapeEntranceAssem.onViewCreated`, stubs `z4` to neutralize binding, and stubs `LLLLIILL`/`LLILZ` with `return-void` to prevent visibility synchronization and auto-rotation triggers.
+  - **`hideFeedbackButtons` (default: true)**: Hides the 'Not interested' / 'Interested' feedback pills (`bottom_button_early_feedback`) above the bottom navigation on feed videos. Hooks `EarlyFeedbackButtonTrigger.yr(VideoItemParams)Z` -> returns `false`, enforces `View.GONE` (`0x8`) in `EarlyFeedbackButtonAssem` and `EarlyFeedbackStandardButtonAssem` `onViewCreated`, stubs `z4`, and stubs `EarlyFeedbackStandardButtonAssem.Mr` with `return-void`.
 
 ### 8. Disable Profile Photo LIVE Status (`disableAvatarLiveStatusPatch`)
 - Removes the pulsing LIVE ring animation and LIVE badge from creator avatars in the feed and ensures avatar taps route strictly to the creator's user profile instead of launching the live stream broadcast.
@@ -506,7 +508,7 @@ The **`Popups & Prompts Suppressor`** patch suppresses intrusive dialogs, bottom
   - **Sticker Reply Suggestions (`hideStickerReplySuggestions`)**: Neutralizes sticker suggestion popups and reply banners in direct messages:
     - **Incoming Reply Suggestions**: In `ReplyToStickerRecommendationViewModel`, hooks the static synthetic default-args dispatcher method (`y83(...)V`) by injecting a bitmask check on register `p3` at instruction offset 0 (`and-int/lit8 v0, p3, 0x2`). When called by automatic triggers without a message argument (mask contains bit `0x2`), it returns early (`return-void`), suppressing the automatic 'Tap a sticker to reply' suggestion panel above the text input bar while preserving manual sticker replies initiated via the sticker reply button (mask `0x1`).
     - **Preshown Reply Banner**: Hooks `PreshownStickerBannerProtocol.isEnabled()Z` -> `false` and converts `PreshownStickerBannerProtocol.intercept(List)List` to passthrough `return-object p1`, preventing the bottom conversation banner from instantiating.
-    - **Typing Recommendations**: Hooks `TypingRecommendationPanelAssem.()Z` -> `false`, suppressing the typing-triggered floating sticker recommendation tray.
+    - **Typing Recommendations**: Hooks `TypingRecommendationPanelAssem.Kq()Z` -> `false` and stubs the typing strip pipeline `Aq(LX/0XIS;)V`, `Rq(LX/0pPl;)V`, `Sq(List;)V`, `rq(LX/0pPl;)V` and `uq(LX/0pPl;)V` with `return-void`, suppressing the typing-triggered sticker/GIF strip above the input bar.
 
 ### 24. Popups & Prompts Suppressor (`popupsAndPromptsSuppressorPatch`)
 - Suppresses intrusive modal popups, bottom sheets, overlay takeovers, and nudge reminders via modular boolean toggles:

@@ -109,7 +109,7 @@ class ControlLifecycleTest {
 
     private fun targetTypes(key: String): Set<String> = when (key) {
         "menu_row" -> BASE_PROFILE.hooks.getValue("menu_settings").map { it.substringBefore("->") }.toSet()
-        "people" -> listOf("people", "people_list_end", "people_jewel", "people_tab", "people_search", "people_story")
+        "people" -> listOf("people", "people_list_end", "people_jewel", "people_tab", "people_search", "people_story", INBOX_REFRESH_HOOK)
             .flatMap { BASE_PROFILE.hooks.getValue(it) }.map { it.substringBefore("->") }.toSet()
         "material_you" -> setOf(DARK_SCHEME, FDS_COLORS, "LX/DarkCheck;", "LX/ThemeColors;")
         else -> error("Unexpected fixture control $key")
@@ -140,6 +140,11 @@ class ControlLifecycleTest {
         assertEquals(selection.keys.sorted().joinToString(","),
             ((controls.implementation!!.instructions.first() as ReferenceInstruction).reference as StringReference).string,
             "${selection.name}: finalized bundled controls")
+        // Only a People run that applied hands the extension its proved chat list route.
+        val route = host.methods.single { it.hookId() == INBOX_REFRESH_ROUTE }
+        assertEquals(if ("people" in selection.keys) INBOX_ROUTE.toString() else "",
+            ((route.implementation!!.instructions.first() as ReferenceInstruction).reference as StringReference).string,
+            "${selection.name}: chat list route")
         val factory = classes.single { it.type == FACTORY_TYPE }
         for ((method, call) in mapOf(
             INSTANTIATE_ACTIVITY to "$HOST_SCREENS->activityFor(Ljava/lang/String;Landroid/content/Intent;)Landroid/app/Activity;",

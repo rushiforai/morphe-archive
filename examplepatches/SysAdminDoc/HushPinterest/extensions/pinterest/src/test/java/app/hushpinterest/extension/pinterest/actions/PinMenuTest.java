@@ -89,6 +89,50 @@ public class PinMenuTest {
         assertNoDownload();
     }
 
+    @Test public void aPinWithDisplaySizesOnlyOffersEveryRowAndNamesTheStandInSize() {
+        Host host = host(Map.of("id", "123", "images", Map.of(
+                "236x", Map.of("url", "https://i.pinimg.com/236x/0b/b2/5b/0bb25b05de960e1fee5da5e9c4e8f12e.jpg"),
+                "736x", Map.of("url", MediaHostForTests.STAND_IN, "width", 736, "height", 1104))));
+        PinDownloads.attach(host);
+        assertEquals(3, host.layout.getChildCount());
+        assertEquals("Download pin", ((TextView) host.layout.getChildAt(0)).getText());
+        assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+        String text = details();
+        assertTrue(text, text.contains("Supplied width: 736 pixels"));
+        assertTrue(text, text.contains("Supplied size: 736x. Downloads look for the original first."));
+        assertFalse(text, text.contains("Pinterest hasn't supplied"));
+        assertNoDownload();
+    }
+
+    @Test public void aSuppliedOriginalIsNamedInTheDetails() {
+        Host host = host(Map.of("id", "123", "images", Map.of("orig", Map.of(
+                "url", "https://i.pinimg.com/originals/source.png", "width", 3000, "height", 2000))));
+        PinDownloads.attach(host);
+        assertTrue(host.layout.findViewWithTag("hushpinterest_pin_media_details").performClick());
+        assertTrue(details().contains("Supplied size: the original image"));
+    }
+
+    @Test public void copyMediaLinkForAStandInCopiesTheOriginalTheMediaHostHasAfterClosingTheMenu() throws Exception {
+        Host host = host(Map.of("id", "123", "images", Map.of(
+                "736x", Map.of("url", MediaHostForTests.STAND_IN))));
+        PinDownloads.attach(host);
+        try (MediaHostForTests media = MediaHostForTests.install()) {
+            media.answer(MediaHostForTests.ORIGINALS + ".png", 200, "image/png");
+            assertTrue(host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+            assertEquals(1, host.dismissed);
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(MediaHostForTests.ORIGINALS + ".png", String.valueOf(clipboard().getPrimaryClip().getItemAt(0).getText()));
+
+            media.answer(MediaHostForTests.ORIGINALS + ".png", 403, "application/xml");
+            assertTrue(host.layout.findViewWithTag(PinDownloads.COPY_TAG).performClick());
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(MediaHostForTests.STAND_IN, String.valueOf(clipboard().getPrimaryClip().getItemAt(0).getText()));
+        }
+        assertNoDownload();
+    }
+
     @Test public void mp4DetailsBelongToTheSelectedSuppliedVideo() {
         Host host = host(Map.of("id", "123", "videos", Map.of("video_list", Map.of(
                 "small", Map.of("url", "https://v.pinimg.com/small.mp4", "width", 640, "height", 360),
@@ -222,7 +266,7 @@ public class PinMenuTest {
         image.put("url", "https://i.pinimg.com/originals/source.unknown");
         assertTrue(host.layout.findViewWithTag(PinDownloads.ROW_TAG).performClick());
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        assertEquals("The supplied original image type isn't supported for download.", ShadowToast.getTextOfLatestToast());
+        assertEquals("The supplied image type isn't supported for download.", ShadowToast.getTextOfLatestToast());
         assertEquals(0, host.dismissed);
         assertNoDownload();
     }

@@ -124,6 +124,13 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_STORIES_YOU_MIGHT_LIKE,
                         L10n.t("The row of Stories from people you aren't connected to that Facebook puts between "
                                 + "posts. Your friends' Stories and the Stories tray stay.")));
+                feed.addPreference(toggle(context, Settings.HIDE_FEED_MEMORIES,
+                        L10n.t("Memories between posts, like \"On this day\" and friendship anniversaries. "
+                                + "Your Memories page stays.")));
+                feed.addPreference(toggle(context, Settings.HIDE_FEED_FRIEND_REQUESTS,
+                        L10n.t("The row of friend requests between posts. Your requests stay under Friends.")));
+                feed.addPreference(toggle(context, Settings.HIDE_FRIENDS_LOCATIONS,
+                        L10n.t("The card showing where your friends are, between posts.")));
             }
             if (build.contains(PatchFamily.STORIES_TRAY)) {
                 // Facebook builds the feed's adapters once, when the feed is set up, and the tray is
@@ -180,6 +187,10 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_META_AI_FEED_UNITS,
                         L10n.t("The Meta AI cards Facebook adds to the feed between posts. People's posts stay, "
                                 + "whatever they say about AI.")));
+                feed.addPreference(toggle(context, Settings.HIDE_AI_CHARACTER_POSTS,
+                        L10n.t("Posts featuring one of Meta's AI characters, the chatbots people and creators make "
+                                + "with Meta AI Studio. It's off by default because it hasn't been tested on a real "
+                                + "feed yet.")));
             }
             if (build.contains(PatchFamily.POST_WORDS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_POSTS_WITH_WORDS,
@@ -190,6 +201,10 @@ final class FeedPages {
                 feed.addPreference(page.wordsRow(context, Settings.KEPT_WORDS, false));
                 feed.addPreference(toggle(context, Settings.POST_WORDS_WHOLE_WORDS,
                         L10n.t("Apply whole-word matching to both lists. For example, hat matches hat! but not what or hats.")));
+                feed.addPreference(toggle(context, Settings.HIDE_POSTS_FROM_SOURCES,
+                        L10n.t("Posts by a person or Page on your list below, or linking to a site on it, and shares "
+                                + "of them. Your list only leaves the phone in a settings file you export.")));
+                feed.addPreference(page.sourcesRow(context));
             }
         }
     }

@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/debakarr/morphe-patches/compare/v1.7.0...v1.8.0) (2026-10-06)
+
+### ✨ New Features
+
+* install alongside the original app ([5901471](https://github.com/debakarr/morphe-patches/commit/5901471a6aecab99b309d9e36af678aaf419daba))
+
 ## [1.7.0](https://github.com/debakarr/morphe-patches/compare/v1.6.0...v1.7.0) (2026-10-02)
 
 ### 🐛 Bug Fixes

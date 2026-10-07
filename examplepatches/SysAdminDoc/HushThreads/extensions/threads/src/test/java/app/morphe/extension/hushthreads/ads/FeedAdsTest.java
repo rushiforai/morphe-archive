@@ -5,6 +5,7 @@
 package app.morphe.extension.hushthreads.ads;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
@@ -55,6 +56,41 @@ public class FeedAdsTest {
     public void adsComeOutAndTheRestKeepTheirOrder() {
         List<Object> page = Arrays.asList(ShadowFeedAds.AD, "first", "second", ShadowFeedAds.AD, "third", ShadowFeedAds.AD);
         assertEquals(Arrays.asList("first", "second", "third"), FeedAds.filter(page));
+    }
+
+    /** Units Threads types as ads come out by their type. Suggestion units and ordinary posts stay. */
+    @Test
+    public void adUnitTypesComeOutAndSuggestionsAndPostsStay() {
+        List<Object> page = Arrays.asList(UnitType.THREAD, UnitType.AD, "ordinary post", UnitType.AD4AD,
+                UnitType.SUGGESTED_USERS, UnitType.INTENT_AWARE_AD_PIVOT, UnitType.STORIES_NETEGO,
+                UnitType.STAND_ALONE_MULTI_AD_PIVOT, UnitType.CLIPS_NETEGO, UnitType.ADS_FEEDBACK_INTERFACE,
+                UnitType.SUGGESTED_BUSINESSES, UnitType.ADS_FEEDBACK_INTERFACE_INTERESTS_PICKER, UnitType.MEDIA,
+                UnitType.ADS_FEEDBACK_INTERFACE_REPETITION, UnitType.BLOKS_NETEGO);
+        assertEquals(Arrays.asList(UnitType.THREAD, "ordinary post", UnitType.SUGGESTED_USERS, UnitType.STORIES_NETEGO,
+                UnitType.CLIPS_NETEGO, UnitType.SUGGESTED_BUSINESSES, UnitType.MEDIA, UnitType.BLOKS_NETEGO),
+                FeedAds.filter(page));
+        assertEquals(Collections.singletonList("Hide ads: invoked 1, 0 found, 0 missing. "
+                + "Counted: feed pages checked 1, feed items checked 15, ad posts taken out 7"), HookStatus.report());
+        // A name is matched whole, and only an enum constant has one.
+        assertTrue(FeedAds.isAdUnitType(UnitType.AD));
+        assertFalse(FeedAds.isAdUnitType(UnitType.ADS));
+        assertFalse(FeedAds.isAdUnitType("AD"));
+        assertFalse(FeedAds.isAdUnitType(null));
+    }
+
+    /** A page of ad units stays whole with the switch off. */
+    @Test
+    public void adUnitTypesStayWithTheSwitchOff() {
+        Settings.HIDE_ADS.save(false);
+        List<Object> page = Arrays.asList(UnitType.AD, UnitType.THREAD, UnitType.AD4AD);
+        assertSame(page, FeedAds.filter(page));
+    }
+
+    /** Stands in for Threads' feed unit type enum, with constant names Threads ships, plus one near miss. */
+    private enum UnitType {
+        THREAD, MEDIA, AD, ADS, AD4AD, INTENT_AWARE_AD_PIVOT, STAND_ALONE_MULTI_AD_PIVOT, ADS_FEEDBACK_INTERFACE,
+        ADS_FEEDBACK_INTERFACE_INTERESTS_PICKER, ADS_FEEDBACK_INTERFACE_REPETITION, SUGGESTED_USERS,
+        SUGGESTED_BUSINESSES, STORIES_NETEGO, CLIPS_NETEGO, BLOKS_NETEGO
     }
 
     @Test

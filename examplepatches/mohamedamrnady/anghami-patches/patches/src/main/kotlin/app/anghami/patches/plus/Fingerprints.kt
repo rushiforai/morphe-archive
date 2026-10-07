@@ -12,7 +12,7 @@ import com.android.tools.smali.dexlib2.Opcode
 /**
  * Target: Anghami 8.0.28 (versionCode 8000280, package com.anghami)
  *
- * Evidence (base.apk, apktool smali):
+ * Details:
  * - Lcom/anghami/ghost/local/Account;->isPlus()Z (static) delegates to
  *   Account$4 -> Account.isPlusUser()Z (instance)
  * - Account.isPlusUser()Z compares Account.planType against
@@ -24,7 +24,7 @@ import com.android.tools.smali.dexlib2.Opcode
  * - PlayQueue.canPlayOfflineAndFree()Z currently returns const/4 v0, 0x0
  *
  * These fingerprints use explicit class names because com.anghami.* is NOT
- * obfuscated in 8.0.28 (verified in smali). Re-verify on every version bump.
+ * obfuscated in 8.0.28 (verified on device). Re-verify on every version bump.
  */
 
 object IsPlusFingerprint : Fingerprint(

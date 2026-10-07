@@ -182,6 +182,7 @@ public final class PlaybackSession {
         try {Object f=get(activity,"v");if(f!=null){if(destroy)destroy(f,false);else save(f,false);}}catch(Exception e){log(e);}
     }
     public static boolean leave(Object activity,boolean back) {
+        if(AppSwitchGuard.intercept(activity,back))return false;
         try {
             Activity a=(Activity)activity;Object f=get(activity,"v");if(f==null || a.isFinishing())return false;
             Session s=SESSIONS.get(f);if(s==null || s.switching)return false;
@@ -197,4 +198,3 @@ public final class PlaybackSession {
         }catch(Exception e){log(e);return false;}
     }
 }
-

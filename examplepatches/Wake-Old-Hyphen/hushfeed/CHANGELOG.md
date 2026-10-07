@@ -4,23 +4,59 @@ Every Hushfeed release, newest first.
 
 ## Unreleased
 
-* **TikTok:** Hiding the status bar now also removes the black strip TikTok keeps above videos for it, and on Android 14 and older the video draws behind the camera cutout instead of below it. A new Hide the Clear display controls switch takes the close button, progress bar and pause and speed buttons off the screen while Clear display is on, along with the close button photo posts show in the corner. They're back the moment you leave Clear display.
+* **TikTok:** Show where a video was posted now works on videos where TikTok hides the post time, which is most of For You unless Always show publish date is on. It also shows on videos you open from search, a creator's profile or a shared link, and it switches to the right country as soon as an opened video starts instead of keeping the one from the feed. A long name gets shortened a little so the country isn't cut off along with it.
 
-* **TikTok:** Clear Display now hides the stories button above Following when TikTok leaves it up, and puts it back as soon as you leave Clear Display. Pause leaves both the stories button and the top tabs to TikTok. Automatic Clear Display also waits until TikTok has really cleared the screen before it counts a try, so a first video TikTok wasn't ready for still gets cleared.
+* **TikTok:** In Feature Gate Lab, turning overrides on from a gate's own page now unlocks its Forced result switch right away. Before, it stayed greyed out until you left the page and came back.
 
-* **TikTok:** Automatic Clear Display retries on the current video after focus returns, including the first video after startup. A canceled or failed attempt no longer prevents another try. Manual exit remains respected, and callbacks from an earlier video cannot cancel the next video's timer.
+* **TikTok:** Feature Gate Lab has 13 new reviewed presets for features other TikTok mods unlock by flag. There's repost with a comment, the profile banner with the new profile layout, live photo, camera and audio comments, comments saved to Favorites, comment sort and dislike styles, message bubble colors with the Inbox archive and sharing to more chats at once, Manage topics, visual search, AI Self, the long-press menu on every post, TikTok's own hold to speed up, its background play and auto-scroll, and post dates in the feed. Every preset was checked against 47.0.3, 47.1.3 and 47.1.4. Show See translation was 47.1.3 only and now covers all three. The list shows just the presets for the TikTok you have installed. Some of these features also depend on what TikTok's servers allow for your account.
+
+* **TikTok:** Remove ads now also catches creator posts TikTok runs as ads. They don't carry TikTok's ad flag, so they were getting through, but TikTok marks them in the post's commerce details and Hushfeed reads the same mark TikTok does. The filter report counts them under AdSignals. Skip the splash ad also stops the startup tasks that preload TopView takeover ads and ask the server for a real-time splash.
+
+* **TikTok:** Feed filter has a new Hide unpersonalized For You videos switch. It hides the fill-in videos TikTok pads For You with when it hasn't picked anything for you, the ones it sends from its for_you_page_999 pool with no reason attached. If a whole batch is fill-in, the batch stays, so the feed never stalls on it. The filter report counts each For You batch by the pool TikTok says it came from, next to how many the switch took out. Creator exceptions get through it the same way they get through the other preference filters.
+
+## 0.68.0 (2026-10-06)
+
+* **TikTok:** Download original photos saves every photo as a JPEG (#105). TikTok lists each photo as a HEIF copy first, so they were landing as .heif files that a lot of gallery apps and computers can't open, and some phones, Samsungs included, can't decode TikTok's HEIF at all. Hushfeed now takes the WebP copy TikTok lists beside each HEIF and saves it again as a full-size JPEG on Android 9 and newer. When TikTok lists a JPEG copy, that one is saved byte for byte instead. A photo that can't be converted keeps the file TikTok sent, and so does one with see-through parts. The setting's description says JPEG now too, and story photos work the same way.
+
+* **TikTok:** Hiding the status bar now also removes the black strip TikTok keeps above videos for it, and on Android 14 and older the video draws behind the camera cutout instead of below it (#97). A new Hide the Clear display controls switch takes the close button, progress bar and pause and speed buttons off the screen while Clear display is on, along with the close button photo posts show in the corner. They're back the moment you leave Clear display.
+
+* **TikTok:** Clear Display now hides the stories button above Following when TikTok leaves it up, and puts it back as soon as you leave Clear Display (#84). Pause leaves both the stories button and the top tabs to TikTok. Automatic Clear Display also waits until TikTok has really cleared the screen before it counts a try, so a first video TikTok wasn't ready for still gets cleared.
+
+* **TikTok:** Automatic Clear Display retries on the current video after focus returns, including the first video after startup (#84). A canceled or failed attempt no longer prevents another try. Manual exit remains respected, and callbacks from an earlier video cannot cancel the next video's timer.
+
+* **TikTok:** Back up, Restore and Import watch history don't get stuck behind a slow file app anymore. If the file app hasn't answered after a few seconds, the row offers to stop waiting, and stopping before anything was read or written leaves your settings and history as they were. A backup the file app already has is the one exception: the row says the file app hasn't said yet whether it saved it, and you get the real answer once it does. A file app that never lets go of a file holds only that row, which says so, instead of piling more work up behind it. Turning the phone mid-restore keeps the restore going.
+
+* **TikTok:** Feature Gate Lab's Export loaded values and Import loaded values don't get stuck behind a slow file app anymore. If the file app hasn't answered after a few seconds, the Lab offers to stop waiting, and stopping before anything was read or written changes nothing, not even a file you picked to replace. Tapping either one again while a file is still out says so, where it used to queue another to run whenever the first one ended. Exporting over an older, bigger export no longer leaves the end of the old file behind, which made the new one unreadable.
+
+* **TikTok:** Picking an existing backup file to replace no longer risks losing it. If the backup stops, or fails before anything goes into the file (a feed rule list too long for a backup, say), the file you picked keeps your older backup instead of being deleted. An empty file the picker made for the backup is still cleaned up.
+
+* **TikTok:** Settings search lists the rows where your search is a whole word first. Searching "counts" used to put Hide verified accounts and Blocked creators, where it only turns up inside "accounts", above the rows that are about counts. Rows that match only inside a longer word still follow, in page order, and translated settings sort by the same rule.
+
+* **TikTok:** Settings search now finds every box in a checklist, ticked or not, so searching "counts" finds Counts under the buttons in the right column list. Opening a box's result opens the list scrolled to that box without changing it. A list that's open when the screen rotates comes back with your unsaved ticks.
+
+* **TikTok:** Switch rows in Hushfeed's settings change shape when the screen is narrow and the text is large. The switch moves under the text, at the end of the row, and the title and description get the whole width. A German title at twice the text size on a small phone no longer breaks mid-word into four short lines. Wider screens keep the usual layout, and a row scrolled from one shape into the other changes back.
+
+* **TikTok:** What's new now tells you the notes are in English when the rest of the settings are in your language. The notes are also marked as English text for screen readers.
+
+* **TikTok:** Undo clearing seen videos now restores history in the background and reports how many cleared records still fit the history limits. It no longer says videos were restored when newer watches leave no room for them. A failed save keeps Undo available.
+
+* **TikTok:** Undo now commits watches recorded during restoration before counting them. Older queued writes also preserve newer watch times that Undo has already saved.
 
 * **TikTok:** Media saves now honor the server's full retry delay, including HTTP dates, before following a redirect or trying another mirror or subtitle track. A delay beyond the save's time limit stops the job with a clear message and keeps files already saved. Cancel also interrupts a retry wait.
 
-* **TikTok:** Documentation edits no longer rerun unchanged APK fixture tests. Full test commands and release checks still cover every test, and source-reading checks now track their external inputs. Replacing an APK invalidates test results even when its size and timestamp match.
+* **TikTok:** Saving a diagnostic report or a feature gate report runs on a thread of its own, so a slow media store can't hold up the threads the rest of Hushfeed shares. Tapping Save again while a report is still saving says so instead of starting a second one.
 
-* **TikTok:** Undo now commits watches recorded during restoration before counting them. Older queued writes also preserve newer watch times that Undo has already saved.
+* **TikTok:** Hushfeed now builds on Morphe patcher 1.15.1, so it needs Morphe Manager 1.34.0 or newer. Manager 1.33.0 asks for an update before it loads the bundle. ARSCLib follows the patcher to 9b742c412d, with its hashes checked against the downloaded files, and the release checks patch with desktop CLI 1.18.1.
+
+* **TikTok:** Every Guava request in the build now resolves to 33.7.2, the release outside GHSA-xxph-c9ww-hj94, across the settings, plugin and project graphs rather than only where the catalog's pin reached. Its checksums were verified against Maven Central before the strict dependency check accepted them. Guava stays on the build and patching side: the patch bundle and the extension carry none of it. The check that patch sources don't import Guava directly used to pass without reading a file. It reads them now.
+
+* **TikTok:** An edit to the Java extension alone no longer reruns the fingerprint checks against the APK fixtures, since those never read it. Full test commands and release checks still cover every test, and a change to a patch, a test, a dependency or a fixture still reruns them.
+
+* **TikTok:** Documentation edits no longer rerun unchanged APK fixture tests. Full test commands and release checks still cover every test, and source-reading checks now track their external inputs. Replacing an APK invalidates test results even when its size and timestamp match.
 
 * **TikTok:** Local storage scanner checks now keep Java diagnostics visible without treating successful runs as failures in Windows PowerShell.
 
 * **TikTok:** Local APK signing now accepts harmless Java startup diagnostics from heap and CPU limits. Invalid certificates and failed signing checks still stop installation.
-
-* **TikTok:** Undo clearing seen videos now restores history in the background and reports how many cleared records still fit the history limits. It no longer says videos were restored when newer watches leave no room for them. A failed save keeps Undo available.
 
 ## 0.67.1 (2026-10-03)
 

@@ -1,0 +1,91 @@
+name: Release
+
+# Fully automatic: merging to master (retarget or patch fix touching the
+# versioned paths) builds, tests, tags <reddit>-morphe-ver-<nn> and
+# publishes a Release whose notes show only the Reddit version built for.
+# No human tagging; re-runs are idempotent (tagged HEAD is skipped).
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "reddit-target.txt"
+      - "patches/**"
+      - "extensions/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  packages: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Resolve version and next tag
+        id: tag
+        run: |
+          VER="$(tr -d ' \t\r\n' < reddit-target.txt)"
+          if ! printf '%s' "$VER" | grep -Eq '^[0-9]{4}\.[0-9]+\.[0-9]+$'; then
+            echo "error: invalid version in reddit-target.txt: $VER" >&2
+            exit 1
+          fi
+          if git tag --points-at HEAD | grep -Eq -- "$VER-morphe-ver-[0-9]+$"; then
+            echo "tagged=true" >> "$GITHUB_OUTPUT"
+            echo "HEAD already carries a release tag for $VER; skipping."
+          else
+            LAST="$(git tag -l "$VER-morphe-ver-*" | sort -V | tail -n 1)"
+            if [ -n "$LAST" ]; then
+              N=$((10#${LAST##*-ver-} + 1))
+            else
+              N=1
+            fi
+            echo "tagged=false" >> "$GITHUB_OUTPUT"
+            echo "tag=$VER-morphe-ver-$(printf '%02d' "$N")" >> "$GITHUB_OUTPUT"
+            echo "version=$VER" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up JDK 21
+        if: steps.tag.outputs.tagged != 'true'
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Make gradlew executable
+        if: steps.tag.outputs.tagged != 'true'
+        run: chmod +x gradlew
+
+      - name: Run tests (gate)
+        if: steps.tag.outputs.tagged != 'true'
+        run: ./gradlew test
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build patches
+        if: steps.tag.outputs.tagged != 'true'
+        run: ./gradlew :patches:buildAndroid
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish release
+        if: steps.tag.outputs.tagged != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${{ steps.tag.outputs.tag }}"
+          VER="${{ steps.tag.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag "$TAG"
+          git push origin "$TAG"
+          printf 'Built for Reddit %s (experimental).\n' "$VER" > /tmp/opencode-notes.md
+          gh release create "$TAG" --title "$TAG" --notes-file /tmp/opencode-notes.md patches/build/libs/*.mpp

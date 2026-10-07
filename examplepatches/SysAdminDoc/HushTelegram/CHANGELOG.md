@@ -2,6 +2,54 @@
 
 Every HushTelegram release, newest first.
 
+## Unreleased
+
+Working version 0.0.11.
+
+* **Telegram:** A new Hide contacts on Telegram switch, off by default, takes the Your contacts on Telegram list off a short chat list, along with its heading and the loading rows shown while contacts sync. Chats, folders, contact sync and search don't change. With no chats at all, you get the welcome screen Telegram shows when none of your contacts use it. Turning it off or pausing HushTelegram brings the same rows back. A change shows up the next time Telegram rebuilds the chat list, and a restart always does.
+
+* **Telegram:** A new Hide greeting stickers switch, off by default, takes away the sticker an empty private chat offers to send as a greeting, so a stray tap can't send it. The empty chat's text stays, and business introductions keep their sticker. Premium and paid-message notices, the sticker picker and sending don't change.
+
+* **Telegram:** A new Use system font switch, off by default, draws Telegram's bold and italic text in your phone's own font instead of the Roboto files the app carries, so headings match the rest of the text on a phone with a custom font. Code blocks take the phone's monospace font. Some number displays and Instant View pages keep Telegram's fonts. A change takes effect after Telegram restarts.
+
+* **Telegram:** A new AMOLED black switch, off by default, turns the screens of Telegram's Night and Dark themes pure black, which looks deeper on an OLED screen. A patterned chat background shows its pattern over black. Message bubbles and pop-up menus keep the theme's colors, and a theme you've installed from a file stays as it is. A change takes effect after Telegram restarts.
+
+* **Telegram:** A new Hide translate bar switch, off by default, takes the translate bar off the top of chats in another language. Translate is still in the chat's menu, and a chat you're translating keeps its bar so the original is one tap away.
+
+* **Telegram:** A new Exact numbers switch, off by default, shows member, subscriber, view, reply and reaction counts in full, so a channel reads 12,345 subscribers instead of 12.3K.
+
+* **Telegram:** A new Reveal spoilers switch, off by default, shows spoiler text, photos and videos without making you tap them. View-once media and sensitive content keep their blur, and login codes from Telegram stay covered.
+
+* **Telegram:** A new Hide keyboard on scroll switch, off by default, closes the keyboard as soon as you start scrolling through a chat.
+
+* **Telegram:** A new Keep videos muted on volume keys switch, off by default, stops the volume keys from playing the video on screen with sound in a chat. They just change the volume.
+
+* **Telegram:** A new Swipe back on profiles switch, off by default, lets a swipe to the right on a profile's photos or media tabs go back instead of flipping to the previous photo or tab.
+
+* **Telegram:** A new Hide phone number switch, off by default, shows your own number as dots in the side menu, Settings, your profile and everywhere else Telegram displays it. Handy for screenshots. Other people's numbers stay visible.
+
+* **Telegram:** A new Message times with seconds switch, off by default, adds seconds to the time on each message, like 9:41:27 PM.
+
+* **Telegram:** A new Allow chat blur on slower phones switch, off by default, lets phones Telegram rates as slow turn on its blurred chat header and panels under Power saving.
+
+* **Telegram:** A new Play voice messages one at a time switch, off by default, stops Telegram playing the next voice or video message in a chat when one ends.
+
+* **Telegram:** A new Turn off haptic feedback switch, off by default, stops the vibration Telegram adds to taps, long presses, swipes and wrong entries. Incoming calls and notifications still vibrate.
+
+* **Telegram:** A new Turn off reaction effects switch, off by default, stops the fly-in and burst Telegram plays over the screen when you or someone else reacts. The reaction still lands on the message.
+
+* **Telegram:** A new Hide folder tab counters switch, off by default, takes the unread counts off the folder tabs above the chat list. Chats stay unread.
+
+* **Telegram:** A new Hide sender names when forwarding switch, off by default, starts each forward with Telegram's Hide sender's name option on. You can still turn it off before sending, and an article forward from an account without Premium keeps the sender, as Telegram requires.
+
+* **Telegram:** A new Voice messages in the music player switch, off by default, opens Telegram's full music player when you tap the bar above a chat while a voice message plays, so you get the big seek bar and speed controls. Without it the tap jumps to the message, as before. View-once voice messages never open the player.
+
+* **Telegram:** A new Silence people outside your contacts switch, off by default, lets a private message from someone who isn't in your contacts arrive quietly. You still get the notification, it just doesn't ring or buzz. Bots, reminders and Telegram's login codes keep their sound.
+
+* **Telegram:** Disable pull to next channel has a second switch, Stop pull to next topic, off by default. With it on, pulling up at the bottom of a forum topic only scrolls instead of opening the next topic. Each switch covers only its own pull, and a switch flipped mid-drag counts when you let go.
+
+* **Telegram:** The beta target is now telegram.org's current 12.10.7 build, version code 71239, which replaced build 71179. Every patch applies and passes its fixture tests on it.
+
 ## 0.0.9 (2026-10-05)
 
 The fourth release, with 25 patches for telegram.org's Telegram 12.10.6 and the official Telegram beta 12.10.7.

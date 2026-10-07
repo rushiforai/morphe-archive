@@ -89,6 +89,8 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_PROMOTIONAL_BANNERS, "Hide promotional banners");
         ROW_TITLES.put(PatchFamily.HIDE_SPONSORED_PROXY, "Hide sponsored proxy channel");
         ROW_TITLES.put(PatchFamily.HIDE_POPULAR_APPS, "Hide popular apps");
+        ROW_TITLES.put(PatchFamily.HIDE_CONTACTS_BLOCK, "Hide contacts on Telegram");
+        ROW_TITLES.put(PatchFamily.HIDE_GREETING_STICKERS, "Hide greeting stickers");
         ROW_TITLES.put(PatchFamily.DISABLE_CHAT_SWIPE, "No swipe actions on chats");
         ROW_TITLES.put(PatchFamily.DISABLE_CHANNEL_PULL, "Stop pull to next channel");
         ROW_TITLES.put(PatchFamily.NORMAL_PASTE, "Use normal paste");
@@ -96,6 +98,24 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, "Disable double-tap reactions");
         ROW_TITLES.put(PatchFamily.QUIET_CONTACTS_NAG, "Quiet contacts prompts");
         ROW_TITLES.put(PatchFamily.HOLIDAY_LOOK, "New Year look all year");
+        ROW_TITLES.put(PatchFamily.USE_SYSTEM_FONT, "Use system font");
+        ROW_TITLES.put(PatchFamily.AMOLED_BLACK, "AMOLED black");
+        ROW_TITLES.put(PatchFamily.HIDE_TRANSLATE_BAR, "Hide translate bar");
+        ROW_TITLES.put(PatchFamily.EXACT_NUMBERS, "Exact numbers");
+        ROW_TITLES.put(PatchFamily.REVEAL_SPOILERS, "Reveal spoilers");
+        ROW_TITLES.put(PatchFamily.HIDE_KEYBOARD_ON_SCROLL, "Hide keyboard on scroll");
+        ROW_TITLES.put(PatchFamily.KEEP_VIDEOS_MUTED, "Keep videos muted on volume keys");
+        ROW_TITLES.put(PatchFamily.SWIPE_BACK_ON_PROFILES, "Swipe back on profiles");
+        ROW_TITLES.put(PatchFamily.HIDE_PHONE_NUMBER, "Hide phone number");
+        ROW_TITLES.put(PatchFamily.MESSAGE_SECONDS, "Message times with seconds");
+        ROW_TITLES.put(PatchFamily.ALLOW_CHAT_BLUR, "Allow chat blur on slower phones");
+        ROW_TITLES.put(PatchFamily.VOICE_ONE_AT_A_TIME, "Play voice messages one at a time");
+        ROW_TITLES.put(PatchFamily.NO_HAPTICS, "Turn off haptic feedback");
+        ROW_TITLES.put(PatchFamily.REACTION_EFFECTS_OFF, "Turn off reaction effects");
+        ROW_TITLES.put(PatchFamily.HIDE_FOLDER_COUNTERS, "Hide folder tab counters");
+        ROW_TITLES.put(PatchFamily.FORWARD_HIDE_SENDER, "Hide sender names when forwarding");
+        ROW_TITLES.put(PatchFamily.VOICE_MUSIC_PLAYER, "Voice messages in the music player");
+        ROW_TITLES.put(PatchFamily.SILENCE_NON_CONTACTS, "Silence people outside your contacts");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop usage reports");
         ROW_TITLES.put(PatchFamily.DISABLE_CALL_DEBUG, "Stop call diagnostics");
         ROW_TITLES.put(PatchFamily.DISABLE_DRAFT_PREVIEWS, "No previews before sending");
@@ -213,11 +233,30 @@ public class HushTelegramPreferenceFragmentTest {
                 if (build.contains(PatchFamily.HIDE_ADS) || build.contains(PatchFamily.HIDE_STORIES)
                         || build.contains(PatchFamily.HIDE_RECOMMENDATIONS) || build.contains(PatchFamily.HIDE_COMMERCE)
                         || build.contains(PatchFamily.HIDE_PROMOTIONAL_BANNERS) || build.contains(PatchFamily.HIDE_SPONSORED_PROXY)
-                        || build.contains(PatchFamily.HIDE_POPULAR_APPS) || build.contains(PatchFamily.DISABLE_CHAT_SWIPE)
+                        || build.contains(PatchFamily.HIDE_POPULAR_APPS) || build.contains(PatchFamily.HIDE_CONTACTS_BLOCK)
+                        || build.contains(PatchFamily.HIDE_GREETING_STICKERS)
+                        || build.contains(PatchFamily.DISABLE_CHAT_SWIPE)
                         || build.contains(PatchFamily.DISABLE_CHANNEL_PULL)
                         || build.contains(PatchFamily.NORMAL_PASTE) || build.contains(PatchFamily.SHOW_LOCAL_IDS)
                         || build.contains(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS)
-                        || build.contains(PatchFamily.QUIET_CONTACTS_NAG) || build.contains(PatchFamily.HOLIDAY_LOOK)) expected.add("Chats");
+                        || build.contains(PatchFamily.QUIET_CONTACTS_NAG) || build.contains(PatchFamily.HOLIDAY_LOOK)
+                        || build.contains(PatchFamily.USE_SYSTEM_FONT) || build.contains(PatchFamily.AMOLED_BLACK)
+                        || build.contains(PatchFamily.HIDE_TRANSLATE_BAR)
+                        || build.contains(PatchFamily.EXACT_NUMBERS)
+                        || build.contains(PatchFamily.REVEAL_SPOILERS)
+                        || build.contains(PatchFamily.HIDE_KEYBOARD_ON_SCROLL)
+                        || build.contains(PatchFamily.KEEP_VIDEOS_MUTED)
+                        || build.contains(PatchFamily.SWIPE_BACK_ON_PROFILES)
+                        || build.contains(PatchFamily.HIDE_PHONE_NUMBER)
+                        || build.contains(PatchFamily.MESSAGE_SECONDS)
+                        || build.contains(PatchFamily.ALLOW_CHAT_BLUR)
+                        || build.contains(PatchFamily.VOICE_ONE_AT_A_TIME)
+                        || build.contains(PatchFamily.NO_HAPTICS)
+                        || build.contains(PatchFamily.REACTION_EFFECTS_OFF)
+                        || build.contains(PatchFamily.HIDE_FOLDER_COUNTERS)
+                        || build.contains(PatchFamily.FORWARD_HIDE_SENDER)
+                        || build.contains(PatchFamily.VOICE_MUSIC_PLAYER)
+                        || build.contains(PatchFamily.SILENCE_NON_CONTACTS)) expected.add("Chats");
                 if (build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.DISABLE_CALL_DEBUG)
                         || build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS) || build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP)) expected.add("Privacy");
                 if (build.contains(PatchFamily.REPAIR_FIREBASE_PUSH)) expected.add("Notifications");
@@ -263,6 +302,13 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Stop pull to next channel", String.valueOf(page.findPreference(Settings.DISABLE_CHANNEL_PULL.key).getTitle()));
             assertEquals("Pulling up at the bottom of a channel only scrolls. Open the next channel from your chat list.",
                     String.valueOf(page.findPreference(Settings.DISABLE_CHANNEL_PULL.key).getSummary()));
+            assertEquals("Stop pull to next topic", String.valueOf(page.findPreference(Settings.DISABLE_TOPIC_PULL.key).getTitle()));
+            assertEquals("Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list. "
+                            + "Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.DISABLE_TOPIC_PULL.key).getSummary()));
+            // Topic pulls keep Telegram's behavior until someone turns their own switch on.
+            assertFalse(Settings.DISABLE_TOPIC_PULL.key,
+                    ((SwitchPreference) page.findPreference(Settings.DISABLE_TOPIC_PULL.key)).isChecked());
             assertEquals("Repair Firebase push registration", String.valueOf(page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key).getTitle()));
             assertEquals("Uses Telegram's official certificate for Firebase push registration. "
                             + "Notification permission and battery settings still apply.",
@@ -304,6 +350,15 @@ public class HushTelegramPreferenceFragmentTest {
             assertEquals("Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, "
                             + "and Telegram doesn't ask for it. Apps you've opened and other results stay.",
                     String.valueOf(page.findPreference(Settings.HIDE_POPULAR_APPS.key).getSummary()));
+            assertEquals("A short chat list no longer lists your contacts on Telegram under it, with their heading and loading rows. "
+                            + "Your chats, folders, contact sync and search stay. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_CONTACTS_BLOCK.key).getSummary()));
+            assertEquals("An empty private chat no longer offers a sticker to send as a greeting. "
+                            + "Its text, business introductions, paid-message notices and the sticker picker stay. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_GREETING_STICKERS.key).getSummary()));
+            // Contact suggestions and greeting stickers stay as Telegram shows them until someone turns their switch on.
+            assertFalse(Settings.HIDE_CONTACTS_BLOCK.key, ((SwitchPreference) page.findPreference(Settings.HIDE_CONTACTS_BLOCK.key)).isChecked());
+            assertFalse(Settings.HIDE_GREETING_STICKERS.key, ((SwitchPreference) page.findPreference(Settings.HIDE_GREETING_STICKERS.key)).isChecked());
             assertEquals("No swipe actions on chats", String.valueOf(page.findPreference(Settings.DISABLE_CHAT_SWIPE.key).getTitle()));
             assertEquals("A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, "
                             + "so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.",
@@ -325,6 +380,141 @@ public class HushTelegramPreferenceFragmentTest {
             // Telegram keeps its own holiday dates until someone turns the switch on.
             assertFalse(Settings.HOLIDAY_LOOK.key,
                     ((SwitchPreference) page.findPreference(Settings.HOLIDAY_LOOK.key)).isChecked());
+            assertEquals("Use system font", String.valueOf(page.findPreference(Settings.USE_SYSTEM_FONT.key).getTitle()));
+            assertEquals("Bold and italic text stops using the Roboto files built into Telegram and takes your phone's font, the one regular text already uses. "
+                            + "Code takes the phone's monospace font. Some number displays and Instant View pages keep Telegram's own. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.USE_SYSTEM_FONT.key).getSummary()));
+            // Telegram's bundled fonts stay until someone turns the switch on.
+            assertFalse(Settings.USE_SYSTEM_FONT.key,
+                    ((SwitchPreference) page.findPreference(Settings.USE_SYSTEM_FONT.key)).isChecked());
+            assertEquals("AMOLED black", String.valueOf(page.findPreference(Settings.AMOLED_BLACK.key).getTitle()));
+            assertEquals("Telegram's Night and Dark themes draw their screens in pure black, and a patterned chat background shows its pattern over black. "
+                            + "Message bubbles and pop-up menus keep their colors, and themes you've installed from a file stay as they are. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.AMOLED_BLACK.key).getSummary()));
+            // Telegram's own theme colors stay until someone turns the switch on.
+            assertFalse(Settings.AMOLED_BLACK.key,
+                    ((SwitchPreference) page.findPreference(Settings.AMOLED_BLACK.key)).isChecked());
+            assertEquals("Hide translate bar", String.valueOf(page.findPreference(Settings.HIDE_TRANSLATE_BAR.key).getTitle()));
+            assertEquals("Chats in another language stop showing Telegram's translate bar at the top, and Translate moves to the chat's menu. "
+                            + "A chat you're translating keeps its bar so you can go back to the original. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_TRANSLATE_BAR.key).getSummary()));
+            // Telegram's translate bar stays until someone turns the switch on.
+            assertFalse(Settings.HIDE_TRANSLATE_BAR.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_TRANSLATE_BAR.key)).isChecked());
+            assertEquals("Exact numbers", String.valueOf(page.findPreference(Settings.EXACT_NUMBERS.key).getTitle()));
+            assertEquals("Member, subscriber, view, reply and reaction counts show the full number, like 12,345 "
+                            + "instead of 12.3K. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.EXACT_NUMBERS.key).getSummary()));
+            // Counts stay short until the switch is turned on.
+            assertFalse(Settings.EXACT_NUMBERS.key,
+                    ((SwitchPreference) page.findPreference(Settings.EXACT_NUMBERS.key)).isChecked());
+            assertEquals("Reveal spoilers", String.valueOf(page.findPreference(Settings.REVEAL_SPOILERS.key).getTitle()));
+            assertEquals("Spoiler text, photos and videos show right away instead of waiting for a tap. View-once "
+                            + "media, sensitive content and login codes stay covered, and text you're typing keeps its "
+                            + "spoiler. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.REVEAL_SPOILERS.key).getSummary()));
+            // Spoilers stay covered until the switch is turned on.
+            assertFalse(Settings.REVEAL_SPOILERS.key,
+                    ((SwitchPreference) page.findPreference(Settings.REVEAL_SPOILERS.key)).isChecked());
+            assertEquals("Hide keyboard on scroll", String.valueOf(page.findPreference(Settings.HIDE_KEYBOARD_ON_SCROLL.key).getTitle()));
+            assertEquals("Starting to scroll through a chat closes the keyboard, the way Telegram already does while "
+                            + "you search a chat. Telegram's emoji and sticker panel stays open. Off by default in "
+                            + "settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_KEYBOARD_ON_SCROLL.key).getSummary()));
+            // The keyboard stays up on scroll until the switch is turned on.
+            assertFalse(Settings.HIDE_KEYBOARD_ON_SCROLL.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_KEYBOARD_ON_SCROLL.key)).isChecked());
+            assertEquals("Keep videos muted on volume keys", String.valueOf(page.findPreference(Settings.KEEP_VIDEOS_MUTED.key).getTitle()));
+            assertEquals("Volume keys in a chat change the volume instead of playing the video or round video on "
+                            + "screen with sound. Tap a video to hear it. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.KEEP_VIDEOS_MUTED.key).getSummary()));
+            // The chat gets volume keys until the switch is turned on.
+            assertFalse(Settings.KEEP_VIDEOS_MUTED.key,
+                    ((SwitchPreference) page.findPreference(Settings.KEEP_VIDEOS_MUTED.key)).isChecked());
+            assertEquals("Swipe back on profiles", String.valueOf(page.findPreference(Settings.SWIPE_BACK_ON_PROFILES.key).getTitle()));
+            assertEquals("A swipe to the right on a profile's photos or media tabs goes back, like it does on the "
+                            + "rest of the profile, instead of showing the previous photo or tab. Swiping left still "
+                            + "moves forward. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.SWIPE_BACK_ON_PROFILES.key).getSummary()));
+            // The profile keeps its swipes until the switch is turned on.
+            assertFalse(Settings.SWIPE_BACK_ON_PROFILES.key,
+                    ((SwitchPreference) page.findPreference(Settings.SWIPE_BACK_ON_PROFILES.key)).isChecked());
+            assertEquals("Hide phone number", String.valueOf(page.findPreference(Settings.HIDE_PHONE_NUMBER.key).getTitle()));
+            assertEquals("Your own phone number shows as dots in the side menu, Settings, your profile and anywhere "
+                            + "else Telegram displays it, which helps with screenshots and screen sharing. Other people's "
+                            + "numbers stay visible. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_PHONE_NUMBER.key).getSummary()));
+            // Your number shows until the switch is turned on.
+            assertFalse(Settings.HIDE_PHONE_NUMBER.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_PHONE_NUMBER.key)).isChecked());
+            assertEquals("Message times with seconds", String.valueOf(page.findPreference(Settings.MESSAGE_SECONDS.key).getTitle()));
+            assertEquals("The time on each message shows seconds too, like 9:41:27 PM, so messages sent close "
+                            + "together are easy to tell apart. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.MESSAGE_SECONDS.key).getSummary()));
+            // Message times keep Telegram's format until the switch is turned on.
+            assertFalse(Settings.MESSAGE_SECONDS.key,
+                    ((SwitchPreference) page.findPreference(Settings.MESSAGE_SECONDS.key)).isChecked());
+            assertEquals("Allow chat blur on slower phones", String.valueOf(page.findPreference(Settings.ALLOW_CHAT_BLUR.key).getTitle()));
+            assertEquals("Telegram only blurs the chat header and panels on phones it rates as fast. This lets any "
+                            + "phone use it once Blur in chat is on under Power saving. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.ALLOW_CHAT_BLUR.key).getSummary()));
+            // Telegram rates the phone until the switch is turned on.
+            assertFalse(Settings.ALLOW_CHAT_BLUR.key,
+                    ((SwitchPreference) page.findPreference(Settings.ALLOW_CHAT_BLUR.key)).isChecked());
+            assertEquals("Play voice messages one at a time", String.valueOf(page.findPreference(Settings.VOICE_ONE_AT_A_TIME.key).getTitle()));
+            assertEquals("When a voice or video message ends, the next one in the chat doesn't start on its own. Off "
+                            + "by default in settings.",
+                    String.valueOf(page.findPreference(Settings.VOICE_ONE_AT_A_TIME.key).getSummary()));
+            // Telegram plays the next voice message until the switch is turned on.
+            assertFalse(Settings.VOICE_ONE_AT_A_TIME.key,
+                    ((SwitchPreference) page.findPreference(Settings.VOICE_ONE_AT_A_TIME.key)).isChecked());
+            assertEquals("Turn off haptic feedback", String.valueOf(page.findPreference(Settings.NO_HAPTICS.key).getTitle()));
+            assertEquals("Taps, long presses, swipes and wrong entries in Telegram stop vibrating the phone. "
+                            + "Incoming calls still vibrate, and notifications vibrate the way you set them. Off by "
+                            + "default in settings.",
+                    String.valueOf(page.findPreference(Settings.NO_HAPTICS.key).getSummary()));
+            // Telegram vibrates until the switch is turned on.
+            assertFalse(Settings.NO_HAPTICS.key,
+                    ((SwitchPreference) page.findPreference(Settings.NO_HAPTICS.key)).isChecked());
+            assertEquals("Turn off reaction effects", String.valueOf(page.findPreference(Settings.REACTION_EFFECTS_OFF.key).getTitle()));
+            assertEquals("When you or someone else reacts to a message, the emoji no longer flies across the screen "
+                            + "and bursts. The reaction still shows on the message. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.REACTION_EFFECTS_OFF.key).getSummary()));
+            // Reaction effects play until the switch is turned on.
+            assertFalse(Settings.REACTION_EFFECTS_OFF.key,
+                    ((SwitchPreference) page.findPreference(Settings.REACTION_EFFECTS_OFF.key)).isChecked());
+            assertEquals("Hide folder tab counters", String.valueOf(page.findPreference(Settings.HIDE_FOLDER_COUNTERS.key).getTitle()));
+            assertEquals("The folder tabs above the chat list show just their names, without the number of unread "
+                            + "chats. Chats stay unread and the app icon's badge doesn't change. Off by default in "
+                            + "settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_FOLDER_COUNTERS.key).getSummary()));
+            // Folder tabs show their counts until the switch is turned on.
+            assertFalse(Settings.HIDE_FOLDER_COUNTERS.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_FOLDER_COUNTERS.key)).isChecked());
+            assertEquals("Hide sender names when forwarding", String.valueOf(page.findPreference(Settings.FORWARD_HIDE_SENDER.key).getTitle()));
+            assertEquals("Each new forward starts with Telegram's Hide sender's name option turned on, so the copies "
+                            + "arrive without the original author. You can still turn it off before sending, and article "
+                            + "forwards follow Telegram's Premium rule. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.FORWARD_HIDE_SENDER.key).getSummary()));
+            // Forwards show the sender until the switch is turned on.
+            assertFalse(Settings.FORWARD_HIDE_SENDER.key,
+                    ((SwitchPreference) page.findPreference(Settings.FORWARD_HIDE_SENDER.key)).isChecked());
+            assertEquals("Voice messages in the music player", String.valueOf(page.findPreference(Settings.VOICE_MUSIC_PLAYER.key).getTitle()));
+            assertEquals("While a voice message plays, tapping the bar above the chat opens Telegram's full music "
+                            + "player with its seek bar, instead of jumping to the message. View-once voice messages stay "
+                            + "as they are. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.VOICE_MUSIC_PLAYER.key).getSummary()));
+            // A voice message keeps jumping to the chat until the switch is turned on.
+            assertFalse(Settings.VOICE_MUSIC_PLAYER.key,
+                    ((SwitchPreference) page.findPreference(Settings.VOICE_MUSIC_PLAYER.key)).isChecked());
+            assertEquals("Silence people outside your contacts", String.valueOf(page.findPreference(Settings.SILENCE_NON_CONTACTS.key).getTitle()));
+            assertEquals("A private message from someone who isn't in your contacts still shows a notification, just "
+                            + "without sound or vibration. Bots, reminders and Telegram's login codes keep their sound. "
+                            + "Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.SILENCE_NON_CONTACTS.key).getSummary()));
+            // A stranger's message rings until the switch is turned on.
+            assertFalse(Settings.SILENCE_NON_CONTACTS.key,
+                    ((SwitchPreference) page.findPreference(Settings.SILENCE_NON_CONTACTS.key)).isChecked());
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
             for (Preference row : rows) {

@@ -74,6 +74,7 @@ import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.comments.CommentOrder;
+import app.morphe.extension.facebook.feed.PostSources;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.feed.PostWordsTest;
 import app.morphe.extension.facebook.feed.WordsCorpus;
@@ -170,6 +171,7 @@ public class SettingsBackupTest {
         Settings.SAVE_FOLDER.resetToDefault();
         Settings.DOWNLOAD_QUALITY.resetToDefault();
         Settings.FILENAME_TEMPLATE.resetToDefault();
+        Settings.PHOTO_FILENAME_TEMPLATE.resetToDefault();
         Settings.START_TAB.resetToDefault();
         Settings.FEEDS_SUBTAB.resetToDefault();
         Settings.COMMENT_ORDER.resetToDefault();
@@ -179,6 +181,7 @@ public class SettingsBackupTest {
         Settings.SAVE_TO.resetToDefault();
         Settings.HIDDEN_WORDS.resetToDefault();
         Settings.KEPT_WORDS.resetToDefault();
+        Settings.HIDDEN_SOURCES.resetToDefault();
         BaseSettings.PAUSED.resetToDefault();
         BaseSettings.DEBUG.resetToDefault();
         BaseSettings.DEBUG_LOG_FILTERS.resetToDefault();
@@ -221,16 +224,18 @@ public class SettingsBackupTest {
         for (Setting<?> setting : SettingsBackup.VALUES) {
             assertFalse(setting.key + " is carried and kept out at once", VALUES_STAY_OUT.containsKey(setting.key));
         }
-        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.SAVE_TO,
-                Settings.SAVE_FOLDER, Settings.DOWNLOAD_QUALITY, Settings.FILENAME_TEMPLATE, Settings.DOWNLOAD_ACTION,
-                Settings.SEND_TO_APP, Settings.START_TAB, Settings.FEEDS_SUBTAB, Settings.COMMENT_ORDER,
-                Settings.PLAYBACK_QUALITY), SettingsBackup.VALUES);
+        assertEquals(Arrays.<Setting<?>>asList(Settings.HIDDEN_WORDS, Settings.KEPT_WORDS, Settings.HIDDEN_SOURCES, Settings.SAVE_TO,
+                Settings.SAVE_FOLDER, Settings.DOWNLOAD_QUALITY, Settings.FILENAME_TEMPLATE, Settings.PHOTO_FILENAME_TEMPLATE,
+                Settings.DOWNLOAD_ACTION, Settings.SEND_TO_APP, Settings.START_TAB, Settings.FEEDS_SUBTAB,
+                Settings.COMMENT_ORDER, Settings.PLAYBACK_QUALITY), SettingsBackup.VALUES);
         assertEquals(Settings.SAVE_TO, SettingsBackup.TO);
         assertEquals(Settings.HIDDEN_WORDS, SettingsBackup.HIDDEN);
         assertEquals(Settings.KEPT_WORDS, SettingsBackup.KEPT);
+        assertEquals(Settings.HIDDEN_SOURCES, SettingsBackup.SOURCES);
         assertEquals(Settings.SAVE_FOLDER, SettingsBackup.FOLDER);
         assertEquals(Settings.DOWNLOAD_QUALITY, SettingsBackup.QUALITY);
         assertEquals(Settings.FILENAME_TEMPLATE, SettingsBackup.FILE_NAME);
+        assertEquals(Settings.PHOTO_FILENAME_TEMPLATE, SettingsBackup.PHOTO_NAME);
         assertEquals(Settings.START_TAB, SettingsBackup.START);
         assertEquals(Settings.FEEDS_SUBTAB, SettingsBackup.SUBTAB);
         assertEquals(Settings.COMMENT_ORDER, SettingsBackup.ORDER);
@@ -287,6 +292,7 @@ public class SettingsBackupTest {
         Settings.SAVE_FOLDER.save("../My/Clips");
         Settings.DOWNLOAD_QUALITY.save(DownloadQuality.P480);
         Settings.FILENAME_TEMPLATE.save("../{video_id}");
+        Settings.PHOTO_FILENAME_TEMPLATE.save("FB_VID_{photo_id}");
         Settings.START_TAB.save(StartTab.FRIENDS);
         Settings.COMMENT_ORDER.save(CommentOrder.ALL_COMMENTS);
         // Stored as typed, and written as the list the filter reads.
@@ -318,6 +324,7 @@ public class SettingsBackupTest {
         // Saved, not what a paused Facebook is answered: paused, the quality answers the best.
         assertEquals("480p", switches.get(SettingsBackup.QUALITY.key));
         assertEquals("{video_id}", switches.get(SettingsBackup.FILE_NAME.key));
+        assertEquals("FB_IMG_{photo_id}", switches.get(SettingsBackup.PHOTO_NAME.key));
         // Saved, not what a paused Facebook is answered: paused, it opens where it chooses.
         assertEquals("friends", switches.get(SettingsBackup.START.key));
         // Saved, not what a paused Facebook is answered: paused, comments open as Facebook picks.
@@ -800,9 +807,70 @@ public class SettingsBackupTest {
     }
 
     /**
+     * The people, Pages and sites list goes out and comes back as its row stores it, a file can
+     * clear it, an older file leaves it alone, and a list the row would clean differently refuses
+     * the whole file without quoting it.
+     */
+    @Test
+    public void theSourcesListRoundTripsAndComesBackOnlyAsACleanList() throws Exception {
+        Settings.HIDDEN_SOURCES.save("example.com\nDaily Bugle");
+        String file = SettingsBackup.create();
+        Settings.HIDDEN_SOURCES.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals("example.com\nDaily Bugle", snapshot.sourcesChange());
+        assertEquals(0, snapshot.switchChanges());
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals("example.com\nDaily Bugle", Settings.HIDDEN_SOURCES.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals("the same list again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+        assertEquals("Your list of people, Pages and sites to hide will hold 2 entries.",
+                SettingsBackupPreference.sourcesSentence(snapshot.sources));
+        assertEquals("Your list of people, Pages and sites to hide will be empty.",
+                SettingsBackupPreference.sourcesSentence(""));
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{" example.com", "example.com\n", "example.com\nEXAMPLE.com",
+                "example.com\n\nDaily Bugle", repeat('a', PostSources.MAX_LENGTH + 1),
+                "https://www.facebook.com/DailyBugle", 5, true, JSONObject.NULL, new JSONObject()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.SOURCES.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the list " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+                assertFalse("the refusal quotes the list", rejected.getMessage().contains("example")
+                        || rejected.getMessage().contains("Bugle"));
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        JSONObject emptied = new JSONObject(file);
+        emptied.getJSONObject("settings").put(SettingsBackup.SOURCES.key, "");
+        SettingsBackup.Snapshot clearing = SettingsBackup.parse(emptied.toString());
+        assertEquals("", clearing.sourcesChange());
+        SettingsBackup.apply(clearing);
+        assertEquals("", Settings.HIDDEN_SOURCES.savedValue());
+
+        Settings.HIDDEN_SOURCES.save("example.com");
+        SettingsBackup.Snapshot older = SettingsBackup.parse(fileWith(Settings.HIDE_SUGGESTED_POSTS, false));
+        assertNull(older.sources);
+        assertNull(older.sourcesChange());
+        SettingsBackup.apply(older);
+        assertEquals("example.com", Settings.HIDDEN_SOURCES.savedValue());
+
+        Bundle state = snapshot.toBundle();
+        assertEquals("example.com\nDaily Bugle", SettingsBackup.Snapshot.fromBundle(state).sources);
+        state.putString("hidden_sources", "example.com\nEXAMPLE.com");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).sources);
+    }
+
+    /**
      * #58: lists that fill the room the two share to the byte, written with emoji, a CJK
      * character, an escaped slash and plain letters, go out and come back whole, both at once, with
-     * every other value a file carries at its longest, in a file inside the size limit.
+     * every other value a file carries at its longest, in a file inside the size limit. The people,
+     * Pages and sites list at its own room, a slash in every other character, fits on top.
      */
     @Test
     public void wordListsFillingTheirRoomRoundTripWithEverythingElseAtItsLongest() throws Exception {
@@ -824,22 +892,42 @@ public class SettingsBackupTest {
         assertEquals("a file name keeps fifty, its date token included", 50,
                 fileName.codePointCount(0, fileName.length()));
         Settings.FILENAME_TEMPLATE.save(fileName);
+        Settings.PHOTO_FILENAME_TEMPLATE.save(FileNameTemplate.sanitizePhoto(emoji(80)));
         String app = "a." + repeat('b', 1024 - 2);
         assertTrue(SendLink.isFileApp(app));
         Settings.SEND_TO_APP.save(app);
         String file = SettingsBackup.create();
         int size = file.getBytes(StandardCharsets.UTF_8).length;
         assertTrue("a file of " + size + " bytes", size <= SettingsBackup.MAX_BYTES);
-        assertTrue("MAX_BYTES says 63 KB at most: " + size, size <= 63 * 1024);
+        // Both word lists and every other value at their longest, the two file names among them, leave
+        // the sources list the rest of MAX_BYTES.
+        assertTrue("without the sources list, 64 KB at most: " + size, size <= 64 * 1024);
+
+        StringBuilder typed = new StringBuilder();
+        for (int i = 0; i < PostSources.MAX_RULES; i++) {
+            StringBuilder line = new StringBuilder("https://s").append(i).append(".example.com");
+            while (line.length() < PostSources.MAX_LENGTH) line.append("/x");
+            typed.append(line, 0, PostSources.MAX_LENGTH).append('\n');
+        }
+        String sources = PostSources.clean(typed.toString());
+        assertTrue("the list stops within a line of its room",
+                PostWords.encodedBytes(sources) > PostSources.MAX_LIST_BYTES - 2 * PostSources.MAX_LENGTH - 2);
+        Settings.HIDDEN_SOURCES.save(sources);
+        file = SettingsBackup.create();
+        size = file.getBytes(StandardCharsets.UTF_8).length;
+        assertTrue("a file of " + size + " bytes with the sources list too", size <= SettingsBackup.MAX_BYTES);
         Settings.HIDDEN_WORDS.resetToDefault();
         Settings.KEPT_WORDS.resetToDefault();
+        Settings.HIDDEN_SOURCES.resetToDefault();
 
         SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
         assertEquals(hidden, snapshot.hiddenChange());
         assertEquals(kept, snapshot.keptChange());
-        assertEquals(2, SettingsBackup.apply(snapshot));
+        assertEquals(sources, snapshot.sourcesChange());
+        assertEquals(3, SettingsBackup.apply(snapshot));
         assertEquals(hidden, Settings.HIDDEN_WORDS.savedValue());
         assertEquals(kept, Settings.KEPT_WORDS.savedValue());
+        assertEquals(sources, Settings.HIDDEN_SOURCES.savedValue());
         assertEquals("a file read back is the file", file, SettingsBackup.create());
     }
 
@@ -1143,6 +1231,63 @@ public class SettingsBackupTest {
         assertNull(SettingsBackup.Snapshot.fromBundle(state).fileName);
         state.putInt("file_name", 5);
         assertNull(SettingsBackup.Snapshot.fromBundle(state).fileName);
+    }
+
+    /**
+     * The photo file name goes out as the template photo saves use and comes back only as one, the
+     * way the video's does: a video's name, an extension or one name for every photo refuses the
+     * whole file.
+     */
+    @Test
+    public void thePhotoNameRoundTripsAndComesBackOnlyAsOneCleanName() throws Exception {
+        Settings.PHOTO_FILENAME_TEMPLATE.save("Shot {photo_id}");
+        String file = SettingsBackup.create();
+        Settings.PHOTO_FILENAME_TEMPLATE.resetToDefault();
+
+        SettingsBackup.Snapshot snapshot = SettingsBackup.parse(file);
+        assertEquals("Shot {photo_id}", snapshot.photoName);
+        assertEquals("Shot {photo_id}", snapshot.photoNameChange());
+        assertNull("the video's name is the one it was", snapshot.fileNameChange());
+        assertEquals(Collections.singletonMap(SettingsBackup.PHOTO_NAME, "Shot {photo_id}"), snapshot.changes());
+        assertEquals(1, SettingsBackup.apply(snapshot));
+        assertEquals("Shot {photo_id}", Settings.PHOTO_FILENAME_TEMPLATE.savedValue());
+        assertEquals(FileNameTemplate.DEFAULT, Settings.FILENAME_TEMPLATE.savedValue());
+        assertEquals("a file read back is the file", file, SettingsBackup.create());
+        assertEquals("the same name again changes nothing", 0, SettingsBackup.parse(file).changes().size());
+
+        Map<String, ?> before = store();
+        for (Object refused : new Object[]{"../{date}", "a\\b", ".{date}", " {date}", "", "Shot", "{date}.jpg",
+                "FB_VID_{date}", ".nomedia", 5, true, JSONObject.NULL, new JSONObject()}) {
+            JSONObject hostile = new JSONObject(file);
+            hostile.getJSONObject("settings").put(SettingsBackup.PHOTO_NAME.key, refused);
+            try {
+                SettingsBackup.parse(hostile.toString());
+                fail("a file with the photo name " + printable(String.valueOf(refused)) + " was read");
+            } catch (SettingsBackup.Rejected rejected) {
+                assertEquals(printable(String.valueOf(refused)), SettingsBackup.Reason.VALUE, rejected.reason);
+            }
+        }
+        assertEquals("a refused file wrote something", before, store());
+
+        // A file from before the photo name was carried leaves it alone.
+        SettingsBackup.Snapshot older = SettingsBackup.parse(fileWith(Settings.HIDE_SUGGESTED_POSTS, false));
+        assertNull(older.photoName);
+        assertNull(older.photoNameChange());
+        SettingsBackup.apply(older);
+        assertEquals("Shot {photo_id}", Settings.PHOTO_FILENAME_TEMPLATE.savedValue());
+
+        // A preview kept across a rebuild keeps its photo name, and only a clean one comes back.
+        Bundle state = SettingsBackup.parse(file).toBundle();
+        assertEquals("Shot {photo_id}", SettingsBackup.Snapshot.fromBundle(state).photoName);
+        state.putString("photo_name", "FB_VID_{date}");
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).photoName);
+        state.putInt("photo_name", 5);
+        assertNull(SettingsBackup.Snapshot.fromBundle(state).photoName);
+
+        assertEquals("Settings imported. Saved photos will be named "
+                        + app.morphe.extension.shared.L10n.isolate("Shot {photo_id}") + ".",
+                SettingsBackupPreference.importedMessage(0, null, null, null, null, null, null, null, null, null, null,
+                        null, null, null, "Shot {photo_id}"));
     }
 
     /** A file that renames saved videos says so, before and after, beside what else it changes. */

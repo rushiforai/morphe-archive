@@ -29,12 +29,13 @@ class ControlDiscoveryTest {
     )
 
     private fun completeFixture(): List<MutableClass> {
-        val methods = expectedHooks.filter { it.key !in setOf("unsent_indicator", "delta_unsent", "ai_sticker_cell", "screenshot_viewers", COMMUNITY_INBOX) }.flatMap { (key, ids) ->
+        val methods = expectedHooks.filter { it.key !in setOf("unsent_indicator", "delta_unsent", "ai_sticker_cell", "screenshot_viewers", COMMUNITY_INBOX, EMOJI_DRAWER, ANALYTICS_UPLOADS, MESSAGE_LOG, SYSTEM_CAMERA) }.flatMap { (key, ids) ->
             ids.map { id ->
                 if (key == "people_jewel") return@map peopleJewelMethod()
                 if (key == "people_tab") return@map peopleTabMethod()
                 if (key == "people_search") return@map peopleSearchMethod()
                 if (key == "people_story") return@map peopleStoryMethod()
+                if (key == INBOX_REFRESH_HOOK) return@map inboxItemsMethod()
                 if (key == "bubbles") return@map bubbleEligibilityMethod()
                 if (key == "bubble_mode") return@map nativeBubbleModeMethod()
                 val body = when (key) {
@@ -60,6 +61,7 @@ class ControlDiscoveryTest {
                     "keep_unsent" -> "const-string v0, \"com.facebook.stella.ipc.messenger.ACTION_REVOKE_MESSAGE\"\nreturn-void"
                     "ai_search" -> "const-string v0, \"com.facebook.messaging.search.aiagent.plugins.implementations.SearchAiagentImplementationsKillSwitch\"\nconst/4 v0, 0x1\nreturn v0"
                     "original_photo" -> if (id.endsWith(")[B")) "const/4 v0, 0x0\nreturn-object v0" else "return-void"
+                    ORIGINAL_VIDEO -> VIDEO_TRANSCODE_BODY
                     "emoji_typeface" -> "const-string v0, \"FacebookEmojiTypefaceProviderImpl\"\nconst/4 v0, 0x0\nreturn-object v0"
                     "avatar_tabs" -> "sget-object v0, $AVATAR_TAB_EVENT->A03:$AVATAR_TAB_EVENT\nreturn-object v0"
                     "ai_search_chip" -> "const/4 v0, 0x0\nreturn-object v0"
@@ -72,6 +74,7 @@ class ControlDiscoveryTest {
                     "chat_legacy" -> LEGACY_CHAT_ANIMATION_BODY
                     "growth_notes" -> "const-string v0, \"$NOTES_TIP_SHEET\"\nconst-string v0, \"$NOTES_TIP_TYPE_ARG\"\nconst/4 v0, 0x0\nreturn-object v0"
                     "growth_story_card" -> "sget-object v0, LX/JVI;->A0E:LX/1BL;\nconst/4 v0, 0x1\nreturn v0"
+                    APP_ICONS -> APP_ICON_GATE_BODY
                     "menu_settings" -> when {
                         id.contains("ArrayList") ->
                             "const-string v0, \"messaging.navigation.settingsfolder.folderitem.SettingsFolderItem\"\nconst/4 v0, 0x0\nreturn-object v0"
@@ -95,8 +98,8 @@ class ControlDiscoveryTest {
                     """.trimIndent()
                     else -> error("Missing synthetic resolver fixture for $key")
                 }
-                val staticGate = (key in pluginGates || key == "ai_search" || key == "growth_story_card") && !id.substringAfter('(').startsWith(')')
-                fixtureMethod(id, body, registers = when (key) { "original_photo" -> 22; "chat_animation", "chat_legacy" -> 5; else -> 8 }, flags = AccessFlags.PUBLIC.value or
+                val staticGate = (key in pluginGates || key == "ai_search" || key == "growth_story_card" || key == APP_ICONS) && !id.substringAfter('(').startsWith(')')
+                fixtureMethod(id, body, registers = when (key) { "original_photo" -> 22; ORIGINAL_VIDEO -> 24;"chat_animation", "chat_legacy" -> 5; else -> 8 }, flags = AccessFlags.PUBLIC.value or
                     if (staticGate) AccessFlags.STATIC.value else 0)
             }
         }
@@ -105,6 +108,7 @@ class ControlDiscoveryTest {
                 "LX/Txc;" -> listOf(fixtureMethod("LX/Txc;->CH7(Landroid/view/ViewGroup;I)LX/4jw;",
                     "new-instance v0, LX/TxV;\nconst/4 v0, 0x0\nreturn-object v0"))
                 "LX/JZ6;" -> listOf(peopleTabFetchMethod())
+                "LX/7Ya;" -> listOf(appIconAliasMap("LX/7Ya;"))
                 else -> emptyList()
             }
             fixtureClass(type, grouped + extra, originals[type],
@@ -113,7 +117,7 @@ class ControlDiscoveryTest {
             fixtureMethod("$IMMUTABLE_LIST->copyOf(Ljava/util/Collection;)$IMMUTABLE_LIST",
                 "const/4 v0, 0x0\nreturn-object v0", flags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value),
         )), peopleJewelKeyHolder(), storyCardKeyHolder(), debugDumperFixture(), messageWrapperFixture(type = "LX/K1Y;"), searchFieldFixture()) +
-            aiStickerCellFixture() + communityInboxFixture().filter { it.type != IMMUTABLE_LIST } +
+            aiStickerCellFixture() + communityInboxFixture().filter { it.type != IMMUTABLE_LIST } + emojiDrawerFixture() + analyticsUploadFixture() + messageLogFixture() + systemCameraFixture() +
             expectedHooks.getValue("screenshot_viewers").map { screenshotViewerFixture(it) }
                 .groupBy { it.definingClass }.map { (type, group) -> fixtureClass(type, group) }
     }
@@ -137,7 +141,7 @@ class ControlDiscoveryTest {
     @Test fun discoversTheCompleteHookUnionThroughRealClassDefinitions() {
         val found = findControls(completeFixture())
         validateControls(found)
-        assertEquals(100, found.values.sumOf { it.size })
+        assertEquals(ExpectedTotals.DISCOVERY_FIXTURE_HOOKS, found.values.sumOf { it.size })
         for (key in expectedHooks.keys) validateControls(found, setOf(key))
     }
 

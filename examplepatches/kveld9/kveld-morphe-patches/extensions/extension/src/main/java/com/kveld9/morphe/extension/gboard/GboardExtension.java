@@ -46,6 +46,7 @@ public class GboardExtension {
     public static final String PREF_KEY_FORCE_INCOGNITO = "morphe_force_incognito";
     public static final String PREF_KEY_HIDE_INCOGNITO_ICON = "morphe_hide_incognito_icon";
     public static final String PREF_KEY_VOICE_INCOGNITO = "morphe_voice_typing_incognito";
+    public static final String PREF_KEY_CLIPBOARD_INCOGNITO = "morphe_clipboard_incognito";
     public static final String PREF_KEY_DECOUPLE_TOUCH_FEEDBACK = "morphe_decouple_touch_feedback";
     public static final String PREF_KEY_MODERN_HAPTICS = "morphe_modern_haptics";
 
@@ -396,6 +397,21 @@ public class GboardExtension {
 
     public static boolean overrideVoiceTypingIncognito(boolean isIncognito) {
         if (isVoiceTypingIncognitoEnabled()) {
+            return false;
+        }
+        return isIncognito;
+    }
+
+    public static boolean isClipboardIncognitoEnabled(Context context) {
+        return getBooleanPref(PREF_KEY_CLIPBOARD_INCOGNITO, true);
+    }
+
+    public static boolean isClipboardIncognitoEnabled() {
+        return isClipboardIncognitoEnabled(null);
+    }
+
+    public static boolean overrideClipboardIncognito(boolean isIncognito) {
+        if (isClipboardIncognitoEnabled()) {
             return false;
         }
         return isIncognito;
@@ -833,6 +849,73 @@ public class GboardExtension {
         }
     }
 
+    private static volatile Field cachedTitleField = null;
+    private static volatile Field cachedSummaryField = null;
+    private static volatile boolean prefFieldsResolved = false;
+
+    private static void resolvePreferenceFields(Class<?> prefClass) {
+        if (prefFieldsResolved) return;
+        synchronized (GboardExtension.class) {
+            if (prefFieldsResolved) return;
+            try {
+                // NOTE: verified against the target Gboard dex: the title holder is
+                // field "q" (read by v() into android.R.id.title) and the summary
+                // holder is field "a" (read by m() into android.R.id.summary).
+                // Mapping them the other way around swaps every title/summary pair.
+                Field fTitle = findField(prefClass, "q");
+                if (fTitle == null || !CharSequence.class.isAssignableFrom(fTitle.getType())) {
+                    fTitle = findField(prefClass, "mTitle");
+                }
+                if (fTitle != null && CharSequence.class.isAssignableFrom(fTitle.getType())) {
+                    cachedTitleField = fTitle;
+                }
+
+                Field fSummary = findField(prefClass, "a");
+                if (fSummary == null || !CharSequence.class.isAssignableFrom(fSummary.getType())) {
+                    fSummary = findField(prefClass, "mSummary");
+                }
+                if (fSummary != null && CharSequence.class.isAssignableFrom(fSummary.getType())) {
+                    cachedSummaryField = fSummary;
+                }
+
+                if (cachedTitleField == null || cachedSummaryField == null) {
+                    java.util.List<Field> csFields = new java.util.ArrayList<>();
+                    for (Field f : prefClass.getDeclaredFields()) {
+                        if (CharSequence.class.isAssignableFrom(f.getType())) {
+                            f.setAccessible(true);
+                            csFields.add(f);
+                        }
+                    }
+                    if (csFields.size() >= 2) {
+                        if (cachedSummaryField == null) cachedSummaryField = csFields.get(0);
+                        if (cachedTitleField == null) cachedTitleField = csFields.get(1);
+                    }
+                }
+            } catch (Throwable ignored) {}
+            prefFieldsResolved = true;
+        }
+    }
+
+    private static void updatePreferenceFields(Object pref, String title, String summary) {
+        if (pref == null) return;
+        try {
+            Class<?> prefClass = pref.getClass();
+            while (prefClass != null && !prefClass.getName().equals("androidx.preference.Preference")) {
+                prefClass = prefClass.getSuperclass();
+            }
+            if (prefClass == null) return;
+
+            resolvePreferenceFields(prefClass);
+
+            if (title != null && cachedTitleField != null) {
+                cachedTitleField.set(pref, title);
+            }
+            if (summary != null && cachedSummaryField != null) {
+                cachedSummaryField.set(pref, summary);
+            }
+        } catch (Throwable ignored) {}
+    }
+
     public static void onBindPreference(Object pref, Object holder) {
         if (pref == null || holder == null) return;
         ensureListeners(pref);
@@ -857,16 +940,16 @@ public class GboardExtension {
         if (PREF_KEY_RESTART_GBOARD.equals(key)) {
             restartPrefRef = new java.lang.ref.WeakReference<>(pref);
             updateRestartPreferenceStatus(pref, holder);
-            attachClickListener(holder, () -> onPreferenceClick(pref));
+            attachClickListener(pref, holder, () -> onPreferenceClick(pref));
         } else if (PREF_KEY_ENABLE_IME.equals(key)) {
             boolean enabled = isImeEnabled(ctx);
             applyActionCardVisibility(holder, !enabled, 0xFFFF9800);
-            attachClickListener(holder, () -> onPreferenceClick(pref));
+            attachClickListener(pref, holder, () -> onPreferenceClick(pref));
         } else if (PREF_KEY_SELECT_IME.equals(key)) {
             boolean enabled = isImeEnabled(ctx);
             boolean selected = isImeSelected(ctx);
             applyActionCardVisibility(holder, enabled && !selected, 0xFF2196F3);
-            attachClickListener(holder, () -> onPreferenceClick(pref));
+            attachClickListener(pref, holder, () -> onPreferenceClick(pref));
         }
     }
 
@@ -877,36 +960,51 @@ public class GboardExtension {
         String summary = GboardI18n.getSummary(ctx, key);
         if (title == null && summary == null) return;
 
+        updatePreferenceFields(pref, title, summary);
+
         android.view.View itemView = getItemViewFromHolder(holder);
         if (itemView != null) {
-            itemView.post(() -> {
-                try {
-                    if (title != null) {
-                        android.widget.TextView tvTitle = itemView.findViewById(android.R.id.title);
-                        if (tvTitle != null) tvTitle.setText(title);
-                    }
-                    if (summary != null) {
-                        android.widget.TextView tvSummary = itemView.findViewById(android.R.id.summary);
-                        if (tvSummary != null) tvSummary.setText(summary);
-                    }
-                } catch (Throwable ignored) {}
-            });
+            try {
+                if (title != null) {
+                    android.widget.TextView tvTitle = itemView.findViewById(android.R.id.title);
+                    if (tvTitle != null) tvTitle.setText(title);
+                }
+                if (summary != null) {
+                    android.widget.TextView tvSummary = itemView.findViewById(android.R.id.summary);
+                    if (tvSummary != null) tvSummary.setText(summary);
+                }
+            } catch (Throwable ignored) {}
         }
     }
 
-    private static void attachClickListener(Object holder, Runnable action) {
-        try {
-            android.view.View itemView = getItemViewFromHolder(holder);
-            if (itemView != null) {
-                itemView.post(() -> {
-                    try {
-                        itemView.setFocusable(true);
-                        itemView.setClickable(true);
-                        itemView.setOnClickListener(v -> {
+    private static void attachClickListener(Object pref, Object holder, Runnable action) {
+        if (pref != null) {
+            try {
+                Class<?> prefClass = pref.getClass();
+                while (prefClass != null && !prefClass.getName().equals("androidx.preference.Preference")) {
+                    prefClass = prefClass.getSuperclass();
+                }
+                if (prefClass != null) {
+                    Field fN = findField(prefClass, "N");
+                    if (fN == null) fN = findField(prefClass, "mClickListener");
+                    if (fN != null && android.view.View.OnClickListener.class.isAssignableFrom(fN.getType())) {
+                        fN.set(pref, (android.view.View.OnClickListener) v -> {
                             try {
                                 action.run();
                             } catch (Throwable ignored) {}
                         });
+                    }
+                }
+            } catch (Throwable ignored) {}
+        }
+        try {
+            android.view.View itemView = getItemViewFromHolder(holder);
+            if (itemView != null) {
+                itemView.setFocusable(true);
+                itemView.setClickable(true);
+                itemView.setOnClickListener(v -> {
+                    try {
+                        action.run();
                     } catch (Throwable ignored) {}
                 });
             }
@@ -935,14 +1033,6 @@ public class GboardExtension {
                 if (summaryView != null) {
                     summaryView.setTextColor(accentColor);
                 }
-                itemView.post(() -> {
-                    try {
-                        android.widget.TextView sView = itemView.findViewById(android.R.id.summary);
-                        if (sView != null) {
-                            sView.setTextColor(accentColor);
-                        }
-                    } catch (Throwable ignored) {}
-                });
             }
         } catch (Throwable ignored) {}
     }
@@ -960,21 +1050,33 @@ public class GboardExtension {
             String title = GboardI18n.getRestartTitle(ctx, restartPending);
             String summary = GboardI18n.getRestartSummary(ctx, restartPending);
 
+            if (pref != null) {
+                updatePreferenceFields(pref, title, summary);
+            }
+
             if (holder != null) {
                 android.view.View itemView = getItemViewFromHolder(holder);
                 if (itemView != null) {
                     final int summaryColor = restartPending ? 0xFFFF5252 : 0xFF888888;
-                    itemView.post(() -> {
-                        try {
-                            android.widget.TextView titleView = itemView.findViewById(android.R.id.title);
-                            android.widget.TextView summaryView = itemView.findViewById(android.R.id.summary);
-                            if (titleView != null) titleView.setText(title);
-                            if (summaryView != null) {
-                                summaryView.setText(summary);
-                                summaryView.setTextColor(summaryColor);
-                            }
-                        } catch (Throwable ignored) {}
-                    });
+                    try {
+                        android.widget.TextView titleView = itemView.findViewById(android.R.id.title);
+                        android.widget.TextView summaryView = itemView.findViewById(android.R.id.summary);
+                        if (titleView != null) titleView.setText(title);
+                        if (summaryView != null) {
+                            summaryView.setText(summary);
+                            summaryView.setTextColor(summaryColor);
+                        }
+                    } catch (Throwable ignored) {}
+                    if (restartPending) {
+                        itemView.post(() -> {
+                            try {
+                                android.widget.TextView summaryView = itemView.findViewById(android.R.id.summary);
+                                if (summaryView != null) {
+                                    summaryView.setTextColor(summaryColor);
+                                }
+                            } catch (Throwable ignored) {}
+                        });
+                    }
                 }
             } else if (pref != null) {
                 final Object targetPref = pref;

@@ -42,12 +42,12 @@ class ExtensionHostsTest {
     }
 
     @Test
-    fun `only the release check opens a connection itself`() {
+    fun `only the release check and saves open a connection themselves`() {
         val openers = sources().filter { (_, source) -> NETWORK.containsMatchIn(split(source).second) }
             .map { it.first }.toSortedSet()
         assertEquals(
-            "The README says the extension goes online by itself only to ask GitHub for the newest " +
-                "release once that check is turned on. These files open connections",
+            "The README says the extension goes online by itself only for a save you ask for and to ask " +
+                "GitHub for the newest release once that check is turned on. These files open connections",
             TRANSPORTS.toSortedSet(),
             openers,
         )
@@ -119,6 +119,7 @@ class ExtensionHostsTest {
         const val RELEASE_CHECK =
             "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ReleaseCheck.java"
         val TRANSPORTS = listOf(
+            "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/Downloader.java",
             "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ReleaseTransport.java",
         )
         val URL = Regex("""(?:https?|wss?)://([A-Za-z0-9.-]+)""")

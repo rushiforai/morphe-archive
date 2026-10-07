@@ -157,10 +157,11 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/HushThreads",
       "via": [
-        "https://github.com/zeldrisho/morphe-patches"
+        "https://github.com/zeldrisho/morphe-patches",
+        "https://github.com/MrxSiN/ThreadsHideAds"
       ],
       "license": "GPL-3.0-only",
-      "changes": "Hide ads: the feed cache's merge, the place zeldrisho/morphe-patches found, with Threads' own ad check."
+      "changes": "Hide ads: the feed cache's merge, the place zeldrisho/morphe-patches found, with Threads' own ad check, and the feed unit types MrxSiN/ThreadsHideAds 2.0.0 named as ads (AD, AD4AD, the two ad pivots and the ads feedback prompts), read by name from the item's own unit type field. No code from either is used."
     },
     {
       "paths": [
@@ -171,6 +172,26 @@
       "via": [],
       "license": "GPL-3.0-only",
       "changes": "Sanitize sharing links: the server permalink cleaned as the app parses it."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/sharetargets/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Remove share targets: the share intent filters of Threads' manifest, found by decoding the manifest of 450, 449 and 448, with any share-target a shortcuts file names."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/usercertificates/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Trust user-added certificates: user trust anchors added to the network security config Threads names, read from 450, 449 and 448, or a config of its own when a build names none."
     },
     {
       "paths": [
@@ -217,7 +238,31 @@
       "upstream": "https://github.com/SysAdminDoc/HushThreads",
       "via": [],
       "license": "GPL-3.0-only",
-      "changes": "Pure black dark mode: the #101010 dark gray BdsTheme loads, and the background slots of the dark TDS color scheme, asked of the extension, which hands back black while the switch is on. Found by reading the theme and its scheme builder in 449 and 448, with no outside code."
+      "changes": "Pure black dark mode: the #101010 dark gray BdsTheme loads, and the background slots of the dark TDS color scheme, asked of the extension, which hands back black while the switch is on. Found by reading the theme and its scheme builder in 449 and 448, and the helper 450 builds its dark colors in, with no outside code."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/ScreenshotDetection.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/screenshot/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook"
+      ],
+      "license": "GPL-3.0-only",
+      "changes": "Disable screenshot detection: the extension asked first thing in the photo library observer and the screenshot folder report, both found by the strings they log or query, and Threads' screen capture registrations sent through the extension. Found by reading 450, 449 and 448, with Hushfacebook's switch as the behavior reference."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/ThreadsSettingsRow.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/settings/ThreadsSettingsRow.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "A HushThreads row above More settings in Threads' own settings, drawn by Threads' settings row and found by Compose's notes and the settings list's enum names in 449 and 448, with no outside code."
     },
     {
       "paths": [
@@ -242,6 +287,17 @@
     },
     {
       "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/feed/ImageQuality.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/feed/imagequality/MaxImageQualityPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Max image quality: the target width of Threads' photo size chooser asked of the extension first thing, which answers a width no photo reaches while the switch is on, so the largest size of the wanted shape wins. The chooser is found by its kept types and the work it does in 450, 449 and 448, with no outside code."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/threads/feed/**"
       ],
       "origin": "original",
@@ -250,7 +306,7 @@
         "https://github.com/SysAdminDoc/Hushfacebook"
       ],
       "license": "GPL-3.0-only",
-      "changes": "Block background-return feed refresh finds Threads' hot-start decision, reset to main feed, warm-start check and For you's swap to background posts in 449 and 448, and has each ask the extension. Hushfacebook's patch of the same name was the behavior reference. Disable video autoplay finds PostVideo and its playback effect by their Compose source notes in 449 and 448, checks that PostVideo plays by its fifth boolean, and has each single-media and carousel post call ask the extension for that flag first. It was found by reading both builds and a method trace of 449, and uses no outside code."
+      "changes": "Block background-return feed refresh finds Threads' hot-start decision, reset to main feed, warm-start check and For you's swap to background posts in 450, 449 and 448, and has each ask the extension. Hushfacebook's patch of the same name was the behavior reference. Disable video autoplay finds PostVideo and its playback effect by their Compose source notes in 450, 449 and 448, finds the boolean PostVideo plays by from the test that sets the effect's play argument, and has each single-media and carousel post call ask the extension for that flag first. It was found by reading those builds and a method trace of 449, and uses no outside code."
     },
     {
       "paths": [
@@ -330,6 +386,66 @@
       ],
       "license": "GPL-3.0-only with the Morphe section 7 notices",
       "changes": "Read and verify the defining bundle identity, inject it into the shared runtime and refuse tampered current bundles. Adapted for Threads without changing the release version or current-signing checks."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/DashManifest.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/DashSave.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/DownloadQuality.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/Downloader.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/Feedback.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/FileNameTemplate.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/InstagramMedia.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/MediaSave.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/MediaStoreWriter.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/MediaUrlPolicy.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/Mp4Join.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/PostDetails.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/RenditionPicker.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/SaveControl.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/SaveFolder.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/SaveLeftovers.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/SaveSettings.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/settings/SaveSettingsRows.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/download/MediaBridges.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushGram",
+      "commit": "539b6467b25c8c1cd5a1cdaad7e785cf1227f61c",
+      "via": [
+        "https://github.com/SysAdminDoc/Hushfacebook",
+        "https://github.com/andrewliang25/morphe-patches",
+        "https://github.com/SysAdminDoc/hushfeed",
+        "https://github.com/icysymmetra/tiktok-patches-for-morphe",
+        "https://github.com/MorpheApp/morphe-patches",
+        "https://github.com/MorpheApp/morphe-patches-library",
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "HushGram's save engine and its Downloads rows, moved from app.hushgram.extension.instagram to app.morphe.extension.hushthreads with Threads' names: TH_VID_ and TH_IMG_ file names, a Threads save folder, hushthreads keys, actions and notification channel. InstagramMedia keeps only the getters a post save reads. A batch names each page's file after the post and the page's place, so two posts saved at once stay apart. The quality, folder and file name settings live in SaveSettings, since Settings holds only switches, and the Downloads rows moved out of HushGram's settings page into SaveSettingsRows. MediaBridges moved from app.morphe.patches.instagram.download to app.morphe.patches.threads.download, and also writes the carousel bridge, which a post save reads."
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/PostSave.java",
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/download/SaveMediaRow.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/download/SaveMediaPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/HushThreads",
+      "via": [],
+      "license": "GPL-3.0-only"
+    },
+    {
+      "paths": [
+        "extensions/threads/src/main/java/app/morphe/extension/hushthreads/misc/VersionCode.java",
+        "patches/src/main/kotlin/app/morphe/patches/threads/misc/versioncode/**"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushGram",
+      "commit": "b0a3eca5a52cfe6761dc8a8cdf9ed12df662075c",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "HushGram's Change version code, moved from app.morphe.patches.instagram and app.hushgram.extension.instagram to app.morphe.patches.threads and app.morphe.extension.hushthreads with Threads' names. The class walk is a local helper over classDefForEach in place of HushGram's ClassIndex, the family is switched on from the patch file, and the extension leaves out HushGram's report line and the unraised helper its override files read."
     }
   ]
 }

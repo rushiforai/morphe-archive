@@ -39,6 +39,8 @@ public final class ImportSeenVideoHistoryPreference extends Preference {
             new CopyOnWriteArrayList<>();
     private static volatile PendingPick pending;
     private static String busyLine;
+    /** The file read the row waits on, until the import itself starts. Main thread only. */
+    private static DocumentOperation reading;
 
     private static final class PendingPick {
         final SeenVideoHistory.ImportTarget target;
@@ -59,7 +61,12 @@ public final class ImportSeenVideoHistoryPreference extends Preference {
         ROWS.add(new WeakReference<>(this));
         refreshState();
         setOnPreferenceClickListener(preference -> {
-            if (!BUSY.get() && pending == null) TikTokPreferenceFragment.openSeenVideoHistoryPicker();
+            // The row comes back during a read once the file app has kept it waiting, as the
+            // way to stop.
+            if (offersStop()) stopWaiting(getContext());
+            else if (!BUSY.get() && pending == null && !heldAfterStop()) {
+                TikTokPreferenceFragment.openSeenVideoHistoryPicker();
+            }
             return true;
         });
     }
@@ -139,36 +146,70 @@ public final class ImportSeenVideoHistoryPreference extends Preference {
         busyLine = "Reading watch history";
         refreshRows();
         SettingsActionBanner.showNotice(activity, L10n.t(context, busyLine));
-        boolean accepted = Utils.runOnBackgroundThread(() -> {
+        // A file app can keep the read waiting as long as it likes, so it gets a worker the row
+        // can stop waiting on rather than one of the shared pool's.
+        reading = DocumentOperation.start(DocumentOperation.Kind.WATCH_HISTORY_FILE, file -> {
             try {
                 WatchHistoryImport.Records records = WatchHistoryImport.read(
-                        context.getContentResolver().openInputStream(uri), pick.zone, System.currentTimeMillis());
+                        file.openForRead(context.getContentResolver(), uri), pick.zone, System.currentTimeMillis());
+                // Stopped while the file app had it: the stop gave the row back and said so.
+                if (!file.commit()) return;
                 Utils.runOnMainThread(() -> {
+                    reading = null;
                     busyLine = "Importing watch history";
                     refreshRows();
                 });
                 SeenVideoHistory.importHistory(target, records, outcome -> {
                     finish();
-                    Activity currentWindow = window.get();
-                    Context feedback = currentWindow == null ? context : currentWindow;
-                    SettingsActionBanner.showNotice(feedback, outcomeMessage(context, target, outcome));
+                    SettingsActionBanner.showNotice(TikTokPreferenceFragment.reportWindow(window, context),
+                            outcomeMessage(context, target, outcome));
                 });
             } catch (Exception failure) {
+                if (file.isStopped()) return;
                 Logger.printException(() -> "Could not read watch-history import", failure);
                 Utils.runOnMainThread(() -> {
                     finish();
-                    Activity currentWindow = window.get();
-                    Context feedback = currentWindow == null ? context : currentWindow;
-                    SettingsActionBanner.showNotice(feedback, failureMessage(context, failure));
+                    SettingsActionBanner.showNotice(TikTokPreferenceFragment.reportWindow(window, context),
+                            failureMessage(context, failure));
                 });
             }
-        });
-        if (!accepted) {
+        }, ImportSeenVideoHistoryPreference::refreshRows);
+        if (reading == null) {
+            // A file app still holding a stopped read keeps the next one from starting, and only
+            // it letting go, or TikTok restarting, frees it.
+            boolean held = DocumentOperation.busy(DocumentOperation.Kind.WATCH_HISTORY_FILE);
             finish();
-            SettingsActionBanner.showNotice(activity, L10n.t(context,
-                    "Couldn't start the import. Try again in a moment."));
+            SettingsActionBanner.showNotice(activity, held
+                    ? L10n.t(context, "The file app still has the last file. Try again once it lets go, or restart TikTok.")
+                    : L10n.t(context, "Couldn't start the import. Try again in a moment."));
         }
         return true;
+    }
+
+    /** Whether the read has kept the row waiting long enough to offer a stop, and stopping still can. */
+    private static boolean offersStop() {
+        DocumentOperation acting = reading;
+        return acting != null && acting.offersStop();
+    }
+
+    private static boolean heldAfterStop() {
+        return DocumentOperation.heldAfterStop(DocumentOperation.Kind.WATCH_HISTORY_FILE);
+    }
+
+    /**
+     * Stops waiting on a file app that has kept the read waiting. Nothing is imported until the
+     * file has been read, so the row comes back straight away. Once the read is done the import
+     * is under way and the tap does nothing.
+     */
+    private static void stopWaiting(Context window) {
+        DocumentOperation acting = reading;
+        if (acting == null || acting.stop() != DocumentOperation.Stage.STOPPED) {
+            refreshRows();
+            return;
+        }
+        finish();
+        SettingsActionBanner.showNotice(window, L10n.t(window,
+                "Stopped waiting for the file app. Nothing was imported."));
     }
 
     private static String outcomeMessage(Context context, SeenVideoHistory.ImportTarget target,
@@ -212,6 +253,7 @@ public final class ImportSeenVideoHistoryPreference extends Preference {
     private static void finish() {
         BUSY.set(false);
         busyLine = null;
+        reading = null;
         refreshRows();
         ClearSeenVideoHistoryPreference.refreshRows();
     }
@@ -226,9 +268,14 @@ public final class ImportSeenVideoHistoryPreference extends Preference {
 
     private void refreshState() {
         boolean signedIn = SignedInUser.id() != null;
-        setEnabled(signedIn && !BUSY.get() && pending == null);
-        setSummary(busyLine != null ? L10n.t(getContext(), busyLine) : signedIn
-                ? L10n.f(getContext(), SUMMARY,
+        boolean stoppable = offersStop();
+        boolean held = !BUSY.get() && heldAfterStop();
+        setEnabled(stoppable || signedIn && !BUSY.get() && pending == null && !held);
+        setSummary(stoppable ? L10n.t(getContext(), "Still waiting for the file app. Tap to stop waiting.")
+                : busyLine != null ? L10n.t(getContext(), busyLine)
+                : held ? L10n.t(getContext(),
+                        "Waiting for the file app to let go of the last file. Restart TikTok if it doesn't.")
+                : signedIn ? L10n.f(getContext(), SUMMARY,
                         NumberFormat.getInstance().format(WatchHistoryImport.MAX_BYTES / (1024 * 1024)),
                         NumberFormat.getInstance().format(SeenVideoHistory.MAX_RECORDS))
                 : L10n.t(getContext(), SIGN_IN));

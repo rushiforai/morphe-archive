@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Morphe について</string>
   <string name="morphe_settings_screen_01_ads_title">広告</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">代替サムネイル</string>
   <string name="morphe_settings_screen_03_feed_title">フィード</string>
   <string name="morphe_settings_screen_04_general_title">全般</string>
   <string name="morphe_settings_screen_05_player_title">プレーヤー</string>
@@ -65,6 +64,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_artist_cards_title">アーティスト カードを非表示</string>
   <string name="morphe_hide_artist_cards_summary">検索結果の最上部に表示されるアーティストカードを非表示にします</string>
   <string name="morphe_hide_auto_dubbed_label_title">「オートダビング」ラベルを非表示</string>
+  <string name="morphe_hide_channel_buttons_title">チャンネルボタンを非表示</string>
+  <string name="morphe_hide_channel_buttons_summary">検索結果のチャンネルプロフィールから「登録」「チャンネルを見る」「コミュニティ」「YouTube Music」などのボタンを非表示にします</string>
   <string name="morphe_hide_community_posts_title">コミュニティ投稿を非表示</string>
   <string name="morphe_hide_compact_banner_title">コンパクトなバナーを非表示</string>
   <string name="morphe_hide_compact_banner_summary">コンパクトなバナーおよび一部のコンポーネント間のスペースを非表示にします</string>
@@ -76,7 +77,6 @@ Second \"item\" text"</string>
   <string name="morphe_hide_floating_microphone_button_summary">検索候補画面の右下に表示されるマイクボタンを非表示にします</string>
   <string name="morphe_hide_get_premium_button_title">「Premium を購入」ボタンを非表示</string>
   <string name="morphe_hide_history_shelf_title">履歴欄を非表示</string>
-  <string name="morphe_hide_history_shelf_summary">マイページタブの履歴欄を非表示にします</string>
   <string name="morphe_hide_horizontal_shelves_title">横スクロール欄を非表示</string>
   <string name="morphe_hide_horizontal_shelves_summary">ニュース速報、おすすめのコミュニティ投稿、続きを見る、他のチャンネルを探す、その他のトピック、おすすめ、新着動画、関連が強い、\"チャンネル名\" のコミュニティの投稿、ショッピング、もう一度見る、などの横スクロール欄を非表示にします</string>
   <string name="morphe_hide_hyped_label_title">「大盛り上がり」ラベルを非表示</string>
@@ -110,7 +110,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_show_more_button_title">「もっと見る」ボタンを非表示</string>
   <string name="morphe_hide_show_more_button_summary">検索結果の動画の下に表示される、展開してより多くの動画を表示するボタンを非表示にします</string>
   <string name="morphe_hide_subscribed_channels_bar_title">登録済みチャンネルの横スクロールバーを非表示</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">登録済みチャンネルの横スクロールバーのチャンネル名を非表示</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">登録チャンネル名を非表示</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">登録チャンネルバーのチャンネル名を非表示にします</string>
   <string name="morphe_hide_surveys_title">アンケートを非表示</string>
   <string name="morphe_hide_surveys_summary">フィードのおすすめ精度に関するアンケートやフィードバック要求を非表示にします</string>
   <string name="morphe_hide_ticket_shelf_title">チケット欄を非表示</string>
@@ -159,6 +160,11 @@ Second \"item\" text"</string>
   <string name="morphe_hide_sync_button_title">「動画に同期」ボタンを非表示</string>
   <string name="morphe_hide_timed_reactions_title">Timed Reaction を非表示</string>
   <string name="morphe_hide_timed_reactions_summary">コメント欄やライブ配信のチャット欄で絵文字を使ってリアクションする機能 (ハート アイコン ボタン) を非表示にします</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">3 点メニューの「ヘルプとフィードバック」を非表示</string>
+  <string name="morphe_hide_help_feedback_menu_summary">検索結果などのツールバーに表示される 3 点ボタンから呼び出されるメニューの「ヘルプとフィードバック」を非表示にします</string>
+  <string name="morphe_hide_handle_title">ハンドルを非表示</string>
+  <string name="morphe_hide_handle_summary">「You」タブでチャンネルハンドルを非表示にします</string>
   <string name="morphe_hide_video_title_title">動画のタイトルを非表示</string>
   <string name="morphe_hide_video_title_summary">全画面表示モードでの動画のタイトルを非表示にします</string>
   <string name="morphe_sanitize_video_subtitle_title">動画のタグを非表示</string>
@@ -500,9 +506,9 @@ APIキーは決して共有しないでください。アクセス権を持つ�
   <string name="morphe_loop_video_range_toast_on">%1$s - %2$s をリピートします</string>
   <string name="morphe_loop_video_range_invalid_time">無効なリピート区間です</string>
   <!-- interaction.pip.pipButtonPatch -->
-  <string name="morphe_pip_button_overlay_title">ピクチャーインピクチャーのオーバーレイボタンを表示</string>
-  <string name="morphe_pip_button_flyout_title">ピクチャーインピクチャーのフライアウトボタンを表示</string>
-  <string name="morphe_pip_button_flyout_name">ピクチャーインピクチャーに切り替え</string>
+  <string name="morphe_pip_button_overlay_title">ピクチャー イン ピクチャーのオーバーレイ ボタンを表示</string>
+  <string name="morphe_pip_button_flyout_title">ピクチャー イン ピクチャーのフライアウト ボタンを表示</string>
+  <string name="morphe_pip_button_flyout_name">ピクチャー イン ピクチャーに切り替え</string>
   <!-- interaction.playall.playAllButtonPatch -->
   <string name="morphe_play_all_button_title">「すべて再生」ボタンを表示</string>
   <string name="morphe_play_all_button_summary">"タップするとチャンネルのすべての動画から成るプレイリストを生成します。長押しすると元の状態に戻ります
@@ -602,7 +608,7 @@ APIキーは決して共有しないでください。アクセス権を持つ�
 この問題を解決するには、[動画ストリームを偽装] をオンにして [デフォルトのクライアント] を「TV Simply」または「visionOS」に変更してください"</string>
   <!-- interaction.seekbar.enableSlideToSeekPatch -->
   <string name="morphe_slide_to_seek_title">スライドによるシークを有効化</string>
-  <string name="morphe_slide_to_seek_summary">動画プレーヤーの画面を長押ししたときに倍速再生ではなくスライドによるシークが有効になります。</string>
+  <string name="morphe_slide_to_seek_summary">動画プレーヤーの画面を長押ししたときに倍速再生ではなくスライドによるシークが有効になります</string>
   <!-- interaction.seekbar.enableTapToSeekPatch -->
   <string name="morphe_tap_to_seek_title">タップによるシークを有効化</string>
   <string name="morphe_tap_to_seek_summary">シークバーをタップすると、タップした位置に移動します</string>
@@ -682,7 +688,7 @@ APIキーは決して共有しないでください。アクセス権を持つ�
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">接続ボタンを非表示</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">報告ボタンを非表示</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">リミックス ボタンを非表示</string>
@@ -1077,10 +1083,7 @@ Automotive レイアウト
   <string name="morphe_playback_in_feeds_entry_off">オフ</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">タイトルを原文に戻す</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">翻訳済み</string>
-  <string name="morphe_restore_original_titles_type_entry_original">原文</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">DeArrow で翻訳</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">DeArrow でオリジナル</string>
+  <string name="morphe_restore_original_titles_summary">動画のタイトルと動画およびチャンネルの説明文の自動翻訳を無効にし、原文を表示します</string>
   <string name="morphe_restore_original_titles_loading">タイトルを読み込み中…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">自動フィード更新を無効にする</string>
@@ -1154,37 +1157,42 @@ Automotive レイアウト
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">画像表示の地域制限を回避</string>
   <string name="morphe_bypass_image_region_restrictions_summary">制限されている地域で画像を表示するために、デフォルトとは別のサーバーから画像を取得します</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">DeArrow タイトル</string>
+  <string name="morphe_dearrow_titles_summary">動画のタイトルを、ユーザーが DeArrow に投稿した、評価の高いタイトルに置き換えます</string>
+  <string name="morphe_dearrow_titles_icon_title">DeArrow アイコンを表示</string>
+  <string name="morphe_dearrow_titles_icon_summary">クラウドソースされた動画タイトルに DeArrow アイコンを表示します</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">ホームタブ</string>
+  <string name="morphe_dearrow_thumbnail_home_title">ホームタブ</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">登録チャンネルタブ</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">登録チャンネルタブ</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">マイページタブ</string>
-  <string name="morphe_alt_thumbnail_player_title">プレーヤーのプレイリスト &amp; 関連動画</string>
-  <string name="morphe_alt_thumbnail_search_title">検索結果</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">デフォルトのサムネイル</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; デフォルト</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; 静止画</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">静止画サムネイル</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow は、YouTube 動画のサムネイルをクラウドソーシングで提供する機能です。DeArrow のサムネイルは、YouTube が提供するサムネイルよりも適切なことが多いです。この機能は、動画の URL を API サーバーに送信しますが、他のデータは送信しません。動画に DeArrow サムネイルがない場合は、デフォルトのサムネイルまたは静止画サムネイルを表示します
+  <string name="morphe_dearrow_thumbnail_library_title">マイページタブ</string>
+  <string name="morphe_dearrow_thumbnail_player_title">プレーヤーのプレイリスト &amp; 関連動画</string>
+  <string name="morphe_dearrow_thumbnail_search_title">検索結果</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">デフォルトのサムネイル</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; デフォルト</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; 静止画</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">静止画サムネイル</string>
+  <string name="morphe_dearrow_about_summary">"DeArrowは、YouTube動画にクラウドソーシングによるタイトルとサムネイルを提供します。これらは、YouTubeが提供するものよりも関連性が高いことがよくあります。
 
-ここをタップすると DeArrow.ajay.app を開きます"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">接続エラーの通知を表示</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">DeArrow サーバーが利用できない場合に通知を表示します</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API のエンドポイント</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">DeArrow がサムネイルのキャッシュを取得するエンドポイントの URL</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">静止画サムネイル</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">静止画は各動画の序盤 / 中盤 / 終盤から取得されます。これらの画像は YouTube に組み込まれており、外部 API は使用されません</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">高速な静止画サムネイルを使用</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">中画質の画像を使用することにより、サムネイルの読み込み速度が速くなります。ライブ配信、未公開動画、非常に古い動画には、空白のサムネイルが表示される場合があります</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">静止画サムネイルを取得する位置</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">動画の序盤</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">動画の中盤</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">動画の終盤</string>
+有効にすると、動画URLがAPIサーバーに送信され、他のデータは送信されません。動画にDeArrowのサムネイルがない場合は、元のサムネイルまたは静止画が表示されます。
+
+ここをタップしてDeArrow.ajay.appを開きます"</string>
+  <string name="morphe_dearrow_connection_toast_title">接続エラーの通知を表示</string>
+  <string name="morphe_dearrow_connection_toast_summary">DeArrow サーバーが利用できない場合に通知を表示します</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API のエンドポイント</string>
+  <string name="morphe_dearrow_api_url_summary">DeArrow がサムネイルのキャッシュを取得するエンドポイントの URL</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">静止画サムネイル</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">静止画は各動画の序盤 / 中盤 / 終盤から取得されます。これらの画像は YouTube に組み込まれており、外部 API は使用されません</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">静止画サムネイルを取得する位置</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">動画の序盤</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">動画の中盤</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">動画の終盤</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow は一時的に利用できません (status code: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow は一時的に利用できません</string>
+  <string name="morphe_dearrow_error">DeArrow は一時的に利用できません (status code: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow は一時的に利用できません</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">以前のプレーヤーボタンのデザインに戻す</string>

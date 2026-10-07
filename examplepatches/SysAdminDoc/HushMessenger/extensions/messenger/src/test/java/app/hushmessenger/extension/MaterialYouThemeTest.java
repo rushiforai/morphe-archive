@@ -137,6 +137,26 @@ public class MaterialYouThemeTest {
         assertNotEquals("grey recoloured", grey, result);
     }
 
+    @Test public void pureBlackSwitchMakesTheDarkestBackgroundsBlackInDarkModeOnly() {
+        int background = 0xFF080809;
+        assertNotEquals(0xFF000000, MaterialYouTheme.mig(background));
+        Settings.preferences.edit().putBoolean(MaterialYouTheme.BLACK_KEY, true).commit();
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
+        MaterialYouTheme.use(TonePalette.fallback());
+        assertEquals(0xFF000000, MaterialYouTheme.mig(background));
+        assertEquals(0xFF000000, MaterialYouTheme.fds(background));
+        assertEquals(0xFF000000, MaterialYouTheme.DARK_080809);
+        assertNotEquals(0xFF000000, MaterialYouTheme.mig(0xFF404040));
+        assertNotEquals(0xFF1C1C1D, MaterialYouTheme.DARK_1C1C1D);
+        MaterialYouTheme.darkModeAnswer(false);
+        assertEquals(background, MaterialYouTheme.mig(background));
+        assertEquals(0xFF080809, MaterialYouTheme.DARK_080809);
+        MaterialYouTheme.darkModeAnswer(true);
+        Settings.preferences.edit().putBoolean(MaterialYouTheme.BLACK_KEY, false).commit();
+        MaterialYouTheme.use(TonePalette.fallback());
+        assertNotEquals(0xFF000000, MaterialYouTheme.DARK_080809);
+    }
+
     @Test public void migLeavesColoursAloneInLightMode() {
         MaterialYouTheme.darkModeAnswer(false);
         int grey = 0xFF404040;

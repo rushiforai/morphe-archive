@@ -26,6 +26,9 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_PEOPLE_YOU_MAY_KNOW) return L10n.t("Hide \"People you may know\"");
         if (setting == Settings.HIDE_SUGGESTED_GROUPS) return L10n.t("Hide suggested groups");
         if (setting == Settings.HIDE_STORIES_YOU_MIGHT_LIKE) return L10n.t("Hide \"Stories you might like\"");
+        if (setting == Settings.HIDE_FEED_MEMORIES) return L10n.t("Hide Memories in the feed");
+        if (setting == Settings.HIDE_FEED_FRIEND_REQUESTS) return L10n.t("Hide friend requests in the feed");
+        if (setting == Settings.HIDE_FRIENDS_LOCATIONS) return L10n.t("Hide friends' locations");
         if (setting == Settings.HIDE_TOP_STORIES_TRAY) return L10n.t("Hide the Stories tray");
         if (setting == Settings.HIDE_STORIES_BETWEEN_POSTS) return L10n.t("Hide Stories between posts");
         if (setting == Settings.HIDE_FEED_REELS) return L10n.t("Hide Reels in the feed");
@@ -38,7 +41,9 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_AI_DETECTED_POSTS) return L10n.t("Hide AI-detected posts");
         if (setting == Settings.HIDE_AI_LABELLED_POSTS) return L10n.t("Also hide posts labelled as AI");
         if (setting == Settings.HIDE_META_AI_FEED_UNITS) return L10n.t("Hide Meta AI in the feed");
+        if (setting == Settings.HIDE_AI_CHARACTER_POSTS) return L10n.t("Hide AI character posts");
         if (setting == Settings.HIDE_POSTS_WITH_WORDS) return L10n.t("Hide posts with words you choose");
+        if (setting == Settings.HIDE_POSTS_FROM_SOURCES) return L10n.t("Hide posts from people, Pages and sites");
         if (setting == Settings.POST_WORDS_WHOLE_WORDS) return L10n.t("Match whole words");
         if (setting == Settings.HIDE_SPONSORED_STORIES) return L10n.t("Hide sponsored stories");
         if (setting == Settings.HIDE_SUGGESTED_STORIES) return L10n.t("Hide suggested stories");
@@ -57,6 +62,13 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_GROUPS_TAB) return L10n.t("Hide the Groups tab");
         if (setting == Settings.HIDE_GAMING_TAB) return L10n.t("Hide the Gaming tab");
         if (setting == Settings.HIDE_EVENTS_TAB) return L10n.t("Hide the Events tab");
+        if (setting == Settings.HIDE_DATING_TAB) return L10n.t("Hide the Dating tab");
+        if (setting == Settings.HIDE_PROFESSIONAL_DASHBOARD_TAB) return L10n.t("Hide the Professional dashboard tab");
+        if (setting == Settings.HIDE_SAVED_TAB) return L10n.t("Hide the Saved tab");
+        if (setting == Settings.HIDE_AD_CENTER_TAB) return L10n.t("Hide the Ad Center tab");
+        if (setting == Settings.HIDE_CREATE_TAB) return L10n.t("Hide the Create tab");
+        if (setting == Settings.HIDE_EXPLORE_TAB) return L10n.t("Hide the Explore tab");
+        if (setting == Settings.HIDE_JOBS_TAB) return L10n.t("Hide the Jobs tab");
         if (setting == Settings.HIDE_REEL_PROMPTS) return L10n.t("Hide reel interest prompts");
         if (setting == Settings.HIDE_SPONSORED_REELS) return L10n.t("Hide sponsored reels");
         if (setting == Settings.HIDE_AI_DETECTED_REELS) return L10n.t("Hide AI-detected reels and videos");
@@ -69,6 +81,9 @@ final class SwitchLabels {
         if (setting == Settings.TURN_OFF_HAPTICS) return L10n.t("Turn off haptics");
         if (setting == Settings.TURN_OFF_SCREEN_TRANSITIONS) return L10n.t("Turn off screen transitions");
         if (setting == Settings.BLOCK_SCREENSHOT_DETECTION) return L10n.t("Block screenshot detection");
+        if (setting == Settings.HIDE_CHAT_TYPING) return L10n.t("Hide typing in chats");
+        if (setting == Settings.HIDE_COMMENT_TYPING) return L10n.t("Hide typing in comments");
+        if (setting == Settings.HIDE_READ_RECEIPTS) return L10n.t("Hide read receipts");
         if (setting == Settings.TURN_OFF_DOUBLE_TAP_LIKE) return L10n.t("Turn off double tap to like");
         if (setting == Settings.KEEP_REEL_SPEED) return L10n.t("Keep the reel speed");
         if (setting == Settings.HOLD_REEL_FOR_2X) return L10n.t("Hold a reel for 2x");
@@ -79,6 +94,7 @@ final class SwitchLabels {
         if (setting == Settings.PICTURE_IN_PICTURE) return L10n.t("Picture-in-picture");
         if (setting == Settings.TURN_OFF_HDR_BRIGHTNESS) return L10n.t("Turn off HDR brightness");
         if (setting == Settings.DOWNLOAD_VIDEOS) return L10n.t("Download feed and Watch videos");
+        if (setting == Settings.DOWNLOAD_PHOTOS) return L10n.t("Save any photo");
         if (setting == Settings.DOWNLOAD_COMPATIBLE) return L10n.t("Save videos other apps can open");
         if (setting == Settings.HIDE_GET_MESSENGER_CARD) return L10n.t("Hide the Get Messenger card");
         if (setting == Settings.OPEN_MESSENGER_APP) return L10n.t("Open the Messenger app");
@@ -88,6 +104,7 @@ final class SwitchLabels {
         if (setting == Settings.HIDE_META_AI_IN_SEARCH) return L10n.t("Hide Meta AI in search");
         if (setting == Settings.HIDE_SPONSORED_SEARCH_RESULTS) return L10n.t("Hide sponsored search results");
         if (setting == Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS) return L10n.t("Hide sponsored Marketplace listings");
+        if (setting == Settings.SHOW_SELLER_VIEW_PROFILE) return L10n.t("Show View profile on Marketplace sellers");
         if (setting == Settings.BLOCK_GAME_ADS) return L10n.t("Block Instant Games ads");
         if (setting == Settings.BLOCK_TRENDING_VIDEO_NOTIFICATIONS) return L10n.t("Block trending video notifications");
         if (setting == Settings.BLOCK_MEMORY_NOTIFICATIONS) return L10n.t("Block memory notifications");

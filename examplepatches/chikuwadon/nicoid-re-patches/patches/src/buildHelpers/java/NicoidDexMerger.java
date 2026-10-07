@@ -25,26 +25,37 @@ public final class NicoidDexMerger {
     private NicoidDexMerger() { }
 
     public static void main(String[] args) throws IOException {
-        if (args.length != 3) {
-            throw new IllegalArgumentException("Expected generated.dex, existing.mpe and output.dex");
+        if (args.length != 4) {
+            throw new IllegalArgumentException("Expected generated.dex, existing.mpe, overrides.dex and output.dex");
         }
 
         DexBackedDexFile generated = readDex(new File(args[0]));
         DexBackedDexFile existing = readDex(new File(args[1]));
+        DexBackedDexFile overrides = readDex(new File(args[2]));
+        Set<String> overrideTypes = new HashSet<>();
         Set<String> generatedTypes = new HashSet<>();
         Set<String> mergedTypes = new HashSet<>();
         DexPool pool = new DexPool(generated.getOpcodes());
 
+        // Reviewed smali overrides preserve changes recovered from the device-tested dev bundle.
+        // Remove an override when its Java source becomes the canonical implementation.
+        for (ClassDef classDef : overrides.getClasses()) {
+            overrideTypes.add(classDef.getType());
+            mergedTypes.add(classDef.getType());
+            pool.internClass(classDef);
+        }
+
         // Prefer freshly compiled versions for any classes present in both DEXes.
         for (ClassDef classDef : generated.getClasses()) {
             generatedTypes.add(classDef.getType());
+            if (overrideTypes.contains(classDef.getType())) continue;
             mergedTypes.add(classDef.getType());
             pool.internClass(classDef);
         }
 
         // Keep DEX-only helpers (for example DynamicTheme and ModernDebug).
         for (ClassDef classDef : existing.getClasses()) {
-            if (!generatedTypes.contains(classDef.getType())) {
+            if (!generatedTypes.contains(classDef.getType()) && !overrideTypes.contains(classDef.getType())) {
                 mergedTypes.add(classDef.getType());
                 pool.internClass(classDef);
             }
@@ -55,7 +66,7 @@ public final class NicoidDexMerger {
             throw new IllegalStateException("Existing helper DEX is missing required support classes");
         }
 
-        File output = new File(args[2]);
+        File output = new File(args[3]);
         File parent = output.getParentFile();
         if (parent != null && !parent.isDirectory() && !parent.mkdirs()) {
             throw new IOException("Could not create merged DEX directory: " + parent);

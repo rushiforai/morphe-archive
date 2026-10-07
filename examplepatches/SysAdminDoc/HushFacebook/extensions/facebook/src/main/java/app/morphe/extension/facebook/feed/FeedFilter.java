@@ -82,6 +82,41 @@ public final class FeedFilter {
     static final String GROUPS_YOU_SHOULD_JOIN_TYPE = "GroupsYouShouldJoinFeedUnit";
 
     /**
+     * The GraphQL type names of Memories between posts: "On this day" and its section header, a
+     * memory shown as its own post, and friendship anniversaries. Each is only a name in Facebook's
+     * type tables on 577, 580 and 581, with no model class of its own, so a unit of one answers
+     * {@code getTypeName()} from the shared model it's built on.
+     */
+    static final String[] MEMORIES_TYPES = {
+            "ThrowbackPromotionFeedUnit", "ThrowbackSectionHeaderFeedUnit", "ThrowbackPermalinkStoryFeedUnit",
+            "GoodwillThrowbackFeedUnit",
+    };
+
+    /** The row of friend requests between posts, on the model People you may know shares. */
+    static final String FRIEND_REQUESTS_TYPE = "FriendRequestsFeedUnit";
+
+    /** The card of where your friends are, between posts. */
+    static final String FRIENDS_LOCATIONS_TYPE = "FriendsLocationsFeedUnit";
+
+    /**
+     * Facebook's own promotions and prompts between posts that have no model class on every build,
+     * found by the GraphQL type name instead of by class like {@link #SUGGESTED_UNITS}: two more
+     * kinds of Quick Promotion (the Vibes one has a class on 580 and 581 only), the social list
+     * prompt, and people to invite to a group. They go with the suggested posts switch.
+     */
+    static final String[] SUGGESTED_TYPES = {
+            "ClientTriggeredQPFeedUnit", "VibesRifuQuickPromotionFeedUnit", "SocialListPromptFeedUnit",
+            "PaginatedGroupsPeopleYouMayInviteFeedUnit",
+    };
+
+    /**
+     * A carousel of several ads in one unit. Facebook draws it from the same ad pool as every other
+     * ad (581's AdValidator.checkValidity vets it), so it goes with the sponsored posts switch by its
+     * type name, whatever category the edge carries.
+     */
+    static final String MULTI_ADS_TYPE = "FBMultiAdsFeedUnit";
+
+    /**
      * The GraphQL type of the feed's rows of Stories between posts, a literal of the shared showcase
      * model's {@code getTypeName()} in 577 and 580. Facebook draws one with its DiscoverUnitComponent,
      * which reads {@link #UNCONNECTED_STORIES_FLAG} to tell a row of Stories from people you aren't
@@ -99,11 +134,7 @@ public final class FeedFilter {
      * adapter of its own. A unit answering it as an edge would be the tray between posts.
      */
     static final String STORIES_TRAY_UNIT_TYPE = "StoriesTrayFeedUnit";
-    /**
-     * The other two kinds of Stories between posts the same model answers in 577 and 580, through
-     * its table of type names rather than a literal: one large Stories tile, and one person's
-     * Stories in a viewer of their own.
-     */
+
     /**
      * The type name of the Meta AI card Facebook adds to the feed between posts. Facebook's own feed
      * unit dispatcher compares a unit's type name with it in 581. Hide AI-detected posts takes it out
@@ -111,6 +142,11 @@ public final class FeedFilter {
      */
     static final String META_AI_UNIT_TYPE = "XFBFBImplicitMetaAIFeedUnit";
 
+    /**
+     * The other two kinds of Stories between posts the same model answers in 577 and 580, through
+     * its table of type names rather than a literal: one large Stories tile, and one person's
+     * Stories in a viewer of their own.
+     */
     static final String STORIES_LARGE_TILE_UNIT_TYPE = "StoriesOneColumnOneRowLargeTileFeedUnit";
     static final String STORIES_INLINE_VIEWER_UNIT_TYPE = "StoriesSingleBucketInlineViewerFeedUnit";
     /** What Hide the Stories tray's rule adds to the type of a row of Stories it took out of the feed. */
@@ -153,6 +189,17 @@ public final class FeedFilter {
     /** The kind a post counts under while the hide list is empty, when nothing of it is read. */
     static final String NO_WORDS = "no words listed";
     /**
+     * The stories the people, Pages and sites rule read, counted only while its switch is on, with
+     * whether a rule matched or why nothing was read as the kind. Never a name, an id or a link.
+     */
+    static final String SOURCES_ROUTE = "Your people, Pages and sites";
+    /** What a post that rule hid counts under, followed by the number of the line that matched. */
+    static final String SOURCES_REASON = "source rule";
+    /** The kind a post counts under while the list is empty, when nothing of it is read. */
+    static final String NO_SOURCES = "nobody listed";
+    /** The kind a post counts under when it was read and no line matched. */
+    static final String NO_SOURCE_MATCH = "no line matched";
+    /**
      * The Stories tray adapters the feed asked for, each call counted with its adapter as the kind,
      * and a skipped one as a removal. The tray is never a feed edge: the feed's adapter list adds it
      * as an adapter of its own, so it never reaches the edge guard.
@@ -184,10 +231,11 @@ public final class FeedFilter {
      * Units Facebook injects into the feed that are not posts from anyone you follow. Every one
      * keeps its real name through Meta's obfuscator, so the check needs no obfuscated identifier.
      *
-     * <p>Left out on purpose: {@code GraphQLFriendsLocationsFeedUnit}, a real feature. People You
-     * May Know and suggested groups aren't here either: their unit class is Redex-renamed and
-     * shared with other rows, so their own rules read the GraphQL type name the unit answers
-     * ({@link #PEOPLE_YOU_MAY_KNOW_TYPE}, {@link #GROUPS_YOU_SHOULD_JOIN_TYPE}).
+     * <p>Left out on purpose: friends' locations, a real feature, which has a switch of its own that
+     * starts off ({@link #FRIENDS_LOCATIONS_TYPE}). People You May Know and suggested groups aren't
+     * here either: their unit class is Redex-renamed and shared with other rows, so their own rules
+     * read the GraphQL type name the unit answers ({@link #PEOPLE_YOU_MAY_KNOW_TYPE},
+     * {@link #GROUPS_YOU_SHOULD_JOIN_TYPE}).
      */
     private static final String[] SUGGESTED_UNITS = {
             // "Pages you may like" and its variants.
@@ -237,7 +285,8 @@ public final class FeedFilter {
         return hideEdge(category, feedUnit, SettingsStatus.sponsoredPosts(), SettingsStatus.suggestedPosts(),
                 RecommendationLabel.PATCHED, SettingsStatus.aiDetectedPosts(), GenAiLabel.PATCHED,
                 SettingsStatus.feedReels(), ShowcaseType.PATCHED, SettingsStatus.postWords(), PostText.MESSAGE,
-                PostText.ATTACHED, GenAiLabel.SELF_LABEL_PATCHED);
+                PostText.ATTACHED, GenAiLabel.SELF_LABEL_PATCHED, AiCharacterPosts.ATTACHMENTS,
+                AiCharacterPosts.STYLES);
     }
 
     /** The guard with the sponsored and suggested patch-time flags passed in, and no GenAI rule. */
@@ -313,6 +362,22 @@ public final class FeedFilter {
             boolean reelsPatched, StoryFlag.Accessor showcaseAccessor, boolean wordsPatched,
             StoryFlag.Accessor messageAccessor, StoryFlag.Accessor attachedAccessor,
             StoryFlag.Accessor aiLabelAccessor) {
+        return hideEdge(category, feedUnit, sponsoredPatched, suggestedPatched, recommendationAccessor, aiPatched,
+                aiAccessor, reelsPatched, showcaseAccessor, wordsPatched, messageAccessor, attachedAccessor,
+                aiLabelAccessor, null, null);
+    }
+
+    /**
+     * The guard with the two readers of the AI character rule passed in too, so a test can stand in
+     * for the stubs Hide AI-detected posts fills: the story's attachments and Facebook's finder of an
+     * attachment's style. Null readers leave the rule out, as the overloads above do.
+     */
+    static boolean hideEdge(Object category, Object feedUnit, boolean sponsoredPatched, boolean suggestedPatched,
+            StoryFlag.Accessor recommendationAccessor, boolean aiPatched, StoryFlag.Accessor aiAccessor,
+            boolean reelsPatched, StoryFlag.Accessor showcaseAccessor, boolean wordsPatched,
+            StoryFlag.Accessor messageAccessor, StoryFlag.Accessor attachedAccessor,
+            StoryFlag.Accessor aiLabelAccessor, @Nullable StoryFlag.Accessor attachmentsAccessor,
+            @Nullable AiCharacterPosts.Finder styleFinder) {
         boolean trayPatched = storiesTrayInBuild();
         try {
             if (sponsoredPatched) HookStatus.invoked(FamilyNames.SPONSORED_POSTS);
@@ -352,6 +417,9 @@ public final class FeedFilter {
             String reason = null;
             if (sponsoredPatched && hiddenCategory(category)) {
                 reason = categoryName;
+            } else if (sponsoredPatched && Settings.HIDE_SPONSORED_POSTS.get()
+                    && MULTI_ADS_TYPE.equals(typeName(feedUnit))) {
+                reason = MULTI_ADS_TYPE;
             }
             if (reason == null && reelsPatched && Settings.HIDE_FEED_REELS.get()) {
                 reason = isReelsCategory(categoryName) ? categoryName : showcaseReason(feedUnit, showcaseAccessor);
@@ -370,8 +438,9 @@ public final class FeedFilter {
                     reason = flagReason(RecommendationLabel.FLAG, RECOMMENDATION_ROUTE, feedUnit, recommendationAccessor);
                 }
                 boolean storiesYouMightLike = Settings.HIDE_STORIES_YOU_MIGHT_LIKE.get();
-                if (reason == null && (Settings.HIDE_PEOPLE_YOU_MAY_KNOW.get() || Settings.HIDE_SUGGESTED_GROUPS.get()
-                        || storiesYouMightLike)) {
+                if (reason == null && (Settings.HIDE_SUGGESTED_POSTS.get() || Settings.HIDE_PEOPLE_YOU_MAY_KNOW.get()
+                        || Settings.HIDE_SUGGESTED_GROUPS.get() || storiesYouMightLike || Settings.HIDE_FEED_MEMORIES.get()
+                        || Settings.HIDE_FEED_FRIEND_REQUESTS.get() || Settings.HIDE_FRIENDS_LOCATIONS.get())) {
                     String type = typeName(feedUnit);
                     reason = suggestedTypeReason(type);
                     if (reason == null && storiesYouMightLike && DISCOVER_UNIT_TYPE.equals(type)) {
@@ -382,9 +451,13 @@ public final class FeedFilter {
             if (reason == null && trayPatched && Settings.HIDE_STORIES_BETWEEN_POSTS.get()) {
                 reason = storiesRowReason(typeName(feedUnit));
             }
-            if (reason == null && aiPatched && Settings.HIDE_META_AI_FEED_UNITS.get()
-                    && META_AI_UNIT_TYPE.equals(typeName(feedUnit))) {
+            boolean metaAi = aiPatched && Settings.HIDE_META_AI_FEED_UNITS.get();
+            if (reason == null && metaAi && META_AI_UNIT_TYPE.equals(typeName(feedUnit))) {
                 reason = META_AI_UNIT_TYPE;
+            }
+            if (reason == null && aiPatched && attachmentsAccessor != null && styleFinder != null
+                    && Settings.HIDE_AI_CHARACTER_POSTS.get()) {
+                reason = aiCharacterReason(feedUnit, attachmentsAccessor, styleFinder);
             }
             boolean aiLabelled = aiPatched && Settings.HIDE_AI_LABELLED_POSTS.get();
             if (reason == null && aiPatched && (aiLabelled || Settings.HIDE_AI_DETECTED_POSTS.get())) {
@@ -395,6 +468,9 @@ public final class FeedFilter {
             }
             if (reason == null && wordsPatched && Settings.HIDE_POSTS_WITH_WORDS.get()) {
                 reason = wordsReason(feedUnit, messageAccessor, attachedAccessor);
+            }
+            if (reason == null && wordsPatched) {
+                reason = sourcesReason(feedUnit, PostSources.ACTORS, PostSources.ATTACHMENTS, attachedAccessor);
             }
             if (reason == null) return false;
 
@@ -456,16 +532,47 @@ public final class FeedFilter {
     }
 
     /**
-     * The rules built on a unit's GraphQL type name: the name, when it's People you may know or
-     * suggested groups and that row's switch is on, otherwise null. A name that couldn't be read
-     * is null, so the unit stays.
+     * Hide AI character posts' rule for posts that carry an AI character: the style's type name
+     * when one of the post's attachments has it, otherwise null. Every unit it reads is counted on
+     * its own route under what the read found, so a kept post always has a reason in the report.
+     */
+    private static String aiCharacterReason(Object feedUnit, StoryFlag.Accessor attachments,
+            AiCharacterPosts.Finder styles) {
+        String kind = AiCharacterPosts.read(feedUnit, attachments, styles);
+        FeedFilterCounters.sawList(AiCharacterPosts.ROUTE, 1);
+        FeedFilterCounters.sawKind(AiCharacterPosts.ROUTE, kind);
+        if (!AiCharacterPosts.FOUND.equals(kind)) return null;
+        FeedFilterCounters.removed(AiCharacterPosts.ROUTE, 1, kind);
+        return AiCharacterPosts.STYLE_TYPE;
+    }
+
+    /**
+     * The rules built on a unit's GraphQL type name: the name, when it's People you may know,
+     * suggested groups, a Memory, friend requests, friends' locations or one of
+     * {@link #SUGGESTED_TYPES} and that kind's switch is on, otherwise null. A name that couldn't be
+     * read is null, so the unit stays.
      */
     private static String suggestedTypeReason(String type) {
+        if (type == null) return null;
+        if (Settings.HIDE_SUGGESTED_POSTS.get()) {
+            for (String kind : SUGGESTED_TYPES) {
+                if (kind.equals(type)) return kind;
+            }
+        }
         if (PEOPLE_YOU_MAY_KNOW_TYPE.equals(type)) {
             return Settings.HIDE_PEOPLE_YOU_MAY_KNOW.get() ? PEOPLE_YOU_MAY_KNOW_TYPE : null;
         }
         if (GROUPS_YOU_SHOULD_JOIN_TYPE.equals(type)) {
             return Settings.HIDE_SUGGESTED_GROUPS.get() ? GROUPS_YOU_SHOULD_JOIN_TYPE : null;
+        }
+        if (FRIEND_REQUESTS_TYPE.equals(type)) {
+            return Settings.HIDE_FEED_FRIEND_REQUESTS.get() ? FRIEND_REQUESTS_TYPE : null;
+        }
+        if (FRIENDS_LOCATIONS_TYPE.equals(type)) {
+            return Settings.HIDE_FRIENDS_LOCATIONS.get() ? FRIENDS_LOCATIONS_TYPE : null;
+        }
+        for (String memory : MEMORIES_TYPES) {
+            if (memory.equals(type)) return Settings.HIDE_FEED_MEMORIES.get() ? memory : null;
         }
         return null;
     }
@@ -535,6 +642,37 @@ public final class FeedFilter {
             HookStatus.threw(FamilyNames.SUGGESTED_POSTS, "promotion id reader", failure);
             return null;
         }
+    }
+
+    /**
+     * The people, Pages and sites rule: {@link #SOURCES_REASON} and the matching line's number when
+     * one of the post's authors or links, or those of the post it shares, is on the list, otherwise
+     * null. Nothing is read while the switch is off or the list is empty, and a post whose authors
+     * and links can't be read is kept. Each story it reads is counted on its route by outcome.
+     */
+    static String sourcesReason(Object feedUnit, StoryFlag.Accessor actors, StoryFlag.Accessor attachments,
+            StoryFlag.Accessor attached) {
+        if (!Settings.HIDE_POSTS_FROM_SOURCES.get()) return null;
+        FeedFilterCounters.sawList(SOURCES_ROUTE, 1);
+        java.util.List<PostSources.Rule> rules = PostSources.cachedRules(Settings.HIDDEN_SOURCES.get());
+        if (rules.isEmpty()) {
+            FeedFilterCounters.sawKind(SOURCES_ROUTE, NO_SOURCES);
+            return null;
+        }
+        PostSources.Found found = PostSources.read(feedUnit, actors, attachments, attached);
+        if (found.outcome != PostSources.Outcome.READ) {
+            FeedFilterCounters.sawKind(SOURCES_ROUTE, found.outcome.reason);
+            return null;
+        }
+        int line = PostSources.match(rules, found);
+        if (line == 0) {
+            FeedFilterCounters.sawKind(SOURCES_ROUTE, NO_SOURCE_MATCH);
+            return null;
+        }
+        String reason = SOURCES_REASON + " " + line;
+        FeedFilterCounters.sawKind(SOURCES_ROUTE, reason);
+        FeedFilterCounters.removed(SOURCES_ROUTE, 1, reason);
+        return reason;
     }
 
     /**
@@ -713,6 +851,20 @@ public final class FeedFilter {
             return name instanceof String ? (String) name : null;
         } catch (Throwable failure) {
             return null;
+        }
+    }
+
+    /**
+     * Whether a model says its native tree is gone, through the same
+     * {@code isValidGraphServicesJNIModel()} {@link #typeName} asks. A model that has no such method
+     * can't say, and counts as still there; one whose answer can't be read counts as gone.
+     */
+    static boolean released(Object model) {
+        try {
+            TypeNameReader reader = TYPE_NAME_READERS.computeIfAbsent(model.getClass(), TypeNameReader::of);
+            return reader.valid != null && !Boolean.TRUE.equals(reader.valid.invoke(model));
+        } catch (Throwable failure) {
+            return true;
         }
     }
 

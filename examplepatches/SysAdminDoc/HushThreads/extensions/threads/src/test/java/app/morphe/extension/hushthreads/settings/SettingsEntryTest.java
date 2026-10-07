@@ -238,6 +238,25 @@ public class SettingsEntryTest {
     }
 
     /**
+     * The HushThreads row in Threads' own settings opens the screen over the Threads screen in
+     * front. Threads calls the row's click as a Kotlin Function0 and drops what it answers.
+     */
+    @Test public void theRowInThreadsOwnSettingsOpensTheScreen() {
+        ActivityController<Activity> activity = Robolectric.buildActivity(Activity.class,
+                new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER)).create();
+        SettingsEntry.onActivityCreate(activity.get());
+        activity.start().resume();
+        ShadowLooper.idleMainLooper();
+        assertNull("a launch from the icon opened the screen", dialogOver(activity.get()));
+
+        Object answer = new ThreadsSettingsRow.Click().invoke();
+        ShadowLooper.idleMainLooper();
+
+        assertNull(answer);
+        assertNotNull("the row didn't open the screen", dialogOver(activity.get()));
+    }
+
+    /**
      * With Threads already running, App info's request reaches the activity through onNewIntent,
      * and the screen opens when it resumes. A plain launch from the icon opens nothing.
      */

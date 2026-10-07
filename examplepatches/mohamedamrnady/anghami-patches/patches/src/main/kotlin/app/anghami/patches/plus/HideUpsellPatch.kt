@@ -11,7 +11,7 @@ import app.anghami.patches.shared.Constants.COMPATIBILITY_ANGHAMI_8_0_28
  * Why a separate patch from the Plus spoof: isPlus=true does not remove
  * this UI because it is server-driven (plusTab flag, server feed payloads,
  * server settings Question), not gated on isPlusUser. Each hook verified
- * LIVE in 8.0.28 smali — see UpsellFingerprints.kt.
+ * LIVE in 8.0.28 — see UpsellFingerprints.kt.
  *
  * - Nav-bar upgrade entry: getPlusTab -> false.
  * - Restricted-queue prompts: getHasRestrictedQueue -> false.
@@ -129,7 +129,7 @@ val hideUpsellPatch = bytecodePatch(
         // Settings subscribe banner: no upgrade model -> no UpgradeRow
         // (subscriptions sub-screen), no settings question -> no QuestionRow
         // banner (main settings page). Both getters are null-safe-skipped by
-        // their builders (verified in smali).
+        // their builders (verified on device).
         GetUpgradeModelFingerprint.method.addInstructions(
             0,
             """

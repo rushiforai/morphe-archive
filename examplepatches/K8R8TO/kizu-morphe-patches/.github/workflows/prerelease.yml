@@ -1,0 +1,107 @@
+name: Pre-release
+# Beta release workflow
+on:
+  push:
+    branches:
+      - beta
+  pull_request_target:
+    types:
+      - opened
+      - synchronize
+  workflow_dispatch:
+concurrency:
+  group: kizu-prerelease-beta11
+  cancel-in-progress: true
+jobs:
+  prerelease:
+    name: Build pre-release
+    permissions:
+      contents: write
+      packages: write
+      id-token: write
+      attestations: write
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout beta
+        uses: actions/checkout@v5
+        with:
+          ref: beta
+          fetch-depth: 0
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Cache Gradle
+        uses: burrunan/gradle-cache-action@v3
+      - name: Read pre-release version
+        id: version
+        run: |
+          VERSION="$(awk -F '=' '$1 ~ /^[[:space:]]*version[[:space:]]*$/ { gsub(/[[:space:]]/, "", $2); print $2; exit }' gradle.properties)"
+          test -n "$VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Validate Morphe pre-release metadata
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib, re
+          v = os.environ["VERSION"]
+          if not re.fullmatch(r"\d+\.\d+\.\d+-[0-9A-Za-z.-]+", v):
+              raise SystemExit(f"Invalid pre-release version: {v}")
+          bundle = json.loads(pathlib.Path("patches-bundle.json").read_text())
+          plist = json.loads(pathlib.Path("patches-list.json").read_text())
+          if bundle.get("version") != v or plist.get("version") != v:
+              raise SystemExit(f"Version mismatch: gradle={v}, bundle={bundle.get('version')}, list={plist.get('version')}")
+          expected = f"https://github.com/K8R8TO/kizu-morphe-patches/releases/download/v{v}/patches-{v}.mpp"
+          if bundle.get("download_url") != expected:
+              raise SystemExit("patches-bundle.json download_url does not match pre-release version")
+          PY
+      - name: Build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x gradlew
+          ./gradlew :patches:buildAndroid
+      - name: Verify pre-release metadata after build
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          v = os.environ["VERSION"]
+          bundle = json.loads(pathlib.Path("patches-bundle.json").read_text())
+          plist = json.loads(pathlib.Path("patches-list.json").read_text())
+          assert bundle.get("version") == v
+          assert plist.get("version") == v
+          expected = f"https://github.com/K8R8TO/kizu-morphe-patches/releases/download/v{v}/patches-{v}.mpp"
+          assert bundle.get("download_url") == expected
+          PY
+      - name: Verify release artifact
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          test -f "patches/build/libs/patches-$VERSION.mpp"
+      - name: Publish GitHub pre-release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: v${{ steps.version.outputs.version }} (Pre-release)
+          target_commitish: beta
+          body: |
+            Kizu Twitch Patches v${{ steps.version.outputs.version }} pre-release.
+            Testing channel only. This is not the stable release.
+          prerelease: true
+          make_latest: false
+          files: patches/build/libs/patches-${{ steps.version.outputs.version }}.mpp
+          fail_on_unmatched_files: true
+          overwrite_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Verify pre-release asset
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          gh release view "v$VERSION" --json isDraft,isPrerelease,tagName,assets --jq '.isDraft, .isPrerelease, .tagName, ([.assets[].name] | join(","))' | grep -F "true"
+          gh release view "v$VERSION" --json tagName,assets --jq '.tagName + " " + ([.assets[].name] | join(","))' | grep -F "v$VERSION patches-$VERSION.mpp"

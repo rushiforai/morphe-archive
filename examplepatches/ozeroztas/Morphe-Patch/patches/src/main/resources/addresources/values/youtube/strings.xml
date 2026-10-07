@@ -20,7 +20,7 @@ Second \"item\" text"</string>
     <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
     <string name="morphe_settings_screen_00_about_title">About</string>
     <string name="morphe_settings_screen_01_ads_title">Ads</string>
-    <string name="morphe_settings_screen_02_alt_thumbnails_title">Alternative thumbnails</string>
+    <string name="morphe_settings_screen_02_dearrow_title" translatable="false">DeArrow</string>
     <string name="morphe_settings_screen_03_feed_title">Feed</string>
     <string name="morphe_settings_screen_04_general_title">General</string>
     <string name="morphe_settings_screen_05_player_title">Player</string>
@@ -70,6 +70,8 @@ Changes include:
     <string name="morphe_hide_artist_cards_title">Hide artist cards</string>
     <string name="morphe_hide_artist_cards_summary">Hides the artist card at the top of the search results</string>
     <string name="morphe_hide_auto_dubbed_label_title">Hide \'Auto-dubbed\' label</string>
+    <string name="morphe_hide_channel_buttons_title">Hide channel buttons</string>
+    <string name="morphe_hide_channel_buttons_summary">Hides buttons such as Subscribe, View Channel, Community, and YouTube Music from channel profiles in search results</string>
     <string name="morphe_hide_community_posts_title">Hide community posts</string>
     <string name="morphe_hide_compact_banner_title">Hide compact banners</string>
     <string name="morphe_hide_compact_banner_summary">Hides compact banners and spacing between some components</string>
@@ -81,7 +83,6 @@ Changes include:
     <string name="morphe_hide_floating_microphone_button_summary">Hides floating microphone button in the lower-right corner of search suggestions screen</string>
     <string name="morphe_hide_get_premium_button_title">Hide \'Get Premium\' button</string>
     <string name="morphe_hide_history_shelf_title">Hide History shelf</string>
-    <string name="morphe_hide_history_shelf_summary">Hides the History shelf in the You tab</string>
     <string name="morphe_hide_horizontal_shelves_title">Hide horizontal shelves</string>
     <string name="morphe_hide_horizontal_shelves_summary">Hides horizontal shelves such as Breaking news, Community posts you may like, Continue watching, Explore more channels, Explore more topics, For You, Latest videos, Most relevant, Posts from Creator\'s Community, Shopping, and Watch it again</string>
     <string name="morphe_hide_hyped_label_title">Hide Hyped label</string>
@@ -115,7 +116,8 @@ Changes include:
     <string name="morphe_hide_show_more_button_title">Hide \'Show more\' button</string>
     <string name="morphe_hide_show_more_button_summary">Hides the expand button under videos in the search results</string>
     <string name="morphe_hide_subscribed_channels_bar_title">Hide subscribed channels bar</string>
-    <string name="morphe_hide_subscribed_channels_bar_names_title">Hide channel names in subscribed channels bar</string>
+    <string name="morphe_hide_subscribed_channels_bar_names_title">Hide subscribed channel names</string>
+    <string name="morphe_hide_subscribed_channels_bar_names_summary">Hides the channel names in subscribed channels bar</string>
     <string name="morphe_hide_surveys_title">Hide surveys</string>
     <string name="morphe_hide_surveys_summary">Hide surveys and nudges about feed recommendation accuracy</string>
     <string name="morphe_hide_ticket_shelf_title">Hide ticket shelf</string>
@@ -165,6 +167,11 @@ Changes include:
     <string name="morphe_hide_sync_button_title">Hide \'Sync to video\' button</string>
     <string name="morphe_hide_timed_reactions_title">Hide timed reactions</string>
     <string name="morphe_hide_timed_reactions_summary">Hides the feature that allows users to react with emojis in the comments section and live chat</string>
+    <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+    <string name="morphe_hide_help_feedback_menu_title">Hide \'Help &amp; feedback\' in menus</string>
+    <string name="morphe_hide_help_feedback_menu_summary">Hides \'Help &amp; feedback\' in the three-dot menus of the app bar, such as the search results menu</string>
+    <string name="morphe_hide_handle_title">Hide handle</string>
+    <string name="morphe_hide_handle_summary">Hides your channel handle in the \'You\' tab</string>
     <string name="morphe_hide_video_title_title">Hide video title</string>
     <string name="morphe_hide_video_title_summary">Hides the video title in the fullscreen mode</string>
     <string name="morphe_sanitize_video_subtitle_title">Sanitize video subtitle</string>
@@ -736,7 +743,7 @@ To fix this, turn on \'Spoof video streams\' and change the \'Default client\' t
     <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
     <string name="morphe_hide_connect_button_title">Hide Connect button</string>
     <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
     <string name="morphe_hide_report_button_title">Hide Report button</string>
     <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
     <string name="morphe_hide_remix_button_title">Hide Remix button</string>
@@ -1260,40 +1267,43 @@ Limitation: If \'Restore old video action bar\' is turned off, \'More videos\' o
     <string name="morphe_bypass_image_region_restrictions_title">Bypass image region restrictions</string>
     <string name="morphe_bypass_image_region_restrictions_summary">Redirects thumbnail requests to an alternative server to fix missing images in restricted countries</string>
 
-    <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+    <!-- layout.dearrow.deArrowPatch -->
+    <!-- "DeArrow" must be kept untranslated. -->
+    <string name="morphe_dearrow_titles_title">DeArrow titles</string>
+    <string name="morphe_dearrow_titles_summary">Replaces video titles with the crowdsourced titles submitted to DeArrow</string>
+    <string name="morphe_dearrow_titles_icon_title">Show DeArrow icon</string>
+    <string name="morphe_dearrow_titles_icon_summary">Shows the DeArrow icon on crowdsourced video titles</string>
     <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-    <string name="morphe_alt_thumbnail_home_title">For Home tab</string>
+    <string name="morphe_dearrow_thumbnail_home_title">For Home tab</string>
     <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-    <string name="morphe_alt_thumbnail_subscription_title">For Subscriptions tab</string>
+    <string name="morphe_dearrow_thumbnail_subscription_title">For Subscriptions tab</string>
     <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-    <string name="morphe_alt_thumbnail_library_title">For You tab</string>
-    <string name="morphe_alt_thumbnail_player_title">For player playlists &amp; recommendations</string>
-    <string name="morphe_alt_thumbnail_search_title">For search results</string>
-    <string name="morphe_alt_thumbnail_options_entry_1">Original thumbnails</string>
-    <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Original thumbnails</string>
-    <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Still captures</string>
-    <string name="morphe_alt_thumbnail_options_entry_4">Still captures</string>
-    <string name="morphe_alt_thumbnail_dearrow_about_title" translatable="false">DeArrow</string>
-    <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow provides crowdsourced thumbnails for YouTube videos. These thumbnails are often more relevant than those provided by YouTube
+    <string name="morphe_dearrow_thumbnail_library_title">For You tab</string>
+    <string name="morphe_dearrow_thumbnail_player_title">For player playlists &amp; recommendations</string>
+    <string name="morphe_dearrow_thumbnail_search_title">For search results</string>
+    <string name="morphe_dearrow_thumbnail_options_entry_1">Original thumbnails</string>
+    <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Original thumbnails</string>
+    <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Still captures</string>
+    <string name="morphe_dearrow_thumbnail_options_entry_4">Still captures</string>
+    <string name="morphe_dearrow_about_title" translatable="false">DeArrow</string>
+    <string name="morphe_dearrow_about_summary">"DeArrow provides crowdsourced titles and thumbnails for YouTube videos. These are often more relevant than those provided by YouTube
 
 If enabled, video URLs will be sent to the API server and no other data is sent. If a video does not have DeArrow thumbnails, then the original or still captures are shown
 
 Tap here to open DeArrow.ajay.app"</string>
-    <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Show connection error alerts</string>
-    <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Shows a notification when the DeArrow server is unavailable</string>
-    <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API endpoint</string>
-    <string name="morphe_alt_thumbnail_dearrow_api_url_summary">The URL of the DeArrow thumbnail cache endpoint</string>
-    <string name="morphe_alt_thumbnail_stills_about_title">Still video captures</string>
-    <string name="morphe_alt_thumbnail_stills_about_summary">Still captures are taken from the beginning / middle / end of each video. These images are built into YouTube and no external API is used</string>
-    <string name="morphe_alt_thumbnail_stills_fast_title">Use fast still captures</string>
-    <string name="morphe_alt_thumbnail_stills_fast_summary">Improves loading speeds by using medium-quality images. Live streams, unreleased and older videos may display blank thumbnails</string>
-    <string name="morphe_alt_thumbnail_stills_time_title">Extract video frame from</string>
-    <string name="morphe_alt_thumbnail_stills_time_entry_1">Beginning</string>
-    <string name="morphe_alt_thumbnail_stills_time_entry_2">Middle</string>
-    <string name="morphe_alt_thumbnail_stills_time_entry_3">End</string>
+    <string name="morphe_dearrow_connection_toast_title">Show connection error alerts</string>
+    <string name="morphe_dearrow_connection_toast_summary">Shows a notification when the DeArrow server is unavailable</string>
+    <string name="morphe_dearrow_api_url_title">DeArrow API endpoint</string>
+    <string name="morphe_dearrow_api_url_summary">The URL of the DeArrow thumbnail cache endpoint</string>
+    <string name="morphe_dearrow_thumbnail_stills_about_title">Still video captures</string>
+    <string name="morphe_dearrow_thumbnail_stills_about_summary">Still captures are taken from the beginning / middle / end of each video. These images are built into YouTube and no external API is used</string>
+    <string name="morphe_dearrow_thumbnail_stills_time_title">Extract video frame from</string>
+    <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Beginning</string>
+    <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Middle</string>
+    <string name="morphe_dearrow_thumbnail_stills_time_entry_3">End</string>
     <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-    <string name="morphe_alt_thumbnail_dearrow_error">DeArrow is temporarily not available (status code: %s)</string>
-    <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow is temporarily not available</string>
+    <string name="morphe_dearrow_error">DeArrow is temporarily not available (status code: %s)</string>
+    <string name="morphe_dearrow_error_generic">DeArrow is temporarily not available</string>
 
     <!-- misc.announcements.announcementsPatch -->
     <string name="morphe_announcements_title" translatable="false">Show Morphe announcements</string>

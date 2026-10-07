@@ -8,6 +8,10 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.widget.Toast;
+import android.util.Log;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Modifier;
+import java.util.concurrent.ConcurrentHashMap;
 import java.lang.reflect.Field;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
@@ -15,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Set;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +28,7 @@ import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function2;
 
-/** Runtime half of the opt-in vertical Home viewer for Reddit 2026.14.0. */
+/** Runtime half of the opt-in vertical feed viewer for Reddit 2026.14.0. */
 public final class VerticalHomeFeed {
     private static final String MARKER = "__morphe_vertical_home__";
     private static final Map<String, Object> LINKS = new LinkedHashMap<String, Object>(512, .75f, true) {
@@ -31,14 +36,31 @@ public final class VerticalHomeFeed {
             return size() > 1200;
         }
     };
-    private static volatile List<Object> snapshot = Collections.emptyList();
     private static volatile boolean vertical;
     private static final Map<Object, Integer> POSITIONS = Collections.synchronizedMap(new java.util.WeakHashMap<>());
-    private static volatile Object homePager;
-    private static volatile int initialIndex;
-    private static boolean requesting;
+    private static final Map<Object, Boolean> FEEDS = Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    private static final Map<Object, WeakReference<List<?>>> DISPLAYED = Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    private static final Map<Object, String> FOCUS = Collections.synchronizedMap(new java.util.WeakHashMap<>());
+    private static final Map<String, Session> SESSIONS = new ConcurrentHashMap<>();
+    private static final Map<Object, Boolean> CUSTOM_STATES = Collections.synchronizedMap(new java.util.WeakHashMap<>());
     private static final Handler MAIN = new Handler(Looper.getMainLooper());
-    private static volatile Object navScreen;
+    private static volatile WeakReference<Object> navScreen = new WeakReference<>(null);
+
+    private static final class Session {
+        final String token = MARKER + UUID.randomUUID();
+        final WeakReference<Object> model;
+        final Object pager;
+        final int initialIndex;
+        volatile List<Object> posts;
+        volatile String currentPost;
+        boolean requesting;
+        Session(Object model, Object pager, List<Object> posts, int initialIndex) {
+            this.model = new WeakReference<>(model);
+            this.pager = pager;
+            this.posts = Collections.unmodifiableList(new ArrayList<>(posts));
+            this.initialIndex = initialIndex;
+        }
+    }
     private static volatile Method drawIcon;
     private static volatile Method drawLabel;
 
@@ -62,7 +84,7 @@ public final class VerticalHomeFeed {
     }
 
     public static void initializeNav(Object screen) {
-        navScreen = screen;
+        navScreen = new WeakReference<>(screen);
     }
 
     @SuppressWarnings("unchecked")
@@ -70,6 +92,7 @@ public final class VerticalHomeFeed {
         if (!(builder instanceof List<?>) || ((List<?>) builder).isEmpty()) return;
         try {
             List<Object> items = (List<Object>) builder;
+            for (Object item : items) if ("Vertical".equals(field(item, "a"))) return;
             Object original = items.get(0);
             Object content = field(original, "b");
             Constructor<?> ctor = original.getClass().getConstructor(String.class, content.getClass());
@@ -78,19 +101,79 @@ public final class VerticalHomeFeed {
     }
 
     public static Function0<?> wrapClick(Object descriptor, Function0<?> original) {
+        if (original instanceof VerticalClick) return original;
         try {
             if (!"Vertical".equals(field(descriptor, "a"))) return original;
-            return () -> {
-                Object nav = navScreen;
-                Activity activity = activity(nav);
-                if (activity != null) {
-                    Object screen = call(nav, "getCurrentScreen");
-                    if (isHome(screen)) open(activity, screen);
-                    else Toast.makeText(activity, "Open Home feed first", Toast.LENGTH_SHORT).show();
-                }
-                return kotlinUnit();
-            };
+            Object owner = null;
+            for (Field captured : original.getClass().getDeclaredFields()) {
+                if (Modifier.isStatic(captured.getModifiers()) || !
+                    "com.reddit.launch.bottomnav.BottomNavScreen".equals(captured.getType().getName())) continue;
+                captured.setAccessible(true);
+                owner = captured.get(original);
+                break;
+            }
+            return new VerticalClick(owner);
         } catch (ReflectiveOperationException | RuntimeException ignored) { return original; }
+    }
+
+    private static final class VerticalClick implements Function0<Object> {
+        final Object owner;
+        VerticalClick(Object owner) { this.owner = owner; }
+        @Override public Object invoke() {
+            Object nav = owner != null ? owner : navScreen.get();
+            Activity activity = activity(nav);
+            if (activity != null) {
+                Object model = visibleFeed(activity, call(nav, "getCurrentScreen"));
+                if (model != null) open(activity, model);
+                else Toast.makeText(activity, "Open a post feed first", Toast.LENGTH_SHORT).show();
+            }
+            return kotlinUnit();
+        }
+    }
+
+    /** Shared by Home, subreddit, profile, Popular, saved and other native post feeds. */
+    public static void rememberFeed(Object model) {
+        if (model != null) FEEDS.put(model, Boolean.TRUE);
+    }
+
+    /** Capture the sections actually rendered, after native filtering and deduplication. */
+    public static Object rememberRendered(Object model, Object state) {
+        try {
+            Object sections = field(state, "a");
+            if (sections instanceof List<?>)
+                DISPLAYED.put(field(model, "x"), new WeakReference<>((List<?>) sections));
+        } catch (ReflectiveOperationException | RuntimeException ignored) { }
+        return state;
+    }
+
+    private static Object visibleFeed(Activity activity, Object screen) {
+        Object child = call(screen, "O5");
+        if (child != null) screen = child;
+        Object direct = call(screen, "F1");
+        if (direct != null) return direct;
+        synchronized (FEEDS) {
+            for (Object model : FEEDS.keySet()) {
+                try {
+                    // Profile's Posts/Saved panes are embedded screens rather than the nav-stack top.
+                    Object owner = field(model, "U");
+                    if (belongsToScreen(owner, screen) && activity(owner) == activity && "ON_SCREEN".equals(String.valueOf(
+                        call(field(model, "n0"), "getValue")))) return model;
+                } catch (ReflectiveOperationException | RuntimeException ignored) { }
+            }
+        }
+        return null;
+    }
+
+    private static boolean belongsToScreen(Object owner, Object screen) {
+        if (screen == null) return false;
+        Set<Object> seen = Collections.newSetFromMap(new IdentityHashMap<>());
+        while (owner != null && seen.add(owner)) {
+            if (owner == screen) return true;
+            // BaseScreen.X4() is the native parent screen. Activity and ON_SCREEN alone
+            // can also match the previous feed while navigation visibility catches up.
+            owner = call(owner, "X4");
+        }
+        return false;
     }
 
     public static String tabLabel(Object descriptor, String original) {
@@ -106,7 +189,7 @@ public final class VerticalHomeFeed {
                     Method draw = drawIcon;
                     if (draw == null) {
                         Class<?> icon = Class.forName("com.reddit.ui.compose.icons.h");
-                        draw = Class.forName("com.reddit.ui.compose.pointer.q9").getMethod("a",
+                        draw = Class.forName("com.reddit.ui.compose.ds.q9").getMethod("a",
                             icon, Class.forName("androidx.compose.ui.s"), long.class,
                             boolean.class, String.class,
                             Class.forName("androidx.compose.runtime.m"), int.class, int.class);
@@ -168,7 +251,7 @@ public final class VerticalHomeFeed {
     }
 
     public static boolean useImprovedProvider(Object provider, boolean original) {
-        try { return MARKER.equals(field(field(provider, "a"), "B")) ? false : original; }
+        try { return marker(field(field(provider, "a"), "B")) ? false : original; }
         catch (ReflectiveOperationException | RuntimeException ignored) { return original; }
     }
 
@@ -176,8 +259,9 @@ public final class VerticalHomeFeed {
     public static Object page(Object provider, String cursor) {
         try {
             Object params = field(provider, "a");
-            if (!MARKER.equals(field(params, "B"))) return null;
-            List<Object> all = snapshot;
+            Session session = SESSIONS.get(string(field(params, "B")));
+            if (session == null) return null;
+            List<Object> all = session.posts;
             int start = 0;
             if (cursor != null) {
                 try { start = cursor.startsWith("vh:") ? Integer.parseInt(cursor.substring(3))
@@ -197,29 +281,16 @@ public final class VerticalHomeFeed {
         }
     }
 
-    private static void open(Activity activity, Object screen) {
-        if (!isHome(screen)) return;
+    private static void open(Activity activity, Object model) {
+        Session session = null;
         try {
-            Object child = call(screen, "O5");
-            Object model = call(child, "F1");
             Object pager = field(model, "x");
-            homePager = pager;
-            requesting = false;
-            ArrayList<Object> posts = homePosts(pager);
-            if (posts.isEmpty()) throw new IllegalStateException("No Home images or videos loaded");
-            int position = POSITIONS.getOrDefault(pager, 0);
-            Object sections = field(call(call(pager, "getState"), "getValue"), "b");
-            int sectionIndex = 0;
-            Object focused = null;
-            for (Object section : (Iterable<?>) sections) {
-                Object candidate = sectionLink(section);
-                if (sectionIndex++ >= position && posts.contains(candidate)) {
-                    focused = candidate;
-                    break;
-                }
-            }
-            initialIndex = focused == null ? posts.size() - 1 : posts.indexOf(focused);
-            snapshot = Collections.unmodifiableList(posts);
+            ArrayList<Object> posts = feedPosts(pager);
+            if (posts.isEmpty()) throw new IllegalStateException("No images or videos loaded in this feed");
+            Object focused = focusedPost(pager, posts);
+            int initialIndex = focused == null ? posts.size() - 1 : posts.indexOf(focused);
+            session = new Session(model, pager, posts, initialIndex);
+            SESSIONS.put(session.token, session);
             Object first = posts.get(initialIndex);
             Class<?> linkType = Class.forName("com.reddit.domain.model.Link");
             Class<?> listingType = Class.forName("com.reddit.listing.common.ListingType");
@@ -246,8 +317,8 @@ public final class VerticalHomeFeed {
             Object data = dataType.getConstructor(String.class,
                 Class.forName("com.reddit.listing.model.sort.SortType"),
                 Class.forName("com.reddit.listing.model.sort.SortTimeFrame"))
-                .newInstance(MARKER, null, null);
-            Object session = Class.forName("com.reddit.domain.model.post.NavigationSession")
+                .newInstance(session.token, null, null);
+            Object navigationSession = Class.forName("com.reddit.domain.model.post.NavigationSession")
                 .getConstructor().newInstance();
             Object params;
             if (image(first, linkType) || call(first, "getGallery") != null) {
@@ -256,7 +327,7 @@ public final class VerticalHomeFeed {
                     commentsType, Bundle.class, mediaType, dataType, sessionType, entryType,
                     referrerType, String.class, boolean.class, String.class, ArrayList.class,
                     int.class, List.class).newInstance(correlation, firstId, false, closed, null,
-                        mediaContext, data, session, entry, null, uniqueId, false, MARKER,
+                        mediaContext, data, navigationSession, entry, null, uniqueId, false, session.token,
                         null, 0, null);
             } else {
                 Class<?> correlationType = Class.forName("com.reddit.fullbleedplayer.l");
@@ -266,14 +337,18 @@ public final class VerticalHomeFeed {
                     commentsType, Bundle.class, mediaType, dataType, sessionType, entryType,
                     referrerType, String.class, boolean.class, String.class, String.class,
                     boolean.class).newInstance(token, firstId, false, closed, null,
-                        mediaContext, data, session, entry, null, uniqueId, false, MARKER,
+                        mediaContext, data, navigationSession, entry, null, uniqueId, false, session.token,
                         null, false);
             }
             Class<?> player = Class.forName("com.reddit.fullbleedplayer.common.FbpActivity");
             Intent intent = new Intent(activity, player);
             intent.putExtra("FBP_PARAMS_EXTRA", (Parcelable) params);
             activity.startActivity(intent);
+            Log.i("VerticalFeed", "Opened " + field(model, "M") + " media=" + posts.size()
+                + " index=" + initialIndex);
         } catch (ReflectiveOperationException | RuntimeException error) {
+            if (session != null) SESSIONS.remove(session.token);
+            Log.e("VerticalFeed", "Could not open feed", error);
             String reason = error.getMessage();
             Toast.makeText(activity, "Vertical feed: " + (reason != null ? reason
                     : error.getClass().getSimpleName()),
@@ -281,18 +356,30 @@ public final class VerticalHomeFeed {
         }
     }
 
-    private static boolean isHome(Object screen) {
+    private static boolean marker(Object value) {
+        return value instanceof String && ((String) value).startsWith(MARKER);
+    }
+
+    /** Release snapshots and stop outstanding pagination when this viewer is actually closed. */
+    public static void closeViewer(Object value) {
+        if (!(value instanceof Activity)) return;
+        Activity activity = (Activity) value;
+        if (activity.isChangingConfigurations()) return;
         try {
-            Object child = call(screen, "O5");
-            Object model = call(child, "F1");
-            return "HOME".equals(String.valueOf(field(model, "M")));
-        } catch (ReflectiveOperationException | RuntimeException ignored) { return false; }
+            Object params = activity.getIntent().getParcelableExtra("FBP_PARAMS_EXTRA");
+            Object data = call(params, "h");
+            String token = string(field(data, "a"));
+            if (token != null) {
+                Session session = SESSIONS.remove(token);
+                if (session != null) syncPosition(session, session.currentPost);
+            }
+        } catch (ReflectiveOperationException | RuntimeException ignored) { }
     }
 
     private static boolean marked(Object screen) {
         try {
             Object args = field(screen, "f60223b");
-            return args instanceof Bundle && MARKER.equals(((Bundle) args).getString("feed_data_source"));
+            return args instanceof Bundle && marker(((Bundle) args).getString("feed_data_source"));
         } catch (ReflectiveOperationException | RuntimeException ignored) { return false; }
     }
 
@@ -349,9 +436,51 @@ public final class VerticalHomeFeed {
         if (event == null) return;
         try {
             Integer position = (Integer) field(event, "a");
-            if (position != null) POSITIONS.put(field(handler, "a"), position);
+            Object pager = field(handler, "a");
+            if (position != null) {
+                POSITIONS.put(pager, position);
+                List<?> sections = displayed(pager);
+                if (sections != null) {
+                    // Profile's sticky header can leave the preceding row in the visible range.
+                    // Keep the explicitly selected media while it is still in that range.
+                    Integer last = (Integer) field(event, "b");
+                    String previous = FOCUS.get(pager);
+                    if (previous != null && last != null) {
+                        for (int i = Math.max(0, position); i <= last && i < sections.size(); i++)
+                            if (previous.equals(postId(sectionLink(sections.get(i))))) return;
+                    }
+                    Object focused = nextMedia(sections, position);
+                    String id = postId(focused);
+                    if (id != null) FOCUS.put(pager, id);
+                    else FOCUS.remove(pager);
+                }
+            }
         }
         catch (ReflectiveOperationException | RuntimeException ignored) { }
+    }
+
+    private static List<?> displayed(Object pager) {
+        WeakReference<List<?>> reference = DISPLAYED.get(pager);
+        return reference == null ? null : reference.get();
+    }
+
+    private static Object nextMedia(List<?> sections, int position) {
+        for (int i = Math.max(0, position); i < sections.size(); i++) {
+            Object link = sectionLink(sections.get(i));
+            if (eligible(link) && media(link)) return link;
+        }
+        return null;
+    }
+
+    private static Object focusedPost(Object pager, List<?> posts) throws ReflectiveOperationException {
+        String id = FOCUS.get(pager);
+        if (id != null) for (Object post : posts) if (id.equals(postId(post))) return post;
+        List<?> sections = displayed(pager);
+        if (sections == null) sections = (List<?>) field(call(call(pager, "getState"), "getValue"), "b");
+        Object focused = nextMedia(sections, POSITIONS.getOrDefault(pager, 0));
+        String focusedId = postId(focused);
+        if (focusedId != null) for (Object post : posts) if (focusedId.equals(postId(post))) return post;
+        return null;
     }
 
     private static Object sectionLink(Object section) {
@@ -363,7 +492,7 @@ public final class VerticalHomeFeed {
         synchronized (LINKS) { return LINKS.get(id); }
     }
 
-    private static ArrayList<Object> homePosts(Object pager) throws ReflectiveOperationException {
+    private static ArrayList<Object> feedPosts(Object pager) throws ReflectiveOperationException {
         Object state = call(call(pager, "getState"), "getValue");
         ArrayList<Object> posts = new ArrayList<>();
         Set<String> ids = new HashSet<>();
@@ -400,7 +529,7 @@ public final class VerticalHomeFeed {
     public static Object initialChrome(Object mapper, Object state) {
         try {
             Object params = field(mapper, "k");
-            if (!MARKER.equals(field(field(params, "d"), "a"))) return state;
+            if (!marker(field(field(params, "d"), "a"))) return state;
             String[] fields = {"a", "b", "c", "d", "e", "f", "g", "i", "r", "v",
                 "w", "x", "y", "B", "L", "M", "N", "O", "P"};
             Object[] values = new Object[fields.length];
@@ -413,9 +542,51 @@ public final class VerticalHomeFeed {
         return state;
     }
 
-    private static boolean custom(Object source) {
-        try { return MARKER.equals(field(field(field(source, "g"), "d"), "a")); }
-        catch (ReflectiveOperationException | RuntimeException ignored) { return false; }
+    private static Session session(Object source) {
+        try { return SESSIONS.get(string(field(field(field(source, "g"), "d"), "a"))); }
+        catch (ReflectiveOperationException | RuntimeException ignored) { return null; }
+    }
+
+    private static void syncPosition(Session session, String id) {
+        if (id == null) return;
+        Object model = session.model.get();
+        if (model == null) return;
+        try {
+            Iterable<?> sections = (Iterable<?>) field(call(call(session.pager, "getState"), "getValue"), "b");
+            int index = 0;
+            for (Object section : sections) {
+                Object link = sectionLink(section);
+                // Media pages use raw IDs; feed sections use full t3_ IDs.
+                if (id.equals(postId(link)) || id.equals(string(call(link, "getId")))) {
+                    // OnScrollToId resolves domain-element uniqueId, not the UI section key.
+                    String key = string(call(link, "getUniqueId"));
+                    if (key == null) key = postId(link);
+                    Object event = Class.forName("com.reddit.feeds.ui.events.OnScrollToId")
+                        .getConstructor(String.class).newInstance(key);
+                    model.getClass().getMethod("a0", Class.forName("yn1.a")).invoke(model, event);
+                    // Off-screen feeds may defer their scroll listener until Back. Advance the
+                    // cache's viewport hint now, just as the native scroll handler does.
+                    int viewport = index;
+                    List<?> shown = displayed(session.pager);
+                    if (shown != null) {
+                        for (int i = 0; i < shown.size(); i++) {
+                            if (postId(link).equals(postId(sectionLink(shown.get(i))))) {
+                                viewport = i;
+                                break;
+                            }
+                        }
+                    }
+                    session.pager.getClass().getMethod("h", int.class).invoke(session.pager, viewport);
+                    POSITIONS.put(session.pager, index);
+                    FOCUS.put(session.pager, postId(link));
+                    Log.i("VerticalFeed", "Synced feed section=" + index + " post=" + id);
+                    return;
+                }
+                index++;
+            }
+        } catch (ReflectiveOperationException | RuntimeException error) {
+            Log.w("VerticalFeed", "Could not sync feed position", error);
+        }
     }
 
     private static boolean hasMore(Object pager) {
@@ -438,12 +609,13 @@ public final class VerticalHomeFeed {
         throw new NoSuchMethodException("Media pager state");
     }
 
-    /** Keep the media player's next-page flag in sync with Home, including its initial update. */
+    /** Keep the media player's next-page flag in sync with the source feed, including its initial update. */
     public static Function1<Object, Object> wrapUpdate(Object source, Function1<Object, Object> original) {
-        if (!custom(source)) return original;
+        Session session = session(source);
+        if (session == null) return original;
         return state -> {
             Object updated = original.invoke(state);
-            try { return copyPager(updated, field(updated, "a"), (Boolean) field(updated, "b"), hasMore(homePager)); }
+            try { return copyPager(updated, field(updated, "a"), (Boolean) field(updated, "b"), hasMore(session.pager)); }
             catch (ReflectiveOperationException | RuntimeException ignored) { return updated; }
         };
     }
@@ -453,56 +625,59 @@ public final class VerticalHomeFeed {
         source.getClass().getMethod("l", Function1.class).invoke(source, transform);
     }
 
-    /** Use exactly the Home pager request used by the normal near-bottom scroll handler. */
+    /** Use exactly the source feed pager request used by the normal near-bottom scroll handler. */
     public static boolean loadMore(Object source) {
-        if (!custom(source)) return false;
+        Session session = session(source);
+        if (session == null) return false;
         MAIN.post(() -> {
-            if (requesting || homePager == null) return;
-            requesting = true;
-            Object pager = homePager;
-            List<Object> previous = snapshot;
+            if (session.requesting || !SESSIONS.containsKey(session.token)) return;
+            session.requesting = true;
+            Object pager = session.pager;
+            List<Object> previous = session.posts;
             try {
                 update(source, state -> {
                     try { return copyPager(state, field(state, "a"), true, hasMore(pager)); }
                     catch (ReflectiveOperationException error) { return state; }
                 });
                 pager.getClass().getMethod("a").invoke(pager);
-                pollPage(source, pager, previous, android.os.SystemClock.uptimeMillis());
+                pollPage(source, session, previous, android.os.SystemClock.uptimeMillis());
             } catch (ReflectiveOperationException | RuntimeException error) {
-                finishPage(source, pager, previous);
+                finishPage(source, session, previous);
             }
         });
         return true;
     }
 
-    private static void pollPage(Object source, Object pager, List<Object> previous, long started) {
+    private static void pollPage(Object source, Session session, List<Object> previous, long started) {
         MAIN.postDelayed(() -> {
-            if (pager != homePager) return;
+            if (!SESSIONS.containsKey(session.token)) return;
+            Object pager = session.pager;
             try {
                 Object status = field(call(call(pager, "getState"), "getValue"), "c");
                 long elapsed = android.os.SystemClock.uptimeMillis() - started;
                 if ((elapsed < 500 || "qk1.s".equals(status.getClass().getName())) && elapsed < 30000) {
-                    pollPage(source, pager, previous, started);
+                    pollPage(source, session, previous, started);
                     return;
                 }
-                ArrayList<Object> posts = homePosts(pager);
+                ArrayList<Object> posts = feedPosts(pager);
                 ArrayList<Object> fresh = unseenPosts(posts, previous);
-                // A page can contain only text/ads. Continue until media arrives or Home ends/errors.
+                // A page can contain only text/ads. Continue until media arrives or the feed ends/errors.
                 if (fresh.isEmpty() && hasMore(pager) && !"qk1.q".equals(status.getClass().getName()) && elapsed < 30000) {
                     pager.getClass().getMethod("a").invoke(pager);
-                    pollPage(source, pager, previous, started);
+                    pollPage(source, session, previous, started);
                     return;
                 }
-                finishPage(source, pager, posts);
+                finishPage(source, session, posts);
             } catch (ReflectiveOperationException | RuntimeException error) {
-                finishPage(source, pager, previous);
+                finishPage(source, session, previous);
             }
         }, 250);
     }
 
-    private static void finishPage(Object source, Object pager, List<Object> posts) {
+    private static void finishPage(Object source, Session session, List<Object> posts) {
+        Object pager = session.pager;
         try {
-            ArrayList<Object> fresh = unseenPosts(posts, snapshot);
+            ArrayList<Object> fresh = unseenPosts(posts, session.posts);
             Object pages = source.getClass().getMethod("f", List.class).invoke(source, fresh);
             boolean[] appended = {false};
             update(source, state -> {
@@ -534,20 +709,23 @@ public final class VerticalHomeFeed {
                 }
             });
             if (!appended[0]) return;
-            ArrayList<Object> combined = new ArrayList<>(snapshot);
+            ArrayList<Object> combined = new ArrayList<>(session.posts);
             combined.addAll(fresh);
-            snapshot = Collections.unmodifiableList(combined);
+            session.posts = Collections.unmodifiableList(combined);
+            Log.i("VerticalFeed", "Appended media=" + fresh.size() + " total=" + combined.size());
         } catch (ReflectiveOperationException | RuntimeException ignored) { }
-        finally { requesting = false; }
+        finally { session.requesting = false; }
     }
 
-    /** Replace Reddit's discovered feed with the Home media snapshot. */
+    /** Replace Reddit's discovered feed with the source feed's media snapshot. */
     public static Object initialMedia(Object source, Object original) {
         try {
             Object params = field(source, "g");
             Object data = field(params, "d");
-            if (!MARKER.equals(field(data, "a"))) return original;
-            List<Object> posts = snapshot;
+            Session session = session(source);
+            if (session == null) return original;
+            List<Object> posts = session.posts;
+            int initialIndex = session.initialIndex;
             if (posts.isEmpty()) return original;
             Field requestedIndex = source.getClass().getDeclaredField("q");
             requestedIndex.setAccessible(true);
@@ -559,14 +737,24 @@ public final class VerticalHomeFeed {
         } catch (ReflectiveOperationException | RuntimeException ignored) { return original; }
     }
 
-    /** Select Reddit's existing vertical pager for this Home media session. */
+    /** Select Reddit's existing vertical pager for this custom media session. */
     public static Object verticalViewState(Object viewModel, Object state) {
         try {
             Object params = field(viewModel, "g");
             Object data = field(params, "d");
-            if (!MARKER.equals(field(data, "a"))) return state;
+            Session session = session(viewModel);
+            if (session == null) return state;
+            Object pagerState = call(field(field(viewModel, "v"), "c"), "getValue");
+            String currentId = string(field(pagerState, "e"));
+            if (currentId != null && !currentId.equals(session.currentPost)) {
+                session.currentPost = currentId;
+                MAIN.post(() -> syncPosition(session, currentId));
+            }
             Object current = field(state, "g");
-            if (!"Horizontal".equals(String.valueOf(current))) return state;
+            if (!"Horizontal".equals(String.valueOf(current))) {
+                CUSTOM_STATES.put(state, Boolean.TRUE);
+                return state;
+            }
             @SuppressWarnings({"unchecked", "rawtypes"}) Object vertical =
                 Enum.valueOf((Class) current.getClass(), "Vertical");
             Object[] values = new Object[15];
@@ -574,11 +762,26 @@ public final class VerticalHomeFeed {
                 values[i] = field(state, String.valueOf((char) ('a' + i)));
             values[6] = vertical;
             for (Constructor<?> constructor : state.getClass().getConstructors()) {
-                if (constructor.getParameterCount() == values.length)
-                    return constructor.newInstance(values);
+                if (constructor.getParameterCount() == values.length) {
+                    Object updated = constructor.newInstance(values);
+                    CUSTOM_STATES.put(updated, Boolean.TRUE);
+                    return updated;
+                }
             }
         } catch (ReflectiveOperationException | RuntimeException ignored) { }
         return state;
+    }
+
+    /** Reddit normally excludes the native tappable community overlay in vertical mode. */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static Object communityOrientation(Object renderer) {
+        boolean custom = false;
+        try { custom = CUSTOM_STATES.containsKey(field(renderer, "b")); }
+        catch (ReflectiveOperationException | RuntimeException ignored) { }
+        try {
+            return Enum.valueOf((Class) Class.forName("com.reddit.fullbleedplayer.ui.ChainingMode"),
+                custom ? "Vertical" : "Horizontal");
+        } catch (ReflectiveOperationException error) { throw new IllegalStateException(error); }
     }
 
     public static Object completed() { return kotlinUnit(); }

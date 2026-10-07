@@ -593,6 +593,22 @@ public final class AdvancedFeedRules {
         public boolean getFiltered(Aweme item) { return item.isLiveReplay(); }
     }
 
+    /**
+     * For You videos TikTok sends without choosing them for this reader. TikTok marks the fill-in
+     * batches it serves when it has nothing personal ready with the distribute source
+     * {@code for_you_page_999} and no recommendation reason; a picked video carries one. Checked
+     * on the For You response only, after every other rule, so a batch it would empty can be put
+     * back whole without restoring anything another rule took out.
+     */
+    public static final class UnpersonalizedForYouFilter implements IFilter {
+        static final String FILL_IN_SOURCE = "for_you_page_999";
+
+        public boolean getEnabled() { return Settings.HIDE_UNPERSONALIZED_FOR_YOU.get(); }
+        public boolean getFiltered(Aweme item) {
+            return FILL_IN_SOURCE.equals(item.getItemDistributeSource()) && item.getRecReasonsStruct() == null;
+        }
+    }
+
     /** Last content rule, so fallback candidates have passed every hard block. */
     public static final class QualityFilter implements IFilter {
         public boolean getEnabled() {

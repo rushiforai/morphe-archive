@@ -6,15 +6,21 @@ import org.junit.Test
 
 /**
  * The bundle runs on Manager's Guava, which can be an older version than the one the build
- * compiles against (33.5.0 vs 33.7.1 at the time of writing). A patch that calls a method
+ * compiles against (33.5.0 vs 33.7.2 at the time of writing). A patch that calls a method
  * added in a newer Guava would compile and pass every test here, then crash at runtime on
  * Manager's copy. This test makes that gap visible before it ships.
  */
 class GuavaPatchSourceGuardTest {
     @Test
     fun patchSourcesDoNotImportGuavaDirectly() {
-        val root = File("patches/src/main")
-        if (!root.exists()) return
+        // Gradle runs this from patches/, an IDE often from the repository root. It used to look
+        // only for patches/src/main and return when that was missing, which under Gradle was
+        // always: the check passed without reading a file.
+        val root = checkNotNull(listOf(File("src/main"), File("patches/src/main")).firstOrNull { it.isDirectory }) {
+            "found no patch sources to check from ${File(".").absoluteFile}"
+        }
+        val checked = root.walk().count { it.extension == "kt" || it.extension == "java" }
+        assertTrue("found only $checked patch sources under $root", checked > 100)
         val violations = root.walk()
             .filter { it.extension == "kt" || it.extension == "java" }
             .flatMap { file ->

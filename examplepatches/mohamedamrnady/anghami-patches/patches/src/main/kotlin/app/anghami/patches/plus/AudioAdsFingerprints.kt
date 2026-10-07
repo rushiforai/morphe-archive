@@ -8,7 +8,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * Audio-ad flag targets (Anghami 8.0.28, verified in base.apk smali).
+ * Audio-ad flag targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Used by the "Disable audio ads" patch. Song-level ad flags only; popup
  * and banner UI live in their own patches.

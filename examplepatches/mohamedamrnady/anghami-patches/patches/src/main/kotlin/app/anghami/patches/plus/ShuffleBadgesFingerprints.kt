@@ -6,7 +6,7 @@ import app.morphe.patcher.methodCall
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * Shuffle-badge targets (Anghami 8.0.28, verified in base.apk smali).
+ * Shuffle-badge targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Used by the "Hide shuffle badges" patch. Badges are purely cosmetic; the
  * shuffle playback behavior itself is covered by "Unforce shuffle".

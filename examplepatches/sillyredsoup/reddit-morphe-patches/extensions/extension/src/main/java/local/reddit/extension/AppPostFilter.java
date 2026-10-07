@@ -1,10 +1,8 @@
 package local.reddit.extension;
 
-import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
-import android.preference.PreferenceCategory;
 import android.preference.Preference;
+import android.preference.PreferenceGroup;
 import android.preference.PreferenceScreen;
 import android.preference.SwitchPreference;
 import java.lang.reflect.Field;
@@ -12,19 +10,16 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-/** Standalone listing filter for Reddit Dev Platform app posts. */
+/** Standalone filter for legacy listings and modern Dev Platform post cards. */
 public final class AppPostFilter {
     private static final String PREFS = "local.reddit.app_posts";
     private static final String HIDE = "hide_app_posts";
     private static volatile boolean enabled = true;
     private AppPostFilter() {}
 
-    public static void initialize(Object screen, Resources resources) {
-        try {
-            Activity activity = (Activity) screen.getClass().getMethod("H3").invoke(screen);
-            if (activity != null) enabled = activity.getApplicationContext()
-                .getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(HIDE, true);
-        } catch (ReflectiveOperationException | RuntimeException ignored) { }
+    /** Read saved settings before any feed is loaded, including the modern bottom bar. */
+    public static void initialize(Context context) {
+        enabled = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(HIDE, true);
     }
 
     @SuppressWarnings("deprecation")
@@ -34,14 +29,10 @@ public final class AppPostFilter {
         if (screen.findPreference(HIDE) != null) return;
         Context screenContext = screen.getContext();
         Context context = screenContext.getApplicationContext();
-        enabled = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(HIDE, true);
-        PreferenceCategory category = new PreferenceCategory(screenContext);
-        category.setTitle("Feed");
-        screen.addPreference(category);
+        initialize(context);
         SwitchPreference setting = new SwitchPreference(screenContext);
         setting.setKey(HIDE);
-        setting.setTitle("Hide games in feed");
-        setting.setSummary("Hide interactive Reddit app and game posts in newly loaded listings");
+        setting.setTitle("Hide apps in feed");
         setting.setPersistent(false);
         setting.setChecked(enabled);
         setting.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
@@ -52,7 +43,41 @@ public final class AppPostFilter {
                 return true;
             }
         });
-        category.addPreference(setting);
+        for (int i = 0; i < screen.getPreferenceCount(); i++) {
+            Preference category = screen.getPreference(i);
+            if (category instanceof PreferenceGroup && category.getClass().getName().equals(
+                    "app.morphe.extension.reddit.settings.preference.categories.AdsPreferenceCategory")) {
+                ((PreferenceGroup) category).addPreference(setting);
+                return;
+            }
+        }
+        // The ads category is absent when the user did not select the upstream ads patch.
+        setting.setOrder(0);
+        screen.addPreference(setting);
+    }
+
+    /** Remove whole post cards, including cached/server-driven cards that never use Listing. */
+    public static Object filterConverted(Object element, Object converted) {
+        if (!enabled || element == null || converted == null) return converted;
+        try {
+            String type = element.getClass().getName();
+            if ("ym1.u1".equals(type)) {
+                // PostElement.o() is Reddit's flattened content list. Its own cache filter
+                // identifies Devvit posts by this component, including crosspost content.
+                Object content = element.getClass().getMethod("o").invoke(element);
+                if (content instanceof Iterable<?>)
+                    for (Object child : (Iterable<?>) content)
+                        if (child != null && "com.reddit.devplatform.feed.custompost.b".equals(
+                                child.getClass().getName())) return null;
+            } else if ("ym1.z".equals(type)) {
+                // Compact posts do not expose the media component. Their IndicatorsElement
+                // records the Dev Platform privacy link instead (not the author badge).
+                Object indicators = element.getClass().getField("o").get(element);
+                if (indicators != null && "ym1.v0".equals(indicators.getClass().getName())
+                        && indicators.getClass().getField("k").getBoolean(indicators)) return null;
+            }
+        } catch (ReflectiveOperationException | RuntimeException ignored) { }
+        return converted;
     }
 
     public static List<?> filterListing(List<?> original) {

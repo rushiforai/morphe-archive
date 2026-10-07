@@ -15,6 +15,7 @@ import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.SETTINGS_STATUS
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
@@ -22,18 +23,22 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertThrows
 import org.junit.Test
+import java.io.File
 
 /**
  * Hide ads on each declared build: the two things it finds are there once in the whole build, and
  * the patch, run over the build's own classes, puts the filter in front of the merge and writes the
- * extension's two stubs against the build's names.
+ * extension's three stubs against the build's names. The item's unit type enum goes in each
+ * context, since the patch reads the item's field of it.
  */
 class HideAdsFixtureTest {
     private val feedAds = "$EXTENSION_PACKAGE/ads/FeedAds;"
@@ -75,7 +80,7 @@ class HideAdsFixtureTest {
             }
             assertEquals("$where: Media's own methods that ask the injected check", 1, askers.size)
 
-            val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item + enumsOf(build, item))
             applyAds(context)
 
             val patched = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
@@ -103,6 +108,26 @@ class HideAdsFixtureTest {
                 isAd.single { it.opcode == Opcode.INVOKE_VIRTUAL }.referenceText(),
             )
 
+            // Read apart: the item's one "feedItemType" getter reads one field, whose enum names
+            // every ad kind the extension drops and the ordinary kinds it keeps.
+            val typeGetters = item.methods.filter { method -> method.instructions().any { it.stringText() == FEED_ITEM_TYPE } }
+            assertEquals("$where: ${item.type}'s feedItemType getters", 1, typeGetters.size)
+            val typeField = typeGetters.single().instructions()
+                .mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }.single()
+            val unitEnum = enumsOf(build, item).single { it.type == typeField.type }
+            val names = unitEnum.methods.single { it.name == "<clinit>" }.instructions().mapNotNull { it.stringText() }.toSet()
+            for (name in UNIT_TYPE_NAMES + listOf("ADS_FEEDBACK_INTERFACE_INTERESTS_PICKER", "ADS_FEEDBACK_INTERFACE_REPETITION",
+                "MEDIA", "STORIES_NETEGO", "CLIPS_NETEGO")) {
+                assertTrue("$where: ${unitEnum.type} names $name", name in names)
+            }
+            val unitType = stubs.single { it.name == "itemUnitType" }.instructions()
+            assertEquals(item.type, unitType.first { it.opcode == Opcode.INSTANCE_OF }.typeText())
+            assertEquals(item.type, unitType.first { it.opcode == Opcode.CHECK_CAST }.typeText())
+            assertEquals("$where: the stub reads the field the item's own getter reads",
+                typeField.toString(), unitType.single { it.opcode == Opcode.IGET_OBJECT }.referenceText())
+            assertEquals(listOf(Opcode.INSTANCE_OF, Opcode.IF_EQZ, Opcode.CHECK_CAST, Opcode.IGET_OBJECT, Opcode.RETURN_OBJECT,
+                Opcode.CONST_4, Opcode.RETURN_OBJECT), unitType.map { it.opcode })
+
             val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "hideAds" }.instructions()
             assertEquals("$where: SettingsStatus.hideAds() answers true", Opcode.CONST_4, status[0].opcode)
             assertEquals(1, (status[0] as NarrowLiteralInstruction).narrowLiteral)
@@ -120,7 +145,7 @@ class HideAdsFixtureTest {
             val merge = classes.getValue(FEED_CACHE).methods.single { it.isFeedMerge() }
             val getter = merge.instructions().mapNotNull { it.mediaGetter() }.distinct().single()
             val item = FixtureDex.classes(build, setOf(getter.definingClass)).getValue(getter.definingClass)
-            val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
+            val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item + enumsOf(build, item))
             val mutable = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
             mutable.addInstructions(
                 0,
@@ -149,7 +174,7 @@ class HideAdsFixtureTest {
             )) {
                 FeedPageMergeFingerprint.clearMatch()
                 InjectedAdCheckFingerprint.clearMatch()
-                val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
+                val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item + enumsOf(build, item))
                 val mutable = context.mutableClassDefBy(FEED_CACHE).methods.single { it.sameSignatureAs(merge) }
                 mutable.addInstructions(0, "check-cast v0, ${getter.definingClass}\n$code")
                 applyAds(context)
@@ -175,7 +200,7 @@ class HideAdsFixtureTest {
             for (bypass in listOf(false, true)) {
                 FeedPageMergeFingerprint.clearMatch()
                 InjectedAdCheckFingerprint.clearMatch()
-                val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item)
+                val context = PatchContexts.of(ExtensionDex.classes() + classes.values + item + enumsOf(build, item))
                 val mutable = context.mutableClassDefBy(MEDIA).methods.single { it.sameSignatureAs(predicate) }
                 val result = (predicate.instructions().last() as OneRegisterInstruction).registerA
                 if (bypass) mutable.addInstructions(0, "const/4 v$result, 0x0\nreturn v$result")
@@ -212,6 +237,12 @@ class HideAdsFixtureTest {
             ?.let { it.definingClass == definingClass && it.name == name } == true
 
     private fun Instruction.referenceText(): String = (this as ReferenceInstruction).reference.toString()
+
+    private fun Instruction.stringText(): String? = ((this as? ReferenceInstruction)?.reference as? StringReference)?.string
+
+    /** The enum classes the item's fields hold, read from the build. Its unit type is one of them. */
+    private fun enumsOf(build: File, item: ClassDef): Collection<ClassDef> =
+        FixtureDex.classes(build, item.fields.map { it.type }.toSet()).values.filter { it.superclass == "Ljava/lang/Enum;" }
 
     private fun Instruction.typeText(): String = ((this as ReferenceInstruction).reference as TypeReference).type
 

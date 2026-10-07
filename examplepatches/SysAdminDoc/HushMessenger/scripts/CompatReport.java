@@ -86,6 +86,12 @@ public class CompatReport {
     static final String STORY_CARD_DATE_KEY = "last_date_creation_card_shown";
     // The Notifications tab's server flag ID, renumbered by each release: 580's, then 581's
     static final Set<Long> PEOPLE_SERVER_FLAGS = Set.of(72344235860374863L, 72344231565407716L);
+    // The redesigned emoji drawer's server flag, renumbered by each release: 580's, then 581's
+    static final Set<Long> EMOJI_DRAWER_FLAGS = Set.of(36320734536089357L, 36320704471318256L);
+    // The drawer renderer throws this when the redesign can't draw, which ties the flag to the emoji drawer
+    static final String EMOJI_DRAWER_ANCHOR = "Cannot render redesigned drawer with search icon ";
+    // Controls whose hook count follows how Redex inlined one flag read, so it differs between releases
+    static final Set<String> RELEASE_HOOK_COUNTS = Set.of("emoji_drawer");
     // The inbox ad filter's exit registers, in order: v5 from both in 580, v7 then v2 in 581
     static final Set<List<Integer>> AD_FILTER_RESULTS = Set.of(List.of(5, 5), List.of(7, 2));
 
@@ -151,7 +157,8 @@ public class CompatReport {
     static final Map<String, List<String>> PATCHES = new LinkedHashMap<>();
     static {
         PATCHES.put("Hide inbox ads", List.of("ads"));
-        PATCHES.put("Hide People You May Know", List.of("people", "people_list_end", "people_jewel", "people_tab", "people_search", "people_story"));
+        PATCHES.put("Hide People You May Know", List.of("people", "people_list_end", "people_jewel", "people_tab", "people_search", "people_story",
+            "people_inbox_refresh"));
         PATCHES.put("Hide friend request cards", List.of("friend_requests"));
         PATCHES.put("Hide joined community chats", List.of("community_inbox"));
         PATCHES.put("Hide growth prompts", List.of("growth", "growth_notes", "growth_story_card"));
@@ -164,6 +171,7 @@ public class CompatReport {
         PATCHES.put("Hide Reels badge", List.of("reels_badge"));
         PATCHES.put("Hide AI sticker tools", List.of("ai_stickers", "ai_sticker_cell"));
         PATCHES.put("Hide avatar stickers", List.of("avatar_stickers", "avatar_tabs"));
+        PATCHES.put("Restore old emoji drawer", List.of("emoji_drawer"));
         PATCHES.put("Hide chat promotions", List.of("chat_promotions"));
         PATCHES.put("Hide business reply suggestions", List.of("suggested_replies"));
         PATCHES.put("Hide business typing suggestions", List.of("business_suggestions"));
@@ -173,9 +181,14 @@ public class CompatReport {
         PATCHES.put("Allow chat bubbles", List.of("bubbles", "bubble_mode"));
         PATCHES.put("Use system emoji", List.of("emoji_typeface"));
         PATCHES.put("Send photos at original quality", List.of("original_photo"));
+        PATCHES.put("Send videos without re-encoding", List.of("original_video"));
+        PATCHES.put("Use the phone's camera app", List.of("system_camera"));
+        PATCHES.put("Stop analytics uploads", List.of("analytics_uploads"));
+        PATCHES.put("Keep a message log", List.of("message_log"));
         PATCHES.put("Allow screenshots", List.of("allow_screenshot", "screenshot_viewers"));
         PATCHES.put("Hide read receipts", List.of("hide_read_receipts", "read_mailbox"));
         PATCHES.put("Keep unsent messages", List.of("keep_unsent", "unsent_indicator", "delta_unsent"));
+        PATCHES.put("Unlock app icons", List.of("app_icons"));
         PATCHES.put("View stories anonymously", List.of("anonymous_stories"));
         PATCHES.put("Save any story", List.of("save_stories"));
         PATCHES.put("Slide chats in and out", List.of("chat_animation", "chat_fragment", "chat_inbox", "chat_legacy"));
@@ -185,6 +198,8 @@ public class CompatReport {
     static final Set<String> ORIGINAL_PHOTO_HOOKS = Set.of(
         "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImage(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;)[B",
         "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->transcodeImageAsync(Ljava/lang/String;DDLjava/lang/String;Ljava/util/Map;Lcom/facebook/msys/mci/TranscodeImageCompletionCallback;)V");
+    static final String ORIGINAL_VIDEO_HOOK = "Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;->A05(" +
+        "Lcom/facebook/msys/mci/TranscodeVideoCompletionCallback;Lcom/facebook/msys/mci/VideoEdits;Ljava/lang/String;Ljava/lang/String;Ljava/util/Map;)V";
 
     /** Every control key, in patch order. */
     static final Set<String> CONTROL_KEYS = new LinkedHashSet<>();
@@ -286,7 +301,7 @@ public class CompatReport {
             "--bundle", bundle.toAbsolutePath().toString(), "--java",
             Path.of(System.getProperty("java.home"), "bin", "java").toString(), "--aapt2", aapt2));
         var names = new TreeSet<>(PATCHES.keySet());
-        names.addAll(List.of("Install beside Meta apps", "Restore screens on re-signed builds", "Material You theme"));
+        names.addAll(List.of("Install beside Meta apps", "Restore screens on re-signed builds", "Material You theme", CLONE));
         for (var name : names) { command.add("--enable"); command.add(name); }
         return new ProcessBuilder(command).inheritIO().start().waitFor() == 0;
     }
@@ -327,10 +342,14 @@ public class CompatReport {
      */
     static List<Problem> unresolved(Profile found, Collection<Profile> recorded) {
         var problems = new ArrayList<Problem>();
-        Profile shape = recorded.isEmpty() ? null : recorded.iterator().next();
+        // Builds of one release share every count. A new release is held to any recorded build's counts, except
+        // where the count follows Redex's inlining of one flag read, which needs only one hook or more.
+        Profile sameRelease = recorded.stream().filter(p -> p.version.equals(found.version)).findFirst().orElse(null);
+        Profile shape = sameRelease != null ? sameRelease : recorded.isEmpty() ? null : recorded.iterator().next();
         for (var key : CONTROL_KEYS) {
             int count = found.hooks.getOrDefault(key, Set.of()).size();
             int expected = shape == null ? Math.max(count, 1) : shape.hooks.getOrDefault(key, Set.of()).size();
+            if (sameRelease == null && RELEASE_HOOK_COUNTS.contains(key) && count >= 1) continue;
             if (count != expected) problems.add(new Problem(key, Set.of(key), "expected " + expected + " hooks, found " + count));
         }
         for (var entry : FIELD_CONTROLS.entrySet()) {
@@ -1256,6 +1275,46 @@ public class CompatReport {
         return classes;
     }
 
+    static final String CLONE = "Clone install under another package name";
+
+    /**
+     * The two methods the clone patch edits (CloneInstallPatch.kt): the encrypted-backup preference lookup, a public
+     * no-argument constructor that reads getPackageName once, and the static attachment authority check.
+     */
+    static List<String> cloneSites(List<ClassDef> classes, List<String> failures) {
+        var lookups = new ArrayList<String>();
+        var checks = new ArrayList<String>();
+        for (var cls : classes) {
+            for (var method : cls.getMethods()) {
+                var impl = method.getImplementation();
+                if (impl == null) continue;
+                var strings = new ArrayList<String>();
+                int packageReads = 0;
+                for (var insn : impl.getInstructions()) {
+                    if (!(insn instanceof ReferenceInstruction ref)) continue;
+                    if (ref.getReference() instanceof StringReference s) strings.add(s.getString());
+                    if (ref.getReference() instanceof MethodReference m && "Landroid/content/Context;".equals(m.getDefiningClass()) &&
+                        "getPackageName".equals(m.getName())) packageReads++;
+                }
+                if (strings.contains("autobackupprefs") && strings.contains("fbautobackupprefs") && strings.contains("com.facebook.orca") &&
+                    "<init>".equals(method.getName()) && method.getParameterTypes().isEmpty() && AccessFlags.PUBLIC.isSet(method.getAccessFlags())) {
+                    if (packageReads != 1) failures.add(hookId(method) + " reads its package name " + packageReads + " times");
+                    lookups.add(hookId(method));
+                }
+                if (Collections.frequency(strings, "com.facebook.orca.tam-attachment") == 1 && strings.contains(".tam-attachment") &&
+                    strings.contains("com.facebook.katana.tam-attachment") && AccessFlags.STATIC.isSet(method.getAccessFlags()) &&
+                    "Z".equals(method.getReturnType()) && List.of("Ljava/lang/String;").equals(method.getParameterTypes().stream().map(Object::toString).toList())) {
+                    checks.add(hookId(method));
+                }
+            }
+        }
+        if (lookups.size() != 1) failures.add("expected one encrypted-backup lookup, found " + lookups.size());
+        if (checks.size() != 1) failures.add("expected one attachment authority check, found " + checks.size());
+        var sites = new ArrayList<String>(lookups);
+        sites.addAll(checks);
+        return sites;
+    }
+
     static Method findSignerMethod(List<ClassDef> classes) {
         for (var cls : classes) {
             for (var method : cls.getMethods()) {
@@ -1713,12 +1772,280 @@ public class CompatReport {
         }
     }
 
+    static final String INBOX_SUPPLIER = "Lcom/facebook/messaging/msys/threadlist/plugins/core/itemsupplier/ThreadListItemSupplierImplementation;";
+    static final String INBOX_ITEMS_TRACE = "ThreadListItemSupplierImplementation.getInboxItems";
+    static final String INBOX_SUBSCRIBE_WARNING =
+        "useSecondaryParentThreadKey set without a parentThreadKey; folder read falls back to the full Meta AI inbox";
+
+    static String inboxString(Instruction i) {
+        return i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr ? sr.getString() : null;
+    }
+
+    static List<String> inboxParams(MethodReference m) {
+        return m.getParameterTypes().stream().map(CharSequence::toString).toList();
+    }
+
+    static boolean inboxLiteral(Instruction i, int register, int value) {
+        return i.getOpcode() == Opcode.CONST_4 && register(i) == register && ((NarrowLiteralInstruction) i).getNarrowLiteral() == value;
+    }
+
+    /**
+     * The chat list refresh route the patch proves, as "subscribe call|listed count", or null. The items read starts with
+     * its trace outside any branch, the final supplier has one static subscribe call holding the folder warning, that call
+     * creates its observer just before the observer's (Object, int) constructor, and the observer's one list callback sets
+     * one declared int to 5 or 1, which the items read checks.
+     */
+    static String inboxRefreshRoute(Map<String, ClassDef> byType, Method items) {
+        var code = instructions(items);
+        if (!INBOX_SUPPLIER.equals(items.getDefiningClass()) || AccessFlags.STATIC.isSet(items.getAccessFlags()) ||
+            !items.getParameterTypes().isEmpty() || !IMMUTABLE_LIST.equals(items.getReturnType()) || code.isEmpty() ||
+            (code.get(0).getOpcode() != Opcode.CONST_STRING && code.get(0).getOpcode() != Opcode.CONST_STRING_JUMBO) ||
+            !INBOX_ITEMS_TRACE.equals(inboxString(code.get(0))) || mediaTargets(items).contains(0)) return null;
+        var supplier = byType.get(INBOX_SUPPLIER);
+        if (supplier == null || !AccessFlags.FINAL.isSet(supplier.getAccessFlags())) return null;
+        Method subscribe = null;
+        for (var m : supplier.getMethods()) {
+            if (!AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"V".equals(m.getReturnType()) || !inboxParams(m).equals(List.of(INBOX_SUPPLIER)) ||
+                instructions(m).stream().noneMatch(i -> INBOX_SUBSCRIBE_WARNING.equals(inboxString(i)))) continue;
+            if (subscribe != null) return null;
+            subscribe = m;
+        }
+        if (subscribe == null) return null;
+        var body = instructions(subscribe);
+        int at = -1;
+        for (int i = 0; i < body.size(); i++) {
+            if (body.get(i).getOpcode() == Opcode.INVOKE_DIRECT && body.get(i) instanceof ReferenceInstruction ri &&
+                ri.getReference() instanceof MethodReference mr && "<init>".equals(mr.getName()) && "V".equals(mr.getReturnType()) &&
+                inboxParams(mr).equals(List.of("Ljava/lang/Object;", "I"))) {
+                if (at >= 0) return null;
+                at = i;
+            }
+        }
+        if (at < 1 || body.get(at - 1).getOpcode() != Opcode.NEW_INSTANCE) return null;
+        var init = (FiveRegisterInstruction) body.get(at);
+        var observerType = ((TypeReference) ((ReferenceInstruction) body.get(at - 1)).getReference()).getType();
+        if (init.getRegisterCount() != 3 || register(body.get(at - 1)) != init.getRegisterC() ||
+            !observerType.equals(((MethodReference) ((ReferenceInstruction) body.get(at)).getReference()).getDefiningClass())) return null;
+        var observer = byType.get(observerType);
+        if (observer == null) return null;
+        Method callback = null;
+        for (var m : observer.getMethods()) {
+            if (AccessFlags.STATIC.isSet(m.getAccessFlags()) || !"V".equals(m.getReturnType()) ||
+                !inboxParams(m).equals(List.of("Ljava/util/List;"))) continue;
+            if (callback != null) return null;
+            callback = m;
+        }
+        if (callback == null) return null;
+        var list = instructions(callback);
+        String listed = null, name = null;
+        for (int k = 3; k < list.size(); k++) {
+            if (list.get(k).getOpcode() != Opcode.IPUT || !(((ReferenceInstruction) list.get(k)).getReference() instanceof FieldReference f) ||
+                !INBOX_SUPPLIER.equals(f.getDefiningClass()) || !"I".equals(f.getType())) continue;
+            int value = ((TwoRegisterInstruction) list.get(k)).getRegisterA();
+            if (!inboxLiteral(list.get(k - 3), value, 5) || list.get(k - 2).getOpcode() != Opcode.IF_LT || !jumpsTo(list, k - 2, k) ||
+                !inboxLiteral(list.get(k - 1), value, 1)) continue;
+            if (listed != null) return null;
+            name = f.getName();
+            listed = INBOX_SUPPLIER + "->" + name + ":I";
+        }
+        if (listed == null) return null;
+        int declared = 0;
+        for (var f : supplier.getFields())
+            if (f.getName().equals(name) && "I".equals(f.getType()) && !AccessFlags.STATIC.isSet(f.getAccessFlags())) declared++;
+        boolean read = false;
+        for (var i : code) if (i.getOpcode() == Opcode.IGET && listed.equals(ref(i))) read = true;
+        return declared == 1 && read ? hookId(subscribe) + "|" + listed : null;
+    }
+
+    /**
+     * The constructor of the holder Messenger keeps its downloaded emoji font in, or null. The getter reads the holder's
+     * Typeface and returns it at once; the final holder has that Typeface, the font's File and one constructor taking both.
+     */
+    static String emojiFontHolder(Map<String, ClassDef> byType, Method getter) {
+        var code = instructions(getter);
+        var holders = new LinkedHashSet<String>();
+        for (int i = 0; i + 1 < code.size(); i++) {
+            if (code.get(i).getOpcode() == Opcode.IGET_OBJECT && code.get(i) instanceof ReferenceInstruction ri &&
+                ri.getReference() instanceof FieldReference fr && "Landroid/graphics/Typeface;".equals(fr.getType()) &&
+                code.get(i + 1).getOpcode() == Opcode.RETURN_OBJECT && code.get(i) instanceof TwoRegisterInstruction read &&
+                ((OneRegisterInstruction) code.get(i + 1)).getRegisterA() == read.getRegisterA()) holders.add(fr.getDefiningClass());
+        }
+        if (holders.size() != 1 || holders.contains(getter.getDefiningClass())) return null;
+        var holder = byType.get(holders.iterator().next());
+        if (holder == null || !AccessFlags.FINAL.isSet(holder.getAccessFlags())) return null;
+        var fields = new ArrayList<String>();
+        for (var f : holder.getFields()) if (!AccessFlags.STATIC.isSet(f.getAccessFlags())) fields.add(f.getType());
+        Collections.sort(fields);
+        if (!fields.equals(List.of("Landroid/graphics/Typeface;", "Ljava/io/File;"))) return null;
+        Method init = null;
+        for (var m : holder.getMethods()) {
+            if (!"<init>".equals(m.getName())) continue;
+            if (init != null) return null;
+            init = m;
+        }
+        if (init == null || !hookId(init).equals(holder.getType() + "-><init>(Landroid/graphics/Typeface;Ljava/io/File;)V")) return null;
+        var body = instructions(init);
+        if (body.isEmpty() || body.get(0).getOpcode() != Opcode.INVOKE_DIRECT || !(body.get(0) instanceof ReferenceInstruction call) ||
+            !(call.getReference() instanceof MethodReference mr) || !"Ljava/lang/Object;".equals(mr.getDefiningClass()) ||
+            !"<init>".equals(mr.getName()) || mediaTargets(init).contains(1)) return null;
+        return hookId(init);
+    }
+
+    /**
+     * Every method that loads the emoji drawer flag, but only when the one renderer that throws the anchor loads it
+     * too, itself (581) or through a static no-argument boolean that does (580). Mirrors EmojiDrawer.kt.
+     */
+    static List<Method> emojiDrawerReaders(List<ClassDef> classes) {
+        var readers = new ArrayList<Method>();
+        var anchors = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (method.getImplementation() == null) continue;
+            boolean reads = false, anchor = false;
+            for (var i : method.getImplementation().getInstructions()) {
+                if (i.getOpcode() == Opcode.CONST_WIDE && EMOJI_DRAWER_FLAGS.contains(((WideLiteralInstruction) i).getWideLiteral())) reads = true;
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr &&
+                    EMOJI_DRAWER_ANCHOR.equals(sr.getString())) anchor = true;
+            }
+            if (reads) readers.add(method);
+            if (anchor) anchors.add(method);
+        }
+        if (anchors.size() != 1) return List.of();
+        var anchor = anchors.get(0);
+        var ids = new HashSet<String>();
+        var helpers = new HashSet<String>();
+        for (var reader : readers) {
+            ids.add(hookId(reader));
+            if (AccessFlags.STATIC.isSet(reader.getAccessFlags()) && reader.getParameterTypes().isEmpty() &&
+                "Z".equals(reader.getReturnType())) helpers.add(hookId(reader));
+        }
+        boolean connected = ids.contains(hookId(anchor));
+        for (var i : anchor.getImplementation().getInstructions()) {
+            if (i.getOpcode() == Opcode.INVOKE_STATIC && helpers.contains(((ReferenceInstruction) i).getReference().toString())) connected = true;
+        }
+        return connected ? readers : List.of();
+    }
+
+    // The analytics logger's upload components and the entry points Android starts them through. Mirrors AnalyticsUploads.kt.
+    static final String ANALYTICS2_UPLOAD_SERVICE = "Lcom/facebook/analytics2/logger/legacy/uploader/Analytics2UploadService;";
+    static final String START_COMMAND = "onStartCommand(Landroid/content/Intent;II)I";
+    static final String START_JOB = "onStartJob(Landroid/app/job/JobParameters;)Z";
+    static final Map<String, Set<String>> ANALYTICS_UPLOAD_ENTRIES = Map.of(
+        "Lcom/facebook/analytics2/logger/legacy/uploader/AlarmBasedUploadService;", Set.of(START_COMMAND),
+        "Lcom/facebook/analytics2/logger/legacy/uploader/LollipopUploadService;", Set.of(START_COMMAND, START_JOB),
+        "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;", Set.of(START_COMMAND, START_JOB),
+        "Lcom/facebook/analytics2/logger/GooglePlayUploadService;", Set.of(START_COMMAND),
+        "Lcom/facebook/analytics2/logger/legacy/uploader/HighPriUploadRetryReceiver;",
+            Set.of("onReceive(Landroid/content/Context;Landroid/content/Intent;)V"));
+
+    static String entryPoint(Method m) {
+        return m.getName() + "(" + String.join("", m.getParameterTypes()) + ")" + m.getReturnType();
+    }
+
+    // The message log's capture point: the one new-message notification constructor. Mirrors MessageLog.kt.
+    static final String NEW_MESSAGE_NOTIFICATION = "Lcom/facebook/messaging/notify/type/NewMessageNotification;";
+    static final String MESSENGER_ACCOUNT_TYPE = "Lcom/facebook/messaging/accountswitch/model/MessengerAccountType;";
+    static final String MESSAGE_TYPE = "Lcom/facebook/messaging/model/messages/Message;";
+    static final String THREAD_SUMMARY_TYPE = "Lcom/facebook/messaging/model/threads/ThreadSummary;";
+
+    /** The non-Parcel NewMessageNotification constructor, whose message and thread parameters the hook reads. */
+    static List<Method> messageLogHooks(List<ClassDef> classes) {
+        for (var cls : classes) {
+            if (!NEW_MESSAGE_NOTIFICATION.equals(cls.getType())) continue;
+            var ctors = new ArrayList<Method>();
+            for (var m : cls.getMethods()) {
+                var params = m.getParameterTypes();
+                if ("<init>".equals(m.getName()) && "V".equals(m.getReturnType()) && params.size() >= 3 &&
+                    MESSENGER_ACCOUNT_TYPE.contentEquals(params.get(0)) && MESSAGE_TYPE.contentEquals(params.get(1)) &&
+                    THREAD_SUMMARY_TYPE.contentEquals(params.get(2)) && m.getImplementation() != null) ctors.add(m);
+            }
+            return ctors.size() == 1 ? ctors : List.of();
+        }
+        return List.of();
+    }
+
+    /**
+     * Every upload entry point. Analytics2UploadService inherits its two from an obfuscated job service base, which
+     * counts only while it's abstract, extends JobService directly and has no other subclass.
+     */
+    static final String MONTAGE_PARAMS = "Lcom/facebook/messaging/montage/composer/model/MontageComposerFragmentParams;";
+    static final String NAVIGATION_TRIGGER = "Lcom/facebook/messaging/send/trigger/NavigationTrigger;";
+    static final String MONTAGE_ACTIVITY = "Lcom/facebook/messaging/montage/composer/MontageComposerActivity;";
+
+    static boolean hasLiteral(Method m, int value) {
+        for (var i : m.getImplementation().getInstructions())
+            if (i instanceof NarrowLiteralInstruction n && n.getNarrowLiteral() == value) return true;
+        return false;
+    }
+
+    /**
+     * system_camera: the chat composer's camera listener, which builds MontageComposerActivity's intent and starts it
+     * with request code 7377. Counted only while exactly one chat fragment also reads a photo picked in another app
+     * (request code 1112), the path the switch hands the phone camera's photo to.
+     */
+    static List<Method> systemCameraLaunches(List<ClassDef> classes) {
+        var launches = new ArrayList<Method>();
+        int readers = 0;
+        for (var cls : classes) for (var m : cls.getMethods()) {
+            if (m.getImplementation() == null) continue;
+            var params = new ArrayList<String>();
+            for (var t : m.getParameterTypes()) params.add(t.toString());
+            var strings = new HashSet<String>();
+            boolean buildsIntent = false;
+            for (var i : m.getImplementation().getInstructions()) {
+                if (!(i instanceof ReferenceInstruction r)) continue;
+                if (r.getReference() instanceof StringReference sr) strings.add(sr.getString());
+                if (r.getReference() instanceof MethodReference mr && MONTAGE_ACTIVITY.equals(mr.getDefiningClass()) &&
+                    "Landroid/content/Intent;".equals(mr.getReturnType()) &&
+                    List.of("Landroid/content/Context;", MONTAGE_PARAMS, NAVIGATION_TRIGGER).equals(mr.getParameterTypes().stream().map(Object::toString).toList()))
+                    buildsIntent = true;
+            }
+            if ("onActivityResult".equals(m.getName()) && "V".equals(m.getReturnType()) && params.equals(List.of("I", "I", "Landroid/content/Intent;")) &&
+                hasLiteral(m, 7377) && hasLiteral(m, 1112) && strings.contains("ComposeFragment:externalMediaGalleryActivityResultNullData") &&
+                strings.contains("ComposeFragment:montageMessageActivityResultNullData")) readers++;
+            if ("V".equals(m.getReturnType()) && params.equals(List.of(MONTAGE_PARAMS, NAVIGATION_TRIGGER)) &&
+                !AccessFlags.STATIC.isSet(m.getAccessFlags()) && buildsIntent && hasLiteral(m, 7377)) launches.add(m);
+        }
+        return readers == 1 ? launches : List.of();
+    }
+
+    static List<Method> analyticsUploads(List<ClassDef> classes) {
+        var found = new ArrayList<Method>();
+        ClassDef uploader = null;
+        for (var cls : classes) {
+            var entries = ANALYTICS_UPLOAD_ENTRIES.get(cls.getType());
+            if (entries != null) for (var m : cls.getMethods())
+                if (entries.contains(entryPoint(m)) && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null) found.add(m);
+            if (ANALYTICS2_UPLOAD_SERVICE.equals(cls.getType())) uploader = cls;
+        }
+        if (uploader == null || uploader.getSuperclass() == null) return found;
+        var jobs = Set.of(START_COMMAND, START_JOB);
+        for (var m : uploader.getMethods()) if (jobs.contains(entryPoint(m))) return found;
+        var base = uploader.getSuperclass();
+        ClassDef baseClass = null;
+        int subclasses = 0;
+        for (var cls : classes) {
+            if (base.equals(cls.getType())) baseClass = cls;
+            if (base.equals(cls.getSuperclass())) subclasses++;
+        }
+        if (baseClass == null || !AccessFlags.ABSTRACT.isSet(baseClass.getAccessFlags()) ||
+            !"Landroid/app/job/JobService;".equals(baseClass.getSuperclass()) || subclasses != 1) return found;
+        for (var m : baseClass.getMethods())
+            if (jobs.contains(entryPoint(m)) && !AccessFlags.STATIC.isSet(m.getAccessFlags()) && m.getImplementation() != null) found.add(m);
+        return found;
+    }
+
     static Map<String, List<Method>> findControls(List<ClassDef> classes) {
         var found = new LinkedHashMap<String, List<Method>>();
         for (var key : CONTROL_KEYS) found.put(key, new ArrayList<>());
+        var inboxTypes = new HashMap<String, ClassDef>();
+        classes.forEach(c -> inboxTypes.put(c.getType(), c));
         found.get("ai_sticker_cell").addAll(findAiStickerCells(classes));
         var community = communityInbox(classes);
         if (community != null) found.get("community_inbox").add(community.render());
+        found.get("emoji_drawer").addAll(emojiDrawerReaders(classes));
+        found.get("analytics_uploads").addAll(analyticsUploads(classes));
+        found.get("message_log").addAll(messageLogHooks(classes));
+        found.get("system_camera").addAll(systemCameraLaunches(classes));
         for (var cls : classes) for (var method : cls.getMethods())
             if (!screenshotViewerSites(method).isEmpty()) found.get("screenshot_viewers").add(method);
         var jewelCandidates = new ArrayList<Map.Entry<Method, Set<String>>>();
@@ -1843,6 +2170,17 @@ public class CompatReport {
             }
         }
 
+        // The app icon manager maps "default" to the start screen and every other icon to a LauncherAlias.
+        var appIconManagers = new HashSet<String>();
+        for (var cls : classes) for (var m : cls.getMethods()) {
+            if (!"<clinit>".equals(m.getName()) || m.getImplementation() == null) continue;
+            var literals = new HashSet<String>();
+            for (var i : m.getImplementation().getInstructions())
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr) literals.add(sr.getString());
+            if (literals.contains("com.facebook.orca.auth.StartScreenActivity") &&
+                literals.stream().anyMatch(s -> s.startsWith("com.facebook.orca.LauncherAlias"))) appIconManagers.add(cls.getType());
+        }
+
         for (var cls : classes) {
             String original = null;
             for (var f : cls.getFields()) {
@@ -1895,6 +2233,12 @@ public class CompatReport {
                 // stories
                 if (gate && strings.contains("com.facebook.messaging.friendsinboxunit.plugins.inboxunit.FriendsInboxUnitKillSwitch")) {
                     found.get("stories").add(method);
+                }
+
+                // app_icons: the icon manager's subscription benefit checks
+                if (appIconManagers.contains(cls.getType()) && isStatic && "Z".equals(method.getReturnType()) &&
+                    paramTypes.equals(List.of(BUBBLE_SESSION)) && strings.contains("CUSTOM_APP_ICON")) {
+                    found.get("app_icons").add(method);
                 }
 
                 // facebook
@@ -2058,10 +2402,16 @@ public class CompatReport {
                     found.get("original_photo").add(method);
                 }
 
-                // emoji_typeface
+                // original_video: the video transcoder's private worker, which holds the passthrough size check
+                if ("Lcom/facebook/msys/mci/transcoder/DefaultMediaTranscoder;".equals(cls.getType()) && !isStatic &&
+                    ORIGINAL_VIDEO_HOOK.equals(hookId(method)) && strings.contains("mci_video_passthrough")) {
+                    found.get("original_video").add(method);
+                }
+
+                // emoji_typeface: Messenger's emoji getter, counted only when its downloaded font holder proves out (#34)
                 if ("Landroid/graphics/Typeface;".equals(method.getReturnType()) &&
                     paramTypes.isEmpty() && !isStatic &&
-                    strings.contains("FacebookEmojiTypefaceProviderImpl")) {
+                    strings.contains("FacebookEmojiTypefaceProviderImpl") && emojiFontHolder(inboxTypes, method) != null) {
                     found.get("emoji_typeface").add(method);
                 }
 
@@ -2133,6 +2483,12 @@ public class CompatReport {
                 if ("V".equals(method.getReturnType()) && isStatic && paramTypes.equals(List.of(cls.getType())) &&
                     strings.contains("MsgrPeopleYouMayKnowQuery")) {
                     found.get("people_story").add(method);
+                }
+
+                // people_inbox_refresh: the chat list supplier's items read, counted only when the whole refresh route proves out
+                if (INBOX_SUPPLIER.equals(cls.getType()) && !isStatic && IMMUTABLE_LIST.equals(method.getReturnType()) &&
+                    paramTypes.isEmpty() && strings.contains(INBOX_ITEMS_TRACE) && inboxRefreshRoute(inboxTypes, method) != null) {
+                    found.get("people_inbox_refresh").add(method);
                 }
 
                 // avatar_tabs: the Litho sticker keyboard's tab list builder
@@ -2777,6 +3133,21 @@ public class CompatReport {
                 System.out.println("[FAIL] Restore screens on re-signed builds");
                 System.out.println("       No method found matching the signer lookup pattern");
                 blockers.add("Restore screens on re-signed builds");
+                anyFail = true;
+            }
+        }
+
+        // Check the clone patch's two DEX sites. CloneInstallPatch.kt pins each family's names.
+        {
+            var failures = new ArrayList<String>();
+            var sites = cloneSites(classes, failures);
+            if (failures.isEmpty()) {
+                System.out.println("[PASS] " + CLONE);
+                for (var site : sites) System.out.println("       " + site);
+            } else {
+                System.out.println("[FAIL] " + CLONE);
+                for (var f : failures) System.out.println("       " + f);
+                blockers.add(CLONE);
                 anyFail = true;
             }
         }

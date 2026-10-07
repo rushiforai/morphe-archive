@@ -169,6 +169,32 @@ class ReturnRefreshFixtureTest {
     }
 
     @Test
+    fun `450's short log that doesn't go back, sets the answer, or follows a true answer is refused`() {
+        val builds = Fixtures.declaredBuilds().filter { it.name.startsWith("threads-450.") }
+        assertTrue("450 is a declared build", builds.isNotEmpty())
+        for (build in builds) {
+            val fixture = fixture(build)
+            val body = fixture.warm.implementation!!.instructions.toList()
+            val answer = fixture.warm.warmStartAnswer()
+            val logged = body.indices.single { body[it].getReference<StringReference>()?.string == TOO_SHORT }
+            val end = (logged until body.size).first { body[it] is OffsetInstruction || !body[it].opcode.canContinue() }
+            assertTrue(build.name, body[end].opcode.name.startsWith("goto"))
+            assertEquals(build.name, Opcode.CMP_LONG, body[answer.compare].opcode)
+            val cases = listOf<Pair<String, (MutableMethod) -> Unit>>(
+                "doesn't go back to its answer" to { it.replaceInstruction(end, "return-object v${answer.register}") },
+                "is overwritten around" to { it.addInstructions(end, "const/16 v${answer.register}, 0x1") },
+                "isn't false on every path to its comparison" to { it.addInstructions(answer.compare, "const/16 v${answer.register}, 0x1") },
+            )
+            for ((message, change) in cases) {
+                val context = context(fixture)
+                change(context.mutableMethod(fixture.warm))
+                val error = assertThrows("$build $message", PatchException::class.java) { blockReturnRefreshPatch.execute(context) }
+                assertTrue(error.message.orEmpty(), error.message.orEmpty().contains(message))
+            }
+        }
+    }
+
+    @Test
     fun `a swap whose answer is overwritten, or a second swap, is refused`() {
         for (build in Fixtures.declaredBuilds()) {
             val fixture = fixture(build)
@@ -182,45 +208,13 @@ class ReturnRefreshFixtureTest {
             assertTrue(lost.message.orEmpty(), lost.message.orEmpty().contains("found 0"))
 
             val twice = context(fixture)
-            twice.mutableMethod(site.method).addInstructions(
-                0,
-                """
-                    const-wide v0, ${threshold.key}L
-                    invoke-interface { v6, v0, v1 }, ${threshold.getter}
-                    move-result-wide v0
-                    cmp-long v2, v4, v0
-                    const/4 v3, 0x1
-                    if-gez v2, :again
-                    const/4 v3, 0x0
-                    :again
-                    if-eqz v3, :done
-                    :done
-                    nop
-                """,
-            )
+            twice.mutableMethod(site.method).addInstructions(0, secondSwap(threshold))
             val second = assertThrows("$build second", PatchException::class.java) { blockReturnRefreshPatch.execute(twice) }
             assertTrue(second.message.orEmpty(), second.message.orEmpty().contains("found 2"))
 
-            // A path from the method's entry skips the key, so this one doesn't ask the threshold.
+            // A path from the method's entry skips the first key, so this one doesn't ask the threshold.
             val unset = context(fixture)
-            unset.mutableMethod(site.method).addInstructions(
-                0,
-                """
-                    if-eqz v3, :ask
-                    const-wide v0, ${threshold.key}L
-                    :ask
-                    invoke-interface { v6, v0, v1 }, ${threshold.getter}
-                    move-result-wide v0
-                    cmp-long v2, v4, v0
-                    const/4 v3, 0x1
-                    if-gez v2, :again
-                    const/4 v3, 0x0
-                    :again
-                    if-eqz v3, :done
-                    :done
-                    nop
-                """,
-            )
+            unset.mutableMethod(site.method).addInstructions(0, secondSwap(threshold, skipFirstKey = true))
             blockReturnRefreshPatch.execute(unset)
         }
     }
@@ -237,7 +231,9 @@ class ReturnRefreshFixtureTest {
             val taken = setOf(comparison.registerA, comparison.registerB, comparison.registerB + 1, comparison.registerC,
                 comparison.registerC + 1, site.register)
             val elsewhere = (0..15).first { it !in taken }
-            val call = stock[compare - 2] as FiveRegisterInstruction
+            // 450 reaches the comparison from two calls, one per key; changing the first is enough.
+            val callAt = site.method.thresholdCalls(compare)!!.first()
+            val call = stock[callAt] as FiveRegisterInstruction
             val key = call.registerD
             val getter = call.getReference<MethodReference>()!!
             val cases = mapOf<String, (MutableMethod) -> Unit>(
@@ -245,10 +241,10 @@ class ReturnRefreshFixtureTest {
                     "cmp-long v${comparison.registerA}, v${comparison.registerC}, v${comparison.registerB}") },
                 "other result" to { it.replaceInstruction(compare,
                     "cmp-long v$elsewhere, v${comparison.registerB}, v${comparison.registerC}") },
-                "other key" to { it.addInstructions(compare - 2, "const-wide v$key, 0x1L") },
-                "other getter" to { it.replaceInstruction(compare - 2,
+                "other key" to { it.addInstructions(callAt, "const-wide v$key, 0x1L") },
+                "other getter" to { it.replaceInstruction(callAt,
                     "invoke-interface { v${call.registerC}, v$key, v${call.registerE} }, ${getter.definingClass}->other(J)J") },
-                "key moved in from another register" to { it.addInstructions(compare - 2, "move-wide v$key, v$elsewhere") },
+                "key moved in from another register" to { it.addInstructions(callAt, "move-wide v$key, v$elsewhere") },
             )
             for ((label, change) in cases) {
                 val context = context(fixture)
@@ -268,27 +264,37 @@ class ReturnRefreshFixtureTest {
             val stock = fixture.warm.implementation!!.instructions.toList()
             val logged = stock.indexOfFirst { it.getReference<StringReference>()?.string == TOO_SHORT }
             val compare = (logged downTo 0).first { stock[it].opcode == Opcode.CMP_LONG }
-            val call = compare - 2
-            val key = (stock[call] as FiveRegisterInstruction).registerD
-            // Both builds load the key far above the call, across the branches that reach it.
-            assertTrue(build.name, (call - 6 until call).none {
-                stock[it].opcode == Opcode.CONST_WIDE && (stock[it] as OneRegisterInstruction).registerA == key
-            })
+            val calls = fixture.warm.thresholdCalls(compare)!!
+            fun key(call: Int) = (stock[call] as FiveRegisterInstruction).registerD
+            if (build.name.startsWith("threads-450.")) {
+                // 450 asks a second key first when an experiment is on, from a call of its own.
+                assertEquals(build.name, 2, calls.size)
+                assertEquals(build.name, 2, threshold.keys.size)
+            } else {
+                // 448 and 449 load the one key far above the call, across the branches that reach it.
+                val call = calls.single()
+                assertTrue(build.name, (call - 6 until call).none {
+                    stock[it].opcode == Opcode.CONST_WIDE && (stock[it] as OneRegisterInstruction).registerA == key(call)
+                })
+            }
             val answer = (stock[compare] as ThreeRegisterInstruction).registerA
 
             // Every path asks another key: the warm check still applies, the swap no longer matches it.
             val other = context(fixture)
-            other.mutableMethod(fixture.warm).addInstructions(call, "const-wide v$key, 0x1L")
+            for (call in calls.sortedDescending()) {
+                other.mutableMethod(fixture.warm).addInstructions(call, "const-wide v${key(call)}, 0x1L")
+            }
             val unmatched = assertThrows("$build other key", PatchException::class.java) { blockReturnRefreshPatch.execute(other) }
             assertTrue(unmatched.message.orEmpty(), unmatched.message.orEmpty().contains("found 0"))
 
-            // One path asks another key, so the threshold is no single number.
+            // One path to a call asks another key, so that call's key is no single number.
+            val call = calls.first()
             val split = context(fixture)
             split.mutableMethod(fixture.warm).addInstructionsWithLabels(
                 call,
                 """
                     if-eqz v$answer, :keep
-                    const-wide v$key, 0x1L
+                    const-wide v${key(call)}, 0x1L
                     :keep
                     nop
                 """,
@@ -341,6 +347,26 @@ class ReturnRefreshFixtureTest {
     }
 
     private fun context(fixture: Fixture) = PatchContexts.of(ExtensionDex.classes() + fixture.classes)
+
+    /**
+     * A second swap for the top of a method: one call to [threshold]'s getter per key, each joining
+     * the comparison. With [skipFirstKey], a path from the entry reaches the first call without its key.
+     */
+    private fun secondSwap(threshold: Threshold, skipFirstKey: Boolean = false): String = buildList {
+        val keys = threshold.keys.sorted()
+        keys.forEachIndexed { i, key ->
+            if (i > 0) add(":ask$i")
+            if (i < keys.size - 1) add("if-eqz v7, :ask${i + 1}")
+            if (i == 0 && skipFirstKey) add("if-eqz v3, :call0")
+            add("const-wide v0, ${key}L")
+            if (i == 0) add(":call0")
+            add("invoke-interface { v6, v0, v1 }, ${threshold.getter}")
+            add("move-result-wide v0")
+            add("goto :compare")
+        }
+        addAll(listOf(":compare", "cmp-long v2, v4, v0", "const/4 v3, 0x1", "if-gez v2, :again", "const/4 v3, 0x0",
+            ":again", "if-eqz v3, :done", ":done", "nop"))
+    }.joinToString("\n")
 
     private fun BytecodePatchContext.mutableMethod(method: Method) = mutableClassDefBy(method.definingClass).methods.single {
         it.name == method.name && it.parameterTypes == method.parameterTypes && it.returnType == method.returnType

@@ -67,8 +67,10 @@ public final class FamilyNames {
     public static final String STORY_DOWNLOAD = "Download any story";
     public static final String REEL_DOWNLOAD = "Download any reel";
     public static final String VIDEO_DOWNLOAD = "Download any video";
+    public static final String PHOTO_DOWNLOAD = "Download any photo";
     public static final String START_TAB = "Open on a chosen tab";
     public static final String MARKETPLACE_ONLY = "Marketplace only";
+    public static final String SELLER_VIEW_PROFILE = "Show View profile on Marketplace sellers";
     public static final String REELS_TAB = "Hide the Reels tab";
     public static final String REELS_TAB_DOT = "Hide the Reels tab dot";
     public static final String HIDDEN_TABS = "Hide tabs";
@@ -84,6 +86,8 @@ public final class FamilyNames {
     public static final String ANALYTICS_UPLOADS = "Hold back analytics uploads";
     public static final String SCREENSHOTS = "Allow screenshots";
     public static final String SCREENSHOT_DETECTION = "Block screenshot detection";
+    public static final String TYPING_INDICATOR = "Hide typing indicator";
+    public static final String READ_RECEIPTS = "Hide read receipts";
     public static final String AUDIENCE_NETWORK = "Disable Audience Network";
     public static final String GAME_ADS = "Block Instant Games ads";
     public static final String AMOLED_THEME = "AMOLED black theme";

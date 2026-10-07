@@ -280,6 +280,18 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + "with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay."))),
                         SettingsIcons.BLOCK));
             }
+            if (build.contains(PatchFamily.HIDE_CONTACTS_BLOCK)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_CONTACTS_BLOCK, L10n.t("Hide contacts on Telegram"),
+                        PatchFamily.HIDE_CONTACTS_BLOCK.coverageSummary(L10n.t("A short chat list no longer lists your contacts on Telegram under it, "
+                                + "with their heading and loading rows. Your chats, folders, contact sync and search stay. Off by default in settings."))),
+                        SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.HIDE_GREETING_STICKERS)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_GREETING_STICKERS, L10n.t("Hide greeting stickers"),
+                        PatchFamily.HIDE_GREETING_STICKERS.coverageSummary(L10n.t("An empty private chat no longer offers a sticker to send as a greeting. "
+                                + "Its text, business introductions, paid-message notices and the sticker picker stay. Off by default in settings."))),
+                        SettingsIcons.BLOCK));
+            }
             if (build.contains(PatchFamily.DISABLE_CHAT_SWIPE)) {
                 chats.addPreference(mark(toggle(context, Settings.DISABLE_CHAT_SWIPE, L10n.t("No swipe actions on chats"),
                         PatchFamily.DISABLE_CHAT_SWIPE.coverageSummary(L10n.t("A sideways swipe on a chat in the chat list no longer archives, "
@@ -295,6 +307,10 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             if (build.contains(PatchFamily.DISABLE_CHANNEL_PULL)) {
                 chats.addPreference(mark(toggle(context, Settings.DISABLE_CHANNEL_PULL, L10n.t("Stop pull to next channel"),
                         L10n.t("Pulling up at the bottom of a channel only scrolls. Open the next channel from your chat list.")),
+                        SettingsIcons.BLOCK));
+                chats.addPreference(mark(toggle(context, Settings.DISABLE_TOPIC_PULL, L10n.t("Stop pull to next topic"),
+                        L10n.t("Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list. "
+                                + "Off by default in settings.")),
                         SettingsIcons.BLOCK));
             }
             if (build.contains(PatchFamily.NORMAL_PASTE)) {
@@ -313,6 +329,129 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                 chats.addPreference(mark(toggle(context, Settings.HOLIDAY_LOOK, L10n.t("New Year look all year"),
                         PatchFamily.HOLIDAY_LOOK.coverageSummary(L10n.t("Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar "
                                 + "and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.USE_SYSTEM_FONT)) {
+                chats.addPreference(mark(toggle(context, Settings.USE_SYSTEM_FONT, L10n.t("Use system font"),
+                        PatchFamily.USE_SYSTEM_FONT.coverageSummary(L10n.t("Bold and italic text stops using the Roboto files built into Telegram "
+                                + "and takes your phone's font, the one regular text already uses. Code takes the phone's monospace font. "
+                                + "Some number displays and Instant View pages keep Telegram's own. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.AMOLED_BLACK)) {
+                chats.addPreference(mark(toggle(context, Settings.AMOLED_BLACK, L10n.t("AMOLED black"),
+                        PatchFamily.AMOLED_BLACK.coverageSummary(L10n.t("Telegram's Night and Dark themes draw their screens in pure black, and a "
+                                + "patterned chat background shows its pattern over black. Message bubbles and pop-up "
+                                + "menus keep their colors, and themes you've installed from a file stay as they are. "
+                                + "Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.HIDE_TRANSLATE_BAR)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_TRANSLATE_BAR, L10n.t("Hide translate bar"),
+                        PatchFamily.HIDE_TRANSLATE_BAR.coverageSummary(L10n.t("Chats in another language stop showing Telegram's translate bar "
+                                + "at the top, and Translate moves to the chat's menu. A chat you're translating keeps its bar "
+                                + "so you can go back to the original. Off by default in settings."))),
+                        SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.EXACT_NUMBERS)) {
+                chats.addPreference(mark(toggle(context, Settings.EXACT_NUMBERS, L10n.t("Exact numbers"),
+                        PatchFamily.EXACT_NUMBERS.coverageSummary(L10n.t("Member, subscriber, view, reply and reaction counts show the full number, like 12,345 "
+                                + "instead of 12.3K. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.REVEAL_SPOILERS)) {
+                chats.addPreference(mark(toggle(context, Settings.REVEAL_SPOILERS, L10n.t("Reveal spoilers"),
+                        PatchFamily.REVEAL_SPOILERS.coverageSummary(L10n.t("Spoiler text, photos and videos show right away instead of waiting for a tap. "
+                                + "View-once media, sensitive content and login codes stay covered, and text you're "
+                                + "typing keeps its spoiler. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.HIDE_KEYBOARD_ON_SCROLL)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_KEYBOARD_ON_SCROLL, L10n.t("Hide keyboard on scroll"),
+                        PatchFamily.HIDE_KEYBOARD_ON_SCROLL.coverageSummary(L10n.t("Starting to scroll through a chat closes the keyboard, the way Telegram already does "
+                                + "while you search a chat. Telegram's emoji and sticker panel stays open. Off by default "
+                                + "in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.KEEP_VIDEOS_MUTED)) {
+                chats.addPreference(mark(toggle(context, Settings.KEEP_VIDEOS_MUTED, L10n.t("Keep videos muted on volume keys"),
+                        PatchFamily.KEEP_VIDEOS_MUTED.coverageSummary(L10n.t("Volume keys in a chat change the volume instead of playing the video or round video on "
+                                + "screen with sound. Tap a video to hear it. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.SWIPE_BACK_ON_PROFILES)) {
+                chats.addPreference(mark(toggle(context, Settings.SWIPE_BACK_ON_PROFILES, L10n.t("Swipe back on profiles"),
+                        PatchFamily.SWIPE_BACK_ON_PROFILES.coverageSummary(L10n.t("A swipe to the right on a profile's photos or media tabs goes back, like it does on "
+                                + "the rest of the profile, instead of showing the previous photo or tab. Swiping left "
+                                + "still moves forward. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.HIDE_PHONE_NUMBER)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_PHONE_NUMBER, L10n.t("Hide phone number"),
+                        PatchFamily.HIDE_PHONE_NUMBER.coverageSummary(L10n.t("Your own phone number shows as dots in the side menu, Settings, your profile and "
+                                + "anywhere else Telegram displays it, which helps with screenshots and screen sharing. "
+                                + "Other people's numbers stay visible. Off by default in settings."))),
+                        SettingsIcons.BLOCK));
+            }
+            if (build.contains(PatchFamily.MESSAGE_SECONDS)) {
+                chats.addPreference(mark(toggle(context, Settings.MESSAGE_SECONDS, L10n.t("Message times with seconds"),
+                        PatchFamily.MESSAGE_SECONDS.coverageSummary(L10n.t("The time on each message shows seconds too, like 9:41:27 PM, so messages sent close "
+                                + "together are easy to tell apart. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.ALLOW_CHAT_BLUR)) {
+                chats.addPreference(mark(toggle(context, Settings.ALLOW_CHAT_BLUR, L10n.t("Allow chat blur on slower phones"),
+                        PatchFamily.ALLOW_CHAT_BLUR.coverageSummary(L10n.t("Telegram only blurs the chat header and panels on phones it rates as fast. This lets "
+                                + "any phone use it once Blur in chat is on under Power saving. Off by default in "
+                                + "settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.VOICE_ONE_AT_A_TIME)) {
+                chats.addPreference(mark(toggle(context, Settings.VOICE_ONE_AT_A_TIME, L10n.t("Play voice messages one at a time"),
+                        PatchFamily.VOICE_ONE_AT_A_TIME.coverageSummary(L10n.t("When a voice or video message ends, the next one in the chat doesn't start on its own. "
+                                + "Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.NO_HAPTICS)) {
+                chats.addPreference(mark(toggle(context, Settings.NO_HAPTICS, L10n.t("Turn off haptic feedback"),
+                        PatchFamily.NO_HAPTICS.coverageSummary(L10n.t("Taps, long presses, swipes and wrong entries in Telegram stop vibrating the phone. "
+                                + "Incoming calls still vibrate, and notifications vibrate the way you set them. Off by "
+                                + "default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.REACTION_EFFECTS_OFF)) {
+                chats.addPreference(mark(toggle(context, Settings.REACTION_EFFECTS_OFF, L10n.t("Turn off reaction effects"),
+                        PatchFamily.REACTION_EFFECTS_OFF.coverageSummary(L10n.t("When you or someone else reacts to a message, the emoji no longer flies across the "
+                                + "screen and bursts. The reaction still shows on the message. Off by default in "
+                                + "settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.HIDE_FOLDER_COUNTERS)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_FOLDER_COUNTERS, L10n.t("Hide folder tab counters"),
+                        PatchFamily.HIDE_FOLDER_COUNTERS.coverageSummary(L10n.t("The folder tabs above the chat list show just their names, without the number of "
+                                + "unread chats. Chats stay unread and the app icon's badge doesn't change. Off by "
+                                + "default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.FORWARD_HIDE_SENDER)) {
+                chats.addPreference(mark(toggle(context, Settings.FORWARD_HIDE_SENDER, L10n.t("Hide sender names when forwarding"),
+                        PatchFamily.FORWARD_HIDE_SENDER.coverageSummary(L10n.t("Each new forward starts with Telegram's Hide sender's name option turned on, so the "
+                                + "copies arrive without the original author. You can still turn it off before sending, "
+                                + "and article forwards follow Telegram's Premium rule. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.VOICE_MUSIC_PLAYER)) {
+                chats.addPreference(mark(toggle(context, Settings.VOICE_MUSIC_PLAYER, L10n.t("Voice messages in the music player"),
+                        PatchFamily.VOICE_MUSIC_PLAYER.coverageSummary(L10n.t("While a voice message plays, tapping the bar above the chat opens Telegram's full "
+                                + "music player with its seek bar, instead of jumping to the message. View-once voice "
+                                + "messages stay as they are. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.SILENCE_NON_CONTACTS)) {
+                chats.addPreference(mark(toggle(context, Settings.SILENCE_NON_CONTACTS, L10n.t("Silence people outside your contacts"),
+                        PatchFamily.SILENCE_NON_CONTACTS.coverageSummary(L10n.t("A private message from someone who isn't in your contacts still shows a notification, "
+                                + "just without sound or vibration. Bots, reminders and Telegram's login codes keep their "
+                                + "sound. Off by default in settings."))),
                         SettingsIcons.CHAT));
             }
         }

@@ -1,0 +1,56 @@
+version: 2
+
+# Dependency updates are opened against `dev`, the branch where all ongoing
+# work happens. `main` only receives release merges, so nothing is bumped there
+# directly.
+updates:
+  # Keep the actions used by the workflows in .github/workflows up to date.
+  - package-ecosystem: github-actions
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: monthly
+    labels: []
+    commit-message:
+      prefix: chore
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Release tooling pinned in package.json.
+  - package-ecosystem: npm
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: monthly
+    labels: []
+    commit-message:
+      prefix: chore
+    groups:
+      # Routine minor and patch bumps arrive as a single pull request; major
+      # bumps are still opened separately so they can be reviewed on their own.
+      npm-minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Versions 10 and newer of this preset do not produce the release notes
+      # this project expects, so the pinned 9.x line is kept on purpose.
+      - dependency-name: "conventional-changelog-conventionalcommits"
+
+  # Build plugins and libraries declared in the Gradle version catalogue.
+  - package-ecosystem: gradle
+    directory: /
+    target-branch: dev
+    schedule:
+      interval: monthly
+    labels: []
+    commit-message:
+      prefix: chore
+    groups:
+      gradle:
+        patterns:
+          - "*"

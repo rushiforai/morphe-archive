@@ -15,28 +15,37 @@ forked ReVanced. Some of the files Hushfacebook carries are rewritten from
 Andrew Liang's patches, which credit FroggoMorphePatches for some of their
 ideas and implementations. The Threads patches themselves are written here.
 The place Hide ads takes ads out of the feed, the feed cache's merge, is the
-one zeldrisho/morphe-patches found. None of its code is used. The notices
-below are reproduced from those projects. Morphe requires its text to be
-carried in derivative works and shown to the person using the software, so it
-is also reachable in the app itself: long-press Threads' launcher icon, open
-HushThreads, then More settings, About and Licenses.
+one zeldrisho/morphe-patches found. None of its code is used. The feed unit
+types Hide ads also reads as ads are the ones MrxSiN's ThreadsHideAds named,
+and none of its code is used either. The notices below are reproduced from
+those projects. Morphe requires its text to be carried in derivative works
+and shown to the person using the software, so it is also reachable in the
+app itself: long-press Threads' launcher icon, open HushThreads, then More
+settings, About and Licenses.
+
+Saving photos and videos comes from HushGram, the Instagram sibling, which
+took Hushfacebook's save engine and fitted it to Meta's media model that
+Threads shares.
 
   HushThreads                 https://github.com/SysAdminDoc/HushThreads
   Hushfacebook                https://github.com/SysAdminDoc/Hushfacebook
   Hushfacebook commits        814acd23d7b70d5d23abce6cb6c97767e16a051e, 88a7f512c1e97126ae6fb3cf05e3c152a39fb1fc
+  HushGram                    https://github.com/SysAdminDoc/HushGram
   Hushfeed                    https://github.com/SysAdminDoc/hushfeed
   morphe-patches (Andrew's)   https://github.com/andrewliang25/morphe-patches
   FroggoMorphePatches         https://github.com/SapitoSucio/FroggoMorphePatches
   morphe-patches (zeldrisho)  https://github.com/zeldrisho/morphe-patches
+  ThreadsHideAds (MrxSiN)     https://github.com/MrxSiN/ThreadsHideAds
   tiktok-patches-for-morphe   https://github.com/icysymmetra/tiktok-patches-for-morphe
   morphe-patches              https://github.com/MorpheApp/morphe-patches
   morphe-patches-library      https://github.com/MorpheApp/morphe-patches-library
   ReVanced                    https://gitlab.com/ReVanced/revanced-patches
 
-Hushfacebook, Andrew Liang's patches, FroggoMorphePatches and zeldrisho's
-patches are licensed under the GNU General Public License v3.0. Files that
-came from another project keep a "Forked from" line naming it and the commit
-they came from, and provenance.json records every rule.
+Hushfacebook, HushGram, Andrew Liang's patches, FroggoMorphePatches,
+zeldrisho's patches and MrxSiN's ThreadsHideAds are licensed under the GNU
+General Public License v3.0.
+Files that came from another project keep a "Forked from" line naming it and
+the commit they came from, and provenance.json records every rule.
 
 
 Morphe: Project Name Restriction

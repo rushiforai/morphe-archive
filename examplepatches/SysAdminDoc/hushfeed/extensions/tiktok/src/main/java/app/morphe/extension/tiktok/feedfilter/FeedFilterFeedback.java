@@ -329,6 +329,7 @@ final class FeedFilterFeedback {
         if ("CreatorFilter".equals(reason)) return "Blocked and hidden creators";
         if ("PromotionalMusicFilter".equals(reason)) return "Promotional music";
         if ("LiveReplayFilter".equals(reason)) return "LIVE replays";
+        if ("UnpersonalizedForYouFilter".equals(reason)) return "Unpersonalized For You videos";
         if ("RegionFilter".equals(reason)) return "Country filters";
         if ("CaptionLanguageFilter".equals(reason)) return "Caption languages";
         if ("PublicationAgeFilter".equals(reason)) return "Post age";

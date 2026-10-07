@@ -73,6 +73,14 @@ public final class L10n {
         return translated == null || translated.isEmpty() ? english : translated;
     }
 
+    /**
+     * Whether the settings are shown from a translation table. False for English and for a
+     * language with no table, where every label is English already.
+     */
+    public static boolean isTranslated(Context context) {
+        return tableFor(tags(context)).translations != null;
+    }
+
     /** {@link String#format} over the translated form of {@code english}. */
     public static String f(String english, Object... args) {
         return f(Utils.getContext(), english, args);

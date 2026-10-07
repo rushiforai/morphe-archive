@@ -1,3 +1,13 @@
+## [0.7.0](https://github.com/Santodan/santodan-patches/compare/v0.6.0...v0.7.0) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **nuvio:** support beta4 and correct progress flow mapping [skip ci] ([7c3d025](https://github.com/Santodan/santodan-patches/commit/7c3d025d4afce7fd7803e0616ca5197c74b21bda))
+
+### ✨ New Features
+
+* **nuvio:** keep airing series in Upcoming with finale date badges ([1fcf816](https://github.com/Santodan/santodan-patches/commit/1fcf8165a15e29e102628135c10f2939dbde4fa5))
+
 ## [0.6.0](https://github.com/Santodan/santodan-patches/compare/v0.5.0...v0.6.0) (2026-10-01)
 
 ### ✨ New Features
@@ -35,6 +45,8 @@
 
 ### New Features
 
+* **nuviotv:** add an independent beta4 setting to keep airing library series in Upcoming until their latest scheduled episode airs, preserving native labels
+* **nuviotv:** show scheduled finale dates in Poster, Card, and Wide displays using a blue bottom-center badge with white `dd-MMM` text above captions
 * **meo:** add configurable side-by-side installation for MEO Android TV 5.7.0
 * **meo:** spoof a supported provisioning identity and skip the non-fatal device-verification warning
 * **nuviotv:** add selectable merged tracking progress for Continue Watching
@@ -46,6 +58,7 @@
 
 ### Bug Fixes
 
+* **nuviotv:** count beta4 aired episodes instead of provider aliases, preventing remaining counts from changing to `6` after synchronization
 * **meo:** rename the app-owned permission, task affinity, and all provider authorities, including the bare package authority
 * **nuviotv:** preserve merged Continue Watching during startup and refresh providers before publishing updates
 

@@ -870,7 +870,7 @@ Save,Simpan
 "Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.","Simpan berkas SRT bersama videonya. Berkas masuk ke Movies di Android 11+, Download di Android 10, dan folder videomu di versi lama. Di Android 11+ dengan Simpan detail aktif, video pindah ke Download atau Documents dan berkas SRT tetap di Movies."
 Save a profile picture on a long press,Simpan foto profil dengan tekan lama
 Save a story on a long press,Simpan Story dengan tekan lama
-"Save every photo in the post as TikTok received it, not as the screen shows it.","Simpan setiap foto dalam unggahan seperti yang diterima TikTok, bukan seperti yang ditampilkan layar."
+"Save every photo in the post at full size as a JPEG, not as the screen shows it.","Simpan setiap foto dalam unggahan dalam ukuran penuh sebagai JPEG, bukan seperti yang ditampilkan layar."
 Save field values,Simpan nilai bidang
 Save full report,Simpan laporan lengkap
 Save media,Simpan media
@@ -1372,7 +1372,6 @@ Changes in Hushfeed %1$s,Perubahan di Hushfeed %1$s
 Reviewed presets,Preset teruji
 Show See translation,Tampilkan Lihat terjemahan
 Reviewed for TikTok %1$s,Diuji untuk TikTok %1$s
-%1$s (TikTok %2$s),%1$s (TikTok %2$s)
 Value: %1$s to %2$s,Nilai: %1$s menjadi %2$s
 The presets couldn't load. Open the Lab again.,Preset tidak dapat dimuat. Buka Lab lagi.
 Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.,Terapkan mengaktifkan penggantian ini. Batalkan perubahan Lab terakhir mengembalikan aturan sebelumnya sampai kamu mengubah hal lain di Lab.
@@ -1507,3 +1506,35 @@ Buttons on videos,Tombol di video
 Seen videos put back: %1$s of %2$s,Video ditonton yang dipulihkan: %1$s dari %2$s
 No cleared videos fit the current history limits.,Tidak ada video yang dihapus yang memenuhi batas riwayat saat ini.
 Putting seen videos back,Memulihkan video yang ditonton
+These notes are in English.,Catatan ini dalam bahasa Inggris.
+Still waiting for the file app. Tap to stop waiting.,Masih menunggu aplikasi file. Ketuk untuk berhenti menunggu.
+Stopped waiting for the file app. Nothing was changed.,Berhenti menunggu aplikasi file. Tidak ada yang diubah.
+Stopped waiting for the file app. It hasn't said yet whether the backup was saved.,Berhenti menunggu aplikasi file. Aplikasi itu belum memberi tahu apakah cadangan sudah tersimpan.
+The backup wasn't saved. Back up again when the file app is ready.,Cadangan tidak tersimpan. Cadangkan lagi saat aplikasi file sudah siap.
+"The file app still has the last file. Try again once it lets go, or restart TikTok.","Aplikasi file masih memegang file terakhir. Coba lagi setelah dilepas, atau mulai ulang TikTok."
+Waiting for the file app to let go of the last file. Restart TikTok if it doesn't.,Menunggu aplikasi file melepas file terakhir. Mulai ulang TikTok jika tidak dilepas.
+Stopped waiting for the file app. Nothing was imported.,Berhenti menunggu aplikasi file. Tidak ada yang diimpor.
+The last report is still being saved,Laporan terakhir masih disimpan
+Still waiting for the file app.,Masih menunggu aplikasi file.
+Stop waiting,Berhenti menunggu
+Stopped waiting for the file app. Nothing was exported.,Berhenti menunggu aplikasi file. Tidak ada yang diekspor.
+Stopped waiting for the file app. It hasn't said yet whether the export was saved.,Berhenti menunggu aplikasi file. Aplikasi itu belum memberi tahu apakah ekspor sudah tersimpan.
+The export wasn't saved. Export again when the file app is ready.,Ekspor tidak tersimpan. Ekspor lagi saat aplikasi file sudah siap.
+Hide unpersonalized For You videos,Sembunyikan video Untuk Kamu yang tidak dipersonalisasi
+"Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.","Sembunyikan video pengisi yang dikirim TikTok ke Untuk Kamu tanpa dipilih untukmu. Jika satu kumpulan isinya pengisi semua, kumpulan itu tetap ditampilkan agar feed tidak kosong."
+Unpersonalized For You videos,Video Untuk Kamu yang tidak dipersonalisasi
+Reviewed presets for TikTok %1$s,Preset teruji untuk TikTok %1$s
+No presets have been reviewed for TikTok %1$s yet,Belum ada preset yang diuji untuk TikTok %1$s
+Repost with a comment,Posting ulang dengan komentar
+Profile banner and new profile layout,Banner profil dan tata letak profil baru
+"Comment with live photos, the camera or audio","Berkomentar dengan foto live, kamera, atau audio"
+Save comments to Favorites,Simpan komentar ke Favorit
+Comment sort and dislike styles,Urutan komentar dan gaya tidak suka
+"Message bubble colors, Inbox archive and sharing to more chats","Warna gelembung pesan, arsip Kotak Masuk, dan berbagi ke lebih banyak chat"
+Manage topics,Kelola topik
+Visual search,Pencarian visual
+AI Self,AI Self
+Long-press menu on every post,Menu tekan lama di setiap postingan
+TikTok's hold to speed up,Tahan untuk mempercepat dari TikTok
+TikTok's background play and auto-scroll,Putar di latar belakang dan gulir otomatis dari TikTok
+Post dates in the feed,Tanggal postingan di feed

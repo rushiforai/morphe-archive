@@ -6,12 +6,12 @@ import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod;
 import com.android.tools.smali.dexlib2.Opcode;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction11x;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction21c;
+import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction22x;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction3rc;
 import com.android.tools.smali.dexlib2.builder.instruction.BuilderInstruction35c;
 import com.android.tools.smali.dexlib2.builder.BuilderInstruction;
 import com.android.tools.smali.dexlib2.iface.instruction.*;
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference;
-import com.android.tools.smali.dexlib2.iface.reference.TypeReference;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodReference;
 import com.android.tools.smali.dexlib2.immutable.reference.ImmutableTypeReference;
 import java.io.InputStream;
@@ -102,9 +102,13 @@ public final class RedditModePatch {
                         if (!(ref instanceof MethodReference) || !"build".equals(((MethodReference) ref).getName())
                             || !((MethodReference) ref).getDefiningClass().contains("ListBuilder")) continue;
                         int list = ((FiveRegisterInstruction) ins).getRegisterC();
-                        nav.getImplementation().addInstruction(i,
-                            call(EXT, "addButton", "V",
-                                Collections.singletonList("Ljava/lang/Object;"), list));
+                        FiveRegisterInstruction original = (FiveRegisterInstruction) ins;
+                        nav.getImplementation().replaceInstruction(i,
+                            call(EXT, "addButton", "V", Collections.singletonList("Ljava/lang/Object;"), list));
+                        nav.getImplementation().addInstruction(i + 1,
+                            new BuilderInstruction35c(ins.getOpcode(), original.getRegisterCount(),
+                                original.getRegisterC(), original.getRegisterD(), original.getRegisterE(),
+                                original.getRegisterF(), original.getRegisterG(), ((ReferenceInstruction) ins).getReference()));
                         builds++;
                     }
                     if (builds != 1) throw new IllegalStateException("Bottom bar builder shape changed: " + builds);
@@ -115,24 +119,25 @@ public final class RedditModePatch {
                         call(EXT, "initializeModern", "V",
                             Collections.singletonList("Ljava/lang/Object;"), modernThis));
                     List<Instruction> modernCode = new ArrayList<>(modern.getImplementation().getInstructions());
-                    int models = 0;
+                    int modernBuilds = 0;
                     for (int i = modernCode.size() - 1; i >= 0; i--) {
                         Instruction ins = modernCode.get(i);
-                        if (ins.getOpcode() != Opcode.CHECK_CAST || !(ins instanceof ReferenceInstruction)) continue;
+                        if (!(ins instanceof ReferenceInstruction) || !(ins instanceof FiveRegisterInstruction)) continue;
                         Object ref = ((ReferenceInstruction) ins).getReference();
-                        if (!(ref instanceof TypeReference) || !"Lmv1/a;".equals(((TypeReference) ref).getType())) continue;
-                        int model = ((OneRegisterInstruction) ins).getRegisterA();
+                        if (!(ref instanceof MethodReference) || !"M".equals(((MethodReference) ref).getName())
+                            || !"Lwe/w;".equals(((MethodReference) ref).getDefiningClass())) continue;
+                        FiveRegisterInstruction original = (FiveRegisterInstruction) ins;
+                        // Keep the branch label on our hook so every path adds the tab.
+                        modern.getImplementation().replaceInstruction(i,
+                            call(EXT, "addButton", "V", Collections.singletonList("Ljava/lang/Object;"),
+                                original.getRegisterC()));
                         modern.getImplementation().addInstruction(i + 1,
-                            call(EXT, "replaceModernTab", "Ljava/lang/Object;",
-                                Collections.singletonList("Ljava/lang/Object;"), model));
-                        modern.getImplementation().addInstruction(i + 2,
-                            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, model));
-                        modern.getImplementation().addInstruction(i + 3,
-                            new BuilderInstruction21c(Opcode.CHECK_CAST, model,
-                                new ImmutableTypeReference("Lmv1/a;")));
-                        models++;
+                            new BuilderInstruction35c(ins.getOpcode(), original.getRegisterCount(),
+                                original.getRegisterC(), original.getRegisterD(), original.getRegisterE(),
+                                original.getRegisterF(), original.getRegisterG(), ((ReferenceInstruction) ins).getReference()));
+                        modernBuilds++;
                     }
-                    if (models != 1) throw new IllegalStateException("Modern bottom bar model shape changed: " + models);
+                    if (modernBuilds != 1) throw new IllegalStateException("Modern bottom bar builder changed: " + modernBuilds);
 
                     MutableMethod renderer = null;
                     for (MutableMethod method : context.mutableClassDefBy(
@@ -163,6 +168,24 @@ public final class RedditModePatch {
                     renderer.getImplementation().addInstruction(3,
                         new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, descriptor + 1));
 
+                    if (descriptor < 2) throw new IllegalStateException("No bottom bar scratch registers");
+                    int[] values = {descriptor + 2, descriptor + 7, descriptor + 9};
+                    String[] names = {"tabLabel", "tabIcon", "tabText"};
+                    String[] types = {"Ljava/lang/String;", "Lkotlin/jvm/functions/Function2;",
+                        "Lkotlin/jvm/functions/Function2;"};
+                    for (int i = values.length - 1; i >= 0; i--) {
+                        renderer.getImplementation().addInstruction(0,
+                            new BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, 0, descriptor));
+                        renderer.getImplementation().addInstruction(1,
+                            new BuilderInstruction22x(Opcode.MOVE_OBJECT_FROM16, 1, values[i]));
+                        renderer.getImplementation().addInstruction(2,
+                            new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 0, 2,
+                                new ImmutableMethodReference(EXT, names[i],
+                                    Arrays.asList("Ljava/lang/Object;", types[i]), types[i])));
+                        renderer.getImplementation().addInstruction(3,
+                            new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, values[i]));
+                    }
+
                     MutableClass repository = context.mutableClassDefBy("Lcom/reddit/account/repository/c;");
                     MutableMethod repositoryInit = null;
                     for (MutableMethod method : repository.getMethods())
@@ -175,6 +198,32 @@ public final class RedditModePatch {
                         - parameterWords(repositoryInit) - 1;
                     beforeReturns(repositoryInit, call(EXT, "rememberRepository", "V",
                         Collections.singletonList("Ljava/lang/Object;"), repoThis));
+
+                    MutableMethod sync = one(repository, "F", "Ljava/lang/Object;", 2);
+                    if (!"Lcom/reddit/domain/model/AccountPreferencesPatch;".contentEquals(sync.getParameterTypes().get(0))
+                        || !"Lwl3/a;".contentEquals(sync.getParameterTypes().get(1)))
+                        throw new IllegalStateException("Account sync parameters changed");
+                    int syncThis = sync.getImplementation().getRegisterCount() - 3;
+                    if (sync.getImplementation().getRegisterCount() > 16)
+                        throw new IllegalStateException("Account sync register shape changed");
+                    sync.getImplementation().addInstruction(0,
+                        new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, syncThis, 3,
+                            new ImmutableMethodReference(EXT, "watchSettingsSync",
+                                Arrays.asList("Ljava/lang/Object;", "Ljava/lang/Object;", "Lwl3/a;"), "Lwl3/a;")));
+                    sync.getImplementation().addInstruction(1,
+                        new BuilderInstruction11x(Opcode.MOVE_RESULT_OBJECT, syncThis + 2));
+                    List<Instruction> syncCode = new ArrayList<>(sync.getImplementation().getInstructions());
+                    int syncReturns = 0;
+                    for (int i = syncCode.size() - 1; i >= 0; i--) {
+                        if (syncCode.get(i).getOpcode() != Opcode.RETURN_OBJECT) continue;
+                        int result = ((OneRegisterInstruction) syncCode.get(i)).getRegisterA();
+                        sync.getImplementation().addInstruction(i,
+                            new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2, syncThis + 2, result, 0, 0, 0,
+                                new ImmutableMethodReference(EXT, "finishSettingsSync",
+                                    Arrays.asList("Lwl3/a;", "Ljava/lang/Object;"), "V")));
+                        syncReturns++;
+                    }
+                    if (syncReturns != 1) throw new IllegalStateException("Account sync return shape changed");
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;

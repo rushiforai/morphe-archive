@@ -122,6 +122,18 @@ public final class ThreadsSignature {
         return null;
     }
 
+    /**
+     * The signers FBNS, the push service Meta's apps share, reads for a package it may hand pushes
+     * to: Threads' original certificate if [info] is this app, so a re-signed build passes its own
+     * check, and [reported] for any other package. FBNS reads {@code PackageInfo.signatures} itself
+     * rather than through the signers method {@link #originalSigners} answers for.
+     */
+    public static Signature[] fbnsSigners(PackageInfo info, Signature[] reported) {
+        if (!isThisApp(info)) return reported;
+        HookStatus.invoked(FamilyNames.RESTORE_TRUST);
+        return meta().toArray(new Signature[0]);
+    }
+
     /** Threads' original certificate, read once. */
     private static List<Signature> meta() {
         List<Signature> signers = original;

@@ -2,7 +2,8 @@
  * Copyright 2026 HushThreads contributors
  * https://github.com/SysAdminDoc/HushThreads
  *
- * Found by reading 449 and 448 and by a method trace of 449 on an emulator (2026-10-02).
+ * Found by reading 449 and 448 and by a method trace of 449 on an emulator (2026-10-02), and
+ * carried to 450 by reading its reshaped PostVideo and playback effect (2026-10-06).
  */
 package app.morphe.patches.threads.feed.autoplay
 
@@ -12,6 +13,7 @@ import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.threads.feed.reaching
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.enableStatus
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
@@ -28,6 +30,7 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -102,40 +105,79 @@ internal fun Method.holdsNote(note: String): Boolean = implementation?.instructi
 } == true
 
 /**
- * The effect takes the composer, the player's state, the video and Compose's change flags, then
- * whether to play and two more booleans.
+ * The effect takes the composer, the player's state and the video, then Compose's ints (450 adds a
+ * volume float among them), and ends on its booleans: three in 448 and 449, two in 450. Whether to
+ * play is the first boolean, and its index comes back.
  */
-internal fun Method.requirePlaybackEffect() {
+internal fun Method.requirePlaybackEffect(): Int {
     val types = parameterTypes.map { it.toString() }
-    if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" || types.size != 7 ||
-        types.take(3).any { !it.startsWith("L") } || types[3] != "I" || types.drop(4) != listOf("Z", "Z", "Z")
+    val play = types.indexOf("Z")
+    val middle = if (play > 3) types.subList(3, play) else emptyList()
+    if (!AccessFlags.STATIC.isSet(accessFlags) || returnType != "V" || types.take(3).any { !it.startsWith("L") } ||
+        "I" !in middle || middle.any { it != "I" && it != "F" } || types.drop(play).any { it != "Z" } || types.size - play !in 2..3
     ) throw PatchException("$PATCH: the video playback effect $definingClass->$name${types.joinToString("", "(", ")")}$returnType has another shape")
+    return play
 }
 
 /**
- * Which of PostVideo's parameters says whether its video plays: the fifth boolean in 448 and 449.
- * PostVideo must test it just before its one call to the effect and set the effect's play argument
- * from that test, so a shuffled parameter list is refused rather than holding the wrong flag.
+ * Which of PostVideo's parameters says whether its video plays: the fifth boolean in 448 and 449,
+ * the fourth in 450, which dropped one ahead of it. It's the boolean PostVideo tests last before its
+ * one call to the effect, on a branch whose false side writes a 0 as the effect's play argument
+ * before the call, and every write to that argument between the test and the call must be a 0 or a
+ * 1, with a 1 among them. The tested register has to hold that one boolean on every path to the
+ * test, as it arrived or through one move, or the default Compose gives it when a caller leaves it
+ * out.
  */
-internal fun Method.playParameter(effect: Method): Int {
+internal fun Method.playParameter(effect: Method): Int = playTest(effect).parameter
+
+/** PostVideo's test of its play flag at [test], the flag's [parameter] index, and the [call] to the effect it sets [argument] for. */
+internal data class PlayTest(val test: Int, val call: Int, val argument: Int, val parameter: Int)
+
+internal fun Method.playTest(effect: Method): PlayTest {
     if (!AccessFlags.STATIC.isSet(accessFlags)) throw PatchException("$PATCH: PostVideo $definingClass->$name isn't static")
     val types = parameterTypes.map { it.toString() }
-    val play = types.indices.filter { types[it] == "Z" }.getOrNull(4)
-        ?: throw PatchException("$PATCH: PostVideo has fewer than five booleans")
     val body = implementation!!.instructions.toList()
     val call = body.indices.filter { body[it].calls(effect) }.singleOrPatchException("$PATCH: PostVideo's call to the video playback effect")
-    val playArgument = body[call].argumentRegister(4)!!
-    val parameter = implementation!!.registerCount - parameterRegisters() + registerOffset(play)
-    val copies = body.filter { it.opcode.isMove() && (it as TwoRegisterInstruction).registerB == parameter }
-        .map { (it as TwoRegisterInstruction).registerA }.toSet() + parameter
-    val test = (call - 1 downTo 0).firstOrNull {
-        (body[it].opcode == Opcode.IF_EQZ || body[it].opcode == Opcode.IF_NEZ) && (body[it] as OneRegisterInstruction).registerA in copies
-    } ?: throw PatchException("$PATCH: PostVideo never tests its fifth boolean before the playback effect")
-    val writes = (test + 1 until call).map { body[it] }.filter { (it as? OneRegisterInstruction)?.registerA == playArgument && it.opcode.setsRegister() }
-    if (writes.isEmpty() || writes.any { it !is NarrowLiteralInstruction || it.narrowLiteral !in 0..1 }) {
-        throw PatchException("$PATCH: PostVideo's play argument to the playback effect isn't set from its fifth boolean")
+    val playArgument = body[call].argumentRegister(effect.registerOffset(effect.requirePlaybackEffect()))!!
+    val first = implementation!!.registerCount - parameterRegisters()
+    // Each boolean parameter, by the register it arrives in.
+    val booleans = types.indices.filter { types[it] == "Z" }.associateBy { first + registerOffset(it) }
+    // The boolean [register] holds when the instruction at [at] runs, the same one on every path.
+    fun held(at: Int, register: Int): Int? {
+        val writes = reaching(at, setOf(register))
+        val sources = writes.writes.mapNotNull { write ->
+            val instruction = body[write]
+            // Compose's default for the parameter, set when a caller leaves it out.
+            if (instruction is NarrowLiteralInstruction && instruction.narrowLiteral in 0..1) return@mapNotNull null
+            val source = (instruction as? TwoRegisterInstruction)?.registerB?.takeIf { instruction.opcode.isMove() } ?: return null
+            val arrived = reaching(write, setOf(source))
+            if (arrived.writes.isNotEmpty() || !arrived.fromEntry) return null
+            booleans[source] ?: return null
+        }
+        val own = if (writes.fromEntry) listOf(booleans[register] ?: return null) else emptyList()
+        return (sources + own).distinct().singleOrNull()
     }
-    return play
+    val address = body.runningFold(0) { at, instruction -> at + instruction.codeUnits }
+    // Where a branch at [at] goes when its boolean is false, if that's between it and the call.
+    fun falseSide(at: Int): Int? = when (body[at].opcode) {
+        Opcode.IF_EQZ -> address.indexOf(address[at] + (body[at] as OffsetInstruction).codeOffset)
+        Opcode.IF_NEZ -> at + 1
+        else -> null
+    }?.takeIf { it in at + 1 until call }
+    var play: Int? = null
+    val test = (call - 1 downTo 0).firstOrNull { at ->
+        val side = falseSide(at) ?: return@firstOrNull false
+        (body[side] as? OneRegisterInstruction)?.registerA == playArgument && body[side].opcode.setsRegister() &&
+            held(at, (body[at] as OneRegisterInstruction).registerA).also { play = it } != null
+    } ?: throw PatchException("$PATCH: PostVideo never tests one of its booleans before the playback effect")
+    val writes = (test + 1 until call).map { body[it] }.filter { (it as? OneRegisterInstruction)?.registerA == playArgument && it.opcode.setsRegister() }
+    if (writes.any { it !is NarrowLiteralInstruction || it.narrowLiteral !in 0..1 }) {
+        throw PatchException("$PATCH: PostVideo's play argument to the playback effect isn't set from the boolean it tests")
+    }
+    if ((body[falseSide(test)!!] as NarrowLiteralInstruction).narrowLiteral != 0 || writes.none { (it as NarrowLiteralInstruction).narrowLiteral == 1 }) {
+        throw PatchException("$PATCH: PostVideo's play argument to the playback effect doesn't follow the boolean it tests")
+    }
+    return PlayTest(test, call, playArgument, play!!)
 }
 
 /**

@@ -70,6 +70,6 @@ Second \"item\" text"</string>
   <string name="morphe_open_links_externally_summary">เปิดลิงก์ในเบราว์เซอร์ของคุณแทนที่จะเป็นเบราว์เซอร์ในแอป</string>
   <string name="morphe_app_icon_title">ไอคอนแอป</string>
   <string name="morphe_app_icon_choose_title">เลือกไอคอนแอป</string>
-  <string name="morphe_app_icon_default">ค่าเริ่มต้นThe</string>
+  <string name="morphe_app_icon_default">ค่าเริ่มต้น</string>
   <string name="morphe_app_icon_unknown">ไม่ทราบ</string>
 </resources>

@@ -68,8 +68,8 @@ public class RowChevronTest {
 
     /** Every row on the screen whose tap opens a dialog, a file picker, the browser, Android's settings or another page. */
     private static final Set<String> OPENS_SOMETHING = new LinkedHashSet<>(Arrays.asList(
-            "Jump to a section", "Supported links", "Export settings", "Import settings",
-            "Export diagnostic report", "Source code and issues", "Licenses"));
+            "Jump to a section", "Download quality", "Save folder", "Video file name", "Supported links",
+            "Export settings", "Import settings", "Export diagnostic report", "Source code and issues", "Licenses"));
 
     /** Built by the first show(), after a test has set the text size it wants. */
     private ActivityController<Activity> controller;

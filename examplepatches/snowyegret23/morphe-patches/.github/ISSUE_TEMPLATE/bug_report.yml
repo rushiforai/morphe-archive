@@ -1,0 +1,25 @@
+name: Bug report
+description: Report a problem with S Chzzk Patches.
+title: 'bug: '
+body:
+  - type: input
+    id: version
+    attributes:
+      label: CHZZK and patch bundle versions
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device model and Android version
+  - type: textarea
+    id: problem
+    attributes:
+      label: Steps to reproduce and expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Patcher log or crash log
+      description: Remove account identifiers and tokens before posting.

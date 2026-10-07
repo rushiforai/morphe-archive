@@ -1,5 +1,5 @@
 {
-    "version": "v1.41.0",
+    "version": "v1.43.0",
     "patches": [
         {
             "compatiblePackages": [
@@ -136,11 +136,23 @@
                                 "X86": 279,
                                 "X86_64": 279
                             }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "2.8.1",
+                            "versionCodes": {
+                                "ARM64_V8A": 281,
+                                "ARMEABI_V7A": 281,
+                                "X86": 281,
+                                "X86_64": 281
+                            }
                         }
                     ],
                     "versions": [
                         "2.7.8",
-                        "2.7.9"
+                        "2.7.9",
+                        "2.8.1"
                     ]
                 }
             ],
@@ -717,6 +729,70 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#226DF6",
+                    "name": "TeraBox",
+                    "packageName": "com.dubox.drive",
+                    "signatures": [
+                        "b75fd2b70084d7e0813b8f74dd74b62ab79b2aa0ce1372331a1841bd88eed993"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 23,
+                            "version": "4.26.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 698,
+                                "ARMEABI_V7A": 698,
+                                "X86": 698,
+                                "X86_64": 698
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 23,
+                            "version": "4.26.5",
+                            "versionCodes": {
+                                "ARM64_V8A": 699,
+                                "ARMEABI_V7A": 699,
+                                "X86": 699,
+                                "X86_64": 699
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "4.26.0",
+                        "4.26.5"
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "ResourcePatch"
+            ],
+            "description": "Installs TeraBox as a separate app alongside the original, with its own account. Each copy needs a different clone number.",
+            "name": "Clone app",
+            "options": [
+                {
+                    "default": "com.dubox.drive.clone1",
+                    "description": "Package name of this copy.",
+                    "key": "packageName",
+                    "required": true,
+                    "title": "Package name",
+                    "type": "kotlin.String",
+                    "values": {
+                        "Clone 1": "com.dubox.drive.clone1",
+                        "Clone 2": "com.dubox.drive.clone2",
+                        "Clone 3": "com.dubox.drive.clone3",
+                        "Clone 4": "com.dubox.drive.clone4",
+                        "Clone 5": "com.dubox.drive.clone5"
+                    }
+                }
+            ]
+        },
+        {
+            "compatiblePackages": [
+                {
                     "apkFileType": "APK",
                     "appIconColor": "#6D4AFF",
                     "name": "Proton Mail",
@@ -911,11 +987,23 @@
                                 "X86": 279,
                                 "X86_64": 279
                             }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "2.8.1",
+                            "versionCodes": {
+                                "ARM64_V8A": 281,
+                                "ARMEABI_V7A": 281,
+                                "X86": 281,
+                                "X86_64": 281
+                            }
                         }
                     ],
                     "versions": [
                         "2.7.8",
-                        "2.7.9"
+                        "2.7.9",
+                        "2.8.1"
                     ]
                 }
             ],
@@ -1603,6 +1691,44 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#1988E0",
+                    "name": "Raindrop.io",
+                    "packageName": "io.raindrop.raindropio",
+                    "signatures": [
+                        "ddd75c66578654d085424804cb27c7b6e04fd36616045bfee140d9756ffca563"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "4.7.44",
+                            "versionCodes": {
+                                "ARM64_V8A": 8698961,
+                                "ARMEABI_V7A": 8698961,
+                                "X86": 8698961,
+                                "X86_64": 8698961
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "4.7.44"
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "BytecodePatch",
+                "ResourcePatch",
+                "ResourcePatch"
+            ],
+            "description": "Signs in with Google through GmsCore instead of Google Play Services. Requires GmsCore to be installed.",
+            "name": "GmsCore support",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "apkFileType": "XAPK_REQUIRED",
                     "appIconColor": "#0072FF",
                     "name": "All Video Player App",
@@ -1744,6 +1870,40 @@
                 "BytecodePatch"
             ],
             "description": "Removes banner and interstitial ads and the Remove Ads menu item.",
+            "name": "Hide ads",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#000F15",
+                    "name": "Joyn",
+                    "packageName": "de.prosiebensat1digital.seventv",
+                    "signatures": [
+                        "71733196d1b3d681ee981cb02563e6778585f1891ed74b1d31604c1444c6b10a"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 24,
+                            "version": "6.9.0-AOS-609012264",
+                            "versionCodes": {
+                                "ARM64_V8A": 609012264,
+                                "ARMEABI_V7A": 609012264,
+                                "X86": 609012264,
+                                "X86_64": 609012264
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "6.9.0-AOS-609012264"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Removes ads before and during videos. Live TV requires a German IP address.",
             "name": "Hide ads",
             "options": []
         },
@@ -1908,11 +2068,23 @@
                                 "X86": 1282623,
                                 "X86_64": 1282623
                             }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 26,
+                            "version": "415.0.0.182626",
+                            "versionCodes": {
+                                "ARM64_V8A": 1282626,
+                                "ARMEABI_V7A": 1282626,
+                                "X86": 1282626,
+                                "X86_64": 1282626
+                            }
                         }
                     ],
                     "versions": [
                         "407.0.0.178994",
-                        "415.0.0.182623"
+                        "415.0.0.182623",
+                        "415.0.0.182626"
                     ]
                 }
             ],
@@ -2521,6 +2693,42 @@
         {
             "compatiblePackages": [
                 {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#1988E0",
+                    "name": "Raindrop.io",
+                    "packageName": "io.raindrop.raindropio",
+                    "signatures": [
+                        "ddd75c66578654d085424804cb27c7b6e04fd36616045bfee140d9756ffca563"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "4.7.44",
+                            "versionCodes": {
+                                "ARM64_V8A": 8698961,
+                                "ARMEABI_V7A": 8698961,
+                                "X86": 8698961,
+                                "X86_64": 8698961
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "4.7.44"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "RawResourcePatch"
+            ],
+            "description": "Hides the Go Pro entry in Settings.",
+            "name": "Hide upgrade promotions",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
                     "apkFileType": "XAPK",
                     "appIconColor": "#226DF6",
                     "name": "TeraBox",
@@ -2977,16 +3185,28 @@
                                 "X86": 2300,
                                 "X86_64": 2300
                             }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 23,
+                            "version": "26.09.29+2320",
+                            "versionCodes": {
+                                "ARM64_V8A": 2320,
+                                "ARMEABI_V7A": 2320,
+                                "X86": 2320,
+                                "X86_64": 2320
+                            }
                         }
                     ],
                     "versions": [
-                        "26.05.20+2300"
+                        "26.05.20+2300",
+                        "26.09.29+2320"
                     ]
                 }
             ],
             "default": true,
             "dependencies": [],
-            "description": "Removes the rate this app dialog and the promotional dialogs shown on startup.",
+            "description": "Removes the rate this app dialog, the promotional dialogs shown on startup and the Premium button in the toolbar.",
             "name": "Remove nags",
             "options": []
         },
@@ -4087,11 +4307,23 @@
                                 "X86": 279,
                                 "X86_64": 279
                             }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "2.8.1",
+                            "versionCodes": {
+                                "ARM64_V8A": 281,
+                                "ARMEABI_V7A": 281,
+                                "X86": 281,
+                                "X86_64": 281
+                            }
                         }
                     ],
                     "versions": [
                         "2.7.8",
-                        "2.7.9"
+                        "2.7.9",
+                        "2.8.1"
                     ]
                 }
             ],
@@ -4170,6 +4402,40 @@
                 "BytecodePatch"
             ],
             "description": "Unlocks all premium features.",
+            "name": "Unlock premium",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "appIconColor": "#1A73B2",
+                    "name": "Fast STL Viewer",
+                    "packageName": "com.performance.meshview",
+                    "signatures": [
+                        "925c7b1df5689fef2371e1f6e71e98a3956295df95221baa06145222aa89f769"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 24,
+                            "version": "2.84",
+                            "versionCodes": {
+                                "ARM64_V8A": 309,
+                                "ARMEABI_V7A": 309,
+                                "X86": 309,
+                                "X86_64": 309
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "2.84"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Unlocks slice view, colors, lighting, normals, measurements, printability analysis and transform, and removes ads.",
             "name": "Unlock premium",
             "options": []
         },
@@ -4582,11 +4848,23 @@
                                 "X86": 309,
                                 "X86_64": 309
                             }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "0.4.98",
+                            "versionCodes": {
+                                "ARM64_V8A": 310,
+                                "ARMEABI_V7A": 310,
+                                "X86": 310,
+                                "X86_64": 310
+                            }
                         }
                     ],
                     "versions": [
                         "0.4.72",
-                        "0.4.97"
+                        "0.4.97",
+                        "0.4.98"
                     ]
                 }
             ],
@@ -5121,6 +5399,17 @@
                         {
                             "isExperimental": false,
                             "minSdk": 32,
+                            "version": "15.1.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 127812,
+                                "ARMEABI_V7A": 127812,
+                                "X86": 127812,
+                                "X86_64": 127812
+                            }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
                             "version": "14.0.0 TV",
                             "versionCodes": {
                                 "ARM64_V8A": 227708,
@@ -5128,13 +5417,26 @@
                                 "X86": 227708,
                                 "X86_64": 227708
                             }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "15.1.0 TV",
+                            "versionCodes": {
+                                "ARM64_V8A": 227812,
+                                "ARMEABI_V7A": 227812,
+                                "X86": 227812,
+                                "X86_64": 227812
+                            }
                         }
                     ],
                     "versions": [
                         "14.0.0",
                         "14.1.0",
                         "15.0.1",
-                        "14.0.0 TV"
+                        "15.1.0",
+                        "14.0.0 TV",
+                        "15.1.0 TV"
                     ]
                 }
             ],
@@ -5239,11 +5541,23 @@
                                 "X86": 23300,
                                 "X86_64": 23300
                             }
+                        },
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "2.33.1",
+                            "versionCodes": {
+                                "ARM64_V8A": 23301,
+                                "ARMEABI_V7A": 23301,
+                                "X86": 23301,
+                                "X86_64": 23301
+                            }
                         }
                     ],
                     "versions": [
                         "2.32.0",
-                        "2.33.0"
+                        "2.33.0",
+                        "2.33.1"
                     ]
                 }
             ],
@@ -5379,6 +5693,42 @@
             "default": true,
             "dependencies": [],
             "description": "Unlocks task lists, callouts, app lock, and the notebook, tag, colour and reminder limits. Requires a signed-in account. The server still enforces storage, attachment size, monographs and SMS 2FA.",
+            "name": "Unlock pro",
+            "options": []
+        },
+        {
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKS",
+                    "appIconColor": "#1988E0",
+                    "name": "Raindrop.io",
+                    "packageName": "io.raindrop.raindropio",
+                    "signatures": [
+                        "ddd75c66578654d085424804cb27c7b6e04fd36616045bfee140d9756ffca563"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 32,
+                            "version": "4.7.44",
+                            "versionCodes": {
+                                "ARM64_V8A": 8698961,
+                                "ARMEABI_V7A": 8698961,
+                                "X86": 8698961,
+                                "X86_64": 8698961
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "4.7.44"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Unlocks reminders and highlight notes. Adds duplicate and broken link filters, collection and tag suggestions, full-text search of saved pages, Wayback Machine copies and a weekly bookmark export to Downloads. Requires a signed-in account.",
             "name": "Unlock pro",
             "options": []
         },

@@ -104,12 +104,22 @@ public class ActiveSavesTest {
         }
     }
 
-    /** The shown row of save [id], or null. */
+    /**
+     * The row of save [id], scrolled into view when the page is longer than the screen, or null.
+     * By pixels: outside touch mode, as a test runs, setSelection skips a save's row, which can't
+     * be selected, and lands on the row after it.
+     */
     private View row(int id) {
-        for (int i = 0; i < list().getChildCount(); i++) {
-            int position = list().getFirstVisiblePosition() + i;
+        for (int position = 0; position < list().getCount(); position++) {
             Preference item = (Preference) list().getItemAtPosition(position);
-            if (("running_save_" + id).equals(item.getKey())) return list().getChildAt(i);
+            if (!("running_save_" + id).equals(item.getKey())) continue;
+            for (int tries = 0; tries < list().getCount(); tries++) {
+                if (position < list().getFirstVisiblePosition()) list().scrollListBy(-list().getHeight() / 2);
+                else if (position > list().getLastVisiblePosition()) list().scrollListBy(list().getHeight() / 2);
+                else break;
+                layout();
+            }
+            return list().getChildAt(position - list().getFirstVisiblePosition());
         }
         return null;
     }

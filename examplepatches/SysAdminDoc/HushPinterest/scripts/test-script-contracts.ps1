@@ -3962,6 +3962,15 @@ try {
             "        A: http://schemas.android.com/apk/res/android:minSdkVersion(0x0101020c)=$binaryMinSdk",
             '      E: uses-permission (line=10)',
             "        A: $androidName`"android.permission.INTERNET`" (Raw: `"android.permission.INTERNET`")")
+        # Pinterest asks for the ad ID and Android's ad services, which Remove ad tracking
+        # permissions takes out with the application's ad services property.
+        $adTracking = $releaseNames -ccontains 'Remove ad tracking permissions'
+        if ($adTracking -and -not $Patched) {
+            foreach ($permission in @('com.google.android.gms.permission.AD_ID',
+                    'android.permission.ACCESS_ADSERVICES_AD_ID', 'android.permission.ACCESS_ADSERVICES_ATTRIBUTION')) {
+                $lines += @('      E: uses-permission (line=11)', "        A: $androidName`"$permission`" (Raw: `"$permission`")")
+            }
+        }
         if ($Patched -and $releaseNames -ccontains 'Open links in your browser') {
             $lines += '      E: queries (line=12)'
             foreach ($scheme in @('http', 'https')) {
@@ -3973,8 +3982,19 @@ try {
                     "            A: http://schemas.android.com/apk/res/android:scheme(0x01010027)=`"$scheme`" (Raw: `"$scheme`")")
             }
         }
-        $lines += @('      E: application (line=20)',
-            '        E: activity (line=21)',
+        $lines += '      E: application (line=20)'
+        if ($adTracking) {
+            # Another application property stays where the ad services one goes.
+            $resizable = 'android.window.PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY'
+            $lines += @('        E: property (line=22)', "          A: $androidName`"$resizable`" (Raw: `"$resizable`")",
+                '          A: http://schemas.android.com/apk/res/android:value(0x01010024)=true')
+            if (-not $Patched) {
+                $lines += @('        E: property (line=23)',
+                    "          A: $androidName`"android.adservices.AD_SERVICES_CONFIG`" (Raw: `"android.adservices.AD_SERVICES_CONFIG`")",
+                    '          A: http://schemas.android.com/apk/res/android:resource(0x01010025)=@0x7f170005')
+            }
+        }
+        $lines += @('        E: activity (line=21)',
             "          A: $androidName`"com.pinterest.activity.PinterestActivity`" (Raw: `"com.pinterest.activity.PinterestActivity`")",
             $androidExported)
         if ($WithSplit) {
@@ -3983,9 +4003,25 @@ try {
                 $androidExported)
         }
         if ($Patched -and $releaseNames -ccontains 'Disable analytics') {
-            $lines += @('        E: meta-data (line=45)',
-                "          A: $androidName`"firebase_analytics_collection_deactivated`" (Raw: `"firebase_analytics_collection_deactivated`")",
-                '          A: http://schemas.android.com/apk/res/android:value(0x01010024)=true')
+            # The fixture declares none of the collection switches, so the patch adds each one.
+            $flags = [ordered]@{ firebase_analytics_collection_deactivated = 'true'
+                firebase_crashlytics_collection_enabled = 'false'; firebase_performance_collection_deactivated = 'true'
+                google_analytics_adid_collection_enabled = 'false'; google_analytics_default_allow_analytics_storage = 'false'
+                google_analytics_default_allow_ad_storage = 'false'; google_analytics_default_allow_ad_user_data = 'false'
+                google_analytics_default_allow_ad_personalization_signals = 'false' }
+            foreach ($flag in $flags.Keys) {
+                $lines += @('        E: meta-data (line=45)', "          A: $androidName`"$flag`" (Raw: `"$flag`")",
+                    "          A: http://schemas.android.com/apk/res/android:value(0x01010024)=$($flags[$flag])")
+            }
+        }
+        if ($Patched -and $releaseNames -ccontains 'Spoof signature for Google sign-in') {
+            # The two signature metadata entries, as the allowlist approves them.
+            foreach ($template in @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') `
+                    -SelectedPatchNames @('Spoof signature for Google sign-in'))) {
+                $attributes = ($template.Substring('metadata-added '.Length) | ConvertFrom-Json).declaration.attributes
+                $lines += @('        E: meta-data (line=46)', "          A: $androidName`"$($attributes.'android:name')`" (Raw: `"$($attributes.'android:name')`")",
+                    "          A: http://schemas.android.com/apk/res/android:value(0x01010024)=`"$($attributes.'android:value')`" (Raw: `"$($attributes.'android:value')`")")
+            }
         }
         if ($Patched -and $releaseNames -ccontains 'HushPinterest settings') {
             $lines += @('        E: activity-alias (line=60)',
@@ -4329,8 +4365,24 @@ try {
     }
 
     # A fixture for every declared build and the newer one: one target each, only the newer build
-    # forced, every patch applied, and no manifest change but the approved two, because the patched
+    # forced, every patch applied, and no manifest change but the approved ones, because the patched
     # manifest is held to the merge and not to the base.
+    # The allowlist names the ad services property alone. Taking it out of the application changes
+    # the application's declaration, which the delta records as that declaration replaced.
+    $propertyTemplate = @($releaseSelectedAllowlist |
+        Where-Object { $_ -clike 'component-removed {"owner":"application","declaration":{"tag":"property",*' })
+    Assert-True ($propertyTemplate.Count -eq 1) "The allowlist has no single ad services property template: $($propertyTemplate -join ', ')"
+    $applications = @(foreach ($patchedSide in @($false, $true)) {
+        @((ConvertFrom-ManifestXmlTree -Source 'application fixture' -Lines (
+            (Get-FixtureManifest -Build $releaseTarget.PackageVersion -Code '1' -Patched:$patchedSide) -split '\r?\n')).components |
+            Where-Object { ($_ | ConvertFrom-Json).tag -ceq 'application' })
+    })
+    Assert-True ($applications.Count -eq 2 -and $applications[0] -cne $applications[1] -and
+            $applications[0] -clike '*android.adservices.AD_SERVICES_CONFIG*' -and $applications[1] -cnotlike '*AD_SERVICES_CONFIG*' -and
+            $applications[1] -clike '*PROPERTY_COMPAT_ALLOW_RESTRICTED_RESIZABILITY*') `
+        "The fixture application does not lose its ad services property alone: $($applications -join ' -> ')"
+    $expectedChanges = @(@($releaseSelectedAllowlist | Where-Object { $_ -cne $propertyTemplate[0] }) +
+        @("component-removed $($applications[0])", "component-added $($applications[1])") | Sort-Object -Unique -CaseSensitive)
     $builtBuilds = @($releaseTarget.PackageVersions) + @($newerBuild)
     $allFixtures = @($builtBuilds | ForEach-Object { $fixturePaths[$_] })
     try {
@@ -4356,11 +4408,11 @@ try {
         Assert-True ($builtTarget.sdk.stockMinSdk -eq $stockMinSdk -and
                 $builtTarget.sdk.patchedMinSdk -eq [Math]::Max($stockMinSdk, 28)) `
             "The receipt does not record the binary SDK floor measured for $label."
-        # The alias and the removal are the patches' changes. The split's activity the merge brings
-        # in is the merge's.
+        # The alias, the collection switches and the ad declarations are the patches' changes. The
+        # split's activity the merge brings in is the merge's.
         $changes = @(ConvertTo-ManifestDeltaEntries -Delta $builtTarget.manifestDelta)
-        Assert-True (($changes -join "`n") -ceq (@($releaseSelectedAllowlist | Sort-Object -Unique -CaseSensitive) -join "`n")) `
-            "The receipt records other manifest changes for $label than the patches' two: $($changes -join ', ')"
+        Assert-True (($changes -join "`n") -ceq ($expectedChanges -join "`n")) `
+            "The receipt records other manifest changes for $label than the patches' own: $($changes -join ', ')"
     }
     # Each fixture merged once, and the CLI handed that merge rather than the bundle: the CLI deletes
     # its own merge, and the manifest delta above is taken against this one.

@@ -1,0 +1,23 @@
+{
+  "name": "anghamiplus-patches",
+  "private": true,
+  "description": "Morphe patch bundle for the Anghami Android application.",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kero309x/anghamiplus-patches.git"
+  },
+  "homepage": "https://github.com/Kero309x/anghamiplus-patches#readme",
+  "bugs": {
+    "url": "https://github.com/Kero309x/anghamiplus-patches/issues"
+  },
+  "devDependencies": {
+    "@cleyrop-org/semantic-release-backmerge": "^6.2.0",
+    "@MorpheApp/changelog": "git+https://github.com/MorpheApp/changelog.git#bundle",
+    "@semantic-release/exec": "^7.1.0",
+    "@semantic-release/git": "^11.0.1",
+    "conventional-changelog-conventionalcommits": "^9.3.1",
+    "gradle-semantic-release-plugin": "^1.10.3",
+    "semantic-release": "^25.0.9"
+  }
+}

@@ -175,6 +175,17 @@ internal object AppCompatibilities {
         targets = listOf(AppTarget(version = "7.97.0", versionCode = 79700150, minSdk = 32)),
     )
 
+    val FAST_STL_VIEWER = Compatibility(
+        name = "Fast STL Viewer",
+        packageName = "com.performance.meshview",
+        apkFileType = ApkFileType.APK,
+        appIconColor = 0x1A73B2,
+        signatures = setOf(
+            "925c7b1df5689fef2371e1f6e71e98a3956295df95221baa06145222aa89f769",
+        ),
+        targets = listOf(AppTarget(version = "2.84", versionCode = 309, minSdk = 24)),
+    )
+
     val FDDB = Compatibility(
         name = "Fddb",
         packageName = "com.fddb",
@@ -225,6 +236,15 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xE76F00,
         targets = listOf(AppTarget(version = "2.8", versionCode = 1041, minSdk = 21)),
+    )
+
+    val JOYN = Compatibility(
+        name = "Joyn",
+        packageName = "de.prosiebensat1digital.seventv",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x000F15,
+        signatures = setOf("71733196d1b3d681ee981cb02563e6778585f1891ed74b1d31604c1444c6b10a"),
+        targets = listOf(AppTarget(version = "6.9.0-AOS-609012264", versionCode = 609012264, minSdk = 24)),
     )
 
     val KICK = Compatibility(
@@ -459,6 +479,15 @@ internal object AppCompatibilities {
         apkFileType = ApkFileType.APKS,
         appIconColor = 0x0D192C,
         targets = listOf(AppTarget(version = "1.17.6", versionCode = 304, minSdk = 32)),
+    )
+
+    val RAINDROP = Compatibility(
+        name = "Raindrop.io",
+        packageName = "io.raindrop.raindropio",
+        apkFileType = ApkFileType.APKS,
+        appIconColor = 0x1988E0,
+        signatures = setOf("ddd75c66578654d085424804cb27c7b6e04fd36616045bfee140d9756ffca563"),
+        targets = listOf(AppTarget(version = "4.7.44", versionCode = 8698961, minSdk = 32)),
     )
 
     val READERA = Compatibility(

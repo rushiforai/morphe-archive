@@ -5,7 +5,10 @@ import java.util.regex.Pattern;
 
 /** Parsing shared by history persistence and the NGThread shortcut. */
 public final class EdgeReporterId {
-    private static final Pattern SUFFIX = Pattern.compile(" \\[([A-Za-z0-9+/]{8})★\\]$");
+    // The reporter token is delimited by the display wrapper, not by a fixed
+    // alphabet or length. Keep accepting future punctuation/ID formats while
+    // excluding whitespace and the wrapper brackets from the token itself.
+    private static final Pattern SUFFIX = Pattern.compile("\\s+\\[([^\\[\\]\\s]+)★\\]$");
     private EdgeReporterId() {}
     public static String suffix(String title) {
         if (title == null) return null;

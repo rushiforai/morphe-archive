@@ -61,8 +61,11 @@
     out, sent to another method of the runnable holding the first size of its log line with run()
     left alone, sent there as well as in run(), sent twice, and a second run() answers the rule, a
     build each, each failing the once-call rule for its own reason. Each of the tab links patch's
-    three calls is left out, a build each, failing its own once-call rule; the contract file may
-    hold no other once-call rules.
+    three calls is left out, a build each, failing its own once-call rule, and so is Hide read
+    receipts' call in Mailbox's mark-read, which is also sent twice; the contract file may hold no
+    other once-call rules. Each of the sources filter's four story stubs is left unfilled, and Hide
+    typing indicator's call is left out of Mailbox's typing setter or put after a branch there, a
+    build each.
     The good build carries the joins, copies and reads ART accepts, a zero tested against
     an object among them, so a check made stricter still has to pass them. Each bad build has to
     fail with findings of its own category only, so a check that fires for the wrong reason fails
@@ -589,7 +592,8 @@ try {
     Assert-True (($good.Output -join "`n") -match 'structural findings: 0') `
         "The good build did not report its structural count.`n$($good.Output -join "`n")"
     foreach ($stub in 'GenAiLabel;->detectedInfo', 'GenAiLabel;->selfDisclosureInfo',
-            'RecommendationLabel;->recommendationContext') {
+            'RecommendationLabel;->recommendationContext', 'PostText;->message', 'PostText;->attachedStory',
+            'PostSources;->actors', 'PostSources;->attachments') {
         Assert-True (($good.Output -join "`n") -match ([regex]::Escape("$stub(Ljava/lang/Object;)Ljava/lang/Object;: calls " +
             'Lcom/facebook/graphql/model/GraphQLStory;->A0X()Lfixture/Model; before its first return'))) `
             "The good build's $stub was not reported calling the story's accessor.`n$($good.Output -join "`n")"
@@ -631,6 +635,10 @@ try {
         ('MessengerIcon;->open(Landroid/content/Context;Z)Z in static (Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;' +
             'Ljava/lang/String;ZZ)V holding long_press: first in Lfixture/MessengerBar;->button('))) `
         "The good build's Messenger icon hook was not first in the Messenger button handler.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        ('TypingIndicator;->chatTyping(Z)Z holding setTypingIndicatorForThreadWithThreadIdentifier: ' +
+            'first in Lfixture/Mailbox;->setTyping(Z)V'))) `
+        "The good build's typing hook was not first in Mailbox's typing setter.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
         ('DoubleTapLike;->holdBackLike(Ljava/lang/String;)Z in instance (Lcom/facebook/auth/usersession/FbUserSession;*)V ' +
             'holding FbShortsMutationUtil.mutateViewerLikeReaction: first in Lfixture/ReelLikeHelper;->like('))) `
@@ -714,14 +722,18 @@ try {
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
         "contract $watchRule`: in place of it on v2, v1 in $watchFlush")) `
         "The good build's watch-history hook was not reported in place of the executor call.`n$($good.Output -join "`n")"
-    # The feed guard asks the extension once in the runnable that swaps an edge into the feed, and
-    # the tab links patch asks it once in each of the three places Facebook looks a link's tab up in
-    # its configured tabs. The contract file's once-call rules are those four, so a rule this suite
-    # builds no bad fixtures for can't pass on a count nobody checks.
+    # The feed guard asks the extension once in the runnable that swaps an edge into the feed, Hide
+    # read receipts once in Mailbox's mark-read, and the tab links patch once in each of the three
+    # places Facebook looks a link's tab up in its configured tabs. The contract file's once-call
+    # rules are those five, so a rule this suite builds no bad fixtures for can't pass on a count
+    # nobody checks.
     $swapHook = 'Lapp/morphe/extension/facebook/feed/FeedFilter;->hideSwappedEdge(Ljava/lang/Object;Ljava/lang/Object;)Z'
     $swapRun = 'Lfixture/EdgeSwap;->run()V'
     $swapHeld = '"sizeBefore" and "sizeAfter" with the shape instance ()V'
     $swapRule = "once-call $swapHook in instance ()V holding sizeBefore sizeAfter"
+    $readHook = 'Lapp/morphe/extension/facebook/chats/ReadReceipts;->holdsChatRead()Z'
+    $readSite = 'Lfixture/Mailbox;->markRead()V'
+    $readRule = "once-call $readHook holding markAsReadThreadWithThreadIdentifier"
     $tabFilter = 'Lapp/morphe/extension/facebook/navigation/TabBarFilter;'
     $tabTag = 'Lcom/facebook/navigation/tabbar/state/model/TabTag;'
     $session = 'Lcom/facebook/auth/usersession/FbUserSession;'
@@ -738,11 +750,13 @@ try {
     }
     $onceCallRules = @(Get-Content -LiteralPath $contracts | Where-Object { $_ -match '^\s*once-call\s' } |
         ForEach-Object { ($_.Trim() -split '\s+') -join ' ' })
-    $expectedOnceCalls = @($swapRule) + @($tabLinkRules.Keys)
+    $expectedOnceCalls = @($swapRule, $readRule) + @($tabLinkRules.Keys)
     Assert-True (($onceCallRules -join "`n") -ceq ($expectedOnceCalls -join "`n")) `
-        "The contract file's once-call rules are not the swap guard and tab links this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
+        "The contract file's once-call rules are not the swap guard, read receipts and tab links this suite builds bad fixtures for:`n$($onceCallRules -join "`n")"
     Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $swapRule`: once in $swapRun")) `
         "The good build's swap guard was not reported once in the swap runnable.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $readRule`: once in $readSite")) `
+        "The good build's read receipts hook was not reported once in Mailbox's mark-read.`n$($good.Output -join "`n")"
     foreach ($rule in $tabLinkRules.Keys) {
         Assert-True (($good.Output -join "`n") -match [regex]::Escape("contract $rule`: once in $($tabLinkRules[$rule])")) `
             "The good build's tab link was not reported once in its method: $rule`n$($good.Output -join "`n")"
@@ -853,6 +867,14 @@ try {
         'bad-tab-links-launch-hook-missing' = 'contract'
         'bad-tab-links-friends-hook-missing' = 'contract'
         'bad-tab-links-check-hook-missing' = 'contract'
+        'bad-post-message-stub-not-filled' = 'contract'
+        'bad-post-attached-stub-not-filled' = 'contract'
+        'bad-post-actors-stub-not-filled' = 'contract'
+        'bad-post-attachments-stub-not-filled' = 'contract'
+        'bad-typing-hook-missing' = 'contract'
+        'bad-typing-hook-late' = 'contract'
+        'bad-read-receipts-hook-missing' = 'contract'
+        'bad-read-receipts-hook-twice' = 'contract'
         'bad-logo-hook-missing' = 'contract'
         'bad-logo-hook-other-call' = 'contract'
         'bad-logo-hook-other-view' = 'contract'
@@ -994,6 +1016,24 @@ try {
         $fails = @((Get-Findings $badResults[$case.Key]).Fails)
         Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
             "$($case.Key) did not fail with its own swap finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
+    }
+    # Each chat build fails on its own rule alone: the typing hook missing or after a branch, the
+    # read receipts hook missing or there twice.
+    $typingHook = 'Lapp/morphe/extension/facebook/chats/TypingIndicator;->chatTyping(Z)Z'
+    $typingSite = 'Lfixture/Mailbox;->setTyping(Z)V'
+    $chatFails = [ordered]@{
+        'bad-typing-hook-missing' = "[diff] FAIL: contract: $typingHook is not called in $typingSite, the one method holding " +
+            '"setTypingIndicatorForThreadWithThreadIdentifier"'
+        'bad-typing-hook-late' = "[diff] FAIL: contract: $typingHook is called in $typingSite, but after a call, branch, " +
+            'switch, return or throw, not first'
+        'bad-read-receipts-hook-missing' = "[diff] FAIL: contract: $readHook is not called in $readSite, the one method holding " +
+            '"markAsReadThreadWithThreadIdentifier"'
+        'bad-read-receipts-hook-twice' = "[diff] FAIL: contract: $readHook has 2 call sites in $readSite, and must have exactly one"
+    }
+    foreach ($case in $chatFails.GetEnumerator()) {
+        $fails = @((Get-Findings $badResults[$case.Key]).Fails)
+        Assert-True ($fails.Count -eq 1 -and $fails[0] -ceq $case.Value) `
+            "$($case.Key) did not fail with its own chat finding alone.`nExpected: $($case.Value)`nGot:`n$($fails -join "`n")"
     }
     # And against a clean build whose flush makes no executor call, the good build's stand-in has
     # nothing it took the place of.

@@ -1,3 +1,17 @@
+## [3.53.1](https://github.com/crimera/piko-newx/compare/v3.53.0...v3.53.1) (2026-10-06)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** inject Piko settings row into the 12.33 alpha.02 redesigned settings list ([f834ae9](https://github.com/crimera/piko/commit/f834ae94175102ef0cb2c0d61cfe7e49769db303))
+* **Twitter - newx:** resolve 12.33.0-alpha.02 drift and add it as an experimental target ([a5b44d7](https://github.com/crimera/piko/commit/a5b44d77ea15dfd9f8e9ab578e1656195244e8de))
+
+## [3.53.0](https://github.com/crimera/piko-newx/compare/v3.52.0...v3.53.0) (2026-10-06)
+
+### 🐛 Bug Fixes
+* **Twitter - newx:** use ic_vector_wrench for Advanced category icon ([e72168e](https://github.com/crimera/piko/commit/e72168e7156c28407791e2fe210b76f8de621619))
+
+### ✨ New Features
+* **Twitter - newx:** add 12.33.0-alpha.01 as an experimental target ([8e08616](https://github.com/crimera/piko/commit/8e08616d35aae5307ac44ea2de2d456c7e09cfb8))
+
 ## [3.52.0](https://github.com/crimera/piko-newx/compare/v3.51.0...v3.52.0) (2026-10-06)
 
 ### 🐛 Bug Fixes

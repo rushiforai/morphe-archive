@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">लगभग</string>
   <string name="morphe_settings_screen_01_ads_title">विज्ञापन</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">वैकल्पिक थम्बनेल</string>
   <string name="morphe_settings_screen_03_feed_title">फीड</string>
   <string name="morphe_settings_screen_04_general_title">सामान्य</string>
   <string name="morphe_settings_screen_05_player_title">प्लेयर</string>
@@ -101,6 +100,7 @@ Second \"item\" text"</string>
           These hints appear in the video player while dragging the seekbar or holding to speed up playback. -->
   <string name="morphe_hide_subscribers_community_guidelines_title">सदस्य दिशानिर्देश छिपाएं</string>
   <string name="morphe_hide_timed_reactions_title">समयबद्ध प्रतिक्रियाएं छिपाएं</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_video_title_title">भिडियो शीर्षक लुकाउनुहोस्</string>
   <string name="morphe_hide_description_components_screen_title">वीडियो विवरण</string>
   <string name="morphe_hide_hype_points_title">हाइप पॉइंट छिपाएं</string>
@@ -245,7 +245,7 @@ Second \"item\" text"</string>
   <!-- Button does not have any text and is only shown as an icon, and only when the video information area is collapsed to a compact state. -->
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Hype' should be translated using the same localized wording YouTube displays for the button.
@@ -469,23 +469,23 @@ Second \"item\" text"</string>
   <string name="morphe_header_logo_entry_5">कस्टम</string>
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">इमेज रीजियन प्रतिबंध बाईपास करी</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_options_entry_1">मूल थंबनेल</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow र मौलिक थम्बनेलहरू</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow र स्थिर क्याप्चरहरू</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">अभी के कैप्चर</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API अन्त बिन्दु</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">DeArrow थम्बनेल क्याशे endpoint क URL</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">स्टिल वीडियो कैप्चर</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">स्टिल कैप्चर प्रत्येक वीडियो क शुरुआत / बीच / अंत स लेल जाइत अछि। एहि इमेजेस YouTube में बनेल अछि आ बाहरी API क उपयोग नहि कएल जाईत अछि।</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">फास्ट स्टिल कैप्चर क उपयोग करी</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">अंत</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">मूल थंबनेल</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow र मौलिक थम्बनेलहरू</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow र स्थिर क्याप्चरहरू</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">अभी के कैप्चर</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API अन्त बिन्दु</string>
+  <string name="morphe_dearrow_api_url_summary">DeArrow थम्बनेल क्याशे endpoint क URL</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">स्टिल वीडियो कैप्चर</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">स्टिल कैप्चर प्रत्येक वीडियो क शुरुआत / बीच / अंत स लेल जाइत अछि। एहि इमेजेस YouTube में बनेल अछि आ बाहरी API क उपयोग नहि कएल जाईत अछि।</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">अंत</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow अस्थायी रूप क्षतिग्रस्त अछि (स्टेटस कोड: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow अस्थायी रूप क्षतिग्रस्त अछि</string>
+  <string name="morphe_dearrow_error">DeArrow अस्थायी रूप क्षतिग्रस्त अछि (स्टेटस कोड: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow अस्थायी रूप क्षतिग्रस्त अछि</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">पुरानो प्लेयर बटन शैली पुनर्स्थापित गर्नुहोस्</string>

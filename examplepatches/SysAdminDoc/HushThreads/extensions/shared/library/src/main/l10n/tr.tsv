@@ -196,3 +196,80 @@ Not in this build: %1$s. Morphe Manager selects them by default. Patch again wit
 Appearance	Görünüm
 Pure black dark mode	Saf siyah karanlık mod
 Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	Karanlık mod koyu gri yerine siyah görünür. Görmek için Threads'te karanlık modu aç.
+Turn features on or off	Özellikleri aç veya kapat
+# Fotoğrafları ve videoları kaydetme
+%1$d saved in lower quality than on Threads.	%1$d öğe Threads'tekinden daha düşük kalitede kaydedildi.
+%1$d saves stopped. Reopen the post and save again.	%1$d kaydetme işlemi durdu. Gönderiyi yeniden açıp tekrar kaydet.
+%1$d saves were interrupted	%1$d kaydetme işlemi kesildi
+%1$s becomes the date and time of the save, %2$s the video's number on Threads, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s kaydetme tarihine ve saatine, %2$s videonun Threads'teki numarasına, %3$s paylaşan kişinin adına, %4$s ise paylaşıldığı güne dönüşür. Kaydederken bilinmeyenler dışarıda bırakılır ve bunların hiçbirini içermeyen bir ada tarih eklenir. Ad klasörde zaten varsa sonuna kaydetme saati eklenir. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %5$s adını kullanmak için boş bırak.
+%1$s of %2$s	%1$s / %2$s
+%1$s so far	Şimdiye kadar %1$s
+A save stopped. Reopen the post and save again.	Bir kaydetme işlemi durdu. Gönderiyi yeniden açıp tekrar kaydet.
+A save was interrupted	Bir kaydetme işlemi kesildi
+Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.	Bir gönderinin menüsüne Kaydet satırı ekler. Birden fazla fotoğraf veya video içeren bir gönderide hepsi sırayla kaydedilir. Kapalıyken veya duraklatıldığında menü Threads'in kendi menüsüdür.
+Best	En iyi
+Cancel saving this carousel	Bu çoklu gönderinin kaydını iptal et
+Cancel saving this photo	Bu fotoğrafın kaydedilmesini iptal et
+Cancel saving this video	Bu videonun kaydedilmesini iptal et
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Çoklu gönderi iptal edildi. Kaydedilen %1$d. Başarısız %2$d. Atlanan %3$d.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Movies ve Pictures altında bir klasör adı seç. Geçersiz karakterler alt çizgiye dönüşür. Varsayılan %1$s klasörünü kullanmak için boş bırak.
+Copying to the gallery	Galeriye kopyalanıyor
+Download failed	İndirme başarısız oldu
+Download quality	İndirme kalitesi
+Downloading	İndiriliyor
+Downloads	İndirmeler
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Her video %1$s kalitesinde ya da bunun altındaki en yakın kalitede kaydedilir. Bu kadar düşük kalitesi olmayan video, bunun üstündeki en yakın kalitede kaydedilir.
+Each video saves at its lowest quality, for the smallest file.	Her video en düşük kalitesinde kaydedilir, böylece dosya en küçük olur.
+Each video saves at the best quality the player streams.	Her video, oynatıcının sunduğu en iyi kalitede kaydedilir.
+Example without post details	Gönderi ayrıntıları olmadan örnek
+File name	Dosya adı
+File name set to %1$s.	Dosya adı %1$s olarak ayarlandı.
+Folder name	Klasör adı
+Folder set to %1$s.	Klasör %1$s olarak ayarlandı.
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	WhatsApp, CapCut ve InShot gibi video düzenleyiciler ya da kaydedilen videoları sessiz oynatan bir galeri veya oynatıcı için. Kaliteyi düşürebilir.
+How far a photo or video you're saving has got, with a button to cancel it	Kaydettiğin fotoğraf veya videonun ilerleme durumu ve iptal etmek için bir düğme
+HushThreads saves	HushThreads kaydetme işlemleri
+Joining the picture and sound	Görüntü ve ses birleştiriliyor
+Last carousel save	Son çoklu gönderi kaydı
+Link expired. Reopen the post and try again	Bağlantının süresi doldu. Gönderiyi yeniden açıp tekrar dene
+Not saved: a carousel can have at most %1$d pages	Kaydedilmedi: çoklu gönderide en fazla %1$d sayfa olabilir
+Not saved: that isn't a Threads photo or video	Kaydedilmedi: Bu bir Threads fotoğrafı veya videosu değil
+Not saved: the file is over 512 MB	Kaydedilmedi: Dosya 512 MB'tan büyük
+Page %1$d of %2$d	%1$d / %2$d sayfa
+Photos and videos you save from posts	Gönderilerden kaydettiğin fotoğraflar ve videolar
+Reopen the post and save again.	Gönderiyi yeniden açıp tekrar kaydet.
+Save	Kaydet
+Save all	Tümünü kaydet
+Save cancelled	Kaydetme iptal edildi
+Save folder	Kayıt klasörü
+Save photo	Fotoğrafı kaydet
+Save photos and videos	Fotoğrafları ve videoları kaydet
+Save video	Videoyu kaydet
+Save videos other apps can open	Videoları diğer uygulamaların açabileceği biçimde kaydet
+Saved %1$d. Failed %2$d. Skipped %3$d.	Kaydedilen %1$d. Başarısız %2$d. Atlanan %3$d.
+Saved to %1$s	Şuraya kaydedildi: %1$s
+Saved to %1$s in lower quality than on Threads	Şuraya Threads'tekinden düşük kalitede kaydedildi: %1$s
+Saved to the gallery	Galeriye kaydedildi
+Saved to the gallery in lower quality than on Threads	Galeriye Threads'tekinden düşük kalitede kaydedildi
+Saving a carousel	Çoklu gönderi kaydediliyor
+Saving a photo	Fotoğraf kaydediliyor
+Saving a video	Video kaydediliyor
+Saving...	Kaydediliyor...
+Saving... Cancel: Downloads in HushThreads.	Kaydediliyor... İptal: HushThreads'ta İndirmeler.
+Smallest	En küçük
+Video file name	Video dosya adı
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Videoların adı %1$s olur. Fotoğrafların adı her zaman %2$s ile başlar, ardından tarih ve saat gelir.
+Videos go to %1$s and photos to %2$s.	Videolar %1$s klasörüne, fotoğraflar %2$s klasörüne kaydedilir.
+Version code raised	Sürüm kodu yükseltildi
+This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Bu derlemenin sürüm kodu Android'in izin verdiği en yüksek değerdir, bu yüzden Google Play bunun üzerine Meta'nın güncellemelerini sunmaz. Threads'in derlendiği sürümle yaptığı kontroller gerçek kodu görmeye devam eder. Orijinal Threads'e dönmek için önce bunu kaldırın. Bu, Threads'in bu telefondaki verilerini siler. Sonraki HushThreads derlemelerinin de Change version code içermesi gerekir, yoksa bunun üzerine yüklenmezler.
+the raised version code	yükseltilmiş sürüm kodu
+Share sheet entry removed	Paylaşım menüsü girişi kaldırıldı
+Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	Diğer uygulamalardan paylaşırken Threads görünmez. Threads'ten diğer uygulamalara paylaşım çalışmaya devam eder.
+the removed share sheet entry	kaldırılan paylaşım menüsü girişi
+User certificates trusted	Kullanıcı sertifikalarına güveniliyor
+Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.	Threads, Android'in denetlediği yerlerde kendi yüklediğin sertifikaları kabul eder. Threads'in Meta sertifikaları için kendi denetimleri değişmedi, bu yüzden bir proxy trafiğin çoğunu yine okuyamaz.
+the user certificate trust	kullanıcı sertifikalarına duyulan güven
+Hide screenshots from Threads	Ekran görüntülerini Threads'ten gizle
+Threads isn't told when you take a screenshot, so it can't log it or react to it.	Ekran görüntüsü aldığında Threads'e haber verilmez, bu yüzden onu kaydedemez ya da ona tepki veremez.
+Full size photos	Tam boyutlu fotoğraflar
+Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	Fotoğraflar ekranına göre seçilen bir boyutta değil, Threads'te bulunan en büyük boyutta yüklenir. Daha net görünür ve daha fazla veri kullanır.

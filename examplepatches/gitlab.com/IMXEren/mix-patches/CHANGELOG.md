@@ -1,3 +1,17 @@
+## [1.8.0](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.2...v1.8.0) (2026-10-07)
+
+### ✨ New Features
+
+* **reddit-sync:** restore deleted posts from Arctic Shift ([9c74db3](https://gitlab.com/IMXEren/mix-patches/commit/9c74db306124a4015739ee1b62068f19cb870150))
+* **reddit-sync:** use a rounded archive badge ([539a1c8](https://gitlab.com/IMXEren/mix-patches/commit/539a1c856ffd8cf50f9b6ba6e93448c21fa6798d))
+
+## [1.8.0-dev.1](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.2...v1.8.0-dev.1) (2026-10-02)
+
+### ✨ New Features
+
+* **reddit-sync:** restore deleted posts from Arctic Shift ([9c74db3](https://gitlab.com/IMXEren/mix-patches/commit/9c74db306124a4015739ee1b62068f19cb870150))
+* **reddit-sync:** use a rounded archive badge ([539a1c8](https://gitlab.com/IMXEren/mix-patches/commit/539a1c856ffd8cf50f9b6ba6e93448c21fa6798d))
+
 ## [1.7.2](https://gitlab.com/IMXEren/mix-patches/compare/v1.7.1...v1.7.2) (2026-09-27)
 
 ### 🐛 Bug Fixes

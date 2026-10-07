@@ -49,7 +49,7 @@ function Get-SelectionStatusModel {
     $all = @($families.Status) + @($capabilities.Status)
     $declared = @([regex]::Matches((Get-Content (Join-Path $source 'SettingsStatus.java') -Raw),
         'public static boolean ([A-Za-z]+)\(\)') | ForEach-Object { $_.Groups[1].Value })
-    if ($families.Count -ne 22 -or $all.Count -ne @($all | Sort-Object -Unique).Count -or
+    if ($families.Count -ne 42 -or $all.Count -ne @($all | Sort-Object -Unique).Count -or
         (Compare-Object ($all | Sort-Object) ($declared | Sort-Object))) { throw 'STATUS_MODEL_INVALID' }
     [pscustomobject]@{ Families = $families; Capabilities = $capabilities; StatusNames = $all }
 }
@@ -61,7 +61,7 @@ function Get-PatchSelectionCases {
     $all = @($Catalog.patches.name)
     $defaults = @($Catalog.patches | Where-Object { $_.use -is [bool] -and $_.use } | ForEach-Object { $_.name })
     $required = @($StatusModel.Families.Name) + @('HushTelegram settings', $api, $maps)
-    if ($all.Count -ne 25 -or $defaults.Count -ne 23 -or $defaults -ccontains $api -or $defaults -ccontains $maps -or
+    if ($all.Count -ne 45 -or $defaults.Count -ne 43 -or $defaults -ccontains $api -or $defaults -ccontains $maps -or
         @($Catalog.patches | Where-Object { $_.use -isnot [bool] }).Count -or
         (Compare-Object ($all | Sort-Object) ($required | Sort-Object) -CaseSensitive)) { throw 'CATALOG_INVALID' }
     $syntheticApiId = '19077001'
@@ -76,8 +76,8 @@ function Get-PatchSelectionCases {
             ApiConfigured = $ApiConfigured; MapsConfigured = $MapsConfigured; Default = $Default; Malformed = $Malformed
             ApiId = $syntheticApiId; ApiHash = $hash; MapsKey = $key; Canaries = @($syntheticApiId, $hash, $key, $sentinel) }
     }
-    New-SelectionCase 'default23' $defaults -Default $true
-    New-SelectionCase 'full25' $all
+    New-SelectionCase 'default43' $defaults -Default $true
+    New-SelectionCase 'full45' $all
     New-SelectionCase 'settings-only' @('HushTelegram settings')
     foreach ($family in $StatusModel.Families) {
         New-SelectionCase ('single-' + $family.Enum.ToLowerInvariant().Replace('_', '-')) @($family.Name)
@@ -213,7 +213,7 @@ function Invoke-PatchSelectionMatrix {
     $plans = @(Get-PatchSelectionCases -Catalog $catalog -StatusModel $model)
     if ($Case.Count) {
         if (@($Case | Where-Object { $plans.Id -cnotcontains $_ }).Count) { throw 'CASE_INVALID' }
-        if ($Case -ccontains 'full-configured' -and $Case -cnotcontains 'full25') { $Case += 'full25' }
+        if ($Case -ccontains 'full-configured' -and $Case -cnotcontains 'full45') { $Case += 'full45' }
         $plans = @($plans | Where-Object { $Case -ccontains $_.Id })
     }
     $stock = Get-ApkManifestFacts -Apk $Apk -Aapt2 $Aapt2
@@ -300,7 +300,7 @@ function Invoke-PatchSelectionMatrix {
             $checkerArguments = @('-Xmx2g', '-XX:ActiveProcessorCount=2', '-cp', $classPath,
                 'SelectionCheck', $Apk, $output, $expectationPath, $compiledPath)
             if ($selection.Id -ceq 'full-configured') {
-                $baseline = Join-Path $run 'full25-private.apk'
+                $baseline = Join-Path $run 'full45-private.apk'
                 if (-not (Test-Path -LiteralPath $baseline -PathType Leaf)) { throw 'FULL_BASELINE_MISSING' }
                 $checkerArguments += $baseline
             }
@@ -330,7 +330,7 @@ function Invoke-PatchSelectionMatrix {
                 changedMethods = $facts.changedMethods; addedMethods = $facts.addedMethods; structuralFindings = $facts.structuralFindings
                 nativeEntries = $native.NativeLibraries.stock.nativeEntryCount; zipalignPassed = $native.ZipAlignment.passed })
             $casePassed = $true
-            if ($selection.Id -ceq 'full25') { Copy-Item -LiteralPath $output -Destination (Join-Path $run 'full25-private.apk') }
+            if ($selection.Id -ceq 'full45') { Copy-Item -LiteralPath $output -Destination (Join-Path $run 'full45-private.apk') }
             Write-Host "[selections] $($selection.Id) SELECTION_PASSED"
         } catch {
             # CLI and Java failures can contain option values. Only this fixed code reaches the console.

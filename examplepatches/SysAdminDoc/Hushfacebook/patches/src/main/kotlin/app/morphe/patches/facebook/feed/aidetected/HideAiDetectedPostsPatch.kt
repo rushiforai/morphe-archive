@@ -20,8 +20,10 @@ import app.morphe.patches.facebook.feed.requireStoryFlagReaders
 import app.morphe.patches.facebook.feed.resolveStatic
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.iface.ClassDef
 
 /** The extension class that reads the feed's flag, and its accessor this patch fills in. */
 internal const val GEN_AI_LABEL = "$EXTENSION_PACKAGE/feed/GenAiLabel;"
@@ -52,6 +54,13 @@ private const val PATCH = "Hide AI-detected posts"
  * labelled as AI. Its accessor is found and held to the plugin the same way and written into
  * `GenAiLabel.selfDisclosureInfo`, for the opt-in switch that hides those posts too.
  *
+ * A fifth switch takes out posts featuring one of Meta's AI characters. Facebook asks for such a
+ * post's attachment style through a finder of its own, and this patch writes GraphQLStory's
+ * attachments accessor and a call of that finder into `AiCharacterPosts` (see AiCharacterAnchors.kt).
+ * That rule is the newest and least needed here, so a build whose anchors moved only loses it: the
+ * patch log says why, the stubs stay unfilled, and Hook status names what's missing while its switch
+ * is on.
+ *
  * The Reels rule runs where a fetched page enters the Reels and Watch item collection, on the same
  * three methods the sponsored reels filter runs on, each prepended with a call of its own; the two
  * patches work alone or together. What this patch adds there is Facebook's own finder of the
@@ -63,17 +72,19 @@ private const val PATCH = "Hide AI-detected posts"
  * own, and for those the extension reads `ai_generated_detected_info` by its key through
  * `TreeJNI.getTree(int)`, which the patch requires too (see ReelLabel.kt).
  *
- * Every switch starts off. Nobody has yet recorded a signed-in feed with one AI-labeled post and
- * one ordinary post beside it, nor a Reels feed with an AI-labelled reel, and until someone does,
- * each rule waits to be turned on.
+ * Every switch but the Meta AI cards' starts off. Nobody has yet recorded a signed-in feed with one
+ * AI-labeled post and one ordinary post beside it, a Reels feed with an AI-labelled reel or a post
+ * featuring an AI character, and until someone does, each rule waits to be turned on. The cards are
+ * Facebook's own promotion, not anyone's post, so that switch starts on.
  */
 @Suppress("unused")
 val hideAiDetectedPostsPatch = bytecodePatch(
     name = "Hide AI-detected posts",
     description = "Removes feed posts that Facebook's own detection marked as made with AI, and the reels " +
         "and Watch videos it flagged the same way. A third switch also removes posts their creator " +
-        "labelled as AI, and a fourth takes out the Meta AI cards Facebook adds between posts. That one " +
-        "starts on. The others start off, so turn them on in Hushfacebook's settings.",
+        "labelled as AI, a fourth takes out the Meta AI cards Facebook adds between posts, and a fifth " +
+        "removes posts featuring Meta's AI characters. The Meta AI cards switch starts on. The others start " +
+        "off, so turn them on in Hushfacebook's settings.",
     default = true,
 ) {
     category("Feed")
@@ -117,10 +128,53 @@ val hideAiDetectedPostsPatch = bytecodePatch(
         fillStoryModelStub(GEN_AI_LABEL, DETECTED_INFO_STUB, accessor)
         fillStoryModelStub(GEN_AI_LABEL, SELF_DISCLOSURE_INFO_STUB, selfLabel)
 
+        try {
+            hideAiCharacterPosts(story)
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on without the AI character posts rule.")
+        }
         hideReels()
 
         enableStatus("aiDetectedPosts")
     }
+}
+
+/**
+ * Hide AI character posts' rule for posts that carry an AI character: GraphQLStory's attachments
+ * accessor and Facebook's finder of an attachment's style, written into AiCharacterPosts' two stubs.
+ * The finder is the one static method the style's literal is handed to, held to the shape and the
+ * style_infos read AiCharacterAnchors.kt describes, so a finder that changed throws here rather than
+ * the rule guessing, and both stubs are filled only once everything has been found.
+ */
+private fun BytecodePatchContext.hideAiCharacterPosts(story: ClassDef) {
+    val attachmentLists = attachmentsAccessors(story)
+    val attachments = attachmentLists.singleOrNull() ?: throw PatchException(
+        "$PATCH: GraphQLStory has ${attachmentLists.size} accessors of $ATTACHMENTS_FIELD as $ATTACHMENT_TYPE, " +
+            "expected one: ${attachmentLists.joinToString { it.name }}",
+    )
+    val styleLists = styleInfosAccessors(classDefBy(GRAPHQL_STORY_ATTACHMENT))
+    val styleInfos = styleLists.singleOrNull() ?: throw PatchException(
+        "$PATCH: GraphQLStoryAttachment has ${styleLists.size} accessors of $STYLE_INFOS_FIELD as $STYLE_INFO_TYPE, " +
+            "expected one: ${styleLists.joinToString { it.name }}",
+    )
+
+    val holders = classDefByStrings(AI_CHARACTER_STYLE, StringComparisonType.EQUALS)
+        .flatMap { methodsHolding(it, AI_CHARACTER_STYLE) }
+    val found = attributionFinder(holders, AI_CHARACTER_STYLE)
+    val finder = found.call ?: throw PatchException("$PATCH: ${found.problem}")
+    val finderClass = classDefByOrNull(finder.definingClass)
+        ?: throw PatchException("$PATCH: ${finder.definingClass}, the style finder's class, isn't in this build")
+    val finderMethod = resolveStatic(finderClass, finder)
+        ?: throw PatchException("$PATCH: ${finder.definingClass} declares no static ${finder.name} the style is handed to")
+    if (!isStyleFinder(finderMethod, finderClass, styleInfos)) {
+        throw PatchException(
+            "$PATCH: ${finder.definingClass}->${finder.name} isn't a public finder walking " +
+                "GraphQLStoryAttachment.${styleInfos.name}() by getTypeName(), so it isn't the style finder",
+        )
+    }
+
+    fillStoryModelStub(AI_CHARACTER_POSTS, ATTACHMENTS_STUB, attachments)
+    fillFinderStub(AI_CHARACTER_POSTS, STYLE_INFO_STUB, finder)
 }
 
 /** The Reels and Watch side: the finder stub, and the page filters at both levels a page enters. */

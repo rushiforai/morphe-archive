@@ -114,7 +114,8 @@ val hideSuggestedPostsPatch = bytecodePatch(
     description = "Removes what Facebook adds to the feed besides ads: \"Suggested for you\" posts, \"People " +
         "you may know\", suggested groups, \"Stories you might like\", \"Pages you may like\" and its own upsells. " +
         "In-feed surveys go too, and so does the \"People you may know\" row on your own profile. Each kind has its " +
-        "own switch.",
+        "own switch. Memories, friend requests and friends' locations between posts have switches too, off until " +
+        "you pick them.",
     default = true,
 ) {
     category("Feed")

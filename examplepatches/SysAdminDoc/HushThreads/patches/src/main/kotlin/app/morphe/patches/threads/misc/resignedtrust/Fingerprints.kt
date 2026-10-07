@@ -13,6 +13,7 @@ package app.morphe.patches.threads.misc.resignedtrust
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.string
 
 /**
  * The method that gives Threads' security code the signers of a package.
@@ -37,5 +38,22 @@ internal object PackageSignersFingerprint : Fingerprint(
             definingClass = "Landroid/content/pm/PackageInfo;",
             name = "signatures",
         ),
+    ),
+)
+
+/**
+ * FBNS's check of a package it may hand pushes to: the SHA-256 of the package's one signer, looked
+ * up in Meta's certificates. It reads `PackageInfo.signatures` itself and logs as PackageInfoUtil.
+ * Its class and its name are Redex names.
+ */
+internal object FbnsPackageCheckFingerprint : Fingerprint(
+    returnType = "V",
+    filters = listOf(
+        fieldAccess(
+            definingClass = "Landroid/content/pm/PackageInfo;",
+            name = "signatures",
+        ),
+        string("PackageInfoUtil"),
+        string("Failed to create SHA-256 hash"),
     ),
 )

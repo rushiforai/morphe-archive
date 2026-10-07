@@ -303,8 +303,8 @@ YouTube Music 8.x — การเฟดข้ามจะทำงานบน 
   <!-- 'Start radio' should be translated using the same localized wording YouTube Music displays for the button. -->
   <string name="morphe_music_hide_radio_button_title">ซ่อนปุ่ม \'เริ่มวิทยุ\'</string>
   <!-- flyoutmenu.components.hideFlyoutMenuComponentsPatch -->
-  <string name="morphe_music_hide_flyout_menu_components_screen_title">เมนูแบบเลื่อนลง</string>
-  <string name="morphe_music_hide_flyout_menu_components_screen_summary">เลือกส่วนประกอบที่จะแสดงในเมนูแบบเลื่อนลงของผู้เล่นและคิว</string>
+  <string name="morphe_music_hide_flyout_menu_components_screen_title">เมนูแบบเลื่อนออก</string>
+  <string name="morphe_music_hide_flyout_menu_components_screen_summary">เลือกส่วนประกอบที่จะแสดงในเมนูแบบเลื่อนออกของผู้เล่นและคิว</string>
   <string name="morphe_music_hide_flyout_menu_3_column_component_title">ซ่อนส่วนประกอบ 3 คอลัมน์</string>
   <string name="morphe_music_hide_flyout_menu_like_dislike_title">ซ่อนปุ่มถูกใจและไม่ชอบ</string>
   <string name="morphe_music_hide_flyout_menu_taste_match_title">ซ่อนเมนู \'การจับคู่รสนิยม\' </string>
@@ -312,7 +312,7 @@ YouTube Music 8.x — การเฟดข้ามจะทำงานบน 
   <string name="morphe_music_hide_flyout_menu_add_to_queue_title">ซ่อนเมนู \'เพิ่มลงในคิว\' </string>
   <string name="morphe_music_hide_flyout_menu_captions_title">ซ่อนเมนูคำบรรยาย</string>
   <string name="morphe_music_hide_flyout_menu_delete_playlist_title">ซ่อนเมนู \'ลบเพลย์ลิสต์\'</string>
-  <string name="morphe_music_hide_flyout_menu_dismiss_queue_title">ซ่อนเมนู \'ปฏิเสธคิว\'</string>
+  <string name="morphe_music_hide_flyout_menu_dismiss_queue_title">ซ่อนเมนู \'ปิดคิว\'</string>
   <string name="morphe_music_hide_flyout_menu_dont_recommend_artist_title">ซ่อนเมนู \'ไม่ต้องการฟังศิลปินนี้\'</string>
   <string name="morphe_music_hide_flyout_menu_download_title">ซ่อนเมนูดาวน์โหลด</string>
   <string name="morphe_music_hide_flyout_menu_edit_playlist_title">ซ่อนเมนู \'แก้ไขเพลย์ลิสต์\'</string>
@@ -323,21 +323,21 @@ YouTube Music 8.x — การเฟดข้ามจะทำงานบน 
   <string name="morphe_music_hide_flyout_menu_help_title">ซ่อนเมนูช่วยเหลือ</string>
   <string name="morphe_music_hide_flyout_menu_mark_episode_as_played_title">ซ่อนเมนู \'ทำเครื่องหมายตอนว่าเล่นแล้ว\'</string>
   <string name="morphe_music_hide_flyout_menu_not_interested_title">ซ่อนเมนู \'ไม่สนใจ\'</string>
-  <string name="morphe_music_hide_flyout_menu_pin_to_speed_dial_title">ซ่อนเมนู \'ตรึงไว้ที่ Speed Dial\'</string>
+  <string name="morphe_music_hide_flyout_menu_pin_to_speed_dial_title">ซ่อนเมนู \'ตรึงไว้ที่การโทรด่วน\'</string>
   <string name="morphe_music_hide_flyout_menu_play_next_title">ซ่อนเมนู \'เล่นถัดไป\'</string>
   <string name="morphe_music_hide_flyout_menu_quality_title">ซ่อนเมนูคุณภาพ</string>
   <string name="morphe_music_hide_flyout_menu_remove_from_library_title">ซ่อนเมนู \'ลบออกจากคลัง\'</string>
   <string name="morphe_music_hide_flyout_menu_remove_from_playlist_title">ซ่อนเมนู \'ลบออกจากเพลย์ลิสต์\'</string>
   <string name="morphe_music_hide_flyout_menu_report_title">ซ่อนเมนูรายงาน</string>
-  <string name="morphe_music_hide_flyout_menu_save_episode_for_later_save_to_library_title">ซ่อนเมนู \'บันทึกตอนสำหรับภายหลัง\' / \'บันทึกไปยังคลัง\'</string>
+  <string name="morphe_music_hide_flyout_menu_save_episode_for_later_save_to_library_title">ซ่อนเมนู \'บันทึกตอนสำหรับภายหลัง\' / \'บันทึกลงในคลัง\'</string>
   <string name="morphe_music_hide_flyout_menu_save_to_playlist_title">ซ่อนเมนู \'บันทึกไปยังเพลย์ลิสต์\'</string>
   <string name="morphe_music_hide_flyout_menu_share_title">ซ่อนเมนูแชร์</string>
   <string name="morphe_music_hide_flyout_menu_shuffle_play_title">ซ่อนเมนู \'เล่นแบบสุ่ม\'</string>
-  <string name="morphe_music_hide_flyout_menu_sleep_timer_title">ซ่อนเมนู \'ตัวจับเวลาพัก\'</string>
+  <string name="morphe_music_hide_flyout_menu_sleep_timer_title">ซ่อนเมนู \'ตัวตั้งเวลาปิด\'</string>
   <string name="morphe_music_hide_flyout_menu_start_radio_title">ซ่อนเมนู \'เริ่มวิทยุ\'</string>
   <string name="morphe_music_hide_flyout_menu_stats_for_nerds_title">ซ่อนเมนู \'สถิติสำหรับพวกเนิร์ด\'</string>
-  <string name="morphe_music_hide_flyout_menu_subscribe_title">ซ่อนเมนูสมัครรับข้อมูล</string>
-  <string name="morphe_music_hide_flyout_menu_unpin_from_speed_dial_title">ซ่อนเมนู \'เอาออกจาก Speed Dial\'</string>
+  <string name="morphe_music_hide_flyout_menu_subscribe_title">ซ่อนเมนูติดตาม</string>
+  <string name="morphe_music_hide_flyout_menu_unpin_from_speed_dial_title">ซ่อนเมนู \'เอาออกจากการโทรด่วน\'</string>
   <string name="morphe_music_hide_flyout_menu_view_song_credit_title">ซ่อนเมนู \'ดูเครดิตเพลง\'</string>
   <!-- layout.startpage.changeStartPagePatch -->
   <string name="morphe_change_start_page_title">หน้าเริ่มต้น</string>

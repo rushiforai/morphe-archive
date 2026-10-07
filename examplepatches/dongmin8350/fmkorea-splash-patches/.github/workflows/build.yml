@@ -1,0 +1,91 @@
+name: Build and publish Morphe bundle
+
+on:
+  push:
+    paths:
+      - "patches/**"
+      - "settings.gradle.kts"
+      - "build.gradle.kts"
+      - "gradle/**"
+      - "gradle.properties"
+      - "gradlew"
+      - "gradlew.bat"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Build Morphe patch bundle
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./gradlew buildAndroid --no-daemon
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: fmkorea-morphe-patch
+          path: patches/build/libs/*.mpp
+
+      - name: Publish GitHub release asset and metadata
+        if: github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          version="1.0.0"
+          tag="v$version"
+          bundle="$(find patches/build/libs -maxdepth 1 -type f -name '*.mpp' ! -name '*sources*' ! -name '*javadoc*' | head -n 1)"
+          test -n "$bundle"
+
+          cp "$bundle" "patches-$version.mpp"
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$tag" "patches-$version.mpp" --clobber --repo "$GITHUB_REPOSITORY"
+          else
+            gh release create "$tag" "patches-$version.mpp"               --repo "$GITHUB_REPOSITORY"               --title "$tag"               --notes "FMKorea splash logo removal patch for Morphe."
+          fi
+
+          python3 - <<'PY'
+          import json
+          from datetime import datetime, timezone
+
+          version = "1.0.0"
+          metadata = {
+              "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S"),
+              "description": "Removes the large FM logo shown while the FMKorea app starts.",
+              "download_url": f"https://github.com/dongmin8350/fmkorea-splash-patches/releases/download/v{version}/patches-{version}.mpp",
+              "signature_download_url": "",
+              "version": version,
+          }
+          with open("patches-bundle.json", "w", encoding="utf-8") as fp:
+              json.dump(metadata, fp, ensure_ascii=False, indent=2)
+              fp.write("\n")
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add patches-bundle.json
+
+          if git diff --cached --quiet; then
+            echo "Metadata is already current."
+            exit 0
+          fi
+
+          git commit -m "chore: publish Morphe release metadata [skip ci]"
+          git push origin HEAD:main

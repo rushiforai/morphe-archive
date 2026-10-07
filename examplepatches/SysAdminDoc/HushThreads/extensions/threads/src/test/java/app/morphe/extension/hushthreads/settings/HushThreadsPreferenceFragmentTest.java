@@ -79,12 +79,18 @@ public class HushThreadsPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_SUGGESTED_USERS, "Hide suggested users");
         ROW_TITLES.put(PatchFamily.RETURN_REFRESH, "Keep feed position on return");
         ROW_TITLES.put(PatchFamily.VIDEO_AUTOPLAY, "Tap to play videos");
+        ROW_TITLES.put(PatchFamily.MAX_IMAGE_QUALITY, "Full size photos");
         ROW_TITLES.put(PatchFamily.SANITIZE_SHARING_LINKS, "Remove tracking from shared links");
         ROW_TITLES.put(PatchFamily.EXTERNAL_BROWSER, "Open links in your browser");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop analytics uploads");
+        ROW_TITLES.put(PatchFamily.SCREENSHOT_DETECTION, "Hide screenshots from Threads");
+        ROW_TITLES.put(PatchFamily.SAVE_MEDIA, "Save photos and videos");
         ROW_TITLES.put(PatchFamily.PURE_BLACK, "Pure black dark mode");
         ROW_TITLES.put(PatchFamily.REMOVE_AD_ID, "Advertising ID removed");
         ROW_TITLES.put(PatchFamily.RESTORE_TRUST, "Re-signed build fix");
+        ROW_TITLES.put(PatchFamily.VERSION_CODE, "Version code raised");
+        ROW_TITLES.put(PatchFamily.REMOVE_SHARE_TARGETS, "Share sheet entry removed");
+        ROW_TITLES.put(PatchFamily.TRUST_USER_CERTIFICATES, "User certificates trusted");
     }
 
     /** The sections every build has, in the order they're drawn. */
@@ -184,16 +190,20 @@ public class HushThreadsPreferenceFragmentTest {
                 List<String> sections = sections(page);
                 List<String> expected = new ArrayList<>();
                 if (build.contains(PatchFamily.HIDE_ADS) || build.contains(PatchFamily.HIDE_SUGGESTED_USERS)
-                        || build.contains(PatchFamily.RETURN_REFRESH) || build.contains(PatchFamily.VIDEO_AUTOPLAY)) {
+                        || build.contains(PatchFamily.RETURN_REFRESH) || build.contains(PatchFamily.VIDEO_AUTOPLAY)
+                        || build.contains(PatchFamily.MAX_IMAGE_QUALITY)) {
                     expected.add("Feed");
                 }
                 if (build.contains(PatchFamily.SANITIZE_SHARING_LINKS) || build.contains(PatchFamily.EXTERNAL_BROWSER)
-                        || build.contains(PatchFamily.DISABLE_ANALYTICS)) {
+                        || build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.SCREENSHOT_DETECTION)) {
                     expected.add("Privacy");
                 }
+                if (build.contains(PatchFamily.SAVE_MEDIA)) expected.add("Downloads");
                 if (build.contains(PatchFamily.PURE_BLACK)) expected.add("Appearance");
                 expected.addAll(EVERY_BUILD.subList(0, 2));
-                if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)) {
+                if (build.contains(PatchFamily.REMOVE_AD_ID) || build.contains(PatchFamily.RESTORE_TRUST)
+                        || build.contains(PatchFamily.VERSION_CODE) || build.contains(PatchFamily.REMOVE_SHARE_TARGETS)
+                        || build.contains(PatchFamily.TRUST_USER_CERTIFICATES)) {
                     expected.add("Set when you patched");
                 }
                 expected.addAll(EVERY_BUILD.subList(2, EVERY_BUILD.size()));
@@ -224,6 +234,9 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Tap to play videos", String.valueOf(page.findPreference(Settings.DISABLE_VIDEO_AUTOPLAY.key).getTitle()));
             assertEquals("Videos in your feed wait for a tap instead of playing as you scroll.",
                     String.valueOf(page.findPreference(Settings.DISABLE_VIDEO_AUTOPLAY.key).getSummary()));
+            assertEquals("Full size photos", String.valueOf(page.findPreference(Settings.MAX_IMAGE_QUALITY.key).getTitle()));
+            assertEquals("Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.",
+                    String.valueOf(page.findPreference(Settings.MAX_IMAGE_QUALITY.key).getSummary()));
             assertEquals("Takes tracking tags such as xmt and slof off the post links you copy or share. A short share "
                     + "link becomes the post's own link.", String.valueOf(page.findPreference(Settings.SANITIZE_SHARING_LINKS.key).getSummary()));
             assertEquals("Open links in your browser", String.valueOf(page.findPreference(Settings.OPEN_LINKS_EXTERNALLY.key).getTitle()));
@@ -233,13 +246,16 @@ public class HushThreadsPreferenceFragmentTest {
             assertEquals("Matched analytics addresses go to an address that doesn't answer. Other telemetry may remain. "
                     + "Turn this off to use the original addresses.",
                     String.valueOf(page.findPreference(Settings.DISABLE_ANALYTICS.key).getSummary()));
+            assertEquals("Hide screenshots from Threads", String.valueOf(page.findPreference(Settings.DISABLE_SCREENSHOT_DETECTION.key).getTitle()));
+            assertEquals("Threads isn't told when you take a screenshot, so it can't log it or react to it.",
+                    String.valueOf(page.findPreference(Settings.DISABLE_SCREENSHOT_DETECTION.key).getSummary()));
             assertEquals("Pure black dark mode", String.valueOf(page.findPreference(Settings.PURE_BLACK.key).getTitle()));
             assertEquals("Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.",
                     String.valueOf(page.findPreference(Settings.PURE_BLACK.key).getSummary()));
             // Every selected feed, privacy and appearance switch ships on.
             for (BooleanSetting setting : Arrays.asList(Settings.HIDE_ADS, Settings.HIDE_SUGGESTED_USERS, Settings.BLOCK_RETURN_REFRESH,
-                    Settings.DISABLE_VIDEO_AUTOPLAY, Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY, Settings.DISABLE_ANALYTICS,
-                    Settings.PURE_BLACK)) {
+                    Settings.DISABLE_VIDEO_AUTOPLAY, Settings.MAX_IMAGE_QUALITY, Settings.SANITIZE_SHARING_LINKS, Settings.OPEN_LINKS_EXTERNALLY, Settings.DISABLE_ANALYTICS,
+                    Settings.DISABLE_SCREENSHOT_DETECTION, Settings.PURE_BLACK)) {
                 assertTrue(setting.key, ((SwitchPreference) page.findPreference(setting.key)).isChecked());
             }
             // The time limit holds until someone lifts it.

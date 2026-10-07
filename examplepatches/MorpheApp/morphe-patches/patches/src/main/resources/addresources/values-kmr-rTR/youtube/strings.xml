@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Derbarê</string>
   <string name="morphe_settings_screen_01_ads_title">Reklam</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Wênekên piçûk ên alternatîf</string>
   <string name="morphe_settings_screen_03_feed_title">Xwarê</string>
   <string name="morphe_settings_screen_04_general_title">Serniştim</string>
   <string name="morphe_settings_screen_05_player_title">Lîstikvan</string>
@@ -150,6 +149,7 @@ Guherînan têne xistine:
   <string name="morphe_hide_sync_button_title">Bişînin \'Senkronîzekirina bi vîdyoyê re\' bikirin</string>
   <string name="morphe_hide_timed_reactions_title">Reaksiyonên demdirêj ve nebînîne.</string>
   <string name="morphe_hide_timed_reactions_summary">Taybeta ku dihêle bavêjan emojiyan di beşa şîroveyan de û di chatê de bersîv bidin veşêrin</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_video_title_title">Sernuke video قایپە</string>
   <string name="morphe_hide_video_title_summary">Sêserê vîdyoyê di moda tîkêldîtinê de veşêrin</string>
   <string name="morphe_sanitize_video_subtitle_title">Sêrkirina nivîsa serînivîsa vîdyoyê</string>
@@ -589,7 +589,7 @@ Info: May not work on live streams"</string>
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Butona Verbijîrê Veşêrin</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Raportkirina butonê veşêrin</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Butona dubarekirinê veşêrin</string>
@@ -1011,39 +1011,33 @@ Sînordarî: Ger 'Restore old video action bar' veqetandibe, 'More videos' dîti
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Sîstema ajotinê ji serbûna sêwirana wêne qey bûne</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Bo encamên lîstikê</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">Îşaretên xeletêya têkiliyê nîşan bide</string>
+  <string name="morphe_dearrow_thumbnail_home_title">Îşaretên xeletêya têkiliyê nîşan bide</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">Îşaretê dide gava ku servera DeArrow hewîr be</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">Îşaretê dide gava ku servera DeArrow hewîr be</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">Leza hîngirinê çêtir Bike bi bikaranîna wêneya hevseng. Vîdeoyên zindî, vîdeoyên nû, an vîdeoyên kevnertir dibe ku wêneya vala nîşan bidin</string>
-  <string name="morphe_alt_thumbnail_player_title">Wêneyên tompîlên kopal li ser hîlîgirê bihengîn bînin</string>
-  <string name="morphe_alt_thumbnail_search_title">Rêber, herî baş maîn di nav sepanê de dîsen edetê rabitiğin dîsê bikar be</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Miniaturekan orjinal</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Thumbnailên orîjinal</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Gîrkirinên statik</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Gîrkirinên statik</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow diyare resmên çêkerîn ji bo vîdeoyên YouTube-yê. Van resman pir caran ji ya pêşniyar kirina YouTube-yê têne hejkirin
-
-Ger hatiye saz kirin, URL-ên vîdeoyê dê bên şandina serverê API-yê, û ne heya din daneyan tên şandin. Ger vîdeoyek wenda nîne resmên DeArrow, paşiya resmên orjînal an wan hatine girtin tên nîşan dîsa
-
-Bike li vir da vekirina DeArrow.ajay.app"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Pêstirî dîsêne berî nebeko şok û sînûse şîn-şûşê bikar bici kîrinê. Giritik ne tiştek şûşin kîninî dîşker di heşîn de şêrîne.</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Îşaretên xeletêya têkiliyê nîşan bide</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">Xwecihê API DeArrow</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">URL-ya xwecihê cache thumbnail DeArrow</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Gîrkirinên vîdyoyê statik</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Goharan ji destpêk, navend / dawiya her vîdyoyê werin girtin. Van goharên YouTube rêz dixebitîne û populerdi ne</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Bikîn gîrkirina bilez a statik</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">Îşaretê dide gava ku servera SponsorBlockê hewîr be</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Vîdêoyê ji</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Destpêk</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Navîn</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Dawî</string>
+  <string name="morphe_dearrow_thumbnail_library_title">Leza hîngirinê çêtir Bike bi bikaranîna wêneya hevseng. Vîdeoyên zindî, vîdeoyên nû, an vîdeoyên kevnertir dibe ku wêneya vala nîşan bidin</string>
+  <string name="morphe_dearrow_thumbnail_player_title">Wêneyên tompîlên kopal li ser hîlîgirê bihengîn bînin</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Rêber, herî baş maîn di nav sepanê de dîsen edetê rabitiğin dîsê bikar be</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Miniaturekan orjinal</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Thumbnailên orîjinal</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Gîrkirinên statik</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Gîrkirinên statik</string>
+  <string name="morphe_dearrow_connection_toast_title">Pêstirî dîsêne berî nebeko şok û sînûse şîn-şûşê bikar bici kîrinê. Giritik ne tiştek şûşin kîninî dîşker di heşîn de şêrîne.</string>
+  <string name="morphe_dearrow_connection_toast_summary">Îşaretên xeletêya têkiliyê nîşan bide</string>
+  <string name="morphe_dearrow_api_url_title">Xwecihê API DeArrow</string>
+  <string name="morphe_dearrow_api_url_summary">URL-ya xwecihê cache thumbnail DeArrow</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Gîrkirinên vîdyoyê statik</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Goharan ji destpêk, navend / dawiya her vîdyoyê werin girtin. Van goharên YouTube rêz dixebitîne û populerdi ne</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Vîdêoyê ji</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Destpêk</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Navîn</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Dawî</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow niha neyê (koda statû: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow niha neyê</string>
+  <string name="morphe_dearrow_error">DeArrow niha neyê (koda statû: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow niha neyê</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">گەڕێنه‌وه‌ بۆ شێوازی كه‌رتەسه‌كی خۆكه‌</string>

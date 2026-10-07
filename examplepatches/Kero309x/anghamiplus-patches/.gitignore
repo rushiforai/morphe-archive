@@ -1,0 +1,96 @@
+# ---------------------------------------------------------------------------
+# AnghamiPlus Patches — repository ignore rules
+#
+# Note: `gradle.properties` must stay tracked (it carries the bundle version
+# that the release workflow rewrites). Never put `gpr.user` / `gpr.key`
+# credentials in it — keep those in `~/.gradle/gradle.properties` instead.
+# ---------------------------------------------------------------------------
+
+# --- Build output -----------------------------------------------------------
+.gradle
+**/build/
+!src/**/build/
+.gradletasknamecache
+gradle-app.setting
+out/
+
+# --- Compiled Java artifacts ------------------------------------------------
+*.class
+*.jar
+# The Gradle wrapper is the one jar that must be committed.
+!gradle-wrapper.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# --- Logs and crash dumps ---------------------------------------------------
+*.log
+hs_err_pid*
+*.ctxt
+.mtj.tmp/
+
+# --- Android artifacts ------------------------------------------------------
+# Contains third-party APKs and is never redistributed with the sources.
+*.apk
+local.properties
+
+# --- Node tooling -----------------------------------------------------------
+node_modules/
+
+# --- Python tooling ---------------------------------------------------------
+# The README catalogue script is the only Python code in the repository.
+__pycache__/
+*.py[cod]
+
+# --- IDE project files ------------------------------------------------------
+.idea/
+.idea_modules/
+.vscode/
+*.iml
+*.ipr
+*.iws
+cmake-build-*/
+
+# IntelliJ: per-user state
+.idea/**/workspace.xml
+.idea/**/tasks.xml
+.idea/**/usage.statistics.xml
+.idea/**/dictionaries
+.idea/**/shelf
+.idea/**/replstate.xml
+.idea/**/httpRequests
+
+# IntelliJ: generated models
+.idea/**/contentModel.xml
+.idea/**/modules.xml
+.idea/modules
+.idea/**/compiler.xml
+.idea/**/jarRepositories.xml
+.idea/**/gradle.xml
+.idea/**/libraries
+
+# IntelliJ: data sources
+.idea/**/dataSources/
+.idea/**/dataSources.ids
+.idea/**/dataSources.local.xml
+.idea/**/sqlDataSources.xml
+.idea/**/dynamic.xml
+.idea/**/uiDesigner.xml
+.idea/**/dbnavigator.xml
+.idea/**/mongoSettings.xml
+
+# IntelliJ: misc plugins
+.idea/artifacts
+.idea/*.iml
+.idea/caches/build_file_checksums.ser
+
+# Third-party plugin metadata that used to be written into the project root
+# ---------------------------------------------------------------------------
+atlassian-ide-plugin.xml
+com_crashlytics_export_strings.xml
+crashlytics.properties
+crashlytics-build.properties
+fabric.properties

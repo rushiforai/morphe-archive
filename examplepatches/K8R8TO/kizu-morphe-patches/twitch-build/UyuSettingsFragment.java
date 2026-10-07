@@ -37,6 +37,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
     static final String SECTION_EMOTES = "emotes";
     static final String SECTION_CHAT = "chat";
     static final String SECTION_PRIVACY = "privacy";
+    static final String SECTION_HOME = "home";
 
     private static final String ARG_SECTION = "section";
 
@@ -86,6 +87,8 @@ public class UyuSettingsFragment extends PreferenceFragment {
             addChatSettings(screen);
         } else if (section.equals(SECTION_PRIVACY)) {
             addPrivacySettings(screen);
+        } else if (section.equals(SECTION_HOME)) {
+            addHomeSettings(screen);
         }
     }
 
@@ -93,10 +96,8 @@ public class UyuSettingsFragment extends PreferenceFragment {
         if (PatchStatus.autoClaimChannelPoints()) {
             addSectionLink(screen, SECTION_GENERAL, "Channel points");
         }
-        if (PatchStatus.hidePromotions()) {
-            addSectionLink(screen, SECTION_APPEARANCE,
-                    "Subscribe and Bits buttons, gift leaderboard, promotions");
-        }
+        addSectionLink(screen, SECTION_APPEARANCE,
+                "Appearance controls, promotions and Go Ad-Free");
         if (PatchStatus.danmakuComments()) {
             addSectionLink(screen, SECTION_DANMAKU, "Chat messages scrolling across the video");
         }
@@ -105,6 +106,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
         }
         addSectionLink(screen, SECTION_EMOTES, "7TV, BTTV, FFZ and animated emotes");
         addSectionLink(screen, SECTION_CHAT, "Chat controls");
+        addSectionLink(screen, SECTION_HOME, "Home & navigation controls");
         addSectionLink(screen, SECTION_PRIVACY, "Privacy");
     }
 
@@ -138,10 +140,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
         addSwitch(screen, Settings.HIDE_GIFT_LEADERBOARD, "Hide the gift leaderboard",
                 "Hides the ranking of top gifters and cheerers above chat.");
         addSwitch(screen, Settings.HIDE_SUBSCRIPTION_PROMOTIONS, "Hide subscription promotions",
-                "Hides the banners that advertise subscription and gift discounts and "
-                        + "SUBtember, above the player and above chat, and the banner that "
-                        + "advertises Turbo.");
-
+                "Hides subscription and gift-discount campaign banners.");
         Preference note = new Preference(screen.getContext());
         note.setSummary("Items you show again appear the next time you open a stream.");
         note.setSelectable(false);
@@ -274,111 +273,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
         return "Mod";
     }
 
-    private void addPrivacySettings(PreferenceScreen screen) {
-        addSwitch(screen, Settings.DISABLE_COMSCORE, "Disable Comscore",
-                "Prevent Twitch's Comscore measurement component from starting.");
-        addSwitch(screen, Settings.DISABLE_BUGSNAG, "Disable crash reporting",
-                "Prevent Twitch's crash-reporting component from collecting reports.");
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View list = super.onCreateView(inflater, container, savedInstanceState);
-        if (!SECTION_DANMAKU.equals(section)) return list;
-
-        // The preview stays above the list, so it is visible while any setting is changed.
-        LinearLayout layout = new LinearLayout(getActivity());
-        layout.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams previewParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        // The preview is narrower than the screen in landscape.
-        previewParams.gravity = Gravity.CENTER_HORIZONTAL;
-        layout.addView(new DanmakuPreview(getActivity()), previewParams);
-        layout.addView(list, new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f));
-        return layout;
-    }
-
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        SettingsUi.applySettingsView(view);
-        view.setClickable(true);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == FontPreference.REQUEST_IMPORT_FONT && fontPreference != null) {
-            fontPreference.onActivityResult(resultCode, data);
-            return;
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        View settingsView = getView();
-        if (settingsView != null) SettingsUi.applySettingsView(settingsView);
-        Activity activity = getActivity();
-        TextView title = activity == null ? null : SettingsPatch.findToolbarTitle(activity);
-        if (title == null) return;
-        if (previousTitle == null) previousTitle = title.getText();
-        title.setText(title(section));
-    }
-
-    @Override
-    public void onDestroyView() {
-        Activity activity = getActivity();
-        TextView title = activity == null ? null : SettingsPatch.findToolbarTitle(activity);
-        if (title != null && previousTitle != null) title.setText(previousTitle);
-        super.onDestroyView();
-    }
-
-    private static String title(String section) {
-        if (section == null) return SettingsPatch.TITLE;
-        switch (section) {
-            case SECTION_GENERAL:
-                return "General";
-            case SECTION_APPEARANCE:
-                return "Appearance";
-            case SECTION_DANMAKU:
-                return "Danmaku";
-            case SECTION_ADS:
-                return "Ads";
-            case SECTION_EMOTES:
-                return "Emotes";
-            case SECTION_CHAT:
-                return "Chat";
-            case SECTION_PRIVACY:
-                return "Privacy";
-            default:
-                return SettingsPatch.TITLE;
-        }
-    }
-
-    private void addSwitch(PreferenceGroup group, BooleanSetting setting,
-                                  String title, String summary) {
-        SwitchPreference preference = new SwitchPreference(SettingsUi.preferenceContext(group.getContext()));
-        preference.setKey(setting.key);
-        preference.setDefaultValue(setting.defaultValue);
-        preference.setTitle(title);
-        preference.setSummary(summary);
-        group.addPreference(preference);
-    }
-
-    private static void addSlider(PreferenceGroup group, IntSetting setting, int step,
-                                  String title, SliderPreference.Formatter formatter) {
-        Preference preference = new SliderPreference(SettingsUi.preferenceContext(group.getContext()), setting, step, formatter);
-        preference.setTitle(title);
-        group.addPreference(preference);
-    }
-
-    private static void addColor(PreferenceGroup group, IntSetting setting, String title) {
-        Preference preference = new ColorPreference(SettingsUi.preferenceContext(group.getContext()), setting);
-        preference.setTitle(title);
-        group.addPreference(preference);
-    }
-}    private void addHomeSettings(PreferenceScreen screen) {
+    private void addHomeSettings(PreferenceScreen screen) {
         addSwitch(screen, Settings.HIDE_TURBO_UPSELL, "Hide Go Ad-Free",
                 "Hide Twitch's Go Ad-Free/Turbo control in the Following feed.");
         addSwitch(screen, Settings.HIDE_RESUME_WATCHING, "Hide Continue Watching",
@@ -392,6 +287,8 @@ public class UyuSettingsFragment extends PreferenceFragment {
                 "Prevent Twitch's Comscore measurement component from starting.");
         addSwitch(screen, Settings.DISABLE_BUGSNAG, "Disable crash reporting",
                 "Prevent Twitch's crash-reporting component from collecting reports.");
+        addSwitch(screen, Settings.DISABLE_LINK_DISCLAIMER, "Disable link disclaimer",
+                "Skip Twitch's external-link disclaimer before opening links.");
     }
 
     @Override
@@ -464,6 +361,8 @@ public class UyuSettingsFragment extends PreferenceFragment {
                 return "Chat";
             case SECTION_PRIVACY:
                 return "Privacy";
+            case SECTION_HOME:
+                return "Home & navigation";
             default:
                 return SettingsPatch.TITLE;
         }

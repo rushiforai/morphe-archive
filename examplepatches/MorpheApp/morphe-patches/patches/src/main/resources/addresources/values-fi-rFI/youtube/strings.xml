@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Tietoja</string>
   <string name="morphe_settings_screen_01_ads_title">Mainokset</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Vaihtoehtoiset pikkukuvat</string>
   <string name="morphe_settings_screen_03_feed_title">Syöte</string>
   <string name="morphe_settings_screen_04_general_title">Yleiset</string>
   <string name="morphe_settings_screen_05_player_title">Soitin</string>
@@ -65,6 +64,8 @@ Muutoksia ovat muun muassa:
   <string name="morphe_hide_artist_cards_title">Piilota artistikortit</string>
   <string name="morphe_hide_artist_cards_summary">Piilottaa artistikortin hakutulosten yläreunasta</string>
   <string name="morphe_hide_auto_dubbed_label_title">Piilota \"Automaattisesti jälkiäänitetty\" -merkintä</string>
+  <string name="morphe_hide_channel_buttons_title">Piilota kanavapainikkeet</string>
+  <string name="morphe_hide_channel_buttons_summary">Piilottaa painikkeet, kuten Tilaa, Näytä kanava, Yhteisö ja YouTube Music, kanavaprofiileista hakutuloksissa</string>
   <string name="morphe_hide_community_posts_title">Piilota yhteisöpostaukset</string>
   <string name="morphe_hide_compact_banner_title">Piilota kompaktit bannerit</string>
   <string name="morphe_hide_compact_banner_summary">Piilottaa tiivistetyn bannerin ja tilan joidenkin komponenttien välillä</string>
@@ -76,7 +77,6 @@ Muutoksia ovat muun muassa:
   <string name="morphe_hide_floating_microphone_button_summary">Piilottaa kelluvan mikrofonipainikkeen hakuehdotusten näytön oikeassa alakulmassa</string>
   <string name="morphe_hide_get_premium_button_title">Piilota \"Hanki Premium\" -painike</string>
   <string name="morphe_hide_history_shelf_title">Piilota Historia-hylly</string>
-  <string name="morphe_hide_history_shelf_summary">Piilottaa Historia-hyllyn Sinä-välilehdeltä</string>
   <string name="morphe_hide_horizontal_shelves_title">Piilota vaakasuuntaiset hyllyt</string>
   <string name="morphe_hide_horizontal_shelves_summary">Piilottaa vaakasuuntaiset hyllyt, kuten Uutiset, Yhteisön julkaisut, jotka saattavat kiinnostaa sinua, Jatka katsomista, Tutustu muihin kanaviin, Tutustu muihin aiheisiin, Sinulle, Uusimmat videot, Relevantimmat, Julkaisut tekijän yhteisöstä, Ostokset ja Katso uudelleen</string>
   <string name="morphe_hide_hyped_label_title">Piilota Suositut-merkintä</string>
@@ -110,7 +110,8 @@ Muutoksia ovat muun muassa:
   <string name="morphe_hide_show_more_button_title">Piilota \"Näytä lisää\" -painike</string>
   <string name="morphe_hide_show_more_button_summary">Piilottaa laajennuspainikkeen videoiden alapuolella hakutuloksissa</string>
   <string name="morphe_hide_subscribed_channels_bar_title">Piilota tilatut kanavat -palkki</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">Piilota kanavien nimet tilattujen kanavien palkissa</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">Piilota tilattujen kanavien nimet</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">Piilottaa kanavien nimet tilattujen kanavien palkissa</string>
   <string name="morphe_hide_surveys_title">Piilota kyselyt</string>
   <string name="morphe_hide_surveys_summary">Piilottaa kyselyt ja ehdotukset syötteen suositustarkkuudesta</string>
   <string name="morphe_hide_ticket_shelf_title">Piilota lippuhylly</string>
@@ -159,6 +160,11 @@ Muutoksia ovat muun muassa:
   <string name="morphe_hide_sync_button_title">Piilota \"Synkronoi videoon\" -painike</string>
   <string name="morphe_hide_timed_reactions_title">Piilota ajoitetut reaktiot</string>
   <string name="morphe_hide_timed_reactions_summary">Piilottaa ominaisuuden, jonka avulla käyttäjät voivat reagoida emoji-hymiöillä kommenttiosiossa ja suoratoistossa</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">Piilota \'Ohje &amp; palaute\' valikoista</string>
+  <string name="morphe_hide_help_feedback_menu_summary">Piilottaa \'Ohje &amp; palaute\' -kohdan sovelluspalkin kolmen pisteen valikoista, kuten hakutuosten valikosta</string>
+  <string name="morphe_hide_handle_title">Piilota kanavatunnus</string>
+  <string name="morphe_hide_handle_summary">Piilottaa kanavatunnuksesi \"Sinä\"-välilehdessä.</string>
   <string name="morphe_hide_video_title_title">Piilota videon otsikko</string>
   <string name="morphe_hide_video_title_summary">Piilottaa videotunnisteen koko näytön tilassa</string>
   <string name="morphe_sanitize_video_subtitle_title">Puhdista videon tekstitys</string>
@@ -681,7 +687,7 @@ Korjaa tämä ottamalla käyttöön 'Väärennä videovirrat' ja vaihtamalla 'Ol
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Piilota Yhdistä-painike</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Piilota Kysy-painike</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Piilota Remix-painike</string>
@@ -1075,10 +1081,7 @@ Rajoitus: Jos \"Palauta vanha videotoimintopalkki\" on poissa käytöstä, \"Lis
   <string name="morphe_playback_in_feeds_entry_off">Pois päältä</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">Palauta alkuperäiset otsikot</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">Käännetty</string>
-  <string name="morphe_restore_original_titles_type_entry_original">Alkuperäinen</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">Käännetty DeArrowilla</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">Alkuperäinen DeArrowilla</string>
+  <string name="morphe_restore_original_titles_summary">Näyttää alkuperäiset videoiden otsikot, videoiden kuvaukset ja kanavien kuvaukset automaattisesti käännettyjen sijaan</string>
   <string name="morphe_restore_original_titles_loading">Ladataan otsikkoa…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">Poista syötteen automaattinen päivitys käytöstä</string>
@@ -1152,39 +1155,42 @@ Rajoitus: Jos \"Palauta vanha videotoimintopalkki\" on poissa käytöstä, \"Lis
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Ohita kuvien alueelliset rajoitukset</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Ohjaa pikkukuvapyyntöjä vaihtoehtoiselle palvelimelle korjataksesi puuttuvat kuvat rajoitetuissa maissa</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">DeArrow-otsikot</string>
+  <string name="morphe_dearrow_titles_summary">Korvaa videoiden otsikot joukkoistetuilla otsikoilla, jotka on lähetetty DeArrowille</string>
+  <string name="morphe_dearrow_titles_icon_title">Näytä DeArrow-kuvake</string>
+  <string name="morphe_dearrow_titles_icon_summary">Näyttää DeArrow-kuvakkeen yhteisön tuottamissa video-otsikoissa</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">Koti-välilehdelle</string>
+  <string name="morphe_dearrow_thumbnail_home_title">Koti-välilehdelle</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">Tilauksien välilehdelle</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">Tilauksien välilehdelle</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">Sinulle-välilehdelle</string>
-  <string name="morphe_alt_thumbnail_player_title">Soittolistoille ja suosituksille</string>
-  <string name="morphe_alt_thumbnail_search_title">Hakutuloksille</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Alkuperäiset pikkukuvat</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Alkuperäiset pikkukuvat</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Still-kuvakaappaukset</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Kuvakaappaukset</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow tarjoaa joukkoistettuja pikkukuvia YouTube-videoille. Nämä pikkukuvat ovat usein osuvampia kuin YouTuben tarjoamat pikkukuvat.
+  <string name="morphe_dearrow_thumbnail_library_title">Sinulle-välilehdelle</string>
+  <string name="morphe_dearrow_thumbnail_player_title">Soittolistoille ja suosituksille</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Hakutuloksille</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Alkuperäiset pikkukuvat</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Alkuperäiset pikkukuvat</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Still-kuvakaappaukset</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Kuvakaappaukset</string>
+  <string name="morphe_dearrow_about_summary">"DeArrow tarjoaa joukkoistettuja otsikoita ja pikkukuvia YouTube-videoille. Nämä ovat usein osuvampia kuin YouTuben tarjoamat.
 
-Jos tämä on käytössä, videoiden URL-osoitteet lähetetään API-palvelimelle, mutta muita tietoja ei lähetetä. Jos videolla ei ole DeArrow- pikkukuvia, näytetään alkuperäisiä pikkukuvia tai kuvakaappauksia.
+Jos tämä on käytössä, videoiden URL-osoitteet lähetetään API-palvelimelle, eikä muita tietoja lähetetä. Jos videolla ei ole DeArrow-pikkukuvia, näytetään alkuperäinen pikkukuva tai pysäytyskuvat.
 
-Napauta tästä saadaksesi lisätietoja DeArrowista"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Näytä yhteysvirheilmoitukset</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Näyttää ilmoituksen, kun DeArrow-palvelin ei ole käytettävissä</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow:n API-päätepiste</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">DeArrow-pikkukuvien välimuistipäätepisteen URL-osoite</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Videon kuvakaappaukset</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Kuvakaappaukset otetaan kunkin videon alusta/keskeltä/lopusta. Nämä kuvat on sisäänrakennettu YouTubeen, eikä ulkoista API:a käytetä</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Ota nopeat kuvakaappaukset käyttöön</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">Parantaa latausnopeuksia käyttämällä keskitasoista kuvanlaatua. Live-striimit, julkaisemattomat ja vanhat videot saattavat näyttää tyhjät pikkukuvat</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Poimi videoruutu</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Alku</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Keskiosa</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Loppu</string>
+Napauta tästä avataksesi DeArrow.ajay.app"</string>
+  <string name="morphe_dearrow_connection_toast_title">Näytä yhteysvirheilmoitukset</string>
+  <string name="morphe_dearrow_connection_toast_summary">Näyttää ilmoituksen, kun DeArrow-palvelin ei ole käytettävissä</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow:n API-päätepiste</string>
+  <string name="morphe_dearrow_api_url_summary">DeArrow-pikkukuvien välimuistipäätepisteen URL-osoite</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Videon kuvakaappaukset</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Kuvakaappaukset otetaan kunkin videon alusta/keskeltä/lopusta. Nämä kuvat on sisäänrakennettu YouTubeen, eikä ulkoista API:a käytetä</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Poimi videoruutu</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Alku</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Keskiosa</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Loppu</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow ei ole tilapäisesti käytettävissä (tila: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow ei ole tilapäisesti käytettävissä</string>
+  <string name="morphe_dearrow_error">DeArrow ei ole tilapäisesti käytettävissä (tila: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow ei ole tilapäisesti käytettävissä</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Palauta vanha soitin painike tyyli</string>

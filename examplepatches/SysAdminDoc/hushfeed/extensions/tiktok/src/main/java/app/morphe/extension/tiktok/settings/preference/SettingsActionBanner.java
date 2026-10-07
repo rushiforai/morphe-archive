@@ -71,6 +71,26 @@ public final class SettingsActionBanner {
                 L10n.t(context, "Couldn't restart TikTok. Close it and open it again."));
     }
 
+    /** A message with an action of the caller's, such as the Lab's stop for a file app it waits on. */
+    public static void showAction(Context context, String message, String actionLabel, Runnable action,
+            String failure) {
+        show(context, message, actionLabel, action, failure);
+    }
+
+    /**
+     * Takes down the banner saying {@code message}, if it's still the one shown: an offer whose
+     * action no longer applies, while a banner that has replaced it stays.
+     */
+    public static void dismissShowing(String message) {
+        Utils.runOnMainThreadNowOrLater(() -> {
+            View banner = current.get();
+            View label = banner == null ? null : banner.findViewWithTag(MESSAGE_TAG);
+            if (label instanceof TextView && message.contentEquals(((TextView) label).getText())) {
+                dismissCurrent();
+            }
+        });
+    }
+
     /**
      * @param failure what to say when the action throws. It used to be one sentence about
      *                undoing a clear for every action, so a Restart now that failed said the

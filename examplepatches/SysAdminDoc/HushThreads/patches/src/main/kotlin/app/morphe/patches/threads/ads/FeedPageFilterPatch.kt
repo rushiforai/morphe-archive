@@ -18,6 +18,7 @@ import app.morphe.util.getReference
 import app.morphe.util.singleOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
@@ -35,33 +36,7 @@ internal val feedPageFilterPatch = bytecodePatch {
     execute {
         val merge = FeedPageMergeFingerprint.method
 
-        // The feed item's own getter for its post. It answers null for an item that carries none.
-        val instructions = merge.implementation!!.instructions.toList()
-        val getters = instructions.mapIndexedNotNull { index, instruction ->
-            if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) {
-                return@mapIndexedNotNull null
-            }
-            val reference = instruction.getReference<MethodReference>() ?: return@mapIndexedNotNull null
-            if (reference.returnType != MEDIA || reference.parameterTypes.isNotEmpty() || reference.definingClass == MEDIA) {
-                return@mapIndexedNotNull null
-            }
-            val receiver = when (instruction) {
-                is FiveRegisterInstruction -> instruction.registerC
-                is RegisterRangeInstruction -> instruction.startRegister
-                else -> return@mapIndexedNotNull null
-            }
-            val lastWrite = instructions.take(index).lastOrNull {
-                val register = (it as? OneRegisterInstruction)?.registerA
-                it.opcode.setsRegister() && (register == receiver || it.opcode.setsWideRegister() && register == receiver - 1)
-            }
-            reference.takeIf {
-                lastWrite?.opcode == Opcode.CHECK_CAST &&
-                    lastWrite.getReference<TypeReference>()?.type == reference.definingClass
-            }
-        }.distinctBy { it.toString() }
-        val itemMedia = getters.singleOrPatchException(
-            "$PATCH: item-owned no-argument Media getter in ${merge.definingClass}->${merge.name}",
-        )
+        val itemMedia = merge.itemMediaGetter()
         mutableClassDefBy(itemMedia.definingClass).methods.filter {
             it.name == itemMedia.name && it.returnType == MEDIA && it.parameterTypes.isEmpty() &&
                 !AccessFlags.STATIC.isSet(it.accessFlags)
@@ -93,4 +68,38 @@ internal val feedPageFilterPatch = bytecodePatch {
         )
 
     }
+}
+
+/**
+ * The feed item's own getter for its post, read from the feed cache's merge: a no-argument call
+ * answering Media on a receiver the merge last cast to the getter's own class. It answers null for
+ * an item that carries none. Hide ads reads the item class from it too.
+ */
+internal fun Method.itemMediaGetter(): MethodReference {
+    val instructions = implementation!!.instructions.toList()
+    val getters = instructions.mapIndexedNotNull { index, instruction ->
+        if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) {
+            return@mapIndexedNotNull null
+        }
+        val reference = instruction.getReference<MethodReference>() ?: return@mapIndexedNotNull null
+        if (reference.returnType != MEDIA || reference.parameterTypes.isNotEmpty() || reference.definingClass == MEDIA) {
+            return@mapIndexedNotNull null
+        }
+        val receiver = when (instruction) {
+            is FiveRegisterInstruction -> instruction.registerC
+            is RegisterRangeInstruction -> instruction.startRegister
+            else -> return@mapIndexedNotNull null
+        }
+        val lastWrite = instructions.take(index).lastOrNull {
+            val register = (it as? OneRegisterInstruction)?.registerA
+            it.opcode.setsRegister() && (register == receiver || it.opcode.setsWideRegister() && register == receiver - 1)
+        }
+        reference.takeIf {
+            lastWrite?.opcode == Opcode.CHECK_CAST &&
+                lastWrite.getReference<TypeReference>()?.type == reference.definingClass
+        }
+    }.distinctBy { it.toString() }
+    return getters.singleOrPatchException(
+        "$PATCH: item-owned no-argument Media getter in $definingClass->$name",
+    )
 }

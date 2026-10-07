@@ -9,11 +9,12 @@ public final class ScreenTransitionsForTests {
     private ScreenTransitionsForTests() {
     }
 
-    /** Whether a tab and a panel asked for with their slide still slide in. */
+    /** Whether a tab, a panel and a tab strip's page asked for with their slide still slide in. */
     public static boolean slides() {
         ScreenTransitions.inBuildForTests = true;
         try {
-            return ScreenTransitions.tabStyle(1, 1) == 1 && ScreenTransitions.panelSlides(true);
+            return ScreenTransitions.tabStyle(1, 1) == 1 && ScreenTransitions.panelSlides(true)
+                    && ScreenTransitions.pageSlides(true);
         } finally {
             ScreenTransitions.inBuildForTests = null;
         }

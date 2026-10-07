@@ -1,6 +1,7 @@
 package app.hushmessenger.extension;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipDescription;
 import android.content.ClipboardManager;
@@ -105,6 +106,7 @@ public final class SettingsActivity extends Activity {
         {"chat_animation", "Slide chats in and out", "Slides a chat in from the side when you open it and back out when you go back, while the screen underneath holds still. Chat heads and bubbles keep their own animations.", "navigation"},
         {"ai_stickers", "Hide AI sticker tools", "Hides the Generate AI sticker buttons, generated-sticker tab and AI sticker suggestions.", "stickers"},
         {"avatar_stickers", "Hide avatar stickers", "Hides the avatar tab in the sticker keyboard.", "stickers"},
+        {"emoji_drawer", "Restore old emoji drawer", "Turns off Meta's redesigned emoji drawer, so the emoji keyboard keeps its earlier layout. Restart Messenger after changing this. Accounts Meta never moved to the redesign see no difference.", "stickers"},
         {"chat_promotions", "Hide chat promotions", "Hides Messenger's quick-promotion banners inside conversations.", "conversations"},
         {"suggested_replies", "Hide business reply suggestions", "Hides suggested replies in business conversations.", "conversations"},
         {"business_suggestions", "Hide business typing suggestions", "Hides business suggestions as you type.", "conversations"},
@@ -112,14 +114,19 @@ public final class SettingsActivity extends Activity {
         {"typing", "Hide typing indicator", "Stops your outgoing active-typing signal, including in end-to-end encrypted chats.", "conversations"},
         {"use_system_emoji", "Use system emoji", "Renders emoji with your phone's own font instead of Messenger's built-in set.", "conversations"},
         {"original_photo", "Send photos at original quality", "With HD on, sends a JPEG photo's own image data instead of Messenger's re-encoded copy. Its metadata, such as location and camera details, is left out, as it is from Messenger's copy, except the tag that turns a sideways photo upright. Photos over 20 MB and videos still get Messenger's compression.", "conversations"},
+        {"original_video", "Send videos without re-encoding", "Sends a video as the file your camera saved instead of Messenger's smaller re-encoded copy, using Messenger's own passthrough. Videos over 25 MB still get Messenger's compression. So do trimmed or edited videos and formats Messenger won't pass through.", "conversations"},
+        {"system_camera", "Use the phone's camera app", "The camera button in a chat opens your phone's own camera app instead of Messenger's camera. The photo you take opens in Messenger's editor for that chat, where you send it. Photos only, and Messenger asks for camera access first if it doesn't have it.", "conversations"},
         {"external_browser", "Open web links externally", "Uses your default browser for HTTP and HTTPS links. Other link types keep their original behavior.", "links_bubbles"},
         {"bubbles", "Allow chat bubbles", "Choose Stock, Chat Heads or Native Bubbles below. Native Bubbles needs Android 11, account support and notification permissions. Restart Messenger after changing modes.", "links_bubbles"},
+        {"analytics_uploads", "Stop analytics uploads", "Stops the background services Messenger's analytics logger uploads through. Messenger still records those events on your phone, and they can upload after you turn this off. Doesn't stop other logging.", "privacy"},
+        {"message_log", "Keep a message log", "Keeps a copy of each message as its notification arrives, so an unsend can't take it back, and it's the only way that reaches end-to-end encrypted chats. The log stays on your phone, encrypted with a key that never leaves it, and holds only messages that raised a notification. Tap View log to read it, or Clear log to wipe it.", "privacy"},
         {"allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, including view-once media and Quicksnap, and stops screenshot notices. This doesn't add replay or saving.", "privacy"},
         {"hide_read_receipts", "Hide read receipts", "Stops sending read receipts. Opened encrypted chats can stay unread on this phone. Replying or switching this off may notify the sender. Group coverage isn't verified.", "privacy"},
         {"keep_unsent", "Keep unsent messages", "Keeps messages on verified legacy unsend routes. End-to-end encrypted chats aren't supported, and group coverage isn't verified. Activity records intercepted legacy unsends, not whether a chat is supported. Your own unsend may be limited.", "privacy"},
         {"anonymous_stories", "View stories anonymously", "Opens other people's stories without adding you to their viewer list. Stories you open this way are still marked as seen on your side.", "privacy"},
         {"save_stories", "Save any story", "Adds Save to the More options menu on other people's stories. The photo or video goes to your phone the same way Messenger saves your own.", "privacy"},
         {"material_you", "Material You theme", "Tints Messenger's dark mode with the colors Android takes from your wallpaper on Android 12 and newer. Android 11 gets a fixed blue palette. Turn on dark mode in Messenger first.", "theme"},
+        {"app_icons", "Unlock app icons", "Lets you pick any icon in Messenger's App icon setting without a subscription. Messenger switches the icon itself, and your launcher can take a moment to show it. Messenger still decides whether that setting appears, and turning this off can put its default icon back the next time Messenger closes.", "theme"},
     };
 
     static final String DRAWER_ALIAS = "app.hushmessenger.extension.SettingsLauncher";
@@ -610,6 +617,7 @@ public final class SettingsActivity extends Activity {
             activityLabels.put(key, activeLabel);
             ui.add(labels, activeLabel, 4);
         }
+        if ("message_log".equals(key)) addMessageLogActions(labels);
         row.addView(labels, new LinearLayout.LayoutParams(0, -2, 1));
         Switch control = ui.toggle(key, text.display(title), text.display(("ads".equals(key) ? text.format("experimental") + ". " : "") + description), Settings.preferences.getBoolean(key, false));
         LinearLayout.LayoutParams switchParams = new LinearLayout.LayoutParams(ui.dp(48), -2);
@@ -735,6 +743,10 @@ public final class SettingsActivity extends Activity {
         ui.add(content, ui.heading(text.get("appearance")), 22);
         LinearLayout appearance = ui.panel();
         ui.add(appearance, controlRow("light", text.format("light"), text.format("light_help"), false), 0);
+        if (Settings.installed.contains("material_you")) {
+            ui.rule(appearance, 14);
+            ui.add(appearance, controlRow("material_you_black", text.format("material_you_black"), text.format("material_you_black_help"), false), 14);
+        }
         ui.rule(appearance, 14);
         ui.add(appearance, ui.text(text.get("theme_help"), 13, ui.muted, false), 14);
         ui.add(content, appearance, 12);
@@ -845,6 +857,7 @@ public final class SettingsActivity extends Activity {
             boolean safeMode = CrashGuard.isSafeMode();
             StringBuilder summary = new StringBuilder("HushMessenger v").append(BuildConfig.VERSION_NAME)
                 .append("\nHost package: ").append(getPackageName())
+                .append("\nSettings provider: ").append(HostScreens.settingsProviderFound(this) ? "found" : "missing")
                 .append("\nHost version: ").append(host.versionName == null ? "unknown" : host.versionName)
                 .append("\nHost version code: ").append(host.getLongVersionCode())
                 .append("\nAndroid API: ").append(Build.VERSION.SDK_INT)
@@ -1082,6 +1095,105 @@ public final class SettingsActivity extends Activity {
                 synchronized (this) { if (updateConnection == conn) updateConnection = null; }
             }
         }, "HushUpdateCheck").start();
+    }
+
+    private Dialog messageLogDialog;
+    private LinearLayout messageLogList;
+
+    /** Two actions under the message-log switch: open the log or wipe it, no confirmation, just a toast. */
+    private void addMessageLogActions(LinearLayout labels) {
+        LinearLayout actions = ui.row();
+        Button view = ui.button(text.get("message_log_view"));
+        view.setTag("message_log_view");
+        view.setOnClickListener(clicked -> showMessageLog());
+        actions.addView(view);
+        Button clear = ui.button(text.get("message_log_clear"));
+        clear.setTag("message_log_clear");
+        clear.setOnClickListener(clicked -> clearMessageLog());
+        LinearLayout.LayoutParams clearParams = new LinearLayout.LayoutParams(-2, -2);
+        clearParams.setMarginStart(ui.dp(8));
+        actions.addView(clear, clearParams);
+        ui.add(labels, actions, 6);
+    }
+
+    private void showMessageLog() {
+        Dialog dialog = new Dialog(this);
+        messageLogDialog = dialog;
+        dialog.setOnDismissListener(dismissed -> {
+            if (messageLogDialog == dismissed) {
+                messageLogDialog = null;
+                messageLogList = null;
+            }
+        });
+        LinearLayout frame = ui.column();
+        frame.setBackgroundColor(ui.background);
+        frame.setPadding(ui.dp(20), ui.dp(20), ui.dp(20), ui.dp(16));
+        frame.addView(ui.text(text.get("message_log_title"), 20, ui.text, true));
+        ui.add(frame, ui.text(text.get("message_log_hint"), 13, ui.muted, false), 4);
+        ScrollView scroll = new ScrollView(this);
+        messageLogList = ui.column();
+        messageLogList.setPadding(0, ui.dp(12), 0, ui.dp(12));
+        messageLogList.addView(ui.text(text.get("message_log_loading"), 14, ui.muted, false));
+        scroll.addView(messageLogList);
+        frame.addView(scroll, new LinearLayout.LayoutParams(-1, 0, 1));
+        LinearLayout buttons = ui.row();
+        buttons.setGravity(android.view.Gravity.END | android.view.Gravity.CENTER_VERTICAL);
+        Button clear = ui.button(text.get("message_log_clear"));
+        clear.setOnClickListener(clicked -> clearMessageLog());
+        buttons.addView(clear);
+        Button close = ui.button(text.get("message_log_close"));
+        LinearLayout.LayoutParams closeParams = new LinearLayout.LayoutParams(-2, -2);
+        closeParams.setMarginStart(ui.dp(8));
+        close.setOnClickListener(clicked -> dialog.dismiss());
+        buttons.addView(close, closeParams);
+        ui.add(frame, buttons, 8);
+        dialog.setContentView(frame);
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(ui.background));
+            dialog.getWindow().setLayout(-1, -1);
+        }
+        dialog.show();
+        loadMessageLog();
+    }
+
+    private void loadMessageLog() {
+        final LinearLayout list = messageLogList;
+        if (list == null) return;
+        new Thread(() -> {
+            final List<MessageLog.Entry> entries = MessageLog.entries();
+            runOnUiThread(() -> {
+                if (messageLogList != list) return;
+                list.removeAllViews();
+                if (entries.isEmpty()) {
+                    list.addView(ui.text(text.get("message_log_empty"), 14, ui.muted, false));
+                    return;
+                }
+                for (MessageLog.Entry entry : entries) list.addView(messageLogEntry(entry));
+            });
+        }, "HushMessageLogView").start();
+    }
+
+    private View messageLogEntry(MessageLog.Entry entry) {
+        LinearLayout card = ui.column();
+        card.setBackground(ui.shape(ui.surface, ui.line, 8));
+        card.setPadding(ui.dp(12), ui.dp(10), ui.dp(12), ui.dp(10));
+        String who = entry.thread == null || entry.thread.isEmpty() ? text.get("message_log_unknown_thread") : entry.thread;
+        card.addView(ui.text(who + "  ·  " + formatSince(entry.time, "active_now", "active_ago"), 12, ui.muted, false));
+        ui.add(card, ui.text(entry.text == null || entry.text.isEmpty() ? text.get("message_log_no_text") : entry.text, 15, ui.text, false), 4);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+        params.topMargin = ui.dp(8);
+        card.setLayoutParams(params);
+        return card;
+    }
+
+    private void clearMessageLog() {
+        new Thread(() -> {
+            MessageLog.clear();
+            runOnUiThread(() -> {
+                feedback(text.get("message_log_cleared"), Toast.LENGTH_SHORT);
+                if (messageLogList != null) loadMessageLog();
+            });
+        }, "HushMessageLogClear").start();
     }
 
     private String formatSince(long timestamp, String now, String ago) {

@@ -8,7 +8,7 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 
 /**
- * Playback-limit targets (Anghami 8.0.28, verified in base.apk smali).
+ * Playback-limit targets (Anghami 8.0.28, verified in Anghami 8.0.28).
  *
  * Used by the "Unlock playback limits" patch. Download asserts, ad flags
  * and offline caps live in their own fingerprint files.

@@ -56,10 +56,12 @@ public enum PatchFamily {
             Settings.HIDE_SPONSORED_PROXY),
     HIDE_POPULAR_APPS(FamilyNames.HIDE_POPULAR_APPS, "hidePopularApps", null,
             Settings.HIDE_POPULAR_APPS),
+    HIDE_CONTACTS_BLOCK(FamilyNames.HIDE_CONTACTS_BLOCK, "hideContactsBlock", null, Settings.HIDE_CONTACTS_BLOCK),
+    HIDE_GREETING_STICKERS(FamilyNames.HIDE_GREETING_STICKERS, "hideGreetingStickers", null, Settings.HIDE_GREETING_STICKERS),
     DISABLE_CHAT_SWIPE(FamilyNames.DISABLE_CHAT_SWIPE, "disableChatSwipe", null,
             Settings.DISABLE_CHAT_SWIPE),
     DISABLE_CHANNEL_PULL(FamilyNames.DISABLE_CHANNEL_PULL, "disableChannelPull", null,
-            Settings.DISABLE_CHANNEL_PULL),
+            Settings.DISABLE_CHANNEL_PULL, Settings.DISABLE_TOPIC_PULL),
     NORMAL_PASTE(FamilyNames.NORMAL_PASTE, "normalPaste", null, Settings.NORMAL_PASTE),
     SHOW_LOCAL_IDS(FamilyNames.SHOW_LOCAL_IDS, "showLocalIds", null, Settings.SHOW_LOCAL_IDS),
     DISABLE_DOUBLE_TAP_REACTIONS(FamilyNames.DISABLE_DOUBLE_TAP_REACTIONS, "disableDoubleTapReactions", null, Settings.DISABLE_DOUBLE_TAP_REACTIONS),
@@ -67,6 +69,24 @@ public enum PatchFamily {
             Settings.QUIET_CONTACTS_NAG),
     HOLIDAY_LOOK(FamilyNames.HOLIDAY_LOOK, "holidayLook", null,
             Settings.HOLIDAY_LOOK),
+    USE_SYSTEM_FONT(FamilyNames.USE_SYSTEM_FONT, "useSystemFont", null, Settings.USE_SYSTEM_FONT),
+    AMOLED_BLACK(FamilyNames.AMOLED_BLACK, "amoledBlack", null, Settings.AMOLED_BLACK),
+    HIDE_TRANSLATE_BAR(FamilyNames.HIDE_TRANSLATE_BAR, "hideTranslateBar", null, Settings.HIDE_TRANSLATE_BAR),
+    EXACT_NUMBERS(FamilyNames.EXACT_NUMBERS, "exactNumbers", null, Settings.EXACT_NUMBERS),
+    REVEAL_SPOILERS(FamilyNames.REVEAL_SPOILERS, "revealSpoilers", null, Settings.REVEAL_SPOILERS),
+    HIDE_KEYBOARD_ON_SCROLL(FamilyNames.HIDE_KEYBOARD_ON_SCROLL, "hideKeyboardOnScroll", null, Settings.HIDE_KEYBOARD_ON_SCROLL),
+    KEEP_VIDEOS_MUTED(FamilyNames.KEEP_VIDEOS_MUTED, "keepVideosMuted", null, Settings.KEEP_VIDEOS_MUTED),
+    SWIPE_BACK_ON_PROFILES(FamilyNames.SWIPE_BACK_ON_PROFILES, "swipeBackOnProfiles", null, Settings.SWIPE_BACK_ON_PROFILES),
+    HIDE_PHONE_NUMBER(FamilyNames.HIDE_PHONE_NUMBER, "hidePhoneNumber", null, Settings.HIDE_PHONE_NUMBER),
+    MESSAGE_SECONDS(FamilyNames.MESSAGE_SECONDS, "messageSeconds", null, Settings.MESSAGE_SECONDS),
+    ALLOW_CHAT_BLUR(FamilyNames.ALLOW_CHAT_BLUR, "allowChatBlur", null, Settings.ALLOW_CHAT_BLUR),
+    VOICE_ONE_AT_A_TIME(FamilyNames.VOICE_ONE_AT_A_TIME, "voiceOneAtATime", null, Settings.VOICE_ONE_AT_A_TIME),
+    NO_HAPTICS(FamilyNames.NO_HAPTICS, "noHaptics", null, Settings.NO_HAPTICS),
+    REACTION_EFFECTS_OFF(FamilyNames.REACTION_EFFECTS_OFF, "reactionEffectsOff", null, Settings.REACTION_EFFECTS_OFF),
+    HIDE_FOLDER_COUNTERS(FamilyNames.HIDE_FOLDER_COUNTERS, "hideFolderCounters", null, Settings.HIDE_FOLDER_COUNTERS),
+    FORWARD_HIDE_SENDER(FamilyNames.FORWARD_HIDE_SENDER, "forwardHideSender", null, Settings.FORWARD_HIDE_SENDER),
+    VOICE_MUSIC_PLAYER(FamilyNames.VOICE_MUSIC_PLAYER, "voiceMusicPlayer", null, Settings.VOICE_MUSIC_PLAYER),
+    SILENCE_NON_CONTACTS(FamilyNames.SILENCE_NON_CONTACTS, "silenceNonContacts", null, Settings.SILENCE_NON_CONTACTS),
     DISABLE_ANALYTICS(FamilyNames.DISABLE_ANALYTICS, "disableAnalytics", null,
             Settings.DISABLE_ANALYTICS),
     DISABLE_CALL_DEBUG(FamilyNames.DISABLE_CALL_DEBUG, "disableCallDebug", null,
@@ -130,8 +150,8 @@ public enum PatchFamily {
 
     /** The families whose switches the Chats page holds. The page and its home row both read this. */
     static final Set<PatchFamily> CHATS_PAGE = Collections.unmodifiableSet(EnumSet.of(HIDE_ADS, HIDE_STORIES,
-            HIDE_RECOMMENDATIONS, HIDE_COMMERCE, HIDE_PROMOTIONAL_BANNERS, HIDE_SPONSORED_PROXY, HIDE_POPULAR_APPS, DISABLE_CHAT_SWIPE, DISABLE_CHANNEL_PULL, NORMAL_PASTE, SHOW_LOCAL_IDS, DISABLE_DOUBLE_TAP_REACTIONS,
-            QUIET_CONTACTS_NAG, HOLIDAY_LOOK));
+            HIDE_RECOMMENDATIONS, HIDE_COMMERCE, HIDE_PROMOTIONAL_BANNERS, HIDE_SPONSORED_PROXY, HIDE_POPULAR_APPS, HIDE_CONTACTS_BLOCK, HIDE_GREETING_STICKERS, DISABLE_CHAT_SWIPE, DISABLE_CHANNEL_PULL, NORMAL_PASTE, SHOW_LOCAL_IDS, DISABLE_DOUBLE_TAP_REACTIONS,
+            QUIET_CONTACTS_NAG, HOLIDAY_LOOK, USE_SYSTEM_FONT, AMOLED_BLACK, HIDE_TRANSLATE_BAR, EXACT_NUMBERS, REVEAL_SPOILERS, HIDE_KEYBOARD_ON_SCROLL, KEEP_VIDEOS_MUTED, SWIPE_BACK_ON_PROFILES, HIDE_PHONE_NUMBER, MESSAGE_SECONDS, ALLOW_CHAT_BLUR, VOICE_ONE_AT_A_TIME, NO_HAPTICS, REACTION_EFFECTS_OFF, HIDE_FOLDER_COUNTERS, FORWARD_HIDE_SENDER, VOICE_MUSIC_PLAYER, SILENCE_NON_CONTACTS));
 
     /** Each independent hook, its owning family and the flag set only after it was inserted. */
     public enum Capability {

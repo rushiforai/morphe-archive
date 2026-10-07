@@ -150,6 +150,11 @@ YouTube Premium を利用している場合、この設定は必要ない場合�
   <!-- misc.audio.tracks.forceOriginalAudioPatch -->
   <string name="morphe_force_original_audio_title">オリジナルの音声を常に使用</string>
   <string name="morphe_force_original_audio_summary">常にオリジナルの音声トラック (言語) を再生します。オートダビングを含む吹き替えの音声トラックは再生されなくなります</string>
+  <!-- misc.audio.silence.skipSilencePatch -->
+  <string name="morphe_skip_silence_title">無音の区間をスキップ</string>
+  <string name="morphe_skip_silence_summary">動画内の無音の部分や会話などの間を自動的にスキップします</string>
+  <string name="morphe_skip_silence_minimum_pause_title">スキップする区間の長さのしきい値</string>
+  <string name="morphe_skip_silence_minimum_pause_summary">この値よりも短い無音の部分や会話などの間はスキップ (短縮) しません。設定後に再生を開始する動画から適用されます</string>
   <!-- misc.proxy.networkProxyPatch -->
   <string name="morphe_proxy_screen_title">ネットワーク プロキシ</string>
   <string name="morphe_proxy_screen_summary">対応しているネットワーク リクエストをプロキシ経由で送信します</string>

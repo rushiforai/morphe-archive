@@ -81,4 +81,14 @@ public class Aweme {
     public String getShareUrl() {
         throw new UnsupportedOperationException("Stub");
     }
+
+    /** Where TikTok's server says the video came from; {@code for_you_page_999} is its fill-in pool. */
+    public String getItemDistributeSource() {
+        throw new UnsupportedOperationException("Stub");
+    }
+
+    /** Why TikTok picked the video for this reader, or null when it gives no reason. */
+    public RecReasonsStruct getRecReasonsStruct() {
+        throw new UnsupportedOperationException("Stub");
+    }
 }

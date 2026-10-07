@@ -114,6 +114,8 @@ public final class Haiagaru {
     private static final String LEGACY_TALK_PREFS_NAME = "talk";
     private static final String LEGACY_TALK_SESSION_REPAIR_KEY =
             "legacyTalkSessionRepairLastUpdateV2";
+    private static final java.util.Map<Object, Integer> LEGACY_TALK_TRANSPORTS =
+            java.util.Collections.synchronizedMap(new java.util.WeakHashMap<>());
     private static final String BUTTON_TAG = "haiagaru.settings.button";
     private static final String DEFAULT_USER_AGENT =
             "Dalvik/2.1.0 (Linux; U; Android 4.0.3; HT-01 Build/XYZ0.123456.789)";
@@ -1503,12 +1505,67 @@ public final class Haiagaru {
                 if (field.getType() == int.class && (field.getName().equals("g")
                         || field.getName().equals("type") || field.getName().equals("kind"))) {
                     field.setAccessible(true);
-                    field.setInt(urlInfo, 1);
+                    int originalTransport = field.getInt(urlInfo);
+                    if (originalTransport != 1) {
+                        field.setInt(urlInfo, 1);
+                        LEGACY_TALK_TRANSPORTS.put(urlInfo, originalTransport);
+                    }
                     return;
                 }
             }
         } catch (Throwable error) {
             Log.w(LOG_TAG, "Unable to normalize legacy Talk transport", error);
+        }
+    }
+
+    /**
+     * ChMate 0.8.10.191 can hand its write form a legacy Talk read.cgi URL,
+     * while its BBSUrlInfo parser only recognizes Talk's /boards/ route.
+     * Convert only that Talk-specific thread URL before parsing the post target.
+     */
+    public static String normalizeLegacyTalkWriteUrl(String value) {
+        if (value == null) return null;
+        try {
+            Uri uri = Uri.parse(value);
+            String host = uri.getHost();
+            String path = uri.getPath();
+            if (host == null || path == null) return value;
+            host = host.toLowerCase(java.util.Locale.ROOT);
+            boolean isTalkHost = host.equals("talk.jp") || host.endsWith(".talk.jp")
+                    || host.equals("classic.talk-platform.com")
+                    || host.endsWith(".talk-platform.com");
+            if (!isTalkHost) return value;
+            java.util.regex.Matcher matcher = java.util.regex.Pattern
+                    .compile("^/(?:bbs/)?test/read\\.cgi/([^/]+)/([0-9]{9,10})(?:/.*)?$")
+                    .matcher(path);
+            if (!matcher.matches()) return value;
+            Uri.Builder builder = uri.buildUpon()
+                    .scheme("https")
+                    .encodedAuthority("talk.jp")
+                    .encodedPath("/boards/" + matcher.group(1) + "/" + matcher.group(2));
+            return builder.build().toString();
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to normalize legacy Talk write URL", error);
+            return value;
+        }
+    }
+
+    /** Restores the URL model's Talk type after the protected DAT load returns. */
+    public static void restoreLegacyTalkTransport(Object urlInfo) {
+        if (urlInfo == null) return;
+        Integer originalTransport = LEGACY_TALK_TRANSPORTS.remove(urlInfo);
+        if (originalTransport == null) return;
+        try {
+            for (java.lang.reflect.Field field : urlInfo.getClass().getDeclaredFields()) {
+                if (field.getType() == int.class && (field.getName().equals("g")
+                        || field.getName().equals("type") || field.getName().equals("kind"))) {
+                    field.setAccessible(true);
+                    field.setInt(urlInfo, originalTransport);
+                    return;
+                }
+            }
+        } catch (Throwable error) {
+            Log.w(LOG_TAG, "Unable to restore legacy Talk transport", error);
         }
     }
 

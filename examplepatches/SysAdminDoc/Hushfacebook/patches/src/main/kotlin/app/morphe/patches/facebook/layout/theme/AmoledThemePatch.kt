@@ -10,6 +10,7 @@ package app.morphe.patches.facebook.layout.theme
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.extension.requireParameterIntact
@@ -33,8 +34,10 @@ import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
+import app.morphe.patches.facebook.feed.refresh.enumConstant
 import org.w3c.dom.Element
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 
@@ -342,6 +345,15 @@ val amoledThemePatch = bytecodePatch(
         hookColourResolvers(mig = APPLY, fds = APPLY)
         fillBackgroundColour(background())
 
+        // Data mode's banner on Flex carriers asks for a card's colour, so route one left it near
+        // black across the black page (issue #86). The page's own colour goes there instead. A build
+        // without the banner, or one that draws it another way, keeps the rest of the theme.
+        try {
+            hookFlexBanner()
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The theme goes on without the Data mode banner.")
+        }
+
         // The system bars. A tab's bar colour can come from a resolver route one doesn't reach, or
         // be written in code for both themes, so the methods that paint the bars ask the extension
         // first, with Facebook's answer for whether the theme is dark (issue #22).
@@ -371,6 +383,51 @@ val amoledThemePatch = bytecodePatch(
 
         enableStatus("amoledTheme")
     }
+}
+
+/** Gets the banner wrapper's colour after route one. Gives the colour to paint. */
+internal const val FLEX_BANNER = "Lapp/morphe/extension/facebook/theme/AmoledTheme;->flexBanner(I)I"
+
+/** The FDS token the Data mode banner paints its wrapper with. */
+private const val CARD_BACKGROUND = "CARD_BACKGROUND"
+
+/**
+ * Issue #86: the Data mode banner of Facebook Flex ([FlexBannerFingerprint]) reads the
+ * CARD_BACKGROUND constant of FDS's token enum, hands it to a (Context, token) resolver, and paints
+ * the strip with the answer. That answer goes through [FLEX_BANNER] before the banner uses it. The
+ * token is found by the constant's name in the enum's static initializer, and the call by its shape.
+ */
+internal fun BytecodePatchContext.hookFlexBanner() {
+    val method = FlexBannerFingerprint.methodOrNull
+        ?: throw PatchException("Facebook Flex's Data mode banner isn't in this build")
+    val code = method.implementation!!.instructions.toList()
+    val read = code.indexOfFirst { instruction ->
+        val field = (instruction as? ReferenceInstruction)?.reference as? FieldReference
+        instruction.opcode == Opcode.SGET_OBJECT && field != null && field.type == field.definingClass &&
+            classDefByOrNull(field.definingClass)?.let { enumConstant(it, CARD_BACKGROUND) } == field.toString()
+    }
+    if (read < 0) throw PatchException("The Data mode banner reads no $CARD_BACKGROUND token")
+    val token = (code[read] as OneRegisterInstruction).registerA
+    val enum = ((code[read] as ReferenceInstruction).reference as FieldReference).type
+
+    val call = (read + 1 until code.size).firstOrNull { index ->
+        val reference = (code[index] as? ReferenceInstruction)?.reference as? MethodReference
+        code[index].opcode == Opcode.INVOKE_STATIC && reference != null && reference.returnType == "I" &&
+            reference.parameterTypes.map(CharSequence::toString) == listOf(CONTEXT, enum) &&
+            (code[index] as? FiveRegisterInstruction)?.registerD == token
+    } ?: throw PatchException("The Data mode banner hands its $CARD_BACKGROUND token to no (Context, token) resolver")
+    val result = code.getOrNull(call + 1)
+    if (result?.opcode != Opcode.MOVE_RESULT) {
+        throw PatchException("The Data mode banner's resolver call isn't followed by its move-result")
+    }
+    val colour = (result as OneRegisterInstruction).registerA
+    method.addInstructions(
+        call + 2,
+        """
+            invoke-static/range { v$colour .. v$colour }, $FLEX_BANNER
+            move-result v$colour
+        """,
+    )
 }
 
 /**

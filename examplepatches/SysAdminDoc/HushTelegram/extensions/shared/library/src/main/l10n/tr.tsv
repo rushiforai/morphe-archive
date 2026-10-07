@@ -226,11 +226,51 @@ No swipe actions on chats	Sohbetlerde kaydırma eylemi yok
 A sideways swipe on a chat in the chat list no longer archives, mutes, pins, deletes or marks it read, so a stray swipe can't change the chat. Long-press still has every action. Off by default in settings.	Sohbet listesinde bir sohbeti yana kaydırmak artık onu arşivlemez, sessize almaz, sabitlemez, silmez veya okundu olarak işaretlemez, böylece yanlışlıkla yapılan bir kaydırma sohbeti değiştirmez. Uzun basma tüm eylemleri sunmaya devam eder. Ayarlarda varsayılan olarak kapalıdır.
 Hide popular apps	Popüler uygulamaları gizle
 Search's Apps tab skips Telegram's Popular apps list, with its heading and loading rows, and Telegram doesn't ask for it. Apps you've opened and other results stay.	Aramadaki Uygulamalar sekmesi, Telegram'ın Popüler uygulamalar listesini başlığı ve yükleme satırlarıyla birlikte atlar ve Telegram bu listeyi istemez. Açtığınız uygulamalar ve diğer sonuçlar kalır.
+Hide contacts on Telegram	Telegram'daki kişileri gizle
+A short chat list no longer lists your contacts on Telegram under it, with their heading and loading rows. Your chats, folders, contact sync and search stay. Off by default in settings.	Kısa bir sohbet listesi, altında Telegram'daki kişilerinizi başlığı ve yükleme satırlarıyla artık göstermez. Sohbetleriniz, klasörleriniz, kişi senkronizasyonu ve arama kalır. Ayarlarda varsayılan olarak kapalıdır.
+Hide greeting stickers	Selamlama çıkartmalarını gizle
+An empty private chat no longer offers a sticker to send as a greeting. Its text, business introductions, paid-message notices and the sticker picker stay. Off by default in settings.	Boş bir özel sohbet artık selamlama olarak gönderilecek bir çıkartma önermez. Metni, işletme tanıtımları, ücretli mesaj bildirimleri ve çıkartma seçici kalır. Ayarlarda varsayılan olarak kapalıdır.
 Quiet contacts prompts	Kişi isteklerini sustur
 Once you've said no to contacts access, the Contacts tab stops asking again and its warning badge goes away. The first request, the tab's own buttons and contact sync stay.	Kişilere erişimi reddettikten sonra Kişiler sekmesi yeniden sormaz ve uyarı rozeti kaybolur. İlk istek, sekmenin kendi düğmeleri ve kişi eşitleme aynı kalır.
 
 New Year look all year	Yıl boyu yılbaşı görünümü
 Telegram's Santa hat sits on the chat list logo, and New Year snow falls every day over the chat list's top bar and, with animated chat backgrounds on, over chat backgrounds. Off by default in settings.	Telegram'ın Noel Baba şapkası sohbet listesi logosunun üzerinde görünür. Yılbaşı karı her gün sohbet listesinin üst çubuğuna, animasyonlu sohbet arka planları açıkken de sohbet arka planlarına yağar. Ayarlarda varsayılan olarak kapalıdır.
+Use system font	Sistem yazı tipini kullan
+Bold and italic text stops using the Roboto files built into Telegram and takes your phone's font, the one regular text already uses. Code takes the phone's monospace font. Some number displays and Instant View pages keep Telegram's own. Off by default in settings.	Kalın ve italik metin, Telegram'a gömülü Roboto dosyaları yerine telefonunuzun yazı tipini kullanır. Normal metin zaten onu kullanıyor. Kod, telefonun eş aralıklı yazı tipini kullanır. Bazı sayı göstergeleri ve Instant View sayfaları Telegram'ın kendi yazı tipini korur. Ayarlarda varsayılan olarak kapalıdır.
+AMOLED black	AMOLED siyahı
+Telegram's Night and Dark themes draw their screens in pure black, and a patterned chat background shows its pattern over black. Message bubbles and pop-up menus keep their colors, and themes you've installed from a file stay as they are. Off by default in settings.	Telegram'ın Gece ve Koyu temaları ekranları saf siyah gösterir, desenli sohbet arka planı da desenini siyahın üzerinde gösterir. Mesaj balonları ve açılır menüler renklerini korur, dosyadan yüklenen temalar olduğu gibi kalır. Ayarlarda varsayılan olarak kapalıdır.
+Hide translate bar	Çeviri çubuğunu gizle
+Chats in another language stop showing Telegram's translate bar at the top, and Translate moves to the chat's menu. A chat you're translating keeps its bar so you can go back to the original. Off by default in settings.	Başka dildeki sohbetler üstte Telegram'ın çeviri çubuğunu artık göstermez ve Çevir, sohbetin menüsüne taşınır. Çevirdiğiniz bir sohbet, orijinale dönebilmeniz için çubuğunu korur. Ayarlarda varsayılan olarak kapalıdır.
+Exact numbers	Sayıları tam göster
+Member, subscriber, view, reply and reaction counts show the full number, like 12,345 instead of 12.3K. Off by default in settings.	Üye, abone, görüntülenme, yanıt ve tepki sayıları kısaltılmadan gösterilir, örneğin 12.3K yerine 12,345. Ayarlarda varsayılan olarak kapalıdır.
+Reveal spoilers	Spoilerları göster
+Spoiler text, photos and videos show right away instead of waiting for a tap. View-once media, sensitive content and login codes stay covered, and text you're typing keeps its spoiler. Off by default in settings.	Spoiler metinleri, fotoğrafları ve videoları dokunmana gerek kalmadan hemen görünür. Tek görüntülemelik medya, hassas içerik ve giriş kodları kapalı kalır, yazdığın metin de spoiler’ını korur. Ayarlarda varsayılan olarak kapalıdır.
+Hide keyboard on scroll	Kaydırınca klavyeyi gizle
+Starting to scroll through a chat closes the keyboard, the way Telegram already does while you search a chat. Telegram's emoji and sticker panel stays open. Off by default in settings.	Bir sohbette kaydırmaya başlamak klavyeyi kapatır, tıpkı Telegram’ın sohbet içinde arama yaparken yaptığı gibi. Telegram’ın emoji ve çıkartma paneli açık kalır. Ayarlarda varsayılan olarak kapalıdır.
+Keep videos muted on volume keys	Ses tuşlarında videoları sessiz tut
+Volume keys in a chat change the volume instead of playing the video or round video on screen with sound. Tap a video to hear it. Off by default in settings.	Bir sohbetteki ses tuşları, ekrandaki videoyu veya yuvarlak videoyu sesli oynatmak yerine sesi değiştirir. Duymak için videoya dokun. Ayarlarda varsayılan olarak kapalıdır.
+Swipe back on profiles	Profillerde geri kaydır
+A swipe to the right on a profile's photos or media tabs goes back, like it does on the rest of the profile, instead of showing the previous photo or tab. Swiping left still moves forward. Off by default in settings.	Bir profilin fotoğraflarında veya medya sekmelerinde sağa kaydırmak, önceki fotoğrafı veya sekmeyi göstermek yerine profilin geri kalanında olduğu gibi geri gider. Sola kaydırmak yine ileri gider. Ayarlarda varsayılan olarak kapalıdır.
+Hide phone number	Telefon numarasını gizle
+Your own phone number shows as dots in the side menu, Settings, your profile and anywhere else Telegram displays it, which helps with screenshots and screen sharing. Other people's numbers stay visible. Off by default in settings.	Kendi telefon numaran yan menüde, Ayarlarda, profilinde ve Telegram'ın gösterdiği her yerde nokta olarak görünür. Ekran görüntüleri ve ekran paylaşımı için kullanışlıdır. Başkalarının numaraları görünür kalır. Ayarlarda varsayılan olarak kapalıdır.
+Message times with seconds	Saniyeli mesaj saati
+The time on each message shows seconds too, like 9:41:27 PM, so messages sent close together are easy to tell apart. Off by default in settings.	Her mesajın saati saniyeleri de gösterir, örneğin 21:41:27, böylece art arda gönderilen mesajlar kolayca ayırt edilir. Ayarlarda varsayılan olarak kapalıdır.
+Allow chat blur on slower phones	Daha yavaş telefonlarda sohbet bulanıklığına izin ver
+Telegram only blurs the chat header and panels on phones it rates as fast. This lets any phone use it once Blur in chat is on under Power saving. Off by default in settings.	Telegram sohbet başlığını ve panelleri yalnızca hızlı saydığı telefonlarda bulanıklaştırır. Bu, Güç tasarrufu altında Sohbette bulanıklık açıldığında her telefonun bunu kullanmasını sağlar. Ayarlarda varsayılan olarak kapalıdır.
+Play voice messages one at a time	Sesli mesajları tek tek oynat
+When a voice or video message ends, the next one in the chat doesn't start on its own. Off by default in settings.	Bir sesli ya da görüntülü mesaj bittiğinde sohbetteki sonraki kendiliğinden başlamaz. Ayarlarda varsayılan olarak kapalıdır.
+Turn off haptic feedback	Dokunsal geri bildirimi kapat
+Taps, long presses, swipes and wrong entries in Telegram stop vibrating the phone. Incoming calls still vibrate, and notifications vibrate the way you set them. Off by default in settings.	Telegram'da dokunmalar, uzun basmalar, kaydırmalar ve hatalı girişler artık telefonu titreştirmez. Gelen aramalar titremeye devam eder, bildirimler de ayarladığınız gibi titrer. Ayarlarda varsayılan olarak kapalıdır.
+Turn off reaction effects	Tepki efektlerini kapat
+When you or someone else reacts to a message, the emoji no longer flies across the screen and bursts. The reaction still shows on the message. Off by default in settings.	Siz ya da başka biri bir mesaja tepki verdiğinde emoji artık ekranda uçup patlamaz. Tepki yine mesajda görünür. Ayarlarda varsayılan olarak kapalıdır.
+Hide folder tab counters	Klasör sekmesi sayaçlarını gizle
+The folder tabs above the chat list show just their names, without the number of unread chats. Chats stay unread and the app icon's badge doesn't change. Off by default in settings.	Sohbet listesinin üstündeki klasör sekmeleri okunmamış sohbet sayısı olmadan yalnızca adlarını gösterir. Sohbetler okunmamış kalır ve uygulama simgesindeki rozet değişmez. Ayarlarda varsayılan olarak kapalıdır.
+Hide sender names when forwarding	İletirken gönderen adlarını gizle
+Each new forward starts with Telegram's Hide sender's name option turned on, so the copies arrive without the original author. You can still turn it off before sending, and article forwards follow Telegram's Premium rule. Off by default in settings.	Her yeni iletme, Telegram'ın Gönderen adını gizle seçeneği açık olarak başlar, böylece kopyalar asıl gönderen olmadan ulaşır. Göndermeden önce yine kapatabilirsiniz, makaleler ise Telegram'ın Premium kuralına uyar. Ayarlarda varsayılan olarak kapalıdır.
+Voice messages in the music player	Sesli mesajlar müzik çalarda
+While a voice message plays, tapping the bar above the chat opens Telegram's full music player with its seek bar, instead of jumping to the message. View-once voice messages stay as they are. Off by default in settings.	Bir sesli mesaj çalarken sohbetin üstündeki çubuğa dokunduğunuzda, mesaja atlamak yerine Telegram'ın arama çubuklu tam müzik çaları açılır. Tek seferlik sesli mesajlar olduğu gibi kalır. Ayarlarda varsayılan olarak kapalıdır.
+Silence people outside your contacts	Kişileriniz dışındakileri sessize al
+A private message from someone who isn't in your contacts still shows a notification, just without sound or vibration. Bots, reminders and Telegram's login codes keep their sound. Off by default in settings.	Kişileriniz arasında olmayan birinden gelen özel mesaj yine bildirim gösterir, yalnızca sessiz ve titreşimsiz. Botlar, hatırlatıcılar ve Telegram giriş kodları seslerini korur. Ayarlarda varsayılan olarak kapalıdır.
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Bildirimler
@@ -239,6 +279,8 @@ Uses Telegram's official certificate for Firebase push registration. Notificatio
 Firebase certificate header	Firebase sertifika başlığı
 Stop pull to next channel	Sonraki kanala çekmeyi durdur
 Pulling up at the bottom of a channel only scrolls. Open the next channel from your chat list.	Kanalın sonunda yukarı çekmek yalnızca içeriği kaydırır. Sonraki kanalı sohbet listenizden açın.
+Stop pull to next topic	Sonraki konuya çekmeyi durdur
+Pulling up at the bottom of a forum topic only scrolls. Open the next topic from the topic list. Off by default in settings.	Bir forum konusunun sonunda yukarı çekmek yalnızca içeriği kaydırır. Sonraki konuyu konu listesinden açın. Ayarlarda varsayılan olarak kapalıdır.
 # context: Read-only local notification facts, independent of repair and Pause.
 Local notification status	Yerel bildirim durumu
 local notification status	yerel bildirim durumu

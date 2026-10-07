@@ -82,9 +82,9 @@ public class SettingsNavigationTest {
 
     @Test public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
-        // The status card, Browse settings, Feed, Privacy and More settings.
-        assertEquals(5, list().getCount());
-        assertEquals(8, page.sections().size());
+        // The status card, Browse settings, Feed, Privacy, Downloads and More settings.
+        assertEquals(6, list().getCount());
+        assertEquals(9, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
             assertTrue(page.navigation.open(section));
@@ -94,7 +94,7 @@ public class SettingsNavigationTest {
             assertTrue(page.navigation.back());
             while (page.navigation.back()) { }
         }
-        assertEquals(5, list().getCount());
+        assertEquals(6, list().getCount());
     }
 
     @Test public void categoryClickChangesOnlyTheSettingWhoseRowWasTapped() {
@@ -436,7 +436,7 @@ public class SettingsNavigationTest {
         assertEquals("No matching settings", ((Preference) list().getItemAtPosition(0)).getTitle());
         assertTrue(page.navigation.back());
         assertEquals("", search.getText().toString());
-        assertEquals(5, list().getCount());
+        assertEquals(6, list().getCount());
     }
 
     /**
@@ -528,8 +528,8 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.SANITIZE_SHARING_LINKS.key));
         recreate();
         assertTrue(contains(Settings.SANITIZE_SHARING_LINKS.key));
-        // Privacy includes its three switches and the address coverage disclosed by this build.
-        assertEquals(4, list().getCount());
+        // Privacy includes its four switches and the address coverage disclosed by this build.
+        assertEquals(5, list().getCount());
         assertTrue(titles().contains("Analytics address coverage"));
         page.navigation.back();
         findSearch(dialog.getView()).setText("shared links");
@@ -542,13 +542,13 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.HIDE_ADS.key));
         SettingsL10nTest.backOf(dialog).performClick();
         assertTrue(dialog.getDialog().isShowing());
-        assertEquals(5, list().getCount());
+        assertEquals(6, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
         // More settings: Appearance, Links, Updates, Set when you patched, Pause, backup and diagnostics, and About.
         assertEquals(6, list().getCount());
         dialog.getDialog().onBackPressed();
-        assertEquals(5, list().getCount());
+        assertEquals(6, list().getCount());
         dialog.getDialog().onBackPressed();
         ShadowLooper.idleMainLooper();
         assertFalse(controller.get().isFinishing());
@@ -892,7 +892,7 @@ public class SettingsNavigationTest {
         page = page(dialog);
         Map<String, Object> before = savedValues();
 
-        assertEquals(6, list().getCount());
+        assertEquals(7, list().getCount());
         assertEquals(1, position(HushThreadsPreferenceFragment.MISSING_DEFAULTS));
         Preference row = (Preference) list().getItemAtPosition(1);
         assertEquals("1 default patch isn't in this build", String.valueOf(row.getTitle()));

@@ -32,7 +32,10 @@ public class BuildDetailsExportTest {
     @Before public void start() throws Exception {
         oldSettings = SettingsBackup.create(false);
         HushfeedPause.resetForTests();
-        BaseSettings.DEBUG_LOG_FILTERS.save("downloads");
+        // A failed preference commit rolls the filter back to "all" and logs an error the clear
+        // below removes, and every later assertion then reads unrelated categories. Say so here.
+        assertTrue("the downloads-only log filter was not saved",
+                BaseSettings.DEBUG_LOG_FILTERS.save("downloads"));
         LogBufferManager.clearLogBuffer();
         HookStatus.clear();
     }

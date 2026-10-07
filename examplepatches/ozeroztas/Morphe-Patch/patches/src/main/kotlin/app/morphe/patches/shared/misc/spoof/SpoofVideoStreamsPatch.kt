@@ -23,6 +23,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod.Companion.toMutable
 import app.morphe.patches.shared.BuildInnerTubeProtoRequestUriFingerprint
+import app.morphe.patches.shared.BuildInnerTubeProtoRequestUriLegacyFingerprint
 import app.morphe.patches.shared.misc.fix.proto.fixProtoLibraryPatch
 import app.morphe.patches.shared.misc.fix.proto.parseByteArrayMethodRef
 import app.morphe.patches.shared.misc.request.buildRequestPatch
@@ -90,6 +91,8 @@ internal fun spoofVideoStreamsPatch(
     fixMediaSessionFeatureFlag: BytecodePatchBuilder.() -> Boolean,
     fixReelItemWatchResponseFeatureFlag: BytecodePatchBuilder.() -> Boolean,
     restoreMissingCuepointMethod: BytecodePatchBuilder.() -> Boolean,
+    patchProtoRequest: BytecodePatchBuilder.() -> Boolean,
+    patchProtoRequestLegacy: BytecodePatchBuilder.() -> Boolean,
     block: BytecodePatchBuilder.() -> Unit,
     executeBlock: BytecodePatchContext.() -> Unit = {},
 ) = bytecodePatch(
@@ -138,20 +141,29 @@ internal fun spoofVideoStreamsPatch(
         // endregion
 
         // region Block /get_watch requests to fall back to /player requests.
+        val uriFingerprints = mutableListOf<Fingerprint>()
+        if (patchProtoRequest()) {
+            uriFingerprints += BuildInnerTubeProtoRequestUriFingerprint
+        }
+        if (patchProtoRequestLegacy()) {
+            uriFingerprints += BuildInnerTubeProtoRequestUriLegacyFingerprint
+        }
 
-        BuildInnerTubeProtoRequestUriFingerprint.let {
-            it.method.apply {
-                val match = it.instructionMatches.last()
-                val index = match.index
-                val register = match.instruction.registersUsed[0]
+        uriFingerprints.forEach { fingerprint ->
+            fingerprint.let {
+                it.method.apply {
+                    val match = it.instructionMatches.last()
+                    val index = match.index
+                    val register = match.instruction.registersUsed[0]
 
-                addInstructionsAtControlFlowLabel(
-                    index,
-                    $$"""
-                        invoke-static { v$$register }, $$EXTENSION_CLASS->blockGetWatchRequest(Landroid/net/Uri$Builder;)Landroid/net/Uri$Builder;
-                        move-result-object v$$register
-                    """
-                )
+                    addInstructionsAtControlFlowLabel(
+                        index,
+                        $$"""
+                            invoke-static { v$$register }, $$EXTENSION_CLASS->blockGetWatchRequest(Landroid/net/Uri$Builder;)Landroid/net/Uri$Builder;
+                            move-result-object v$$register
+                        """
+                    )
+                }
             }
         }
 

@@ -64,20 +64,45 @@ internal val TELEMETRY_PATHS = setOf(
 internal fun Method.telemetryPath(): String? = annotations.asSequence().flatMap { it.elements.asSequence() }
     .mapNotNull { (it.value as? StringEncodedValue)?.value }.firstOrNull { it in TELEMETRY_PATHS }
 
-/** This documented Analytics-only flag also covers initialization before application.onCreate. */
+/**
+ * The documented application metadata switches the manifest edit writes, with the value each gets.
+ * Firebase reads them before application.onCreate, so they also cover initialization. Firebase
+ * Messaging, Installations and sign-in metadata are never in this list.
+ */
+internal val ANALYTICS_MANIFEST_FLAGS: Map<String, String> = linkedMapOf(
+    FIREBASE_DEACTIVATED to "true",
+    "firebase_crashlytics_collection_enabled" to "false",
+    "firebase_performance_collection_deactivated" to "true",
+    "google_analytics_adid_collection_enabled" to "false",
+    "google_analytics_default_allow_analytics_storage" to "false",
+    "google_analytics_default_allow_ad_storage" to "false",
+    "google_analytics_default_allow_ad_user_data" to "false",
+    "google_analytics_default_allow_ad_personalization_signals" to "false",
+)
+
+/**
+ * Adds each flag in [ANALYTICS_MANIFEST_FLAGS], or sets an existing one in place: it keeps its other
+ * attributes and children, loses android:resource and gets the value. A repeated flag refuses
+ * before anything is changed.
+ */
 internal fun deactivateFirebaseAnalytics(document: Document) {
     val application = document.getElementsByTagName("application").item(0) as? Element
         ?: throw PatchException("AndroidManifest.xml has no application element")
     val metadata = application.childNodes.let { nodes -> (0 until nodes.length).mapNotNull { nodes.item(it) as? Element } }
-        .filter { it.tagName == "meta-data" && it.getAttribute("android:name") == FIREBASE_DEACTIVATED }
-    if (metadata.size > 1) throw PatchException("AndroidManifest.xml has repeated $FIREBASE_DEACTIVATED metadata")
-    val entry = metadata.singleOrNull() ?: document.createElement("meta-data").also { application.appendChild(it) }
-    entry.setAttribute("android:name", FIREBASE_DEACTIVATED)
-    entry.removeAttribute("android:resource")
-    entry.setAttribute("android:value", "true")
+        .filter { it.tagName == "meta-data" }
+    val existing = ANALYTICS_MANIFEST_FLAGS.keys.associateWith { name -> metadata.filter { it.getAttribute("android:name") == name } }
+    existing.entries.firstOrNull { it.value.size > 1 }?.let {
+        throw PatchException("AndroidManifest.xml has repeated ${it.key} metadata")
+    }
+    for ((name, value) in ANALYTICS_MANIFEST_FLAGS) {
+        val entry = existing.getValue(name).singleOrNull() ?: document.createElement("meta-data").also { application.appendChild(it) }
+        entry.setAttribute("android:name", name)
+        entry.removeAttribute("android:resource")
+        entry.setAttribute("android:value", value)
+    }
 }
 
-/** A dependency failure prevents the irreversible Firebase resource edit from running. */
+/** A dependency failure prevents the irreversible manifest edit from running. */
 internal val analyticsPreflightPatch = bytecodePatch {
     dependsOn(settingsPatch, pinterestExtensionPatch)
     execute { analyticsPlan() }
@@ -93,9 +118,10 @@ val disableAnalyticsPatch = bytecodePatch(
     name = PATCH,
     description = "Stops Pinterest's usage-event and performance uploads, AppsFlyer tracking, Bugsnag " +
         "crash reports and the recommendations Pinterest publishes to Google Engage. " +
-        "A switch and Pause restore those runtime paths. Firebase Analytics is disabled in the " +
-        "manifest and stays disabled until you patch again without this patch. Sign-in, pin requests " +
-        "and Firebase push components are preserved.",
+        "A switch and Pause restore those runtime paths. In the manifest it also turns off Firebase " +
+        "Analytics, Crashlytics and Performance collection and Google Analytics' ad ID collection, and sets " +
+        "Google's default analytics and ad consent to denied. That part stays until you patch again " +
+        "without this patch. Sign-in, pin requests and Firebase push components are preserved.",
     default = true,
 ) {
     category("Privacy")

@@ -83,6 +83,8 @@ body:
         - Hide Stories
         - Hide recommendations
         - Hide popular apps
+        - Hide contacts on Telegram
+        - Hide greeting stickers
         - Hide Premium, gifts and Stars
         - Hide promotional banners
         - Hide sponsored proxy channel
@@ -92,6 +94,24 @@ body:
         - Repair Firebase push registration
         - Use registered Telegram API credentials
         - Use registered Maps API key
+        - Use system font
+        - AMOLED black
+        - Hide translate bar
+        - Exact numbers
+        - Reveal spoilers
+        - Hide keyboard on scroll
+        - Keep videos muted on volume keys
+        - Swipe back on profiles
+        - Hide phone number
+        - Message times with seconds
+        - Allow chat blur on slower phones
+        - Play voice messages one at a time
+        - Turn off haptic feedback
+        - Turn off reaction effects
+        - Hide folder tab counters
+        - Hide sender names when forwarding
+        - Voice messages in the music player
+        - Silence people outside your contacts
         - Strip link tracking
         - HushTelegram settings
     validations:

@@ -33,6 +33,7 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 
 private const val PATCH = "Disable pull to next channel"
 internal const val CHANNEL_PULL = "$EXTENSION_PACKAGE/misc/ChannelPull;"
+internal const val FORUM_TOPIC_PULL = "$EXTENSION_PACKAGE/misc/ForumTopicPull;"
 private const val CHAT = "Lorg/telegram/tgnet/TLRPC\$Chat;"
 private const val USER = "Lorg/telegram/tgnet/TLRPC\$User;"
 private const val CHAT_OBJECT = "Lorg/telegram/messenger/ChatObject;"
@@ -43,7 +44,7 @@ private const val VIEW = "Landroid/view/View;"
 @Suppress("unused")
 val disableChannelPullPatch = bytecodePatch(
     name = PATCH,
-    description = "Adds a switch, on by default, that stops pulling past the bottom of a channel from opening the next channel. Scrolling, opening channels directly and pulling between forum topics still work.",
+    description = "Adds a switch, on by default, that stops pulling past the bottom of a channel from opening the next channel, and a second one, off by default, that does the same for the next forum topic. Scrolling and opening channels or topics directly still work.",
     default = true,
 ) {
     category("Chats")
@@ -81,19 +82,25 @@ internal class ChannelPullSites(
     val transition: MethodReference,
 ) {
     fun insert(scrollMethod: MutableMethod, touchMethod: MutableMethod) {
-        guard(scrollMethod, scrollGate, scrollExit, scrollActivity, "stopBottomPull")
-        guard(touchMethod, releaseGate, retract, activity, "keepChannelStill")
+        guard(scrollMethod, scrollGate, scrollExit, scrollActivity, "stopBottomPull", "stopTopicPull")
+        guard(touchMethod, releaseGate, retract, activity, "keepChannelStill", "keepTopicStill")
     }
 
-    private fun guard(method: MutableMethod, at: Int, exit: Int, holder: Int, hook: String) {
+    /** Telegram's own topic flag picks the switch: a topic pull asks the topic switch, any other pull the channel one. */
+    private fun guard(method: MutableMethod, at: Int, exit: Int, holder: Int, channelHook: String, topicHook: String) {
         val answer = method.freeLocalsAt(PATCH, at, 1, targets = listOf(exit), highest = 15).single()
         method.addInstructionsAtControlFlowLabel(at, """
             iget-boolean v$answer, v$holder, $topic
             if-nez v$answer, :hush_topic
-            invoke-static {}, $CHANNEL_PULL->$hook()Z
+            invoke-static {}, $CHANNEL_PULL->$channelHook()Z
             move-result v$answer
             if-nez v$answer, :hush_retract
+            goto :hush_stock
             :hush_topic
+            invoke-static {}, $FORUM_TOPIC_PULL->$topicHook()Z
+            move-result v$answer
+            if-nez v$answer, :hush_retract
+            :hush_stock
             nop
         """.trimIndent(), ExternalLabel("hush_retract", method.getInstruction(exit)))
     }
@@ -266,9 +273,14 @@ internal fun BytecodePatchContext.resolveChannelPullSites(): ChannelPullSites {
 }
 
 private fun BytecodePatchContext.requireRuntimeHooks() {
-    val owner = classDefByOrNull(CHANNEL_PULL)
-    shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public channel pull runtime")
-    for (name in listOf("stopBottomPull", "keepChannelStill")) {
+    requireRuntimeHooks(CHANNEL_PULL, "channel", listOf("stopBottomPull", "keepChannelStill"))
+    requireRuntimeHooks(FORUM_TOPIC_PULL, "topic", listOf("stopTopicPull", "keepTopicStill"))
+}
+
+private fun BytecodePatchContext.requireRuntimeHooks(type: String, kind: String, names: List<String>) {
+    val owner = classDefByOrNull(type)
+    shape(owner != null && AccessFlags.PUBLIC.isSet(owner.accessFlags), "no public $kind pull runtime")
+    for (name in names) {
         val params = emptyList<String>()
         shape(owner!!.methods.count { it.name == name && it.parameterTypes == params && it.returnType == "Z" &&
             AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) &&

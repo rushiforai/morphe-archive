@@ -7,6 +7,7 @@ package app.morphe.extension.tiktok.feedfilter;
 import static org.junit.Assert.*;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 import com.ss.android.ugc.aweme.feed.model.AwemeRawAd;
@@ -65,6 +66,14 @@ public class AdsFilterTest {
         }
     }
 
+    /** AwemeCommerceStruct's two pseudo-ad members, named as on every retained fixture. */
+    public static class Commerce {
+        boolean pseudoAd;
+        Object pseudoAdData;
+        public boolean isPseudoAd() { return pseudoAd; }
+        public Object getPseudoAdData() { return pseudoAdData; }
+    }
+
     /** Simulates a future host model where the required serialized anchor getter moved. */
     public static class VideoWithoutAnchors extends Aweme {
         @Override public boolean isAd() { return false; }
@@ -77,10 +86,12 @@ public class AdsFilterTest {
     @Before public void setUp() {
         Utils.setContext(RuntimeEnvironment.getApplication());
         HookStatus.clear();
+        FeedFilterCounters.clear();
     }
 
     @After public void tearDown() {
         HookStatus.clear();
+        FeedFilterCounters.clear();
     }
 
     @Test public void displayTextCommissionDisclosureIsAnAd() {
@@ -183,6 +194,37 @@ public class AdsFilterTest {
         };
 
         assertTrue(filter.getFiltered(branded));
+    }
+
+    @Test public void aCreatorPostTikTokRunsAsAnAdIsAnAdAndIsCounted() {
+        Video pseudo = video(null);
+        Commerce both = new Commerce();
+        both.pseudoAd = true;
+        both.pseudoAdData = new AwemeRawAd();
+        pseudo.commerceVideoAuthInfo = both;
+
+        assertTrue(filter.getFiltered(pseudo));
+        assertTrue(FeedFilterCounters.report().toString(),
+                FeedFilterCounters.report().contains("AdSignals: 0 lists, 0 items, 0 removed. Kinds: pseudo ad 1"));
+    }
+
+    /** TikTok's isPseudoAd returns false unless the flag and the ad data are both there. */
+    @Test public void theFlagOrTheAdDataAloneIsNotAPseudoAd() {
+        Video ordinary = video(null);
+        ordinary.commerceVideoAuthInfo = new Commerce();
+        Video flagged = video(null);
+        Commerce flag = new Commerce();
+        flag.pseudoAd = true;
+        flagged.commerceVideoAuthInfo = flag;
+        Video carrying = video(null);
+        Commerce data = new Commerce();
+        data.pseudoAdData = new AwemeRawAd();
+        carrying.commerceVideoAuthInfo = data;
+
+        assertFalse(filter.getFiltered(ordinary));
+        assertFalse(filter.getFiltered(flagged));
+        assertFalse(filter.getFiltered(carrying));
+        assertTrue(FeedFilterCounters.report().isEmpty());
     }
 
     @Test public void missingAnchorGetterFailsOpenAndNamesTheContract() {

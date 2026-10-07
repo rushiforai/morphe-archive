@@ -12,11 +12,13 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.fileNameSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.fitAboveKeyboard;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.folderSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.photoNameSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.playbackQualitySummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.qualitySummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.saveToSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.sendAppSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.showAllText;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.sourcesSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.startTabSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsEditorLine;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsRefusal;
@@ -42,6 +44,7 @@ import java.util.function.Consumer;
 import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.FileNameTemplate;
+import app.morphe.extension.facebook.download.PostDetails;
 import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
@@ -192,6 +195,56 @@ final class ValueRows {
     }
 
     /**
+     * The row of the list Hide posts from people, Pages and sites reads. Its summary follows its
+     * text, whoever sets it, and its dialog shows the explanation and the whole list in one scroll,
+     * as a word list's does.
+     */
+    static final class SourcesRow extends EditTextPreference {
+        SourcesRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            setSummary(sourcesSummary(text));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        @Override protected View onCreateDialogView() {
+            Context context = getContext();
+            ScreenColors colors = ScreenColors.shown == null ? ScreenColors.DEFAULT : ScreenColors.shown;
+            TextView help = new TextView(context);
+            help.setId(android.R.id.message);
+            help.setText(getDialogMessage());
+            help.setTextSize(14);
+            help.setTextColor(colors.summary);
+            help.setPadding(0, 0, 0, Math.round(10 * context.getResources().getDisplayMetrics().density));
+            return scrollingBody(context, help, getEditText());
+        }
+
+        @Override protected void onBindDialogView(View view) {
+            // The input is already in the scroll, after its explanation.
+            getEditText().setText(getText());
+        }
+
+        /** Its edit dialog takes the screen's colours, as the word lists' do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            fitAboveKeyboard(getDialog());
+        }
+    }
+
+    /**
      * An edit dialog's body as one scroll: [parts] top to bottom, each as wide as the dialog. With
      * the keyboard open the dialog shrinks above it ({@link HushfacebookPreferenceFragment#fitAboveKeyboard}),
      * and what no longer fits scrolls while Save and Cancel stay below.
@@ -211,25 +264,31 @@ final class ValueRows {
     }
 
     /**
-     * The video file name's row. Its summary follows its text, whoever sets it: the person, the
-     * shared page syncing it from the setting, or an import.
+     * The video or the photo file name's row. Its summary follows its text, whoever sets it: the
+     * person, the shared page syncing it from the setting, or an import.
      */
     static final class FileNameRow extends EditTextPreference {
+        /** Whether it names saved photos rather than videos. */
+        final boolean photo;
         @Nullable private TextView preview;
         private java.util.Date previewDate;
 
-        FileNameRow(Context context) {
+        FileNameRow(Context context, boolean photo) {
             super(context);
+            this.photo = photo;
             getEditText().addTextChangedListener(new android.text.TextWatcher() {
                 @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) { }
                 @Override public void onTextChanged(CharSequence text, int start, int before, int count) {
-                    if (preview != null) preview.setText(previewName(text.toString(), previewDate));
+                    if (preview != null) preview.setText(previewName(text.toString(), previewDate, FileNameRow.this.photo));
                 }
                 @Override public void afterTextChanged(android.text.Editable text) { }
             });
         }
 
-        static String previewName(String text, java.util.Date when) {
+        static String previewName(String text, java.util.Date when, boolean photo) {
+            if (photo) {
+                return FileNameTemplate.photoName(FileNameTemplate.sanitizePhoto(text), when, PostDetails.of("123456")) + ".jpg";
+            }
             return FileNameTemplate.videoName(FileNameTemplate.sanitize(text), when, "123456") + ".mp4";
         }
 
@@ -246,7 +305,7 @@ final class ValueRows {
             preview = new TextView(context);
             preview.setTextSize(14);
             preview.setTextColor(colors.title);
-            preview.setText(previewName(getText(), previewDate));
+            preview.setText(previewName(getText(), previewDate, photo));
             TextView help = new TextView(context);
             help.setId(android.R.id.message);
             help.setText(getDialogMessage());
@@ -269,7 +328,8 @@ final class ValueRows {
         @Override
         public void setText(String text) {
             super.setText(text);
-            setSummary(fileNameSummary(FileNameTemplate.sanitize(text)));
+            setSummary(photo ? photoNameSummary(FileNameTemplate.sanitizePhoto(text))
+                    : fileNameSummary(FileNameTemplate.sanitize(text)));
         }
 
         @Override

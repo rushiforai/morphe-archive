@@ -240,10 +240,13 @@ public class FeatureGateLocalizationTest {
                                     .put("type", "INT")
                                     .put("value", "not_an_int")));
             Method review = FeatureGateLabFragment.class.getDeclaredMethod(
-                    "reviewLoadedImport", JSONObject.class);
+                    "reviewLoadedImport", JSONObject.class, FeatureGateCatalog.Snapshot.class);
             review.setAccessible(true);
+            var shown = FeatureGateLabFragment.class.getDeclaredField("snapshot");
+            shown.setAccessible(true);
             ShadowToast.reset();
-            review.invoke(lab, importFile);
+            // Reviewed against the values the Lab holds, as an import arriving now would be.
+            review.invoke(lab, importFile, shown.get(lab));
             Utils.awaitBackgroundTasksForTests();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEquals(expected.importRejection, ShadowToast.getTextOfLatestToast());

@@ -1,3 +1,38 @@
+## [1.4.4](https://github.com/bearinmindcat/morphe-patches/compare/v1.4.3...v1.4.4) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* 120 refresh rate now keeps navigation smooth ([f323173](https://github.com/bearinmindcat/morphe-patches/commit/f32317373b574bbe89eb45964bac18c5addb0090))
+
+## [1.4.3](https://github.com/bearinmindcat/morphe-patches/compare/v1.4.2...v1.4.3) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* customization screen no longer removes other account menu rows ([269e0ef](https://github.com/bearinmindcat/morphe-patches/commit/269e0ef335990d713c46ff49ddf5d8cc4d8f5de6))
+
+## [1.4.2](https://github.com/bearinmindcat/morphe-patches/compare/v1.4.1...v1.4.2) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* customization and other screens no longer crash on android 10 ([9bac165](https://github.com/bearinmindcat/morphe-patches/commit/9bac165b01a94c97699376b692c46def333dfc89))
+
+## [1.4.1](https://github.com/bearinmindcat/morphe-patches/compare/v1.4.0...v1.4.1) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* black theme no longer overrides the theme picked in maps settings ([5d9df9e](https://github.com/bearinmindcat/morphe-patches/commit/5d9df9e14f7af9662ad2fa1948e8d7167a9c8883))
+
+## [1.4.0](https://github.com/bearinmindcat/morphe-patches/compare/v1.3.0...v1.4.0) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* fixed issue with zoom buttons floating over pulled up menu ([65878f1](https://github.com/bearinmindcat/morphe-patches/commit/65878f16d29c0c55933a3c8eaa6c2f723f0d00a4))
+* fixed layout for landscape zoom control icons ([5e8783c](https://github.com/bearinmindcat/morphe-patches/commit/5e8783c9f8c6809a78f45c2981be1fe9b03b5a96))
+
+### ✨ New Features
+
+* add hide ai toggle (know before you go & gemini review summaries) ([efc79d7](https://github.com/bearinmindcat/morphe-patches/commit/efc79d71a2fe72b581724a0c54e120024934cc9c))
+
 ## [1.3.0](https://github.com/bearinmindcat/morphe-patches/compare/v1.2.0...v1.3.0) (2026-09-30)
 
 ### ✨ New Features

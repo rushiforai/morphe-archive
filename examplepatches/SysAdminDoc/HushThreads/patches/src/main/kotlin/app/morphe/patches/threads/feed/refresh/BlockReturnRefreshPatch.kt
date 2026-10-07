@@ -3,7 +3,8 @@
  * https://github.com/SysAdminDoc/HushThreads
  *
  * Built on SysAdminDoc/Hushfacebook (GPL-3.0), whose patch of the same name answers Facebook's
- * return checks. Threads' checks were found by reading 449 and 448 (2026-10-02).
+ * return checks. Threads' checks were found by reading 449 and 448 (2026-10-02), and carried to
+ * 450's reshaped warm-start check and two-key threshold by reading it (2026-10-06).
  */
 package app.morphe.patches.threads.feed.refresh
 
@@ -16,13 +17,14 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.threads.feed.reaching
+import app.morphe.patches.threads.feed.writes
 import app.morphe.patches.threads.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.threads.misc.extension.enableStatus
 import app.morphe.patches.threads.misc.extension.localRegisterCount
 import app.morphe.patches.threads.misc.extension.requireStatusMethod
 import app.morphe.patches.threads.misc.extension.threadsExtensionPatch
 import app.morphe.patches.threads.misc.settings.settingsPatch
-import app.morphe.util.ControlFlow
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
@@ -113,45 +115,96 @@ private fun BytecodePatchContext.mutable(method: Method): MutableMethod =
 internal data class WarmStartSite(val register: Int, val store: Int)
 
 /**
- * The warm-start check's answer is a boolean set to 1 when the time away reaches the threshold and
- * to 0 right before it logs [TOO_SHORT], then stored into the decision it hands back. Every other
- * path stores a constant false.
+ * The warm-start check's answer is a boolean: 1 when the time away reaches the threshold, 0 when it
+ * logs [TOO_SHORT], then stored into the decision it hands back. Every other path stores a constant
+ * false.
  */
 internal fun Method.warmStartSite(): WarmStartSite {
     val body = implementation!!.instructions.toList()
-    val (logged, zero) = body.tooShortFalse()
-    fun literal(index: Int, value: Int) = body[index].opcode == Opcode.CONST_4 &&
-        (body[index] as NarrowLiteralInstruction).narrowLiteral == value
-    val register = (body[zero] as OneRegisterInstruction).registerA
-    fun writes(index: Int) = body[index].writes(register)
-    if ((zero + 1 until logged).any(::writes)) {
-        throw PatchException("$PATCH: the warm-start answer v$register is overwritten before \"$TOO_SHORT\" is logged")
-    }
-    // The true side: set within a few instructions before the false, on the branch that skips it.
-    (zero - 1 downTo maxOf(0, zero - 4)).firstOrNull { literal(it, 1) && (body[it] as OneRegisterInstruction).registerA == register }
-        ?: throw PatchException("$PATCH: no true answer in v$register before the warm-start check's false")
-    val store = (logged + 1 until body.size).firstOrNull {
+    val answer = warmStartAnswer()
+    val register = answer.register
+    val store = (answer.storeFrom until body.size).firstOrNull {
         body[it].opcode == Opcode.IPUT_BOOLEAN && (body[it] as TwoRegisterInstruction).registerA == register
     } ?: throw PatchException("$PATCH: the warm-start answer v$register is never stored")
-    if ((logged + 1 until store).any(::writes)) {
+    if ((answer.storeFrom until store).any { body[it].writes(register) }) {
         throw PatchException("$PATCH: the warm-start answer v$register is overwritten before it is stored")
     }
     return WarmStartSite(register, store)
 }
 
-/** Where the warm-start check logs [TOO_SHORT], and the false it sets right before that. */
-private fun List<Instruction>.tooShortFalse(): Pair<Int, Int> {
-    val logged = indices.filter { this[it].getReference<StringReference>()?.string == TOO_SHORT }
+/**
+ * Where the warm-start check compares the time away with its threshold, the register its answer
+ * sits in, and where the search for that answer's store starts.
+ */
+internal data class WarmStartAnswer(val compare: Int, val register: Int, val storeFrom: Int)
+
+/**
+ * 448 and 449 set the answer to 1, branch over a 0 that falls into the [TOO_SHORT] log, and store
+ * it after the log. 450 sets it to 0 early on, branches to the log when the time away is short and
+ * sets the 1 otherwise, and the log jumps back to where the two sides meet before the store.
+ */
+internal fun Method.warmStartAnswer(): WarmStartAnswer {
+    val body = implementation!!.instructions.toList()
+    val logged = body.indices.filter { body[it].getReference<StringReference>()?.string == TOO_SHORT }
         .singleOrPatchException("$PATCH: the warm-start check's \"$TOO_SHORT\" log")
-    val zero = (logged - 1 downTo 0).firstOrNull {
-        this[it].opcode == Opcode.CONST_4 && (this[it] as NarrowLiteralInstruction).narrowLiteral == 0
-    } ?: throw PatchException("$PATCH: no false before the warm-start check's \"$TOO_SHORT\" log")
-    return logged to zero
+    return body.fallingFalse(logged) ?: jumpingFalse(body, logged)
+        ?: throw PatchException("$PATCH: no comparison with the server threshold right above the warm-start check's false")
 }
 
-private fun Instruction.writes(register: Int) = opcode.setsRegister() && (this as? OneRegisterInstruction)?.registerA.let {
-    it == register || opcode.setsWideRegister() && it == register - 1
+/** 448 and 449: cmp-long, the true, an if-gez over the false, and the false falling into the log. */
+private fun List<Instruction>.fallingFalse(logged: Int): WarmStartAnswer? {
+    val zero = (logged - 1 downTo 0).firstOrNull { literal(it, 0) } ?: return null
+    val compare = zero - 3
+    if (compare < 0 || this[compare].opcode != Opcode.CMP_LONG || this[zero - 1].opcode != Opcode.IF_GEZ ||
+        (this[zero - 1] as OneRegisterInstruction).registerA != (this[compare] as ThreeRegisterInstruction).registerA
+    ) return null
+    val register = (this[zero] as OneRegisterInstruction).registerA
+    if ((zero + 1 until logged).any { this[it].writes(register) }) {
+        throw PatchException("$PATCH: the warm-start answer v$register is overwritten before \"$TOO_SHORT\" is logged")
+    }
+    if (!literal(zero - 2, 1) || (this[zero - 2] as OneRegisterInstruction).registerA != register) {
+        throw PatchException("$PATCH: no true answer in v$register before the warm-start check's false")
+    }
+    return WarmStartAnswer(compare, register, logged + 1)
 }
+
+/**
+ * 450: cmp-long, an if-ltz on it to a block that runs straight into the log and then jumps back to
+ * just past the true, which sits right after the if-ltz. The answer has to be false on every path
+ * to the comparison, since the short side never sets it.
+ */
+private fun Method.jumpingFalse(body: List<Instruction>, logged: Int): WarmStartAnswer? {
+    val address = IntArray(body.size + 1)
+    for (index in body.indices) address[index + 1] = address[index] + body[index].codeUnits
+    fun target(index: Int) = address.indexOf(address[index] + (body[index] as OffsetInstruction).codeOffset)
+    fun leaves(index: Int) = body[index] is OffsetInstruction || !body[index].opcode.canContinue()
+    val compare = body.indices.filter { at ->
+        body[at].opcode == Opcode.CMP_LONG && body.getOrNull(at + 1)?.opcode == Opcode.IF_LTZ &&
+            (body[at + 1] as OneRegisterInstruction).registerA == (body[at] as ThreeRegisterInstruction).registerA &&
+            target(at + 1).let { it in 0..logged && (it until logged).none(::leaves) }
+    }.singleOrNull() ?: return null
+    val one = compare + 2
+    if (!body.literal(one, 1)) return null
+    val register = (body[one] as OneRegisterInstruction).registerA
+    val end = (logged until body.size).first(::leaves)
+    if (body[end].opcode !in GOTOS || target(end) != one + 1) {
+        throw PatchException("$PATCH: the warm-start check's \"$TOO_SHORT\" log doesn't go back to its answer")
+    }
+    if ((target(compare + 1) until end).any { body[it].writes(register) }) {
+        throw PatchException("$PATCH: the warm-start answer v$register is overwritten around \"$TOO_SHORT\"")
+    }
+    val zeroes = reachingWrites(compare, setOf(register))
+    if (zeroes.isNullOrEmpty() || zeroes.any { !body.literal(it, 0) }) {
+        throw PatchException("$PATCH: the warm-start answer v$register isn't false on every path to its comparison")
+    }
+    return WarmStartAnswer(compare, register, one + 1)
+}
+
+private val GOTOS = setOf(Opcode.GOTO, Opcode.GOTO_16, Opcode.GOTO_32)
+
+private fun List<Instruction>.literal(index: Int, value: Int) = getOrNull(index)?.let {
+    it.opcode == Opcode.CONST_4 && (it as NarrowLiteralInstruction).narrowLiteral == value
+} == true
 
 private fun BytecodePatchContext.holdWarmStart(): MutableMethod {
     val check = methodsHolding(TOO_SHORT, WALL_CLOCK) { it.parameterTypes.lastOrNull()?.toString() == "Z" }
@@ -173,31 +226,26 @@ internal data class CachedPostsSite(val method: Method, val register: Int, val j
     override fun toString() = "${method.definingClass}->${method.name} v$register at $join"
 }
 
-/** A server threshold: the MobileConfig getter asked for a long, and the key it is asked for. */
-internal data class Threshold(val getter: String, val key: Long) {
-    override fun toString() = "$getter for 0x${key.toString(16)}"
+/**
+ * A server threshold: the MobileConfig getter asked for a long, and the keys it is asked for. 448 and
+ * 449 ask one key; 450 asks a second one first when an experiment is on, and falls back to the first.
+ */
+internal data class Threshold(val getter: String, val keys: Set<Long>) {
+    override fun toString() = "$getter for ${keys.sorted().joinToString { "0x${it.toString(16)}" }}"
 }
 
 /**
- * The threshold the warm-start check compares the time away with: cmp-long against the long its
- * getter answered, then the true, and the if-gez on that comparison over the false before
- * [TOO_SHORT]. 448 and 449 load the key well above the call, on the far side of two branches.
+ * The threshold the warm-start check compares the time away with: the long its getter answered,
+ * held second by the comparison that decides the answer. 448 and 449 load the key well above the
+ * call, on the far side of two branches. 450 loads each of its two keys next to its own call.
  */
-internal fun Method.warmStartThreshold(): Threshold {
-    val body = implementation!!.instructions.toList()
-    val (_, zero) = body.tooShortFalse()
-    val branch = zero - 1
-    val compare = zero - 3
-    if (compare < 0 || body[compare].opcode != Opcode.CMP_LONG || body[branch].opcode != Opcode.IF_GEZ ||
-        (body[branch] as OneRegisterInstruction).registerA != (body[compare] as ThreeRegisterInstruction).registerA
-    ) throw PatchException("$PATCH: no comparison with the server threshold right above the warm-start check's false")
-    return thresholdAt(body, compare)
+internal fun Method.warmStartThreshold(): Threshold =
+    thresholdAt(implementation!!.instructions.toList(), warmStartAnswer().compare)
         ?: throw PatchException("$PATCH: the warm-start check's threshold isn't one MobileConfig key on every path to its getter")
-}
 
 /**
  * After the warm-start check skips its reload, For you compares the time away with the same server
- * [threshold]: cmp-long of the time away against the same getter's answer for the same key, a true,
+ * [threshold]: cmp-long of the time away against the same getter's answer for the same keys, a true,
  * an if-gez on that comparison over a false that falls straight into the join, and an if-eqz on that
  * answer a few instructions on, which guards the swap. The warm-start check's own comparison
  * branches past its log instead.
@@ -232,26 +280,40 @@ internal fun Method.cachedPostsSites(threshold: Threshold): List<CachedPostsSite
 }
 
 /**
- * What the cmp-long at [compare] holds second, when it is the long a (J)J getter answered right
- * above it for the one key every path to that call loads. Null for anything else.
+ * What the cmp-long at [compare] holds second, when on every path it is the long one (J)J getter
+ * answered, and each call to that getter loads one key on every path to it. Null for anything else.
  */
 private fun Method.thresholdAt(body: List<Instruction>, compare: Int): Threshold? {
-    val call = compare - 2
-    if (call < 0 || body[compare - 1].opcode != Opcode.MOVE_RESULT_WIDE ||
-        (body[compare - 1] as OneRegisterInstruction).registerA != (body[compare] as ThreeRegisterInstruction).registerC
-    ) return null
-    val getter = body[call].getReference<MethodReference>() ?: return null
-    if (getter.returnType != "J" || getter.parameterTypes.map { it.toString() } != listOf("J")) return null
-    // The key is the call's last argument, a register pair.
-    val arguments = when (val invoke = body[call]) {
-        is FiveRegisterInstruction ->
-            listOf(invoke.registerC, invoke.registerD, invoke.registerE, invoke.registerF, invoke.registerG).take(invoke.registerCount)
-        is RegisterRangeInstruction -> (invoke.startRegister until invoke.startRegister + invoke.registerCount).toList()
-        else -> return null
+    val calls = thresholdCalls(compare)?.takeIf { it.isNotEmpty() } ?: return null
+    val getter = calls.map { call -> body[call].getReference<MethodReference>()!!.let { "${it.definingClass}->${it.name}(J)J" } }
+        .distinct().singleOrNull() ?: return null
+    val keys = calls.map { call ->
+        // The key is the call's last argument, a register pair.
+        val arguments = when (val invoke = body[call]) {
+            is FiveRegisterInstruction ->
+                listOf(invoke.registerC, invoke.registerD, invoke.registerE, invoke.registerF, invoke.registerG).take(invoke.registerCount)
+            is RegisterRangeInstruction -> (invoke.startRegister until invoke.startRegister + invoke.registerCount).toList()
+            else -> return null
+        }
+        val key = arguments.getOrNull(arguments.size - 2) ?: return null
+        reachingWideLiterals(call, key)?.singleOrNull() ?: return null
     }
-    val key = arguments.getOrNull(arguments.size - 2) ?: return null
-    val keys = reachingWideLiterals(call, key)?.takeIf { it.size == 1 } ?: return null
-    return Threshold("${getter.definingClass}->${getter.name}(J)J", keys.single())
+    return Threshold(getter, keys.toSet())
+}
+
+/**
+ * The (J)J calls whose answer the cmp-long at [compare] holds second, over every path to it, in
+ * order. Null when a path gets that long any other way or reaches the method's entry first.
+ */
+internal fun Method.thresholdCalls(compare: Int): List<Int>? {
+    val body = implementation!!.instructions.toList()
+    val register = (body[compare] as ThreeRegisterInstruction).registerC
+    return reachingWrites(compare, setOf(register, register + 1))?.sorted()?.map { at ->
+        if (at == 0 || body[at].opcode != Opcode.MOVE_RESULT_WIDE || (body[at] as OneRegisterInstruction).registerA != register) return null
+        val getter = body[at - 1].getReference<MethodReference>() ?: return null
+        if (getter.returnType != "J" || getter.parameterTypes.map { it.toString() } != listOf("J")) return null
+        at - 1
+    }
 }
 
 private val CONST_WIDES = setOf(Opcode.CONST_WIDE, Opcode.CONST_WIDE_16, Opcode.CONST_WIDE_32, Opcode.CONST_WIDE_HIGH16)
@@ -262,34 +324,17 @@ private val CONST_WIDES = setOf(Opcode.CONST_WIDE, Opcode.CONST_WIDE_16, Opcode.
  * either half any other way or reaches the method's entry first.
  */
 private fun Method.reachingWideLiterals(index: Int, register: Int): Set<Long>? {
-    val flow = ControlFlow.of(this)
-    val into = Array(flow.instructions.size) { mutableListOf<Int>() }
-    val thrownInto = Array(flow.instructions.size) { mutableListOf<Int>() }
-    flow.normal.forEachIndexed { from, targets -> targets.forEach { into[it] += from } }
-    flow.exceptional.forEachIndexed { from, targets -> targets.forEach { thrownInto[it] += from } }
-    val literals = mutableSetOf<Long>()
-    // Each instruction once as run and once as thrown: one that throws never writes its destination.
-    val seen = mutableSetOf<Pair<Int, Boolean>>()
-    val pending = ArrayDeque<Pair<Int, Boolean>>()
-    fun before(at: Int): Boolean {
-        if (at == 0) return false
-        into[at].forEach { if (seen.add(it to false)) pending += it to false }
-        thrownInto[at].forEach { if (seen.add(it to true)) pending += it to true }
-        return true
-    }
-    if (!before(index)) return null
-    while (pending.isNotEmpty()) {
-        val (at, threw) = pending.removeFirst()
-        val instruction = flow.instructions[at]
-        if (!threw && (instruction.writes(register) || instruction.writes(register + 1))) {
-            if (instruction.opcode !in CONST_WIDES || (instruction as OneRegisterInstruction).registerA != register) return null
-            literals += (instruction as WideLiteralInstruction).wideLiteral
-        } else if (!before(at)) {
-            return null
-        }
-    }
-    return literals
+    val body = implementation!!.instructions.toList()
+    return reachingWrites(index, setOf(register, register + 1))?.map { at ->
+        val instruction = body[at]
+        if (instruction.opcode !in CONST_WIDES || (instruction as OneRegisterInstruction).registerA != register) return null
+        (instruction as WideLiteralInstruction).wideLiteral
+    }?.toSet()
 }
+
+/** The writes to [registers] that reach [index], or null when a path from the method's entry writes none of them. */
+private fun Method.reachingWrites(index: Int, registers: Set<Int>): Set<Int>? =
+    reaching(index, registers).takeUnless { it.fromEntry }?.writes
 
 /**
  * 449 makes this comparison in the warm-start check's sibling that handles a skipped reload, and 448

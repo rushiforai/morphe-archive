@@ -47,6 +47,9 @@ public class FeedFilterTest {
         Settings.HIDE_PEOPLE_YOU_MAY_KNOW.resetToDefault();
         Settings.HIDE_SUGGESTED_GROUPS.resetToDefault();
         Settings.HIDE_STORIES_YOU_MIGHT_LIKE.resetToDefault();
+        Settings.HIDE_FEED_MEMORIES.resetToDefault();
+        Settings.HIDE_FEED_FRIEND_REQUESTS.resetToDefault();
+        Settings.HIDE_FRIENDS_LOCATIONS.resetToDefault();
         Settings.HIDE_STORIES_BETWEEN_POSTS.resetToDefault();
         Settings.HIDE_FEED_REELS.resetToDefault();
         FeedFilter.storiesTrayInBuildForTests = null;
@@ -243,6 +246,85 @@ public class FeedFilterTest {
         Settings.HIDE_SUGGESTED_GROUPS.save(false);
         assertFalse(FeedFilter.hideEdge(Category.ORGANIC, TypedFeedUnit.suggestedGroups(), false, true));
         assertTrue(FeedFilter.hideEdge(Category.ORGANIC, TypedFeedUnit.peopleYouMayKnow(), false, true));
+    }
+
+    /**
+     * Memories, friend requests and friends' locations between posts go by their type names, each
+     * with its own switch that starts off. Picked, a switch takes only its own kind, and nothing goes
+     * without the patch.
+     */
+    @Test
+    public void memoriesFriendRequestsAndLocationsFollowTheirOwnSwitches() {
+        Object requests = new TypedFeedUnit(FeedFilter.FRIEND_REQUESTS_TYPE);
+        Object locations = new TypedFeedUnit(FeedFilter.FRIENDS_LOCATIONS_TYPE);
+        assertFalse(Settings.HIDE_FEED_MEMORIES.defaultValue);
+        assertFalse(Settings.HIDE_FEED_FRIEND_REQUESTS.defaultValue);
+        assertFalse(Settings.HIDE_FRIENDS_LOCATIONS.defaultValue);
+        for (String memory : FeedFilter.MEMORIES_TYPES) {
+            assertFalse(memory, FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit(memory), false, true));
+        }
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, requests, false, true));
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, locations, false, true));
+
+        Settings.HIDE_FEED_MEMORIES.save(true);
+        for (String memory : FeedFilter.MEMORIES_TYPES) {
+            assertTrue(memory, FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit(memory), false, true));
+            assertFalse("without the patch " + memory + " went",
+                    FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit(memory), true, false));
+        }
+        assertFalse("the Memories switch took friend requests", FeedFilter.hideEdge(Category.ORGANIC, requests, false, true));
+        assertFalse("a post went with Memories", FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit("Story"), false, true));
+        Settings.HIDE_FEED_MEMORIES.save(false);
+
+        Settings.HIDE_FEED_FRIEND_REQUESTS.save(true);
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, requests, false, true));
+        assertFalse("the requests switch took friends' locations", FeedFilter.hideEdge(Category.ORGANIC, locations, false, true));
+        Settings.HIDE_FEED_FRIEND_REQUESTS.save(false);
+
+        Settings.HIDE_FRIENDS_LOCATIONS.save(true);
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, locations, false, true));
+        assertFalse("the locations switch took friend requests", FeedFilter.hideEdge(Category.ORGANIC, requests, false, true));
+
+        // With every other type rule off, each kind's switch still works on its own.
+        Settings.HIDE_SUGGESTED_POSTS.save(false);
+        Settings.HIDE_PEOPLE_YOU_MAY_KNOW.save(false);
+        Settings.HIDE_SUGGESTED_GROUPS.save(false);
+        Settings.HIDE_STORIES_YOU_MIGHT_LIKE.save(false);
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, locations, false, true));
+    }
+
+    /**
+     * The promotions and prompts that have no model class on every build go by their type names
+     * with the suggested posts switch, and only with it.
+     */
+    @Test
+    public void promotionsAndPromptsWithoutAClassGoByTheirTypeNames() {
+        for (String kind : FeedFilter.SUGGESTED_TYPES) {
+            assertTrue(kind, FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit(kind), false, true));
+            assertFalse("without the patch " + kind + " went",
+                    FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit(kind), true, false));
+        }
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit("QuickPromotionFeedUnitItem"), false, true));
+        Settings.HIDE_SUGGESTED_POSTS.save(false);
+        for (String kind : FeedFilter.SUGGESTED_TYPES) {
+            assertFalse("with the switch off " + kind + " went",
+                    FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit(kind), false, true));
+        }
+    }
+
+    /**
+     * A carousel of several ads goes with the sponsored posts switch by its type name, even on an
+     * edge Facebook doesn't file as SPONSORED. The suggested posts patch alone keeps it, and so does
+     * the switch turned off.
+     */
+    @Test
+    public void aMultiAdCarouselGoesWithSponsoredPostsWhateverItsCategory() {
+        Object carousel = new TypedFeedUnit(FeedFilter.MULTI_ADS_TYPE);
+        assertTrue(FeedFilter.hideEdge(Category.ORGANIC, carousel, true, false));
+        assertFalse("the suggested posts patch took an ad", FeedFilter.hideEdge(Category.ORGANIC, carousel, false, true));
+        assertFalse(FeedFilter.hideEdge(Category.ORGANIC, new TypedFeedUnit("FBMultiAdsFeedUnitFormat"), true, false));
+        Settings.HIDE_SPONSORED_POSTS.save(false);
+        assertFalse("with the switch off the carousel went", FeedFilter.hideEdge(Category.ORGANIC, carousel, true, false));
     }
 
     /**

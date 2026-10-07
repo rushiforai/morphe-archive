@@ -11,6 +11,9 @@ import com.android.tools.smali.dexlib2.iface.Method
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 
+/** The settings provider's authority follows the package name, the way the extension's own build declares it. */
+internal const val SETTINGS_AUTHORITY_SUFFIX = ".hush.settings"
+
 internal fun Document.addSettingsEntry() {
     val applications = getElementsByTagName("application")
     if (applications.length != 1) throw PatchException("Messenger controls: expected one application")
@@ -28,7 +31,7 @@ internal fun Document.addSettingsEntry() {
         appendChild(node)
     }
     application.child("provider", "name" to "app.hushmessenger.extension.SettingsProvider",
-        "authorities" to "com.facebook.orca.hush.settings", "exported" to "false")
+        "authorities" to MessengerTarget.PACKAGE + SETTINGS_AUTHORITY_SUFFIX, "exported" to "false")
     application.child("activity", "name" to "app.hushmessenger.extension.SettingsActivity",
         "label" to "HushMessenger settings", "exported" to "true",
         "icon" to "@android:drawable/ic_menu_preferences", "taskAffinity" to "app.hushmessenger.settings")
@@ -94,6 +97,7 @@ internal val settingsExtension = bytecodePatch(description = "Load HushMessenger
         nativeBubbleActivityVerified = false
         nativeBubbleRoutesVerified = false
         communityInboxContract = null
+        messageLogContract = null
     }
 }
 
@@ -129,17 +133,24 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "people_tab" -> method.validatePeopleTab()
             "people_search" -> method.validatePeopleSearch()
             "people_story" -> method.validatePeopleStory()
+            INBOX_REFRESH_HOOK -> method.validateInboxItems()
             "keep_unsent" -> method.validateKeepUnsent()
             "unsent_indicator" -> method.validateUnsentIndicator()
             "delta_unsent" -> method.validateDeltaUnsent()
-            "emoji_typeface" -> method.validateScratch()
+            "emoji_typeface" -> method.validateEmojiTypeface()
+            EMOJI_DRAWER -> method.validateEmojiDrawer()
+            ANALYTICS_UPLOADS -> method.validateAnalyticsUpload()
+            MESSAGE_LOG -> method.validateMessageLog()
             "original_photo" -> method.validateOriginalPhoto()
+            ORIGINAL_VIDEO -> method.validateOriginalVideo()
+            SYSTEM_CAMERA -> method.validateSystemCamera()
             "avatar_tabs" -> if (method.returnType == "V") method.validateKeyboardTabsInline() else method.validateKeyboardTabs()
             "typing_mailbox" -> method.validateOutgoingTyping()
             "anonymous_stories" -> method.validateStorySeen()
             "growth_notes" -> method.validateNotesTips()
             "bubbles" -> method.validateBubbleEligibility()
             "bubble_mode" -> method.validateNativeBubbleMode()
+            APP_ICONS -> method.validateAppIconGate()
             else -> method.validateSwitch()
         }
     }
@@ -154,6 +165,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "people_tab" -> method.injectPeopleTab()
             "people_search" -> method.injectPeopleSearch()
             "people_story" -> method.injectPeopleStory()
+            INBOX_REFRESH_HOOK -> method.injectInboxItems()
             "stories" -> method.injectSwitch("hideStories", "0x0")
             "facebook" -> method.injectSwitch("hideFacebook", "0x0")
             "ai_menu", "ai_fab", "ai_toolbar", "ai_search", "ai_search_chip" -> method.injectSwitch("hideMetaAi", "0x0")
@@ -161,13 +173,19 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "typing" -> method.injectSwitch("suppressTyping", "0x0")
             "bubbles" -> method.injectSwitch("enableBubbles", "0x1")
             "bubble_mode" -> method.injectNativeBubbleMode()
+            APP_ICONS -> method.injectAppIconGate()
             "allow_screenshot" -> method.injectSwitch("allowScreenshot", "0x0")
             "hide_read_receipts", "read_mailbox" -> method.injectSwitch("hideReadReceipts", "0x0")
             "keep_unsent" -> method.injectKeepUnsent()
             "unsent_indicator" -> method.injectUnsentIndicator()
             "delta_unsent" -> method.injectDeltaUnsent()
             "emoji_typeface" -> method.injectEmojiTypeface()
+            EMOJI_DRAWER -> method.injectEmojiDrawer()
+            ANALYTICS_UPLOADS -> method.injectAnalyticsUpload()
+            MESSAGE_LOG -> method.injectMessageLog()
             "original_photo" -> method.injectOriginalPhoto()
+            ORIGINAL_VIDEO -> method.injectOriginalVideo()
+            SYSTEM_CAMERA -> method.injectSystemCamera()
             "avatar_tabs" -> if (method.returnType == "V") method.injectKeyboardTabsInline() else method.injectKeyboardTabs()
             "typing_mailbox" -> method.injectOutgoingTyping()
             "anonymous_stories" -> method.injectStorySeen()
@@ -177,7 +195,9 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
     }
 }
 
-private fun controlPatch(key: String, title: String, summary: String, group: String, vararg hooks: String): BytecodePatch {
+/** [manifest] adds the components a control needs, and runs only once its hooks are in. */
+private fun controlPatch(key: String, title: String, summary: String, group: String, vararg hooks: String,
+    manifest: (Document.() -> Unit)? = null): BytecodePatch {
     var applied = false
     var nativeRoutesApplied = false
     val featureResources = resourcePatch(description = "Record HushMessenger capability: $key") {
@@ -190,6 +210,7 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
         finalize {
             if (applied) document("AndroidManifest.xml").use {
                 it.addFeature(key)
+                manifest?.invoke(it)
                 if (nativeRoutesApplied) it.addNativeBubbleRoutesMetadata()
             }
         }
@@ -205,6 +226,13 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
         execute {
             val selected = hooks.toSet().ifEmpty { setOf(key) }
             validateControls(discoveredControls, selected)
+            // Proved on the stock classes, and the extension's half checked, before any target is edited.
+            val inboxRoute = if (INBOX_REFRESH_HOOK in selected) {
+                resolveInboxRefresh(discoveredControls.getValue(INBOX_REFRESH_HOOK).single()) { classDefByOrNull(it) } to inboxRefreshStub()
+            } else null
+            val emojiFontHolder = if ("emoji_typeface" in selected) {
+                discoveredControls.getValue("emoji_typeface").single().emojiFontHolder { classDefByOrNull(it) }
+            } else null
             val methods = selected.associateWith { hook ->
                 discoveredControls.getValue(hook).map { original ->
                     mutableClassDefBy(original.definingClass).methods.single { it.hookId() == original.hookId() }
@@ -231,7 +259,13 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
                 injectNativeBubbles(methods.getValue("bubbles").single(), methods.getValue("bubble_mode").single(),
                     capability, nativeBubbleRoutesVerified)
                 nativeRoutesApplied = nativeBubbleRoutesVerified
-            } else injectControl(key, methods)
+            } else {
+                injectControl(key, methods)
+                inboxRoute?.let { (route, stub) -> stub.writeInboxRefreshRoute(route) }
+                emojiFontHolder?.let { init ->
+                    mutableClassDefBy(init.substringBefore("->")).methods.single { it.hookId() == init }.injectEmojiFontHolder()
+                }
+            }
             recordControl(key)
             applied = true
         }
@@ -241,7 +275,7 @@ private fun controlPatch(key: String, title: String, summary: String, group: Str
 @Suppress("unused")
 val hideInboxAdsPatch = controlPatch("ads", "Hide inbox ads", "Filters typed inbox ad items, in case Meta brings back the inbox ads it stopped selling in November 2025.", "Inbox")
 @Suppress("unused")
-val hidePeoplePatch = controlPatch("people", "Hide People You May Know", "Hides suggested people in chats, search and stories, and on the People and Notifications tabs.", "Inbox", "people", "people_list_end", "people_jewel", "people_tab", "people_search", "people_story")
+val hidePeoplePatch = controlPatch("people", "Hide People You May Know", "Hides suggested people in chats, search and stories, and on the People and Notifications tabs.", "Inbox", "people", "people_list_end", "people_jewel", "people_tab", "people_search", "people_story", INBOX_REFRESH_HOOK)
 @Suppress("unused")
 val hideFriendRequestsPatch = controlPatch("friend_requests", "Hide friend request cards", "Hides friend request cards inside the inbox.", "Inbox")
 @Suppress("unused")
@@ -270,6 +304,10 @@ val hideAiStickersPatch = controlPatch("ai_stickers", "Hide AI sticker tools", "
 @Suppress("unused")
 val hideAvatarStickersPatch = controlPatch("avatar_stickers", "Hide avatar stickers", "Hides the avatar tab in the sticker keyboard.", "Stickers", "avatar_stickers", "avatar_tabs")
 @Suppress("unused")
+val restoreEmojiDrawerPatch = controlPatch("emoji_drawer", "Restore old emoji drawer",
+    "Turns off Meta's redesigned emoji drawer, so the emoji keyboard keeps its earlier layout. " +
+        "Changes apply after Restart Messenger. Accounts Meta never moved to the redesign see no difference.", "Stickers")
+@Suppress("unused")
 val hideChatPromotionsPatch = controlPatch("chat_promotions", "Hide chat promotions", "Hides Messenger quick-promotion banners inside conversations.", "Conversations")
 @Suppress("unused")
 val hideSuggestedRepliesPatch = controlPatch("suggested_replies", "Hide business reply suggestions", "Hides suggested replies in business conversations.", "Conversations")
@@ -288,11 +326,33 @@ val useSystemEmojiPatch = controlPatch("use_system_emoji", "Use system emoji", "
 @Suppress("unused")
 val originalPhotoPatch = controlPatch("original_photo", "Send photos at original quality", "With HD on, sends a JPEG photo's own image data instead of a re-encoded copy, without its metadata except the rotation tag. Videos and photos over 20 MB are still compressed.", "Conversations")
 @Suppress("unused")
+val originalVideoPatch = controlPatch("original_video", "Send videos without re-encoding",
+    "Sends a video file as it is when Messenger's own passthrough can take it, instead of a re-encoded copy. " +
+        "Videos over 25 MB are still compressed, and so are trimmed or edited videos and formats Messenger won't pass through.", "Conversations")
+@Suppress("unused")
+val keepMessageLogPatch = controlPatch("message_log", "Keep a message log",
+    "Keeps a copy of each message as its notification arrives, so an unsend can't take it back. This is the only way " +
+        "that reaches end-to-end encrypted chats. The log stays on your phone, encrypted with a key that never leaves it, " +
+        "and holds only messages that raised a notification. Read it or clear it from the log in settings.", "Privacy")
+@Suppress("unused")
+val systemCameraPatch = controlPatch("system_camera", "Use the phone's camera app",
+    "The camera button in a chat opens your phone's own camera app instead of Messenger's camera. " +
+        "The photo you take opens in Messenger's editor for that chat, ready to send. Photos only.", "Conversations",
+    manifest = { addSystemCamera() })
+@Suppress("unused")
+val stopAnalyticsUploadsPatch = controlPatch("analytics_uploads", "Stop analytics uploads",
+    "Stops the background services Messenger's analytics logger uploads through. Messenger still records those events on your phone, " +
+        "and they can upload after you turn this off. Doesn't stop other logging.", "Privacy")
+@Suppress("unused")
 val allowScreenshotPatch = controlPatch("allow_screenshot", "Allow screenshots", "Lets you screenshot protected chat media, including view-once media and Quicksnap, and stops screenshot notices. This doesn't add replay or saving.", "Privacy", "allow_screenshot", "screenshot_viewers")
 @Suppress("unused")
 val hideReadReceiptsPatch = controlPatch("hide_read_receipts", "Hide read receipts", "Stops sending read receipts. Opened encrypted chats can stay unread on this phone. Replying or switching this off may notify the sender. Group coverage isn't verified.", "Privacy", "hide_read_receipts", "read_mailbox")
 @Suppress("unused")
 val keepUnsentPatch = controlPatch("keep_unsent", "Keep unsent messages", "Preserves messages on verified legacy unsend routes. End-to-end encrypted chats are unsupported, and group coverage is unverified. Activity records intercepted legacy unsends, not chat support. Your own unsend may be limited.", "Privacy", "keep_unsent", "unsent_indicator", "delta_unsent")
+@Suppress("unused")
+val unlockAppIconsPatch = controlPatch("app_icons", "Unlock app icons", "Makes every icon in Messenger's App icon setting selectable without a subscription. " +
+    "Messenger applies the icon with its own launcher switch. Messenger still decides whether that setting shows on your account, " +
+    "and switching this off can bring its default icon back.", "Theme")
 private var anonymousStoriesApplied = false
 
 private val anonymousStoriesResources = resourcePatch(description = "Record HushMessenger capability: anonymous_stories") {

@@ -154,6 +154,43 @@ public class MarketplaceAdFilterTest {
         }
     }
 
+    /**
+     * The three queries behind a listing page's ad rows are held back too, and the log says so.
+     * The page's own queries go out as they were, and off or paused so do the ad rows' queries.
+     */
+    @Test
+    public void aListingPagesAdsDontGoOut() {
+        BaseSettings.DEBUG.save(true);
+        LogBufferManager.clearLogBuffer();
+        String body = body("{\"count\":4,\"targetId\":\"1\"}");
+        for (String query : MarketplaceAdFilter.LISTING_ADS_QUERIES) {
+            assertNull(query, MarketplaceAdFilterForTests.requestBody(query, body));
+        }
+        String[] pages = {"MarketplacePDPContainerQuery", "MarketplacePDPSurfaceQuery",
+                "MarketplacePDPTailSectionsContainerQuery", "MarketplacePDPRelatedSearchesSectionQueryRendererQuery"};
+        for (String query : pages) {
+            assertSame(query, body, MarketplaceAdFilterForTests.requestBody(query, body));
+        }
+        assertEquals(3, MarketplaceAdFilter.LISTING_ADS_QUERIES.length);
+        assertTrue(counterLine(), counterLine().startsWith(MarketplaceAdFilter.ROUTE
+                + ": 7 lists, 7 items, 3 removed. Last reason: " + MarketplaceAdFilter.HELD_BACK));
+        String report = LogBufferManager.buildExportText();
+        for (String query : MarketplaceAdFilter.LISTING_ADS_QUERIES) {
+            assertEquals(report, 1, occurrences(report, "Marketplace ads: held back " + query
+                    + ", one of the listing page's ad rows."));
+        }
+
+        Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS.save(false);
+        for (String query : MarketplaceAdFilter.LISTING_ADS_QUERIES) {
+            assertSame("off: " + query, body, MarketplaceAdFilterForTests.requestBody(query, body));
+        }
+        Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS.resetToDefault();
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        for (String query : MarketplaceAdFilter.LISTING_ADS_QUERIES) {
+            assertSame("paused: " + query, body, MarketplaceAdFilterForTests.requestBody(query, body));
+        }
+    }
+
     /** A variable the query doesn't name isn't added, and one already true stays as it is. */
     @Test
     public void onlyTheVariablesAQueryNamesChange() {

@@ -229,7 +229,7 @@ public final class PostDetails {
     }
 
     /** A tree whose native side is still there. A read from a released one goes to nothing. */
-    private static boolean isLiveTree(Object value) {
+    static boolean isLiveTree(Object value) {
         if (!isTree(value)) return false;
         try {
             return Boolean.TRUE.equals(value.getClass().getMethod(VALID).invoke(value));
@@ -244,7 +244,7 @@ public final class PostDetails {
         return name == null || name.trim().isEmpty() ? null : name;
     }
 
-    private static Object tree(Object model, int field) {
+    static Object tree(Object model, int field) {
         if (!isLiveTree(model)) return null;
         Object value = call(model, "getTree", field);
         return isTree(value) ? value : null;
@@ -256,7 +256,7 @@ public final class PostDetails {
         return value instanceof List ? (List<?>) value : null;
     }
 
-    private static String string(Object model, int field) {
+    static String string(Object model, int field) {
         Object value = call(model, "getString", field);
         return value instanceof String ? (String) value : null;
     }
@@ -268,7 +268,7 @@ public final class PostDetails {
     }
 
     /** The kept accessor [name] of [model] for [field], or null when the model has none or it fails. */
-    private static Object call(Object model, String name, int field) {
+    static Object call(Object model, String name, int field) {
         if (model == null) return null;
         try {
             Method method = model.getClass().getMethod(name, int.class);

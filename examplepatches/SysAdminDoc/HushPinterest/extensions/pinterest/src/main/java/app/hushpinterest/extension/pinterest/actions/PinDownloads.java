@@ -155,6 +155,9 @@ public final class PinDownloads {
                     + "\n\n" + L10n.f("Supplied width: %s", media.width == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.width))
                     + "\n" + L10n.f("Supplied height: %s", media.height == null ? L10n.t("Unknown") : L10n.f("%d pixels", media.height))
                     + "\n" + L10n.f("Supplied URL type: %s", media.urlType == null ? L10n.t("Unknown") : media.urlType);
+            if (media.source != null && media.size != null) text += "\n" + (PinMedia.standIn(media)
+                    ? L10n.f("Supplied size: %s. Downloads look for the original first.", media.size)
+                    : L10n.t("Supplied size: the original image"));
             if (media.refusal != null) text = refusalMessage(media.refusal) + "\n\n" + text;
             new AlertDialog.Builder(activity)
                     .setTitle(L10n.t("Supplied media details"))
@@ -171,8 +174,8 @@ public final class PinDownloads {
         switch (refusal) {
             case ADAPTIVE_VIDEO: return L10n.t("Pinterest supplied an adaptive video stream, but no downloadable MP4.");
             case MP4_MISSING: return L10n.t("Pinterest hasn't supplied a downloadable MP4 for this pin.");
-            case ORIGINAL_MISSING: return L10n.t("Pinterest hasn't supplied an original image to download.");
-            case ORIGINAL_TYPE: return L10n.t("The supplied original image type isn't supported for download.");
+            case IMAGE_MISSING: return L10n.t("Pinterest hasn't supplied an image to download.");
+            case IMAGE_TYPE: return L10n.t("The supplied image type isn't supported for download.");
             case PUBLIC_LINK: return L10n.t("The supplied media link isn't a supported public Pinterest link.");
             default: throw new IllegalArgumentException("Unknown media refusal");
         }
@@ -183,8 +186,9 @@ public final class PinDownloads {
     }
 
     /**
-     * Copies the address of the media the Download row would save, read from the pin again: only a
-     * supplied original image or MP4 on Pinterest's media host, never a guessed or resized one.
+     * Copies the address of the media the Download row would save, read from the pin again: a
+     * supplied original or MP4, or for a stand-in size the original the media host has behind it,
+     * else that size. Never an address off Pinterest's media host.
      */
     static boolean copyLink(Object pin, Context context) {
         if (!active()) return false;
@@ -195,17 +199,38 @@ public final class PinDownloads {
                 Utils.showToastLong(refusalMessage(media.refusal));
                 return false;
             }
-            ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
-            clipboard.setPrimaryClip(ClipData.newPlainText(L10n.t("Media link"), media.source.url));
-            HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "media link copied");
-            // Android 13 and newer show their own confirmation for every copy.
-            if (Build.VERSION.SDK_INT < 33) Utils.showToastShort(L10n.t("Media link copied."));
-            return true;
+            if (!PinMedia.standIn(media)) return copy(context, media.source.url);
+            PinMedia.Source standIn = media.source;
+            // The lookup asks the network, so the menu closes now and the copy follows it.
+            boolean queued = Utils.runOnBackgroundThread(() -> {
+                PinMedia.Source chosen = OriginalLookup.find(standIn, null);
+                Utils.runOnMainThread(() -> {
+                    try {
+                        if (active()) copy(context, chosen.url);
+                    } catch (Throwable failure) {
+                        copyFailed(failure);
+                    }
+                });
+            });
+            return queued || copy(context, standIn.url);
         } catch (Throwable failure) {
-            HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "copy media link", failure);
-            Utils.showToastLong(L10n.t("Couldn't copy the media link. Open the pin again and try again."));
+            copyFailed(failure);
             return false;
         }
+    }
+
+    private static boolean copy(Context context, String url) {
+        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        clipboard.setPrimaryClip(ClipData.newPlainText(L10n.t("Media link"), url));
+        HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "media link copied");
+        // Android 13 and newer show their own confirmation for every copy.
+        if (Build.VERSION.SDK_INT < 33) Utils.showToastShort(L10n.t("Media link copied."));
+        return true;
+    }
+
+    private static void copyFailed(Throwable failure) {
+        HookStatus.threw(FamilyNames.DOWNLOAD_PINS, "copy media link", failure);
+        Utils.showToastLong(L10n.t("Couldn't copy the media link. Open the pin again and try again."));
     }
 
     enum Result { QUEUED, QUEUED_UNTRACKED, SAVED, SKIPPED, UNSUPPORTED, FAILED }
@@ -227,15 +252,17 @@ public final class PinDownloads {
                 return false;
             }
             String id = media.id;
-            String fileName = "Pinterest_" + id + "_" + Long.toUnsignedString(System.nanoTime()) + source.suffix;
+            boolean standIn = PinMedia.standIn(media);
             Context app = context.getApplicationContext();
             if (Build.VERSION.SDK_INT >= 29) {
                 boolean queued = Utils.runOnBackgroundThread(() -> {
                     if (!active()) { report(after, Result.SKIPPED); return; }
                     try {
+                        PinMedia.Source chosen = standIn ? OriginalLookup.find(source, null) : source;
+                        if (!active()) { report(after, Result.SKIPPED); return; }
                         DownloadManager manager = (DownloadManager) app.getSystemService(Context.DOWNLOAD_SERVICE);
                         if (manager == null) throw new IllegalStateException("Download service unavailable");
-                        long request = manager.enqueue(request(source, fileName));
+                        long request = manager.enqueue(request(chosen, fileName(id, chosen)));
                         if (request < 0) throw new IllegalStateException("Download service rejected pin");
                         boolean tracked = DownloadLedger.record(app, request, id);
                         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin queued in Downloads");
@@ -269,7 +296,8 @@ public final class PinDownloads {
             args.putString("url", source.url);
             args.putString("mime", source.mime);
             args.putString("suffix", source.suffix);
-            args.putString("name", fileName);
+            args.putString("name", fileName(id, source));
+            args.putBoolean("standIn", standIn);
             SaveFragment fragment = new SaveFragment();
             fragment.after = after;
             fragment.setArguments(args);
@@ -285,6 +313,10 @@ public final class PinDownloads {
             report(after, Result.FAILED);
             return false;
         }
+    }
+
+    private static String fileName(String id, PinMedia.Source source) {
+        return "Pinterest_" + id + "_" + Long.toUnsignedString(System.nanoTime()) + source.suffix;
     }
 
     private static void report(Consumer<Result> after, Result result) {
@@ -438,6 +470,7 @@ public final class PinDownloads {
                 return;
             }
             PinMedia.Source source = new PinMedia.Source(args.getString("url"), args.getString("mime"), args.getString("suffix"));
+            boolean standIn = args.getBoolean("standIn");
             int offeredFlags = data.getFlags();
             try {
                 boolean queued = Utils.runOnBackgroundThread(() -> {
@@ -458,7 +491,8 @@ public final class PinDownloads {
                                     : L10n.t("Couldn't record the save location. No file data was written."));
                             return;
                         }
-                        PinTransfer.save(app, destination, source.url);
+                        // The picker already named the file and its type, so only an original of that type counts.
+                        PinTransfer.save(app, destination, standIn ? OriginalLookup.find(source, source.suffix).url : source.url);
                         outcome = Result.SAVED;
                         HookStatus.counted(FamilyNames.DOWNLOAD_PINS, "pin saved to chosen document");
                         Utils.showToastLong(PendingSaveJournal.completed(app, ticket)

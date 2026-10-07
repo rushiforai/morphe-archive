@@ -28,12 +28,16 @@ no-call Landroid/content/pm/ShortcutManager;->removeAllDynamicShortcuts()V outsi
 # Guard mutations list one or more hook/selector pairs.
 # The clean APK supplies the callers. Final flags do not excuse missing, duplicated or misplaced calls.
 # Feed ownership is shared. Ad views and the Play Core update prompt can be absent in a supported target.
+# An empty capability column is a family that changes no bytecode (a manifest-only patch): only its
+# installed flag is checked against the selected patches.
 family|hideAds|Hide ads|feedAds,adViews,googleAds
 family|hideAiPins|Hide AI-labeled pins|feedAiPins
 family|hideShopping|Hide shopping and product pins|feedShopping
 family|disableAnalytics|Disable analytics|analyticsTasks,analyticsUploads
 family|stripLinkTracking|Strip link tracking|linkTracking
 family|hideAdvertisingId|Hide advertising ID|advertisingId
+family|removeAdTrackingPermissions|Remove ad tracking permissions|
+family|spoofSignature|Spoof signature for Google sign-in|
 family|downloadPins|Download pins|pinDownloads
 family|externalBrowser|Open links in your browser|visitLinks
 family|systemShare|System share sheet|pinShare
@@ -43,9 +47,10 @@ family|hideNavigationButtons|Hide navigation buttons|navigationButtons
 family|hideHeaderButtons|Hide header buttons|headerButtons
 family|hidePinMenuItems|Filter pin menu|pinMenuItems
 family|hideComments|Hide comments|comments
+family|hideTopicSuggestions|Hide topic suggestions|topicSuggestions
 family|quietEmailReminder|Quiet email reminders|emailReminder
 family|hideSaveToasts|Hide save toasts|saveToasts
-family|originalImages|Original-quality images|imageChooser
+family|originalImages|Original-quality images|imageChooser,closeupImage
 family|disableUpdateNag|Disable update nag|updateNag
 
 mutation|settings|settings|Lcom/pinterest/ReleaseHiltApplication;|Lcom/pinterest/activity/PinterestActivity;|Lapp/hushpinterest/extension/pinterest/settings/SettingsEntry;
@@ -64,7 +69,9 @@ mutation|navigationButtons|navigation|Lapp/hushpinterest/extension/pinterest/ui/
 mutation|headerButtons|refresh|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->headerButtons(Landroid/view/View;)V|Lcom/pinterest/gestalt/headerBar/GestaltHeaderBar;
 mutation|pinMenuItems|menu|Lapp/hushpinterest/extension/pinterest/ui/InterfaceControls;->pinMenuItem(Landroid/view/View;Ljava/lang/String;)V|overflow_menu_add_to_collage,overflow_menu_remix_collage,contextmenu_visual_search_image,overflow_menu_pin_boost
 mutation|comments|comments|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisibility(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsMeasureSpec(I)I|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->commentsVisible(Z)Z|Lcom/pinterest/activity/pin/view/unifiedcomments/CommentPreviewView;|Lcom/pinterest/activity/pin/view/modules/PinCloseupBaseModule;
+mutation|topicSuggestions|topicSuggestions|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->topicSuggestions(Ljava/lang/Object;)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->topicSuggestionsMeasureSpec(Landroid/view/View;I)I
 mutation|emailReminder|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->quietEmailReminder()Z|email
 mutation|saveToasts|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->hideSaveToast(Ljava/lang/Object;)Z|saveToast
 mutation|imageChooser|imageOrder|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->originalImages()Z
+mutation|closeupImage|closeupImage|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->imageSizes(Ljava/util/Set;)V|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->closeupImage(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 mutation|updateNag|guard|Lapp/hushpinterest/extension/pinterest/ui/UiHooks;->disableUpdateNag()Z|update

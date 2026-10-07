@@ -30,6 +30,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
     static final String SECTION_EMOTES = "emotes";
     static final String SECTION_CHAT = "chat";
     static final String SECTION_PRIVACY = "privacy";
+    static final String SECTION_HOME = "home";
     private static final String ARG_SECTION = "section";
     private static final String[] WEIGHT_NAMES = {
             "Thin", "Extra light", "Light", "Regular", "Medium", "Semi bold", "Bold", "Extra bold", "Black",
@@ -94,6 +95,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
         else if (section.equals(SECTION_EMOTES)) addEmoteSettings(screen);
         else if (section.equals(SECTION_CHAT)) addChatSettings(screen);
         else if (section.equals(SECTION_PRIVACY)) addPrivacySettings(screen);
+        else if (section.equals(SECTION_HOME)) addHomeSettings(screen);
     }
 
     private void addSectionLinks(PreferenceScreen screen) {
@@ -106,6 +108,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
                 "Video and display ads, proxy");
         addSectionLink(screen, SECTION_EMOTES, "7TV, BTTV, FFZ and animated emotes");
         addSectionLink(screen, SECTION_CHAT, "Chat controls");
+        addSectionLink(screen, SECTION_HOME, "Home & navigation controls");
         addSectionLink(screen, SECTION_PRIVACY, "Privacy");
     }
 
@@ -313,6 +316,34 @@ public class UyuSettingsFragment extends PreferenceFragment {
         return "Mod";
     }
 
+    private void addHomeSettings(PreferenceScreen screen) {
+        addHomeSwitch(screen, Settings.HIDE_TURBO_UPSELL, "Hide Go Ad-Free",
+                "Hide Twitch's Go Ad-Free/Turbo control in the Following feed.");
+        addHomeSwitch(screen, Settings.HIDE_RESUME_WATCHING, "Hide Continue Watching",
+                "Remove the Continue Watching / resume-watching section from the Following feed.");
+        addHomeSwitch(screen, Settings.HIDE_OFFLINE_CHANNELS, "Hide Offline Channels",
+                "Remove the offline followed-channels section from the Following feed.");
+    }
+
+    private void addHomeSwitch(PreferenceGroup group, BooleanSetting setting, String title, String summary) {
+        SwitchPreference preference =
+                new SwitchPreference(SettingsUi.preferenceContext(group.getContext()));
+        preference.setKey(setting.key);
+        preference.setDefaultValue(setting.defaultValue);
+        preference.setTitle(title);
+        preference.setSummary(summary);
+        preference.setOnPreferenceChangeListener((changed, newValue) -> {
+            setting.save(Boolean.TRUE.equals(newValue));
+            if (setting == Settings.HIDE_RESUME_WATCHING
+                    || setting == Settings.HIDE_OFFLINE_CHANNELS) {
+                app.morphe.extension.appearance.HidePromotionsPatch
+                        .onHomeSectionSettingChanged();
+            }
+            return true;
+        });
+        group.addPreference(preference);
+    }
+
     private void addPrivacySettings(PreferenceScreen screen) {
         addSwitch(screen, Settings.DISABLE_COMSCORE, "Disable Comscore", "Prevent Twitch's Comscore measurement component from starting.");
         addSwitch(screen, Settings.DISABLE_BUGSNAG, "Disable crash reporting", "Prevent Twitch's crash-reporting component from collecting reports.");
@@ -372,6 +403,7 @@ public class UyuSettingsFragment extends PreferenceFragment {
             case SECTION_EMOTES: return "Emotes";
             case SECTION_CHAT: return "Chat";
             case SECTION_PRIVACY: return "Privacy";
+            case SECTION_HOME: return "Home & navigation";
             default: return SettingsPatch.TITLE;
         }
     }

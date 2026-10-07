@@ -14,10 +14,12 @@ import com.facebook.bookmark.tab.BookmarkTab;
 import com.facebook.events.targetedtab.EventsTab;
 import com.facebook.feed.tab.FeedTab;
 import com.facebook.friending.tab.FriendRequestsTab;
+import com.facebook.gemstone.tab.GemstoneTab;
 import com.facebook.katana.activity.FbMainTabActivity;
 import com.facebook.marketplace.tab.MarketplaceTab;
 import com.facebook.navigation.tabbar.state.model.TabTag;
 import com.facebook.notifications.tab.NotificationsTab;
+import com.facebook.saved2.tab.SavedTab;
 
 import org.junit.After;
 import org.junit.Before;
@@ -30,6 +32,7 @@ import org.robolectric.annotation.Config;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -107,6 +110,32 @@ public class HiddenTabsTest {
         assertTrue("a start meant for Friends opens Home", HiddenTabs.offTheBar(StartTab.FRIENDS));
         assertFalse(HiddenTabs.offTheBar(StartTab.MARKETPLACE));
         assertFalse("Home can't be hidden", HiddenTabs.offTheBar(StartTab.HOME));
+    }
+
+    /** Each tab has a switch of its own, and no class answers for two tabs. */
+    @Test
+    public void everyTabHasItsOwnSwitchAndClasses() {
+        Set<Object> switches = new HashSet<>();
+        Set<String> classes = new HashSet<>();
+        for (HiddenTabs.Tab tab : HiddenTabs.Tab.values()) {
+            assertTrue(tab.name() + " shares a switch", switches.add(tab.setting()));
+            for (String name : tab.classes) assertTrue(name + " answers for two tabs", classes.add(name));
+        }
+    }
+
+    /** The tabs Facebook gives some accounts, Dating and Saved among them, leave the bar the same way. */
+    @Test
+    public void aTabSomeAccountsGetLeavesTheBarToo() {
+        List<TabTag> withMore = new ArrayList<>(configured);
+        withMore.add(4, new GemstoneTab());
+        SavedTab saved = new SavedTab();
+        withMore.add(5, saved);
+        Settings.HIDE_SAVED_TAB.save(true);
+        assertEquals(Arrays.asList("FeedTab", "FriendRequestsTab", "MarketplaceTab", "EventsTab", "GemstoneTab",
+                "NotificationsTab", "BookmarkTab"), shown(withMore, Collections.emptySet()));
+        assertNull("a Saved link opens the page on its own screen", TabBarFilter.launchedTab(saved));
+        GemstoneTab dating = new GemstoneTab();
+        assertSame("Dating keeps its tab while its switch is off", dating, TabBarFilter.launchedTab(dating));
     }
 
     /** Facebook's own Hide stays in charge, and a tab it hid isn't one this took off. */

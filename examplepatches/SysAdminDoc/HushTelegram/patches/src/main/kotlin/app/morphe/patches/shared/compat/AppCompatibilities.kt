@@ -50,7 +50,7 @@ internal object AppCompatibilities {
     const val TELEGRAM_TARGET_VERSION_CODE = 71129
 
     const val TELEGRAM_BETA_TARGET_VERSION = "12.10.7"
-    const val TELEGRAM_BETA_TARGET_VERSION_CODE = 71179
+    const val TELEGRAM_BETA_TARGET_VERSION_CODE = 71239
 
     /**
      * HushTelegram's floor, Android 9. Telegram itself runs from Android 5, but the extension's

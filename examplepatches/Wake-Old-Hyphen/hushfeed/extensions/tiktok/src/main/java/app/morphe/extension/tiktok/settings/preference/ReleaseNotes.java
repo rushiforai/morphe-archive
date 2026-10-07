@@ -8,13 +8,18 @@ package app.morphe.extension.tiktok.settings.preference;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.LocaleSpan;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
 import app.morphe.extension.tiktok.settings.L10n;
 
 import java.math.BigInteger;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,16 +79,38 @@ public final class ReleaseNotes {
 
     static void show(Context context, String current, Runnable onDismiss) {
         TextView body = new TextView(context);
-        body.setText(text(current, context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .getString(DISMISSED, null)));
+        // The notes come from the English changelog. A LocaleSpan is what a screen reader that
+        // switches languages reads; the text locale only sets line breaking and hyphenation.
+        SpannableString notes = new SpannableString(text(current, context.getSharedPreferences(
+                PREFS_NAME, Context.MODE_PRIVATE).getString(DISMISSED, null)));
+        notes.setSpan(new LocaleSpan(Locale.ENGLISH), 0, notes.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+        body.setText(notes);
         body.setTextColor(SettingsUi.textPrimary());
         body.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY);
         body.setTextIsSelectable(true);
+        body.setTextLocale(Locale.ENGLISH);
         int padding = SettingsUi.dp(context, 22);
         body.setPadding(padding, padding, padding, padding);
 
+        LinearLayout content = new LinearLayout(context);
+        content.setOrientation(LinearLayout.VERTICAL);
+        // Title and buttons follow the phone's language and the notes don't (#91), so a reader
+        // with a translated table is told so before the English starts.
+        if (L10n.isTranslated(context)) {
+            TextView english = new TextView(context);
+            english.setText(L10n.t(context, "These notes are in English."));
+            english.setTextColor(SettingsUi.textSecondary());
+            english.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_LABEL);
+            english.setPadding(padding, padding, padding, 0);
+            body.setPadding(padding, SettingsUi.dp(context, 8), padding, padding);
+            content.addView(english, new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        }
+        content.addView(body, new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
         ScrollView scroller = new ScrollView(context);
-        scroller.addView(body, new ViewGroup.LayoutParams(
+        scroller.addView(content, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         scroller.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, SettingsUi.dialogListHeight(context, 480)));

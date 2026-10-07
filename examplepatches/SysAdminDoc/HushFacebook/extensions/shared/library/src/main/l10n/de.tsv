@@ -55,6 +55,8 @@ Download	Download
 Download button on reels	Download-Button bei Reels
 Download failed	Download fehlgeschlagen
 Download feed and Watch videos	Videos aus Feed und Watch herunterladen
+Save any photo	Jedes Foto speichern
+Shows Save photo on every photo you open, even where the poster turned saving off, and saves the biggest size where your downloads go. Off or paused, Facebook decides again.	Zeigt Foto speichern bei jedem Foto, das du öffnest, auch wenn der Ersteller das Speichern ausgeschaltet hat, und speichert die größte Version dort, wo deine Downloads landen. Ausgeschaltet oder pausiert entscheidet wieder Facebook.
 Download to phone	Aufs Handy herunterladen
 Downloading	Wird heruntergeladen
 Downloads	Downloads
@@ -287,8 +289,12 @@ Videos will save at %1$s or the closest quality below it. A video with nothing t
 Settings imported.	Einstellungen importiert.
 Video file name	Dateiname für Videos
 %1$s becomes the date and time of the save, %2$s the video's number on Facebook, %3$s who posted it, %4$s their profile's number on Facebook and %5$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %6$s.	%1$s wird zu Datum und Uhrzeit des Speicherns, %2$s zur Nummer des Videos auf Facebook, %3$s zum Namen dessen, der es gepostet hat, %4$s zur Nummer seines Profils auf Facebook und %5$s zum Tag der Veröffentlichung. Was beim Speichern nicht bekannt ist, wird weggelassen, und ein Name ohne eines davon bekommt das Datum angehängt. Gibt es den Namen im Ordner schon, wird die Uhrzeit des Speicherns angehängt. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardnamen %6$s zu verwenden.
-Videos are named %1$s. Photos keep Facebook's own %2$s names.	Videos heißen %1$s. Fotos behalten Facebooks eigene Namen mit %2$s.
+Photo file name	Dateiname für Fotos
+%1$s becomes the date and time of the save, %2$s the photo's number on Facebook, %3$s who posted it, %4$s their profile's number on Facebook and %5$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %6$s.	%1$s wird zu Datum und Uhrzeit des Speicherns, %2$s zur Nummer des Fotos auf Facebook, %3$s zum Namen dessen, der es gepostet hat, %4$s zur Nummer seines Profils auf Facebook und %5$s zum Tag der Veröffentlichung. Was beim Speichern nicht bekannt ist, wird weggelassen, und ein Name ohne eines davon bekommt das Datum angehängt. Gibt es den Namen im Ordner schon, wird die Uhrzeit des Speicherns angehängt. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardnamen %6$s zu verwenden.
+Videos are named %1$s.	Videos heißen %1$s.
+Photos are named %1$s.	Fotos heißen %1$s.
 Saved videos will be named %1$s.	Gespeicherte Videos heißen dann %1$s.
+Saved photos will be named %1$s.	Gespeicherte Fotos heißen dann %1$s.
 File name	Dateiname
 File name set to %1$s.	Dateiname auf %1$s gesetzt.
 Hide AI-detected reels and videos	Als KI erkannte Reels und Videos ausblenden
@@ -305,6 +311,12 @@ Facebook stops uploading its app analytics in the background and skips its on-de
 Allow screenshots	Bildschirmfotos erlauben
 Screenshots and screen recordings show the pages Facebook blocks them on. A page that's already open changes when you open it again.	Bildschirmfotos und Bildschirmaufnahmen zeigen die Seiten, auf denen Facebook sie sperrt. Eine bereits geöffnete Seite ändert sich, wenn du sie erneut öffnest.
 Block screenshot detection	Bildschirmfoto-Erkennung blockieren
+Hide typing in chats	Tippen in Chats verbergen
+Hide typing in comments	Tippen in Kommentaren verbergen
+People you chat with in a chat that opens inside Facebook don't see that you're typing. Your messages send as usual.	Wer mit dir in einem Chat schreibt, der sich in Facebook öffnet, sieht nicht, dass du tippst. Deine Nachrichten werden wie gewohnt gesendet.
+People looking at a post don't see that you're writing a comment.	Wer sich einen Beitrag ansieht, sieht nicht, dass du einen Kommentar schreibst.
+Hide read receipts	Lesebestätigungen verbergen
+People you chat with in a chat that opens inside Facebook don't see that you've read their messages. The chat can stay unread on this phone.	Wer mit dir in einem Chat schreibt, der sich in Facebook öffnet, sieht nicht, dass du seine Nachrichten gelesen hast. Der Chat kann auf diesem Telefon ungelesen bleiben.
 Facebook doesn't notice when you take a screenshot or record the screen, so nothing it does in response happens.	Facebook bemerkt nicht, wenn du ein Bildschirmfoto machst oder den Bildschirm aufnimmst, also passiert nichts, was es sonst darauf tun würde.
 Stop sending watched-reel lists to Facebook. It uses them to rank your feed, so watched reels may return.	Sendet keine Liste angesehener Reels an Facebook. Sie dient der Feed-Sortierung, daher können angesehene Reels wiederkommen.
 the rename of the shared permissions	die Umbenennung der gemeinsamen Berechtigungen
@@ -410,6 +422,12 @@ Hide suggested groups	Gruppenvorschläge ausblenden
 The row of groups to join between posts, with its Discover more groups button. Posts from groups you're in stay.	Die Reihe mit Gruppen zum Beitreten zwischen den Beiträgen, samt ihrem Button „Weitere Gruppen entdecken“. Beiträge aus deinen Gruppen bleiben.
 # context: switch title under News feed; Facebook's own header of a row of Stories from people you don't know, shown between posts
 Hide "Stories you might like"	„Stories, die dir gefallen könnten“ ausblenden
+Hide Memories in the feed	Erinnerungen im Feed ausblenden
+Hide friend requests in the feed	Freundschaftsanfragen im Feed ausblenden
+Hide friends' locations	Standorte von Freunden ausblenden
+Memories between posts, like "On this day" and friendship anniversaries. Your Memories page stays.	Erinnerungen zwischen Beiträgen, etwa „An diesem Tag“ und Freundschaftstage. Deine Erinnerungen-Seite bleibt.
+The row of friend requests between posts. Your requests stay under Friends.	Die Reihe mit Freundschaftsanfragen zwischen Beiträgen. Deine Anfragen bleiben unter Freunde.
+The card showing where your friends are, between posts.	Die Karte, die zwischen Beiträgen zeigt, wo deine Freunde sind.
 # context: summary of that switch; the Stories tray is the row of Stories at the top of the feed
 The row of Stories from people you aren't connected to that Facebook puts between posts. Your friends' Stories and the Stories tray stay.	Die Reihe mit Stories von Personen, mit denen du nicht verbunden bist, die Facebook zwischen die Beiträge setzt. Die Stories deiner Freunde und die Stories-Leiste bleiben.
 # context: switch title under Notifications; trending videos Facebook sends as push notifications
@@ -454,6 +472,19 @@ Games you play in Facebook get no ads. A game asking for one hears there's none 
 Ads and boosted listings in Marketplace's feed and search results. The other listings stay.	Werbung und hervorgehobene Angebote im Marketplace-Feed und in den Suchergebnissen. Die anderen Angebote bleiben.
 # context: switch title under News feed; hides posts whose text holds a word or phrase the person listed
 Hide posts with words you choose	Beiträge mit Wörtern deiner Wahl ausblenden
+Hide posts from people, Pages and sites	Beiträge von Personen, Seiten und Websites ausblenden
+Posts by a person or Page on your list below, or linking to a site on it, and shares of them. Your list only leaves the phone in a settings file you export.	Beiträge einer Person oder Seite aus deiner Liste unten oder mit einem Link zu einer Website darauf, und geteilte Beiträge davon. Deine Liste verlässt das Handy nur in einer Einstellungsdatei, die du exportierst.
+People, Pages and sites to hide	Personen, Seiten und Websites zum Ausblenden
+One per line, up to %1$d: a name as Facebook shows it, a profile or Page id, or a site like example.com, which takes its subdomains too. Capital letters don't matter. A Facebook link works when it has the id in it.	Ein Eintrag pro Zeile, bis zu %1$d: ein Name, wie Facebook ihn zeigt, eine Profil- oder Seiten-ID oder eine Website wie example.com, die auch ihre Subdomains umfasst. Groß- und Kleinschreibung spielt keine Rolle. Ein Facebook-Link funktioniert, wenn die ID darin steht.
+One name, id or site per line	Ein Name, eine ID oder eine Website pro Zeile
+%1$d line was left out. A line holds up to %2$d characters, the list up to %3$d lines, and one given twice counts once.	%1$d Zeile wurde weggelassen. Eine Zeile fasst bis zu %2$d Zeichen, die Liste bis zu %3$d Zeilen, und ein doppelter Eintrag zählt einmal.
+%1$d lines were left out. A line holds up to %2$d characters, the list up to %3$d lines, and one given twice counts once.	%1$d Zeilen wurden weggelassen. Eine Zeile fasst bis zu %2$d Zeichen, die Liste bis zu %3$d Zeilen, und ein doppelter Eintrag zählt einmal.
+Nobody listed yet, so no post is hidden.	Noch niemand eingetragen, daher wird kein Beitrag ausgeblendet.
+%1$d person, Page or site.	%1$d Person, Seite oder Website.
+%1$d people, Pages or sites.	%1$d Personen, Seiten oder Websites.
+Your list of people, Pages and sites to hide will be empty.	Deine Liste der Personen, Seiten und Websites zum Ausblenden ist dann leer.
+Your list of people, Pages and sites to hide will hold %1$d entry.	Deine Liste der Personen, Seiten und Websites zum Ausblenden enthält dann %1$d Eintrag.
+Your list of people, Pages and sites to hide will hold %1$d entries.	Deine Liste der Personen, Seiten und Websites zum Ausblenden enthält dann %1$d Einträge.
 # context: summary of that switch; the keep list is the second list under it, and a settings file is the one Export settings writes
 Posts whose text has a word or phrase from your list below. A post with a word from your keep list stays, and so does a post with no text. Your words only leave the phone in a settings file you export.	Beiträge, deren Text ein Wort oder eine Wortfolge aus deiner Liste unten enthält. Ein Beitrag mit einem Wort aus deiner Liste zum Behalten bleibt, ebenso ein Beitrag ohne Text. Deine Wörter verlassen das Handy nur in einer Einstellungsdatei, die du exportierst.
 # context: title of the row and dialog holding the list of words and phrases that hide a post
@@ -514,6 +545,8 @@ Resume videos over two minutes where you left off, in the feed or full screen. S
 Also hide posts labelled as AI	Auch als KI gekennzeichnete Beiträge ausblenden
 Hide Meta AI in the feed	Meta AI im Feed ausblenden
 The Meta AI cards Facebook adds to the feed between posts. People's posts stay, whatever they say about AI.	Die Meta-AI-Karten, die Facebook zwischen Beiträgen in den Feed setzt. Beiträge von Menschen bleiben, egal was sie über KI sagen.
+Hide AI character posts	Beiträge mit KI-Figuren ausblenden
+Posts featuring one of Meta's AI characters, the chatbots people and creators make with Meta AI Studio. It's off by default because it hasn't been tested on a real feed yet.	Beiträge mit einer der KI-Figuren von Meta, den Chatbots, die Menschen und Creator mit Meta AI Studio bauen. Der Schalter ist standardmäßig aus, weil er noch nicht in einem echten Feed getestet wurde.
 # context: summary of that switch; the AI label is the one Facebook shows next to the poster's name on such posts
 Posts whose creator marked them as made with AI. Facebook puts its AI label next to the name on these as well as on the posts its detection found, and with this on, both kinds go. It's off by default because it hasn't been tested on a real feed yet.	Beiträge, die die Person, die sie erstellt hat, als mit KI erstellt gekennzeichnet hat. Facebook zeigt sein KI-Label neben dem Namen bei diesen wie auch bei den Beiträgen, die seine Erkennung gefunden hat, und mit diesem Schalter verschwinden beide. Der Schalter ist standardmäßig aus, weil er noch nicht in einem echten Feed getestet wurde.
 Return to regular Facebook	Zurück zum normalen Facebook
@@ -660,6 +693,13 @@ Hide the Marketplace tab	Marketplace-Tab ausblenden
 Hide the Groups tab	Gruppen-Tab ausblenden
 Hide the Gaming tab	Gaming-Tab ausblenden
 Hide the Events tab	Veranstaltungen-Tab ausblenden
+Hide the Dating tab	Dating-Tab ausblenden
+Hide the Professional dashboard tab	Professional-Dashboard-Tab ausblenden
+Hide the Saved tab	Gespeichert-Tab ausblenden
+Hide the Ad Center tab	Werbecenter-Tab ausblenden
+Hide the Create tab	Erstellen-Tab ausblenden
+Hide the Explore tab	Erkunden-Tab ausblenden
+Hide the Jobs tab	Jobs-Tab ausblenden
 Takes the tab off the tab bar. Its page stays in the Menu. Restart Facebook after changing it.	Nimmt den Tab aus der Tab-Leiste. Seine Seite bleibt im Menü. Starte Facebook nach der Änderung neu.
 Facebook opens on Home while Hide tabs keeps %1$s off the tab bar. Your choice stays saved.	Facebook startet mit Home, solange Tabs ausblenden %1$s aus der Tab-Leiste nimmt. Deine Auswahl bleibt gespeichert.
 # context: summary of that switch; Video is Facebook's name for the tab on some accounts
@@ -794,3 +834,14 @@ A playing reel keeps going in a small window when you leave Facebook. Android 12
 Turn off HDR brightness	HDR-Helligkeit ausschalten
 # context: summary of that switch
 HDR videos and photos stay at your screen's usual brightness instead of turning it up to full. They keep their resolution.	HDR-Videos und -Fotos bleiben bei der üblichen Helligkeit deines Bildschirms, statt ihn ganz hochzudrehen. Ihre Auflösung bleibt gleich.
+# context: switch title under Marketplace; View profile is Facebook's own button on a seller's Marketplace page that opens their regular Facebook profile, so use Facebook's label for it in this language
+Show View profile on Marketplace sellers	„Profil ansehen“ bei Marketplace-Verkäufern zeigen
+# context: summary of that switch
+A seller's Marketplace page always has View profile, which opens their regular Facebook profile. Facebook shows it to only some accounts.	Die Marketplace-Seite eines Verkäufers hat immer „Profil ansehen“, das sein normales Facebook-Profil öffnet. Facebook zeigt es nur manchen Konten.
+# context: the Save Facebook's notification sound row under Notifications and its toasts (#83)
+Save Facebook's notification sound	Facebooks Benachrichtigungston speichern
+Puts Facebook's chime in your phone's notification sounds, for a category that Android set to None. Then pick it under Android's notification settings for Facebook: a category, then Sound.	Legt Facebooks Ton in den Benachrichtigungstönen deines Telefons ab, für eine Kategorie, die Android auf Keine gesetzt hat. Wähle ihn danach in Androids Benachrichtigungseinstellungen für Facebook: eine Kategorie, dann Ton.
+Saved as %1$s in the Notifications folder. Pick it under Sound in Android's notification settings for Facebook.	Als %1$s im Ordner Notifications gespeichert. Wähle ihn unter Ton in Androids Benachrichtigungseinstellungen für Facebook.
+%1$s is already in your notification sounds.	%1$s ist schon in deinen Benachrichtigungstönen.
+This build has no notification sound to save.	Dieser Build hat keinen Benachrichtigungston zum Speichern.
+Couldn't save the sound. Try again.	Der Ton konnte nicht gespeichert werden. Versuch es noch mal.

@@ -1,0 +1,15 @@
+_external/
+.gradle/
+.kotlin/
+**/build/
+.idea/
+.vscode/
+node_modules/
+local.properties
+*.apk
+*.apkm
+*.jks
+*.keystore
+*.mpp
+*.mpe
+*.log

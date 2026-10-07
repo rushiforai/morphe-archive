@@ -6,8 +6,11 @@ package app.morphe.extension.tiktok.settings.preference;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.preference.Preference;
 import android.view.View;
+import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +47,9 @@ public final class SwitchListPreference extends Preference {
 
     private final List<Item> items;
     private final String description;
+    /** The dialog on screen and its unsaved boxes, kept so a recreated screen can reopen both. */
+    private AlertDialog openDialog;
+    private boolean[] openChoices;
 
     /**
      * @param title       the row's title, an English key
@@ -81,14 +87,38 @@ public final class SwitchListPreference extends Preference {
         return description + "\n" + state;
     }
 
+    /** The check boxes, in dialog order, for the search index. */
+    List<Item> items() {
+        return items;
+    }
+
     @Override
     protected void onClick() {
+        showChoices(null, null);
+    }
+
+    /**
+     * Opens the dialog the way a tap does, then scrolls to the box for {@code settingKey} and
+     * moves focus onto it. A search result for one box lands here, and only the box moves: its
+     * value is whatever the reader last saved.
+     */
+    void showChoicesAt(String settingKey) {
+        showChoices(null, settingKey);
+    }
+
+    /**
+     * @param pending    the boxes as they stood when the screen was torn down, or null for the
+     *                   saved values
+     * @param focusKey   the setting whose box gets focus, or null
+     */
+    private void showChoices(boolean[] pending, String focusKey) {
         Context context = getContext();
         CharSequence[] labels = new CharSequence[items.size()];
         boolean[] checked = new boolean[items.size()];
         for (int i = 0; i < items.size(); i++) {
             labels[i] = items.get(i).label;
-            checked[i] = items.get(i).setting.savedValue();
+            checked[i] = pending != null && pending.length == items.size()
+                    ? pending[i] : items.get(i).setting.savedValue();
         }
         AlertDialog dialog = new AlertDialog.Builder(context)
                 .setTitle(getTitle())
@@ -99,7 +129,33 @@ public final class SwitchListPreference extends Preference {
                 .setPositiveButton(L10n.t(context, "Apply"), null)
                 .setNegativeButton(L10n.t(context, "Cancel"), null)
                 .show();
+        openDialog = dialog;
+        openChoices = checked;
+        dialog.setOnDismissListener(ignored -> {
+            if (openDialog == dialog) {
+                openDialog = null;
+                openChoices = null;
+            }
+        });
         SettingsUi.styleStandardAlertDialog(dialog);
+        int focus = indexOf(focusKey);
+        if (focus >= 0) {
+            // The list has no rows until its first layout, which is also where the selection
+            // takes effect, so the highlight waits for a pass that shows the box.
+            ListView list = dialog.getListView();
+            list.setSelection(focus);
+            list.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+                @Override
+                public void onLayoutChange(View view, int left, int top, int right, int bottom,
+                        int oldLeft, int oldTop, int oldRight, int oldBottom) {
+                    if (focus < list.getFirstVisiblePosition() || focus > list.getLastVisiblePosition()) {
+                        return;
+                    }
+                    list.removeOnLayoutChangeListener(this);
+                    TikTokPreferenceFragment.highlightRow(list, focus);
+                }
+            });
+        }
         dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
             if (!view.isEnabled()) return;
             Map<Setting<?>, Object> changes = new LinkedHashMap<>();
@@ -123,6 +179,14 @@ public final class SwitchListPreference extends Preference {
                 }
                 boolean success = saved;
                 app.morphe.extension.shared.Utils.runOnMainThread(() -> {
+                    // A recreation while the save ran took this dialog's window with the old
+                    // activity, and dismissing a window that's gone throws. The restored page
+                    // shows its own dialog, so this one only reports.
+                    if (!onScreen(dialog)) {
+                        if (success) notifyChanged();
+                        else reportSaveFailure();
+                        return;
+                    }
                     setChoicesEnabled(dialog, true);
                     if (success) {
                         notifyChanged();
@@ -135,6 +199,78 @@ public final class SwitchListPreference extends Preference {
                 reportSaveFailure();
             }
         });
+    }
+
+    private int indexOf(String settingKey) {
+        if (settingKey == null) return -1;
+        for (int i = 0; i < items.size(); i++) {
+            if (settingKey.equals(items.get(i).setting.key)) return i;
+        }
+        return -1;
+    }
+
+    /**
+     * A dialog open when the activity is recreated comes back with the boxes as they were, the
+     * way the platform's own dialog preferences do. Without this a rotation or a theme change
+     * dropped the reader's unsaved choices, and a search result that had just opened one box
+     * left the page with nothing open.
+     */
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        Parcelable superState = super.onSaveInstanceState();
+        if (openDialog == null || !openDialog.isShowing() || openChoices == null) {
+            return superState;
+        }
+        OpenState state = new OpenState(superState);
+        state.choices = openChoices.clone();
+        return state;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        if (!(state instanceof OpenState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+        OpenState open = (OpenState) state;
+        super.onRestoreInstanceState(open.getSuperState());
+        showChoices(open.choices, null);
+    }
+
+    private static final class OpenState extends BaseSavedState {
+        boolean[] choices;
+
+        OpenState(Parcelable superState) {
+            super(superState);
+        }
+
+        OpenState(Parcel source) {
+            super(source);
+            choices = source.createBooleanArray();
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            super.writeToParcel(dest, flags);
+            dest.writeBooleanArray(choices);
+        }
+
+        public static final Parcelable.Creator<OpenState> CREATOR = new Parcelable.Creator<OpenState>() {
+            @Override
+            public OpenState createFromParcel(Parcel source) {
+                return new OpenState(source);
+            }
+
+            @Override
+            public OpenState[] newArray(int size) {
+                return new OpenState[size];
+            }
+        };
+    }
+
+    private static boolean onScreen(AlertDialog dialog) {
+        return dialog.isShowing() && dialog.getWindow() != null
+                && dialog.getWindow().getDecorView().isAttachedToWindow();
     }
 
     private static void setChoicesEnabled(AlertDialog dialog, boolean enabled) {

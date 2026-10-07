@@ -7,14 +7,18 @@ import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Switch;
+import android.widget.TextView;
 import app.morphe.extension.shared.BackgroundPoolSaturation;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.DocumentExportProvider;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.preference.DocumentOperation;
+import app.morphe.extension.tiktok.settings.preference.SettingsActionBanner;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -307,9 +311,8 @@ public class FeatureGateLabActionsTest {
             action(fragment, 3);
             var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
             assertEquals(Intent.ACTION_OPEN_DOCUMENT, started.intent.getAction());
-            var uri = android.net.Uri.parse("content://lab-test/values.json.gz");
-            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri, new ByteArrayInputStream(bytes.toByteArray()));
-            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(uri));
+            var provider = DocumentExportProvider.register(activity).contents(bytes.toByteArray());
+            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(provider.uri));
             // No prompt before the import; the result comes after it, as a dialog with the
             // counts on their own lines.
             waitForImportDialog("Imported 1 values", "1 already matched", "1 unavailable", "2 rejected");
@@ -332,10 +335,9 @@ public class FeatureGateLabActionsTest {
                     .put("rules", new JSONArray().put(rule("gate", "true")));
             action(fragment, 3);
             var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
-            var uri = android.net.Uri.parse("content://lab-test/values.json");
-            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
-                    new ByteArrayInputStream(root.toString().getBytes(StandardCharsets.UTF_8)));
-            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(uri));
+            var provider = DocumentExportProvider.register(activity)
+                    .contents(root.toString().getBytes(StandardCharsets.UTF_8));
+            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(provider.uri));
             waitForImportDialog("Imported 1 values", "0 rejected");
             assertFalse(FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN").enabled);
             assertEquals("true", FeatureGateLabStore.rule("abmock", "gate", "BOOLEAN").value);
@@ -373,10 +375,9 @@ public class FeatureGateLabActionsTest {
                     .put("rules", new JSONArray().put(rule("gate", "true")));
             action(fragment, 3);
             var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
-            var uri = android.net.Uri.parse("content://lab-test/other-build.json");
-            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
-                    new ByteArrayInputStream(root.toString().getBytes(StandardCharsets.UTF_8)));
-            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(uri));
+            var provider = DocumentExportProvider.register(activity)
+                    .contents(root.toString().getBytes(StandardCharsets.UTF_8));
+            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK, new Intent().setData(provider.uri));
             waitFor("These loaded values are for a different TikTok version.");
             assertTrue(FeatureGateLabStore.rules().isEmpty());
         }
@@ -464,23 +465,18 @@ public class FeatureGateLabActionsTest {
         }
     }
 
-    @Test public void aLabSafExportWhoseStreamFailsToCloseIsRemoved() throws Exception {
+    /** The file app opened the file and the write then failed, so what's in it now is the Lab's to remove. */
+    @Test public void aLabSafExportWhoseWriteFailsAfterTheOpenIsRemoved() throws Exception {
         try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
             var activity = owner.get();
             var fragment = attach(activity);
-            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
-            Shadows.shadowOf(activity.getContentResolver()).registerOutputStream(provider.uri,
-                    new ByteArrayOutputStream() {
-                        @Override public void close() throws java.io.IOException {
-                            throw new java.io.IOException("injected provider close failure");
-                        }
-                    });
+            var provider = DocumentExportProvider.register(activity);
+            provider.readOnlyWrites = true;
             action(fragment, 2);
             var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
             fragment.onActivityResult(started.requestCode, Activity.RESULT_OK,
                     new Intent().setData(provider.uri));
-            FeatureGateLabFragment.awaitFileIoForTests();
-            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            waitFor("Loaded-value file export failed");
             assertEquals(1, provider.deleteCalls);
             assertFalse(provider.exists);
         }
@@ -531,9 +527,8 @@ public class FeatureGateLabActionsTest {
             JSONObject root = new JSONObject().put("payload_kind", "loaded_values")
                     .put("tiktok_version", FeatureGateLabStore.targetVersion())
                     .put("rules", new JSONArray().put(rule("gate", "true")));
-            var uri = android.net.Uri.parse("content://lab-test/not-ready.json");
-            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
-                    new ByteArrayInputStream(root.toString().getBytes(StandardCharsets.UTF_8)));
+            var uri = DocumentExportProvider.register(activity)
+                    .contents(root.toString().getBytes(StandardCharsets.UTF_8)).uri;
 
             ShadowToast.reset();
             var read = FeatureGateLabFragment.class.getDeclaredMethod(
@@ -552,31 +547,12 @@ public class FeatureGateLabActionsTest {
             JSONObject root = new JSONObject().put("payload_kind", "loaded_values")
                     .put("tiktok_version", FeatureGateLabStore.targetVersion())
                     .put("rules", new JSONArray().put(rule("gate", "true")));
-            var uri = android.net.Uri.parse("content://lab-test/leaving.json");
-            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
-                    new ByteArrayInputStream(root.toString().getBytes(StandardCharsets.UTF_8)));
-
-            var executorField = FeatureGateLabFragment.class.getDeclaredField("FILE_IO_EXECUTOR");
-            executorField.setAccessible(true);
-            var executor = (java.util.concurrent.ExecutorService) executorField.get(null);
-            var started = new java.util.concurrent.CountDownLatch(1);
-            var release = new java.util.concurrent.CountDownLatch(1);
-            executor.execute(() -> {
-                started.countDown();
-                try {
-                    release.await();
-                } catch (InterruptedException interrupted) {
-                    Thread.currentThread().interrupt();
-                }
-            });
+            var provider = DocumentExportProvider.register(activity)
+                    .contents(root.toString().getBytes(StandardCharsets.UTF_8));
+            var release = provider.holdOpens();
             try {
-                assertTrue("the file worker did not reach the test barrier",
-                        started.await(2, java.util.concurrent.TimeUnit.SECONDS));
-
-                var read = FeatureGateLabFragment.class.getDeclaredMethod(
-                        "readLoadedValuesFile", android.net.Uri.class);
-                read.setAccessible(true);
-                read.invoke(fragment, uri);
+                readFile(fragment, provider.uri);
+                assertTrue("the file app was never asked for the file", provider.awaitOpening());
                 activity.getFragmentManager().beginTransaction().remove(fragment).commit();
                 activity.getFragmentManager().executePendingTransactions();
                 assertNull(fragment.getActivity());
@@ -590,6 +566,230 @@ public class FeatureGateLabActionsTest {
             assertEquals("true", FeatureGateLabStore.rule(
                     "abmock", "gate", "BOOLEAN").value);
         }
+    }
+
+    /** A file app that answers the stop: nothing is imported, and the Lab says so in its own window. */
+    @Test public void aStalledImportOffersAStopThatChangesNothing() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsWindow.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            var provider = DocumentExportProvider.register(activity).contents(loadedValues(rule("gate", "true")));
+            provider.honorCancel = true;
+            var release = provider.holdOpens();
+            try {
+                readFile(fragment, provider.uri);
+                assertTrue("the file app was never asked for the file", provider.awaitOpening());
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertNull("the stop was offered before the file app stalled", bannerAction(activity));
+                stall();
+                assertEquals("Still waiting for the file app.", bannerText(activity));
+                View stop = bannerAction(activity);
+                assertEquals("Stop waiting", ((TextView) stop).getText().toString());
+                assertTrue(stop.performClick());
+                assertEquals("Stopped waiting for the file app. Nothing was imported.", settledBanner(activity));
+            } finally {
+                release.countDown();
+            }
+            assertEquals("Stopped waiting for the file app. Nothing was imported.", settledBanner(activity));
+            assertTrue("the cancellation never reached the file app", provider.cancels.get() > 0);
+            assertTrue("a stopped import changed the Lab", FeatureGateLabStore.rules().isEmpty());
+            assertFalse(DocumentOperation.busy(DocumentOperation.Kind.LAB_FILE));
+        }
+    }
+
+    /**
+     * A file app that ignores the stop holds only the Lab's slot. Export says so instead of
+     * queueing behind it, the settings rows stay free, and once the file app lets go the export is
+     * called unsaved and the empty document it never filled is removed.
+     */
+    @Test public void anExportWhoseFileAppIgnoresTheStopHoldsOnlyTheLabSlot() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsWindow.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            var provider = DocumentExportProvider.register(activity);
+            var release = provider.holdOpens();
+            try {
+                action(fragment, 2);
+                var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+                fragment.onActivityResult(started.requestCode, Activity.RESULT_OK,
+                        new Intent().setData(provider.uri));
+                assertTrue("the file app was never asked for the file", provider.awaitOpening());
+                stall();
+                assertTrue(bannerAction(activity).performClick());
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertEquals("Stopped waiting for the file app. It hasn't said yet whether the export was saved.",
+                        bannerText(activity));
+
+                action(fragment, 2);
+                assertEquals("The file app still has the last file. Try again once it lets go, or restart TikTok.",
+                        bannerText(activity));
+                assertNull("a second export queued behind the held one",
+                        Shadows.shadowOf(activity).getNextStartedActivityForResult());
+                assertFalse("the Lab's file app held the settings rows too",
+                        DocumentOperation.busy(DocumentOperation.Kind.SETTINGS_FILE));
+            } finally {
+                release.countDown();
+            }
+            assertEquals("The export wasn't saved. Export again when the file app is ready.", settledBanner(activity));
+            assertFalse("the empty document the export never filled was left behind", provider.exists);
+            assertFalse(DocumentOperation.busy(DocumentOperation.Kind.LAB_FILE));
+        }
+    }
+
+    /** The picker can hand back a file the user chose to replace. Stopped before the Lab wrote to it, it stays as it was. */
+    @Test public void aStoppedExportLeavesTheFileItWasReplacingAlone() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsWindow.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            byte[] older = "an older export".getBytes(StandardCharsets.UTF_8);
+            var provider = DocumentExportProvider.register(activity).contents(older);
+            provider.honorCancel = true;
+            var release = provider.holdOpens();
+            try {
+                action(fragment, 2);
+                var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+                fragment.onActivityResult(started.requestCode, Activity.RESULT_OK,
+                        new Intent().setData(provider.uri));
+                assertTrue("the file app was never asked for the file", provider.awaitOpening());
+                stall();
+                assertTrue(bannerAction(activity).performClick());
+                // Settled before the open is let go, so the file app has given up rather than
+                // opened the file "wt", which would have emptied it.
+                assertEquals("The export wasn't saved. Export again when the file app is ready.", settledBanner(activity));
+            } finally {
+                release.countDown();
+            }
+            assertEquals("a file the export never wrote was removed", 0, provider.deleteCalls);
+            assertTrue(provider.exists);
+            assertArrayEquals(older, java.nio.file.Files.readAllBytes(provider.file.toPath()));
+        }
+    }
+
+    /** "w" doesn't empty the file it opens, so an export over a bigger one kept that file's end and wouldn't read back. */
+    @Test public void anExportOverABiggerFileLeavesNothingOfItBehind() throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            byte[] older = new byte[64 * 1024];
+            java.util.Arrays.fill(older, (byte) 'x');
+            var provider = DocumentExportProvider.register(activity).contents(older);
+            action(fragment, 2);
+            var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
+            fragment.onActivityResult(started.requestCode, Activity.RESULT_OK,
+                    new Intent().setData(provider.uri));
+            waitFor("Exported");
+            byte[] written = java.nio.file.Files.readAllBytes(provider.file.toPath());
+            assertTrue("the export kept the end of the file it replaced", written.length < older.length);
+            byte[] json;
+            try (var gzip = new java.util.zip.GZIPInputStream(new java.io.ByteArrayInputStream(written))) {
+                json = gzip.readAllBytes();
+            }
+            assertEquals("loaded_values",
+                    new JSONObject(new String(json, StandardCharsets.UTF_8)).getString("payload_kind"));
+        }
+    }
+
+    /**
+     * What the Lab knows can change while a file app holds the file, as when the catalog finishes
+     * reading. The import is reviewed against the values the Lab has once the file arrives.
+     */
+    @Test public void anImportIsReviewedAgainstTheValuesTheLabHasWhenTheFileArrives() throws Exception {
+        try (var owner = Robolectric.buildActivity(TestActivity.class).setup().visible()) {
+            var activity = owner.get();
+            var fragment = attach(activity);
+            var provider = DocumentExportProvider.register(activity)
+                    .contents(loadedValues(rule("gate", "true"), rule("late_gate", "true")));
+            var release = provider.holdOpens();
+            try {
+                readFile(fragment, provider.uri);
+                assertTrue("the file app was never asked for the file", provider.awaitOpening());
+                var gate = entry("gate");
+                var same = entry("same_gate");
+                var late = entry("late_gate");
+                var snapshot = FeatureGateLabFragment.class.getDeclaredField("snapshot");
+                snapshot.setAccessible(true);
+                snapshot.set(fragment, new FeatureGateCatalog.Snapshot(List.of(gate, same, late),
+                        Map.of(gate.identity(), gate, same.identity(), same, late.identity(), late), 3, 0, true));
+            } finally {
+                release.countDown();
+            }
+            waitForImportDialog("Imported 2 values", "0 unavailable");
+            assertEquals("true", FeatureGateLabStore.rule("abmock", "late_gate", "BOOLEAN").value);
+        }
+    }
+
+    /**
+     * Turning the phone while a file app stalls rebuilds the Lab. The stop is offered again in the
+     * new window, and the import's result lands there as well.
+     */
+    @Test public void aLabRebuiltWhileTheFileAppStallsOffersTheStopAndShowsTheResultThere() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsWindow.class).setup().visible()) {
+            var first = owner.get();
+            var fragment = attach(first);
+            var provider = DocumentExportProvider.register(first).contents(loadedValues(rule("gate", "true")));
+            var release = provider.holdOpens();
+            Activity rebuilt;
+            try {
+                readFile(fragment, provider.uri);
+                assertTrue("the file app was never asked for the file", provider.awaitOpening());
+                stall();
+                assertEquals("Still waiting for the file app.", bannerText(first));
+                owner.recreate();
+                rebuilt = owner.get();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertNotSame(first, rebuilt);
+                assertEquals("Still waiting for the file app.", bannerText(rebuilt));
+                assertNotNull("the rebuilt window offers no stop", bannerAction(rebuilt));
+            } finally {
+                release.countDown();
+            }
+            waitForImportDialog("Imported 1 values");
+            assertSame("the result went to a window that's gone", rebuilt,
+                    activityOf(ShadowDialog.getLatestDialog().getContext()));
+        }
+    }
+
+    private static void readFile(FeatureGateLabFragment fragment, android.net.Uri uri) throws Exception {
+        var read = FeatureGateLabFragment.class.getDeclaredMethod("readLoadedValuesFile", android.net.Uri.class);
+        read.setAccessible(true);
+        read.invoke(fragment, uri);
+    }
+
+    private static byte[] loadedValues(JSONObject... rules) throws Exception {
+        JSONArray list = new JSONArray();
+        for (JSONObject rule : rules) list.put(rule);
+        return new JSONObject().put("payload_kind", "loaded_values")
+                .put("tiktok_version", FeatureGateLabStore.targetVersion())
+                .put("rules", list).toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    /** Runs the clock past the stall threshold, where the Lab offers to stop waiting. */
+    private static void stall() {
+        Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(DocumentOperation.stallMillisForTests()));
+    }
+
+    private static String bannerText(Activity activity) {
+        View label = activity.findViewById(android.R.id.content).findViewWithTag("hushfeed_settings_action_message");
+        return label instanceof TextView ? ((TextView) label).getText().toString() : null;
+    }
+
+    private static View bannerAction(Activity activity) {
+        return activity.findViewById(android.R.id.content).findViewWithTag("hushfeed_settings_action_button");
+    }
+
+    /** The banner once the Lab's file worker has returned and what it posted has run. */
+    private static String settledBanner(Activity activity) throws Exception {
+        FeatureGateLabFragment.awaitFileIoForTests();
+        Utils.awaitBackgroundTasksForTests();
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        return bannerText(activity);
+    }
+
+    private static Activity activityOf(android.content.Context context) {
+        while (!(context instanceof Activity) && context instanceof android.content.ContextWrapper) {
+            context = ((android.content.ContextWrapper) context).getBaseContext();
+        }
+        return (Activity) context;
     }
 
     private static void assertLoadedJsonRejected(byte[] bytes) throws Exception {
@@ -1146,6 +1346,14 @@ public class FeatureGateLabActionsTest {
         @Override protected void onCreate(android.os.Bundle state) {
             setTheme(android.R.style.Theme_Material_NoActionBar);
             super.onCreate(state);
+        }
+    }
+
+    /** The settings window, whose content root carries the tag TikTokActivityHook gives it, so banners show. */
+    public static class SettingsWindow extends TestActivity {
+        @Override protected void onCreate(android.os.Bundle state) {
+            super.onCreate(state);
+            findViewById(android.R.id.content).setTag(SettingsActionBanner.CONTENT_ROOT_TAG);
         }
     }
 }

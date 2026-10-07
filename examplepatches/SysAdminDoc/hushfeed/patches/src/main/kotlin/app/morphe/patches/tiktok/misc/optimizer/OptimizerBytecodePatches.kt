@@ -24,9 +24,12 @@ val instantLaunchSplashBlockerPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
+        // DeferredSplashAdManagerPreloadTask (47.1.x) only calls SplashAdManagerPreloadTask.run.
         val voidMethods = listOf(
             SplashPreloadTaskFingerprint.method,
             SplashPreloadEntryFingerprint.method,
+            TopViewPreloadTaskFingerprint.method,
+            RealTimeSplashTaskFingerprint.method,
         )
         fun reviewedBooleanMethods(classDescriptor: String, expectedCounts: List<Int>, boundary: String) =
             mutableClassDefBy(classDescriptor).methods.filter { method ->

@@ -11,6 +11,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.UiCapture;
 import app.morphe.extension.tiktok.settings.SettingsPagesTest.PageActivity;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -86,6 +87,30 @@ public class FeatureGatePresetsTest {
         assertNull(FeatureGateLabStore.rule("abmock", "cla_translate_button_weaken_v2", "INT"));
         assertEquals("true", FeatureGateLabStore.rule("abmock", "unrelated", "BOOLEAN").value);
         assertTrue(FeatureGateLabStore.rule("abmock", "unrelated", "BOOLEAN").enabled);
+    }
+
+    /**
+     * Each preset against the catalog shipped for every build it lists, reviewed the way Apply
+     * reviews it: every key registered with the preset's type and a value the Lab accepts. The
+     * catalog default is the one in TikTok's code, which the server overrides, so a preset may
+     * pin it (See translation does exactly that).
+     */
+    @Test public void everyPresetMatchesTheShippedCatalogOfEveryBuildItLists() throws Exception {
+        int reviewed = 0;
+        for (String build : GeneratedGateCatalogBuilds.BUILDS) {
+            Map<String, FeatureGateCatalog.Entry> shipped = new LinkedHashMap<>();
+            for (FeatureGateCatalog.Entry entry : FeatureGateCatalog.readStaticCatalog(build)) {
+                shipped.put(entry.identity(), entry);
+            }
+            BuildNames.setRunningBuildForTests(build);
+            for (FeatureGateLabStore.Preset preset : FeatureGateLabStore.PRESETS) {
+                if (!Arrays.asList(preset.builds).contains(build)) continue;
+                FeatureGateLabStore.ImportReview review = FeatureGateLabStore.reviewPreset(build, preset.id, shipped);
+                assertEquals(preset.id + " on " + build, preset.rules.length, review.accepted.size());
+                reviewed++;
+            }
+        }
+        assertEquals(FeatureGateLabStore.PRESETS.length * GeneratedGateCatalogBuilds.BUILDS.length, reviewed);
     }
 
     @Test public void aMissingGateOrAnotherBuildCannotApplyHalfAPreset() throws Exception {

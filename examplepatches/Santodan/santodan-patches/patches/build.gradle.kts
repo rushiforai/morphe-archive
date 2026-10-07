@@ -34,7 +34,28 @@ tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
     failOnNoDiscoveredTests.set(false)
 }
 
+// Exercise the exact Android runtime accessor table against original app DEX files.
+tasks.named<org.gradle.api.tasks.compile.JavaCompile>("compileTestJava") {
+    source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioProviderLayout.java"))
+}
+
 tasks {
+    register<JavaExec>("verifyNuvioBeta2") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioLayout")
+        args("1.1.0-beta.2", file("../../.inspect-nuvio-beta2").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/nuvio-beta2.dex").absolutePath)
+    }
+
+    register<JavaExec>("verifyNuvioBeta4") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioLayout")
+        args("1.1.0-beta.4", file("../../.inspect-nuvio-beta4").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/nuvio-beta4.dex").absolutePath)
+    }
+
     register<JavaExec>("verifyRedditContentFilter") {
         dependsOn("testClasses")
         classpath = sourceSets["test"].runtimeClasspath

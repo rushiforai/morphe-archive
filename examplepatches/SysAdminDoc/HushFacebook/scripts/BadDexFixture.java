@@ -186,6 +186,13 @@ public class BadDexFixture {
     private static final ImmutableMethodReference LAUNCHED_TAB = method(TAB_BAR_FILTER, "launchedTab", OBJECT, OBJECT);
     private static final ImmutableMethodReference FRIENDS_TAB = method(TAB_BAR_FILTER, "friendsTab", OBJECT, OBJECT);
     private static final ImmutableMethodReference CONFIGURES_TAB = method(TAB_BAR_FILTER, "configuresTab", "Z", "Z", OBJECT);
+    private static final String POST_TEXT = "Lapp/morphe/extension/facebook/feed/PostText;";
+    private static final String POST_SOURCES = "Lapp/morphe/extension/facebook/feed/PostSources;";
+    private static final String MAILBOX = "Lfixture/Mailbox;";
+    private static final String TYPING_INDICATOR = "Lapp/morphe/extension/facebook/chats/TypingIndicator;";
+    private static final ImmutableMethodReference CHAT_TYPING = method(TYPING_INDICATOR, "chatTyping", "Z", "Z");
+    private static final String READ_RECEIPTS = "Lapp/morphe/extension/facebook/chats/ReadReceipts;";
+    private static final ImmutableMethodReference HOLDS_CHAT_READ = method(READ_RECEIPTS, "holdsChatRead", "Z");
 
     private static final String SHORTCUT_MANAGER = "Landroid/content/pm/ShortcutManager;";
     private static final String SHORTCUT_INFO = "Landroid/content/pm/ShortcutInfo;";
@@ -1087,6 +1094,75 @@ public class BadDexFixture {
                         define(TAB_BAR_FILTER, "configuresTab", "Z", true, body(2, op(Opcode.RETURN, 0)), "Z", OBJECT)));
     }
 
+    /** An extension class of two story stubs, [first] and [second], each filled as given. */
+    private static ClassDef storyStubs(String owner, String first, ImmutableMethodImplementation firstBody,
+            String second, ImmutableMethodImplementation secondBody) {
+        return new ImmutableClassDef(owner, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(), OBJECT,
+                null, null, null, null,
+                Arrays.asList(define(owner, first, OBJECT, true, firstBody, OBJECT),
+                        define(owner, second, OBJECT, true, secondBody, OBJECT)));
+    }
+
+    /** The sources filter's text stubs: message as [message], attachedStory as [attached]. */
+    private static ClassDef postText(ImmutableMethodImplementation message, ImmutableMethodImplementation attached) {
+        return storyStubs(POST_TEXT, "message", message, "attachedStory", attached);
+    }
+
+    /** The sources filter's author and link stubs: actors as [actors], attachments as [attachments]. */
+    private static ClassDef postSources(ImmutableMethodImplementation actors, ImmutableMethodImplementation attachments) {
+        return storyStubs(POST_SOURCES, "actors", actors, "attachments", attachments);
+    }
+
+    /**
+     * Mailbox's two chat calls: the typing setter, static and taking the flag (v0 free, v1 the
+     * flag), with [typingPrefix] first and the setter's API name after it; and the mark-read, its
+     * API name in v0, asking the extension [reads] times.
+     */
+    private static ClassDef mailbox(List<Instruction> typingPrefix, int reads) {
+        List<Instruction> typing = new ArrayList<>(typingPrefix);
+        typing.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0,
+                new ImmutableStringReference("setTypingIndicatorForThreadWithThreadIdentifier")));
+        typing.add(op(Opcode.RETURN_VOID));
+        List<Instruction> read = new ArrayList<>();
+        read.add(new ImmutableInstruction21c(Opcode.CONST_STRING, 0,
+                new ImmutableStringReference("markAsReadThreadWithThreadIdentifier")));
+        for (int i = 0; i < reads; i++) {
+            read.add(invoke(HOLDS_CHAT_READ));
+            read.add(op(Opcode.MOVE_RESULT, 0));
+        }
+        read.add(op(Opcode.RETURN_VOID));
+        return new ImmutableClassDef(MAILBOX, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Arrays.asList(
+                        define(MAILBOX, "setTyping", "V", true, new ImmutableMethodImplementation(2, typing, null, null), "Z"),
+                        define(MAILBOX, "markRead", "V", true, new ImmutableMethodImplementation(1, read, null, null))));
+    }
+
+    /** What Hide typing indicator puts first in the setter: the flag through the extension and back. */
+    private static List<Instruction> typingHook() {
+        return Arrays.asList(invoke(CHAT_TYPING, 1), op(Opcode.MOVE_RESULT, 1));
+    }
+
+    /** The typing hook after a branch on the flag, not first. */
+    private static List<Instruction> lateTypingHook() {
+        List<Instruction> late = new ArrayList<>();
+        late.add(ifEqz(1, 3));                                            // 0 -> 3
+        late.add(op(Opcode.NOP));                                         // 2
+        late.addAll(typingHook());                                        // 3
+        return late;
+    }
+
+    /** The two chat classes the extension ships, each answering no. */
+    private static List<ClassDef> chatStubs() {
+        return Arrays.<ClassDef>asList(
+                new ImmutableClassDef(TYPING_INDICATOR, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
+                        OBJECT, null, null, null, null, Collections.singletonList(define(TYPING_INDICATOR,
+                                "chatTyping", "Z", true, body(1, op(Opcode.RETURN, 0)), "Z"))),
+                new ImmutableClassDef(READ_RECEIPTS, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
+                        OBJECT, null, null, null, null, Collections.singletonList(define(READ_RECEIPTS,
+                                "holdsChatRead", "Z", true, body(1,
+                                        new ImmutableInstruction11n(Opcode.CONST_4, 0, 0), op(Opcode.RETURN, 0))))));
+    }
+
     private static ClassDef reelSpeed() {
         return new ImmutableClassDef(REEL_SPEED, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
                 OBJECT, null, null, null, null, Collections.singletonList(
@@ -1561,7 +1637,9 @@ public class BadDexFixture {
                 attachmentTap(tapHook(), Collections.<Instruction>emptyList()), doubleTapLike(),
                 speedToast(toastHook(3), Collections.<Instruction>emptyList()), reelSpeed(),
                 jewelController(dotHook(4), Collections.<Instruction>emptyList()), reelsTabDot(),
-                tabLinks(true, true, true), tabBarFilter()));
+                tabLinks(true, true, true), tabBarFilter(), postText(FILLED_STUB, FILLED_STUB),
+                postSources(FILLED_STUB, FILLED_STUB), mailbox(typingHook(), 1)));
+        classes.addAll(chatStubs());
         return classes;
     }
 
@@ -1581,7 +1659,7 @@ public class BadDexFixture {
                 attachmentTap(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 speedToast(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 jewelController(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
-                tabLinks(false, false, false)));
+                tabLinks(false, false, false), mailbox(Collections.<Instruction>emptyList(), 0)));
         return classes;
     }
 
@@ -2122,6 +2200,18 @@ public class BadDexFixture {
         dexes.put("bad-tab-links-launch-hook-missing", replaced(good(), tabLinks(false, true, true)));
         dexes.put("bad-tab-links-friends-hook-missing", replaced(good(), tabLinks(true, false, true)));
         dexes.put("bad-tab-links-check-hook-missing", replaced(good(), tabLinks(true, true, false)));
+
+        // contract: each of the sources filter's story stubs left as the extension ships it.
+        dexes.put("bad-post-message-stub-not-filled", replaced(good(), postText(UNFILLED_STUB, FILLED_STUB)));
+        dexes.put("bad-post-attached-stub-not-filled", replaced(good(), postText(FILLED_STUB, UNFILLED_STUB)));
+        dexes.put("bad-post-actors-stub-not-filled", replaced(good(), postSources(UNFILLED_STUB, FILLED_STUB)));
+        dexes.put("bad-post-attachments-stub-not-filled", replaced(good(), postSources(FILLED_STUB, UNFILLED_STUB)));
+        // contract: Mailbox's typing setter left without Hide typing indicator's call, or with the
+        // call after a branch; its mark-read left without Hide read receipts' call, or with two.
+        dexes.put("bad-typing-hook-missing", replaced(good(), mailbox(Collections.<Instruction>emptyList(), 1)));
+        dexes.put("bad-typing-hook-late", replaced(good(), mailbox(lateTypingHook(), 1)));
+        dexes.put("bad-read-receipts-hook-missing", replaced(good(), mailbox(typingHook(), 0)));
+        dexes.put("bad-read-receipts-hook-twice", replaced(good(), mailbox(typingHook(), 2)));
 
         // contract: the GenAI reel stub left as the extension ships it, answering its marker.
         dexes.put("bad-finder-stub-not-filled", withFinderStub(good(), UNFILLED_FINDER_STUB));

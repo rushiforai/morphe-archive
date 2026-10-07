@@ -26,6 +26,10 @@ once-call Lapp/morphe/extension/facebook/feed/FeedFilter;->hideSwappedEdge(Ljava
 first-call Lapp/morphe/extension/facebook/feed/GenAiLabel;->detectedInfo(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
 first-call Lapp/morphe/extension/facebook/feed/GenAiLabel;->selfDisclosureInfo(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
 first-call Lapp/morphe/extension/facebook/feed/RecommendationLabel;->recommendationContext(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
+first-call Lapp/morphe/extension/facebook/feed/PostText;->message(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
+first-call Lapp/morphe/extension/facebook/feed/PostText;->attachedStory(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
+first-call Lapp/morphe/extension/facebook/feed/PostSources;->actors(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
+first-call Lapp/morphe/extension/facebook/feed/PostSources;->attachments(Ljava/lang/Object;)Ljava/lang/Object; on Lcom/facebook/graphql/model/GraphQLStory;
 # The GenAI reel stub has to call Facebook's attribution finder before it returns. The finder's
 # class and name are Redex's and it answers no type name, so the rule asks only that the stub's
 # first call leaves the extension. Left unfilled it answers its marker, and the Reels rule keeps
@@ -67,6 +71,14 @@ start-call Lapp/morphe/extension/facebook/emoji/SystemEmoji;->skipRemoteEmoji()Z
 # put later, the icon opens Facebook's Chats whatever the switch says.
 start-call Lapp/morphe/extension/facebook/chats/MessengerIcon;->open(Landroid/content/Context;Z)Z in static (Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;*)V holding entry_point_navbar_global_icon_ entry_point_navbar_global_icon_reels_tab
 start-call Lapp/morphe/extension/facebook/chats/MessengerIcon;->open(Landroid/content/Context;Z)Z in static (Landroid/content/Context;Lcom/facebook/auth/usersession/FbUserSession;Ljava/lang/String;ZZ)V holding long_press
+# Hide typing indicator hands Mailbox's typing setter flag to the extension first thing, in the one
+# method holding the setter's name (its answer is a Redex class, so no shape). Left out or put later,
+# a chat that opens inside Facebook shows the other side you're typing whatever the switch says.
+start-call Lapp/morphe/extension/facebook/chats/TypingIndicator;->chatTyping(Z)Z holding setTypingIndicatorForThreadWithThreadIdentifier
+# Hide read receipts asks the extension once in Mailbox's mark-read, the one method holding its API
+# name, after the future is made and before the call is posted. Left out, a chat that opens inside
+# Facebook tells the sender you've read it whatever the switch says.
+once-call Lapp/morphe/extension/facebook/chats/ReadReceipts;->holdsChatRead()Z holding markAsReadThreadWithThreadIdentifier
 # Turn off double tap to like asks the extension first thing in the reel like helper's like, the
 # one method in 580 and 577 holding FbShortsMutationUtil's trace, an instance method taking the
 # session first and the like's source last. Left out or put later, the players whose own double-tap

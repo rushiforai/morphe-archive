@@ -440,16 +440,23 @@ val nativeTest = tasks.register<Test>("nativeTest") {
     failOnNoDiscoveredTests.set(provider {
         (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns.isEmpty()
     })
-    val testSources = fileTree("src/test/kotlin") { include("**/*.kt") }
-    val listed = extensionClasses.map { it.substringAfterLast('/').removeSuffix(".class") }.toSet()
+    val testRoot = file("src/test/kotlin")
+    val testSources = fileTree(testRoot) { include("**/*.kt") }
+    // By package path, the way include and exclude match: a listed test moved to another
+    // package would otherwise still pass here by its name while test no longer ran it.
+    val listed = extensionClasses.map { it.removeSuffix(".class") }.toSet()
     doFirst {
-        val readsExtensions = Regex("""["/]extensions[/"]""")
+        val readsExtensions = Regex("""["/\\]extensions[/\\"]""")
         val unlisted = testSources.files
-            .filter { it.nameWithoutExtension !in listed && readsExtensions.containsMatchIn(it.readText()) }
+            .filter {
+                it.relativeTo(testRoot).invariantSeparatorsPath.removeSuffix(".kt") !in listed &&
+                    readsExtensions.containsMatchIn(it.readText())
+            }
             .map { it.relativeTo(projectDir).invariantSeparatorsPath }.sorted()
         check(unlisted.isEmpty()) {
             "These test sources read extensions, but nativeTest ignores extension changes. " +
-                "Add their test classes to extensionClasses in patches/build.gradle.kts: $unlisted"
+                "Add their test classes to extensionClasses in patches/build.gradle.kts, or fix " +
+                "an entry whose test moved: $unlisted"
         }
         val selected = (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns
         if (selected.isNotEmpty()) {

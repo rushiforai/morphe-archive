@@ -1,0 +1,12 @@
+# Preserve the injected ABI and exception/commit ordering; remove unused R classes.
+-keep class v5.RailsGoBusUpdate { *; }
+-dontoptimize
+-dontobfuscate
+-dontwarn v5.K
+-dontwarn v5.h
+-dontwarn v5.J
+-dontwarn v5.B
+-dontwarn t0.b
+-dontwarn com.google.android.gms.internal.ads.mf
+-dontwarn com.google.android.gms.internal.ads.df
+-dontwarn com.google.android.gms.internal.ads.af

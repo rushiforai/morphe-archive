@@ -1,0 +1,141 @@
+name: 🐞 Bug report
+description: Report a problem with a patch, the patch bundle, or how it is applied.
+title: "bug: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug report.
+
+        Before you continue, please:
+
+        - Search the [existing bug reports](https://github.com/Kero309x/anghamiplus-patches/issues?q=label%3Abug) and make sure this is not a duplicate.
+        - Skim the [contribution guidelines](https://github.com/Kero309x/anghamiplus-patches/blob/dev/CONTRIBUTING.md) so your report contains everything needed to reproduce the problem.
+        - Remember that this project only changes client-side behaviour of the app. Problems caused by the app's servers, by DRM, or by the unpatched app itself cannot be fixed here.
+
+        Reports that are missing the app version, the list of enabled patches, or reproduction steps are usually closed without a fix.
+  - type: dropdown
+    id: app-version
+    attributes:
+      label: Anghami version
+      description: Which version of the Anghami app did you patch?
+      options:
+        - 8.0.28 (the supported version)
+        - A different version
+    validations:
+      required: true
+  - type: input
+    id: app-version-exact
+    attributes:
+      label: Exact version string
+      description: Only if you selected "A different version" above. You can find it in the Android app info screen.
+      placeholder: "e.g. 8.0.27"
+  - type: dropdown
+    id: apk-source
+    attributes:
+      label: How did you obtain the APK?
+      description: Tell us where the unpatched APK came from.
+      options:
+        - Dumped from my own device
+        - Downloaded from an APK mirror site
+        - Received it from someone else
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: patched-with-bundle
+    attributes:
+      label: Was the APK patched with this bundle?
+      options:
+        - "Yes - patched in Morphe Manager with this repository as the source"
+        - "No - I installed an APK that someone else already patched"
+        - "Not sure"
+    validations:
+      required: true
+  - type: textarea
+    id: enabled-patches
+    attributes:
+      label: Patches enabled
+      description: List every patch you selected, and mention any patch option you changed.
+      placeholder: |
+        - Block Audio Ads
+        - Unlock Full Lyrics (options changed: none)
+    validations:
+      required: true
+  - type: input
+    id: bundle-version
+    attributes:
+      label: Patch bundle version
+      description: Shown in Morphe Manager next to the patch source.
+      placeholder: "e.g. 1.3.2"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device and Android version
+      description: The phone or tablet model and the Android version it runs.
+      placeholder: "e.g. Pixel 7, Android 14"
+    validations:
+      required: true
+  - type: input
+    id: manager-version
+    attributes:
+      label: Morphe Manager version
+      description: You can find this in Morphe Manager's about screen.
+      placeholder: "e.g. 1.5.0"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Describe exactly what you did, starting from a clean install of the patched app.
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behaviour
+    attributes:
+      label: Expected behaviour
+      description: What did you expect the patched app to do?
+    validations:
+      required: true
+  - type: textarea
+    id: actual-behaviour
+    attributes:
+      label: Actual behaviour
+      description: What happens instead? Attach screenshots or a screen recording if they help.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: |
+        If the app crashes or a patch fails to apply, paste the relevant log here. For example:
+
+        ```bash
+        adb logcat -d | grep -E "AndroidRuntime|FATAL|anghami"
+        ```
+      render: shell
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Anything else that may be relevant, such as whether the unpatched app works correctly or whether the problem started after an update.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched the open and closed issues and this report is not a duplicate.
+          required: true
+        - label: I filled in the app version, patch list, device details and reproduction steps above.
+          required: true
+        - label: I understand that this project cannot fix problems that come from the app's servers or from the unpatched app.
+          required: true

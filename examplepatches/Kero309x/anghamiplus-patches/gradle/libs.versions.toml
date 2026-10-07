@@ -1,0 +1,17 @@
+# Version catalog for the AnghamiPlus Patches bundle.
+#
+# The Morphe patcher Gradle plugin is resolved through the `pluginManagement` block in
+# settings.gradle.kts; the entry below exists so that dependency tooling can track it.
+
+[versions]
+morphe-patcher = "1.14.1"
+#noinspection GradleDependency
+smali = "d92701d947"
+gson = "2.14.0"
+
+[libraries]
+# Parses the published patch bundle when the catalogue JSON is generated.
+# Declared compileOnly, so it never ends up inside a patched application.
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+#noinspection UnusedVersionCatalogEntry
+morphe-patcher = { module = "app.morphe:morphe-patcher", version.ref = "morphe-patcher" }

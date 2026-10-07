@@ -167,14 +167,20 @@ Interface	Oberfläche
 Hide shopping and product pins	Shopping und Produkt-Pins ausblenden
 Shoppable pins, shopping stories and featured boards	Kaufbare Pins, Shopping-Storys und vorgestellte Pinnwände
 Disable analytics	Analyse deaktivieren
-Stops usage uploads and analytics launch tasks. Firebase Analytics stays disabled until you patch without this patch.	Stoppt Nutzungsberichte und den Start von Analysediensten. Firebase Analytics bleibt deaktiviert, bis du ohne diesen Patch erneut patchst.
-Firebase Analytics collection is disabled	Die Datenerfassung von Firebase Analytics ist deaktiviert
+Stops usage uploads and analytics launch tasks. Firebase and Google Analytics collection stays off until you patch without this patch.	Stoppt Nutzungsberichte und den Start von Analysediensten. Die Datenerfassung von Firebase und Google Analytics bleibt aus, bis du ohne diesen Patch erneut patchst.
+Firebase and Google Analytics collection is turned off	Die Datenerfassung von Firebase und Google Analytics ist ausgeschaltet
 Analytics launch tasks	Start von Analysediensten
 Analytics uploads	Analyseberichte
 Strip link tracking	Link-Tracking entfernen
 Removes known tracking parameters from copied and shared links. Short links stay as Pinterest made them.	Entfernt bekannte Tracking-Parameter aus kopierten und geteilten Links. Kurzlinks bleiben unverändert.
 Hide advertising ID	Werbe-ID verbergen
 Pinterest and the ad and tracking code inside it read an all-zero ad ID with ad tracking limited, as if you deleted your ad ID in Android settings.	Pinterest und der Werbe- und Tracking-Code darin lesen eine Werbe-ID aus lauter Nullen, mit eingeschränktem Werbe-Tracking, so als hättest du deine Werbe-ID in den Android-Einstellungen gelöscht.
+Remove ad tracking permissions	Werbe-Tracking-Berechtigungen entfernen
+Pinterest no longer has Google's ad ID permission or Android's ad services. This was set when you patched, and only patching again without it brings them back.	Pinterest hat keine Berechtigung mehr für Googles Werbe-ID und keinen Zugriff auf die Werbedienste von Android. Das wurde beim Patchen festgelegt und lässt sich nur durch erneutes Patchen ohne diesen Patch rückgängig machen.
+Pinterest's access to the ad ID and Android's ad services is removed	Pinterests Zugriff auf die Werbe-ID und die Werbedienste von Android ist entfernt
+Spoof signature for Google sign-in	Signatur für Google-Anmeldung vortäuschen
+Pinterest's manifest names its original signing certificate, so Google sign-in can work with microG-RE or the XSpoofSignatures module. Stock Google Play services ignores it. This was set when you patched, and only patching again without it takes it out.	Pinterests Manifest nennt sein ursprüngliches Signaturzertifikat, damit die Google-Anmeldung mit microG-RE oder dem Modul XSpoofSignatures funktionieren kann. Die normalen Google Play-Dienste ignorieren es. Das wurde beim Patchen festgelegt und lässt sich nur durch erneutes Patchen ohne diesen Patch entfernen.
+Pinterest's original signing certificate is named in its manifest	Pinterests ursprüngliches Signaturzertifikat ist in seinem Manifest eingetragen
 Download pins	Pins herunterladen
 Open links in your browser	Links im Browser öffnen
 Open pin Visit links and profile websites in your browser.	Öffnet Besuchen-Links von Pins und Profil-Websites in deinem Browser.
@@ -192,6 +198,7 @@ Hide collage menu items	Collage-Menüeinträge ausblenden
 Hide Search image menu item	Bild suchen ausblenden
 Hide Promote pin menu item	Pin bewerben ausblenden
 Hide comments	Kommentare ausblenden
+Hide topic suggestions	Themenvorschläge ausblenden
 Quiet email reminders	E-Mail-Erinnerungen ausblenden
 Disable update nag	Update-Aufforderung ausblenden
 Download pin	Pin herunterladen
@@ -276,6 +283,8 @@ Media link copied.	Medienlink kopiert.
 Couldn't copy the media link. Open the pin again and try again.	Der Medienlink konnte nicht kopiert werden. Öffne den Pin erneut und versuche es noch einmal.
 These details come from the media URL and metadata Pinterest supplied. The file hasn't been inspected.	Diese Details stammen aus der Medien-URL und den von Pinterest bereitgestellten Metadaten. Die Datei wurde nicht untersucht.
 Supplied width: %s	Bereitgestellte Breite: %s
+Supplied size: %s. Downloads look for the original first.	Bereitgestellte Größe: %s. Downloads suchen zuerst nach dem Original.
+Supplied size: the original image	Bereitgestellte Größe: das Originalbild
 Supplied height: %s	Bereitgestellte Höhe: %s
 Supplied URL type: %s	Typ laut bereitgestellter URL: %s
 %d pixels	%d Pixel
@@ -284,8 +293,8 @@ Close	Schließen
 Couldn't show the supplied media details. Open the pin again and try again.	Die bereitgestellten Mediendetails konnten nicht angezeigt werden. Öffne den Pin erneut und versuch es noch einmal.
 Pinterest supplied an adaptive video stream, but no downloadable MP4.	Pinterest hat einen adaptiven Videostream bereitgestellt, aber keine herunterladbare MP4-Datei.
 Pinterest hasn't supplied a downloadable MP4 for this pin.	Pinterest hat für diesen Pin keine herunterladbare MP4-Datei bereitgestellt.
-Pinterest hasn't supplied an original image to download.	Pinterest hat kein Originalbild zum Herunterladen bereitgestellt.
-The supplied original image type isn't supported for download.	Der bereitgestellte Originalbildtyp wird beim Download nicht unterstützt.
+Pinterest hasn't supplied an image to download.	Pinterest hat kein Bild zum Herunterladen bereitgestellt.
+The supplied image type isn't supported for download.	Der bereitgestellte Bildtyp wird beim Download nicht unterstützt.
 The supplied media link isn't a supported public Pinterest link.	Der bereitgestellte Medienlink ist kein unterstützter öffentlicher Pinterest-Link.
 Couldn't start the download. Check system Downloads and try again.	Der Download konnte nicht gestartet werden. Prüfe die System-Downloads und versuch es erneut.
 Couldn't open a save location. Try again from the pin.	Ein Speicherort konnte nicht geöffnet werden. Versuch es erneut vom Pin aus.
@@ -321,11 +330,14 @@ Hides Add to collage and Remix collage in newly created pin menus. An existing m
 Hides Search image in newly created pin menus. An existing menu won't change.	Blendet Bild suchen in neu erstellten Pin-Menüs aus. Ein vorhandenes Menü bleibt unverändert.
 Hides Promote pin in newly created pin menus. An existing menu won't change.	Blendet Pin bewerben in neu erstellten Pin-Menüs aus. Ein vorhandenes Menü bleibt unverändert.
 Hides comments panels and previews under pins on their next layout or visibility update. It doesn't change who can comment.	Blendet Kommentarbereiche und Vorschauen unter Pins bei der nächsten Aktualisierung des Layouts oder der Sichtbarkeit aus. Wer kommentieren darf, ändert sich nicht.
+Hides the "Ideas you might love" row of topic bubbles under pins the next time Pinterest shows it. Comments and related pins stay.	Blendet die Zeile „Ideen, die dir gefallen könnten“ mit Themenblasen unter Pins aus, sobald Pinterest sie das nächste Mal anzeigt. Kommentare und ähnliche Pins bleiben.
 Dismisses newly created optional confirm-email reminders. An open reminder won't change. Verification and sign-in checks still apply.	Schließt neu erstellte optionale Erinnerungen zur E-Mail-Bestätigung. Eine offene Erinnerung bleibt unverändert. Bestätigungs- und Anmeldeprüfungen gelten weiterhin.
 Hide save toasts	Merken-Hinweise ausblenden
 Saving a pin no longer pops up "Saved to" your board or a suggestion to follow its creator. The pin is still saved.	Beim Merken eines Pins erscheint kein „Gemerkt auf“-Hinweis zu deiner Pinnwand und kein Vorschlag mehr, der Person zu folgen. Der Pin wird trotzdem gemerkt.
 Original-quality images	Bilder in Originalqualität
-Picks the original image before the large size where Pinterest supplied one. Uses more data. Images already on screen change when they reload.	Wählt das Originalbild vor der großen Größe, wenn Pinterest eines bereitstellt. Verbraucht mehr Daten. Bereits angezeigte Bilder ändern sich, wenn sie neu geladen werden.
+collage images	Collagenbilder
+pin closeups	Pin-Detailansichten
+Shows the original image instead of the large size in pin closeups and collages, wherever Pinterest sends one. Uses more data. Pins already loaded keep their size until Pinterest loads them again.	Zeigt in Pin-Detailansichten und Collagen das Originalbild statt der großen Größe, wenn Pinterest eines sendet. Verbraucht mehr Daten. Bereits geladene Pins behalten ihre Größe, bis Pinterest sie neu lädt.
 Save media	Medien speichern
 Recent searches autocomplete	Autovervollständigung der letzten Suchen
 Activity alerts	Aktivitätsmeldungen
@@ -364,6 +376,6 @@ Unsupported	Nicht unterstützt
 Saved to the location you chose.	Am gewählten Ort gespeichert.
 No download was queued. The selection was stopped, canceled or unavailable.	Kein Download eingereiht. Die Auswahl wurde gestoppt, abgebrochen oder war nicht verfügbar.
 Pinterest didn't supply supported media for this pin.	Pinterest hat für diesen Pin keine unterstützten Medien bereitgestellt.
-Download a pin or select visible grid pins. Saves supplied original images and videos.	Lade einen Pin herunter oder wähle sichtbare Pins im Raster. Speichert bereitgestellte Originalbilder und Videos.
+Download a pin or select visible grid pins. Saves videos and original images, or the largest size Pinterest supplied.	Lade einen Pin herunter oder wähle sichtbare Pins im Raster. Speichert Videos und Originalbilder oder die größte von Pinterest bereitgestellte Größe.
 Android 9 uses the file picker. Results from visible-pin selections appear here.	Android 9 nutzt die Dateiauswahl. Ergebnisse der Auswahl sichtbarer Pins erscheinen hier.
 Only the 32 most recent downloads and selection results are listed. Saved files are kept.	Nur die 32 neuesten Downloads und Auswahlergebnisse werden angezeigt. Gespeicherte Dateien bleiben erhalten.

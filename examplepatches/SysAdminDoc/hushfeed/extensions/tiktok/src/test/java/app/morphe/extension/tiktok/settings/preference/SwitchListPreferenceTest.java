@@ -86,6 +86,30 @@ public class SwitchListPreferenceTest {
         }
     }
 
+    /**
+     * A recreation while the save runs takes the dialog's window with the old activity. The save
+     * still lands and the row still updates; dismissing the gone window threw instead.
+     */
+    @Test public void aSaveThatEndsAfterTheWindowIsGoneStillLands() throws Exception {
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            SwitchListPreference row = row(activity);
+            row.onClick();
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            dialog.getListView().performItemClick(null, 1, 1);
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            Utils.awaitBackgroundTasksForTests();
+            activity.getWindowManager().removeViewImmediate(dialog.getWindow().getDecorView());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertTrue("the save was lost", Settings.HIDE_RAIL_SHARE.get());
+            assertEquals(DESCRIPTION + "\nHidden: Share", row.getSummary().toString());
+            // On a phone, dismissing it throws "not attached to window manager". Robolectric's
+            // window manager doesn't, so what's checked is that nothing tried: dismiss() is the
+            // only thing that clears isShowing.
+            assertTrue("the gone dialog was dismissed again", dialog.isShowing());
+        }
+    }
+
     @Test public void cancelLeavesEverySwitchAsItWas() {
         try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
             Activity activity = owner.get();

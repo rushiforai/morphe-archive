@@ -33,12 +33,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import app.mix.extension.reddit.ArcticShiftApi;
+import app.mix.extension.reddit.ArcticShiftRateLimit;
 import app.mix.extension.shared.requests.Requester;
 
 @SuppressWarnings("unused")
 public final class ProfileFeedMerger {
-    private static final String ARCTIC_HOST = "arctic-shift.photon-reddit.com";
-    private static final String ARCTIC_BASE = "https://" + ARCTIC_HOST + "/api/";
     private static final String REDDIT_URL = "https://oauth.reddit.com/";
     private static final String TOKEN_URL = "https://oauth.reddit.com/api/v1/access_token";
     private static final int ARCHIVE_LIMIT = 100;
@@ -67,7 +67,7 @@ public final class ProfileFeedMerger {
         }
         String tab = parts[1];
         String name = parts[2];
-        if (!isSupportedTab(tab) || RateLimitThrottle.isThrottled()) {
+        if (!isSupportedTab(tab) || ArcticShiftRateLimit.isThrottled()) {
             return originalUrl;
         }
 
@@ -122,7 +122,7 @@ public final class ProfileFeedMerger {
     }
 
     public static boolean isArchiveUrl(String url) {
-        return url != null && url.contains(ARCTIC_HOST);
+        return ArcticShiftApi.isArchiveUrl(url);
     }
 
     public static Map<String, String> sanitizeHeaders(String url, Map<String, String> headers) {
@@ -168,45 +168,22 @@ public final class ProfileFeedMerger {
         }
     }
 
-    private static List<Thing> fetchArchiveThings(String url, String kind, String userAgent) {
-        if (RateLimitThrottle.isThrottled()) {
-            return new ArrayList<>();
-        }
-        HttpURLConnection connection = null;
+    private static List<Thing> fetchArchiveComments(String url, String userAgent) {
         try {
-            connection = (HttpURLConnection) new URL(url).openConnection();
-            connection.setRequestMethod("GET");
-            configureConnection(connection, userAgent);
-            int status = connection.getResponseCode();
-            if (status == 429) {
-                RateLimitThrottle.observe(
-                        url,
-                        status,
-                        connection.getHeaderField("X-RateLimit-Reset"),
-                        connection.getHeaderField("X-RateLimit-Reset-At"));
-            }
-            if (status != 200) {
-                return new ArrayList<>();
-            }
-            return parseArchiveThings(Requester.parseStringAndDisconnect(connection), kind);
+            List<Thing> comments = parseArchiveThings(ArcticShiftApi.get(url, userAgent), "t1");
+            enrichComments(comments, userAgent);
+            return comments;
         } catch (Exception ignored) {
             return new ArrayList<>();
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
         }
-    }
-
-    private static List<Thing> fetchArchiveComments(String url, String userAgent) {
-        List<Thing> comments = fetchArchiveThings(url, "t1", userAgent);
-        enrichComments(comments, userAgent);
-        return comments;
     }
 
     private static List<Thing> parseArchiveThings(String body, String kind) throws Exception {
+        return parseArchiveThings(new JSONObject(body).optJSONArray("data"), kind);
+    }
+
+    private static List<Thing> parseArchiveThings(JSONArray data, String kind) throws Exception {
         List<Thing> things = new ArrayList<>();
-        JSONArray data = new JSONObject(body).optJSONArray("data");
         if (data == null) {
             return things;
         }
@@ -248,11 +225,14 @@ public final class ProfileFeedMerger {
             }
         }
         linkIds.removeAll(postsById.keySet());
-        if (!linkIds.isEmpty() && !RateLimitThrottle.isThrottled()) {
-            String ids = Uri.encode(String.join(",", linkIds), ",");
-            String url = ARCTIC_BASE + "posts/ids?ids=" + ids
-                    + "&fields=id,title,author,url,subreddit";
-            List<Thing> linkedPosts = fetchArchiveThings(url, "t3", userAgent);
+        if (!linkIds.isEmpty() && !ArcticShiftRateLimit.isThrottled()) {
+            List<Thing> linkedPosts;
+            try {
+                linkedPosts = parseArchiveThings(ArcticShiftApi.postsByIds(linkIds,
+                        "id,title,author,url,subreddit", userAgent), "t3");
+            } catch (Exception ignored) {
+                linkedPosts = new ArrayList<>();
+            }
             synchronized (ProfileFeedMerger.class) {
                 for (Thing post : linkedPosts) {
                     String id = post.data.optString("id");
@@ -579,17 +559,7 @@ public final class ProfileFeedMerger {
     }
 
     private static String archiveSearchUrl(String kind, String name, Long before) {
-        String endpoint = "t1".equals(kind) ? "comments/search" : "posts/search";
-        StringBuilder url = new StringBuilder(ARCTIC_BASE)
-                .append(endpoint).append("?author=").append(encode(name))
-                .append("&limit=").append(ARCHIVE_LIMIT).append("&sort=desc");
-        if ("t1".equals(kind)) {
-            url.append("&md2html=true");
-        }
-        if (before != null) {
-            url.append("&before=").append(Math.max(0L, before - 1L));
-        }
-        return url.toString();
+        return ArcticShiftApi.searchUrl(kind, name, before, ARCHIVE_LIMIT);
     }
 
     private static boolean isSupportedTab(String tab) {

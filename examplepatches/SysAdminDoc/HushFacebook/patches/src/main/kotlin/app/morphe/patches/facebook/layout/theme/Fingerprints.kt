@@ -51,6 +51,15 @@ internal object DarkModeFingerprint : Fingerprint(
 )
 
 /**
+ * The Data mode banner of Facebook Flex, issue #86: the one method that logs both of its own steps,
+ * as it starts and when the banner's wrapper isn't there. It paints the wrapper with a card's token.
+ */
+internal object FlexBannerFingerprint : Fingerprint(
+    returnType = "V",
+    strings = listOf("start_redesigned_freemium_banner", "banner_wrapper_is_null"),
+)
+
+/**
  * The navigation bar's painter: SystemNavigationBarUtil's static (Activity, Window, int) method that
  * calls `Window.setNavigationBarColor`, and on Android 15 and newer paints Facebook's own navigation
  * bar view instead. Its class has a Redex name, so the fingerprint uses the shape and the framework

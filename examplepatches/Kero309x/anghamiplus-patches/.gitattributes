@@ -1,0 +1,15 @@
+# Line ending normalisation.
+# https://docs.github.com/en/get-started/getting-started-with-git/configuring-git-to-handle-line-endings
+
+* text=auto
+
+# The POSIX launcher has to stay LF, otherwise it stops being executable on Linux and macOS.
+/gradlew    text eol=lf
+
+# Windows launchers have to stay CRLF.
+*.bat       text eol=crlf
+
+# Archives must never be normalised.
+*.jar       binary
+*.mpp       binary
+*.png       binary

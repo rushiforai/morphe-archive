@@ -27,6 +27,15 @@ import org.junit.rules.TemporaryFolder
 class BackgroundPushSetupTest {
     @get:Rule val temporary = TemporaryFolder()
 
+    // A fingerprint is an object that keeps its last match. These tests patch several APKs in one
+    // JVM, and since patcher 1.15.1 a reused match looks its class up again in the current run, so
+    // one left from the previous APK fails there ("Could not find class"). 1.15.0 handed back the
+    // previous APK's method instead, so the checks below read the wrong APK after the first.
+    private fun forgetMatches() {
+        BufferPreloadGateFingerprint.clearMatch()
+        InitPushTaskFingerprint.clearMatch()
+    }
+
     @Test
     fun `old selections gain an optional push choice that stays off under All`() {
         assertEquals("Limit background traffic", networkTrafficGovernorPatch.name)
@@ -65,6 +74,7 @@ class BackgroundPushSetupTest {
                             checked = true
                         }
                     }
+                    forgetMatches()
                     Patcher(PatcherConfig(apk, temporary.newFolder())).use { patcher ->
                         patcher += setOf(probe)
                         runBlocking { patcher().collect { result -> result.exception?.let { throw it } } }
@@ -97,6 +107,7 @@ class BackgroundPushSetupTest {
                         checked = true
                     }
                 }
+                forgetMatches()
                 Patcher(PatcherConfig(apk, temporary.newFolder())).use { patcher ->
                     patcher += setOf(probe)
                     runBlocking { patcher().collect { result -> result.exception?.let { throw it } } }

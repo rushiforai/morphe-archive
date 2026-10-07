@@ -14,6 +14,7 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.misc.settings.preference.SwitchPreference
 import app.morphe.patches.youtube.misc.extension.sharedExtensionPatch
 import app.morphe.patches.youtube.misc.playservice.is_21_03_or_greater
+import app.morphe.patches.youtube.misc.playservice.is_21_30_or_greater
 import app.morphe.patches.youtube.misc.playservice.versionCheckPatch
 import app.morphe.patches.youtube.misc.settings.PreferenceScreen
 import app.morphe.patches.youtube.misc.settings.settingsPatch
@@ -44,7 +45,8 @@ val disableShortsResumingOnStartupPatch = bytecodePatch(
         )
 
         if (is_21_03_or_greater) {
-            UserWasInShortsEvaluateFingerprint.let { fingerprint ->
+            (if (is_21_30_or_greater) UserWasInShortsEvaluateFingerprint
+            else UserWasInShortsEvaluateLegacyFingerprint).let { fingerprint ->
                 fingerprint.method.apply {
                     val match = fingerprint.instructionMatches.first()
                     val instruction = match.instruction as RegisterRangeInstruction

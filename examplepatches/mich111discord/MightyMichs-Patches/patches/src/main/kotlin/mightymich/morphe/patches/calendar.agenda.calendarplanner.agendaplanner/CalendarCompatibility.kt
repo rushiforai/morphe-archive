@@ -9,7 +9,7 @@ object CalendarCompatibility {
         name = "Calendar",
         packageName = "calendar.agenda.calendarplanner.agendaplanner",
         apkFileType = ApkFileType.APK,
-        appIconColor = 0xFF5722,
+        appIconColor = 0xA53FE6,
         targets = listOf(
             AppTarget(version = "2.07.34.0918")
         )

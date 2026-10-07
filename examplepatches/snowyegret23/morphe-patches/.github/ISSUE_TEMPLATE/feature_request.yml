@@ -1,0 +1,10 @@
+name: Feature request
+description: Suggest a CHZZK customization.
+title: 'feat: '
+body:
+  - type: textarea
+    id: feature
+    attributes:
+      label: Requested behavior and use case
+    validations:
+      required: true

@@ -181,7 +181,9 @@ public class PausedHooksTest {
                 app.hushtelegram.extension.telegram.misc.ChatSwipe::keepRowStill));
         probes.put(PatchFamily.DISABLE_CHANNEL_PULL, Arrays.asList(
                 app.hushtelegram.extension.telegram.misc.ChannelPull::stopBottomPull,
-                app.hushtelegram.extension.telegram.misc.ChannelPull::keepChannelStill));
+                app.hushtelegram.extension.telegram.misc.ChannelPull::keepChannelStill,
+                app.hushtelegram.extension.telegram.misc.ForumTopicPull::stopTopicPull,
+                app.hushtelegram.extension.telegram.misc.ForumTopicPull::keepTopicStill));
         probes.put(PatchFamily.NORMAL_PASTE, Collections.singletonList(() -> {
             android.content.ClipboardManager clipboard = (android.content.ClipboardManager) RuntimeEnvironment.getApplication()
                     .getSystemService(android.content.Context.CLIPBOARD_SERVICE);
@@ -196,6 +198,14 @@ public class PausedHooksTest {
         }));
         probes.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, Collections.singletonList(
                 app.hushtelegram.extension.telegram.misc.DoubleTapReactions::stopReaction));
+        probes.put(PatchFamily.HIDE_CONTACTS_BLOCK, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.ContactsBlock.rows(new java.util.ArrayList<>(Collections.singletonList("contact"))) == null,
+                () -> !app.hushtelegram.extension.telegram.misc.ContactsBlock.placeholder(true)));
+        probes.put(PatchFamily.HIDE_GREETING_STICKERS, Collections.singletonList(() -> {
+            android.widget.FrameLayout stickers = new android.widget.FrameLayout(RuntimeEnvironment.getApplication());
+            app.hushtelegram.extension.telegram.misc.GreetingStickers.measure(stickers, false);
+            return stickers.getVisibility() == android.view.View.GONE;
+        }));
         // After a "Not now", the Contacts tab neither asks again nor marks its icon.
         probes.put(PatchFamily.QUIET_CONTACTS_NAG, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.ContactsNag.skipAsk(declinedContactsPrompt()),
@@ -203,6 +213,66 @@ public class PausedHooksTest {
         // Telegram's holiday check skips its date test and shows the New Year look.
         probes.put(PatchFamily.HOLIDAY_LOOK, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.HolidayLook.mode() == app.hushtelegram.extension.telegram.misc.HolidayLook.SHOW));
+        // Telegram's medium font file is answered with the phone's own face.
+        probes.put(PatchFamily.USE_SYSTEM_FONT, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.SystemFont.typeface("fonts/rmedium.ttf") != null));
+        // Night's window color, as Telegram reads it from the theme file, turns black.
+        probes.put(PatchFamily.AMOLED_BLACK, Collections.singletonList(() -> {
+            app.hushtelegram.extension.telegram.misc.BlackThemeForTests.useStandInIds();
+            android.util.SparseIntArray night = new android.util.SparseIntArray();
+            night.put(1, 0xFF181819);
+            app.hushtelegram.extension.telegram.misc.BlackTheme.loaded("night.attheme", night);
+            return night.get(1) == 0xFF000000;
+        }));
+        // A chat that isn't being translated answers that its translate bar is hidden.
+        probes.put(PatchFamily.HIDE_TRANSLATE_BAR, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.TranslateBar.hidden(new Object(), 42L)));
+        // A count comes back written in full.
+        probes.put(PatchFamily.EXACT_NUMBERS, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.ExactNumbers.format(12345, null) != null));
+        // Spoiler text and media only the sender covered come back uncovered.
+        probes.put(PatchFamily.REVEAL_SPOILERS, Arrays.asList(
+                app.hushtelegram.extension.telegram.misc.SpoilersForTests::textUncovered,
+                app.hushtelegram.extension.telegram.misc.SpoilersForTests::mediaUncovered));
+        // A drag closes the keyboard.
+        probes.put(PatchFamily.HIDE_KEYBOARD_ON_SCROLL, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.ScrollKeyboardForTests.dragCloses()));
+        // A volume key in a chat goes to the volume.
+        probes.put(PatchFamily.KEEP_VIDEOS_MUTED, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.VolumeKeysForTests.keyGoesToTheVolume()));
+        // A swipe on a profile's photos goes back.
+        probes.put(PatchFamily.SWIPE_BACK_ON_PROFILES, Collections.singletonList(
+                () -> !app.hushtelegram.extension.telegram.misc.SwipeBack.touchBlocks(true)));
+        // Your own number gets covered.
+        probes.put(PatchFamily.HIDE_PHONE_NUMBER, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.HidePhoneForTests.covers()));
+        // Message times get their seconds.
+        probes.put(PatchFamily.MESSAGE_SECONDS, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.MessageTimeForTests.addsSeconds()));
+        // Any phone may blur chats.
+        probes.put(PatchFamily.ALLOW_CHAT_BLUR, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.ChatBlur.allowed()));
+        // The next voice message doesn't start on its own.
+        probes.put(PatchFamily.VOICE_ONE_AT_A_TIME, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.VoicePlaylist.queue(new java.util.ArrayList<>(Collections.singletonList("next"))) == null));
+        // Telegram's taps stop vibrating.
+        probes.put(PatchFamily.NO_HAPTICS, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.HapticsForTests.quiet()));
+        // Reaction effects don't play.
+        probes.put(PatchFamily.REACTION_EFFECTS_OFF, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.ReactionEffects.skipped()));
+        // Folder tabs show no unread counts.
+        probes.put(PatchFamily.HIDE_FOLDER_COUNTERS, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.FolderTabs.countersHidden()));
+        // New forwards start with the sender hidden.
+        probes.put(PatchFamily.FORWARD_HIDE_SENDER, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.ForwardSenderForTests.on()));
+        // A voice message opens the full player.
+        probes.put(PatchFamily.VOICE_MUSIC_PLAYER, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.VoicePlayerForTests.voiceOpensThePlayer()));
+        // A stranger's notification goes out silently.
+        probes.put(PatchFamily.SILENCE_NON_CONTACTS, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.NonContactsForTests.on()));
         // The gallery's camera stays off until a tap, and a tap that asks for the permission wakes it.
         probes.put(PatchFamily.GALLERY_CAMERA_ON_TAP, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.GalleryCamera.keepCameraOff(new Object()),

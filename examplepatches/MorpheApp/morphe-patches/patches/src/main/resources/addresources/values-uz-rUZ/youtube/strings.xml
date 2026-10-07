@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Haqida</string>
   <string name="morphe_settings_screen_01_ads_title">Reklamalar</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Muqovalar</string>
   <string name="morphe_settings_screen_03_feed_title">Lenta</string>
   <string name="morphe_settings_screen_04_general_title">Umumiy</string>
   <string name="morphe_settings_screen_05_player_title">Pleyer</string>
@@ -149,6 +148,7 @@ Oʻzgarishlar:
   <string name="morphe_hide_sync_button_title">Izohlarning chat donorlari panelini yashirish</string>
   <string name="morphe_hide_timed_reactions_title">Vaqtli reaksiya bildirishlarni yashirish</string>
   <string name="morphe_hide_timed_reactions_summary">Izohlar boʻlimida va jonli chatda emoji bilan munosabat bildiruvchi funksiyani yashiradi</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_video_title_title">Video sarlavhasini yashirish</string>
   <string name="morphe_hide_video_title_summary">Videoni toʻliq ekran rejimida koʻrsatmaslik</string>
   <string name="morphe_sanitize_video_subtitle_title">Videoning subtitrini tozalash</string>
@@ -579,7 +579,7 @@ Ma'lumot: Jonli efirlarda ishlamasligi mumkin"</string>
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Ularni ulash tugmasini yashirish</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">\'Hype\' tugmasini yashirish</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">\'Tanishtirish\' tugmasini yashirish</string>
@@ -1001,39 +1001,33 @@ Cheklov: Agar 'Eski video harakatlar panelini tiklash' o'chirilgan bo'lsa, 'Ko'p
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Tasvir chegarasiga cheklovni ko\'tarish</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Tasvirni yuklash so\'rovlarini cheklangan mamlakatlardagi yo\'qolgan tasvirlarni tuzatish uchun muqbil serverga yo\'naltirish</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">Bosh sahifa uchun</string>
+  <string name="morphe_dearrow_thumbnail_home_title">Bosh sahifa uchun</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">Obunalar sahifasi uchun</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">Obunalar sahifasi uchun</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">Siz uchun sahifasi uchun</string>
-  <string name="morphe_alt_thumbnail_player_title">Pleyer pleyistlari va tavsiyalari uchun</string>
-  <string name="morphe_alt_thumbnail_search_title">Qidiruv natijalari uchun</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Asl tasvirchalar</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow va original rasmlar</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow va statik rasmlar</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Statik rasmlar</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow YouTube videolari uchun foydalanuvchilar tomonidan yaratilgan rasmlarni taqdim etadi. Bu rasmlar koʻpincha YouTube tomonidan taqdim etilganlarga qaraganda koʻproq mos keladi.
-
-Yoqilganda, video URL-lari API serveriga yuboriladi va boshqa ma'lumotlar yuborilmaydi. Agar videoda DeArrow rasmlari boʻlmasa, original yoki statik rasmlar koʻrsatiladi.
-
-Batafsil ma'lumot olish uchun DeArrow.ajay.app ni oching."</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Ulanish xatoligi haqida ogohlantirishlarni ko\'rsatish</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">DeArrow server mavjud bo\'lmaganda bildirishnoma ko\'rsatadi</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API uchlik manzili</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">DeArrow rasmlar keshini olish manzil</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Statik video rasmlar</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Statik rasmlar YouTube ichida yaratilgan va tashqi API ishlatilmaydi</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Tez statik rasmlardan foydalanish</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">Yüklenme tezligini oshirish uchun o\'rtacha sifatli tasvirlardan foydalanadi. Jonli efirlar, nashr qilinmagan va eski videolar bo\'sh tasvirlarni ko\'rsatishi mumkin</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Tasvir kadrini quyidagi vaqtdan olish</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Boshlanishi</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">O\'rtasi</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Oxiri</string>
+  <string name="morphe_dearrow_thumbnail_library_title">Siz uchun sahifasi uchun</string>
+  <string name="morphe_dearrow_thumbnail_player_title">Pleyer pleyistlari va tavsiyalari uchun</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Qidiruv natijalari uchun</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Asl tasvirchalar</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow va original rasmlar</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow va statik rasmlar</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Statik rasmlar</string>
+  <string name="morphe_dearrow_connection_toast_title">Ulanish xatoligi haqida ogohlantirishlarni ko\'rsatish</string>
+  <string name="morphe_dearrow_connection_toast_summary">DeArrow server mavjud bo\'lmaganda bildirishnoma ko\'rsatadi</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API uchlik manzili</string>
+  <string name="morphe_dearrow_api_url_summary">DeArrow rasmlar keshini olish manzil</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Statik video rasmlar</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Statik rasmlar YouTube ichida yaratilgan va tashqi API ishlatilmaydi</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Tasvir kadrini quyidagi vaqtdan olish</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Boshlanishi</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">O\'rtasi</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Oxiri</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow vaqtinchalik ishlamayapti (maqom kodi: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow vaqtinchalik ishlamayapti</string>
+  <string name="morphe_dearrow_error">DeArrow vaqtinchalik ishlamayapti (maqom kodi: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow vaqtinchalik ishlamayapti</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Oldingi pleer tugmasi uslubini tiklash</string>

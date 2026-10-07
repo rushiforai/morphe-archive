@@ -22,7 +22,6 @@ import android.widget.TextView;
 import app.morphe.extension.tiktok.settings.preference.SettingsBackupPreference;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
@@ -1277,14 +1276,15 @@ public class SettingsBackupTest {
             var started = Shadows.shadowOf(activity).getNextStartedActivityForResult();
             assertEquals(Intent.ACTION_CREATE_DOCUMENT, started.intent.getAction());
             assertEquals("application/json", started.intent.getType());
-            Uri uri = Uri.parse("content://settings-test/backup.json");
-            ByteArrayOutputStream output = new ByteArrayOutputStream();
-            Shadows.shadowOf(activity.getContentResolver()).registerOutputStream(uri, output);
+            // The file app's own document: backups and restores go through the descriptor it
+            // hands over, so a stream registered with the resolver would never be read.
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            Uri uri = provider.uri;
             fragment.onActivityResult(7311, android.app.Activity.RESULT_OK, new Intent().setData(uri));
             waitFor("Settings backup saved");
-            assertEquals("hushfeed-settings", new JSONObject(output.toString(StandardCharsets.UTF_8)).getString("format"));
+            assertEquals("hushfeed-settings", new JSONObject(new String(java.nio.file.Files.readAllBytes(
+                    provider.file.toPath()), StandardCharsets.UTF_8)).getString("format"));
             Settings.MAX_VIDEO_SECONDS.save(73);
-            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri, new ByteArrayInputStream(output.toByteArray()));
             fragment.onActivityResult(7312, android.app.Activity.RESULT_OK, new Intent().setData(uri));
             waitFor("Settings restored. Restart TikTok to apply all changes.");
             assertEquals(0, (int) Settings.MAX_VIDEO_SECONDS.get());
@@ -1301,18 +1301,21 @@ public class SettingsBackupTest {
         }
     }
 
-    @Test public void aFullWorkerQueueRejectsRestoreWithoutLeavingSettingsBusy() throws Exception {
+    /**
+     * Reset and Undo still run on the shared worker pool, so a full pool refuses them and leaves
+     * nothing busy. Backup and Restore read and write on a worker of their own now, bounded by
+     * the one file slot their kind has; that bound is DocumentOperationTest's.
+     */
+    @Test public void aFullWorkerQueueRejectsResetWithoutLeavingSettingsBusy() throws Exception {
         try (var owner = Robolectric.buildActivity(
                 app.morphe.extension.tiktok.captions.CaptionToolsTest.CaptionActivity.class)
                 .setup().visible()) {
             var activity = owner.get();
             Utils.setContext(activity);
-            Settings.MAX_VIDEO_SECONDS.save(7);
-            byte[] backup = SettingsBackup.create(false).getBytes(StandardCharsets.UTF_8);
             Settings.MAX_VIDEO_SECONDS.save(73);
-            ByteArrayInputStream input = new ByteArrayInputStream(backup);
-            Uri uri = Uri.parse("content://settings-test/rejected-restore.json");
-            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri, input);
+            File undoFile = new File(activity.getApplicationContext().getFilesDir(),
+                    "hushfeed-settings-undo.json");
+            assertTrue("fixture needs no Undo copy", !undoFile.exists() || undoFile.delete());
 
             var fragment = new TikTokPreferenceFragment();
             Bundle arguments = new Bundle();
@@ -1331,23 +1334,23 @@ public class SettingsBackupTest {
 
             try (BackgroundPoolSaturation saturation = BackgroundPoolSaturation.fill()) {
                 ShadowToast.reset();
-                run.invoke(null, fragment, 7312, uri);
+                run.invoke(null, fragment, 7313, null);
                 Shadows.shadowOf(Looper.getMainLooper()).idle();
 
                 assertEquals("Couldn't start the settings change. Try again in a moment.",
                         ShadowToast.getTextOfLatestToast());
-                assertEquals("a rejected restore changed settings", 73,
+                assertEquals("a rejected reset changed settings", 73,
                         (int) Settings.MAX_VIDEO_SECONDS.get());
-                assertEquals("a rejected restore opened its input", backup.length, input.available());
+                assertFalse("a rejected reset saved an Undo copy", SettingsBackup.hasUndo(activity));
                 assertFalse("the import guard remained set",
                         AbstractPreferenceFragment.settingImportInProgress);
                 assertFalse("the backup control remained busy", busy.get());
 
                 saturation.release();
                 ShadowToast.reset();
-                run.invoke(null, fragment, 7312, uri);
-                waitFor("Settings restored. Restart TikTok to apply all changes.");
-                assertEquals("the same restore could not be retried", 7,
+                run.invoke(null, fragment, 7313, null);
+                waitFor("Settings are back to their defaults. Restart TikTok to apply all changes.");
+                assertEquals("the same reset could not be retried", 0,
                         (int) Settings.MAX_VIDEO_SECONDS.get());
                 assertFalse(AbstractPreferenceFragment.settingImportInProgress);
                 assertFalse(busy.get());
@@ -1420,9 +1423,8 @@ public class SettingsBackupTest {
             for (int index = keys.length() - 1; index >= 0; index--) {
                 if (Settings.MAX_VIDEO_SECONDS.key.equals(keys.getString(index))) keys.remove(index);
             }
-            Uri uri = Uri.parse("content://settings-test/partial-restore.json");
-            Shadows.shadowOf(activity.getContentResolver()).registerInputStream(uri,
-                    new ByteArrayInputStream(backup.toString().getBytes(StandardCharsets.UTF_8)));
+            Uri uri = app.morphe.extension.tiktok.DocumentExportProvider.register(activity)
+                    .contents(backup.toString().getBytes(StandardCharsets.UTF_8)).uri;
 
             var fragment = new TikTokPreferenceFragment();
             Bundle arguments = new Bundle();
@@ -1575,10 +1577,6 @@ public class SettingsBackupTest {
         assertFailedSafBackupRemoved("write");
     }
 
-    @Test public void aFailedSafBackupCloseRemovesOnlyItsCreatedDocument() throws Exception {
-        assertFailedSafBackupRemoved("close");
-    }
-
     @Test public void aBackupRefusedBeforeSerializationRemovesItsCreatedDocument() throws Exception {
         assertFailedSafBackupRemoved("serialize");
     }
@@ -1594,15 +1592,9 @@ public class SettingsBackupTest {
                 storedByAnOlderBuild(Settings.LOCAL_HIDDEN_CREATORS,
                         ruleEntries(FeedRuleLimits.MAX_ENTRIES + 1));
             } else {
-                Shadows.shadowOf(activity.getContentResolver()).registerOutputStream(provider.uri,
-                        new java.io.OutputStream() {
-                            @Override public void write(int value) throws java.io.IOException {
-                                if (failure.equals("write")) throw new java.io.IOException("injected write failure");
-                            }
-                            @Override public void close() throws java.io.IOException {
-                                if (failure.equals("close")) throw new java.io.IOException("injected close failure");
-                            }
-                        });
+                // The write goes through the descriptor the file app hands over, so the failure
+                // is a descriptor that can't be written.
+                provider.readOnlyWrites = true;
             }
             fragment.onActivityResult(7311, android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
             Utils.awaitBackgroundTasksForTests();
@@ -1610,6 +1602,55 @@ public class SettingsBackupTest {
             assertTrue(failure + " left the file created by the picker behind", provider.awaitDeletion());
             assertFalse(provider.exists);
             assertEquals(1, provider.deleteCalls);
+        }
+    }
+
+    /**
+     * The picker can hand back a file the user chose to replace. A backup that fails before it
+     * opens that file has written nothing to it, so the older backup in it stays: the cleanup
+     * used to remove it, which left no backup at all.
+     */
+    @Test public void aBackupThatFailsBeforeWritingLeavesTheFileItWouldHaveReplaced() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var fragment = attachBackupPage(activity);
+            byte[] older = "{\"format\":\"hushfeed-settings\",\"older\":true}".getBytes(StandardCharsets.UTF_8);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity).contents(older);
+            storedByAnOlderBuild(Settings.LOCAL_HIDDEN_CREATORS, ruleEntries(FeedRuleLimits.MAX_ENTRIES + 1));
+            ShadowToast.reset();
+            fragment.onActivityResult(7311, android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            String message = ShadowToast.getTextOfLatestToast();
+            assertNotNull(message);
+            assertTrue("the oversized list wasn't named: " + message, message.contains("is too long for a settings backup"));
+            assertFalse("a file that was left alone was called partial: " + message, message.contains("partial file"));
+            assertEquals("the file the user chose to replace was removed", 0, provider.deleteCalls);
+            assertTrue(provider.exists);
+            assertArrayEquals(older, java.nio.file.Files.readAllBytes(provider.file.toPath()));
+        }
+    }
+
+    /**
+     * A file app that doesn't say how big the file is can't show it's the empty one the picker
+     * made, so a failed backup leaves it rather than risk removing an older backup.
+     */
+    @Test public void aFailedBackupKeepsAFileWhoseSizeTheFileAppDoesntGive() throws Exception {
+        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            var fragment = attachBackupPage(activity);
+            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
+            provider.failOpen = true;
+            provider.sizeUnknown = true;
+            ShadowToast.reset();
+            fragment.onActivityResult(7311, android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
+            Utils.awaitBackgroundTasksForTests();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals("Couldn't save the settings backup. Try again.", ShadowToast.getTextOfLatestToast());
+            assertEquals(0, provider.deleteCalls);
+            assertTrue(provider.exists);
         }
     }
 
@@ -1653,21 +1694,6 @@ public class SettingsBackupTest {
                     message.contains("partial file") && message.contains("couldn't be removed"));
             assertFalse("the picker may have selected a cloud folder", message.contains("Downloads"));
             assertTrue(provider.exists);
-        }
-    }
-
-    @Test public void aRejectedBackupWorkerStillCleansItsNewSafDocument() throws Exception {
-        try (var owner = Robolectric.buildActivity(SettingsPagesTest.PageActivity.class).setup().visible()) {
-            var activity = owner.get();
-            Utils.setContext(activity);
-            var fragment = attachBackupPage(activity);
-            var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
-            try (BackgroundPoolSaturation saturation = BackgroundPoolSaturation.fill()) {
-                fragment.onActivityResult(7311, android.app.Activity.RESULT_OK,
-                        new Intent().setData(provider.uri));
-                assertTrue("worker rejection leaked the picker-created document", provider.awaitDeletion());
-                assertFalse(provider.exists);
-            }
         }
     }
 
@@ -1726,25 +1752,12 @@ public class SettingsBackupTest {
             assertTrue("fixture needs an existing Undo", SettingsBackup.hasUndo(activity));
             var fragment = attachBackupPage(activity);
             var provider = app.morphe.extension.tiktok.DocumentExportProvider.register(activity);
-            var entered = new java.util.concurrent.CountDownLatch(1);
-            var release = new java.util.concurrent.CountDownLatch(1);
-            Shadows.shadowOf(activity.getContentResolver()).registerOutputStream(provider.uri,
-                    new ByteArrayOutputStream() {
-                        @Override public synchronized void write(byte[] bytes, int offset, int count) {
-                            entered.countDown();
-                            try {
-                                if (!release.await(5, java.util.concurrent.TimeUnit.SECONDS)) {
-                                    throw new IllegalStateException("test never released export");
-                                }
-                            } catch (InterruptedException failure) {
-                                throw new IllegalStateException(failure);
-                            }
-                            super.write(bytes, offset, count);
-                        }
-                    });
+            // The file app is still opening the document, which is where a slow one keeps a
+            // backup waiting now that the write goes through the descriptor it hands over.
+            var release = provider.holdOpens();
             fragment.onActivityResult(7311, android.app.Activity.RESULT_OK, new Intent().setData(provider.uri));
             try {
-                assertTrue(entered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+                assertTrue(provider.awaitOpening());
                 Preference undo = fragment.findPreference("settings_backup_7314");
                 undo.getView(null, null);
                 assertFalse("binding Undo re-enabled it while export was still writing", undo.isEnabled());

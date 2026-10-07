@@ -5,6 +5,7 @@
 package app.morphe.patches.facebook.misc.transitions
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patches.facebook.shared.redexOriginalName
 
 /** What the tab bar's pager controller logs when it's asked for a tab past its pages. */
 internal const val TAB_OUT_OF_BOUNDS_LOG = "Trying to get item out of bounds from visibleTabTags (item: "
@@ -34,4 +35,28 @@ internal object SnapToPanelFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "Z"),
     strings = listOf(PANEL_NOT_FOUND_LOG),
+)
+
+/** Redex's name for the runnable Facebook's tab strip posts when its pager lands on a page. */
+internal const val PAGER_TABS_SELECTED = "TabbedViewPagerIndicator\$onPageSelected\$1"
+
+/**
+ * TabbedViewPagerIndicator's onPageSelected runnable, which scrolls the strip to the tab now
+ * showing (`LX/bBx;` on 577, `LX/hdA;` on 580, `LX/kjx;` on 581). Its one object field is the
+ * strip: a HorizontalScrollView holding the ViewPager it drives.
+ */
+internal object PagerTabsSelectedFingerprint : Fingerprint(
+    name = "run",
+    returnType = "V",
+    custom = { _, classDef -> redexOriginalName(classDef) == PAGER_TABS_SELECTED },
+)
+
+/** The composer's Feelings and Activities picker, which keeps its class name. */
+internal const val MINUTIAE_PICKER = "Lcom/facebook/composer/minutiae/activity/MinutiaeTabbedPickerActivity;"
+
+/** The picker showing a tab's page, called by its tab bar and once as it opens. */
+internal object PickerSetTabFingerprint : Fingerprint(
+    definingClass = MINUTIAE_PICKER,
+    name = "setTab",
+    returnType = "V",
 )

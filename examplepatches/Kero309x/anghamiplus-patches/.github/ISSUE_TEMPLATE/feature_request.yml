@@ -1,0 +1,79 @@
+name: ⭐ Feature request
+description: Suggest a new patch, a new patch option, or an improvement to existing behaviour.
+title: "feat: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Anghami Plus Patches.
+
+        Before you continue, please:
+
+        - Search the [existing feature requests](https://github.com/Kero309x/anghamiplus-patches/issues?q=label%3Aenhancement) so we do not get duplicates.
+        - Skim the [contribution guidelines](https://github.com/Kero309x/anghamiplus-patches/blob/dev/CONTRIBUTING.md) for the scope of this project.
+        - Keep proposals client-side. Requests that try to defeat server-side entitlement or DRM checks are out of scope and will be closed.
+  - type: textarea
+    id: feature-description
+    attributes:
+      label: Feature description
+      description: What should the patch or option do? Describe the behaviour you would like to see after patching.
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation and use case
+      description: |
+        Explain why this is worth adding:
+        - Which screen or flow does it affect?
+        - What is currently inconvenient or blocked?
+        - How often would you use it?
+    validations:
+      required: true
+  - type: dropdown
+    id: request-kind
+    attributes:
+      label: What kind of change is this?
+      options:
+        - A brand new patch
+        - A new option for an existing patch
+        - A behaviour change in an existing patch
+        - Documentation or tooling improvement
+    validations:
+      required: true
+  - type: input
+    id: related-patch
+    attributes:
+      label: Related patch
+      description: If this touches an existing patch, name it exactly as it appears in the patch list.
+      placeholder: "e.g. Remove Sponsored Content"
+  - type: input
+    id: target-version
+    attributes:
+      label: Anghami version this applies to
+      description: The patch bundle currently targets one version. Say which version you are using or requesting support for.
+      placeholder: "8.0.28"
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approach you tried, or an existing patch that partly solves the problem.
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional context
+      description: Screenshots, mockups, or examples of the behaviour you are asking for.
+  - type: checkboxes
+    id: acknowledgements
+    attributes:
+      label: Acknowledgements
+      options:
+        - label: I searched the open and closed issues and this request is not a duplicate.
+          required: true
+        - label: I understand that this bundle only modifies client-side behaviour of the app.
+          required: true
+        - label: I am willing to test a build of this change on Anghami 8.0.28 if needed.
+          required: false

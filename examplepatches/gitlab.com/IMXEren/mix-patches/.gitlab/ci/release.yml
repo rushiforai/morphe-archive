@@ -12,11 +12,8 @@ release:
   variables:
     GIT_DEPTH: "0"
     # renovate: datasource=github-releases depName=jdx/mise
-    MISE_VERSION: v2026.9.14
+    MISE_VERSION: v2026.10.3
     MISE_DATA_DIR: "$CI_PROJECT_DIR/.mise"
-    ANDROID_SDK_CLI_VERSION: "22.0"
-    ANDROID_COMPILE_SDK: "36"
-    ANDROID_BUILD_TOOLS: "36.0.0"
     npm_config_cache: "$CI_PROJECT_DIR/.npm"
     PROJECT_PATH: "$CI_PROJECT_PATH"
     PROJECT_REF_NAME: "$CI_COMMIT_REF_NAME"
@@ -37,10 +34,7 @@ release:
     - export PATH="$HOME/.local/bin:$PATH"
     - mise install
     - eval "$(mise activate bash)"
-    - mise install "android-sdk@$ANDROID_SDK_CLI_VERSION"
-    - eval "$(mise env -s bash android-sdk@$ANDROID_SDK_CLI_VERSION)"
-    - android --version
-    - android sdk install "platform-tools" "platforms/android-$ANDROID_COMPILE_SDK" "build-tools/$ANDROID_BUILD_TOOLS" >/dev/null
+    - mise run android-sdk
     - mise current
     - export GITHUB_RELEASE_REPOSITORY_URL="https://github.com/$CI_PROJECT_PATH.git"
     - export PROJECT_RELEASE_URL_TEMPLATE="$CI_PROJECT_URL/-/releases/v{version}"

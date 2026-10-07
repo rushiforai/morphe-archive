@@ -1,3 +1,85 @@
+## [1.43.6](https://github.com/legendsciber/morphe-patches/compare/v1.43.5...v1.43.6) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** remove second chance patch, it broke rewards without enabling revive ([47b1b2f](https://github.com/legendsciber/morphe-patches/commit/47b1b2f93cc2cefc4733f258cd95cc502a32bd8c))
+
+## [1.43.5](https://github.com/legendsciber/morphe-patches/compare/v1.43.4...v1.43.5) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** force the watched-to-continue revive offer to be evaluated every run ([a73d657](https://github.com/legendsciber/morphe-patches/commit/a73d657623758805d0259655e4eba929b2427c89))
+
+## [1.43.4](https://github.com/legendsciber/morphe-patches/compare/v1.43.3...v1.43.4) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** drop all diagnostic instrumentation, restore working rewarded reward state ([dfa43a9](https://github.com/legendsciber/morphe-patches/commit/dfa43a95ac420fa799acb0a2f46dbab3bc4bcc96))
+
+## [1.43.3](https://github.com/legendsciber/morphe-patches/compare/v1.43.2...v1.43.3) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** drop duplicated type terminator in injected valueOf calls ([144ba6d](https://github.com/legendsciber/morphe-patches/commit/144ba6dd487a34f8d8f83732e08f46ed78b417f5))
+
+## [1.43.2](https://github.com/legendsciber/morphe-patches/compare/v1.43.1...v1.43.2) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** log scenario ids queried and returned, raise campaign availability ([63740e4](https://github.com/legendsciber/morphe-patches/commit/63740e4d0c3d19d7b806c2cb317e56ea3b0f1973))
+
+## [1.43.1](https://github.com/legendsciber/morphe-patches/compare/v1.43.0...v1.43.1) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** correct missing parameter terminator in injected smali signature ([79848f4](https://github.com/legendsciber/morphe-patches/commit/79848f459e88b5571b455dc273c784f047303547))
+
+## [1.43.0](https://github.com/legendsciber/morphe-patches/compare/v1.42.4...v1.43.0) (2026-10-06)
+
+### ✨ New Features
+
+* **hillclimb:** instrument every rewarded ad entry point with a patch liveness beacon ([40efacc](https://github.com/legendsciber/morphe-patches/commit/40efacce3534f028ea0aec403141cfd1f8b17813))
+
+## [1.42.4](https://github.com/legendsciber/morphe-patches/compare/v1.42.3...v1.42.4) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** use lowercase log tag so logcat filters match ([37abb70](https://github.com/legendsciber/morphe-patches/commit/37abb70f56d29d7df9b6be182b426d46dbbc5806))
+
+## [1.42.3](https://github.com/legendsciber/morphe-patches/compare/v1.42.2...v1.42.3) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** log requested reward scenario to locate the second chance limit ([6e7e477](https://github.com/legendsciber/morphe-patches/commit/6e7e47763b4bd733e77e7321d3e50547eafd29a1))
+
+## [1.42.2](https://github.com/legendsciber/morphe-patches/compare/v1.42.1...v1.42.2) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** patch rewarded frequency cap natively instead of smali fingerprint ([a93535f](https://github.com/legendsciber/morphe-patches/commit/a93535f569dfaeb779ca2915f7c79c35a7852e84))
+
+## [1.42.1](https://github.com/legendsciber/morphe-patches/compare/v1.42.0...v1.42.1) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** anchor frequency cap fingerprint on non-range invoke ([36dd39b](https://github.com/legendsciber/morphe-patches/commit/36dd39bc236e99824dc7eaedd7e6963d848453dd))
+
+## [1.42.0](https://github.com/legendsciber/morphe-patches/compare/v1.41.10...v1.42.0) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** correct replaceInstruction import placement ([6acd0e1](https://github.com/legendsciber/morphe-patches/commit/6acd0e1e0d98fc494b42e6a0a6a300b733d2589e))
+
+### ✨ New Features
+
+* **hillclimb:** remove rewarded interstitial frequency cap for unlimited second chance ([0d59eae](https://github.com/legendsciber/morphe-patches/commit/0d59eae2efc766df60aa0089ddc702b6565b0835))
+
+## [1.41.10](https://github.com/legendsciber/morphe-patches/compare/v1.41.9...v1.41.10) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **hillclimb:** open the hasVideoCampaigns gate so the engine actually requests rewarded ads ([1b3c542](https://github.com/legendsciber/morphe-patches/commit/1b3c5425222253331f3997ce0ecddc957544effe))
+
 ## [1.41.9](https://github.com/legendsciber/morphe-patches/compare/v1.41.8...v1.41.9) (2026-10-06)
 
 ### 🐛 Bug Fixes

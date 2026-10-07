@@ -8,11 +8,37 @@ exported-added activity-alias:app.hushpinterest.extension.pinterest.settings.Ope
 component-added {"tag":"activity-alias","attributes":{"android:exported":"true","android:name":"app.hushpinterest.extension.pinterest.settings.OpenSettings","android:targetActivity":"com.pinterest.activity.PinterestActivity"},"children":[]}
 filter-added {"owner":"activity-alias:app.hushpinterest.extension.pinterest.settings.OpenSettings","declaration":{"tag":"intent-filter","attributes":{},"children":[{"tag":"action","attributes":{"android:name":"android.intent.action.APPLICATION_PREFERENCES"},"children":[]},{"tag":"category","attributes":{"android:name":"android.intent.category.DEFAULT"},"children":[]}]}}
 
-# Only this application metadata entry changes. An existing entry keeps its other attributes
-# and children, replaces android:value with true, and loses android:resource.
-# FCM, auth declarations and all other metadata stay exactly as compiled in the input APK.
+# Only these application metadata entries change: Firebase Analytics, Crashlytics and Performance
+# collection, Google Analytics' ad ID collection, and Google's four default consent signals. Each
+# is added, or an existing entry keeps its other attributes and children, gets the value shown,
+# and loses android:resource. Both declared builds ship the four consent defaults as true.
+# FCM, Firebase Installations, auth declarations and all other metadata stay exactly as compiled.
 [Disable analytics]
 metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"firebase_analytics_collection_deactivated","android:value":"true"},"children":[]}}
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"firebase_crashlytics_collection_enabled","android:value":"false"},"children":[]}}
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"firebase_performance_collection_deactivated","android:value":"true"},"children":[]}}
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"google_analytics_adid_collection_enabled","android:value":"false"},"children":[]}}
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"google_analytics_default_allow_analytics_storage","android:value":"false"},"children":[]}}
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"google_analytics_default_allow_ad_storage","android:value":"false"},"children":[]}}
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"google_analytics_default_allow_ad_user_data","android:value":"false"},"children":[]}}
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"google_analytics_default_allow_ad_personalization_signals","android:value":"false"},"children":[]}}
+
+# Google's advertising ID permission and the Privacy Sandbox ad services permissions are dropped,
+# and the application loses only its android.adservices.AD_SERVICES_CONFIG property. The
+# application's compiled declaration differs between builds, so the property is approved by name:
+# its removal changes that one application declaration and nothing else, other properties included.
+[Remove ad tracking permissions]
+permission-removed com.google.android.gms.permission.AD_ID
+permission-removed android.permission.ACCESS_ADSERVICES_AD_ID
+permission-removed android.permission.ACCESS_ADSERVICES_ATTRIBUTION
+component-removed {"owner":"application","declaration":{"tag":"property","attributes":{"android:name":"android.adservices.AD_SERVICES_CONFIG"},"children":[]}}
+
+# Two application metadata entries are added, naming Pinterest's own signing certificate for
+# signature spoofing: its SHA-1 for microG-RE and the whole DER certificate in hex for modules such
+# as XSpoofSignatures. No permission is added or requested, FAKE_PACKAGE_SIGNATURE included.
+[Spoof signature for Google sign-in]
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"app.revanced.android.gms.SPOOFED_PACKAGE_SIGNATURE","android:value":"b6a74dbcb894b0f73d8c485c72eb1247a8f027ca"},"children":[]}}
+metadata-added {"owner":"application","declaration":{"tag":"meta-data","attributes":{"android:name":"fake-signature","android:value":"3082024f308201b8a00302010202044f96d518300d06092a864886f70d0101050500306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c2052696365301e170d3132303432343136333031365a170d3337303431383136333031365a306c310b3009060355040613025553310b3009060355040813024341311230100603550407130950616c6f20416c746f31163014060355040a130d50696e74657265737420496e633110300e060355040b1307416e64726f696431123010060355040313094361726c205269636530819f300d06092a864886f70d010101050003818d0030818902818100bd8b325a2eb8ade0e16e44971e75130ec98f2c37c8a477044382a1c5c18aa3078bede3c1a49776441617f3bb6711d1a7d764785ea20bf8c694d78fdc82d575f88f340fc87b948558385636f80dba536481a9c8bf03505781adbbca1ef65b2f59281ca92e352d9f685d04024c19cb3b4e3e14e6eb69ca113e55b55d766ea860170203010001300d06092a864886f70d0101050500038181009e6766c1071e383b75c520221b502e4701d7a110933a9fe7e7417679be71581ad24a09c42bb5190acfb7e487969f843a634eac015424adc4380cdc0eb21b47616b4459f11a018b4f5185bfb75764d95c1d8bd01c21932911578a3406caf8d317bc65f2d4d5caef1b59e59ed695e235a672460b2ccff2d0a8f3c3b2604c599714"},"children":[]}}
 
 # New intents go in the first query block. Existing equivalent intents in any block stay there.
 # The empty container template is needed only when the input has no queries element.

@@ -5,6 +5,7 @@
 package app.hushmessenger.extension;
 
 import android.annotation.SuppressLint;
+import android.app.Application;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -30,8 +31,9 @@ import java.util.concurrent.atomic.AtomicIntegerArray;
  * certificate, so Messenger does not trust itself and some screens stay blank. The patch gives the
  * check the original certificate of Messenger when the package is Messenger.
  *
- * <p>The package name is enough to know that the package is this app. Android lets only one
- * installed app have a package name, and the patch does not rename Messenger.
+ * <p>The package name is enough to know that the package is this app, since Android lets only one
+ * installed app have a package name. A clone install answers for its own new name only, so the
+ * Messenger installed beside it keeps the signers Android reports for it.
  *
  * <p>The same lookup builds the identity of an app calling into Messenger, such as Facebook reading
  * Messenger's shared-key provider. A Facebook re-signed with this build's own key would fail every
@@ -44,7 +46,11 @@ public final class MessengerSignature {
 
     private MessengerSignature() {}
 
-    private static final String PACKAGE = "com.facebook.orca";
+    /** Messenger's package name as Meta ships it. */
+    static final String PACKAGE = "com.facebook.orca";
+
+    /** The package name this app runs under, read once. A clone install runs under its own. */
+    static volatile String ownPackage;
 
     /** Facebook. Meta signs it with the same certificate as Messenger. */
     static final String FACEBOOK = "com.facebook.katana";
@@ -87,7 +93,7 @@ public final class MessengerSignature {
      */
     public static List<Signature> originalSigners(PackageInfo info) {
         if (info == null) return null;
-        if (PACKAGE.equals(info.packageName)) return original();
+        if (ownPackage().equals(info.packageName)) return original();
         if (FACEBOOK.equals(info.packageName) && isSameKeyCaller(info)) return original();
         return null;
     }
@@ -134,6 +140,27 @@ public final class MessengerSignature {
             android.util.Log.e("HushMessenger", "Can't check the calling Facebook's signer", error);
             return outcome(ERROR);
         }
+    }
+
+    /**
+     * The package this process belongs to. Android names every Messenger process after it, the ones
+     * like ":notification" included, before any app code runs. Messenger's own name when that's unknown.
+     */
+    static String ownPackage() {
+        String name = ownPackage;
+        if (name != null) return name;
+        String process = Application.getProcessName();
+        if (process != null && !process.isEmpty()) {
+            int colon = process.indexOf(':');
+            name = colon < 0 ? process : process.substring(0, colon);
+        } else {
+            Context context = Settings.appContext;
+            if (context == null) context = processApplication();
+            if (context != null) name = context.getPackageName();
+        }
+        if (name == null || name.isEmpty()) return PACKAGE;
+        ownPackage = name;
+        return name;
     }
 
     /**

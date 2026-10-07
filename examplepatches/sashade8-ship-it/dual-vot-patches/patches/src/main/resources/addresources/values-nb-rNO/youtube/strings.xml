@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Om</string>
   <string name="morphe_settings_screen_01_ads_title">Annonser</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Alternative miniatyrbilder</string>
   <string name="morphe_settings_screen_03_feed_title">Feed</string>
   <string name="morphe_settings_screen_04_general_title">Generelt</string>
   <string name="morphe_settings_screen_05_player_title">Spiller</string>
@@ -65,6 +64,8 @@ Endringer inkluderer:
   <string name="morphe_hide_artist_cards_title">Skjul artistkort</string>
   <string name="morphe_hide_artist_cards_summary">Skjuler artistkortet øverst i søkeresultatene</string>
   <string name="morphe_hide_auto_dubbed_label_title">Skjul \'Auto-dubbet\'-etikett</string>
+  <string name="morphe_hide_channel_buttons_title">Skjul kanalknapper</string>
+  <string name="morphe_hide_channel_buttons_summary">Skjuler knapper som Abonner, Vis kanal, Fellesskap og YouTube Music fra kanalprofiler i søkeresultater</string>
   <string name="morphe_hide_community_posts_title">Skjul fellesskapsinnlegg</string>
   <string name="morphe_hide_compact_banner_title">Skjul kompakte bannere</string>
   <string name="morphe_hide_compact_banner_summary">Skjuler kompakte bannere og mellomrom mellom noen komponenter</string>
@@ -76,7 +77,6 @@ Endringer inkluderer:
   <string name="morphe_hide_floating_microphone_button_summary">Skjuler flytende mikrofonknapp i nedre høyre hjørne av søkeforslags-skjermen</string>
   <string name="morphe_hide_get_premium_button_title">Skjul \'Få Premium\'-knappen</string>
   <string name="morphe_hide_history_shelf_title">Skjul historikkhyllen</string>
-  <string name="morphe_hide_history_shelf_summary">Skjuler historikkhyllen i Du-fanen</string>
   <string name="morphe_hide_horizontal_shelves_title">Skjul horisontale hyller</string>
   <string name="morphe_hide_horizontal_shelves_summary">Skjuler horisontale hyller som Breaking news, Community-innlegg du kanskje liker, Fortsett å se på, Utforsk flere kanaler, Utforsk flere emner, For deg, Nyeste videoer, Mest relevante, Innlegg fra Creator\'s Community, Shopping og Se igjen</string>
   <string name="morphe_hide_hyped_label_title">Skjul \'Hypet\'-etikett</string>
@@ -110,7 +110,8 @@ Endringer inkluderer:
   <string name="morphe_hide_show_more_button_title">Skjul \'Vis mer\'-knapp</string>
   <string name="morphe_hide_show_more_button_summary">Skjuler utvidingsknappen under videoer i søkeresultatene</string>
   <string name="morphe_hide_subscribed_channels_bar_title">Skjul abonnementskanaler-linjen</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">Skjul kanalnavn i linjen for abonnerte kanaler</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">Skjul navn på abonnerte kanaler</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">Skjuler kanalnavnene i linjen for abonnerte kanaler</string>
   <string name="morphe_hide_surveys_title">Skjul undersøkelser</string>
   <string name="morphe_hide_surveys_summary">Skjuler undersøkelser og oppfordringer om nøyaktigheten til mates anbefalinger</string>
   <string name="morphe_hide_ticket_shelf_title">Skjul billetthylle</string>
@@ -159,6 +160,11 @@ Endringer inkluderer:
   <string name="morphe_hide_sync_button_title">Skjul knappen \"Synkroniser til video\"</string>
   <string name="morphe_hide_timed_reactions_title">Skjul tidsstyrte reaksjoner</string>
   <string name="morphe_hide_timed_reactions_summary">Skjuler funksjonen som lar brukere reagere med emojier i kommentarfeltet og direktekamp-chatten</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">Skjul \'Hjelp &amp; tilbakemelding\' i menyer</string>
+  <string name="morphe_hide_help_feedback_menu_summary">Skjuler \'Hjelp &amp; tilbakemelding\' i trepunktsmenyene i applinjen, for eksempel søkeresultatmenyen</string>
+  <string name="morphe_hide_handle_title">Skjul handle</string>
+  <string name="morphe_hide_handle_summary">Skjuler kanalens handle i \'Du\'-fanen</string>
   <string name="morphe_hide_video_title_title">Skjul videotittel</string>
   <string name="morphe_hide_video_title_summary">Skjuler videotittelen i fullskjermmodus</string>
   <string name="morphe_sanitize_video_subtitle_title">Rens video undertekst</string>
@@ -681,7 +687,7 @@ For å fikse dette, slå på 'Forfalsk videostrømmer' og endre 'Standardklient'
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Skjul Koble til-knappen</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Skjul Rapport-knapp</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Skjul Remix-knapp</string>
@@ -1075,10 +1081,7 @@ Begrensning: Hvis 'Gjenopprett gammel videoaksjonslinje' er slått av, er det mu
   <string name="morphe_playback_in_feeds_entry_off">Av</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">Gjenopprett originale titler</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">Oversatt</string>
-  <string name="morphe_restore_original_titles_type_entry_original">Opprinnelig</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">Oversatt med DeArrow</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">Original med DeArrow</string>
+  <string name="morphe_restore_original_titles_summary">Viser de originale videotitlene, videobeskrivelsene og kanalbeskrivelsene i stedet for de automatisk oversatte</string>
   <string name="morphe_restore_original_titles_loading">Laster tittel…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">Deaktiver automatisk feedoppdatering</string>
@@ -1152,37 +1155,42 @@ Begrensning: Hvis 'Gjenopprett gammel videoaksjonslinje' er slått av, er det mu
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Omgå bilderegionbegrensninger</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Omdirigerer miniatyrforespørsler til en alternativ server for å fikse manglende bilder i begrensede land</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">DeArrow titler</string>
+  <string name="morphe_dearrow_titles_summary">Erstatter videotitler med de crowdsourcede titlene som er sendt til DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_title">Vis DeArrow-ikonet</string>
+  <string name="morphe_dearrow_titles_icon_summary">Viser DeArrow-ikonet på videotitler fra fellesskapet</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">For Hjem-fanen</string>
+  <string name="morphe_dearrow_thumbnail_home_title">For Hjem-fanen</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">For Abonnementer-fanen</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">For Abonnementer-fanen</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">For Deg-fanen</string>
-  <string name="morphe_alt_thumbnail_player_title">For spillere spillelister og anbefalinger</string>
-  <string name="morphe_alt_thumbnail_search_title">Vis tilkoblingsfeilvarsler</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Originale miniatyrbilder</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Originale miniatyrbilder</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Stillbilder</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Stillbilder</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow leverer crowdsourcet miniatyrbilder for YouTube-videoer. Disse miniatyrbildene er ofte mer relevante enn de som leveres av YouTube
+  <string name="morphe_dearrow_thumbnail_library_title">For Deg-fanen</string>
+  <string name="morphe_dearrow_thumbnail_player_title">For spillere spillelister og anbefalinger</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Vis tilkoblingsfeilvarsler</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Originale miniatyrbilder</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Originale miniatyrbilder</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Stillbilder</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Stillbilder</string>
+  <string name="morphe_dearrow_about_summary">"DeArrow gir crowdsourcede titler og miniatyrbilder for YouTube-videoer. Disse er ofte mer relevante enn de som tilbys av YouTube
 
-Hvis aktivert, sendes videourler til API-serveren og ingen andre data sendes. Hvis en video ikke har DeArrow-miniatyrbilder, vises de originale eller stillbilder"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Viser en varsling når DeArrow-serveren ikke er tilgjengelig</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">Forbedrer lastingshastigheten ved å bruke bilder av middels kvalitet. Live-strømmer, ikke utgitte og eldre videoer kan vise tomme miniatyrbilder</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API-endepunkt</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">URL-en til DeArrow-hurtigkache-endepunktet</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Stillbildeopptak fra video</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Stillbildeopptak tas fra begynnelsen / midten / slutten av hver video. Disse bildene er innebygd i YouTube og ingen ekstern API brukes</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Bruk raske stillbildeopptak</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">For Shorts</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Hent videobilde fra</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Begynnelse</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Midten</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Slutt</string>
+Hvis aktivert, vil video-URL-er bli sendt til API-serveren og ingen andre data sendes. Hvis en video ikke har DeArrow-miniatyrbilder, vises originalen eller stillbilder
+
+Trykk her for å åpne DeArrow.ajay.app"</string>
+  <string name="morphe_dearrow_connection_toast_title">Viser en varsling når DeArrow-serveren ikke er tilgjengelig</string>
+  <string name="morphe_dearrow_connection_toast_summary">Forbedrer lastingshastigheten ved å bruke bilder av middels kvalitet. Live-strømmer, ikke utgitte og eldre videoer kan vise tomme miniatyrbilder</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API-endepunkt</string>
+  <string name="morphe_dearrow_api_url_summary">URL-en til DeArrow-hurtigkache-endepunktet</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Stillbildeopptak fra video</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Stillbildeopptak tas fra begynnelsen / midten / slutten av hver video. Disse bildene er innebygd i YouTube og ingen ekstern API brukes</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Hent videobilde fra</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Begynnelse</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Midten</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Slutt</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow er midlertidig ikke tilgjengelig (statuskode: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow er midlertidig ikke tilgjengelig</string>
+  <string name="morphe_dearrow_error">DeArrow er midlertidig ikke tilgjengelig (statuskode: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow er midlertidig ikke tilgjengelig</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Gjenopprett gammel spillerknappstil</string>

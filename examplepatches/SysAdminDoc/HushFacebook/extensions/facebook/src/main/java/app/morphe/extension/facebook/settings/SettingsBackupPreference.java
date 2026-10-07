@@ -48,6 +48,7 @@ import app.morphe.extension.facebook.comments.CommentOrder;
 import app.morphe.extension.facebook.download.DownloadQuality;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
+import app.morphe.extension.facebook.feed.PostSources;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
@@ -376,7 +377,7 @@ public class SettingsBackupPreference extends Preference {
             parts.addAll(valueSentences(snapshot.folderChange(), snapshot.qualityChange(), snapshot.fileNameChange(),
                     snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(), snapshot.keptChange(),
                     snapshot.playbackChange(), snapshot.actionChange(), snapshot.appChange(), snapshot.toChange(),
-                    snapshot.subtabChange()));
+                    snapshot.subtabChange(), snapshot.sourcesChange(), snapshot.photoNameChange()));
             message = String.join("\n\n", parts);
         }
         if (snapshot.unknown > 0) {
@@ -504,6 +505,11 @@ public class SettingsBackupPreference extends Preference {
         return L10n.f("Saved videos will be named %1$s.", L10n.isolate(template));
     }
 
+    /** The sentence that says what saved photos will be named after an import. */
+    static String photoNameSentence(String template) {
+        return L10n.f("Saved photos will be named %1$s.", L10n.isolate(template));
+    }
+
     /** The sentence that says which tab Facebook opens on after an import. */
     static String startTabSentence(StartTab tab) {
         return L10n.f("Facebook will open on %1$s.", HushfacebookPreferenceFragment.tabLabel(tab));
@@ -557,6 +563,14 @@ public class SettingsBackupPreference extends Preference {
                 "Your list of words that keep a post will hold %1$d words or phrases.", phrases);
     }
 
+    /** The sentence that says what the people, Pages and sites list holds after an import: how many, never who. */
+    static String sourcesSentence(String list) {
+        int rules = PostSources.count(list);
+        if (rules == 0) return L10n.t("Your list of people, Pages and sites to hide will be empty.");
+        return L10n.quantity(rules, "Your list of people, Pages and sites to hide will hold %1$d entry.",
+                "Your list of people, Pages and sites to hide will hold %1$d entries.", rules);
+    }
+
     /** A sentence for each setting that isn't a switch an import changes, with no word list among them. */
     static List<String> valueSentences(@Nullable String folder, @Nullable DownloadQuality quality,
                                        @Nullable String fileName, @Nullable StartTab start,
@@ -599,28 +613,55 @@ public class SettingsBackupPreference extends Preference {
         return valueSentences(folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, null);
     }
 
-    /**
-     * A sentence for each setting that isn't a switch an import changes, in the order the screen
-     * shows them: the tab Facebook opens on and the Feeds filter, the word filter's lists, the
-     * order comments open in, the quality videos play at, then the download settings.
-     */
+    /** A sentence for each setting that isn't a switch an import changes, the people, Pages and sites list aside. */
     static List<String> valueSentences(@Nullable String folder, @Nullable DownloadQuality quality,
                                        @Nullable String fileName, @Nullable StartTab start,
                                        @Nullable CommentOrder order, @Nullable String hidden,
                                        @Nullable String kept, @Nullable PlaybackQuality playback,
                                        @Nullable SendLink.Action action, @Nullable String app,
                                        @Nullable SaveTo to, @Nullable FeedsSubtab subtab) {
+        return valueSentences(folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, subtab,
+                null);
+    }
+
+    /** A sentence for each setting that isn't a switch an import changes, the photo file name aside. */
+    static List<String> valueSentences(@Nullable String folder, @Nullable DownloadQuality quality,
+                                       @Nullable String fileName, @Nullable StartTab start,
+                                       @Nullable CommentOrder order, @Nullable String hidden,
+                                       @Nullable String kept, @Nullable PlaybackQuality playback,
+                                       @Nullable SendLink.Action action, @Nullable String app,
+                                       @Nullable SaveTo to, @Nullable FeedsSubtab subtab,
+                                       @Nullable String sources) {
+        return valueSentences(folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, subtab,
+                sources, null);
+    }
+
+    /**
+     * A sentence for each setting that isn't a switch an import changes, in the order the screen
+     * shows them: the tab Facebook opens on and the Feeds filter, the word filter's lists and the
+     * people, Pages and sites list, the order comments open in, the quality videos play at, then the
+     * download settings.
+     */
+    static List<String> valueSentences(@Nullable String folder, @Nullable DownloadQuality quality,
+                                       @Nullable String fileName, @Nullable StartTab start,
+                                       @Nullable CommentOrder order, @Nullable String hidden,
+                                       @Nullable String kept, @Nullable PlaybackQuality playback,
+                                       @Nullable SendLink.Action action, @Nullable String app,
+                                       @Nullable SaveTo to, @Nullable FeedsSubtab subtab,
+                                       @Nullable String sources, @Nullable String photoName) {
         List<String> sentences = new ArrayList<>();
         if (start != null) sentences.add(startTabSentence(start));
         if (subtab != null) sentences.add(feedsSubtabSentence(subtab));
         if (hidden != null) sentences.add(wordsSentence(hidden, true));
         if (kept != null) sentences.add(wordsSentence(kept, false));
+        if (sources != null) sentences.add(sourcesSentence(sources));
         if (order != null) sentences.add(commentOrderSentence(order));
         if (playback != null) sentences.add(playbackQualitySentence(playback));
         if (quality != null) sentences.add(qualitySentence(quality));
         if (to != null) sentences.add(saveToSentence(to));
         if (folder != null) sentences.add(folderSentence(folder));
         if (fileName != null) sentences.add(fileNameSentence(fileName));
+        if (photoName != null) sentences.add(photoNameSentence(photoName));
         if (action != null) sentences.add(downloadActionSentence(action));
         if (app != null) sentences.add(sendAppSentence(app));
         return sentences;
@@ -644,7 +685,7 @@ public class SettingsBackupPreference extends Preference {
             String done = importedMessage(snapshot.switchChanges(), snapshot.folderChange(), snapshot.qualityChange(),
                     snapshot.fileNameChange(), snapshot.startChange(), snapshot.orderChange(), snapshot.hiddenChange(),
                     snapshot.keptChange(), snapshot.playbackChange(), snapshot.actionChange(), snapshot.appChange(),
-                    snapshot.toChange(), snapshot.subtabChange());
+                    snapshot.toChange(), snapshot.subtabChange(), snapshot.sourcesChange(), snapshot.photoNameChange());
             accepted = Utils.runOnBackgroundThread(() -> {
                 try {
                     SettingsBackup.apply(snapshot);
@@ -726,6 +767,26 @@ public class SettingsBackupPreference extends Preference {
                 to, null);
     }
 
+    /** What the toast after an import says, the people, Pages and sites list aside. */
+    static String importedMessage(int switches, @Nullable String folder, @Nullable DownloadQuality quality,
+                                  @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                                  @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
+                                  @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
+                                  @Nullable FeedsSubtab subtab) {
+        return importedMessage(switches, folder, quality, fileName, start, order, hidden, kept, playback, action, app,
+                to, subtab, null);
+    }
+
+    /** What the toast after an import says, the photo file name aside. */
+    static String importedMessage(int switches, @Nullable String folder, @Nullable DownloadQuality quality,
+                                  @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                                  @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
+                                  @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
+                                  @Nullable FeedsSubtab subtab, @Nullable String sources) {
+        return importedMessage(switches, folder, quality, fileName, start, order, hidden, kept, playback, action, app,
+                to, subtab, sources, null);
+    }
+
     /**
      * What the toast after an import says: how many switches changed, then a sentence for each
      * other setting that did. A folder alone keeps the one sentence it always had.
@@ -734,17 +795,17 @@ public class SettingsBackupPreference extends Preference {
                                   @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
                                   @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
                                   @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
-                                  @Nullable FeedsSubtab subtab) {
+                                  @Nullable FeedsSubtab subtab, @Nullable String sources, @Nullable String photoName) {
         if (switches == 0 && folder != null && quality == null && fileName == null && start == null && order == null
                 && hidden == null && kept == null && playback == null && action == null && app == null && to == null
-                && subtab == null) {
+                && subtab == null && sources == null && photoName == null) {
             return L10n.f("Settings imported. Saves will go to a folder named %1$s.", L10n.isolate(folder));
         }
         List<String> parts = new ArrayList<>();
         parts.add(switches == 0 ? L10n.t("Settings imported.") : L10n.quantity(switches,
                 "Settings imported. %1$d switch changed.", "Settings imported. %1$d switches changed.", switches));
         parts.addAll(valueSentences(folder, quality, fileName, start, order, hidden, kept, playback, action, app, to,
-                subtab));
+                subtab, sources, photoName));
         return String.join(" ", parts);
     }
 

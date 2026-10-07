@@ -96,7 +96,9 @@ public class ReleaseNotesTest {
             AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
             ViewGroup custom = dialog.findViewById(android.R.id.custom);
             ScrollView scroller = (ScrollView) custom.getChildAt(0);
-            TextView body = (TextView) scroller.getChildAt(0);
+            // The notes sit last in the dialog's column, under the English label when one shows.
+            ViewGroup content = (ViewGroup) scroller.getChildAt(0);
+            TextView body = (TextView) content.getChildAt(content.getChildCount() - 1);
             assertEquals(ReleaseNotes.text(notes, "0.67.0", "0.59.0"), body.getText().toString());
             assertTrue(body.getText().toString().endsWith("Oldest kept."));
             assertFalse(body.getText().toString().contains("Draft stays out."));
@@ -191,6 +193,64 @@ public class ReleaseNotesTest {
     public void bulletsDropTheChangelogScopeLabel() {
         String shown = ReleaseNotes.text("## 0.60.0 (date)\n\n* **TikTok:** Comments send again.\n", "0.60.0", null);
         assertEquals("Hushfeed 0.60.0 (date)\n\n• Comments send again.", shown);
+    }
+
+    /**
+     * #91: the title and buttons follow the phone's language and the notes are the English
+     * changelog, so an Azerbaijani or Turkish reader is told the notes are English first.
+     */
+    @Test @Config(manifest = Config.NONE, sdk = 28, qualifiers = "az")
+    public void aTranslatedPhoneIsToldTheNotesAreEnglish() {
+        assertEnglishLabel("Bu qeydlər ingilis dilindədir.");
+    }
+
+    @Test @Config(manifest = Config.NONE, sdk = 28, qualifiers = "tr")
+    public void aTurkishPhoneIsToldTheNotesAreEnglish() {
+        assertEnglishLabel("Bu notlar İngilizcedir.");
+    }
+
+    /** English, and a language with no table, read English everywhere: no label needed. */
+    @Test
+    public void anEnglishPhoneGetsTheNotesAlone() {
+        assertEquals(1, dialogTexts().size());
+    }
+
+    @Test @Config(manifest = Config.NONE, sdk = 28, qualifiers = "ja")
+    public void aPhoneWithNoTableGetsTheNotesAlone() {
+        assertEquals(1, dialogTexts().size());
+    }
+
+    private static void assertEnglishLabel(String label) {
+        java.util.List<android.widget.TextView> texts = dialogTexts();
+        assertEquals("expected the label, then the notes", 2, texts.size());
+        assertEquals(label, texts.get(0).getText().toString());
+        android.widget.TextView body = texts.get(1);
+        assertTrue("the notes are missing: " + body.getText(),
+                body.getText().toString().startsWith("Hushfeed 0.60.0"));
+        android.text.Spanned notes = (android.text.Spanned) body.getText();
+        android.text.style.LocaleSpan[] spans = notes.getSpans(0, notes.length(), android.text.style.LocaleSpan.class);
+        assertEquals("the notes are not marked as English for a screen reader", 1, spans.length);
+        assertEquals(java.util.Locale.ENGLISH, spans[0].getLocale());
+        assertEquals(0, notes.getSpanStart(spans[0]));
+        assertEquals(notes.length(), notes.getSpanEnd(spans[0]));
+    }
+
+    /** The text views in the What's new dialog's body, top to bottom. */
+    private static java.util.List<android.widget.TextView> dialogTexts() {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            ReleaseNotes.show(activity, "0.60.0", () -> {});
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            android.view.ViewGroup content = (android.view.ViewGroup)
+                    ((android.view.ViewGroup) org.robolectric.Shadows.shadowOf(dialog).getView()).getChildAt(0);
+            java.util.List<android.widget.TextView> texts = new java.util.ArrayList<>();
+            for (int index = 0; index < content.getChildCount(); index++) {
+                texts.add((android.widget.TextView) content.getChildAt(index));
+            }
+            dialog.dismiss();
+            return texts;
+        }
     }
 
     @Test

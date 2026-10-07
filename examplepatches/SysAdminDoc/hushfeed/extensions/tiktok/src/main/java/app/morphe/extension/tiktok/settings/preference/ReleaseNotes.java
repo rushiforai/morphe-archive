@@ -8,6 +8,9 @@ package app.morphe.extension.tiktok.settings.preference;
 
 import android.app.AlertDialog;
 import android.content.Context;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.LocaleSpan;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -76,13 +79,15 @@ public final class ReleaseNotes {
 
     static void show(Context context, String current, Runnable onDismiss) {
         TextView body = new TextView(context);
-        body.setText(text(current, context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-                .getString(DISMISSED, null)));
+        // The notes come from the English changelog. A LocaleSpan is what a screen reader that
+        // switches languages reads; the text locale only sets line breaking and hyphenation.
+        SpannableString notes = new SpannableString(text(current, context.getSharedPreferences(
+                PREFS_NAME, Context.MODE_PRIVATE).getString(DISMISSED, null)));
+        notes.setSpan(new LocaleSpan(Locale.ENGLISH), 0, notes.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+        body.setText(notes);
         body.setTextColor(SettingsUi.textPrimary());
         body.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY);
         body.setTextIsSelectable(true);
-        // The notes come from the English changelog. Marked as English, a screen reader reads
-        // them with English pronunciation rather than the phone's language.
         body.setTextLocale(Locale.ENGLISH);
         int padding = SettingsUi.dp(context, 22);
         body.setPadding(padding, padding, padding, padding);

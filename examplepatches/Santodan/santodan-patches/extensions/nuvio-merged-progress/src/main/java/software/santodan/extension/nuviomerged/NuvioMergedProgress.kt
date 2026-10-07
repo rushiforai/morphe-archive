@@ -37,6 +37,7 @@ object NuvioMergedProgress {
     private val merging = AtomicBoolean(false)
     @Volatile private var repository: Any? = null
     @Volatile private var allProgressMethod = "q"
+    @Volatile private var providerLayout = NuvioProviderLayout.forRepository("ja.md")
     @Volatile private var proxyRepository: Any? = null
     @Volatile private var providerProxy: Any? = null
     private val mergedProgress = MutableStateFlow<List<Any>>(emptyList())
@@ -48,9 +49,9 @@ object NuvioMergedProgress {
 
     @JvmStatic fun registerRepository(value: Any) {
         repository = value
-        // In beta.2 j() is a Set-valued flow and must not be replaced with a
-        // list-backed flow.
-        allProgressMethod = "q"
+        providerLayout = NuvioProviderLayout.forRepository(value.javaClass.name)
+        allProgressMethod = providerLayout.allProgressMethod
+        Log.d(TAG, "Provider layout: interface=${providerLayout.providerInterface} allProgress=$allProgressMethod")
         if (enabled()) {
             restoreSnapshot(value.javaClass.classLoader)
             mergeAsync()
@@ -65,7 +66,7 @@ object NuvioMergedProgress {
         if (existing != null && proxyRepository === repo) return existing
         synchronized(this) {
             providerProxy?.takeIf { proxyRepository === repo }?.let { return it }
-            val providerInterface = repo.javaClass.classLoader.loadClass("ca.a0")
+            val providerInterface = repo.javaClass.classLoader.loadClass(providerLayout.providerInterface)
             // Keep Nuvio's currently selected provider visible until the first
             // merged refresh is ready. Starting these flows at empty makes Home
             // briefly remove every Continue Watching card on each app launch.
@@ -220,7 +221,7 @@ object NuvioMergedProgress {
             val seeds = (findMethod(provider.javaClass, "f", 0).invoke(provider) as Flow<Any>).first() as? Collection<Any>
             val items = (findMethod(provider.javaClass, allProgressMethod, 0).invoke(provider) as Flow<Any>).first() as? Collection<Any>
             if (items != null) {
-                val source = provider.javaClass.simpleName
+                val source = providerSource(provider)
                 providerBySource[sourceName(source)] = provider
                 sourceCounts.add("$source=${items.size}")
                 sourceItems[source] = items
@@ -315,6 +316,18 @@ object NuvioMergedProgress {
         "l7", "a8" -> "Simkl"
         "d5", "q5" -> "MDBList"
         else -> raw
+    }
+
+    private fun providerSource(provider: Any): String {
+        // Provider class names change between APK builds. Use the stable enum identity
+        // for persisted origins and for routing each show's reconciliation calls.
+        val identity = findMethod(provider.javaClass, "a", 0).invoke(provider) as? Enum<*>
+        return when (identity?.name) {
+            "TRAKT" -> "Trakt"
+            "SIMKL" -> "Simkl"
+            "MDBLIST" -> "MDBList"
+            else -> sourceName(provider.javaClass.simpleName)
+        }
     }
 
     @JvmStatic fun sourceForContent(contentId: String?): String? =

@@ -196,3 +196,80 @@ Not in this build: %1$s. Morphe Manager selects them by default. Patch again wit
 Appearance	Darstellung
 Pure black dark mode	Rein schwarzer Dunkelmodus
 Dark mode draws black instead of dark gray. Turn on dark mode in Threads to see it.	Der Dunkelmodus zeigt Schwarz statt Dunkelgrau. Schalte in Threads den Dunkelmodus ein, um das zu sehen.
+Turn features on or off	Funktionen ein- oder ausschalten
+# Fotos und Videos speichern
+%1$d saved in lower quality than on Threads.	%1$d in niedrigerer Qualität als auf Threads gespeichert.
+%1$d saves stopped. Reopen the post and save again.	%1$d Speichervorgänge wurden gestoppt. Öffne den Beitrag erneut und speichere noch einmal.
+%1$d saves were interrupted	%1$d Speichervorgänge wurden unterbrochen
+%1$s becomes the date and time of the save, %2$s the video's number on Threads, %3$s who posted it and %4$s the day it was posted. What a save doesn't know is left out, and a name with none of these gets the date added. When the name is already in the folder, the time of the save goes on the end. Invalid characters become underscores. Leave it blank to use the default, %5$s.	%1$s wird zu Datum und Uhrzeit des Speicherns, %2$s zur Nummer des Videos auf Threads, %3$s zum Namen dessen, der es gepostet hat, und %4$s zum Tag der Veröffentlichung. Was beim Speichern nicht bekannt ist, wird weggelassen, und ein Name ohne eines davon bekommt das Datum angehängt. Gibt es den Namen im Ordner schon, wird die Uhrzeit des Speicherns angehängt. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardnamen %5$s zu verwenden.
+%1$s of %2$s	%1$s von %2$s
+%1$s so far	Bisher %1$s
+A save stopped. Reopen the post and save again.	Ein Speichervorgang wurde gestoppt. Öffne den Beitrag erneut und speichere noch einmal.
+A save was interrupted	Ein Speichervorgang wurde unterbrochen
+Adds a Save row to a post's menu. A post with several photos or videos saves them all, in order. Off or paused, the menu is Threads' own.	Fügt dem Menü eines Beitrags eine Zeile zum Speichern hinzu. Hat ein Beitrag mehrere Fotos oder Videos, werden alle der Reihe nach gespeichert. Ausgeschaltet oder pausiert bleibt das Menü so, wie Threads es zeigt.
+Best	Beste
+Cancel saving this carousel	Speichern dieses Karussells abbrechen
+Cancel saving this photo	Speichern dieses Fotos abbrechen
+Cancel saving this video	Speichern dieses Videos abbrechen
+Carousel cancelled. Saved %1$d. Failed %2$d. Skipped %3$d.	Karussell abgebrochen. Gespeichert %1$d. Fehlgeschlagen %2$d. Übersprungen %3$d.
+Choose a folder name under Movies and Pictures. Invalid characters become underscores. Leave it blank to use the default folder, %1$s.	Wähle einen Ordnernamen unter Movies und Pictures. Ungültige Zeichen werden zu Unterstrichen. Lass das Feld leer, um den Standardordner %1$s zu verwenden.
+Copying to the gallery	Wird in die Galerie kopiert
+Download failed	Download fehlgeschlagen
+Download quality	Download-Qualität
+Downloading	Wird heruntergeladen
+Downloads	Downloads
+Each video saves at %1$s or the closest quality below it. A video with nothing that low saves at the closest quality above.	Jedes Video wird in %1$s oder der nächstniedrigeren Qualität gespeichert. Hat ein Video keine so niedrige Qualität, wird es in der nächsthöheren gespeichert.
+Each video saves at its lowest quality, for the smallest file.	Jedes Video wird in seiner niedrigsten Qualität gespeichert, damit die Datei so klein wie möglich ist.
+Each video saves at the best quality the player streams.	Jedes Video wird in der besten Qualität gespeichert, die der Player streamt.
+Example without post details	Beispiel ohne Beitragsdetails
+File name	Dateiname
+File name set to %1$s.	Dateiname auf %1$s gesetzt.
+Folder name	Ordnername
+Folder set to %1$s.	Ordner auf %1$s gesetzt.
+For WhatsApp, video editors such as CapCut and InShot, or a gallery or player that plays saves without sound. May lower quality.	Für WhatsApp, Videoeditoren wie CapCut und InShot oder wenn eine Galerie oder ein Player gespeicherte Videos ohne Ton abspielt. Kann die Qualität senken.
+How far a photo or video you're saving has got, with a button to cancel it	Fortschritt beim Speichern eines Fotos oder Videos, mit einem Button zum Abbrechen
+HushThreads saves	Speichern mit HushThreads
+Joining the picture and sound	Bild und Ton werden zusammengefügt
+Last carousel save	Letzter gespeicherter Karussellbeitrag
+Link expired. Reopen the post and try again	Link abgelaufen. Öffne den Beitrag neu und versuche es noch einmal
+Not saved: a carousel can have at most %1$d pages	Nicht gespeichert: Ein Karussell darf höchstens %1$d Seiten haben
+Not saved: that isn't a Threads photo or video	Nicht gespeichert: Das ist kein Foto oder Video von Threads
+Not saved: the file is over 512 MB	Nicht gespeichert: Die Datei ist über 512 MB groß
+Page %1$d of %2$d	Seite %1$d von %2$d
+Photos and videos you save from posts	Fotos und Videos, die du aus Beiträgen speicherst
+Reopen the post and save again.	Öffne den Beitrag erneut und speichere noch einmal.
+Save	Speichern
+Save all	Alle speichern
+Save cancelled	Speichern abgebrochen
+Save folder	Speicherordner
+Save photo	Foto speichern
+Save photos and videos	Fotos und Videos speichern
+Save video	Video speichern
+Save videos other apps can open	Videos speichern, die andere Apps öffnen können
+Saved %1$d. Failed %2$d. Skipped %3$d.	Gespeichert %1$d. Fehlgeschlagen %2$d. Übersprungen %3$d.
+Saved to %1$s	Gespeichert unter %1$s
+Saved to %1$s in lower quality than on Threads	Gespeichert unter %1$s, in geringerer Qualität als auf Threads
+Saved to the gallery	In der Galerie gespeichert
+Saved to the gallery in lower quality than on Threads	In der Galerie gespeichert, in geringerer Qualität als auf Threads
+Saving a carousel	Karussell wird gespeichert
+Saving a photo	Foto wird gespeichert
+Saving a video	Video wird gespeichert
+Saving...	Wird gespeichert …
+Saving... Cancel: Downloads in HushThreads.	Wird gespeichert … Abbrechen: Downloads in HushThreads.
+Smallest	Kleinste
+Video file name	Dateiname für Videos
+Videos are named %1$s. Photos are always named %2$s followed by the date and time.	Videos heißen %1$s. Fotos heißen immer %2$s, gefolgt von Datum und Uhrzeit.
+Videos go to %1$s and photos to %2$s.	Videos landen in %1$s und Fotos in %2$s.
+Version code raised	Versionscode erhöht
+This build's version code is the highest Android allows, so Google Play doesn't offer Meta's updates over it. Threads' checks against the version it was built as still see the real one. To go back to stock Threads, uninstall this one first, which deletes Threads' data on this phone. Later HushThreads builds need Change version code too, or they won't install over this one.	Der Versionscode dieses Builds ist der höchste, den Android zulässt, daher bietet Google Play darüber keine Updates von Meta an. Die Prüfungen von Threads gegen die Version, als die es gebaut wurde, sehen weiterhin den echten. Um zum Original-Threads zurückzukehren, deinstalliere zuerst dieses, wodurch die Daten von Threads auf diesem Telefon gelöscht werden. Spätere HushThreads-Builds brauchen ebenfalls Change version code, sonst lassen sie sich nicht über dieses installieren.
+the raised version code	der erhöhte Versionscode
+Share sheet entry removed	Eintrag im Teilen-Menü entfernt
+Threads doesn't show up when you share from other apps. Sharing from Threads to other apps still works.	Threads erscheint nicht mehr, wenn du aus anderen Apps teilst. Aus Threads in andere Apps teilen funktioniert weiterhin.
+the removed share sheet entry	der entfernte Eintrag im Teilen-Menü
+User certificates trusted	Eigenen Zertifikaten wird vertraut
+Threads accepts certificates you've installed yourself where Android checks them. Its own checks on Meta's certificates haven't changed, so a proxy still can't read most of its traffic.	Threads akzeptiert selbst installierte Zertifikate dort, wo Android sie prüft. Die eigenen Prüfungen von Threads für Metas Zertifikate sind unverändert, daher kann ein Proxy den Großteil des Datenverkehrs weiterhin nicht lesen.
+the user certificate trust	das Vertrauen in eigene Zertifikate
+Hide screenshots from Threads	Screenshots vor Threads verbergen
+Threads isn't told when you take a screenshot, so it can't log it or react to it.	Threads erfährt nicht, wenn du einen Screenshot machst, und kann ihn daher weder protokollieren noch darauf reagieren.
+Full size photos	Fotos in voller Größe
+Photos load at the largest size Threads has, not one picked for your screen. They look sharper and use more data.	Fotos werden in der größten Größe geladen, die Threads hat, nicht in einer für deinen Bildschirm gewählten. Sie wirken schärfer und verbrauchen mehr Daten.

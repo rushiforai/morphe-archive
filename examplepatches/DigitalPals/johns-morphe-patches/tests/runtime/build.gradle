@@ -1,0 +1,33 @@
+plugins { id 'java' }
+repositories { mavenCentral(); google() }
+sourceSets.main.java.srcDir '../../extensions/extension/src/main/java'
+dependencies {
+    compileOnly files(System.getenv('ANDROID_HOME') + '/platforms/android-36/android.jar')
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.17'
+    testImplementation 'org.robolectric:android-all:14-robolectric-10818077'
+}
+test {
+    systemProperty 'robolectric.dependency.repo.url', 'https://repo.maven.apache.org/maven2'
+    testLogging { events 'passed', 'failed'; exceptionFormat 'full' }
+    maxHeapSize = '1g'
+}
+// Java-only test project: expose classes.jar from AndroidX AAR dependencies to the JVM.
+def aarDirectory = layout.buildDirectory.dir('aar-libs')
+tasks.register('extractTestAars') {
+    inputs.files configurations.testRuntimeClasspath
+    outputs.dir aarDirectory
+    doLast {
+        configurations.testRuntimeClasspath.files.findAll { it.name.endsWith('.aar') }.each { aar ->
+            copy {
+                from zipTree(aar)
+                include 'classes.jar'
+                into aarDirectory.get().dir(aar.name)
+            }
+        }
+    }
+}
+tasks.named('test') {
+    dependsOn 'extractTestAars'
+    classpath += files(provider { fileTree(aarDirectory).matching { include '**/*.jar' } })
+}

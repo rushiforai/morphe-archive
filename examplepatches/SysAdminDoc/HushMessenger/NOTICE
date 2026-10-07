@@ -4,7 +4,14 @@ Morphe NOTICE
 HushMessenger includes Messenger hook definitions adapted from
 RookieEnough/De-Vanced (0d01e3dd5ec82b6796b28b82c33fc6af4944b2e6),
 including its ReVanced contributions, and rushiranpise/morphe-patches
-(55ca6a05ea3559e95a0876316dcb7caad1f3c9cf), under GPL-3.0.
+(55ca6a05ea3559e95a0876316dcb7caad1f3c9cf), under GPL-3.0. The clone install's
+package rename and encrypted-backup fix are adapted from rushiranpise/morphe-patches
+(e3bb3af54e13ecfac60eb8bf9bdf287330f0529f), also under GPL-3.0.
+Spoof package version is adapted from rushiranpise/morphe-patches
+(e3bb3af54e13ecfac60eb8bf9bdf287330f0529f) and RookieEnough/De-Vanced
+(5cf78f17aae0665c196fb71d63d50726d9ba518e), under GPL-3.0.
+Restore old emoji drawer takes its anchor string from ReVanced patches
+merge request !6833 (Messenger, restore old emoji drawer), under GPL-3.0.
 The bubble eligibility anchor originates from NeonOrbit/ChatHeadEnabler.
 The runtime settings and checked 580 integrations are HushMessenger changes.
 
@@ -26,6 +33,34 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+MessengerEx reference
+=====================
+
+Stop analytics uploads follows the upload services that C10udburst/MessengerEx
+stops, at e79cff80c1fa3b22902c88630558ed6846905e0a. Its notice follows.
+
+MIT License
+
+Copyright (c) 2023 C10udburst
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 Messenger Cleaner reference
 ===========================

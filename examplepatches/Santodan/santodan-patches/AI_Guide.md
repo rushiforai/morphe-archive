@@ -44,9 +44,9 @@ mutation scope, rejection cases, and DEX write/reload. Full release verification
 also patch and rebuild the original app bundle. Users must select Pillo's Banner/Light
 notification mode for the hybrid routing to apply.
 
-## NuvioTV 1.1.0-beta.2
+## NuvioTV 1.1.0-beta.2 and 1.1.0-beta.4
 
-Three patches target package `com.nuvio.tv`:
+Four patches target package `com.nuvio.tv` (the airing-series patch supports beta4 only):
 
 1. **NuvioTV - Merge tracking progress** combines Nuvio Sync and connected-provider
    progress for Continue Watching. It retains the last successful snapshot while the
@@ -58,9 +58,47 @@ Three patches target package `com.nuvio.tv`:
    the patched build can coexist with the official app. Both values are configurable;
    use a unique valid Android package name for each clone.
 
+**NuvioTV - Keep airing series in Upcoming** is a separate beta.4-only patch. Its
+disabled-by-default setting keeps library series with future scheduled episodes in
+the Separate Upcoming Row, preserves native labels such as New Season, and adds the
+scheduled finale date to Poster, Card, and Wide displays in `dd-MMM` format.
+Enable Show unaired next up episodes and Separate Upcoming Row before enabling
+Keep airing series in Upcoming. The blue badge uses white 14sp text and bottom-center
+alignment, with a higher z-index to draw above captions. Finale dates use the latest
+known scheduled release from Nuvio's catalog; unknown dates are not estimated.
+Its preferences and runtime bridge are independent of the remaining-episodes patch.
+Use `SantodanAiring:D` for diagnostics.
+
+Beta4's remaining-episode hook reads `la.z3.T0`, the aired-episode map. `W0` is the
+provider-alias map and must never be used to count episodes: it produced six aliases
+per title and overwrote correct counts with `6` after synchronization.
+
 The progress and remaining-episode patches may be enabled independently. The
 side-by-side patch affects installation identity only. Rebuild from the original APK,
 and keep the package name and signing key unchanged when updating an existing clone.
+
+Both versions have explicit bytecode layouts. Beta4 uses a new NextUpInfo constructor
+with MDBList ratings, new Compose settings controls, and inlined Continue Watching
+cutoff calls. The runtime bridges select the corresponding provider interface and
+Compose classes. Unknown versions and changed hook anchors fail closed.
+
+Provider flow return types are erased to `Flow` in DEX. Beta2's `q()` carries
+progress lists, but beta4's `q()` carries the Boolean remote-loaded flag and `r()`
+carries progress lists. `NuvioProviderLayout` is shared by the runtime and regression
+checks; using the Boolean flow for progress caused an `ArrayList`/`Boolean` crash.
+Provider origins use stable enum identities rather than obfuscated class names.
+
+Run `:patches:verifyNuvioBeta2` and `:patches:verifyNuvioBeta4` with original DEX files
+under the workspace's `.inspect-nuvio-beta2` and `.inspect-nuvio-beta4` directories.
+These checks exercise every bytecode hook, validate runtime reflection contracts,
+and write/reload the modified classes. Apply all four patches to the original beta4
+APK and run SDK DEX verification before distributing a build. Device testing must
+check provider refresh, both merged selection modes, and the optional episode badge.
+
+The original beta4 APK triggers 36 cross-DEX missing-class reports for optional
+third-party dependencies. The patched APK has the same reports and no new ones;
+all six final DEX files pass dexdump/D8 checks. Compare hierarchy reports against
+the original APK rather than treating its existing reports as patch regressions.
 
 ## Reddit 2026.37.0
 

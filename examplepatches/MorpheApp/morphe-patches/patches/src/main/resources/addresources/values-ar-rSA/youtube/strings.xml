@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">لمحة</string>
   <string name="morphe_settings_screen_01_ads_title">الإعلانات</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">مصغرات فيديو بديلة</string>
   <string name="morphe_settings_screen_03_feed_title">الخلاصة</string>
   <string name="morphe_settings_screen_04_general_title">عام</string>
   <string name="morphe_settings_screen_05_player_title">المشغل</string>
@@ -65,6 +64,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_artist_cards_title">إخفاء بطاقات الفنان</string>
   <string name="morphe_hide_artist_cards_summary">يخفي بطاقة الفنان في أعلى نتائج البحث</string>
   <string name="morphe_hide_auto_dubbed_label_title">إخفاء علامة \'مُدبلج تلقائيًا\'</string>
+  <string name="morphe_hide_channel_buttons_title">إخفاء أزرار القناة</string>
+  <string name="morphe_hide_channel_buttons_summary">يخفي الأزرار مثل الاشتراك، الاطّلاع على القناة، المنتدى، و YouTube Music من ملفات القناة في نتائج البحث</string>
   <string name="morphe_hide_community_posts_title">إخفاء مشاركات المجتمع</string>
   <string name="morphe_hide_compact_banner_title">إخفاء اللافتات المصغرة</string>
   <string name="morphe_hide_compact_banner_summary">يخفي اللافتات المدمجة والمسافات بين بعض المكونات</string>
@@ -76,7 +77,6 @@ Second \"item\" text"</string>
   <string name="morphe_hide_floating_microphone_button_summary">يخفي زر الميكروفون العائم في الزاوية اليمنى السفلية من شاشة اقتراحات البحث</string>
   <string name="morphe_hide_get_premium_button_title">إخفاء زر \'الاشتراك في Premium\'</string>
   <string name="morphe_hide_history_shelf_title">إخفاء شريط السجلّ</string>
-  <string name="morphe_hide_history_shelf_summary">يخفي شريط سجل المشاهدة في تبويب «أنت»</string>
   <string name="morphe_hide_horizontal_shelves_title">إخفاء الرفوف الأفقية</string>
   <string name="morphe_hide_horizontal_shelves_summary">يخفي الرفوف الأفقية مثل أخبار عاجلة، منشورات المجتمع التي قد تعجبك، متابعة المشاهدة، استكشاف المزيد من القنوات، استكشاف المزيد من المواضيع، من أجلك، أحدث الفيديوهات، الأكثر صلة، منشورات من مجتمع صنّاع المحتوى، التسوّق وشاهدها مرة أخرى</string>
   <string name="morphe_hide_hyped_label_title">إخفاء علامة أكبر تشجيع</string>
@@ -110,7 +110,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_show_more_button_title">إخفاء زر \'عرض عناصر أكثر\'</string>
   <string name="morphe_hide_show_more_button_summary">يخفي زر التوسيع أسفل الفيديوهات في نتائج البحث</string>
   <string name="morphe_hide_subscribed_channels_bar_title">إخفاء شريط القنوات المشترك بها</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">إخفاء أسماء القنوات في شريط القنوات المشترك بها</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">إخفاء أسماء القنوات المشترك بها</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">يُخفي أسماء القنوات في شريط القنوات التي تم الاشتراك بها</string>
   <string name="morphe_hide_surveys_title">إخفاء الاستطلاعات</string>
   <string name="morphe_hide_surveys_summary">إخفاء استطلاعات الرأي والتنبيهات حول دقّة توصية الخلاصة</string>
   <string name="morphe_hide_ticket_shelf_title">إخفاء رف التذاكر</string>
@@ -159,6 +160,11 @@ Second \"item\" text"</string>
   <string name="morphe_hide_sync_button_title">إخفاء زر \'مزامنة مع الفيديو\'</string>
   <string name="morphe_hide_timed_reactions_title">إخفاء ردود الفعل المؤقتة</string>
   <string name="morphe_hide_timed_reactions_summary">يخفي الميزة التي تسمح للمستخدمين بالتفاعل باستخدام الرموز التعبيرية في قسم التعليقات والمحادثة المباشرة</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">إخفاء \'المساعدة والملاحظات\' في القوائم</string>
+  <string name="morphe_hide_help_feedback_menu_summary">يخفي \'المساعدة والملاحظات في قوائم الثلاث نقاط بشريط التطبيق، مثل قائمة نتائج البحث</string>
+  <string name="morphe_hide_handle_title">إخفاء المعرّف</string>
+  <string name="morphe_hide_handle_summary">يخفي معرّف قناتك في تبويب \'أنت\'</string>
   <string name="morphe_hide_video_title_title">إخفاء عنوان الفيديو</string>
   <string name="morphe_hide_video_title_summary">يخفي عنوان الفيديو في وضع ملء الشاشة</string>
   <string name="morphe_sanitize_video_subtitle_title">تنظيف النص الفرعي للفيديو</string>
@@ -685,7 +691,7 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">إخفاء زر الاتصال</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">إخفاء زر الإبلاغ</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">إخفاء زر ريمكس</string>
@@ -845,7 +851,7 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
   <string name="morphe_hide_player_flyout_watch_in_vr_title">إخفاء قائمة المشاهدة في الوضع الافتراضي</string>
   <!-- layout.hide.autoplaypreview.hideAutoplayPreviewPatch -->
   <string name="morphe_hide_autoplay_preview_title">إخفاء عرض التشغيل التلقائي</string>
-  <string name="morphe_hide_autoplay_preview_summary">يخفي عرض مشاهدة الفيديو التالي بـملء الشاشة قبل بدء التشغيل التلقائي</string>
+  <string name="morphe_hide_autoplay_preview_summary">يخفي عرض مشاهدة الفيديو التالي بملء الشاشة قبل بدء التشغيل التلقائي</string>
   <!-- layout.buttons.overlay.hidePlayerOverlayButtonsPatch -->
   <string name="morphe_overlay_buttons_screen_title">أزرار الواجهة</string>
   <string name="morphe_overlay_buttons_screen_summary">اختر الأزرار التي تظهر فوق مشغل الفيديو</string>
@@ -981,7 +987,7 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
   <string name="morphe_fullscreen_video_scale_button_title">عرض زر مقياس الفيديو</string>
   <string name="morphe_fullscreen_video_scale_button_summary">انقر للتنقل بين الوضع الافتراضي، التمديد، والتكبير</string>
   <string name="morphe_fullscreen_video_scale_button_fullscreen_only_title">العرض في وضع ملء الشاشة فقط</string>
-  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">إخفاء زر ضبط حجم الفيديو في مشغل الوضع الرأسي</string>
+  <string name="morphe_fullscreen_video_scale_button_fullscreen_only_summary">إخفاء زر ضبط مقياس الفيديو في مشغل الوضع الرأسي</string>
   <!-- layout.player.buttons.muteVideoButtonPatch -->
   <string name="morphe_mute_video_button_title">عرض زر كتم الصوت</string>
   <!-- layout.player.overlay.customPlayerOverlayOpacityPatch -->
@@ -1080,10 +1086,7 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
   <string name="morphe_playback_in_feeds_entry_off">متوقف</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">استعادة العناوين الأصلية</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">مترجمة</string>
-  <string name="morphe_restore_original_titles_type_entry_original">الأصلية</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">تمت الترجمة باستخدام DeArrow</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">العنوان الأصلي مع DeArrow</string>
+  <string name="morphe_restore_original_titles_summary">يعرض عناوين الفيديو الأصلية، أوصاف الفيديو وأوصاف القناة بدلًا من العناوين والأوصاف المترجمة تلقائيًا</string>
   <string name="morphe_restore_original_titles_loading">جارٍ تحميل العنوان…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">تعطيل تحديث الخلاصة تلقائيًا</string>
@@ -1157,39 +1160,42 @@ Mistral Nemo هو الخيار الأرخص، بينما توفر Gemma 4 أعل
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">تجاوز قيود منطقة الصورة</string>
   <string name="morphe_bypass_image_region_restrictions_summary">يعيد توجيه طلبات المصغرات إلى خادم بديل لإصلاح الصور المفقودة في البلدان المحظورة</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">عناوين DeArrow</string>
+  <string name="morphe_dearrow_titles_summary">يستبدل عناوين الفيديو بالعناوين الجماعية المقدَّمة إلى DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_title">عرض أيقونة DeArrow</string>
+  <string name="morphe_dearrow_titles_icon_summary">يُظهر أيقونة DeArrow على عناوين الفيديو المُقدَّمة من المجتمع</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">لعلامة تبويب الصفحة الرئيسية</string>
+  <string name="morphe_dearrow_thumbnail_home_title">لعلامة تبويب الصفحة الرئيسية</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">لعلامة تبويب الاشتراكات</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">لعلامة تبويب الاشتراكات</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">لعلامة تبويب أنت</string>
-  <string name="morphe_alt_thumbnail_player_title">لقوائم تشغيل المشغل &amp; الاقتراحات</string>
-  <string name="morphe_alt_thumbnail_search_title">لنتائج البحث</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">المصغرات الأصلية</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; المصغرات الأصلية</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; اللقطات الثابتة</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">اللقطات الثابتة</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"يقدّم DeArrow مصغرات من إعداد المستخدمين لفيديوهات YouTube. وغالبًا ما تكون أكثر ارتباطًا بالمحتوى من مصغرات YouTube الأصلية
+  <string name="morphe_dearrow_thumbnail_library_title">لعلامة تبويب أنت</string>
+  <string name="morphe_dearrow_thumbnail_player_title">لقوائم تشغيل المشغل &amp; الاقتراحات</string>
+  <string name="morphe_dearrow_thumbnail_search_title">لنتائج البحث</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">المصغرات الأصلية</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; المصغرات الأصلية</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; اللقطات الثابتة</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">اللقطات الثابتة</string>
+  <string name="morphe_dearrow_about_summary">"يوفر DeArrow عناوين ومصغّرات مقدّمة من المجتمع لفيديوهات YouTube. وغالبًا ما تكون أكثر صلة بتلك التي يوفرها YouTube
 
-إذا تم تمكينها، سيتم إرسال عناوين URL للفيديو إلى خادم API ولن يتم إرسال أي بيانات أخرى. إذا لم يكن للفيديو مصغرات DeArrow، فسيتم عرض المصغرات الأصلية أو اللقطات الثابتة
+إذا تم التمكين، سيتم إرسال روابط الفيديو إلى خادم API ولن يتم إرسال أي بيانات أخرى. إذا لم يكن الفيديو يحتوي على مصغّرات DeArrow، فسيتم عرض اللقطات الأصلية أو الثابتة
 
-انقر هنا لمعرفة المزيد عن DeArrow"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">عرض تنبيهات خطأ الاتصال</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">يعرض إشعارًا عند تعذر توفر خادم DeArrow</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API Endpoint</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">عنوان URL لنقطة نهاية ذاكرة التخزين المؤقت لمصغرات DeArrow</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">لقطات الفيديو الثابتة</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">يتم التقاط اللقطات الثابتة من بداية/وسط/نهاية كل فيديو. هذه الصور مدمجة في YouTube ولا يتم استخدام أي واجهة برمجة تطبيقات خارجية</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">استخدام اللقطات الثابتة السريعة</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">يحسن سرعات التحميل باستخدام صور متوسطة الجودة. قد تعرض البثوث المباشرة والفيديوهات غير المنشورة والفيديوهات القديمة مصغرات فارغة</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">استخراج إطار الفيديو من</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">البداية</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">المنتصف</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">النهاية</string>
+انقر هنا لفتح DeArrow.ajay.app"</string>
+  <string name="morphe_dearrow_connection_toast_title">عرض تنبيهات خطأ الاتصال</string>
+  <string name="morphe_dearrow_connection_toast_summary">يعرض إشعارًا عند تعذر توفر خادم DeArrow</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API Endpoint</string>
+  <string name="morphe_dearrow_api_url_summary">عنوان URL لنقطة نهاية ذاكرة التخزين المؤقت لمصغرات DeArrow</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">لقطات الفيديو الثابتة</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">يتم التقاط اللقطات الثابتة من بداية/وسط/نهاية كل فيديو. هذه الصور مدمجة في YouTube ولا يتم استخدام أي واجهة برمجة تطبيقات خارجية</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">استخراج إطار الفيديو من</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">البداية</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">المنتصف</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">النهاية</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow غير متوفر مؤقتًا (رمز الحالة: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow غير متوفر مؤقتًا</string>
+  <string name="morphe_dearrow_error">DeArrow غير متوفر مؤقتًا (رمز الحالة: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow غير متوفر مؤقتًا</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">استعادة نمط أزرار المشغل القديم</string>

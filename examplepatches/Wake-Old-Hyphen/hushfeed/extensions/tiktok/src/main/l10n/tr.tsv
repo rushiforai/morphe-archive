@@ -906,7 +906,7 @@ Save	Kaydet
 Save SRT files with the video. They go to Movies on Android 11+, Download on Android 10, and your video folder on older versions. On Android 11+ with Save details on, the video moves to Download or Documents and the SRT files stay in Movies.	SRT dosyalarını videoyla birlikte kaydet. Android 11+ sürümlerinde Movies'e, Android 10'da Download'a, daha eski sürümlerde video klasörüne gider. Android 11+ sürümlerinde Ayrıntıları kaydet açıkken video Download veya Documents'a taşınır ve SRT dosyaları Movies'de kalır.
 Save a profile picture on a long press	Uzun basınca profil fotoğrafını kaydet
 Save a story on a long press	Uzun basınca hikayeyi kaydet
-Save every photo in the post as TikTok received it, not as the screen shows it.	Gönderideki her fotoğrafı ekranın gösterdiği gibi değil, TikTok'un aldığı gibi kaydet.
+Save every photo in the post at full size as a JPEG, not as the screen shows it.	Gönderideki her fotoğrafı ekranın gösterdiği gibi değil, tam boyutta JPEG olarak kaydet.
 Save field values	Alan değerlerini kaydet
 Save full report	Raporun tamamını kaydet
 Save media	Medyayı kaydet
@@ -1375,7 +1375,6 @@ Changes in Hushfeed %1$s	Hushfeed %1$s sürümündeki değişiklikler
 Reviewed presets	Doğrulanmış hazır ayarlar
 Show See translation	Çeviriyi gör seçeneğini göster
 Reviewed for TikTok %1$s	TikTok %1$s için doğrulandı
-%1$s (TikTok %2$s)	%1$s (TikTok %2$s)
 Value: %1$s to %2$s	Değer: %1$s yerine %2$s
 The presets couldn't load. Open the Lab again.	Hazır ayarlar yüklenemedi. Laboratuvarı yeniden açın.
 Apply enables these overrides. Undo last Lab change puts your previous rules back until you change anything else in the Lab.	Uygula bu geçersiz kılmaları etkinleştirir. Son Lab değişikliğini geri al, Lab'da başka bir şey değiştirene kadar önceki kurallarını geri getirir.
@@ -1511,3 +1510,36 @@ Buttons on videos	Videolardaki düğmeler
 Seen videos put back: %1$s of %2$s	Geri yüklenen izlenen videolar: %1$s / %2$s
 No cleared videos fit the current history limits.	Silinen videoların hiçbiri geçerli geçmiş sınırlarına uymuyor.
 Putting seen videos back	İzlenen videolar geri yükleniyor
+# context: a line above the What's new release notes, which come from the English changelog and are not translated.
+These notes are in English.	Bu notlar İngilizcedir.
+Still waiting for the file app. Tap to stop waiting.	Dosya uygulaması hâlâ bekleniyor. Beklemeyi bırakmak için dokun.
+Stopped waiting for the file app. Nothing was changed.	Dosya uygulaması artık beklenmiyor. Hiçbir şey değiştirilmedi.
+Stopped waiting for the file app. It hasn't said yet whether the backup was saved.	Dosya uygulaması artık beklenmiyor. Yedeğin kaydedilip kaydedilmediğini henüz bildirmedi.
+The backup wasn't saved. Back up again when the file app is ready.	Yedek kaydedilmedi. Dosya uygulaması hazır olduğunda yeniden yedekle.
+The file app still has the last file. Try again once it lets go, or restart TikTok.	Dosya uygulaması son dosyayı hâlâ tutuyor. Bıraktığında tekrar dene ya da TikTok'u yeniden başlat.
+Waiting for the file app to let go of the last file. Restart TikTok if it doesn't.	Dosya uygulamasının son dosyayı bırakması bekleniyor. Bırakmazsa TikTok'u yeniden başlat.
+Stopped waiting for the file app. Nothing was imported.	Dosya uygulaması artık beklenmiyor. Hiçbir şey içe aktarılmadı.
+The last report is still being saved	Son rapor hâlâ kaydediliyor
+Still waiting for the file app.	Dosya uygulaması hâlâ bekleniyor.
+Stop waiting	Beklemeyi bırak
+Stopped waiting for the file app. Nothing was exported.	Dosya uygulaması artık beklenmiyor. Hiçbir şey dışa aktarılmadı.
+Stopped waiting for the file app. It hasn't said yet whether the export was saved.	Dosya uygulaması artık beklenmiyor. Dışa aktarımın kaydedilip kaydedilmediğini henüz bildirmedi.
+The export wasn't saved. Export again when the file app is ready.	Dışa aktarım kaydedilmedi. Dosya uygulaması hazır olduğunda yeniden dışa aktar.
+Hide unpersonalized For You videos	Kişiselleştirilmemiş Senin İçin videolarını gizle
+Hide the fill-in videos TikTok sends to For You without picking them for you. When a whole batch is fill-in, it stays so the feed doesn't run dry.	TikTok'un Senin İçin'e senin için seçmeden gönderdiği dolgu videolarını gizle. Bütün bir parti dolguysa akış boş kalmasın diye kalır.
+Unpersonalized For You videos	Kişiselleştirilmemiş Senin İçin videoları
+Reviewed presets for TikTok %1$s	TikTok %1$s için doğrulanmış hazır ayarlar
+No presets have been reviewed for TikTok %1$s yet	TikTok %1$s için henüz doğrulanmış hazır ayar yok
+Repost with a comment	Yorumla yeniden paylaş
+Profile banner and new profile layout	Profil afişi ve yeni profil düzeni
+Comment with live photos, the camera or audio	Canlı fotoğraf, kamera ya da sesle yorum yap
+Save comments to Favorites	Yorumları Favorilere kaydet
+Comment sort and dislike styles	Yorum sıralaması ve beğenmeme stilleri
+Message bubble colors, Inbox archive and sharing to more chats	Mesaj balonu renkleri, Gelen Kutusu arşivi ve daha fazla sohbete paylaşma
+Manage topics	Konuları yönet
+Visual search	Görsel arama
+AI Self	AI Self
+Long-press menu on every post	Her gönderide uzun basma menüsü
+TikTok's hold to speed up	TikTok'un basılı tutarak hızlandırması
+TikTok's background play and auto-scroll	TikTok'un arka planda oynatma ve otomatik kaydırması
+Post dates in the feed	Akışta gönderi tarihleri

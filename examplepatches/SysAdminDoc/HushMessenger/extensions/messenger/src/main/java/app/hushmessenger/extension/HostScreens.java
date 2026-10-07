@@ -80,6 +80,11 @@ public final class HostScreens {
     static boolean isJoinedCommunityRow(Object row) { return false; }
     static boolean isMainInboxScope(Object callback, Object filter) { return false; }
 
+    /** Rewritten with the chat list supplier's subscribe call and listed count once the patch proves both. */
+    static String inboxRefreshRoute() {
+        return "";
+    }
+
     /**
      * Starts settings when SettingsProvider never ran, as on a Root Mount install. Only in Messenger's main process,
      * the one SettingsProvider runs in, so the other processes stay stock the way they are on a normal install.
@@ -149,6 +154,21 @@ public final class HostScreens {
         // Colour hooks can initialize this process while their class initializer is running. Bind after releasing
         // the startup lock so a second startup thread cannot wait on that initializer while it waits on this lock.
         if (started && !failed && Settings.installed.contains("material_you")) MaterialYouTheme.bind();
+    }
+
+    /** The settings provider's authority is the package name plus this, on a clone install too. */
+    static final String SETTINGS_AUTHORITY_SUFFIX = ".hush.settings";
+
+    /** True when Android knows this app's own settings provider under the package name it runs as. */
+    static boolean settingsProviderFound(Context context) {
+        try {
+            String own = context.getPackageName();
+            android.content.pm.ProviderInfo provider =
+                context.getPackageManager().resolveContentProvider(own + SETTINGS_AUTHORITY_SUFFIX, 0);
+            return provider != null && own.equals(provider.packageName) && SettingsProvider.class.getName().equals(provider.name);
+        } catch (RuntimeException error) {
+            return false;
+        }
     }
 
     /** True when PackageManager doesn't know HushMessenger's own activities, as on a Root Mount install. */

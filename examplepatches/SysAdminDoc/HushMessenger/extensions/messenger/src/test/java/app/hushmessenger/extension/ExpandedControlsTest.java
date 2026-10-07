@@ -28,8 +28,8 @@ public class ExpandedControlsTest {
     }
 
     @Test public void everyControlIsIndependentAndPauseKeepsItsChoice() {
-        assertEquals(30, SettingsActivity.CONTROLS.length);
-        assertEquals(30, Settings.installed.size());
+        assertEquals(ExpectedTotals.CONTROLS, SettingsActivity.CONTROLS.length);
+        assertEquals(ExpectedTotals.CONTROLS, Settings.installed.size());
         for (String[] spec : SettingsActivity.CONTROLS) {
             String key = spec[0];
             assertTrue(Settings.installed.contains(key));
@@ -137,15 +137,15 @@ public class ExpandedControlsTest {
             EditText search = root.findViewWithTag("find_control");
             TextView status = root.findViewWithTag("search_status");
             search.setText("  PEOPLE YOU  ");
-            assertEquals("1 of 30 installed controls", status.getText().toString());
+            assertEquals(ExpectedTotals.shown(1), status.getText().toString());
             assertEquals(View.VISIBLE, ((View) root.findViewWithTag("people").getParent()).getVisibility());
             assertEquals(View.GONE, ((View) root.findViewWithTag("stories").getParent()).getVisibility());
             search.setText("Stickers");
-            assertEquals("2 of 30 installed controls", status.getText().toString());
+            assertEquals(ExpectedTotals.shown(3), status.getText().toString());
             search.setText("missing control xyz");
             assertEquals("No matching controls. Try another search.", status.getText().toString());
             search.setText("");
-            assertEquals("30 of 30 installed controls", status.getText().toString());
+            assertEquals(ExpectedTotals.shown(ExpectedTotals.CONTROLS), status.getText().toString());
         }
     }
 }

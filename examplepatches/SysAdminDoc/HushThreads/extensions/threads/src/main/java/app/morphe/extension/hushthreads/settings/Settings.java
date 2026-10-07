@@ -54,6 +54,13 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushthreads_disable_video_autoplay", TRUE);
 
     /**
+     * Photos load at the largest size the server sent instead of the one closest to the screen's
+     * width ({@link app.morphe.extension.hushthreads.feed.ImageQuality}).
+     */
+    public static final BooleanSetting MAX_IMAGE_QUALITY =
+            new BooleanSetting("hushthreads_max_image_quality", TRUE);
+
+    /**
      * The tracking keys come off the post links Threads hands out when you copy or share one
      * (xmt, slof, igsh and the rest), with the rest of the link left as the server wrote it.
      */
@@ -75,11 +82,38 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushthreads_disable_analytics", TRUE);
 
     /**
+     * Threads isn't told when you take a screenshot: its photo library and screenshot folder
+     * watchers skip the new picture, and on Android 14 and newer it doesn't ask Android to report
+     * screenshots of the feed ({@link app.morphe.extension.hushthreads.misc.ScreenshotDetection}).
+     */
+    public static final BooleanSetting DISABLE_SCREENSHOT_DETECTION =
+            new BooleanSetting("hushthreads_disable_screenshot_detection", TRUE);
+
+    /**
      * Dark mode's background is pure black instead of Threads' dark gray. Threads builds its colors
      * once a start, so a change waits for a restart.
      */
     public static final BooleanSetting PURE_BLACK =
             new BooleanSetting("hushthreads_pure_black", TRUE, true);
+
+    /**
+     * A post's menu gets a row that saves its photos and videos to the phone, every page of a
+     * post with several in order, from the addresses Threads already holds
+     * ({@link app.morphe.extension.hushthreads.download.PostSave}).
+     */
+    public static final BooleanSetting SAVE_MEDIA =
+            new BooleanSetting("hushthreads_save_media", TRUE);
+
+    /**
+     * Video saves keep to what other apps open: H.264 video with AAC-LC or HE-AAC sound, within the
+     * quality a save asks for
+     * ({@link app.morphe.extension.hushthreads.download.SaveSettings#DOWNLOAD_QUALITY}), or the
+     * app's single MP4 file when the manifest has no such pair. The sharpest version Meta streams
+     * is often AV1 with xHE-AAC sound, which Gallery and VLC play and WhatsApp turns down. Off by
+     * default, so a save keeps the sharpest.
+     */
+    public static final BooleanSetting DOWNLOAD_COMPATIBLE =
+            new BooleanSetting("hushthreads_download_compatible", FALSE);
 
     /**
      * Once a day, when Threads starts, ask api.github.com whether a newer HushThreads release is

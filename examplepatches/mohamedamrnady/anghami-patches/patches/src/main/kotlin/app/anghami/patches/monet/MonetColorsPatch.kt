@@ -44,7 +44,7 @@ import app.anghami.patches.shared.Constants.COMPATIBILITY_ANGHAMI_8_0_28
  * - Translucent brand fills keep their stock alpha (40/50/70/9%) layered
  *   over the dynamic role — same visual structure, wallpaper hue.
  *
- * Evidence (stock base.apk decode):
+ * Evidence (stock the stock APK decode):
  * - app_color=@color/branding_pink (day) / @color/branding_yellow (night);
  *   referenced by 69 layouts + button/chip/tab drawables.
  * - No layout/drawable references branding_* directly; code resolves the

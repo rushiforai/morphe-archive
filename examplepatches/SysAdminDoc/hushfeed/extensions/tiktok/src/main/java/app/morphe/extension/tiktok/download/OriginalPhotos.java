@@ -151,7 +151,8 @@ public final class OriginalPhotos {
                     MediaBudget.checkDiskSpace(app.getCacheDir(), -1L);
                     File temp = MediaCache.createTempFile(app, "original-photo-", ".tmp");
                     try {
-                        String extension = RemoteMedia.fetch(photoSnapshot.get(i), temp, RemoteMedia.Kind.IMAGE);
+                        String extension = PhotoToJpeg.convert(app, temp,
+                                RemoteMedia.fetch(photoSnapshot.get(i), temp, RemoteMedia.Kind.IMAGE));
                         String mime = "jpg".equals(extension) ? "image/jpeg" : "image/" + extension;
                         // Numbered by the photo's place in the post, also when only some are saved.
                         String named = names.get(i);
@@ -209,9 +210,70 @@ public final class OriginalPhotos {
             }
             // Never silently save just part of a post whose original sources are missing.
             if (candidates.isEmpty()) return Collections.emptyList();
-            result.add(candidates);
+            int position = result.size() + 1;
+            Logger.printDebug(() -> listing(position, candidates));
+            result.add(saveOrder(candidates));
         }
         return result;
+    }
+
+    /**
+     * The order a photo's addresses are tried in: JPEG copies, then the rest, then HEIF and AVIF
+     * copies, each group in TikTok's order.
+     *
+     * <p>TikTok leads each photo's list with a HEIF copy, and that was what got saved: a .heif that
+     * plenty of galleries can't open (#105). A JPEG copy, where TikTok's web lists one, is saved as
+     * it is. Next comes the WebP copy TikTok lists beside the HEIF, which {@link PhotoToJpeg} turns
+     * into a JPEG on any phone. It couldn't do that with the HEIF on a Samsung, whose decoder turns
+     * TikTok's HEIF down, so the HEIF only stays behind the others in case they fail.
+     */
+    static List<String> saveOrder(List<String> urls) {
+        List<String> ordered = new ArrayList<>(urls.size());
+        for (String url : urls) if (isJpeg(url)) ordered.add(url);
+        for (String url : urls) if (!isJpeg(url) && !isHeifOrAvif(url)) ordered.add(url);
+        for (String url : urls) if (isHeifOrAvif(url)) ordered.add(url);
+        return ordered;
+    }
+
+    /** Whether the address names a HEIF or AVIF copy, the encodings plenty of phones can't decode. */
+    private static boolean isHeifOrAvif(String url) {
+        String path = path(url);
+        return path.endsWith(".heic") || path.endsWith(".heif") || path.endsWith(".avif");
+    }
+
+    /** Whether the address names a JPEG, read from its path so a query can't pass for one. */
+    private static boolean isJpeg(String url) {
+        String path = path(url);
+        return path.endsWith(".jpeg") || path.endsWith(".jpg");
+    }
+
+    /**
+     * The debug line naming one photo's encodings. Worded without a "name: value" pair, since the
+     * log's redactor reads "encodings:" as a field holding an ID ("odin" is in the name) and blanked
+     * the first encoding, the one that mattered.
+     */
+    static String listing(int position, List<String> urls) {
+        return "Original photo " + position + " is listed as " + String.join(", ", encodings(urls));
+    }
+
+    /** What each address's path ends in, which says the encoding without its signed query. */
+    static List<String> encodings(List<String> urls) {
+        List<String> encodings = new ArrayList<>(urls.size());
+        for (String url : urls) {
+            String path = path(url);
+            int dot = path.lastIndexOf('.');
+            encodings.add(dot < 0 || dot < path.lastIndexOf('/') ? "?" : path.substring(dot + 1));
+        }
+        return encodings;
+    }
+
+    private static String path(String url) {
+        int end = url.length();
+        int query = url.indexOf('?');
+        if (query >= 0) end = query;
+        int fragment = url.indexOf('#');
+        if (fragment >= 0 && fragment < end) end = fragment;
+        return url.substring(0, end).toLowerCase(java.util.Locale.ROOT);
     }
 
 }

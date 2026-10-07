@@ -714,6 +714,60 @@
       "options": []
     },
     {
+      "name": "Download any photo",
+      "description": "Shows Save photo on every photo you open, even where the poster turned saving off, and saves the biggest size where your downloads go. Its switch is under Downloads.",
+      "category": "Downloads",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "581.0.0.45.58",
+          "580.0.0.51.74",
+          "577.0.0.50.72"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "581.0.0.45.58",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475215365,
+                "ARMEABI_V7A": 475215364
+              }
+            },
+            {
+              "version": "580.0.0.51.74",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475019344
+              }
+            },
+            {
+              "version": "577.0.0.50.72",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 474426275
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Download any reel",
       "description": "Adds a Download button beside every reel. Videos save at the Download quality you set, best by default.",
       "category": "Downloads",
@@ -931,7 +985,7 @@
     },
     {
       "name": "Hide AI-detected posts",
-      "description": "Removes feed posts that Facebook's own detection marked as made with AI, and the reels and Watch videos it flagged the same way. A third switch also removes posts their creator labelled as AI, and a fourth takes out the Meta AI cards Facebook adds between posts. That one starts on. The others start off, so turn them on in Hushfacebook's settings.",
+      "description": "Removes feed posts that Facebook's own detection marked as made with AI, and the reels and Watch videos it flagged the same way. A third switch also removes posts their creator labelled as AI, a fourth takes out the Meta AI cards Facebook adds between posts, and a fifth removes posts featuring Meta's AI characters. The Meta AI cards switch starts on. The others start off, so turn them on in Hushfacebook's settings.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -1358,9 +1412,63 @@
     },
     {
       "name": "Hide posts by words",
-      "description": "Hides feed posts whose text has a word or phrase you list, unless it also has one from your keep list. Hushfacebook never sends your words anywhere. The switch starts off, so turn it on and add words in Hushfacebook's settings.",
+      "description": "Hides feed posts whose text has a word or phrase you list, unless it also has one from your keep list, and posts from people, Pages and sites you list. Hushfacebook never sends your lists anywhere. The switches start off, so turn one on and fill in its list in Hushfacebook's settings.",
       "category": "Feed",
       "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "581.0.0.45.58",
+          "580.0.0.51.74",
+          "577.0.0.50.72"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "581.0.0.45.58",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475215365,
+                "ARMEABI_V7A": 475215364
+              }
+            },
+            {
+              "version": "580.0.0.51.74",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475019344
+              }
+            },
+            {
+              "version": "577.0.0.50.72",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 474426275
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide read receipts",
+      "description": "People you chat with in a chat that opens inside Facebook don't see that you've read their messages. The chat can stay unread on this phone, and replying may still show you've read it. Its switch starts on, under Privacy.",
+      "category": "Privacy",
+      "use": false,
       "dependencies": [
         "BytecodePatch",
         "Hushfacebook settings"
@@ -1519,7 +1627,7 @@
     },
     {
       "name": "Hide sponsored posts",
-      "description": "Removes sponsored and promoted posts from the news feed, with no gap left behind.",
+      "description": "Removes sponsored and promoted posts from the news feed, with no gap left behind, and keeps the floating ad button off an ad's comments.",
       "category": "Ads",
       "use": true,
       "dependencies": [
@@ -1789,7 +1897,7 @@
     },
     {
       "name": "Hide suggested and promoted posts",
-      "description": "Removes what Facebook adds to the feed besides ads: \"Suggested for you\" posts, \"People you may know\", suggested groups, \"Stories you might like\", \"Pages you may like\" and its own upsells. In-feed surveys go too, and so does the \"People you may know\" row on your own profile. Each kind has its own switch.",
+      "description": "Removes what Facebook adds to the feed besides ads: \"Suggested for you\" posts, \"People you may know\", suggested groups, \"Stories you might like\", \"Pages you may like\" and its own upsells. In-feed surveys go too, and so does the \"People you may know\" row on your own profile. Each kind has its own switch. Memories, friend requests and friends' locations between posts have switches too, off until you pick them.",
       "category": "Feed",
       "use": true,
       "dependencies": [
@@ -1897,7 +2005,7 @@
     },
     {
       "name": "Hide tabs",
-      "description": "Takes the tabs you pick off the tab bar: Feeds, Friends, Marketplace, Groups, Gaming or Events. Each page stays in the Menu. Every switch starts off, and a change shows once Facebook restarts.",
+      "description": "Takes the tabs you pick off the tab bar: Feeds, Friends, Marketplace, Groups, Gaming or Events, and Dating, Professional dashboard, Saved, Ad Center, Create, Explore or Jobs where Facebook gives you one. Each page stays in the Menu. Every switch starts off, and a change shows once Facebook restarts.",
       "category": "Interface",
       "use": true,
       "dependencies": [
@@ -2115,6 +2223,60 @@
       "category": "Interface",
       "use": true,
       "dependencies": [
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "581.0.0.45.58",
+          "580.0.0.51.74",
+          "577.0.0.50.72"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "581.0.0.45.58",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475215365,
+                "ARMEABI_V7A": 475215364
+              }
+            },
+            {
+              "version": "580.0.0.51.74",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475019344
+              }
+            },
+            {
+              "version": "577.0.0.50.72",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 474426275
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Hide typing indicator",
+      "description": "Others don't see that you're typing, in chats that open inside Facebook and in comment boxes. What you write sends as usual. Its switches start on, under Privacy.",
+      "category": "Privacy",
+      "use": false,
+      "dependencies": [
+        "BytecodePatch",
         "Hushfacebook settings"
       ],
       "compatiblePackages": {
@@ -3025,6 +3187,60 @@
       "options": []
     },
     {
+      "name": "Show View profile on Marketplace sellers",
+      "description": "Every seller's page in Marketplace gets View profile, which opens the seller's regular Facebook profile so you can check who you're buying from. Facebook shows that button to only some accounts. Its switch starts on, under Marketplace.",
+      "category": "Interface",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "Hushfacebook settings"
+      ],
+      "compatiblePackages": {
+        "com.facebook.katana": [
+          "581.0.0.45.58",
+          "580.0.0.51.74",
+          "577.0.0.50.72"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Facebook",
+          "packageName": "com.facebook.katana",
+          "description": null,
+          "appIconColor": 550655,
+          "signatures": [
+            "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27",
+            "e3f9e1e0cf99d0e56a055ba65e241b3399f7cea524326b0cdd6ec1327ed0fdc1"
+          ],
+          "targets": [
+            {
+              "version": "581.0.0.45.58",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475215365,
+                "ARMEABI_V7A": 475215364
+              }
+            },
+            {
+              "version": "580.0.0.51.74",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 475019344
+              }
+            },
+            {
+              "version": "577.0.0.50.72",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 474426275
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
       "name": "Start on x86 devices",
       "description": "Keeps Facebook from crashing or freezing as it starts on an x86 device that runs its arm code through a translator, such as an emulator or an x86 Chromebook, by skipping the one start-up step that breaks there. Phones and tablets with arm chips start as before.",
       "category": "Fixes",
@@ -3506,7 +3722,7 @@
     },
     {
       "name": "Turn off screen transitions",
-      "description": "Shows Facebook's tabs, its Menu and the screens that open over it at once, without the slide between them. Swiping and animations inside a page stay. Its switch starts on, under Appearance.",
+      "description": "Shows Facebook's tabs, the tab strips inside its screens, its Menu and the screens that open over it at once, without the slide between them. Swiping and animations inside a page stay. Its switch starts on, under Appearance.",
       "category": "Interface",
       "use": false,
       "dependencies": [

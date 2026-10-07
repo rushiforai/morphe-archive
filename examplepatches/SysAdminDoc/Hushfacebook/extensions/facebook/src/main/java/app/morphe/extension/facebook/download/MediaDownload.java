@@ -10,6 +10,7 @@ package app.morphe.extension.facebook.download;
 import android.content.Context;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -257,6 +258,26 @@ public final class MediaDownload {
             failure(() -> "the video save could not start", t);
             return false;
         }
+    }
+
+    /**
+     * Saves the photo at [url], the biggest image the photo viewer's photo holds, as a story's
+     * photo saves. Answers whether the save started; false lets Facebook's own save run.
+     *
+     * <p>It skips {@link RenditionPicker}'s ranking: the caller already chose by the image's own
+     * width and height, and a full-size photo's address can carry the size marker the ranking
+     * reads as a thumbnail's. The address still has to be on Meta's media servers.
+     */
+    static boolean savePhoto(Context context, String url, PostDetails details) {
+        if (url == null || metaOnly(Collections.singletonList(url)).isEmpty()) {
+            failure(() -> "nothing to save: the photo's image wasn't on Meta's media servers", null);
+            return false;
+        }
+        Context safe = ready(context);
+        if (safe == null) return false;
+        info(() -> "saving the photo's biggest image, a " + describe(url));
+        start(safe, false, details == null ? PostDetails.NONE : details, fileJob(safe, url, Downloader.Kind.IMAGE));
+        return true;
     }
 
     // ---------------------------------------------------------------- internals
@@ -866,55 +887,68 @@ public final class MediaDownload {
         java.util.function.Consumer<PostDetails> watching = detailsForTests;
         if (watching != null) watching.accept(known);
         IN_FLIGHT.incrementAndGet();
-        SaveControl.Save save = SaveControl.begin(application, video);
-        // With no notification to cancel it from, the list of saves in the settings is the only way
-        // to stop it, so the start says where that is, for long enough to read.
-        if (save.manager != null) {
-            Feedback.show(application, L10n.t(application, "Saving..."), false);
-        } else {
-            Feedback.show(application,
-                L10n.t(application, "Saving... Cancel: Downloads in Hushfacebook."), true);
-        }
+        // Until the worker runs, whatever throws here gives back the slot and the save it began, or
+        // enough such failures would block every save.
+        SaveControl.Save begun = null;
+        boolean started = false;
+        try {
+            final SaveControl.Save save = SaveControl.begin(application, video);
+            begun = save;
+            // With no notification to cancel it from, the list of saves in the settings is the only way
+            // to stop it, so the start says where that is, for long enough to read.
+            if (save.manager != null) {
+                Feedback.show(application, L10n.t(application, "Saving..."), false);
+            } else {
+                Feedback.show(application,
+                    L10n.t(application, "Saving... Cancel: Downloads in Hushfacebook."), true);
+            }
 
-        Thread worker = new Thread(() -> {
-            MediaStoreWriter writer = new MediaStoreWriter(application, video, known);
+            Thread worker = new Thread(() -> {
+                MediaStoreWriter writer = new MediaStoreWriter(application, video, known);
 
-            try {
-                // What a save in a process Android ended left behind goes before this one makes
-                // anything. It runs once per process.
-                SaveLeftovers.sweepOnce(application);
+                try {
+                    // What a save in a process Android ended left behind goes before this one makes
+                    // anything. It runs once per process.
+                    SaveLeftovers.sweepOnce(application);
 
-                Downloader.Result result = job.run(writer, save);
-                boolean cancelled = result.status == Downloader.Status.CANCELLED;
-                if (result.ok() || cancelled) info(() -> "save finished: " + result);
-                else failure(() -> "save finished: " + result, null);
-                String text = message(application, result.status, writer.savedLocation(), result.lower);
-                if (result.ok()) SaveControl.showCompleted(save, writer);
-                if (result.ok() && result.refused && !compatibleSaves()) {
-                    info(() -> "the saved file has a track WhatsApp and some editors refuse, with Save videos "
-                        + "other apps can open off");
-                    Feedback.show(application, refusedMessage(application, SaveControl.showRefused(application, text)),
-                        true);
-                } else {
-                    Feedback.show(application, text, !result.ok() && !cancelled);
+                    Downloader.Result result = job.run(writer, save);
+                    boolean cancelled = result.status == Downloader.Status.CANCELLED;
+                    if (result.ok() || cancelled) info(() -> "save finished: " + result);
+                    else failure(() -> "save finished: " + result, null);
+                    String text = message(application, result.status, writer.savedLocation(), result.lower);
+                    if (result.ok()) SaveControl.showCompleted(save, writer);
+                    if (result.ok() && result.refused && !compatibleSaves()) {
+                        info(() -> "the saved file has a track WhatsApp and some editors refuse, with Save videos "
+                            + "other apps can open off");
+                        Feedback.show(application, refusedMessage(application, SaveControl.showRefused(application, text)),
+                            true);
+                    } else {
+                        Feedback.show(application, text, !result.ok() && !cancelled);
+                    }
+                } catch (Throwable t) {
+                    // Nothing can leave this thread. Facebook installs its own handler for uncaught
+                    // exceptions and reports them as its own crashes.
+                    failure(() -> "the save failed", t);
+                    Feedback.show(application, L10n.t(application, "Download failed"), true);
+                } finally {
+                    save.end();
+                    IN_FLIGHT.decrementAndGet();
                 }
-            } catch (Throwable t) {
-                // Nothing can leave this thread. Facebook installs its own handler for uncaught
-                // exceptions and reports them as its own crashes.
-                failure(() -> "the save failed", t);
-                Feedback.show(application, L10n.t(application, "Download failed"), true);
-            } finally {
-                save.end();
+            }, "hushfacebook-save");
+
+            // A thread that ends when the copy ends leaves nothing behind in a process that is not
+            // ours. A pool parks a thread there for as long as Facebook runs.
+            worker.setDaemon(true);
+            worker.setPriority(Thread.NORM_PRIORITY - 1);
+            worker.start();
+            started = true;
+            return worker;
+        } finally {
+            if (!started) {
+                if (begun != null) begun.end();
                 IN_FLIGHT.decrementAndGet();
             }
-        }, "hushfacebook-save");
-
-        // A thread that ends when the copy ends leaves nothing behind in a process that is not
-        // ours. A pool parks a thread there for as long as Facebook runs.
-        worker.setDaemon(true);
-        worker.setPriority(Thread.NORM_PRIORITY - 1);
-        worker.start();
-        return worker;
+        }
     }
 
     /** A reason for the report, cut to 160 characters. */

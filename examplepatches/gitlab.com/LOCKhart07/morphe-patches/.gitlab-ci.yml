@@ -1,0 +1,69 @@
+# Releases run on main and dev (see .releaserc). Every other branch and
+# merge request only verifies that the patches compile.
+# Commits containing [skip ci] (release commits) are skipped by GitLab.
+
+# Run branch pipelines, but avoid a duplicate one when the branch has an open merge request.
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS
+      when: never
+    - if: $CI_COMMIT_BRANCH
+
+default:
+  image: thyrlian/android-sdk:latest
+
+variables:
+  ANDROID_HOME: "/opt/android-sdk"
+  GIT_DEPTH: 0
+
+.setup: &setup
+  # The Morphe Gradle plugin is hosted on GitHub Packages, which needs a
+  # GitHub token (read:packages) even for public packages.
+  - mkdir -p ~/.gradle
+  - echo "gpr.user=${GPR_USER:-token}" >> ~/.gradle/gradle.properties
+  - echo "gpr.key=${GPR_KEY}" >> ~/.gradle/gradle.properties
+  - yes | sdkmanager --licenses > /dev/null || true
+  - sdkmanager "platforms;android-36" "build-tools;36.0.0" > /dev/null
+  - apt-get update -qq && apt-get install -y -qq curl jq python3 > /dev/null
+
+stages:
+  - build
+  - release
+
+build:
+  stage: build
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"
+      when: never
+    - when: on_success
+  before_script:
+    - *setup
+  script:
+    - ./gradlew :patches:buildAndroid --no-daemon
+  artifacts:
+    paths:
+      - patches/build/libs/*.mpp
+    expire_in: 1 week
+
+release:
+  stage: release
+  rules:
+    - if: $CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "dev"
+  before_script:
+    - *setup
+    - curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - > /dev/null
+    - apt-get install -y -qq nodejs > /dev/null
+    - git config --global user.name "semantic-release-bot"
+    - git config --global user.email "semantic-release-bot@users.noreply.gitlab.com"
+  script:
+    - npm ci
+    # Semantic release runs its own Gradle build command.
+    - npx semantic-release
+    # Verify compilation when semantic-release did not publish a release
+    # (chore commits, docs commits, etc.).
+    - ls patches/build/libs/patches-*.mpp > /dev/null 2>&1 || ./gradlew :patches:buildAndroid --no-daemon
+  artifacts:
+    paths:
+      - patches/build/libs/*.mpp
+    expire_in: 1 week

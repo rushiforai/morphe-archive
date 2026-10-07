@@ -26,6 +26,8 @@ public final class MaterialYouTheme {
     private MaterialYouTheme() {}
 
     static final String KEY = "material_you";
+    /** Runtime switch: with Material You on, Messenger's darkest backgrounds become #000000. Off by default. */
+    static final String BLACK_KEY = "material_you_black";
 
     // --- Dark mode detection ---
 
@@ -84,7 +86,7 @@ public final class MaterialYouTheme {
     private static volatile boolean bound;
     // SharedPreferences keeps weak listener references, so retain this for the lifetime of the process.
     private static final SharedPreferences.OnSharedPreferenceChangeListener CHOICES = (preferences, key) -> {
-        if (key == null || KEY.equals(key) || "paused".equals(key) || "safe_mode".equals(key)) publish();
+        if (key == null || KEY.equals(key) || BLACK_KEY.equals(key) || "paused".equals(key) || "safe_mode".equals(key)) publish();
     };
 
     static {
@@ -100,7 +102,7 @@ public final class MaterialYouTheme {
      */
     public static int mig(int color) {
         if (!Settings.enabled(KEY)) return color;
-        return (color >>> 24) == 0xFF && isDarkMode() ? recolour(palette(), color) : color;
+        return (color >>> 24) == 0xFF && isDarkMode() ? dark(color) : color;
     }
 
     // --- Route 1: FDS colours ---
@@ -112,7 +114,7 @@ public final class MaterialYouTheme {
     public static int fds(int color) {
         if (!Settings.enabled(KEY)) return color;
         if ((color >>> 24) != 0xFF || !isDarkMode()) return color;
-        return recolour(palette(), color);
+        return dark(color);
     }
 
     // --- Route 4: server colours and resource reads ---
@@ -144,7 +146,24 @@ public final class MaterialYouTheme {
 
     /** The palette's neutral at the same lightness for one of the SURFACES, in dark mode. */
     private static int darkSurface(int color) {
-        return isSurface(color) && isDarkMode() ? palette().sameLightness(TonePalette.NEUTRAL, color) : color;
+        if (!isSurface(color) || !isDarkMode()) return color;
+        return isBlackTarget(color) && blackOn() ? 0xFF000000 : palette().sameLightness(TonePalette.NEUTRAL, color);
+    }
+
+    /** A dark mode colour from the Mig or FDS resolvers: pure black when asked for, the palette's tint otherwise. */
+    private static int dark(int color) {
+        return isBlackTarget(color) && blackOn() ? 0xFF000000 : recolour(palette(), color);
+    }
+
+    /** Whether the pure black switch is on. Only read after the Material You switch has been checked. */
+    private static boolean blackOn() {
+        SharedPreferences prefs = Settings.preferences;
+        return prefs != null && prefs.getBoolean(BLACK_KEY, false);
+    }
+
+    /** Messenger's darkest backgrounds: 0xFF080809 and any grey no brighter than 0x0F. */
+    static boolean isBlackTarget(int color) {
+        return (color >>> 24) == 0xFF && isNeutral(color) && Math.max((color >> 16) & 0xFF, Math.max((color >> 8) & 0xFF, color & 0xFF)) <= 0x0F;
     }
 
     // --- Colour classification ---
@@ -236,7 +255,7 @@ public final class MaterialYouTheme {
     private static void publish() {
         synchronized (PUBLISHING) {
             TonePalette p = isDarkMode() && Settings.wouldUse(KEY) ? palette : null;
-            DARK_080809 = surface(p, 0x080809);
+            DARK_080809 = p != null && blackOn() ? 0xFF000000 : surface(p, 0x080809);
             DARK_1C1C1D = surface(p, 0x1C1C1D);
             DARK_252728 = surface(p, 0x252728);
             DARK_333334 = surface(p, 0x333334);

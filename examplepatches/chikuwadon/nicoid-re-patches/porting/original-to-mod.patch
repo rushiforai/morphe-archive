@@ -7271,19 +7271,15 @@
      move-object/from16 v1, p0
  
      const-string v2, "flvUrl"
-@@ -11269,6 +11288,15 @@
+@@ -11269,6 +11288,11 @@
      move v13, v14
  
      :goto_5
 +    iget-object v7, v1, Le/e/a/d0;->M:Landroid/content/SharedPreferences;
-+    const-string v11, "comment_limit_extended"
-+    const/4 v12, 0x0
-+    invoke-interface {v7, v11, v12}, Landroid/content/SharedPreferences;->getBoolean(Ljava/lang/String;Z)Z
-+    move-result v7
-+    if-eqz v7, :normal_comment_limit
-+    const/16 v13, 0xc8
-+    const/16 v9, 0x7d0
-+    :normal_comment_limit
++    invoke-static {v7, v13}, Le/e/a/Followup173;->legacyPerMinute(Landroid/content/SharedPreferences;I)I
++    move-result v13
++    invoke-static {v7, v9}, Le/e/a/Followup173;->legacyTotal(Landroid/content/SharedPreferences;I)I
++    move-result v9
      new-instance v7, Ljava/lang/StringBuilder;
  
      invoke-direct {v7}, Ljava/lang/StringBuilder;-><init>()V

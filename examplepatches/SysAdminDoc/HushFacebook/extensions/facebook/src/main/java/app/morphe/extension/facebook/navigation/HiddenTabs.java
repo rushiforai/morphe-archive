@@ -52,7 +52,15 @@ public final class HiddenTabs {
         MARKETPLACE(StartTab.MARKETPLACE, FacebookTabs.MARKETPLACE_CLASS),
         GROUPS(null, FacebookTabs.GROUPS_CLASS),
         GAMING(null, FacebookTabs.GAMING_CLASS, FacebookTabs.GAMING_CONTROLLER_CLASS),
-        EVENTS(null, FacebookTabs.EVENTS_CLASS);
+        EVENTS(null, FacebookTabs.EVENTS_CLASS),
+        DATING(null, FacebookTabs.DATING_CLASS),
+        PROFESSIONAL_DASHBOARD(null, FacebookTabs.PROFESSIONAL_DASHBOARD_CLASS,
+                FacebookTabs.PROFESSIONAL_DASHBOARD_PLAIN_CLASS),
+        SAVED(null, FacebookTabs.SAVED_CLASS),
+        AD_CENTER(null, FacebookTabs.AD_CENTER_CLASS),
+        CREATE(null, FacebookTabs.CREATE_CLASS),
+        EXPLORE(null, FacebookTabs.EXPLORE_CLASS),
+        JOBS(null, FacebookTabs.JOBS_CLASS);
 
         /** The start this tab answers, or null when a start can't be sent to it. */
         @Nullable
@@ -73,6 +81,13 @@ public final class HiddenTabs {
                 case MARKETPLACE: return Settings.HIDE_MARKETPLACE_TAB;
                 case GROUPS: return Settings.HIDE_GROUPS_TAB;
                 case GAMING: return Settings.HIDE_GAMING_TAB;
+                case DATING: return Settings.HIDE_DATING_TAB;
+                case PROFESSIONAL_DASHBOARD: return Settings.HIDE_PROFESSIONAL_DASHBOARD_TAB;
+                case SAVED: return Settings.HIDE_SAVED_TAB;
+                case AD_CENTER: return Settings.HIDE_AD_CENTER_TAB;
+                case CREATE: return Settings.HIDE_CREATE_TAB;
+                case EXPLORE: return Settings.HIDE_EXPLORE_TAB;
+                case JOBS: return Settings.HIDE_JOBS_TAB;
                 default: return Settings.HIDE_EVENTS_TAB;
             }
         }

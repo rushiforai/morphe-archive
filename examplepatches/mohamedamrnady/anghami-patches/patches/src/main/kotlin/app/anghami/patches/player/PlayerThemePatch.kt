@@ -8,6 +8,13 @@ import app.morphe.patcher.patch.resourcePatch
  * Player theme background: makes the player follow the app's day/night
  * theme instead of staying white-on-dark.
  *
+ * Night mode carries the theme (dark window background, light text, accent
+ * buttons). Day mode is deliberately stock: the same layouts resolve to
+ * the original dark-player values (gray_dark background, white text/icons,
+ * stock scrims) and the cover-art tint is back (see the "Player theme"
+ * bytecode patch, which only removes the tint at night) — the original
+ * player experience in light mode.
+ *
  * The player's chrome is hardcoded white in every qualifier, so it only
  * ever read correctly on a dark background. Two new roles are introduced:
  *
@@ -70,13 +77,10 @@ import app.morphe.patcher.patch.resourcePatch
  *   The third lyric layout (`lyrics_line_layout`) already uses the
  *   grey/white selector and stays.
  *
- * Requires the companion bytecode patch "Player: remove cover-art tint" —
- * without it the runtime cover color would overwrite `player_bg` on every
- * song change. The tint removal is unconditional (both modes, no per-song
- * color anywhere on the player). Pairs with "Player: readable queue in day
- * mode" (the `isInverseColors` flag) plus "Player: accent now-playing +
- * pills" (unselected queue titles back to `primaryText`, selected row on
- * the accent).
+ * Requires the companion bytecode patch "Player theme" for the night
+ * side: without it the runtime cover color would overwrite `player_bg` on
+ * every song change. The tint removal is night-only (day keeps the
+ * per-song cover tint — the original light-mode experience).
  *
  * Buttons reached through view attributes (no bytecode needed): the
  * `PlayButton` disc (generic `color` styleable attr, `@id/play_btn`
@@ -87,7 +91,7 @@ import app.morphe.patcher.patch.resourcePatch
  * text + border like every other button, user call:
  * `AnghamiButton.d()` overwrites `android:textColor`, so the custom
  * `app:textColor`/`app:borderColor` attrs are set explicitly — plus the
- * "Player: accent now-playing + pills" patch for the `m0` runtime
+ * "Player theme" bytecode patch for the `m0` runtime
  * overwrite, which now targets `primaryText`), the like/save/download
  * lotties (`app:lottie_colorFilter`, the ctor-supported KeyPath tint —
  * `app:tint`/`setColorFilter` are no-ops on LottieDrawable; all three
@@ -104,7 +108,7 @@ import app.morphe.patcher.patch.resourcePatch
 @Suppress("unused")
 val playerThemePatch = resourcePatch(
     name = "Player theme background",
-    description = "Makes the player background, text, icons and seekbar follow the app's day/night theme. Keeps the darker split below the progress bar. Pair with 'Player: remove cover-art tint'.",
+    description = "Makes the player background, text, icons and seekbar follow the app's day/night theme. Keeps the darker split below the progress bar. Pair with 'Player theme'.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_ANGHAMI_8_0_28)
@@ -249,17 +253,20 @@ val playerThemePatch = resourcePatch(
         writeNew("res/drawable-night/player_seekbar_thumb_pressed_theme.xml", seekbarThumbPressed(theme = false))
 
         // ------------------------------------------------------------------
-        // 5. Lyrics: the line layouts paint hardcoded white, unreadable on
-        //    the white day background. Repoint at the app's standard theme
-        //    text (primaryText) like every other screen, per user call; the
-        //    grey-state selector lines (selector_gray_white) already read
-        //    fine and stay.
+        // 5. Lyrics: the line layouts paint hardcoded white. In night mode
+        //    the player background is dark, so white is correct there; in
+        //    day mode the cover tint is back (see the "Player theme"
+        //    bytecode patch), so white is correct there too — stock
+        //    behavior in both modes. Repoint at player_fg (white day and
+        //    night) instead of the theme text, which would go dark in day
+        //    mode and vanish on the tint. The grey-state selector lines
+        //    (selector_gray_white) already read fine and stay.
         // ------------------------------------------------------------------
         for (path in lyricLineLayouts) {
             val file = get(path)
             val text = file.readText()
             check(text.split("@color/white").size == 2) { "expected exactly 1 white ref in $path" }
-            file.writeText(text.replace("@color/white", "@color/primaryText"))
+            file.writeText(text.replace("@color/white", "@color/player_fg"))
         }
     }
 }
@@ -268,15 +275,15 @@ val playerThemePatch = resourcePatch(
 // Day/night role definitions
 // ---------------------------------------------------------------------------
 
-private const val colorsXmlEntriesDay = """    <color name="player_bg">@color/window_background_color</color>
-    <color name="player_fg">@color/dark_1</color>
-    <color name="player_accent">@color/app_color</color>
-    <color name="player_on_accent">@color/white</color>
-    <color name="player_fg_10">#1a000000</color>
-    <color name="player_fg_20">#33000000</color>
-    <color name="player_fg_40">#66000000</color>
-    <color name="player_fg_60">#99000000</color>
-    <color name="player_scrim">@android:color/transparent</color>
+private const val colorsXmlEntriesDay = """    <color name="player_bg">@color/gray_dark</color>
+    <color name="player_fg">@color/white</color>
+    <color name="player_accent">@color/white</color>
+    <color name="player_on_accent">@color/black</color>
+    <color name="player_fg_10">#1affffff</color>
+    <color name="player_fg_20">#33ffffff</color>
+    <color name="player_fg_40">#66ffffff</color>
+    <color name="player_fg_60">#99ffffff</color>
+    <color name="player_scrim">@color/black_20_transparent</color>
 """
 
 private const val colorsXmlEntriesNight = """    <color name="player_bg">@color/window_background_color</color>
@@ -523,7 +530,7 @@ private fun ResourcePatchContext.rewriteLayout(path: String) {
     // white with android:textColor=player_fg). Explicit app: attrs win
     // over the style default (precedent: item_podcast_list sets
     // app:textColor) — but note `playerfeed/c.m0` overwrites the text
-    // AGAIN at runtime, so the "Player: accent now-playing + pills"
+    // AGAIN at runtime, so the "Player theme"
     // bytecode patch swaps that const to primaryText. The border slot is
     // left null there ("don't touch"), so this XML border is what
     // survives. All three pills get plain theme text + border (user call:

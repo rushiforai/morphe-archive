@@ -33,11 +33,14 @@ import java.util.Set;
 
 import app.morphe.extension.hushthreads.ads.FeedAds;
 import app.morphe.extension.hushthreads.ads.ShadowFeedAds;
+import app.morphe.extension.hushthreads.download.SavesForTests;
+import app.morphe.extension.hushthreads.feed.ImageQuality;
 import app.morphe.extension.hushthreads.feed.ReturnRefresh;
 import app.morphe.extension.hushthreads.feed.VideoAutoplay;
 import app.morphe.extension.hushthreads.misc.Analytics;
 import app.morphe.extension.hushthreads.misc.ExternalBrowser;
 import app.morphe.extension.hushthreads.misc.LinkCleaner;
+import app.morphe.extension.hushthreads.misc.ScreenshotDetection;
 import app.morphe.extension.hushthreads.theme.PureBlack;
 import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.settings.BaseSettings;
@@ -118,6 +121,8 @@ public class PausedHooksTest {
                 }));
         // A feed video Threads would play by itself waits for a tap.
         probes.put(PatchFamily.VIDEO_AUTOPLAY, Collections.singletonList(() -> !VideoAutoplay.play(true)));
+        // The photo size chooser aims past the screen's width.
+        probes.put(PatchFamily.MAX_IMAGE_QUALITY, Collections.singletonList(() -> ImageQuality.targetWidth(1080) != 1080));
         // A shared post link loses the tracking tags Threads added to it, and a short one becomes the post's own.
         probes.put(PatchFamily.SANITIZE_SHARING_LINKS, Arrays.asList(
                 () -> {
@@ -143,6 +148,11 @@ public class PausedHooksTest {
             String upload = "https://graph.threads.net/logging_client_events";
             return !upload.equals(Analytics.endpoint(upload));
         }));
+        // A new picture in the photo library or a screenshot folder never reaches Threads' watchers.
+        probes.put(PatchFamily.SCREENSHOT_DETECTION, Arrays.asList(
+                ScreenshotDetection::ignoresChange, ScreenshotDetection::ignoresScreenshotFile));
+        // A post's menu offers Save.
+        probes.put(PatchFamily.SAVE_MEDIA, Collections.singletonList(SavesForTests::menuOffersSave));
         // Threads' dark gray background comes back black.
         probes.put(PatchFamily.PURE_BLACK, Collections.singletonList(
                 () -> PureBlack.color(0xff101010L << 32) == 0xff00000000000000L));

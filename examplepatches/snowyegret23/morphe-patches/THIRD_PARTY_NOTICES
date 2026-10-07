@@ -1,0 +1,33 @@
+S Chzzk Patches
+Copyright (C) 2026 Snowyegret
+Licensed under the GNU General Public License, version 3.
+See LICENSE for the complete terms and warranty disclaimer.
+
+Morphe Patches Template
+https://github.com/MorpheApp/morphe-patches-template
+Reference revision: 57538a3b85ccd3c9a24ed3cc06ec722787563879
+Copyright 2025 Morphe and contributors.
+Build configuration, release workflows, wrapper and patch-list tooling are
+adapted from this GPLv3 template. Its existing notices are preserved.
+The naming restriction is reproduced in NOTICE.
+
+Ample Patches
+https://github.com/AmpleReVanced/revanced-patches
+Reference revision: 30930ba4981e643b58c38c98dfb53cc83343a3f2
+Licensed under GPLv3. Original authors retain copyright in reused portions.
+The CHZZK patch work began with its player ads, P2P, home banner and
+TongPow patches. These implementations have been adapted or
+replaced after analysis of CHZZK 3.14.0.
+The upstream project uses code from Morphe (https://morphe.software)
+and ReVanced (https://revanced.app).
+
+Changes by Snowyegret, 2026-10-05:
+CHZZK 3.14.0 targeting; native Morphe settings and clipboard import/export;
+blinded-chat text display, package naming and custom app name options; revised
+clip-card filtering, topic-banner selection and TongPow claim callback;
+player model configuration; phone/tablet build validation and S branding.
+
+Chzzk Platter
+https://github.com/lirpa62/Chzzk-Platter
+Reference revision: 96f9f2f64bf77f2a7dcc915ce710d903482f3109
+Feature reference only. No browser extension source or assets are included.
