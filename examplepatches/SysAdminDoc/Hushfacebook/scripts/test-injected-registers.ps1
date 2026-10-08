@@ -17,7 +17,8 @@
     int on the other) read by each instruction and in each register that takes a value, or read
     through a copy, a wide move of a conflict, a long and a lone upper half tested against zero,
     an int and an object tested for equality in either order, a move-result the patch separated
-    from its invoke, bad try ranges and handlers (a handler at a switch or array payload among
+    from its invoke or left behind when Morphe's inline compiler dropped a plain invoke of a
+    parameter past v15 (Hide tab badges in an 18-register writer), bad try ranges and handlers (a handler at a switch or array payload among
     them), a move-exception the method's entry reaches, the one feed guard doubled, moved or
     missing, the reels hook deleted from the pre-EOF injector or put after a branch, the showcase
     stub left unfilled, calling another class, or calling a class that isn't the only one
@@ -180,6 +181,8 @@ Assert-True (Test-VerifiesWhatItPatched $allPatches) `
     'verify-all-patches.ps1 does not run the structural checks on the APK it patched.'
 Assert-True (Test-PushGateRunsSuite $prePush 'scripts/test-injected-registers.ps1') `
     'The push gate does not run the injected-register fixture test.'
+Assert-True (Test-PushGatePatchesFixtures $prePush) `
+    'The push gate does not apply the bundle to the Facebook fixtures and check what it injected.'
 Assert-True ((Get-Content -LiteralPath $prePush -Raw) -notmatch 'so it has nothing to run there') `
     'The push gate still skips a suite it expects when the file is missing.'
 
@@ -198,6 +201,15 @@ try {
     $talliesBothSides = { param($Path) Test-TalliesBothSides $Path }
     $verifiesPatched = { param($Path) Test-VerifiesWhatItPatched $Path }
     $gateRunsSuite = { param($Path) Test-PushGateRunsSuite $Path 'scripts/test-injected-registers.ps1' }
+    $gatePatchesFixtures = { param($Path) Test-PushGatePatchesFixtures $Path }
+    # The pre-push call that runs verify-all-patches.ps1 on a fixture, and the one call to the
+    # function holding it.
+    $fixtureRun = { param($Node)
+        $Node -is [System.Management.Automation.Language.CommandAst] -and
+        $Node.GetCommandName() -eq 'Invoke-CommitScript' -and $Node.Extent.Text -like '*verify-all-patches.ps1*' }
+    $fixtureCheckCall = { param($Node)
+        $Node -is [System.Management.Automation.Language.CommandAst] -and
+        $Node.GetCommandName() -eq 'Invoke-PatchedFixtureCheck' }
     # The nodes the copies take the wiring out around: the & $Java DexDiff call in Invoke-DexDiff,
     # the call to Invoke-DexDiff, the contracts helper's dot-source, verify-all-patches' verifier
     # call, and the pre-push line that runs this suite.
@@ -260,6 +272,11 @@ try {
                 $Text.Replace('-PatchedApk $out', '-PatchedApk $stockApk') } }
         @{ Name = 'the suite line in a block comment'; Check = $gateRunsSuite
             Text = Edit-ScriptNode $prePushSource $suiteLine { param($Text) "<#`n$Text`n#>" } }
+        @{ Name = 'the untouched pre-push.ps1'; Check = $gatePatchesFixtures; Expect = $true; Text = $prePushSource }
+        @{ Name = 'the fixture run behind if ($false)'; Check = $gatePatchesFixtures
+            Text = Edit-ScriptNode $prePushSource $fixtureRun { param($Text) "if (`$false) { $Text }" } }
+        @{ Name = 'the fixture check never called'; Check = $gatePatchesFixtures
+            Text = Edit-ScriptNode $prePushSource $fixtureCheckCall { param($Text) '$null = $gateRoot' } }
         # One copy for each rule of what a script can't reach, each taking the wiring out by that
         # rule alone, so none of them can be dropped without a copy here passing its check.
         @{ Name = 'the contracts helper dot-sourced in a while ($false) body'; Check = $dotSourcesContracts
@@ -591,6 +608,11 @@ try {
         "The good build's guard was not reported at its one call site.`n$($good.Output -join "`n")"
     Assert-True (($good.Output -join "`n") -match 'structural findings: 0') `
         "The good build did not report its structural count.`n$($good.Output -join "`n")"
+    # The badge writer's count handed over as a range from v17 is a changed method the good build
+    # passes with, so the dropped-call control below is refused for the lone move-result alone.
+    Assert-True ((Get-Content -LiteralPath $good.Report -Raw) -match
+        '(?m)^==== Lfixture/IconBadger;->write\(Landroid/content/Context;I\)V\r?$') `
+        "The good build's badge writer, hooked with a range call, was not among its changed methods.`n$(Get-Content -LiteralPath $good.Report -Raw)"
     foreach ($stub in 'GenAiLabel;->detectedInfo', 'GenAiLabel;->selfDisclosureInfo',
             'RecommendationLabel;->recommendationContext', 'PostText;->message', 'PostText;->attachedStory',
             'PostSources;->actors', 'PostSources;->attachments') {
@@ -598,11 +620,11 @@ try {
             'Lcom/facebook/graphql/model/GraphQLStory;->A0X()Lfixture/Model; before its first return'))) `
             "The good build's $stub was not reported calling the story's accessor.`n$($good.Output -join "`n")"
     }
-    # The tray count rule finds one call in each tray class's count.
+    # The tray count rule finds one call in each counted class's count.
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
-        'storiesTrayCount(Ljava/lang/Object;II)I in getItemCount 2: 2 call sites, in ' +
-        'Lfixture/ClassicTray;->getItemCount()I, Lfixture/UnifiedTray;->getItemCount()I')) `
-        "The good build's tray counts were not reported, one in each tray class.`n$($good.Output -join "`n")"
+        'storiesTrayCount(Ljava/lang/Object;II)I in getItemCount 3: 3 call sites, in ' +
+        'Lfixture/ClassicTray;->getItemCount()I, Lfixture/ComposerRow;->getItemCount()I, Lfixture/UnifiedTray;->getItemCount()I')) `
+        "The good build's tray counts were not reported, one in each counted class.`n$($good.Output -join "`n")"
     # Each start-call rule finds its one method among others holding part of what it names (the
     # refresh controller's onPause, two other methods naming both surfaces), and the hook first there.
     Assert-True (($good.Output -join "`n") -match [regex]::Escape(
@@ -661,6 +683,10 @@ try {
         'Lapp/morphe/extension/: calls Lfixture/Attributions;->A02(Lfixture/ReelModel;Ljava/lang/String;)Lfixture/Model; ' +
         'before its first return')) `
         "The good build's GenAI reel stub was not reported calling Facebook's attribution finder.`n$($good.Output -join "`n")"
+    Assert-True (($good.Output -join "`n") -match [regex]::Escape(
+        'ReelMidCards;->midCardType(Ljava/lang/Object;)Ljava/lang/Object; outside ' +
+        'Lapp/morphe/extension/: calls Lfixture/MidCardItem;->A0F()Ljava/lang/Object; before its first return')) `
+        "The good build's Threads card stub was not reported calling the mid-card item's read.`n$($good.Output -join "`n")"
     # The settings patch sends each of these ShortcutManager calls to SettingsEntry, and the fixture's
     # publisher makes each one from a method of its own (Caller). Every no-call rule in the contract
     # file has to be one of them, or a rule with no bad build below would pass on "0 call sites".
@@ -825,6 +851,7 @@ try {
         'bad-zero-for-wide-branch' = 'width'
         'bad-move-wide-conflict' = 'width'
         'bad-move-result' = 'result'
+        'bad-dropped-invoke' = 'result'
         'bad-try-range' = 'try'
         'bad-try-handler' = 'try'
         'bad-try-handler-result' = 'try'
@@ -1062,9 +1089,9 @@ try {
     # reaches and the count, in the method it sits in. Each FAIL line has to be one of these.
     $wrongPlace = [ordered]@{
         'bad-tray-hook-missing' = @(('*contract: Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I ' +
-            'has 1 call sites, and must have exactly 2, each in getItemCount of a class of its own: Lfixture/ClassicTray;->getItemCount()I'))
+            'has 2 call sites, and must have exactly 3, each in getItemCount of a class of its own: Lfixture/ClassicTray;->getItemCount()I, Lfixture/ComposerRow;->getItemCount()I'))
         'bad-tray-count-twice' = @(('*contract: Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I ' +
-            'is called more than once in one class''s getItemCount: Lfixture/ClassicTray;->getItemCount()I, Lfixture/ClassicTray;->getItemCount()I'))
+            'is called more than once in one class''s getItemCount: Lfixture/ClassicTray;->getItemCount()I, Lfixture/ClassicTray;->getItemCount()I, Lfixture/ComposerRow;->getItemCount()I'))
         'bad-tray-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I ' +
             'is called from Lfixture/UnifiedTray;->countRows()I, not from getItemCount'))
         'bad-return-refresh-hook-wrong-method' = @(('*contract: Lapp/morphe/extension/facebook/feed/ReturnRefresh;->skip()Z is not ' +
@@ -1126,6 +1153,10 @@ try {
         'bad-register-changed' = @(
             '*register: move-result at 3 reaches v4, and the method declares 4 registers  in Lfixture/Feed;->addNewEdgeToCollection(*',
             '*register: if-eqz at 4 reaches v4, and the method declares 4 registers  in Lfixture/Feed;->addNewEdgeToCollection(*')
+        # The positive control for Morphe's inline compiler dropping invoke-static { p2 } in a method
+        # of 18 registers: the lone move-result is named, with the class and method it opens.
+        'bad-dropped-invoke' = @(('*result: move-result at 0 does not follow an invoke or filled-new-array; it opens the ' +
+            'method  in Lfixture/IconBadger;->write(Landroid/content/Context;I)V'))
     }
     foreach ($case in $wrongPlace.GetEnumerator()) {
         $fails = @((Get-Findings $badResults[$case.Key]).Fails)

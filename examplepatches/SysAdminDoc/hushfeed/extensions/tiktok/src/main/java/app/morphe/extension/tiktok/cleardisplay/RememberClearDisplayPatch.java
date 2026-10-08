@@ -16,6 +16,7 @@ import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.feed.VideoOverlayHider;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.wellbeing.FeedLock;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,6 +77,12 @@ public final class RememberClearDisplayPatch {
      * such an item is TikTok's business.
      */
     private static volatile boolean hushfeedCleared;
+    /**
+     * Whether the automatic path cleared the last video and nothing has asked for the controls
+     * since. It outlives the swipe to the next video, whose own clear lands only after it
+     * starts; see {@link #isCarryingClear}.
+     */
+    private static volatile boolean carrying;
     private static boolean observingPreferences;
     private static WeakReference<View> window = new WeakReference<>(null);
     private static final SharedPreferences.OnSharedPreferenceChangeListener PREFERENCES = (preferences, key) -> {
@@ -183,6 +190,7 @@ public final class RememberClearDisplayPatch {
             onFocus = null;
             applied = false;
             manuallyChanged = false;
+            setCarrying(false);
             if (clearNow && hushfeedCleared) emit(event, false);
             return;
         }
@@ -193,8 +201,10 @@ public final class RememberClearDisplayPatch {
             currentId = null;
             applied = false;
             manuallyChanged = false;
+            setCarrying(false);
             // Not under the daily hold, whose panel needs TikTok's tabs back (leaveForHold).
-            if (Settings.CLEAR_DISPLAY.get() && !SessionBudget.isLocked()) emit(event, true);
+            // Nor under the feed lock, which covers the feed the same way and needs the tabs too.
+            if (Settings.CLEAR_DISPLAY.get() && !SessionBudget.isLocked() && !FeedLock.covers()) emit(event, true);
             // Switched off while it had the controls hidden: TikTok brings them back on the next
             // video by itself, but the live state, which the tab strip hide reads, would say
             // hidden until TikTok's own clear display bar was used (S22, 2026-09-23).
@@ -214,11 +224,12 @@ public final class RememberClearDisplayPatch {
             if (attempt != generation) return;
             pending = null;
             if (Settings.AUTOMATIC_CLEAR_DISPLAY.get() && id.equals(currentId) && stillCurrent.holds()
-                    && !SessionBudget.isLocked()) {
+                    && !SessionBudget.isLocked() && !FeedLock.covers()) {
                 if (emit(event, true)) {
                     applied = true;
                     automaticHidden = true;
                     awaitingNative = false;
+                    setCarrying(true);
                 } else if (attempt == generation) awaitingNative = true;
             }
         };
@@ -240,6 +251,7 @@ public final class RememberClearDisplayPatch {
         }
         cancel();
         applied = false;
+        setCarrying(false);
         if (clearNow) emit(RememberClearDisplayPatch::postClear, false);
     }
 
@@ -259,6 +271,7 @@ public final class RememberClearDisplayPatch {
         clearNow = false;
         hushfeedCleared = false;
         automaticHidden = false;
+        carrying = false;
         currentController.clear();
         currentModel.clear();
         activeCondition = null;
@@ -274,6 +287,25 @@ public final class RememberClearDisplayPatch {
     /** Whether the controls are hidden right now, automatically or by the user. */
     public static boolean isClearDisplayNow() {
         return clearNow;
+    }
+
+    /**
+     * Whether the controls should stay away across a swipe: the automatic path cleared the last
+     * video, will clear the next one as soon as it starts (no delay chosen), and nobody has asked
+     * for the controls back. TikTok's clear mode belongs to one video, so until the next one's
+     * clear lands it shows its buttons, its progress bar and the tabs, and a slow drag shows
+     * them on the incoming video too (#84). The overlay hider keeps them away while this holds.
+     */
+    public static boolean isCarryingClear() {
+        return carrying && Settings.AUTOMATIC_CLEAR_DISPLAY.get()
+                && Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.get() == 0 && !SessionBudget.isLocked()
+                && !FeedLock.covers();
+    }
+
+    private static void setCarrying(boolean carry) {
+        if (carrying == carry) return;
+        carrying = carry;
+        MAIN.post(VideoOverlayHider::refresh);
     }
 
     private static boolean emit(ClearEvent event, boolean clear) {
@@ -327,6 +359,7 @@ public final class RememberClearDisplayPatch {
         hushfeedCleared = false;
         // TikTok's own change: the state is TikTok's or the user's from here.
         automaticHidden = false;
+        setCarrying(false);
         long observed = generation;
         Runnable changed = () -> {
             if (observed != generation) return;

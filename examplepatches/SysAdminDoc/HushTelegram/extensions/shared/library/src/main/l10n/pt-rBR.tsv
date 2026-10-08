@@ -268,6 +268,42 @@ Voice messages in the music player	Mensagens de voz no player de música
 While a voice message plays, tapping the bar above the chat opens Telegram's full music player with its seek bar, instead of jumping to the message. View-once voice messages stay as they are. Off by default in settings.	Enquanto uma mensagem de voz toca, tocar na barra acima do chat abre o player de música completo do Telegram com a barra de progresso, em vez de pular para a mensagem. Mensagens de voz de visualização única ficam como estão. Desativado por padrão nas configurações.
 Silence people outside your contacts	Silenciar quem não está nos seus contatos
 A private message from someone who isn't in your contacts still shows a notification, just without sound or vibration. Bots, reminders and Telegram's login codes keep their sound. Off by default in settings.	Uma mensagem privada de alguém que não está nos seus contatos ainda mostra a notificação, só que sem som nem vibração. Bots, lembretes e os códigos de login do Telegram mantêm o som. Desativado por padrão nas configurações.
+Disable pull to archive	Desativar puxar para o arquivo
+Pulling down the chat list no longer brings up a hidden archive. You can open it from Archived chats in the chat list's menu, or pin it to keep it in the list. Off by default in settings.	Puxar a lista de conversas para baixo não mostra mais um arquivo oculto. Você pode abri-lo em Conversas arquivadas no menu da lista de conversas, ou fixá-lo para mantê-lo na lista. Desativado por padrão nas configurações.
+Start the camera on the rear lens	Abrir a câmera na lente traseira
+The camera in the attachment menu starts on the rear lens every time you open it, instead of the lens you used last. You can still flip it while it's open. Off by default in settings.	A câmera do menu de anexos abre sempre na lente traseira, em vez da última que você usou. Você ainda pode trocar de lente com ela aberta. Desativado por padrão nas configurações.
+Hide gallery camera tile	Ocultar o bloco da câmera na galeria
+The photo grid in the attachment menu starts with your photos instead of a live camera tile. A chat picks it up the next time you open it. Off by default in settings.	A grade de fotos do menu de anexos começa com suas fotos em vez de um bloco com a câmera ao vivo. Uma conversa passa a usar isso na próxima vez que você abri-la. Desativado por padrão nas configurações.
+Hide time on stickers	Ocultar a hora nas figurinhas
+Stickers and big animated emoji no longer carry the time and read checks in their corner. Every other message keeps its time. Off by default in settings.	Figurinhas e emojis animados grandes deixam de mostrar a hora e os sinais de leitura no canto. As outras mensagens mantêm a hora. Desativado por padrão nas configurações.
+Ignore mentions in muted chats	Ignorar menções em chats silenciados
+Telegram still notifies you when someone mentions you or replies to you in a group or channel you've muted. With this on, those stay as quiet as the rest of the chat. Chats you haven't muted notify as before. Off by default in settings.	O Telegram ainda avisa você quando alguém menciona ou responde você em um grupo ou canal que você silenciou. Com isto ativado, esses avisos ficam tão quietos quanto o resto do chat. Chats que você não silenciou notificam como antes. Desativado por padrão nas configurações.
+Hide blocked users in groups	Ocultar usuários bloqueados em grupos
+Messages from people you've blocked are left out of the groups and supergroups you open. Private chats and channel posts stay as they are. Nothing is deleted, so turning it off and reopening the chat brings them back. Telegram loads a long blocked list a bit at a time, so someone it hasn't loaded yet still shows. Off by default in settings.	Mensagens de pessoas que você bloqueou ficam de fora dos grupos e supergrupos que você abre. Chats privados e posts de canais continuam como estão. Nada é apagado, então desativar e reabrir o chat traz as mensagens de volta. O Telegram carrega uma lista longa de bloqueados aos poucos, então alguém que ele ainda não carregou continua aparecendo. Desativado por padrão nas configurações.
+Hide Telegram Features and Invite Friends	Ocultar Recursos do Telegram e Convidar amigos
+Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	As configurações deixam de mostrar a linha Recursos do Telegram e os Contatos deixam de mostrar Convidar amigos. Se você ainda não tem contatos, a lista de convites que aparece no lugar deles também some. Desativado por padrão nas configurações.
+Add Repeat to the message menu	Adicionar Repetir ao menu de mensagens
+Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Coloca Repetir abaixo de Encaminhar no menu que você abre ao tocar e segurar uma mensagem. Ele envia a mensagem de novo para o mesmo chat, como uma nova mensagem sua. Só aparece onde o Telegram oferece Encaminhar e você pode escrever, então nunca em chats protegidos ou secretos. Desativado por padrão nas configurações.
+Add Copy photo to the message menu	Adicionar Copiar foto ao menu de mensagens
+Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Coloca Copiar foto abaixo de Encaminhar no menu que você abre ao tocar e segurar uma foto, depois que ela foi baixada. Copia a própria imagem, para você colar em outro app. Não aparece em chats protegidos ou secretos. Desativado por padrão nas configurações.
+Add Message details to the message menu	Adicionar Detalhes da mensagem ao menu de mensagens
+Puts Message details at the end of a message's long-press menu. It shows the message's IDs, when it was sent and edited, where it was forwarded from and the file's data center and size, with a Copy button. Off by default in settings.	Coloca Detalhes da mensagem no fim do menu que você abre ao tocar e segurar uma mensagem. Mostra os IDs da mensagem, quando ela foi enviada e editada, de onde foi encaminhada e o data center e o tamanho do arquivo, com um botão para copiar. Desativado por padrão nas configurações.
+Repeat	Repetir
+Copy photo	Copiar foto
+Photo copied	Foto copiada
+Message details	Detalhes da mensagem
+Message ID: %1$s	ID da mensagem: %1$s
+Chat ID: %1$s	ID do chat: %1$s
+Sender ID: %1$s	ID do remetente: %1$s
+Sent: %1$s	Enviada: %1$s
+Edited: %1$s	Editada: %1$s
+Forwarded from: %1$s	Encaminhada de: %1$s
+Original sender ID: %1$s	ID do remetente original: %1$s
+Originally sent: %1$s	Enviada originalmente: %1$s
+File data center: %1$s	Data center do arquivo: %1$s
+File size: %1$s	Tamanho do arquivo: %1$s
+Copy	Copiar
+Message details copied	Detalhes da mensagem copiados
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Notificações
@@ -296,6 +332,8 @@ Show user and chat IDs	Mostrar IDs de usuário e chat
 Disable double-tap reactions	Desativar reações por toque duplo
 Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Cola texto sem a conversão de HTML, tabelas ou monoespaçado do Telegram. Espaços e URLs ficam intactos. As outras ações da área de transferência continuam disponíveis. Desativado por padrão nas configurações.
 Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Mostra um ID local de usuário ou chat que pode ser copiado no menu do perfil aberto. Os hashes de acesso ficam ocultos. Não adiciona solicitações ao servidor. Desativado por padrão nas configurações.
+Show profile data center	Mostrar o data center do perfil
+A profile's menu also shows which of Telegram's data centers, 1 to 5, holds the profile photo. A profile without a photo shows none, and no server request is added. Off by default in settings.	O menu de um perfil também mostra em qual data center do Telegram, de 1 a 5, fica a foto do perfil. Um perfil sem foto não mostra nenhum, e nenhuma solicitação ao servidor é adicionada. Desativado por padrão nas configurações.
 Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Toques duplos não adicionam reações nos chats ou na prévia de reações. Rolagem, toques, seleção e menus de reação continuam iguais. Desativado por padrão nas configurações.
 compose text paste	colagem de texto ao escrever
 caption text paste	colagem de texto em legendas
@@ -308,3 +346,6 @@ Copy user ID %1$s	Copiar ID de usuário %1$s
 Copy chat ID %1$s	Copiar ID de chat %1$s
 ID	ID
 ID copied	ID copiado
+Data center %1$s	Data center %1$s
+Copy data center %1$s	Copiar data center %1$s
+Data center copied	Data center copiado

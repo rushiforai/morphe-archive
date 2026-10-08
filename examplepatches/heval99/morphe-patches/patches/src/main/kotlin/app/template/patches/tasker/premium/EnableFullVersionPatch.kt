@@ -14,7 +14,7 @@ val enableFullVersionPatch = bytecodePatch(
 
     execute {
         // LVL / licence-server response mapping: always report Licensed.
-        LicenseStatusFingerprint.methodOrNull?.addInstructions(
+        LicenseStatusFingerprint.method.addInstructions(
             0,
             """
                 sget-object v0, Lcom/joaomgcd/taskerm/licensing/LicenseStatus;->Licensed:Lcom/joaomgcd/taskerm/licensing/LicenseStatus;
@@ -23,8 +23,8 @@ val enableFullVersionPatch = bytecodePatch(
         )
 
         // Local "is licensed" checks: cached status and fresh check.
-        CachedLicenseFingerprint.methodOrNull?.returnEarly(true)
-        FreshLicenseFingerprint.methodOrNull?.returnEarly(true)
-        StaticLicenseFingerprint.methodOrNull?.returnEarly(true)
+        CachedLicenseFingerprint.method.returnEarly(true)
+        FreshLicenseFingerprint.method.returnEarly(true)
+        StaticLicenseFingerprint.method.returnEarly(true)
     }
 }

@@ -271,6 +271,42 @@ Voice messages in the music player	Sesli mesajlar müzik çalarda
 While a voice message plays, tapping the bar above the chat opens Telegram's full music player with its seek bar, instead of jumping to the message. View-once voice messages stay as they are. Off by default in settings.	Bir sesli mesaj çalarken sohbetin üstündeki çubuğa dokunduğunuzda, mesaja atlamak yerine Telegram'ın arama çubuklu tam müzik çaları açılır. Tek seferlik sesli mesajlar olduğu gibi kalır. Ayarlarda varsayılan olarak kapalıdır.
 Silence people outside your contacts	Kişileriniz dışındakileri sessize al
 A private message from someone who isn't in your contacts still shows a notification, just without sound or vibration. Bots, reminders and Telegram's login codes keep their sound. Off by default in settings.	Kişileriniz arasında olmayan birinden gelen özel mesaj yine bildirim gösterir, yalnızca sessiz ve titreşimsiz. Botlar, hatırlatıcılar ve Telegram giriş kodları seslerini korur. Ayarlarda varsayılan olarak kapalıdır.
+Disable pull to archive	Arşive çekmeyi kapat
+Pulling down the chat list no longer brings up a hidden archive. You can open it from Archived chats in the chat list's menu, or pin it to keep it in the list. Off by default in settings.	Sohbet listesini aşağı çektiğinizde gizli arşiv artık görünmez. Arşivi sohbet listesinin menüsündeki Arşivlenmiş sohbetler ile açabilir ya da listede kalması için sabitleyebilirsiniz. Ayarlarda varsayılan olarak kapalıdır.
+Start the camera on the rear lens	Kamerayı arka lensle başlat
+The camera in the attachment menu starts on the rear lens every time you open it, instead of the lens you used last. You can still flip it while it's open. Off by default in settings.	Ek menüsündeki kamera, en son kullandığınız lens yerine her seferinde arka lensle açılır. Kamera açıkken yine de lensi değiştirebilirsiniz. Ayarlarda varsayılan olarak kapalıdır.
+Hide gallery camera tile	Galerideki kamera kutucuğunu gizle
+The photo grid in the attachment menu starts with your photos instead of a live camera tile. A chat picks it up the next time you open it. Off by default in settings.	Ek menüsündeki fotoğraf ızgarası canlı kamera kutucuğu yerine fotoğraflarınızla başlar. Bir sohbet bunu, onu bir sonraki açışınızda uygular. Ayarlarda varsayılan olarak kapalıdır.
+Hide time on stickers	Çıkartmalarda saati gizle
+Stickers and big animated emoji no longer carry the time and read checks in their corner. Every other message keeps its time. Off by default in settings.	Çıkartmalar ve büyük animasyonlu emojiler köşelerinde artık saati ve okundu işaretlerini göstermez. Diğer mesajlar saatlerini korur. Ayarlarda varsayılan olarak kapalıdır.
+Ignore mentions in muted chats	Sessize alınmış sohbetlerdeki bahsetmeleri yok say
+Telegram still notifies you when someone mentions you or replies to you in a group or channel you've muted. With this on, those stay as quiet as the rest of the chat. Chats you haven't muted notify as before. Off by default in settings.	Telegram, sessize aldığınız bir grupta ya da kanalda biri sizden bahsettiğinde veya size yanıt verdiğinde yine de bildirim gönderir. Bu açıkken bunlar da sohbetin geri kalanı kadar sessiz kalır. Sessize almadığınız sohbetler eskisi gibi bildirim gönderir. Ayarlarda varsayılan olarak kapalıdır.
+Hide blocked users in groups	Gruplarda engellenen kullanıcıları gizle
+Messages from people you've blocked are left out of the groups and supergroups you open. Private chats and channel posts stay as they are. Nothing is deleted, so turning it off and reopening the chat brings them back. Telegram loads a long blocked list a bit at a time, so someone it hasn't loaded yet still shows. Off by default in settings.	Engellediğiniz kişilerin mesajları açtığınız gruplarda ve süper gruplarda gösterilmez. Özel sohbetler ve kanal gönderileri olduğu gibi kalır. Hiçbir şey silinmez, bu yüzden kapatıp sohbeti yeniden açtığınızda mesajlar geri gelir. Telegram uzun bir engellenenler listesini parça parça yükler, bu yüzden henüz yüklemediği biri görünmeye devam eder. Ayarlarda varsayılan olarak kapalıdır.
+Hide Telegram Features and Invite Friends	Telegram Özellikleri ve Arkadaşlarını Davet Et satırlarını gizle
+Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	Ayarlar'da Telegram Özellikleri satırı, Kişiler'de ise Arkadaşlarını Davet Et satırı görünmez. Henüz hiç kişiniz yoksa Kişiler'in onların yerine gösterdiği davet listesi de kaldırılır. Ayarlarda varsayılan olarak kapalıdır.
+Add Repeat to the message menu	Mesaj menüsüne Tekrarla ekle
+Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Bir mesaja uzun bastığınızda açılan menüde İlet'in altına Tekrarla koyar. Mesajı aynı sohbete sizden yeni bir mesaj olarak yeniden gönderir. Yalnızca Telegram'ın İlet seçeneği sunduğu ve yazabildiğiniz yerlerde görünür, yani korumalı veya gizli sohbetlerde asla görünmez. Ayarlarda varsayılan olarak kapalıdır.
+Add Copy photo to the message menu	Mesaj menüsüne Fotoğrafı kopyala ekle
+Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Bir fotoğrafa uzun bastığınızda açılan menüde, fotoğraf indirildikten sonra İlet'in altına Fotoğrafı kopyala koyar. Resmin kendisini kopyalar, böylece başka bir uygulamaya yapıştırabilirsiniz. Korumalı veya gizli sohbetlerde görünmez. Ayarlarda varsayılan olarak kapalıdır.
+Add Message details to the message menu	Mesaj menüsüne Mesaj ayrıntıları ekle
+Puts Message details at the end of a message's long-press menu. It shows the message's IDs, when it was sent and edited, where it was forwarded from and the file's data center and size, with a Copy button. Off by default in settings.	Bir mesaja uzun bastığınızda açılan menünün sonuna Mesaj ayrıntıları koyar. Mesajın kimliklerini, ne zaman gönderilip düzenlendiğini, nereden iletildiğini ve dosyanın veri merkezi ile boyutunu bir Kopyala düğmesiyle gösterir. Ayarlarda varsayılan olarak kapalıdır.
+Repeat	Tekrarla
+Copy photo	Fotoğrafı kopyala
+Photo copied	Fotoğraf kopyalandı
+Message details	Mesaj ayrıntıları
+Message ID: %1$s	Mesaj kimliği: %1$s
+Chat ID: %1$s	Sohbet kimliği: %1$s
+Sender ID: %1$s	Gönderen kimliği: %1$s
+Sent: %1$s	Gönderildi: %1$s
+Edited: %1$s	Düzenlendi: %1$s
+Forwarded from: %1$s	Şuradan iletildi: %1$s
+Original sender ID: %1$s	Asıl gönderenin kimliği: %1$s
+Originally sent: %1$s	İlk gönderilme: %1$s
+File data center: %1$s	Dosyanın veri merkezi: %1$s
+File size: %1$s	Dosya boyutu: %1$s
+Copy	Kopyala
+Message details copied	Mesaj ayrıntıları kopyalandı
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Bildirimler
@@ -299,6 +335,8 @@ Show user and chat IDs	Kullanıcı ve sohbet kimliklerini göster
 Disable double-tap reactions	Çift dokunma tepkilerini kapat
 Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Metni Telegram'ın HTML, tablo veya eş aralıklı yazı dönüşümü olmadan yapıştırır. Boşluklar ve URL'ler korunur. Diğer pano işlemleri kullanılabilir. Ayarlarda varsayılan olarak kapalıdır.
 Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Açılan profilin menüsünde kopyalanabilir yerel kullanıcı veya sohbet kimliğini gösterir. Erişim karmaları gizli kalır. Sunucu isteği eklenmez. Ayarlarda varsayılan olarak kapalıdır.
+Show profile data center	Profilin veri merkezini göster
+A profile's menu also shows which of Telegram's data centers, 1 to 5, holds the profile photo. A profile without a photo shows none, and no server request is added. Off by default in settings.	Bir profilin menüsü, profil fotoğrafının Telegram'ın 1 ile 5 arasındaki hangi veri merkezinde durduğunu da gösterir. Fotoğrafı olmayan bir profilde gösterilmez ve sunucuya ek istek gönderilmez. Ayarlarda varsayılan olarak kapalıdır.
 Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Çift dokunma sohbetlerde veya tepki önizlemesinde tepki eklemez. Kaydırma, dokunma, seçim ve tepki menüleri aynı kalır. Ayarlarda varsayılan olarak kapalıdır.
 compose text paste	mesaj yazarken metin yapıştırma
 caption text paste	açıklama metni yapıştırma
@@ -311,3 +349,6 @@ Copy user ID %1$s	Kullanıcı kimliğini kopyala %1$s
 Copy chat ID %1$s	Sohbet kimliğini kopyala %1$s
 ID	Kimlik
 ID copied	Kimlik kopyalandı
+Data center %1$s	Veri merkezi %1$s
+Copy data center %1$s	Veri merkezini kopyala %1$s
+Data center copied	Veri merkezi kopyalandı

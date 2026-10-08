@@ -44,6 +44,7 @@ public class GhostModeDiagnosticsTest {
         HookStatus.clear();
         forgetWhatWasReported();
         Settings.GHOST_MODE.save(false);
+        Settings.GHOST_HIDE_ONLINE_STATUS.save(false);
     }
 
     @After
@@ -52,6 +53,7 @@ public class GhostModeDiagnosticsTest {
         HookStatus.clear();
         forgetWhatWasReported();
         Settings.GHOST_MODE.save(false);
+        Settings.GHOST_HIDE_ONLINE_STATUS.save(false);
     }
 
     @Test
@@ -62,6 +64,17 @@ public class GhostModeDiagnosticsTest {
         String export = LogBufferManager.buildExportText();
         assertTrue(export, export.contains("Ghost mode profile view: blocked"));
         assertTrue(ghostModeLine(), ghostModeLine().contains("ghost mode"));
+    }
+
+    @Test
+    public void theOnlineStatusReportNamesItsOwnCallSiteAndFollowsItsOwnSwitch() {
+        Settings.GHOST_MODE.save(true);
+        assertFalse(GhostMode.shouldBlockOnlineStatus());
+        assertTrue(LogBufferManager.buildExportText().contains("Ghost mode online status: sent"));
+
+        Settings.GHOST_HIDE_ONLINE_STATUS.save(true);
+        assertTrue(GhostMode.shouldBlockOnlineStatus());
+        assertTrue(LogBufferManager.buildExportText().contains("Ghost mode online status: blocked"));
     }
 
     @Test

@@ -82,6 +82,7 @@ public final class MenuSections {
     private static boolean decide(@Nullable Object group, String hook, String route) {
         try {
             HookStatus.invoked(FamilyNames.MENU_PROMOTIONS);
+            MenuLayoutDump.menuBuilt();
             if (!(group instanceof Enum)) {
                 // The patch hands over what answers the group enum, so anything else means the
                 // anchor took the wrong call and nothing here can be trusted.

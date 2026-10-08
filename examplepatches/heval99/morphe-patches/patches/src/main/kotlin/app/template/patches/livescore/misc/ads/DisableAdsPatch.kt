@@ -14,6 +14,6 @@ val disableAdsPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_LIVESCORE)
 
     execute {
-        AdsRemovalSettingsAreAdsDisabledFingerprint.methodOrNull?.returnEarly(value = true)
+        AdsRemovalSettingsAreAdsDisabledFingerprint.method.returnEarly(value = true)
     }
 }

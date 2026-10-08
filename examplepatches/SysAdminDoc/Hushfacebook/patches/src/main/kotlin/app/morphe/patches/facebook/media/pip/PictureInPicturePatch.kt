@@ -21,6 +21,7 @@ import app.morphe.patches.facebook.media.taptoplay.grootPauses
 import app.morphe.patches.facebook.media.taptoplay.grootPlays
 import app.morphe.patches.facebook.media.taptoplay.innerPause
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.extension.requireParameterIntact
@@ -33,6 +34,8 @@ import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.builder.MutableMethodImplementation
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -85,6 +88,24 @@ internal const val FRAGMENT_ACTIVITY = "Landroidx/fragment/app/FragmentActivity;
 
 internal const val VIEWER_ID = "$PICTURE_IN_PICTURE->viewerId(${ACTIVITY}I)I"
 
+/** The Watch topic feed's fragment is the one class holding this error text, in its engagement-state check. */
+internal const val TOPIC_FEED = "isEngagementState(): Topic Params is null"
+
+/** Facebook's MobileConfig reader. The class keeps its name; its methods are renamed, so a call is told by its shape. */
+internal const val PIP_MOBILE_CONFIG = "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;"
+
+internal const val IMMERSIVE_ALLOWED = "$PICTURE_IN_PICTURE->immersiveAllowed(Z)Z"
+
+/**
+ * The Video tab's deep-dive surface, named by the one method that arms the window for the Video
+ * tab, next to the server flag that lets that surface keep it.
+ */
+internal const val VIDEO_TAB_SURFACE = "UNIFIED_PLAYER_VDD_IN_WARION"
+
+internal const val HOME_GATE_ALLOWED = "$PICTURE_IN_PICTURE->homeGateAllowed(Z)Z"
+
+internal const val HOME_FLAG_ALLOWED = "$PICTURE_IN_PICTURE->homeFlagAllowed(Z)Z"
+
 /**
  * A playing reel keeps going in a small window when you leave Facebook. Facebook ships
  * picture-in-picture for its Reels viewer (ReelsPipUtil: 581 `LX/BB6;`, 580 `LX/B3H;`, 577
@@ -112,14 +133,42 @@ internal const val VIEWER_ID = "$PICTURE_IN_PICTURE->viewerId(${ACTIVITY}I)I"
  * opens inside the hidden main screen at no size, which leaves the window black. The extension
  * swaps an id a view holds for a free one.
  *
+ * Facebook's full-screen Watch viewer (the Watch topic feed fragment: 581 `LX/Anv;`, 580 `LX/Aex;`,
+ * 577 `LX/ArV;`) arms the same window itself in onResume, behind a server flag of its own, for a
+ * video in its engagement state. The flag is the MobileConfig read nearest before that onResume's
+ * call of ReelsPipUtil's check (it reads the same in 577, 580 and 581, as the move-result before an
+ * if-eqz), and the extension answers it. Facebook's own code then arms the window for the video on
+ * screen, and the rest here treats it like any other arming. Its onStop disarm is left behind
+ * the same flag, still Facebook's: a screen leaving with the video paused is held by the pause
+ * hook, and an immersive screen that closes takes its window arming with it.
+ *
+ * The Video tab (video_home) arms the window too, as you scroll its videos, in one method of its
+ * data controller (581 `LX/84s;->A0J`, 580 `LX/85e;->A0I`, 577 `LX/7s8;->A0J`), the one loading
+ * [VIDEO_TAB_SURFACE] that calls ReelsPipUtil's check. Its questions before it arms, in order:
+ * - its own copy of the Reels viewer's surface gate, inlined: the same fetch of the surface's
+ *   settings (581 `LX/Cr0;->CKK()`) and the same two lambda cases (581 39 and 40, 580 165 and 166,
+ *   577 178 and 179), reading one server flag in the Video tab's Reels and another elsewhere. A no
+ *   skips the arming. The patch already answers the gate itself, so the extension answers the copy.
+ * - Android 12, an activity, ReelsPipUtil's check (answered first by the extension already).
+ * - For the deep-dive surface, a flag in the same MobileConfig config as the Reels arming's ad and
+ *   live flags (581 0x10107b2 slot 5, 580 0x10107b6 slot 5, 577 0x10107bb slot 5). A no disarms.
+ *   The extension answers it.
+ * - An ad (one with ad info: disarmed unless it's an affiliate ad, `is_affiliate_ad`, and that
+ *   config's slot 12 says yes), a live video (`if_video_broadcast.is_live_streaming` disarms unless
+ *   slot 8 says yes), no video id, a shape picture-in-picture can't take. These stay Facebook's,
+ *   so ads and live videos still arm no window, the way the Reels viewer leaves them.
+ * Facebook's own code then arms the window for the video on screen, and the rest here treats that
+ * arming like any other: a paused video is held by the pause hook.
+ *
  * Off in the default selection: it changes what leaving Facebook does. Picked, its switch starts on.
  */
 @Suppress("unused")
 val pictureInPicturePatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Picture-in-picture",
-    description = "A reel playing in the Reels tab keeps going in a small window when you leave Facebook, " +
-        "through the picture-in-picture Facebook already has for Reels. Needs Android 12 or later.",
+    description = "A reel playing in the Reels tab, or a video playing in the Video tab or Facebook's full-screen " +
+        "Watch viewer, keeps going in a small window when you leave Facebook, through the picture-in-picture " +
+        "Facebook already has for them. Needs Android 12 or later.",
     default = false,
 ) {
     category("Interface")
@@ -137,6 +186,8 @@ val pictureInPicturePatch = bytecodePatch(
         val disarms = findDisarms(check)
         val stateChange = findStateChange(check)
         val opening = findViewerOpening()
+        val topic = findTopicFlag(check)
+        val home = findHome(check, gate, disarms)
         applyPipCheck(check)
         applySurfaceGate(gate)
         applyArming(arming, player.play.definingClass, videoParams)
@@ -144,6 +195,8 @@ val pictureInPicturePatch = bytecodePatch(
         applyPlayer(player)
         applyStateChange(stateChange)
         applyViewerId(opening)
+        applyTopicFlag(topic)
+        applyHome(home)
         enableStatus("pictureInPicture")
     }
 }
@@ -513,4 +566,213 @@ internal fun BytecodePatchContext.applyViewerId(opening: Method) {
             move-result v$id
         """,
     )
+}
+
+/** Whether [call] is a MobileConfig boolean read: a static (Object, long) -> boolean call on Facebook's reader. */
+internal fun isConfigRead(instruction: Instruction): Boolean {
+    val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    return instruction.opcode == Opcode.INVOKE_STATIC && call.definingClass == PIP_MOBILE_CONFIG && call.returnType == "Z" &&
+        call.parameterList() == listOf("Ljava/lang/Object;", "J")
+}
+
+/**
+ * Where the Watch topic feed's onResume asks its picture-in-picture flag: the index of the
+ * move-result of the last MobileConfig boolean read before its call of [check], when an if-eqz
+ * follows it. Changes nothing.
+ */
+internal fun topicFlagAt(onResume: Method, check: Method): Int {
+    val code = onResume.implementation?.instructions?.toList().orEmpty()
+    val asked = code.indexOfFirst { instruction ->
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        call != null && instruction.opcode.name.startsWith("invoke") && call.definingClass == check.definingClass &&
+            call.name == check.name && call.parameterList() == listOf(ACTIVITY) && call.returnType == "Z"
+    }
+    if (asked < 0) return -1
+    val read = (asked - 1 downTo 0).firstOrNull { isConfigRead(code[it]) } ?: return -1
+    val result = code.getOrNull(read + 1)
+    if (result?.opcode != Opcode.MOVE_RESULT || code.getOrNull(read + 2)?.opcode != Opcode.IF_EQZ) return -1
+    return read + 1
+}
+
+/** The Watch topic feed's onResume and the move-result of its flag. Changes nothing. */
+internal class TopicFlag(val onResume: Method, val result: Int)
+
+/** The one Watch topic feed fragment's onResume, found by the text of its engagement-state check. Changes nothing. */
+internal fun BytecodePatchContext.findTopicFlag(check: Method): TopicFlag {
+    val topics = classDefByStrings(TOPIC_FEED, StringComparisonType.EQUALS).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+    val topic = topics.singleOrNull() ?: refuse("expected one class holding \"$TOPIC_FEED\", found ${topics.size}")
+    val resumes = topic.methods.filter { it.name == "onResume" && it.parameterTypes.isEmpty() && it.returnType == "V" }
+    val resume = resumes.singleOrNull() ?: refuse("${topic.type} has ${resumes.size} onResume(), expected 1")
+    val at = topicFlagAt(resume, check)
+    if (at < 0) refuse("${topic.type}->onResume reads no MobileConfig flag in front of if-eqz before it asks ${check.name}")
+    return TopicFlag(resume, at)
+}
+
+/**
+ * The flag's answer goes through the extension before the branch reads it, so the viewer arms its
+ * window for the video on screen with Facebook's own code. The register is the move-result's own,
+ * a local, and the range form names it wherever it is.
+ */
+internal fun BytecodePatchContext.applyTopicFlag(topic: TopicFlag) {
+    val method = mutableClassDefBy(topic.onResume.definingClass).findMutableMethodOf(topic.onResume)
+    val result = method.implementation!!.instructions.toList()[topic.result] as OneRegisterInstruction
+    val register = result.registerA
+    if (register >= method.localRegisterCount()) refuse("${method.definingClass}->${method.name} reads its flag into a parameter register")
+    method.addInstructions(
+        topic.result + 1,
+        """
+            invoke-static/range { v$register .. v$register }, $IMMERSIVE_ALLOWED
+            move-result v$register
+        """,
+    )
+}
+
+/** Whether [instruction] calls ReelsPipUtil's [check]. */
+private fun asksCheck(instruction: Instruction, check: Method): Boolean {
+    val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    return instruction.opcode.name.startsWith("invoke") && call.definingClass == check.definingClass &&
+        call.name == check.name && call.parameterList() == listOf(ACTIVITY) && call.returnType == "Z"
+}
+
+/**
+ * Whether [instruction] reads a MobileConfig boolean, in either form a build compiles one to: a
+ * static (Object, long) -> boolean call on Facebook's reader, or a (long) -> boolean call on the
+ * reader itself.
+ */
+internal fun isFlagRead(instruction: Instruction): Boolean {
+    val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    if (call.definingClass != PIP_MOBILE_CONFIG || call.returnType != "Z") return false
+    return when (instruction.opcode) {
+        Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE -> call.parameterList() == listOf("Ljava/lang/Object;", "J")
+        Opcode.INVOKE_INTERFACE, Opcode.INVOKE_INTERFACE_RANGE, Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE ->
+            call.parameterList() == listOf("J")
+        else -> false
+    }
+}
+
+private val literalLoads = setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST)
+
+/**
+ * From after [from], the index of the first call answering a boolean, and the numbers loaded on the
+ * way there: where a surface gate reads its answer, and the cases of the lambdas it reads it
+ * through. The index is -1 without such a call.
+ */
+internal fun gateRead(code: List<Instruction>, from: Int): Pair<Int, List<Int>> {
+    val cases = mutableListOf<Int>()
+    for (at in from + 1 until code.size) {
+        val instruction = code[at]
+        if (instruction.opcode in literalLoads) cases += (instruction as NarrowLiteralInstruction).narrowLiteral
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        if (instruction.opcode.name.startsWith("invoke") && call?.returnType == "Z") return at to cases
+    }
+    return -1 to cases
+}
+
+/**
+ * Where the Reels viewer's surface [gate] fetches its surface's settings: its first interface call,
+ * taking nothing, on the one argument it takes (581 `LX/Cr0;->CKK()`). -1 without one.
+ */
+internal fun settingsFetchAt(gate: Method): Int {
+    val argument = gate.shape().singleOrNull() ?: return -1
+    return gate.implementation?.instructions?.toList().orEmpty().indexOfFirst { instruction ->
+        val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference
+        instruction.opcode.name.startsWith("invoke-interface") && call?.definingClass == argument && call.parameterTypes.isEmpty()
+    }
+}
+
+/**
+ * Where the Video tab's arming [home] answers its own copy of the surface [gate], inlined: the
+ * move-result of the first boolean answer after its last fetch of the gate's settings before it asks
+ * [check], when the numbers loaded on the way are the gate's own lambda cases. -1 otherwise.
+ * Changes nothing.
+ */
+internal fun homeGateAt(home: Method, gate: Method, check: Method): Int {
+    val gateCode = gate.implementation?.instructions?.toList().orEmpty()
+    val fetch = settingsFetchAt(gate)
+    if (fetch < 0) return -1
+    val settings = ((gateCode[fetch] as ReferenceInstruction).reference as MethodReference).toString()
+    val (gateAnswer, cases) = gateRead(gateCode, fetch)
+    if (gateAnswer < 0 || cases.isEmpty()) return -1
+    val code = home.implementation?.instructions?.toList().orEmpty()
+    val asked = code.indexOfFirst { asksCheck(it, check) }
+    if (asked < 0) return -1
+    val fetched = (asked - 1 downTo 0).firstOrNull { at ->
+        code[at].opcode.name.startsWith("invoke") &&
+            ((code[at] as? ReferenceInstruction)?.reference as? MethodReference)?.toString() == settings
+    } ?: return -1
+    val (answer, homeCases) = gateRead(code, fetched)
+    if (answer < 0 || answer >= asked || homeCases != cases) return -1
+    return if (code.getOrNull(answer + 1)?.opcode == Opcode.MOVE_RESULT) answer + 1 else -1
+}
+
+/**
+ * Where the Video tab's arming [home] reads its flag for [VIDEO_TAB_SURFACE]: the move-result of the
+ * first MobileConfig boolean read after it loads that name, when an if-nez on it follows and a no
+ * falls through into one of ReelsPipUtil's [disarms]. -1 otherwise. Changes nothing.
+ */
+internal fun homeFlagAt(home: Method, disarms: List<Method>): Int {
+    val code = home.implementation?.instructions?.toList().orEmpty()
+    val named = code.indexOfFirst { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == VIDEO_TAB_SURFACE }
+    if (named < 0) return -1
+    val read = (named + 1 until code.size).firstOrNull { isFlagRead(code[it]) } ?: return -1
+    val result = code.getOrNull(read + 1)
+    val branch = code.getOrNull(read + 2)
+    if (result?.opcode != Opcode.MOVE_RESULT || branch?.opcode != Opcode.IF_NEZ) return -1
+    if ((branch as OneRegisterInstruction).registerA != (result as OneRegisterInstruction).registerA) return -1
+    val next = code.getOrNull(read + 3) ?: return -1
+    val disarm = (next as? ReferenceInstruction)?.reference as? MethodReference ?: return -1
+    if (!next.opcode.name.startsWith("invoke")) return -1
+    val disarming = disarms.any {
+        it.definingClass == disarm.definingClass && it.name == disarm.name && it.shape() == disarm.parameterList() &&
+            disarm.returnType == "V"
+    }
+    return if (disarming) read + 1 else -1
+}
+
+/** Whether [method] is the Video tab's arming: it loads [VIDEO_TAB_SURFACE] and asks ReelsPipUtil's [check]. */
+internal fun isHome(method: Method, check: Method): Boolean =
+    holdsString(method, VIDEO_TAB_SURFACE) && method.implementation?.instructions?.any { asksCheck(it, check) } == true
+
+/** The Video tab's arming and the move-results of its copy of the gate and of its flag. */
+internal class Home(val method: Method, val gate: Int, val flag: Int)
+
+/** The one Video tab arming, with both answers found, each in a local. Changes nothing. */
+internal fun BytecodePatchContext.findHome(check: Method, gate: Method, disarms: List<Method>): Home {
+    val homes = classDefByStrings(VIDEO_TAB_SURFACE, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { holder -> holder.methods.filter { isHome(it, check) } }
+    val home = homes.singleOrNull()
+        ?: refuse("expected one method loading \"$VIDEO_TAB_SURFACE\" that calls the check, found ${homes.size}")
+    val where = "${home.definingClass}->${home.name}"
+    val gateAt = homeGateAt(home, gate, check)
+    if (gateAt < 0) refuse("$where has no copy of ${gate.definingClass}->${gate.name} before it asks ${check.name}")
+    val flagAt = homeFlagAt(home, disarms)
+    if (flagAt < 0) refuse("$where reads no MobileConfig flag after \"$VIDEO_TAB_SURFACE\" whose no disarms")
+    val code = home.implementation!!.instructions.toList()
+    for (at in listOf(gateAt, flagAt)) {
+        if ((code[at] as OneRegisterInstruction).registerA >= home.localRegisterCount()) {
+            refuse("$where reads an answer into a parameter register")
+        }
+    }
+    return Home(home, gateAt, flagAt)
+}
+
+/**
+ * Both answers go through the extension before the branch reads them, the later one first so the
+ * earlier index still holds. Each register is the move-result's own, a local, and the range form
+ * names it wherever it is.
+ */
+internal fun BytecodePatchContext.applyHome(home: Home) {
+    val method = mutableClassDefBy(home.method.definingClass).findMutableMethodOf(home.method)
+    val code = method.implementation!!.instructions.toList()
+    for ((at, hook) in listOf(home.flag to HOME_FLAG_ALLOWED, home.gate to HOME_GATE_ALLOWED).sortedByDescending { it.first }) {
+        val register = (code[at] as OneRegisterInstruction).registerA
+        method.addInstructions(
+            at + 1,
+            """
+                invoke-static/range { v$register .. v$register }, $hook
+                move-result v$register
+            """,
+        )
+    }
 }

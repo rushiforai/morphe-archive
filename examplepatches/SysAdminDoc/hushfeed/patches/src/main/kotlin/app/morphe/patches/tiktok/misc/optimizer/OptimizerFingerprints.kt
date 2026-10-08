@@ -98,3 +98,9 @@ internal object UpdateBootFinishedTaskFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Context;"),
 )
+
+/** Fresco's animated drawable factory, which picks the frame cache by caching strategy. */
+internal object AnimatedDrawableFactoryFingerprint : Fingerprint(
+    returnType = ANIMATED_DRAWABLE_DESCRIPTOR,
+    custom = { method, _ -> method.isAnimatedDrawableFactory() },
+)

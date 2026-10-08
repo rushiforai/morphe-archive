@@ -11,6 +11,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.methodCall
+import app.morphe.patcher.patch.InstallerType
+import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
@@ -51,13 +53,20 @@ private val disablePlayStoreUpdatesResourcePatch = resourcePatch {
 @Suppress("unused")
 val disablePlayStoreUpdatesPatch = bytecodePatch(
     name = "Disable Play Store updates",
-    description = "[Experimental] Disables Play Store updates by setting the version code to the maximum allowed. " +
-            "This patch may cause unexpected issues with some apps and does not work if the " +
-            "app is installed by root mounting",
+    description = "Disables Play Store updates by setting the version code to the maximum allowed (Int.MAX_VALUE). " +
+            "Prevents Google Play from automatically overwriting the patched app when using the official package name " +
+            "on devices without preinstalled Photos.",
     default = false,
 ) {
-    category("Experimental")
+    category("Official package name")
     compatibleWith(AppCompatibilities.GOOGLE_PHOTOS)
+
+    availability { installer, _ ->
+        when (installer) {
+            InstallerType.MOUNT -> PatchAvailability.UNAVAILABLE
+            InstallerType.STANDARD, InstallerType.SHIZUKU -> PatchAvailability.DISABLED
+        }
+    }
 
     dependsOn(disablePlayStoreUpdatesResourcePatch)
     dependsOn(sharedExtensionPatch("shared", false))

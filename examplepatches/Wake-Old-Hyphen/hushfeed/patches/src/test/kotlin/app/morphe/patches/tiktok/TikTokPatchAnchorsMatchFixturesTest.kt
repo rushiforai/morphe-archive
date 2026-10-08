@@ -1,7 +1,9 @@
 package app.morphe.patches.tiktok
 
 import app.morphe.Fixtures
+import app.morphe.takes
 import app.morphe.patches.tiktok.feedfilter.COMMENT_TOP_BAR_BRIDGE_BASE
+import app.morphe.patches.tiktok.feedfilter.FriendsV3FeedHandleResponseFingerprint
 import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_BRIDGE
 import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_SERVICE
 import app.morphe.patches.tiktok.feedfilter.coldStartCall
@@ -12,10 +14,35 @@ import app.morphe.patches.tiktok.feedfilter.goldenRunsTheColdStart
 import app.morphe.patches.tiktok.feedfilter.isCommentTopBarCanShow
 import app.morphe.patches.tiktok.feedfilter.isTakoSearchEntranceInflater
 import app.morphe.patches.tiktok.feedfilter.takoSearchEntranceVariants
+import app.morphe.patches.tiktok.interaction.copyids.BASE_SHARE_PACKAGE
+import app.morphe.patches.tiktok.interaction.copyids.BioBindFingerprint
+import app.morphe.patches.tiktok.interaction.copyids.SHARE_PANEL_MARKER
+import app.morphe.patches.tiktok.interaction.copyids.SIGNATURE_COMPONENT
+import app.morphe.patches.tiktok.interaction.copyids.bioTextField
+import app.morphe.patches.tiktok.interaction.copyids.sharePackageField
 import app.morphe.patches.tiktok.interaction.downloads.drawsCommentImageWatermark
+import app.morphe.patches.tiktok.interaction.sharesheet.ShareSnapshotFingerprint
+import app.morphe.patches.tiktok.interaction.sharesheet.resolveSharePanel
 import app.morphe.patches.tiktok.interaction.searchsuggestions.isSearchRewardsAccessor
 import app.morphe.patches.tiktok.interaction.speed.playerManagerSpeedBoundary
 import app.morphe.patches.tiktok.misc.settings.isSettingsComposeRowsMethod
+import app.morphe.patches.tiktok.misc.optimizer.backendBuilderCall
+import app.morphe.patches.tiktok.misc.optimizer.cachingStrategyRead
+import app.morphe.patches.tiktok.misc.optimizer.framePreparerGateIndex
+import app.morphe.patches.tiktok.interaction.exactcounts.COMPACT_COUNT_FORMATTERS
+import app.morphe.patches.tiktok.interaction.exactcounts.COUNT_FORMATTERS
+import app.morphe.patches.tiktok.interaction.exactcounts.CompactCountFormatterFingerprint
+import app.morphe.patches.tiktok.interaction.exactcounts.CountFormatterFingerprint
+import app.morphe.patches.tiktok.interaction.exactcounts.isCountFormatter
+import app.morphe.patches.tiktok.profile.BASE_UI_COMPONENT
+import app.morphe.patches.tiktok.profile.HEADER_TEXT_ITEM
+import app.morphe.patches.tiktok.profile.PROFILE_COMMON_INFO
+import app.morphe.patches.tiktok.profile.ProfileHeaderTextBindFingerprint
+import app.morphe.patches.tiktok.profile.RELATION_USER_CELL
+import app.morphe.patches.tiktok.profile.REUSED_SLOT_ASSEM
+import app.morphe.patches.tiktok.profile.RelationCellBindFingerprint
+import app.morphe.patches.tiktok.profile.commonInfoGetter
+import app.morphe.patches.tiktok.profile.itemViewField
 import app.morphe.patches.tiktok.misc.commenttools.isCommentSearchHeaderFactory
 import app.morphe.patches.tiktok.misc.commenttools.resolveCommentSearchSuggestions
 import app.morphe.patches.tiktok.misc.commenttools.compactCommentHeaderComponents
@@ -23,6 +50,15 @@ import app.morphe.patches.tiktok.misc.commenttools.isCompactCommentHeaderBind
 import app.morphe.patches.tiktok.misc.commenttools.resolveCompactCommentHeader
 import app.morphe.patches.tiktok.misc.commenttools.resolveLikeTouchListener
 import app.morphe.patches.tiktok.interaction.videooverlays.*
+import app.morphe.patches.tiktok.interaction.quality.ForceHdrOffFingerprint
+import app.morphe.patches.tiktok.interaction.quality.SimVideoSetBitRateFingerprint
+import app.morphe.patches.tiktok.interaction.quality.SimVideoUrlModelSetBitRateFingerprint
+import app.morphe.patches.tiktok.misc.comment.BIO_EDITOR_CLASSES
+import app.morphe.patches.tiktok.misc.comment.CommentInputLimitFingerprint
+import app.morphe.patches.tiktok.misc.comment.REPOST_NOTE_INPUTS
+import app.morphe.patches.tiktok.misc.comment.bioLimitConstants
+import app.morphe.patches.tiktok.misc.comment.lengthFilterConstructions
+import app.morphe.patches.tiktok.misc.comment.repostNoteInputFingerprints
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -33,6 +69,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstructio
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import java.io.File
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -439,6 +476,372 @@ class TikTokPatchAnchorsMatchFixturesTest {
                 "invoke-virtual", "move-result-object", "if-nez", "return",
                 "const/4", "return",
             ), check.implementation!!.instructions.map { it.opcode.name })
+        }
+    }
+
+    /**
+     * Drop the animated image cache forces Fresco's caching strategy to 3 and turns the frame
+     * preparer off (#100). On every declared build the factory has to be one method that reads the
+     * strategy, builds a two-field keep-last-frame cache for 3, and calls one backend builder
+     * whose preparer gate nothing jumps to directly.
+     */
+    @Test
+    fun `animated image cache factory keeps one shape on every declared build`() {
+        for (apk in Fixtures.declared()) {
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }.toList()
+            val factories = classes.flatMap { cls ->
+                cls.methods.filter { app.morphe.patches.tiktok.misc.optimizer.AnimatedDrawableFactoryFingerprint.takes(it, cls) }
+            }
+            assertEquals("${apk.name}: animated drawable factories", 1, factories.size)
+            val factory = factories.single()
+            val strategy = requireNotNull(factory.cachingStrategyRead()) { "${apk.name}: caching strategy read" }
+            val keepLast = classes.single { it.type == strategy.keepLastClass }
+            assertEquals("${apk.name}: keep-last cache fields", listOf("I", "L"),
+                keepLast.fields.map { it.type.take(1) }.sorted())
+            val call = requireNotNull(factory.backendBuilderCall()) { "${apk.name}: backend builder call" }
+            val builder = classes.single { it.type == factory.definingClass }.methods.single {
+                it.name == call.name && it.parameterTypes.map(CharSequence::toString) == call.parameterTypes.map(CharSequence::toString) && it.returnType == call.returnType
+            }
+            assertTrue("${apk.name}: frame preparer gate", builder.framePreparerGateIndex() != null)
+        }
+    }
+
+    /**
+     * Show exact counts hooks every count formatter. Each declared build has the main one and up
+     * to three copies, all static, a long in and a string out, with a spare register for the hook,
+     * and four compact ones of the same shape, which print the feed rail's counts. The two sets
+     * never overlap.
+     */
+    @Test
+    fun `count formatters for exact counts stay within the reviewed number on every declared build`() {
+        for (apk in Fixtures.declared()) {
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }.toList()
+            val formatters = classes.flatMap { cls -> cls.methods.filter { CountFormatterFingerprint.takes(it, cls) } }
+            val compact = classes.flatMap { cls -> cls.methods.filter { CompactCountFormatterFingerprint.takes(it, cls) } }
+            assertTrue("${apk.name}: ${formatters.size} count formatters", formatters.size in COUNT_FORMATTERS)
+            assertTrue("${apk.name}: ${compact.size} compact count formatters", compact.size in COMPACT_COUNT_FORMATTERS)
+            assertTrue("${apk.name}: a formatter without the hook's register",
+                (formatters + compact).all { it.isCountFormatter() })
+            assertTrue("${apk.name}: a formatter in both sets", formatters.none { it in compact })
+        }
+    }
+
+    /**
+     * Play SDR instead of HDR hooks TikTok's own HDR-off answer and both player gear setters, one
+     * method each. SdrPlayback counts hdrType 1 and 2 as HDR because SimBitRate.isHdr does.
+     */
+    @Test
+    fun `SDR playback hooks land on one method each and isHdr keeps its HDR types on every fixture`() {
+        val models = "Lcom/ss/android/ugc/playerkit/simapicommon/model/"
+        val expected = mapOf(
+            ForceHdrOffFingerprint to "Lcom/ss/android/ugc/aweme/video/simplayer/PlayerConfigImpl;->isForceHdrOff()Z",
+            SimVideoSetBitRateFingerprint to "${models}SimVideo;->setBitRate(Ljava/util/List;)V",
+            SimVideoUrlModelSetBitRateFingerprint to "${models}SimVideoUrlModel;->setBitRate(Ljava/util/List;)V",
+        )
+        for (apk in fixtures()) {
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }.toList()
+            for ((fingerprint, signature) in expected) {
+                val taken = classes.flatMap { classDef ->
+                    classDef.methods.filter { fingerprint.takes(it, classDef) }
+                }
+                assertEquals("${apk.name}: $signature", listOf(signature), taken.map { it.anchorSignature() })
+            }
+            val isHdr = classes.single { it.type == "${models}SimBitRate;" }
+                .methods.single { it.name == "isHdr" && it.parameterTypes.isEmpty() }
+            val instructions = isHdr.implementation!!.instructions.toList()
+            assertEquals("${apk.name}: SimBitRate.isHdr literals", listOf(1, 2, 0),
+                instructions.filterIsInstance<NarrowLiteralInstruction>().map { it.narrowLiteral })
+            assertEquals("${apk.name}: SimBitRate.isHdr reads", List(2) { "${models}SimBitRate;->getHdrType()I" },
+                instructions.filterIsInstance<ReferenceInstruction>().map { it.reference.toString() })
+        }
+    }
+
+    /**
+     * ContentMarkerFilters.aiSignal reads each AI marker by name, getter first and field second.
+     * Every one it relies on has to be there on every declared build, in the shape it reads:
+     * a no-argument getter or a field of that name.
+     */
+    @Test
+    fun `every AI filter signal resolves on every declared build`() {
+        val model = "Lcom/ss/android/ugc/aweme/feed/model/"
+        val wanted = mapOf(
+            "${model}Aweme;" to listOf(
+                "getAigcInfo", "getModerationAigcInfo", "getC2paInfo", "getAiAliveInfo", "aiRemixInfo",
+                "aiPortraitInfo", "aiTheaterInfo", "aiChatEditorInfo", "getAnchors", "getTextExtra",
+                "getDesc", "getAid",
+            ),
+            "Lcom/ss/android/ugc/aweme/feed/AIGCInfo;" to listOf("getAIGCLabelType", "createByAI"),
+            "${model}ModerationAigcInfo;" to listOf(
+                "moderationAigcLabelType", "moderationUserLabelStatus", "creatorGuidanceStatus",
+                "moderationCreatorSegment",
+            ),
+            "${model}C2PAInfo;" to listOf("aigcSrc", "firstAigcSrc", "lastAigcSrc"),
+            "${model}AIAliveInfo;" to listOf("getModelKey", "getModelPrompt", "getText"),
+            "${model}AIRemixInfo;" to listOf("getTaskId", "getPromptId"),
+            "${model}AIPortraitInfo;" to listOf("getTaskId", "getPromptId"),
+            "${model}AITheaterInfo;" to listOf("getTaskId", "getPromptId"),
+            "${model}AiChatEditorInfo;" to listOf("getTaskId"),
+            "${model}AnchorCommonStruct;" to listOf("getComponentKey"),
+            "Lcom/ss/android/ugc/aweme/model/TextExtraStruct;" to listOf("getHashTagName"),
+        )
+        val aiAnchorKeys = setOf(
+            "anchor_aigc_avatar", "anchor_ai_portrait", "anchor_ai_remix", "anchor_ai_style",
+            "anchor_ai_group_shot",
+        )
+        Fixtures.forEachDeclared { apk ->
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .filter { it.type in wanted }
+                .associateBy { it.type }
+            for ((type, members) in wanted) {
+                val classDef = classes[type] ?: throw AssertionError("$type is missing")
+                val getters = classDef.methods.filter { it.parameterTypes.isEmpty() }.map { it.name }.toSet()
+                val fields = classDef.fields.map { it.name }.toSet()
+                assertEquals(
+                    "$type: AI signal members",
+                    emptyList<String>(),
+                    members.filter { it !in getters && it !in fields },
+                )
+            }
+            val aweme = classes.getValue("${model}Aweme;")
+            for (name in listOf("aiRemixInfo", "aiPortraitInfo", "aiTheaterInfo", "aiChatEditorInfo")) {
+                assertTrue("Aweme.$name is a struct field", aweme.fields.any { it.name == name && it.type.startsWith(model) })
+            }
+            val loaded = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .flatMap { it.methods.asSequence() }
+                .flatMap { it.stringConstants().asSequence() }
+                .filter { it in aiAnchorKeys }
+                .toSet()
+            assertEquals("AI effect anchor keys", aiAnchorKeys, loaded)
+        }
+    }
+
+    /**
+     * Remove avatar rings: the story status getter, the feed avatar's bind and the one author
+     * live check it calls, and the User.isLive reads in AvatarLiveDataAdapter, on every declared
+     * build. The bind and the check are R8 names that move each build.
+     */
+    @Test
+    fun `avatar ring hooks resolve on every declared build`() {
+        for (apk in Fixtures.declaredVersions().map(Fixtures::apkOf)) {
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }.associateBy { it.type }
+            fun taken(fingerprint: app.morphe.patcher.Fingerprint) = classes.values.flatMap { classDef ->
+                classDef.methods.filter { fingerprint.takes(it, classDef) }
+            }
+            assertEquals("${apk.name}: story status getter", listOf("$AVATAR_USER->getStoryStatus()I"),
+                taken(UserStoryStatusFingerprint).map { it.anchorSignature() })
+            val bind = taken(FeedAvatarWrapBindFingerprint)
+            assertEquals("${apk.name}: feed avatar bind", 1, bind.size)
+            val check = bind.single().authorLiveCheck()
+            val checkMethod = classes.getValue(check.definingClass).methods.single { method ->
+                method.name == check.name && method.returnType == "Z" &&
+                    method.parameterTypes.map { it.toString() } == check.parameterTypes.map { it.toString() }
+            }
+            assertTrue("${apk.name}: ${check.definingClass}->${check.name} is static",
+                AccessFlags.STATIC.isSet(checkMethod.accessFlags))
+            assertTrue("${apk.name}: the author live check returns",
+                checkMethod.implementation!!.instructions.any { it.opcode == Opcode.RETURN })
+            val adapterReads = classes.getValue(AVATAR_LIVE_DATA_ADAPTER).methods.sumOf { method ->
+                method.implementation?.instructions?.toList()?.isLiveResults()?.size ?: 0
+            }
+            assertTrue("${apk.name}: AvatarLiveDataAdapter reads User.isLive", adapterReads > 0)
+        }
+    }
+
+    /**
+     * Lift text length limits: the comment keyboard's limit getter, the length filters each
+     * repost note box builds (two alternatives in the video repost and reply boxes, one in the
+     * LIVE repost note box) and the bio editor's three comparisons with 160, on every declared
+     * build. The getter and both filter classes are R8 names that move each build.
+     */
+    @Test
+    fun `length limit hooks resolve on every declared build`() {
+        val filtersPerBox = REPOST_NOTE_INPUTS.zip(listOf(2, 1, 2)).toMap()
+        for (apk in Fixtures.declaredVersions().map(Fixtures::apkOf)) {
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }.associateBy { it.type }
+            fun taken(fingerprint: app.morphe.patcher.Fingerprint) = classes.values.flatMap { classDef ->
+                classDef.methods.filter { fingerprint.takes(it, classDef) }
+            }
+            val limitGetters = taken(CommentInputLimitFingerprint)
+            assertEquals("${apk.name}: comment limit getter", 1, limitGetters.size)
+            assertTrue("${apk.name}: the comment limit getter returns",
+                limitGetters.single().implementation!!.instructions.any { it.opcode == Opcode.RETURN })
+            val isInputFilter = { type: String ->
+                classes[type]?.interfaces?.contains("Landroid/text/InputFilter;") == true
+            }
+            for (fingerprint in repostNoteInputFingerprints) {
+                val method = taken(fingerprint).single()
+                assertEquals("${apk.name}: ${method.definingClass} length filters", filtersPerBox[method.definingClass],
+                    method.implementation!!.instructions.toList().lengthFilterConstructions(isInputFilter).size)
+            }
+            val bioSites = BIO_EDITOR_CLASSES.sumOf { type ->
+                classes.getValue(type).methods.sumOf { method ->
+                    method.implementation?.instructions?.toList()?.bioLimitConstants()?.size ?: 0
+                }
+            }
+            assertEquals("${apk.name}: bio limit comparisons", 3, bioSites)
+        }
+    }
+
+    /**
+     * The Friends V3 feed is filtered as FriendsV3FeedNetworkSource starts handling a response:
+     * one public final instance method on every declared build, which walks the response's
+     * friendsV3Feeds list. Its entries keep the aweme, roomStruct and repostItem fields the
+     * filter reads, and a repost keeps its video in repostedAweme.
+     */
+    @Test
+    fun `Friends V3 response handler and entry fields resolve on every declared build`() {
+        val repo = "Lcom/ss/android/ugc/aweme/friendstab/repo/"
+        Fixtures.forEachDeclared { apk ->
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .filter { it.type.startsWith(repo) }
+                .toList()
+            val taken = classes.flatMap { classDef ->
+                classDef.methods.filter { FriendsV3FeedHandleResponseFingerprint.takes(it, classDef) }
+            }
+            assertEquals("the Friends V3 response handler", 1, taken.size)
+            val handler = taken.single()
+            assertEquals("${repo}FriendsV3FeedNetworkSource;", handler.definingClass)
+            assertTrue("the handler is an instance method", handler.accessFlags and AccessFlags.STATIC.value == 0)
+            assertTrue(
+                "the handler walks friendsV3Feeds",
+                handler.implementation!!.instructions.any {
+                    ((it as? ReferenceInstruction)?.reference as? FieldReference)?.name == "friendsV3Feeds"
+                },
+            )
+            fun fieldsOf(name: String) = classes.single { it.type == "$repo$name;" }.fields.associate { it.name to it.type }
+            val entry = fieldsOf("FriendsV3FeedModel")
+            assertEquals("Lcom/ss/android/ugc/aweme/feed/model/Aweme;", entry["aweme"])
+            assertEquals("${repo}FriendsV3RepostModel;", entry["repostItem"])
+            assertTrue("roomStruct", entry.containsKey("roomStruct"))
+            assertEquals("Lcom/ss/android/ugc/aweme/feed/model/Aweme;", fieldsOf("FriendsV3RepostModel")["repostedAweme"])
+            assertEquals("Ljava/util/List;", fieldsOf("FriendsV3FeedResponse")["friendsV3Feeds"])
+        }
+    }
+
+    /**
+     * Show follow status hooks the profile header's text item bind and the follow list cell bind.
+     * The header hook reads the item's view and its profile's common info through the one
+     * BaseUIComponent field and getter of those types, and the cell hook asks ReusedUISlotAssem for
+     * the cell's content view. The extension then reads the relation and profile by name.
+     */
+    @Test
+    fun `follow status hooks and the relation members they read resolve on every declared build`() {
+        val data = "Lcom/ss/android/ugc/profile/platform/base/data/"
+        val user = "Lcom/ss/android/ugc/aweme/profile/model/User;"
+        val getters = mapOf(
+            PROFILE_COMMON_INFO to listOf("getUserProfileInfo", "getUserRelationInfo"),
+            "${data}UserRelationInfo;" to listOf("getFollowStatus", "getFollowerStatus"),
+            "${data}UserProfileInfo;" to listOf("getUsername", "getUid"),
+            user to listOf("getUniqueId", "getNickname", "getUid", "getFollowStatus", "getFollowerStatus"),
+        )
+        Fixtures.forEachDeclared { apk ->
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .associateBy { it.type }
+
+            val header = classes.getValue(HEADER_TEXT_ITEM)
+            assertEquals("the header text item's base", BASE_UI_COMPONENT, header.superclass)
+            val headerBinds = header.methods.filter { ProfileHeaderTextBindFingerprint.takes(it, header) }
+            assertEquals("the header text bind", 1, headerBinds.size)
+            assertTrue("the header text bind has two free registers", headerBinds.single().implementation!!.registerCount >= 3)
+            val base = classes.getValue(BASE_UI_COMPONENT)
+            assertTrue("BaseUIComponent's one common info getter", base.commonInfoGetter() != null)
+            assertTrue("BaseUIComponent's one view field", base.itemViewField() != null)
+
+            val cell = classes.getValue(RELATION_USER_CELL)
+            assertEquals("the follow list cell's base", REUSED_SLOT_ASSEM, cell.superclass)
+            val cellBinds = cell.methods.filter { RelationCellBindFingerprint.takes(it, cell) }
+            assertEquals("the follow list cell bind", 1, cellBinds.size)
+            val itemType = ((cellBinds.single().implementation!!.instructions.first() as ReferenceInstruction)
+                .reference as TypeReference).type
+            assertEquals("the cell's item holds one User", 1, classes.getValue(itemType).fields.count { it.type == user })
+            assertTrue(
+                "ReusedUISlotAssem.getContentView",
+                classes.getValue(REUSED_SLOT_ASSEM).methods.any {
+                    it.name == "getContentView" && it.parameterTypes.isEmpty() && it.returnType == "Landroid/view/View;" &&
+                        AccessFlags.PUBLIC.isSet(it.accessFlags)
+                },
+            )
+
+            for ((type, names) in getters) {
+                val declared = classes.getValue(type).methods.filter { it.parameterTypes.isEmpty() }.map { it.name }.toSet()
+                assertEquals("$type: follow status getters", emptyList<String>(), names.filter { it !in declared })
+            }
+        }
+    }
+
+    /**
+     * Copy bio and IDs hooks the bio item's bind, the share model's constructor and the share
+     * sheet's action panel. The bio hook reads the item's one TuxTextView field, and the model hook
+     * the builder's one BaseSharePackage field. The extension then reads `user` off a profile's
+     * package and `aweme` off a video's, so those fields and the getters it calls are held too.
+     */
+    @Test
+    fun `copy bio and IDs hooks and the share package members they read resolve on every declared build`() {
+        val pkg = "Lcom/ss/android/ugc/aweme/share/improve/pkg/"
+        val user = "Lcom/ss/android/ugc/aweme/profile/model/User;"
+        val aweme = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
+        Fixtures.forEachDeclared { apk ->
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .associateBy { it.type }
+
+            val bio = classes.getValue(SIGNATURE_COMPONENT)
+            val bioBinds = bio.methods.filter { BioBindFingerprint.takes(it, bio) }
+            assertEquals("the bio bind", 1, bioBinds.size)
+            assertTrue("the bio bind has two free registers", bioBinds.single().implementation!!.registerCount - 3 >= 2)
+            assertTrue("the bio item's one text view", bio.bioTextField() != null)
+
+            val snapshots = classes.values.flatMap { classDef ->
+                classDef.methods.filter {
+                    it.name == "<init>" && it.parameterTypes.size == 1 && ShareSnapshotFingerprint.takes(it, classDef)
+                }
+            }
+            assertEquals("the share model constructor", 1, snapshots.size)
+            assertTrue("the share model has a free register", snapshots.single().implementation!!.registerCount - 2 >= 1)
+            val builder = classes.getValue(snapshots.single().parameterTypes.single().toString())
+            assertTrue("the share model builder's one package", builder.sharePackageField() != null)
+
+            val panel = resolveSharePanel(classes.values.filter { classDef ->
+                classDef.methods.any { method ->
+                    method.name == "onAttachedToWindow" && method.implementation?.instructions?.any {
+                        ((it as? ReferenceInstruction)?.reference as? StringReference)?.string == SHARE_PANEL_MARKER
+                    } == true
+                }
+            })
+            assertEquals("the action panel", "onAttachedToWindow", panel.name)
+
+            assertEquals("a share package's kind", 1, classes.getValue(BASE_SHARE_PACKAGE).fields.count {
+                it.name == "itemType" && it.type == "Ljava/lang/String;"
+            })
+            assertEquals("a profile's share package holds its account", 1, classes.getValue("${pkg}UserSharePackage;").fields.count {
+                it.name == "user" && it.type == user
+            })
+            assertEquals("a video's share package holds its video", 1, classes.getValue("${pkg}AwemeSharePackage;").fields.count {
+                it.name == "aweme" && it.type == aweme
+            })
+            for ((type, getter) in listOf(user to "getUniqueId", user to "getUid", aweme to "getAid")) {
+                assertTrue("$type->$getter()", classes.getValue(type).methods.any {
+                    it.name == getter && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
+                })
+            }
         }
     }
 

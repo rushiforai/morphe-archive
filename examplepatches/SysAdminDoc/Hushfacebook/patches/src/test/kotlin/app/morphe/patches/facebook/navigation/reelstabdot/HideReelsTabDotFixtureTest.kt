@@ -61,6 +61,7 @@ class HideReelsTabDotFixtureTest {
                 val holder = holders.single { it.type == count.definingClass }
 
                 val context = PatchContexts.of(listOf(holder, ExtensionDex.classDef(SETTINGS_STATUS)))
+                jewelCountHookPatch.execute(context)
                 hideReelsTabDotPatch.execute(context)
 
                 val patched = context.mutableClassDefBy(count.definingClass).methods.single { it.name == count.name && isJewelCount(it) }.code()

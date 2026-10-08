@@ -6,7 +6,8 @@
     The stock APK is a feature package with id 0x7e, the shape of TikTok's df_search_biz whose
     layout/bj went missing upstream (#84): two colors (one with a night value), a theme on a base
     theme, and one layout. Each patched APK moves one thing. An unchanged table, a rewritten color
-    and a renamed entry pass and are reported. A lost layout, a layout file missing from the
+    and a renamed entry pass and are reported, and so does a restyled launcher icon (the XML the
+    manifest's icon names, which Custom launcher icon rewrites). A lost layout, a layout file missing from the
     archive, a changed layout file, a lost style item, a changed parent, a lost night value, a
     reference to nothing, a renamed type and a missing package fail, and each failure names what
     it lost.
@@ -77,7 +78,9 @@ $layout = @'
     chose are written out; with -StableIds every build keeps the stock build's ids.
 #>
 function New-ResourceApk {
-    param([string]$Name, [System.Collections.IDictionary]$Files, [string]$EmitIds, [string]$StableIds, [string]$PackageId = '0x7e')
+    param([string]$Name, [System.Collections.IDictionary]$Files, [string]$EmitIds, [string]$StableIds, [string]$PackageId = '0x7e',
+        [string]$ManifestText)
+    if (-not $ManifestText) { $ManifestText = $manifest }
     $dir = Join-Path $caseRoot $Name
     foreach ($entry in $Files.GetEnumerator()) {
         $path = Join-Path $dir ($entry.Key -replace '/', [System.IO.Path]::DirectorySeparatorChar)
@@ -85,7 +88,7 @@ function New-ResourceApk {
         [System.IO.File]::WriteAllText($path, $entry.Value, [System.Text.UTF8Encoding]::new($false))
     }
     $manifestPath = Join-Path $dir 'AndroidManifest.xml'
-    [System.IO.File]::WriteAllText($manifestPath, $manifest, [System.Text.UTF8Encoding]::new($false))
+    [System.IO.File]::WriteAllText($manifestPath, $ManifestText, [System.Text.UTF8Encoding]::new($false))
     $compiled = Join-Path $dir 'compiled.zip'
     Invoke-Checked -Program $Aapt2 -Arguments @('compile', '--dir', (Join-Path $dir 'res'), '-o', $compiled) `
         -Description "aapt2 compile for $Name"
@@ -129,12 +132,28 @@ function Edit-Table {
     }
 }
 
+function Copy-ApkWithLongerFile {
+    param([string]$From, [string]$Name, [string]$Path)
+    return Copy-ApkWith -From $From -Name $Name -Change {
+        param($archive)
+        $entry = $archive.GetEntry($Path)
+        if (-not $entry) { throw "the APK has no $Path to change" }
+        $stream = $entry.Open()
+        try { $buffer = [System.IO.MemoryStream]::new(); $stream.CopyTo($buffer); $bytes = $buffer.ToArray() } finally { $stream.Dispose() }
+        $entry.Delete()
+        $replacement = $archive.CreateEntry($Path, [System.IO.Compression.CompressionLevel]::NoCompression)
+        $out = $replacement.Open()
+        try { $out.Write($bytes, 0, $bytes.Length); $out.Write([byte[]](0, 0, 0, 0), 0, 4) } finally { $out.Dispose() }
+    }
+}
+
 function Invoke-Check {
-    param([string]$Patched, [string]$Name)
+    param([string]$Patched, [string]$Name, [string]$Stock)
+    if (-not $Stock) { $Stock = $stockApk }
     $report = Join-Path $caseRoot "$Name-report.txt"
     $global:LASTEXITCODE = 0
     $output = @(& $Java '-Xmx1g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
-        $stockApk $Patched $report 2>&1 | ForEach-Object { "$_" })
+        $Stock $Patched $report 2>&1 | ForEach-Object { "$_" })
     [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = ($output -join "`n"); Report = $report }
 }
 
@@ -268,20 +287,33 @@ try {
     Assert-True ($orphan.Output -match ([regex]::Escape("FAIL $($idOf['style/SearchTheme']) style/SearchTheme [default]: its parent @$($idOf['style/BaseTheme']) became @null"))) `
         "The lost parent's failure did not name the style and both parents.`n$($orphan.Output)"
 
-    $changedFile = Copy-ApkWith -From $stockApk -Name 'changed-file' -Change {
-        param($archive)
-        $entry = $archive.GetEntry('res/layout/bj.xml')
-        $stream = $entry.Open()
-        try { $buffer = [System.IO.MemoryStream]::new(); $stream.CopyTo($buffer); $bytes = $buffer.ToArray() } finally { $stream.Dispose() }
-        $entry.Delete()
-        $replacement = $archive.CreateEntry('res/layout/bj.xml', [System.IO.Compression.CompressionLevel]::NoCompression)
-        $out = $replacement.Open()
-        try { $out.Write($bytes, 0, $bytes.Length); $out.Write([byte[]](0, 0, 0, 0), 0, 4) } finally { $out.Dispose() }
-    }
+    $changedFile = Copy-ApkWithLongerFile -From $stockApk -Name 'changed-file' -Path 'res/layout/bj.xml'
     $changed = Invoke-Check -Patched $changedFile -Name 'changed-file'
     Assert-True ($changed.ExitCode -eq 1) "A layout file with other bytes passed.`n$($changed.Output)"
     Assert-True ($changed.Output -match [regex]::Escape("FAIL $($idOf['layout/bj']) layout/bj [default]: res/layout/bj.xml is not the file the stock archive holds for it")) `
         "The changed file's failure did not name the id and the path.`n$($changed.Output)"
+
+    # Custom launcher icon restyles the adaptive icon XML the manifest names, so other bytes there
+    # are reported. The same APK's layout with other bytes still fails.
+    $iconFiles = [ordered]@{}
+    foreach ($entry in $stockFiles.GetEnumerator()) { $iconFiles[$entry.Key] = $entry.Value }
+    $iconFiles['res/drawable/launcher.xml'] = @'
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#ff000000" />
+</shape>
+'@
+    $iconManifest = $manifest -replace '<application ', '<application android:icon="@drawable/launcher" android:roundIcon="@drawable/launcher" '
+    $iconStock = New-ResourceApk -Name 'icon-stock' -Files $iconFiles -ManifestText $iconManifest
+    $restyled = Copy-ApkWithLongerFile -From $iconStock -Name 'icon-restyled' -Path 'res/drawable/launcher.xml'
+    $icon = Invoke-Check -Stock $iconStock -Patched $restyled -Name 'icon-restyled'
+    Assert-True ($icon.ExitCode -eq 0) "A restyled launcher icon failed the check.`n$($icon.Output)"
+    Assert-True ($icon.Output -match '(?m)launcher icon files restyled \(Custom launcher icon\): 1$') `
+        "The restyled launcher icon was not reported.`n$($icon.Output)"
+    $iconAndLayout = Copy-ApkWithLongerFile -From $restyled -Name 'icon-and-layout' -Path 'res/layout/bj.xml'
+    $notIcon = Invoke-Check -Stock $iconStock -Patched $iconAndLayout -Name 'icon-and-layout'
+    Assert-True ($notIcon.ExitCode -eq 1) "A changed layout passed beside a restyled launcher icon.`n$($notIcon.Output)"
+    Assert-True ($notIcon.Output -match 'layout/bj \[default\]: res/layout/bj\.xml is not the file the stock archive holds for it') `
+        "The changed layout beside the icon was not named.`n$($notIcon.Output)"
 
     # A type renamed in the table's own type pool: every color resolves to a type called colox.
     # The pool is UTF-16 as aapt2 writes type names (length 5, then the characters); UTF-8 is the

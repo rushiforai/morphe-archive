@@ -23,10 +23,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  * and the ones that keep it whatever else it says.
  *
      * <p>A list is stored as one phrase per line. Each phrase is plain text, matched by default
-     * anywhere in a post's words, inside longer words too, with case and compatibility forms folded the Unicode way
- * (NFKC case folding), so "Spoiler", "SPOILER" and "ｓｐｏｉｌｅｒ" are one phrase. No pattern
-     * syntax: a phrase means its own characters and nothing else. Optional whole-word matching
-     * prevents a phrase's endpoints from cutting a Unicode word run.
+ * anywhere in a post's words, inside longer words too, with case and compatibility forms folded the
+ * Unicode way (NFKC case folding), so "Spoiler", "SPOILER" and "ｓｐｏｉｌｅｒ" are one phrase. A
+ * phrase means its own characters and nothing else. Optional whole-word matching prevents a
+ * phrase's endpoints from cutting a Unicode word run.
+ *
+ * <p>A line written between slashes, such as {@code /colou?r/}, is a pattern instead: a regular
+ * expression read by {@link PostPattern}, matched against a post's words as they are, capital
+ * letters aside, on a step budget per post so no pattern can hang the feed. A list holds up to
+ * {@link #MAX_PATTERNS} of them, each up to {@link #MAX_PATTERN_LENGTH} characters between the
+ * slashes. A pattern that can't be read is refused when the list is saved, and left out of a list
+ * read from the store, like any line out of bounds.
  *
  * <p>Both lists are bounded, whatever wrote the store: at most {@link #MAX_PHRASES} phrases, each
  * {@link #MIN_LENGTH} to {@link #MAX_LENGTH} characters, or one that's a word on its own (an
@@ -44,6 +51,17 @@ public final class PostWords {
     /** A phrase's length in characters (code points), after the spaces around it are dropped. */
     public static final int MIN_LENGTH = 2;
     public static final int MAX_LENGTH = 60;
+    /** How many patterns a list holds. They count among its {@link #MAX_PHRASES} too. */
+    public static final int MAX_PATTERNS = 50;
+    /** A pattern's length in characters (code points) between its slashes, at least {@link #MIN_LENGTH}. */
+    public static final int MAX_PATTERN_LENGTH = 200;
+    /**
+     * The steps every pattern of both lists may take together on one post. A long post read by
+     * many patterns runs out and stays, and the report counts it as {@link Verdict#TOO_SLOW}.
+     */
+    static final long STEPS_PER_POST = 2_000_000;
+    /** Keys a pattern apart from a phrase among the lines already seen; no typed line holds U+0000. */
+    private static final String PATTERN_KEY = "\u0000/";
     /**
      * The room both lists share, in bytes: what the two take together in a settings file, each as
      * {@link #encodedBytes} counts it. 56 KB holds 1,000 short phrases in each list and leaves the
@@ -60,17 +78,24 @@ public final class PostWords {
     private PostWords() {
     }
 
-    /** What the lists make of a post's words. Only {@link #HIDE} hides it. */
+    /** What the lists make of a post's words. Only {@link #HIDE} and {@link #HIDE_PATTERN} hide it. */
     enum Verdict {
         HIDE("hide word"),
+        HIDE_PATTERN("hide pattern"),
         KEEP("keep word"),
+        KEEP_PATTERN("keep pattern"),
+        TOO_SLOW("pattern too slow"),
         NO_MATCH("no match");
 
-        /** What the report counts this under: which list matched, never the phrase. */
+        /** What the report counts this under: which list and kind of rule matched, never the phrase. */
         final String reason;
 
         Verdict(String reason) {
             this.reason = reason;
+        }
+
+        boolean hides() {
+            return this == HIDE || this == HIDE_PATTERN;
         }
     }
 
@@ -88,17 +113,42 @@ public final class PostWords {
         List<String> kept = new ArrayList<>();
         if (stored == null || stored.isEmpty()) return kept;
         Set<String> seen = new HashSet<>();
+        int patterns = 0;
         int start = 0;
         while (start <= stored.length() && kept.size() < limit) {
             int end = lineEnd(stored, start);
             String phrase = strip(stored.substring(start, end));
-            if (phrase.codePointCount(0, phrase.length()) <= MAX_LENGTH) {
+            String body = patternBody(phrase);
+            if (body != null) {
+                if (patterns < MAX_PATTERNS && readable(body) && seen.add(PATTERN_KEY + body)) {
+                    kept.add(phrase);
+                    patterns++;
+                }
+            } else if (phrase.codePointCount(0, phrase.length()) <= MAX_LENGTH) {
                 String folded = fold(phrase);
                 if (longEnough(phrase, folded) && seen.add(folded)) kept.add(phrase);
             }
             start = end + 1;
         }
         return kept;
+    }
+
+    /**
+     * The pattern a stripped line holds when it's written between slashes with at least
+     * {@link #MIN_LENGTH} characters between them, or null when the line is a phrase. "//" and
+     * "/a/" are phrases.
+     */
+    @Nullable
+    static String patternBody(String line) {
+        int length = line.length();
+        if (length < 2 || line.charAt(0) != '/' || line.charAt(length - 1) != '/') return null;
+        String body = line.substring(1, length - 1);
+        return body.codePointCount(0, body.length()) >= MIN_LENGTH ? body : null;
+    }
+
+    /** Whether a pattern's body is short enough and one {@link PostPattern} reads. */
+    private static boolean readable(String body) {
+        return body.codePointCount(0, body.length()) <= MAX_PATTERN_LENGTH && PostPattern.compileOrNull(body) != null;
     }
 
     /** The list as it's stored: the phrases {@link #phrases} keeps, one per line. */
@@ -153,8 +203,36 @@ public final class PostWords {
     public static Size size(@Nullable String typed, int otherBytes) {
         // One past the most is enough to say there are too many, and to stop reading there.
         List<String> phrases = phrases(typed, MAX_PHRASES + 1);
-        if (phrases.size() > MAX_PHRASES) return new Size(phrases.size(), otherBytes);
-        return new Size(phrases.size(), encodedBytes(String.join("\n", phrases)) + otherBytes);
+        int[] patterns = patterns(typed);
+        int bytes = phrases.size() > MAX_PHRASES ? otherBytes : encodedBytes(String.join("\n", phrases)) + otherBytes;
+        return new Size(phrases.size(), bytes, patterns[0], patterns[1]);
+    }
+
+    /**
+     * The patterns a typed list holds, one given twice counted once, and the number of its first
+     * line written as a pattern that can't be one (unreadable, or too long), 0 when there's none.
+     */
+    private static int[] patterns(@Nullable String typed) {
+        if (typed == null || typed.isEmpty()) return new int[] {0, 0};
+        Set<String> seen = new HashSet<>();
+        int count = 0;
+        int badLine = 0;
+        int line = 1;
+        int start = 0;
+        while (start <= typed.length()) {
+            int end = lineEnd(typed, start);
+            String body = patternBody(strip(typed.substring(start, end)));
+            if (body != null) {
+                if (!readable(body)) {
+                    if (badLine == 0) badLine = line;
+                } else if (seen.add(body)) {
+                    count++;
+                }
+            }
+            start = end + 1;
+            line++;
+        }
+        return new int[] {count, badLine};
     }
 
     /** A typed list measured by {@link #size}. */
@@ -163,19 +241,32 @@ public final class PostWords {
         public final int phrases;
         /** The bytes both lists would take together. Without this one's when it has too many phrases. */
         public final int bytes;
+        /** The readable patterns among its lines, however many there are. */
+        public final int patterns;
+        /** The number of the first line written as a pattern that can't be read, 0 when there's none. */
+        public final int badLine;
 
-        Size(int phrases, int bytes) {
+        Size(int phrases, int bytes, int patterns, int badLine) {
             this.phrases = phrases;
             this.bytes = bytes;
+            this.patterns = patterns;
+            this.badLine = badLine;
         }
 
         public boolean tooMany() {
             return phrases > MAX_PHRASES;
         }
 
-        /** Whether the list can be saved as it is: few enough phrases, and room for them. */
+        public boolean tooManyPatterns() {
+            return patterns > MAX_PATTERNS;
+        }
+
+        /**
+         * Whether the list can be saved as it is: few enough phrases and patterns, every pattern
+         * readable, and room for them.
+         */
         public boolean fits() {
-            return !tooMany() && bytes <= MAX_LIST_BYTES;
+            return !tooMany() && !tooManyPatterns() && badLine == 0 && bytes <= MAX_LIST_BYTES;
         }
 
         /** How full the shared room would be, in whole percent rounded up, so one phrase shows. */
@@ -197,9 +288,20 @@ public final class PostWords {
         return Normalizer2.getNFKCCasefoldInstance().normalize(text);
     }
 
+    /** [text] with only the case a pattern ignores folded, so a fold that adds nothing more can be told. */
+    static String caseFolded(String text) {
+        StringBuilder out = new StringBuilder(text.length());
+        for (int at = 0; at < text.length(); ) {
+            int point = text.codePointAt(at);
+            out.appendCodePoint(PostPattern.fold(point));
+            at += Character.charCount(point);
+        }
+        return out.toString();
+    }
+
     /**
-     * Both lists folded into one {@link Matcher}, ready to judge posts. Built again only when either
-     * list changes, never for a post.
+     * Both lists folded into one {@link Matcher}, and their patterns compiled, ready to judge
+     * posts. Built again only when either list changes, never for a post.
      */
     static final class Rules {
         final String hideSource;
@@ -207,21 +309,31 @@ public final class PostWords {
         final boolean wholeWords;
         private final boolean hidesNothing;
         private final Matcher matcher;
+        private final List<PostPattern> hidePatterns = new ArrayList<>();
+        private final List<PostPattern> keepPatterns = new ArrayList<>();
 
         Rules(String hideSource, String keepSource, boolean wholeWords) {
             this.hideSource = hideSource;
             this.keepSource = keepSource;
             this.wholeWords = wholeWords;
-            String[] hide = folded(hideSource);
-            hidesNothing = hide.length == 0;
-            matcher = new Matcher(hide, folded(keepSource), wholeWords);
+            String[] hide = folded(hideSource, hidePatterns);
+            hidesNothing = hide.length == 0 && hidePatterns.isEmpty();
+            matcher = new Matcher(hide, folded(keepSource, keepPatterns), wholeWords);
         }
 
-        private static String[] folded(String stored) {
-            List<String> phrases = phrases(stored);
-            String[] folded = new String[phrases.size()];
-            for (int i = 0; i < folded.length; i++) folded[i] = fold(phrases.get(i));
-            return folded;
+        /** The list's phrases folded, with its patterns compiled into [patterns]. */
+        private static String[] folded(String stored, List<PostPattern> patterns) {
+            List<String> folded = new ArrayList<>();
+            for (String phrase : phrases(stored)) {
+                String body = patternBody(phrase);
+                if (body == null) {
+                    folded.add(fold(phrase));
+                } else {
+                    PostPattern pattern = PostPattern.compileOrNull(body);
+                    if (pattern != null) patterns.add(pattern);
+                }
+            }
+            return folded.toArray(new String[0]);
         }
 
         /** Whether there's anything to hide by. With no hide phrase, no post is read at all. */
@@ -231,17 +343,49 @@ public final class PostWords {
 
         /**
          * What the lists make of a post's words: a keep phrase anywhere in them wins, then a hide
-         * phrase anywhere hides. No words match nothing. A phrase matches inside one text, never
-         * across two.
+         * phrase or pattern anywhere hides unless a keep pattern matches too. No words match
+         * nothing. A phrase or pattern matches inside one text, never across two. Patterns read each
+         * text as it is and folded, and either one can match. Patterns run only
+         * where they can change the verdict, all on one {@link PostPattern.Budget}, and a post whose
+         * patterns run out of steps is {@link Verdict#TOO_SLOW} and stays.
          */
         Verdict judge(List<String> texts) {
             if (hidesNothing() || texts.isEmpty()) return Verdict.NO_MATCH;
             int found = 0;
+            // What the patterns read: each text as it is, so a pattern written with a styled or
+            // full-width letter still sees it, and folded, so a plain pattern sees through styled
+            // letters, full-width forms, no-break spaces and soft hyphens as the phrases do.
+            List<String> patternTexts = new ArrayList<>(texts.size() * 2);
             for (String text : texts) {
-                found |= matcher.find(fold(text));
+                String folded = fold(text);
+                found |= matcher.find(folded);
                 if ((found & Matcher.KEEPS) != 0) return Verdict.KEEP;
+                patternTexts.add(text);
+                // Patterns already ignore case, so a copy that differs only by case is the same read twice.
+                if (!folded.equals(text) && !folded.equals(caseFolded(text))) patternTexts.add(folded);
             }
-            return (found & Matcher.HIDES) != 0 ? Verdict.HIDE : Verdict.NO_MATCH;
+            PostPattern.Budget budget = new PostPattern.Budget(STEPS_PER_POST);
+            Verdict hide = (found & Matcher.HIDES) != 0 ? Verdict.HIDE : null;
+            if (hide == null) {
+                PostPattern.Result result = any(hidePatterns, patternTexts, budget);
+                if (result == PostPattern.Result.TOO_SLOW) return Verdict.TOO_SLOW;
+                if (result == PostPattern.Result.MATCH) hide = Verdict.HIDE_PATTERN;
+            }
+            if (hide == null) return Verdict.NO_MATCH;
+            PostPattern.Result kept = any(keepPatterns, patternTexts, budget);
+            if (kept == PostPattern.Result.TOO_SLOW) return Verdict.TOO_SLOW;
+            return kept == PostPattern.Result.MATCH ? Verdict.KEEP_PATTERN : hide;
+        }
+
+        /** Whether one of [patterns] matches in one of [texts], or the budget ran out first. */
+        private static PostPattern.Result any(List<PostPattern> patterns, List<String> texts, PostPattern.Budget budget) {
+            for (PostPattern pattern : patterns) {
+                for (String text : texts) {
+                    PostPattern.Result result = pattern.find(text, budget);
+                    if (result != PostPattern.Result.NO_MATCH) return result;
+                }
+            }
+            return PostPattern.Result.NO_MATCH;
         }
     }
 

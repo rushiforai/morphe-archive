@@ -8,6 +8,7 @@ import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -38,6 +39,14 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * a pick in Facebook's menu included, goes through as it came. A preselected label Facebook put
  * there itself is left alone.
  *
+ * <p>Reels and video stories can each have a quality of their own ({@link SurfaceQuality}). The
+ * evaluator keeps the configuration it was built with, whose playback preferences carry the player
+ * origin and sub-origin Facebook names every player with, and the configuration itself reads those
+ * two to treat a story differently: an origin of {@code fb_stories} is a story, and a sub-origin of
+ * {@code fb_shorts_viewer} or {@code fb_shorts_native_in_feed_unit} a reel. {@link #surfaceOf} sorts
+ * by the same names, a little wider, so every {@code fb_shorts} player is a reel and every
+ * {@code fb_stories} one a story. Anything else plays at the quality every video does.
+ *
  * <p>It fails open: with the patch not in the build, the switch off, Hushfacebook paused, the
  * settings not ready yet, Auto chosen, or a failure in here, Facebook picks the quality as it plays.
  * A change takes effect for the next video that starts.
@@ -58,6 +67,17 @@ public final class QualityChoice {
 
     /** Counted under the patch's name for each video that started at the chosen quality. */
     static final String APPLIED = "video started at the chosen quality";
+
+    /** Counted under the patch's name for each reel given the Reels quality rather than the videos' one. */
+    static final String REEL_OWN = "reel given the Reels quality";
+
+    /** Counted under the patch's name for each story given the Stories quality rather than the videos' one. */
+    static final String STORY_OWN = "story given the Stories quality";
+
+    /** Where a video plays, as far as which quality it starts at goes. */
+    enum Surface {
+        VIDEO, REEL, STORY
+    }
 
     /** Choices logged one by one before the log only counts them. */
     static final int LOGGED_ONE_BY_ONE = 40;
@@ -83,6 +103,14 @@ public final class QualityChoice {
         /** A track's quality label, such as 720p, or null when it has none. */
         @Nullable
         String label(Object format);
+
+        /** The player origin the evaluator's video plays under, such as fb_stories, or null. */
+        @Nullable
+        String origin(Object evaluator);
+
+        /** The player sub-origin, such as fb_shorts_viewer, or null. */
+        @Nullable
+        String subOrigin(Object evaluator);
     }
 
     static final Evaluator PATCHED = new Evaluator() {
@@ -104,6 +132,16 @@ public final class QualityChoice {
         @Override
         public String label(Object format) {
             return formatLabel(format);
+        }
+
+        @Override
+        public String origin(Object evaluator) {
+            return playOrigin(evaluator);
+        }
+
+        @Override
+        public String subOrigin(Object evaluator) {
+            return playSubOrigin(evaluator);
         }
     };
 
@@ -147,6 +185,21 @@ public final class QualityChoice {
         return null;
     }
 
+    /**
+     * Filled in by the patch: the player origin in the playback preferences of the configuration
+     * the evaluator was built with, or null. Only an evaluator may be passed.
+     */
+    @Nullable
+    public static String playOrigin(Object evaluator) {
+        return null;
+    }
+
+    /** Filled in by the patch: the player sub-origin, read the same way. Only an evaluator may be passed. */
+    @Nullable
+    public static String playSubOrigin(Object evaluator) {
+        return null;
+    }
+
     // ------------------------------------------------------------------ hooks
 
     /** Whether this build carries the patch. */
@@ -156,29 +209,42 @@ public final class QualityChoice {
     }
 
     /**
-     * The quality new videos start at: the chosen one while the patch is in, the settings are ready
-     * and the switch is on, which a pause answers off. Null for Facebook's own choice.
+     * Where a player of [origin] and [subOrigin] plays: a story for an fb_stories origin, a reel for
+     * an fb_shorts origin or sub-origin, then a story for an fb_stories sub-origin, else a video.
+     * Case doesn't count, as it doesn't for Facebook's own check.
      */
-    @Nullable
-    private static PlaybackQuality chosen() {
-        if (!inBuild() || !Utils.settingsReady() || !Settings.DEFAULT_PLAYBACK_QUALITY.get()) return null;
-        PlaybackQuality forced = qualityForTests;
-        PlaybackQuality quality = forced != null ? forced : Settings.PLAYBACK_QUALITY.get();
-        return quality == null || quality == PlaybackQuality.AUTO ? null : quality;
+    static Surface surfaceOf(@Nullable String origin, @Nullable String subOrigin) {
+        if (startsWith(origin, "fb_stories")) return Surface.STORY;
+        if (startsWith(origin, "fb_shorts") || startsWith(subOrigin, "fb_shorts")) return Surface.REEL;
+        if (startsWith(subOrigin, "fb_stories")) return Surface.STORY;
+        return Surface.VIDEO;
+    }
+
+    private static boolean startsWith(@Nullable String name, String prefix) {
+        return name != null && name.toLowerCase(Locale.US).startsWith(prefix);
     }
 
     /**
-     * Injection point, at the end of the constructor of Facebook's DASH format evaluator. Leaves the
-     * chosen quality as the label its first choice applies, unless Facebook left one there itself.
-     * Never throws.
+     * Injection point, at the end of the constructor of Facebook's DASH format evaluator. While the
+     * patch is in, the settings are ready and the switch is on, which a pause answers off, leaves
+     * the quality the video starts at as the label its first choice applies, unless Facebook left
+     * one there itself: the Reels or Stories quality for a reel or a story when that has one of its
+     * own, else the one every video starts at. Facebook's Auto leaves no label. Never throws.
      */
     public static void evaluatorBuilt(@Nullable Object evaluator) {
         try {
             if (evaluator == null || !inBuild()) return;
             HookStatus.invoked(FAMILY);
-            PlaybackQuality quality = chosen();
-            if (quality == null || access.preselected(evaluator) != null) return;
+            if (!Utils.settingsReady() || !Settings.DEFAULT_PLAYBACK_QUALITY.get()) return;
+            Surface surface = surfaceOf(access.origin(evaluator), access.subOrigin(evaluator));
+            SurfaceQuality own = surface == Surface.REEL ? Settings.REELS_PLAYBACK_QUALITY.get()
+                    : surface == Surface.STORY ? Settings.STORIES_PLAYBACK_QUALITY.get() : null;
+            PlaybackQuality forced = qualityForTests;
+            PlaybackQuality quality = own != null && own.quality != null ? own.quality
+                    : forced != null ? forced : Settings.PLAYBACK_QUALITY.get();
+            if (quality == null || quality == PlaybackQuality.AUTO || access.preselected(evaluator) != null) return;
             access.preselect(evaluator, TOKEN + quality.fileValue);
+            if (own != null && own.quality != null) HookStatus.counted(FAMILY, surface == Surface.REEL ? REEL_OWN : STORY_OWN);
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "evaluator built", failure);
         }

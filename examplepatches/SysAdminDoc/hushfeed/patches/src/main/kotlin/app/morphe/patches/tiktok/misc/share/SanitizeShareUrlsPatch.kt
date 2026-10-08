@@ -23,7 +23,7 @@ private fun widthOf(type: String) = if (type == "J" || type == "D") 2 else 1
 @Suppress("unused")
 val sanitizeShareUrlsPatch = bytecodePatch(
     name = "Sanitize sharing links",
-    description = "Removes tracking parameters from TikTok links before they are shared, and can put a host of your choosing in place of tiktok.com. Switch: Hushfeed settings > Privacy.",
+    description = "Removes tracking parameters from TikTok links before they are shared, and can put a host of your choosing in place of tiktok.com. A short vt.tiktok.com or vm.tiktok.com link you copy can be swapped for the full video link, off by default. Switch: Hushfeed settings > Privacy.",
     default = true,
 ) {
     category("Interaction")

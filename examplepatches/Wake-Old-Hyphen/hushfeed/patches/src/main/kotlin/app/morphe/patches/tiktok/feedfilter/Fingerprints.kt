@@ -616,6 +616,19 @@ internal object FriendsFeedSuccessFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The Friends tab's V3 feed handles each response off the wire here, before it walks
+ * `friendsV3Feeds` into the list the tab shows. Both the main request and the text feed
+ * requests end in it. It is the class's only method taking just the response, named LJ and
+ * public final on 47.0.3, 47.1.3 and 47.1.4, so p1 is the response.
+ */
+internal object FriendsV3FeedHandleResponseFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/friendstab/repo/FriendsV3FeedNetworkSource;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Lcom/ss/android/ugc/aweme/friendstab/repo/FriendsV3FeedResponse;"),
+)
+
 internal object TakoAiFeedButtonSetVisibleFingerprint : Fingerprint(
     definingClass = "/feed/assem/tikbot/TakoAssem;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),

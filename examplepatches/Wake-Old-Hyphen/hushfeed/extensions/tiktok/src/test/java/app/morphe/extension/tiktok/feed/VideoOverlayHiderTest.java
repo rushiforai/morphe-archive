@@ -852,6 +852,50 @@ public class VideoOverlayHiderTest {
         }
     }
 
+    /**
+     * The automatic path can turn Clear display on before the bottom tabs are laid out after a
+     * cold start, and TikTok then leaves them over the first video (#84). They sit outside the
+     * cells, go while the mode is on, and come back when it ends. An opened video has no such bar.
+     */
+    @Test
+    public void clearDisplayTakesTheBottomTabsAwayOnTheMainFeedOnly() {
+        int tabsId = 0x7f0a0b20;
+        int cellId = 0x7f0a0b21;
+        VideoOverlayHider.resolveForTests("47.0.3:omy", tabsId);
+        VideoOverlayHider.resolveForTests("view_rootview", cellId);
+        try (var main = Robolectric.buildActivity(Activity.class).setup();
+             var detail = Robolectric.buildActivity(
+                     com.ss.android.ugc.aweme.detail.ui.DetailActivity.class).setup()) {
+            Utils.setContext(main.get());
+            FrameLayout root = new FrameLayout(main.get());
+            FrameLayout cell = new FrameLayout(main.get());
+            cell.setId(cellId);
+            root.addView(cell);
+            View tabs = new View(main.get());
+            tabs.setId(tabsId);
+            root.addView(tabs);
+            main.get().setContentView(root);
+            View detailTabs = new View(detail.get());
+            detailTabs.setId(tabsId);
+            detail.get().setContentView(detailTabs);
+
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(true, 1));
+            VideoOverlayHider.applyTo(main.get());
+            assertEquals(View.GONE, tabs.getVisibility());
+            VideoOverlayHider.applyTo(detail.get());
+            assertEquals(View.VISIBLE, detailTabs.getVisibility());
+
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 1));
+            VideoOverlayHider.applyTo(main.get());
+            assertEquals(View.VISIBLE, tabs.getVisibility());
+        } finally {
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 1));
+        }
+    }
+
     @Test
     public void clearDisplayHidesFollowingStoriesOutsideTheCellsAndRestoresNativeVisibility() {
         int storyId = 0x7f0a0b10;
@@ -1189,6 +1233,145 @@ public class VideoOverlayHiderTest {
     }
 
     /**
+     * TikTok leaves the Add comment bar up in Clear display on a photo or video opened from
+     * search or a profile (#84). It goes with the other controls, with Hide the comment bar on
+     * opened videos off, and comes back on Restore display.
+     */
+    @Test
+    public void clearDisplayTakesTheCommentBarOffAnOpenedVideo() {
+        resolveCommentBarIds();
+        Settings.HIDE_DETAIL_COMMENT_BAR.save(false);
+        try (var detailController = Robolectric.buildActivity(
+                com.ss.android.ugc.aweme.detail.ui.DetailActivity.class).create().start()) {
+            Activity detail = detailController.get();
+            View strip = new View(detail);
+            FrameLayout root = new FrameLayout(detail);
+            root.addView(pagerColumn(detail, strip));
+            View bar = new View(detail);
+            bar.setId(BAR_ID);
+            root.addView(bar);
+            detail.setContentView(root);
+            detailController.resume();
+
+            VideoOverlayHider.applyTo(detail);
+            assertEquals(View.VISIBLE, bar.getVisibility());
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(true, 1));
+            VideoOverlayHider.applyTo(detail);
+            assertEquals("the comment bar stayed in Clear display", View.GONE, bar.getVisibility());
+            assertEquals(View.GONE, strip.getVisibility());
+
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 1));
+            VideoOverlayHider.applyTo(detail);
+            assertEquals("Restore display left the comment bar hidden", View.VISIBLE, bar.getVisibility());
+            assertEquals(View.VISIBLE, strip.getVisibility());
+        } finally {
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 1));
+            Settings.CLEAR_DISPLAY.save(false);
+        }
+    }
+
+    /**
+     * On 47.1.4 a photo opened from search plays in the main activity (DetailSafRootFragment),
+     * not the detail pager, with the same comment bar. Clear display takes it off there too, and
+     * the main feed's own strip, which has no bar over it, is left alone (#84).
+     */
+    @Test
+    public void clearDisplayTakesTheCommentBarOffAPhotoOpenedInTheMainActivity() {
+        resolveCommentBarIds();
+        Settings.HIDE_DETAIL_COMMENT_BAR.save(false);
+        try (var mainController = Robolectric.buildActivity(
+                com.ss.android.ugc.aweme.main.MainActivity.class).create().start()) {
+            Activity main = mainController.get();
+            View strip = new View(main);
+            FrameLayout root = new FrameLayout(main);
+            root.addView(pagerColumn(main, strip));
+            View bar = new View(main);
+            bar.setId(BAR_ID);
+            root.addView(bar);
+            main.setContentView(root);
+            mainController.resume();
+
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(true, 1));
+            VideoOverlayHider.applyTo(main);
+            assertEquals("the photo's comment bar stayed in Clear display", View.GONE, bar.getVisibility());
+            assertEquals(View.GONE, strip.getVisibility());
+
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 1));
+            VideoOverlayHider.applyTo(main);
+            assertEquals(View.VISIBLE, bar.getVisibility());
+            assertEquals(View.VISIBLE, strip.getVisibility());
+
+            // The feed itself: the strip with no bar over it stays in Clear display.
+            root.removeView(bar);
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(true, 1));
+            VideoOverlayHider.applyTo(main);
+            assertEquals("the feed's strip went without a comment bar", View.VISIBLE, strip.getVisibility());
+        } finally {
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 1));
+            Settings.CLEAR_DISPLAY.save(false);
+        }
+    }
+
+    /**
+     * Clear display only fades the anchor row under the caption, and a tap on the faded row still
+     * opened its search (#84). It goes invisible, keeping its space so the caption doesn't move,
+     * and comes back when Clear display ends. A row TikTok had put away stays as it was.
+     */
+    @Test
+    public void clearDisplayTakesTheAnchorRowOutOfReach() {
+        int cellId = 0x7f0a0c71;
+        int anchorId = 0x7f0a0c72;
+        VideoOverlayHider.resolveForTests("view_rootview", cellId);
+        VideoOverlayHider.resolveForTests("47.0.3:bql", anchorId);
+        try (var controller = Robolectric.buildActivity(Activity.class).setup()) {
+            Activity activity = controller.get();
+            Utils.setContext(activity);
+            LinearLayout root = new LinearLayout(activity);
+            FrameLayout cell = new FrameLayout(activity);
+            cell.setId(cellId);
+            View anchor = new View(activity);
+            anchor.setId(anchorId);
+            cell.addView(anchor);
+            FrameLayout emptyCell = new FrameLayout(activity);
+            emptyCell.setId(cellId);
+            View putAway = new View(activity);
+            putAway.setId(anchorId);
+            putAway.setVisibility(View.GONE);
+            emptyCell.addView(putAway);
+            root.addView(cell);
+            root.addView(emptyCell);
+            activity.setContentView(root);
+
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the anchor went with Clear display off", View.VISIBLE, anchor.getVisibility());
+
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(true, 1));
+            VideoOverlayHider.applyTo(activity);
+            assertEquals("the faded anchor still takes taps", View.INVISIBLE, anchor.getVisibility());
+            assertEquals(View.GONE, putAway.getVisibility());
+
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 1));
+            VideoOverlayHider.applyTo(activity);
+            assertEquals(View.VISIBLE, anchor.getVisibility());
+            assertEquals(View.GONE, putAway.getVisibility());
+        } finally {
+            app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch
+                    .rememberClearDisplayEvent(new ClearEvent(false, 1));
+            Settings.CLEAR_DISPLAY.save(false);
+            VideoOverlayHider.resolveForTests("view_rootview", 0);
+        }
+    }
+
+    /**
      * The bar and the strip go together. With the bar missing, a collapsed strip would grow the
      * pager under nothing, or under a bar a build renamed, which then covers the caption. With
      * the strip missing, hiding the bar alone leaves the black strip.
@@ -1298,7 +1481,9 @@ public class VideoOverlayHiderTest {
             VideoOverlayHider.applyTo(activity);
             assertEquals(View.GONE, exit.getVisibility());
             assertEquals(View.GONE, playback.getVisibility());
-            assertEquals(View.GONE, seekBar.getVisibility());
+            assertEquals("the progress bar left the screen and can't be dragged",
+                    View.VISIBLE, seekBar.getVisibility());
+            assertEquals(0f, seekBar.getAlpha(), 0f);
 
             // Restore display: TikTok takes its bar down and everything is TikTok's again.
             clearBar.setVisibility(View.GONE);
@@ -1306,14 +1491,18 @@ public class VideoOverlayHiderTest {
             assertEquals(View.VISIBLE, exit.getVisibility());
             assertEquals(View.VISIBLE, playback.getVisibility());
             assertEquals(View.VISIBLE, seekBar.getVisibility());
+            assertEquals(1f, seekBar.getAlpha(), 0f);
 
             clearBar.setVisibility(View.VISIBLE);
             VideoOverlayHider.applyTo(activity);
-            assertEquals(View.GONE, seekBar.getVisibility());
+            assertEquals("the progress bar left the screen and can't be dragged",
+                    View.VISIBLE, seekBar.getVisibility());
+            assertEquals(0f, seekBar.getAlpha(), 0f);
             app.morphe.extension.shared.settings.PausedProcess.set(true);
             VideoOverlayHider.applyTo(activity);
             assertEquals(View.VISIBLE, exit.getVisibility());
             assertEquals(View.VISIBLE, seekBar.getVisibility());
+            assertEquals(1f, seekBar.getAlpha(), 0f);
             app.morphe.extension.shared.settings.PausedProcess.set(false);
 
             VideoOverlayHider.applyTo(activity);
@@ -1323,6 +1512,7 @@ public class VideoOverlayHiderTest {
             assertEquals(View.VISIBLE, exit.getVisibility());
             assertEquals(View.VISIBLE, playback.getVisibility());
             assertEquals(View.VISIBLE, seekBar.getVisibility());
+            assertEquals(1f, seekBar.getAlpha(), 0f);
         } finally {
             app.morphe.extension.shared.settings.PausedProcess.set(false);
             Settings.HIDE_CLEAR_DISPLAY_CONTROLS.save(false);

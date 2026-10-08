@@ -320,6 +320,10 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
             if (build.contains(PatchFamily.SHOW_LOCAL_IDS)) {
                 chats.addPreference(mark(toggle(context, Settings.SHOW_LOCAL_IDS, L10n.t("Show user and chat IDs"),
                         PatchFamily.SHOW_LOCAL_IDS.coverageSummary(L10n.t("Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings."))), SettingsIcons.CHAT));
+                chats.addPreference(mark(toggle(context, Settings.PROFILE_DATA_CENTER, L10n.t("Show profile data center"),
+                        L10n.t("A profile's menu also shows which of Telegram's data centers, 1 to 5, holds the profile photo. "
+                                + "A profile without a photo shows none, and no server request is added. Off by default in settings.")),
+                        SettingsIcons.CHAT));
             }
             if (build.contains(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS)) {
                 chats.addPreference(mark(toggle(context, Settings.DISABLE_DOUBLE_TAP_REACTIONS, L10n.t("Disable double-tap reactions"),
@@ -452,6 +456,73 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                         PatchFamily.SILENCE_NON_CONTACTS.coverageSummary(L10n.t("A private message from someone who isn't in your contacts still shows a notification, "
                                 + "just without sound or vibration. Bots, reminders and Telegram's login codes keep their "
                                 + "sound. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.DISABLE_ARCHIVE_PULL)) {
+                chats.addPreference(mark(toggle(context, Settings.DISABLE_ARCHIVE_PULL, L10n.t("Disable pull to archive"),
+                        PatchFamily.DISABLE_ARCHIVE_PULL.coverageSummary(L10n.t("Pulling down the chat list no longer brings up a hidden archive. You can open it from "
+                                + "Archived chats in the chat list's menu, or pin it to keep it in the list. Off by "
+                                + "default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.REAR_CAMERA_FIRST)) {
+                chats.addPreference(mark(toggle(context, Settings.REAR_CAMERA_FIRST, L10n.t("Start the camera on the rear lens"),
+                        PatchFamily.REAR_CAMERA_FIRST.coverageSummary(L10n.t("The camera in the attachment menu starts on the rear lens every time you open it, "
+                                + "instead of the lens you used last. You can still flip it while it's open. Off by "
+                                + "default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.HIDE_GALLERY_CAMERA_TILE)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_GALLERY_CAMERA_TILE, L10n.t("Hide gallery camera tile"),
+                        PatchFamily.HIDE_GALLERY_CAMERA_TILE.coverageSummary(L10n.t("The photo grid in the attachment menu starts with your photos instead of a live camera "
+                                + "tile. A chat picks it up the next time you open it. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.HIDE_STICKER_TIME)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_STICKER_TIME, L10n.t("Hide time on stickers"),
+                        PatchFamily.HIDE_STICKER_TIME.coverageSummary(L10n.t("Stickers and big animated emoji no longer carry the time and read checks in their "
+                                + "corner. Every other message keeps its time. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.IGNORE_MUTED_MENTIONS)) {
+                chats.addPreference(mark(toggle(context, Settings.IGNORE_MUTED_MENTIONS, L10n.t("Ignore mentions in muted chats"),
+                        PatchFamily.IGNORE_MUTED_MENTIONS.coverageSummary(L10n.t("Telegram still notifies you when someone mentions you or replies to you in a group or "
+                                + "channel you've muted. With this on, those stay as quiet as the rest of the chat. Chats "
+                                + "you haven't muted notify as before. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.HIDE_BLOCKED_IN_GROUPS)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_BLOCKED_IN_GROUPS, L10n.t("Hide blocked users in groups"),
+                        PatchFamily.HIDE_BLOCKED_IN_GROUPS.coverageSummary(L10n.t("Messages from people you've blocked are left out of the groups and supergroups you "
+                                + "open. Private chats and channel posts stay as they are. Nothing is deleted, so turning "
+                                + "it off and reopening the chat brings them back. Telegram loads a long blocked list a "
+                                + "bit at a time, so someone it hasn't loaded yet still shows. Off by default in "
+                                + "settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.HIDE_FEATURES_AND_INVITE)) {
+                chats.addPreference(mark(toggle(context, Settings.HIDE_FEATURES_AND_INVITE, L10n.t("Hide Telegram Features and Invite Friends"),
+                        PatchFamily.HIDE_FEATURES_AND_INVITE.coverageSummary(L10n.t("Settings drops its Telegram Features row and Contacts drops Invite Friends. When you "
+                                + "have no contacts yet, the invite list Contacts shows in their place goes too. Off by "
+                                + "default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.MESSAGE_MENU_REPEAT)) {
+                chats.addPreference(mark(toggle(context, Settings.MESSAGE_MENU_REPEAT, L10n.t("Add Repeat to the message menu"),
+                        PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Puts Repeat under Forward in a message's long-press menu. It sends the message again "
+                                + "to the same chat as a new message from you. It only shows where Telegram offers "
+                                + "Forward and you can write, so it won't appear in protected or secret chats. Off by "
+                                + "default in settings."))),
+                        SettingsIcons.CHAT));
+                chats.addPreference(mark(toggle(context, Settings.MESSAGE_MENU_COPY_PHOTO, L10n.t("Add Copy photo to the message menu"),
+                        PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Puts Copy photo under Forward in a photo's long-press menu once the photo has "
+                                + "downloaded. It copies the picture itself, so you can paste it into another app. It "
+                                + "won't appear in protected or secret chats. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+                chats.addPreference(mark(toggle(context, Settings.MESSAGE_MENU_DETAILS, L10n.t("Add Message details to the message menu"),
+                        PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Puts Message details at the end of a message's long-press menu. It shows the message's "
+                                + "IDs, when it was sent and edited, where it was forwarded from and the file's data "
+                                + "center and size, with a Copy button. Off by default in settings."))),
                         SettingsIcons.CHAT));
             }
         }

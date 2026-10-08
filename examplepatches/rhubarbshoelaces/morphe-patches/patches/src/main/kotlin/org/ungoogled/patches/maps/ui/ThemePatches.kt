@@ -1,9 +1,80 @@
 package org.ungoogled.patches.maps.ui
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
+import app.morphe.patcher.fieldAccess
+import app.morphe.patcher.methodCall
+import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.string
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+
+/**
+ * Target 2: Night Mode State Publisher (anth.a(Z)V)
+ */
+object NightModeRepositoryFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("Z"),
+    returnType = "V",
+    filters = listOf(
+        fieldAccess(opcode = Opcode.IGET_OBJECT),
+        methodCall(definingClass = "Ljava/lang/Boolean;", name = "valueOf")
+    )
+)
+
+/**
+ * Target 3: Protobuf Style Converter (bkjo / bjko)
+ */
+object StyleConverterFingerprint : Fingerprint(
+    classFingerprint = Fingerprint(
+        filters = listOf(
+            string("{"),
+            string(", "),
+            string("}")
+        )
+    ),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    parameters = listOf("L"),
+    returnType = "L",
+    filters = listOf(
+        opcode(Opcode.PACKED_SWITCH)
+    )
+)
+
+/**
+ * Target 4: Map Style Config Provider (bknb)
+ */
+object MapStyleConfigFingerprint : Fingerprint(
+    classFingerprint = Fingerprint(
+        strings = listOf(
+            "SATELLITE_HYBRID",
+            "NAVIGATION_LOW_LIGHT",
+            "TRANSIT_FOCUSED"
+        )
+    ),
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("Z"),
+    returnType = "L",
+    filters = listOf(
+        opcode(Opcode.IF_EQZ),
+        fieldAccess(opcode = Opcode.IGET_OBJECT),
+        opcode(Opcode.RETURN_OBJECT)
+    )
+)
+
+/**
+ * Target 5: Paint Table Substitution Registry (bkpd / bkpd.i)
+ */
+object PaintTableRegistryFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("I", "L", "L"),
+    returnType = "Z",
+    filters = listOf(
+        string("Legend urls not found (getTableUrl) for epoch = %s, legend = %s")
+    )
+)
 
 val hybridThemePatch = bytecodePatch(
     name = "Hybrid Theme (Dark Menus, Light Map)",
@@ -31,11 +102,31 @@ val hybridThemePatch = bytecodePatch(
             }
         } catch (ignored: Exception) {}
 
-        // --- TARGET 2: Intercept Protobuf Style Converter Lbkjo;->a(Lciar;)Lbkjo; ---
+        // --- TARGET 2: Night Mode Repository Setter (anth.a(Z)V) ---
         try {
-            val bkjoClass = mutableClassDefBy("Lbkjo;")
-            val convertMethod = bkjoClass.methods.firstOrNull { it.name == "a" }
-            convertMethod?.addInstructions(
+            NightModeRepositoryFingerprint.method.addInstructions(
+                0,
+                """
+                    if-eqz p1, :anth_done
+
+                    invoke-static {}, Lrhubarbshoelaces/patches/maps/extension/ThemeHelper;->isHybridThemeEnabled()Z
+                    move-result p1
+                    if-eqz p1, :anth_disabled
+
+                    const/4 p1, 0x0
+                    goto :anth_done
+
+                    :anth_disabled
+                    const/4 p1, 0x1
+
+                    :anth_done
+                """.trimIndent()
+            )
+        } catch (ignored: Exception) {}
+
+        // --- TARGET 3: Intercept Protobuf Style Converter (bkjo) ---
+        try {
+            StyleConverterFingerprint.method.addInstructions(
                 0,
                 """
                     invoke-static {}, Lrhubarbshoelaces/patches/maps/extension/ThemeHelper;->isHybridThemeEnabled()Z
@@ -49,11 +140,11 @@ val hybridThemePatch = bytecodePatch(
 
                     :check_ciar_overview
                     sget-object v0, Lciar;->Z:Lciar;          # ROUTE_OVERVIEW_DARK
-                    if-ne p0, v0, :check_ciar_terrain
+                    if-ne p0, v0, :check_ciar_terrain_vector
                     sget-object p0, Lciar;->Y:Lciar;          # ROUTE_OVERVIEW (Day)
                     goto :done_ciar_remap
 
-                    :check_ciar_terrain
+                    :check_ciar_terrain_vector
                     sget-object v0, Lciar;->af:Lciar;         # TERRAIN_VECTOR_CLIENT_DARK
                     if-ne p0, v0, :check_ciar_transit
                     sget-object p0, Lciar;->ae:Lciar;         # TERRAIN_VECTOR_CLIENT (Day)
@@ -75,11 +166,9 @@ val hybridThemePatch = bytecodePatch(
             )
         } catch (ignored: Exception) {}
 
-        // --- TARGET 3: Register-safe hook in Lbknb;->a(Z)Lbknc; ---
+        // --- TARGET 4: Register-safe hook in MapStyleConfigFingerprint (bknb.a(Z)) ---
         try {
-            val bknbClass = mutableClassDefBy("Lbknb;")
-            val aMethod = bknbClass.methods.firstOrNull { it.name == "a" }
-            aMethod?.addInstructions(
+            MapStyleConfigFingerprint.method.addInstructions(
                 0,
                 """
                     if-eqz p1, :hybrid_check_done
@@ -99,80 +188,80 @@ val hybridThemePatch = bytecodePatch(
             )
         } catch (ignored: Exception) {}
 
-        // --- TARGET 4: Register-safe hook in Lbkpd;->i(ILbkjo;Lbkja;)Z ---
+        // --- TARGET 5: Register-safe hook in PaintTableRegistryFingerprint (bkpd.i) ---
         try {
-            val bkpdClass = mutableClassDefBy("Lbkpd;")
-            val iMethod = bkpdClass.methods.firstOrNull { it.name == "i" }
-            iMethod?.addInstructions(
+            val bkjoType = StyleConverterFingerprint.originalClassDef.type
+
+            PaintTableRegistryFingerprint.method.addInstructions(
                 0,
                 """
-                    sget-object v0, Lbkjo;->b:Lbkjo;          # ROADMAP_DARK
+                    sget-object v0, $bkjoType->b:$bkjoType          # ROADMAP_DARK
                     if-ne p2, v0, :check_bkpd_overview
 
                     invoke-static {}, Lrhubarbshoelaces/patches/maps/extension/ThemeHelper;->isHybridThemeEnabled()Z
                     move-result p2
                     if-eqz p2, :bkpd_roadmap_disabled
-                    sget-object p2, Lbkjo;->a:Lbkjo;          # ROADMAP (Day)
+                    sget-object p2, $bkjoType->a:$bkjoType          # ROADMAP (Day)
                     goto :done_bkpd_remap
 
                     :bkpd_roadmap_disabled
-                    sget-object p2, Lbkjo;->b:Lbkjo;          # ROADMAP_DARK (restore)
+                    sget-object p2, $bkjoType->b:$bkjoType          # ROADMAP_DARK (restore)
                     goto :done_bkpd_remap
 
                     :check_bkpd_overview
-                    sget-object v0, Lbkjo;->B:Lbkjo;          # ROUTE_OVERVIEW_DARK
+                    sget-object v0, $bkjoType->B:$bkjoType          # ROUTE_OVERVIEW_DARK
                     if-ne p2, v0, :check_bkpd_terrain
 
                     invoke-static {}, Lrhubarbshoelaces/patches/maps/extension/ThemeHelper;->isHybridThemeEnabled()Z
                     move-result p2
                     if-eqz p2, :bkpd_overview_disabled
-                    sget-object p2, Lbkjo;->A:Lbkjo;          # ROUTE_OVERVIEW (Day)
+                    sget-object p2, $bkjoType->A:$bkjoType          # ROUTE_OVERVIEW (Day)
                     goto :done_bkpd_remap
 
                     :bkpd_overview_disabled
-                    sget-object p2, Lbkjo;->B:Lbkjo;          # ROUTE_OVERVIEW_DARK (restore)
+                    sget-object p2, $bkjoType->B:$bkjoType          # ROUTE_OVERVIEW_DARK (restore)
                     goto :done_bkpd_remap
 
                     :check_bkpd_terrain
-                    sget-object v0, Lbkjo;->F:Lbkjo;          # TERRAIN_VECTOR_CLIENT_DARK
+                    sget-object v0, $bkjoType->F:$bkjoType          # TERRAIN_VECTOR_CLIENT_DARK
                     if-ne p2, v0, :check_bkpd_transit
 
                     invoke-static {}, Lrhubarbshoelaces/patches/maps/extension/ThemeHelper;->isHybridThemeEnabled()Z
                     move-result p2
                     if-eqz p2, :bkpd_terrain_disabled
-                    sget-object p2, Lbkjo;->E:Lbkjo;          # TERRAIN_VECTOR_CLIENT (Day)
+                    sget-object p2, $bkjoType->E:$bkjoType          # TERRAIN_VECTOR_CLIENT (Day)
                     goto :done_bkpd_remap
 
                     :bkpd_terrain_disabled
-                    sget-object p2, Lbkjo;->F:Lbkjo;          # TERRAIN_VECTOR_CLIENT_DARK (restore)
+                    sget-object p2, $bkjoType->F:$bkjoType          # TERRAIN_VECTOR_CLIENT_DARK (restore)
                     goto :done_bkpd_remap
 
                     :check_bkpd_transit
-                    sget-object v0, Lbkjo;->H:Lbkjo;          # TRANSIT_FOCUSED_DARK
+                    sget-object v0, $bkjoType->H:$bkjoType          # TRANSIT_FOCUSED_DARK
                     if-ne p2, v0, :check_bkpd_nav
 
                     invoke-static {}, Lrhubarbshoelaces/patches/maps/extension/ThemeHelper;->isHybridThemeEnabled()Z
                     move-result p2
                     if-eqz p2, :bkpd_transit_disabled
-                    sget-object p2, Lbkjo;->G:Lbkjo;          # TRANSIT_FOCUSED (Day)
+                    sget-object p2, $bkjoType->G:$bkjoType          # TRANSIT_FOCUSED (Day)
                     goto :done_bkpd_remap
 
                     :bkpd_transit_disabled
-                    sget-object p2, Lbkjo;->H:Lbkjo;          # TRANSIT_FOCUSED_DARK (restore)
+                    sget-object p2, $bkjoType->H:$bkjoType          # TRANSIT_FOCUSED_DARK (restore)
                     goto :done_bkpd_remap
 
                     :check_bkpd_nav
-                    sget-object v0, Lbkjo;->n:Lbkjo;          # NAVIGATION_LOW_LIGHT
+                    sget-object v0, $bkjoType->n:$bkjoType          # NAVIGATION_LOW_LIGHT
                     if-ne p2, v0, :done_bkpd_remap
 
                     invoke-static {}, Lrhubarbshoelaces/patches/maps/extension/ThemeHelper;->isHybridThemeEnabled()Z
                     move-result p2
                     if-eqz p2, :bkpd_nav_disabled
-                    sget-object p2, Lbkjo;->d:Lbkjo;          # NAVIGATION (Day)
+                    sget-object p2, $bkjoType->d:$bkjoType          # NAVIGATION (Day)
                     goto :done_bkpd_remap
 
                     :bkpd_nav_disabled
-                    sget-object p2, Lbkjo;->n:Lbkjo;          # NAVIGATION_LOW_LIGHT (restore)
+                    sget-object p2, $bkjoType->n:$bkjoType          # NAVIGATION_LOW_LIGHT (restore)
 
                     :done_bkpd_remap
                 """.trimIndent()

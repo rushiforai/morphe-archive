@@ -39,12 +39,14 @@ public class ReelsTabDotTest {
     @Before
     public void start() {
         HookStatus.clear();
+        ReelsTabDot.inBuildForTests = Boolean.TRUE;
     }
 
     @After
     public void restore() {
         PauseForTests.resume();
         Settings.HIDE_REELS_TAB_DOT.resetToDefault();
+        ReelsTabDot.inBuildForTests = null;
         HookStatus.clear();
     }
 
@@ -76,5 +78,17 @@ public class ReelsTabDotTest {
             assertFalse("a Hushfacebook paused by " + reason + " cleared the count", ReelsTabDot.clear(new WatchTab()));
             PauseForTests.resume();
         }
+    }
+
+    /**
+     * The count hook is shared with Hide tab badges, so a build with only that patch still calls it.
+     * The Reels rule, whose switch starts on, then leaves the Reels tab's count alone and counts nothing.
+     */
+    @Test
+    public void withoutItsPatchTheReelsTabKeepsItsCount() {
+        ReelsTabDot.inBuildForTests = Boolean.FALSE;
+        assertTrue(Settings.HIDE_REELS_TAB_DOT.get());
+        assertFalse(ReelsTabDot.clear(new WatchTab()));
+        assertEquals(null, statusLine());
     }
 }

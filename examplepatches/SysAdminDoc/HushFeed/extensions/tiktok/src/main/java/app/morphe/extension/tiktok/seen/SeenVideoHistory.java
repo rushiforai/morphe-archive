@@ -93,16 +93,61 @@ public final class SeenVideoHistory {
         public final int skipped;
         /** A successful import replaces the history, so a previous clear's Undo is retired. */
         public final boolean undoRetired;
+        /**
+         * Where the batch's skipped videos went, for a report that names each reason. Together
+         * with {@link #imported} they make up the batch; the batch's own skipped rows aren't in them.
+         */
+        public final int alreadyRecorded;
+        /** Older than Forget seen videos after allows. */
+        public final int expired;
+        /** Dated later than this phone's clock. */
+        public final int future;
+        /** Written, then pruned by the per-account cap because newer videos filled it. */
+        public final int capped;
+        /** Videos the account already had that the cap pruned to make room for the batch. */
+        public final int displaced;
+        /**
+         * Of {@link #imported}, the videos the account already had, whose date the batch moved
+         * later. A report that says what was added counts these as already there.
+         */
+        public final int refreshed;
 
         private ImportResult(ImportStatus status, int imported, int skipped) {
-            this(status, imported, skipped, false);
+            this(status, imported, skipped, false, 0, 0, 0, 0, 0, 0);
         }
 
-        private ImportResult(ImportStatus status, int imported, int skipped, boolean undoRetired) {
+        private ImportResult(ImportStatus status, int imported, int skipped, boolean undoRetired,
+                             int alreadyRecorded, int expired, int future, int capped, int displaced,
+                             int refreshed) {
             this.status = status;
             this.imported = imported;
             this.skipped = skipped;
             this.undoRetired = undoRetired;
+            this.alreadyRecorded = alreadyRecorded;
+            this.expired = expired;
+            this.future = future;
+            this.capped = capped;
+            this.displaced = displaced;
+            this.refreshed = refreshed;
+        }
+    }
+
+    /** One account's history as the history worker had it at one moment. */
+    public static final class Snapshot {
+        /** Video id to when it was last seen: retention applied, newest {@link #MAX_RECORDS} at most. */
+        public final Map<String, Long> videos;
+        public final long takenAt;
+
+        private Snapshot(Map<String, Long> videos, long takenAt) {
+            this.videos = java.util.Collections.unmodifiableMap(videos);
+            this.takenAt = takenAt;
+        }
+    }
+
+    /** The account a read or write was captured for is no longer the one signed in. */
+    public static final class AccountChanged extends java.io.IOException {
+        public AccountChanged() {
+            super("The signed-in account changed");
         }
     }
 
@@ -603,6 +648,61 @@ public final class SeenVideoHistory {
         }
     }
 
+    /**
+     * Reads the captured account's history on the history worker, behind every write queued
+     * before it, so the copy is one moment: no half-applied clear, import or undo, and every
+     * sighting already marked is in it. Refused with {@link AccountChanged} once another
+     * account is signed in. Blocks until the worker gets to it, so it's for a file worker,
+     * never the main thread or the history worker itself.
+     */
+    public static Snapshot snapshot(ImportTarget target) throws java.io.IOException {
+        if (target == null) throw new AccountChanged();
+        java.util.concurrent.Future<Snapshot> read;
+        try {
+            read = IO.submit(() -> {
+                if (!target.account.equals(account())) throw new AccountChanged();
+                long now = System.currentTimeMillis();
+                return new Snapshot(readNewest(target.account, retentionCutoff(now)), now);
+            });
+        } catch (java.util.concurrent.RejectedExecutionException failure) {
+            throw new java.io.IOException("Seen video history could not queue the snapshot", failure);
+        }
+        try {
+            return read.get();
+        } catch (java.util.concurrent.ExecutionException failed) {
+            Throwable cause = failed.getCause();
+            if (cause instanceof AccountChanged) throw (AccountChanged) cause;
+            throw new java.io.IOException("Seen video history could not be read", cause);
+        } catch (InterruptedException interrupted) {
+            Thread.currentThread().interrupt();
+            throw new java.io.InterruptedIOException("Stopped waiting for the seen video history");
+        }
+    }
+
+    /** The account's rows the feed would still hide: inside retention, newest first, capped. */
+    private static Map<String, Long> readNewest(String account, long cutoff) {
+        Map<String, Long> rows = new HashMap<>();
+        String selection = COLUMN_ACCOUNT + " = ?"
+                + (cutoff == Long.MIN_VALUE ? "" : " AND " + COLUMN_LAST_SEEN + " >= ?");
+        String[] selectionArgs = cutoff == Long.MIN_VALUE
+                ? new String[]{account}
+                : new String[]{account, String.valueOf(cutoff)};
+        try (Cursor cursor = getDatabase().getReadableDatabase().query(
+                TABLE,
+                new String[]{COLUMN_AID, COLUMN_LAST_SEEN},
+                selection, selectionArgs, null, null,
+                COLUMN_LAST_SEEN + " DESC, " + COLUMN_AID + " ASC",
+                String.valueOf(MAX_RECORDS))) {
+            int aidColumn = cursor.getColumnIndexOrThrow(COLUMN_AID);
+            int seenColumn = cursor.getColumnIndexOrThrow(COLUMN_LAST_SEEN);
+            while (cursor.moveToNext()) {
+                String aid = normalizeAid(cursor.getString(aidColumn));
+                if (aid != null) rows.put(aid, cursor.getLong(seenColumn));
+            }
+        }
+        return rows;
+    }
+
     /** Commits a bounded batch before publishing anything to the feed's memory cache. */
     public static void importHistory(ImportTarget target, WatchHistoryImport.Records records,
                                      ImportCallback callback) {
@@ -645,6 +745,9 @@ public final class SeenVideoHistory {
             Map<String, Long> after;
             int unownedCount;
             Map<String, Long> changed = new HashMap<>();
+            int alreadyRecorded = 0;
+            int expired = 0;
+            int future = 0;
             SQLiteDatabase writable = getDatabase().getWritableDatabase();
             writable.beginTransaction();
             try {
@@ -652,8 +755,18 @@ public final class SeenVideoHistory {
                 for (Map.Entry<String, Long> row : records.videos.entrySet()) {
                     long imported = row.getValue();
                     Long existing = before.get(row.getKey());
-                    if (imported < cutoff || imported > now
-                            || (existing != null && existing >= imported)) continue;
+                    if (imported < cutoff) {
+                        expired++;
+                        continue;
+                    }
+                    if (imported > now) {
+                        future++;
+                        continue;
+                    }
+                    if (existing != null && existing >= imported) {
+                        alreadyRecorded++;
+                        continue;
+                    }
                     ContentValues values = new ContentValues();
                     values.put(COLUMN_ACCOUNT, target.account);
                     values.put(COLUMN_AID, row.getKey());
@@ -684,7 +797,18 @@ public final class SeenVideoHistory {
                 writable.endTransaction();
             }
             int imported = 0;
-            for (String id : changed.keySet()) if (after.containsKey(id)) imported++;
+            int refreshed = 0;
+            for (String id : changed.keySet()) {
+                if (!after.containsKey(id)) continue;
+                imported++;
+                if (before.containsKey(id)) refreshed++;
+            }
+            // Rows inside retention that the account had and the cap took for the batch.
+            int displaced = 0;
+            for (Map.Entry<String, Long> row : before.entrySet()) {
+                if (row.getValue() >= cutoff && !changed.containsKey(row.getKey())
+                        && !after.containsKey(row.getKey())) displaced++;
+            }
             boolean undoRetired = false;
             synchronized (HISTORY_LOCK) {
                 if (importTargetStatus(target) == ImportStatus.IMPORTED) {
@@ -708,7 +832,8 @@ public final class SeenVideoHistory {
                 }
             }
             notifyImport(callback, new ImportResult(ImportStatus.IMPORTED, imported,
-                    records.skipped + records.videos.size() - imported, undoRetired));
+                    records.skipped + records.videos.size() - imported, undoRetired,
+                    alreadyRecorded, expired, future, changed.size() - imported, displaced, refreshed));
         } catch (ImportStopped stopped) {
             notifyImport(callback, new ImportResult(stopped.status, 0, 0));
         } catch (Exception failure) {

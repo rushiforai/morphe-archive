@@ -76,6 +76,29 @@
       "changes": "Rewritten from the two patches at that commit. The anchors are the same: the bumper component's constructor string and its one static (props) -> Z predicate, and the reel overlay enum's INTERESTED_OR_NOT_INTERESTED_BUMPER constant and the one (reel) -> Z method that reads it. Instead of returning false from the first instruction, each answer the predicate gives goes through an extension hook with a switch, so pausing Hushfacebook or turning a switch off brings the prompt back, and the diagnostic report counts the prompts kept out. Both are checked on 580 as well as 577, and a missing or doubled anchor stops patching with a message naming it."
     },
     {
+      "paths": ["patches/src/main/kotlin/app/morphe/patches/facebook/feed/followinghome/FollowingFeedHomePatch.kt"],
+      "origin": "ported",
+      "upstream": "https://github.com/ArunTS96/FroggoMorphePatches",
+      "commit": "319cde236e373ff8feb66fa30e99028e3d9dff6e",
+      "via": [],
+      "license": "GPL-3.0",
+      "changes": "Rewritten from the Following feed swap on that commit's fix/following-feed-home branch, which changes Home's feed type for the Following feed's at the start of Facebook 573's news feed parameter builder. The hook point is the same: the first instruction of that static builder, whose second parameter is the feed type. 573's obfuscated names aren't carried over. The builder is found in 577, 580 and 581 by the Companion.setPagedNewsfeedParams trace section it opens, the two feed types by the names they keep (top_stories and following_feed), and the swap is made by the extension's FollowingHome behind a switch that starts off, so pausing Hushfacebook or turning the switch off gives Home its ranked feed again. The extension, written here, sits under the feed extension's own rule."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/updates/playstore/DisablePlayStoreUpdatesPatch.kt",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/updates/DisablePlayStoreUpdatesPatch.java"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/MorpheApp/morphe-patches",
+      "commit": "1bcd0bcedf1238e71b0bd8815da2c10df7ef5bd2",
+      "via": [
+        "https://gitlab.com/ReVanced/revanced-patches"
+      ],
+      "license": "GPL-3.0-only with the Morphe section 7 notices",
+      "changes": "Copied from Morphe's universal Disable Play Store updates at that commit, its two files' Morphe notice blocks kept whole, with a line above each saying what changed. The manifest half is the same: the version code read before any patch finalizes and raised to Int.MAX_VALUE after. The extension's code is unchanged and moved into the Facebook extension's updates package, so it ships in Hushfacebook's extension and not the change-version-code one. The patch is Facebook only, tells SettingsStatus it's in, and walks every class for the PackageInfo.versionCode reads and getLongVersionCode calls it sends through the extension instead of matching them by fingerprint, leaving out only the extension class, so Hushfacebook's own extension reads the real version too. The fallback for an iget destination past v15 is gone, since iget only addresses v0 to v15."
+    },
+    {
       "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/ads/affiliate/HideAffiliateLinksPatch.kt"
       ],
@@ -84,7 +107,7 @@
       "commit": "a934b40608e5645cf119dd4101ded7767a9cdc73",
       "via": [],
       "license": "GPL-3.0",
-      "changes": "Rewritten from the patch at that commit. The anchors are the same: the static Z predicate the reel overlay asks before adding its AFFILIATE_EYEBROW constant, the one string lookup the feed video plugin's isFooterHidden method makes, and the one static card reader of OrganicAffiliateFloatingCtaPlugin. Instead of returning false or null from the first instruction, each answer goes through an extension hook with a switch, so pausing Hushfacebook or turning the switch off brings the cards back, and the diagnostic report counts the cards kept out in each place. Checked on 580 as well as 577. On 580 the overlay's list builder is inlined into its render, and the same shape still matches once."
+      "changes": "Rewritten from the patch at that commit. The anchors are the same: the static Z predicate the reel overlay asks before adding its AFFILIATE_EYEBROW constant, the one string lookup the feed video plugin's isFooterHidden method makes, and the one static card reader of OrganicAffiliateFloatingCtaPlugin. Instead of returning false or null from the first instruction, each answer goes through an extension hook with a switch, so pausing Hushfacebook or turning the switch off brings the cards back, and the diagnostic report counts the cards kept out in each place. Checked on 580 as well as 577. On 580 the overlay's list builder is inlined into its render, and the same shape still matches once. Added for Hushfacebook (issue #89): a fourth anchor, the reel overlay's filterCtasForCategorySuppression, whose every answer goes to the extension beside the full list of call-to-action kinds, so the other shop cards on reels go too."
     },
     {
       "paths": [
@@ -93,7 +116,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the switch behind Hide affiliate product links. The patch hands it each answer of the three places that ask whether a post has a product card (the reel overlay's predicate, the feed's footer id lookup and the comment sheet's card reader), and while the switch is on and Hushfacebook isn't paused it answers no or null, the answer for a post without a shop link. Any other time, and on any throw, Facebook's own answer stands."
+      "changes": "Written for Hushfacebook: the switch behind Hide affiliate product links. The patch hands it each answer of the three places that ask whether a post has a product card (the reel overlay's predicate, the feed's footer id lookup and the comment sheet's card reader), and while the switch is on and Hushfacebook isn't paused it answers no or null, the answer for a post without a shop link. Any other time, and on any throw, Facebook's own answer stands. The reel overlay's list of call-to-action kinds comes through as well, and while the switch is on it loses the shop kinds (tagged products, storefront, Shop similar and the affiliate cards)."
     },
     {
       "paths": [
@@ -119,7 +142,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: Download to phone in the menu of a feed or Watch video, added after Facebook fills the menu so its own Save and Download rows stay as they are, found in Facebook 577 and 580 through the video feed menu's log tag, the kept GraphQL models and the hashes of their field names; the save folder, one sanitized folder name under the top folder Save to picks, Movies and Pictures, DCIM or Download, each written through the MediaStore collection Android allows there; the download quality, the ceiling a save holds the DASH track and the single file to, falling back to the nearest above it; and the video file name, a template with {date}, {video_id}, {owner} and {posted} cleaned like the folder name, kept off the photo prefix, a typed extension and one name for every save, and bounded in bytes, with the poster and the post day read off every model's kept TreeJNI accessors by the hash of the field's GraphQL name, from the reel's story, which the reel sidebar hands its assembly call, the story card's own tree, found by the card's kept getTimestamp, and the post and media a video's menu holds; and a Download that sends the reel's or the video's facebook.com link, built from its id alone, to a named app or Android's chooser instead of saving it."
+      "changes": "Written for Hushfacebook: Download to phone in the menu of a feed or Watch video, added after Facebook fills the menu so its own Save and Download rows stay as they are, found in Facebook 577 and 580 through the video feed menu's log tag, the kept GraphQL models and the hashes of their field names; the save folder, one sanitized folder name under the top folder Save to picks, Movies and Pictures, DCIM or Download, each written through the MediaStore collection Android allows there; the download quality, the ceiling a save holds the DASH track and the single file to, falling back to the nearest above it; and the video file name, a template with {date}, {video_id}, {owner} and {posted} cleaned like the folder name, kept off the photo prefix, a typed extension and one name for every save, and bounded in bytes, with the poster and the post day read off every model's kept TreeJNI accessors by the hash of the field's GraphQL name, from the reel's story, which the reel sidebar hands its assembly call, the story card's own tree, found by the card's kept getTimestamp, and the post and media a video's menu holds; and a Download that sends the reel's or the video's facebook.com link, built from its id alone, to a named app or Android's chooser instead of saving it. The post menu hook is shared with Download any photo's Save photo item, each with a helper of its own."
     },
     {
       "paths": [
@@ -162,12 +185,33 @@
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/TonePalette.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/MaterialYouThemePatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/MaterialYouStyles.kt",
-        "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/ReactColourHooks.kt"
+        "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/ReactColourHooks.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/TabBarColours.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the Material You theme. Dark-mode colours move to the wallpaper palette (Android 12 and newer) or to a fixed tonal palette of Facebook's blue (Android 11) at the same lightness, through the four colour routes the AMOLED patch uses and after it, and through night copies of Facebook's dark FDS styles for the views it inflates from its own layouts. React Native screens such as Marketplace home, whose colours come from their JavaScript, go through React's own background, border and image tint setters and its text colour span, which both themes hook. The colour tokens and dark surfaces it recolours were read off Facebook's own light and dark themes in the 577 and 580 builds, not taken from another patch source."
+      "changes": "Written for Hushfacebook: the Material You theme. Dark-mode colours move to the wallpaper palette (Android 12 and newer) or to a fixed tonal palette of Facebook's blue (Android 11) at the same lightness, through the four colour routes the AMOLED patch uses and after it, and through night copies of Facebook's dark FDS styles for the views it inflates from its own layouts. React Native screens such as Marketplace home, whose colours come from their JavaScript, go through React's own background, border and image tint setters and its text colour span, which both themes hook. The colour tokens and dark surfaces it recolours were read off Facebook's own light and dark themes in the 577 and 580 builds, not taken from another patch source. For issue #65, the colour the tab bar asks for its selected tab, which draws the line over that tab and tints its icon, takes the wallpaper accent at tone 80 in dark mode; it's found through TabBarContainerLayout's colour setter and its Paint, and has exactly two readers on each build."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/MetaUpsells.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/misc/upsells/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: Hide Meta upsells, six switches that start off. With Edits on, every read of the Reels composer landing's two Edits header flags and every fetch_edits_app_deep_dive_pill request flag answers off. With Threads on, the cross-posting onboarding's should-show check answers no. With Meta Verified on, the after-post sheet's eligibility check and the dispatcher's one request for its label answer no. With avatar stickers on, the three avatar sticker upsell components draw nothing. With Imagine on, the post call-to-action selector's check answers no for ImagineMePlugin, every question the post composer asks about its AI_GEN_IMAGINE capability answers no, and Create story's tile builder gets its list of tools without IMAGINE. With the share sheet's Threads switch on, every list of share sheet item types the item picker returns loses SHARE_TO_THREADS."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/theme/AccentColor.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/layout/theme/AccentColorPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Accent color, which swaps Facebook's blues on a chosen set of FDS tokens for a preset's tonal ramp at the lightness each had, holding text roles to 4.5:1. It rides the colour resolver hooks the themes share and steps aside for the Material You theme."
     },
     {
       "paths": [
@@ -187,6 +231,24 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Force dark mode, a switch that has Facebook's dark mode controller answer dark whatever its own setting says, for tablets whose Facebook settings have no Dark mode row (issue #64)."
+    },
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/settings/preference/ReadOnlyPreferences.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: a read-only view of the settings file for Facebook's side processes, so none of them opens it as SharedPreferences, whose first load can delete a file the main process is part way through saving."
+    },
+    {
+      "paths": [
+        "extensions/shared/library/src/main/java/app/morphe/extension/shared/settings/preference/JavaCrashReport.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: keeps the Java crash that ends Facebook, with its stack trace and the events before it, so the diagnostic report can show it after the restart."
     },
     {
       "paths": [
@@ -270,18 +332,20 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: a Story progress-completion guard on Facebook 577 and 580 that leaves manual navigation alone."
+      "changes": "Written for Hushfacebook: a Story progress-completion guard on Facebook 577 and 580 that leaves manual navigation alone. Its Loop stories switch starts a held story again through the restart Facebook's own completion navigator makes, found in 577, 580 and 581 by its shape (the callback's playback environment, a static lookup on it and an interface reset taking a boolean) and called from a static method the patch adds to the callback's class. The idea follows the loopStories option of FroggoMorphePatches' Facebook 573 story playback patch; no code of it is here, since that patch writes down 573's obfuscated names and pauses and resumes around its reset."
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StoryMarks.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StorySeen.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/stories/StorySeenButton.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/stories/seen/StorySeenAnchors.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/stories/seen/ViewStoriesAnonymouslyPatch.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the switch on the report of viewed stories that Facebook's story viewer sends as DirectSeenMutation, which puts the viewer on a story's viewer list. The patch finds the mutation's query class in Facebook 577 and 580 by its name and root field, the one method that creates it and fills story_ids_list, and the one other method of that class that calls it, and asks the extension first thing in that sender, which returns without sending while the switch is on. Loukious/FacebookAppAdsRemover and gnadgnaoh/NexAlloy-XES offer the same feature; neither is licensed for reuse, so nothing was taken from them."
+      "changes": "Written for Hushfacebook: the switch on the report of viewed stories that Facebook's story viewer sends as DirectSeenMutation, which puts the viewer on a story's viewer list. The patch finds the mutation's query class in Facebook 577 and 580 by its name and root field, the one method that creates it and fills story_ids_list, and the one other method of that class that calls it, and asks the extension first thing in that sender, which returns without sending while the switch is on. Its Mark as seen button (issue #88) follows the design of HushGram's button of the same name by the same maintainer, written again here for Facebook: the hook hands the sender's arguments to the extension and sends the set of marked card ids it answers, a second hook in the story viewer's seen helper names the card on screen, and the eye is drawn over StoryViewerActivity's window, since Facebook's story header is a Litho component. Loukious/FacebookAppAdsRemover and gnadgnaoh/NexAlloy-XES offer the same feature; neither is licensed for reuse, so nothing was taken from them."
     },
     {
       "paths": [
@@ -465,6 +529,15 @@
     },
     {
       "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/ads/sponsoredreels/ProfileReelAds.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the profile Reels tab's ad query. In Facebook 577, 580 and 581 a profile or Page's Reels tab asks for its ads with ProfileReelsAsyncAdsQuery, from one non-static void method holding that name, outside the Reels ad pool. The patch finds that method by the literal and its shape and puts a call of the extension first in it: while Hide sponsored reels is on, the method returns before it sends the query, so the tab shows only that profile's own reels."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/notifications/**",
         "patches/src/main/kotlin/app/morphe/patches/facebook/notifications/**"
       ],
@@ -521,6 +594,19 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/PostPattern.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/PostTypes.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/PostReactions.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/ReactionCeiling.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/TopicPacks.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: a regular expression matcher for the word lists that never backtracks and counts its steps against a budget per post, and the four switches for kinds of feed post, which read an attachment's style_list and a story's text_format_metadata through accessors the Hide posts by words patch fills in. Also the reaction ceiling, which reads a story's feedback, its reactors and their count through two more accessors the patch fills in, and the topic packs the Words to hide editor adds."
+    },
+    {
+      "paths": [
         "patches/src/main/kotlin/app/morphe/patches/facebook/feed/metaai/**"
       ],
       "origin": "original",
@@ -536,6 +622,15 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: keeping the date on post headers. In Facebook 577 and 580 one method, the render of the post header subtitle that names itself FDSPostHeaderSubtitle, loads both in_cycling_experiment and subtitle_cycling_text_count. It works out whether the header rotates its subtitle, logs that boolean as in_cycling_experiment through String.valueOf right after the call that answers it, and then branches on it between a component that rotates the subtitle plugins' texts and the one line with the date. The patch finds that method by the two strings, checks the log's shape, and hands the answer to the extension at the log's own label, which answers no while the switch is on."
+    },
+    {
+      "paths": [
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/seen/**"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: hiding posts you've already seen. Facebook's viewport logger saves a post's seen state in ViewportLoggingHandler.persistSeenState(session, feedUnit) once the post has left the screen after a counted view. The method keeps its name and its VPVDLOGGING trace string, and it reads the unit's id through the kept getCacheId interface method, which together find it once in 577, 580 and 581. The patch hands the unit to the extension's SeenPosts on a range call at the method's first instruction, so the post's own register is passed even past v15. The extension remembers a hash of the id, and the shared feed guard drops a remembered post on a later load."
     },
     {
       "paths": [
@@ -605,13 +700,14 @@
       "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/PlaybackQuality.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/QualityChoice.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/SurfaceQuality.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/quality/DefaultPlaybackQualityPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/media/quality/QualityAnchors.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the quality videos play at, an idea De-Vanced also has, written from Facebook's own code. The patch finds, in Facebook 577 and 580, the DASH format evaluator as the class of the one (String)V call in the method holding HeroServicePlayer.setCustomQualityInternal, built with an AbrContextAwareConfiguration; that custom-quality setter's array of tracks and the static method and field it reads a track's label with; and the String field the evaluator hands its own setter at its first choice, its preselected label. The setter asks the extension first with its label, the constructor tells it about the evaluator before each return, and the extension's stubs are filled with the preselected label, the tracks and a track's label. While the switch is on and a quality is chosen, the extension leaves a marker as the preselected label of an evaluator Facebook gave none, and turns it into the label of the track the chosen quality plays when the setter gets it."
+      "changes": "Written for Hushfacebook: the quality videos play at, an idea De-Vanced also has, written from Facebook's own code. The patch finds, in Facebook 577 and 580, the DASH format evaluator as the class of the one (String)V call in the method holding HeroServicePlayer.setCustomQualityInternal, built with an AbrContextAwareConfiguration; that custom-quality setter's array of tracks and the static method and field it reads a track's label with; and the String field the evaluator hands its own setter at its first choice, its preselected label. The setter asks the extension first with its label, the constructor tells it about the evaluator before each return, and the extension's stubs are filled with the preselected label, the tracks and a track's label. While the switch is on and a quality is chosen, the extension leaves a marker as the preselected label of an evaluator Facebook gave none, and turns it into the label of the track the chosen quality plays when the setter gets it. Reels and stories can each have a quality of their own (an idea De-Vanced also has): two more stubs read the player origin and sub-origin from the evaluator's AbrContextAwareConfiguration's playbackPreferences, the two String fields the configuration's constructor compares with fb_stories and fb_shorts_viewer, and the extension sorts a video by those names."
     },
     {
       "paths": [
@@ -648,6 +744,33 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/AppLock.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Lock Facebook, which covers Facebook's screens on a cold start and on a return after the chosen time until Android's BiometricPrompt passes with a biometric or the phone's screen lock. Facebook's own AuthAppLockState has no lock screen behind it in 577, 580 and 581, so the lock runs from the settings entry's activity callbacks rather than a patch."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/TextSize.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Text size, which sets the font scale Facebook's resources report to the phone's times a chosen 85% to 130%, on each activity as it's created and resumes and on the application's resources, from the settings entry's callbacks rather than a patch. Facebook's native views and Litho text both read Configuration.fontScale and DisplayMetrics.scaledDensity from their context's resources in 577, 580 and 581."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/WindowsAbove.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: the windows a Facebook screen has open above its own, such as the comment sheet Facebook 581 shows as a dialog fragment, read from Android's WindowInspector for the report's Last screen left lines and Material You's sheet colours."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/misc/Haptics.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/haptics/HapticsAnchors.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/misc/haptics/TurnOffHapticsPatch.kt"
@@ -656,6 +779,29 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Turn off haptics, an idea from De-Vanced's Facebook clean-up patch, written here from Facebook 577, 580 and 581. Every View.performHapticFeedback(int) and (int, int) call outside the extension, and every Vibrator.vibrate call that takes a VibrationEffect, becomes a static call of the extension on the same registers, which skips it while the switch is on. The timed and patterned Vibrator calls are left as they are."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/chats/OriginalChatMedia.java",
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/chats/OriginalPhoto.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/chats/OriginalChatMediaAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/chats/OriginalChatMediaPatch.kt"
+      ],
+      "origin": "ported",
+      "upstream": "https://github.com/SysAdminDoc/HushMessenger",
+      "commit": "e1e90d839e142ca225dcf345b6b35116475e6e64",
+      "via": [],
+      "license": "GPL-3.0-only",
+      "changes": "Rewritten for Facebook from HushMessenger's original photo and original video controls. Facebook's in-app chats use the same DefaultMediaTranscoder, so the photo hooks (transcodeImage and transcodeImageAsync, handed their arguments in one range call) and OriginalPhoto's JPEG copy are the same idea and nearly the same code. The video hook moved: Facebook asks extractMimeTypeAndCheckCanSkipVideoTranscoding, in a build with two trailing ints, whether a file may skip the re-encode, and the size check sits there (bitrate times duration over 8000, plus slack times 1000) instead of in the transcoder's private worker. The anchors are found by names Facebook keeps and by the shape of that check, before anything changes, on 577, 580 and 581. A settings switch in front of every hook, Pause and cold start answered with Facebook's own behavior, the diagnostic report counting what goes out, a send with Facebook's standard size treated like an HD one because the switch asks for originals, and failures recorded in the report instead of Messenger's private log."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/chats/VideoLocation.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: before Send chat photos and videos at original quality lets a video skip Facebook's re-encode, a read-only walk over the file's top-level MP4 box headers and its movie box, capped at 4 MB, looks through every udta and meta of the movie, its tracks and their media for a place (a ©xyz or loci box, a location or ISO 6709 key, GPS tags in XMP). A file that isn't local, is cut short, fragmented, laid out in a way it doesn't read, or has a track that isn't video or sound keeps the re-encode."
     },
     {
       "paths": [
@@ -670,6 +816,7 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoMenuItem.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoSave.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/DownloadPhotoPatch.kt",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/PhotoSaveAnchors.kt"
@@ -677,7 +824,16 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the photo viewer's two reads of can_viewer_download ask the switch, and Save photo's kept newSavePhotoAction hands its listener to the extension, which saves the photo's biggest image through Hushfacebook's downloader and falls back to Facebook's own save."
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the photo viewer's two reads of can_viewer_download ask the switch, and Save photo's kept newSavePhotoAction hands its listener to the extension, which saves the photo's biggest image through Hushfacebook's downloader and falls back to Facebook's own save; and, behind a second switch, Save photo in the menu of a post holding photos, added through the same post menu hook as Download to phone, reading the post's attachments, an album's subattachments and the post a share wraps through the kept GraphQL models' getters found by their field hashes, and saving each photo in turn."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ClipboardLink.java"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook, an idea from Loukious's module (behavior only, no code): behind a second switch of Download any video, a facebook.com or fb.watch reel or video link on the clipboard is offered for download once per link when a Facebook screen comes to the front and gains focus, read only with the switch on; a share or fb.watch link is followed over Facebook's own https redirects to its video id, and the save reuses the player source Facebook records for that id, opening the video through Facebook's kept IntentUriHandler first when no player was built yet."
     },
     {
       "paths": [
@@ -712,13 +868,43 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/media/ProgressBar.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/media/progressbar/KeepProgressBarPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581, for issue #73: the Reels viewer's bottom progress bar plugin, found by the name it gives itself, is made full size where Facebook would shrink it, and the full-screen video controls' fade timer, in the class FeedFullscreenVideoControlsPlugin extends, isn't set while the switch is on. No Facebook patch source in the ledger describes keeping a progress bar."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/comments/MetaAiSummaries.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/comments/summaries/HideMetaAiCommentSummariesPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the comment sheet's top content socket and the socket under a post's buttons are found by the names they give themselves, each socket's name table by the Meta AI summary plugins it names, and its per-plugin check by the plugin numbers it shares with the table. The extension answers no for the summary plugins in each check while the switch is on. No Facebook patch source in the ledger describes Meta AI's comment summaries."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/comments/CommentSheetOptions.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/comments/options/CommentSheetOptionsPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the comment box's attachment button socket is found by the name it gives itself, its name table by the GIF and sticker button plugins it names, and its per-button check, in another class, by the plugin numbers it shares with the table. The extension answers no for those two buttons while the switch is on. The reaction picker a long press on Like opens is found as the method that builds the kept RopeStyleUFIDockView and logs reactions_dock, and it returns early while Like only is on. The comment section is found by the name it gives itself, its reply flag through the expandReplySection update's arm of its state's update switch, and the extension's answer is written into that flag as the initial state finishes. The settings row opens Facebook's own fb://facebook_settings route. No Facebook patch source in the ledger describes these."
+    },
+    {
+      "paths": [
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/MarketplaceSellerProfile.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/navigation/sellerprofile/ShowSellerViewProfilePatch.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581 and their React Native bundle, for issue #68: a seller's Marketplace page offers View profile only while the experiment flag qe_marketplace_commerce_profile_page:contextual_view_header_enabled reads true, so the config module's getBool and getBoolWithoutLogging ask the extension first, which answers true for that one name while the switch is on. No Facebook code was copied."
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581 and their React Native bundle, for issue #68: a seller's Marketplace page offers View profile only while the experiment flag qe_marketplace_commerce_profile_page:contextual_view_header_enabled reads true, so the config module's getBool and getBoolWithoutLogging ask the extension first, which answers true for that one name while the switch is on. The module's four by-id boolean reads ask it too, and it answers true for the same flag's stable id (config key 49154, param key 15 in each build's rn_params.txt). No Facebook code was copied."
     },
     {
       "paths": [
@@ -753,6 +939,26 @@
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
       "changes": "Written for Hushfacebook: Hide tabs, an idea Loukious has for the Marketplace and Games tabs, written here as another rule of the tab bar filter. Each hideable tab is known by the class Facebook keeps for it (FeedsTab and MostRecentFeedTab, FriendRequestsTab, MarketplaceTab, GroupsTargetedTab, GamesTab and GamesTabWithSNESControllerIcon, EventsTab), and a start meant for a hidden tab opens Home."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/feed/AutoTranslation.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/feed/autotranslation/TurnOffAutoTranslationPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Turn off auto-translation. Posts: the one getter of the post translatability model's translation_type (a no-argument BaseModelWithTree method returning the enum whose static setup names AUTO_TRANSLATION and SEE_TRANSLATION, reading the field's key with getCachedEnum) hands its answer to the extension, which turns AUTO_TRANSLATION into SEE_TRANSLATION while the switch is on, so the feed picks its See translation plugin over its auto-translate one. Reels: the two reads of the caption's translatable flag in the class that records FbShortsViewerFooterComponent.updateAutoTranslateTriggered go through the extension, which answers false while the switch is on, so the footer never asks for a caption translation."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/navigation/TabBadges.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/navigation/tabbadges/HideTabBadgesPatch.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook: Hide tab badges, the per-tab version of the shortcut-bar dot controls Meta gives the web. It shares the tab bar's one count hook with Hide the Reels tab dot, the jewel controller's static count for each TabTag, which now sits in a hook patch both depend on, and answers 0 for each tab whose switch is on, known by the class Facebook keeps for it. For the app icon, Facebook 577, 580 and 581 write their own launcher count through one writer per launcher family, each naming itself with a kept *LauncherBadgesInterface literal and all sharing one (FbUserSession, int) -> TriState interface found from the generic writer. The extension goes first in every writer and swaps the count for 0 while the switch is on."
     },
     {
       "paths": [

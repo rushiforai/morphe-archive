@@ -40,7 +40,7 @@ val storeIdentityPatch = bytecodePatch(
     name = "Look like the store app",
     description = "Answers TikTok's own checks of how it was signed and installed the way the " +
         "Play Store app would. Its signature hash reads as TikTok's certificate and its installer " +
-        "reads as the Play Store. For a follow or a like that undoes itself on a refresh on a " +
+        "reads as the Play Store, or another store you pick. For a follow or a like that undoes itself on a refresh on a " +
         "patched build. TikTok can also read the APK from native code, which no patch reaches, so " +
         "it may not be enough on its own. Off by default. Switch: Hushfeed settings > App.",
     default = false,

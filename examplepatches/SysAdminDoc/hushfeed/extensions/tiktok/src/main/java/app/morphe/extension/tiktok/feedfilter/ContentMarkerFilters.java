@@ -6,12 +6,17 @@
  */
 package app.morphe.extension.tiktok.feedfilter;
 
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import com.ss.android.ugc.aweme.feed.model.Aweme;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * One-predicate feed filters on markers TikTok attaches to a video.
@@ -34,7 +39,14 @@ public final class ContentMarkerFilters {
     private ContentMarkerFilters() {
     }
 
-    /** Videos carrying TikTok's AI generated label. */
+    /** The filter report's count of AI-generated posts by the signal that caught each. */
+    static final String AI_SIGNALS_SOURCE = "AiSignals";
+
+    /**
+     * Videos TikTok knows were made with AI, whether or not it shows its label on them.
+     * {@link #aiSignal} is the whole test, and each match is counted under
+     * {@link #AI_SIGNALS_SOURCE} by the signal that caught it.
+     */
     public static class AiGeneratedFilter implements IFilter {
         @Override
         public boolean getEnabled() {
@@ -43,18 +55,135 @@ public final class ContentMarkerFilters {
 
         @Override
         public boolean getFiltered(Aweme item) {
-            Object aigc = Reflect.property(item, "getAigcInfo", "aigcInfo");
-            if (aigc != null) {
-                Object labelType = Reflect.property(aigc, "getAIGCLabelType", "aigcLabelType");
-                if (labelType instanceof Number && ((Number) labelType).intValue() != 0) {
-                    return true;
-                }
-            }
-            Object moderation = Reflect.property(item, "getModerationAigcInfo", "moderationAigcInfo");
-            // ModerationAigcInfo rides along on ordinary videos with every field at zero.
-            return nonZero(moderation, "getModerationAigcLabelType", "moderationAigcLabelType")
-                    || nonZero(moderation, "getModerationUserLabelStatus", "moderationUserLabelStatus");
+            String signal = aiSignal(item);
+            if (signal == null) return false;
+            FeedFilterCounters.sawKind(AI_SIGNALS_SOURCE, signal);
+            return true;
         }
+    }
+
+    /**
+     * Component keys of the anchors TikTok puts on a post made with one of its own AI effects.
+     * The same five strings sit in 47.0.3, 47.1.3 and 47.1.4; anchor_aigc_avatar is the one
+     * TikTok's feed itself checks for.
+     */
+    static final Set<String> AI_ANCHOR_KEYS = new HashSet<>(Arrays.asList(
+            "anchor_aigc_avatar", "anchor_ai_portrait", "anchor_ai_remix", "anchor_ai_style",
+            "anchor_ai_group_shot"));
+
+    /** Hashtags creators use to say a post is AI-made, lowercase and without the #. */
+    static final Set<String> AI_HASHTAGS = new HashSet<>(Arrays.asList(
+            "ai", "aigenerated", "ai_generated", "aigc", "aiart", "aiartwork", "aivideo", "aiimage",
+            "aianimation", "aigeneratedart", "aigeneratedvideo", "aigeneratedcontent", "madewithai",
+            "createdwithai", "generatedbyai", "midjourney", "stablediffusion", "generadoporia",
+            "generadoconia", "hechoconia", "kigeneriert"));
+
+    /**
+     * Which AI marker {@code item} carries, as the short name the filter report counts it by,
+     * or null for none.
+     *
+     * <p>TikTok attaches most of these structs to ordinary posts with their fields empty, so each
+     * signal is a value only a real marker sets, never the struct being there:
+     * <ul>
+     *   <li>AIGCInfo: the label type (1 the creator said so, 2 TikTok detected it) or createByAI,
+     *       the two ReVanced reads.</li>
+     *   <li>ModerationAigcInfo: a label type, the user label status, the creator guidance status,
+     *       or a creator segment naming aigc.</li>
+     *   <li>C2PAInfo: an AI source in the content credentials. TikTok's own download path treats
+     *       a non-empty aigcSrc as AI-made.</li>
+     *   <li>AIAliveInfo, AIRemixInfo, AIPortraitInfo, AITheaterInfo and AiChatEditorInfo: the
+     *       model, prompt or task of one of TikTok's AI effects.</li>
+     *   <li>An AI effect anchor (see {@link #AI_ANCHOR_KEYS}), or an AI hashtag in the caption.</li>
+     * </ul>
+     * Every member is read by name with a getter and field fallback, so a build without one reads
+     * it as no marker.
+     */
+    static String aiSignal(Aweme item) {
+        if (item == null) return null;
+        Object aigc = Reflect.property(item, "getAigcInfo", "aigcInfo");
+        if (aigc != null) {
+            Object labelType = Reflect.property(aigc, "getAIGCLabelType", "aigcLabelType");
+            if (labelType instanceof Number && ((Number) labelType).intValue() != 0) return "label";
+            if (Boolean.TRUE.equals(Reflect.property(aigc, "getCreateByAI", "createByAI"))) {
+                return "created by AI";
+            }
+        }
+
+        Object moderation = Reflect.property(item, "getModerationAigcInfo", "moderationAigcInfo");
+        // ModerationAigcInfo rides along on ordinary videos with every field at zero.
+        if (nonZero(moderation, "getModerationAigcLabelType", "moderationAigcLabelType")
+                || nonZero(moderation, "getModerationUserLabelStatus", "moderationUserLabelStatus")
+                || nonZero(moderation, "getCreatorGuidanceStatus", "creatorGuidanceStatus")) {
+            return "moderation";
+        }
+        String segment = Reflect.string(moderation, "getModerationCreatorSegment", "moderationCreatorSegment");
+        if (segment != null && segment.toLowerCase(Locale.ROOT).contains("aigc")) return "moderation";
+
+        Object c2pa = Reflect.property(item, "getC2paInfo", "c2paInfo");
+        if (c2pa != null && (Reflect.string(c2pa, "getAigcSrc", "aigcSrc") != null
+                || Reflect.string(c2pa, "getFirstAigcSrc", "firstAigcSrc") != null
+                || Reflect.string(c2pa, "getLastAigcSrc", "lastAigcSrc") != null)) {
+            return "content credentials";
+        }
+
+        Object alive = Reflect.property(item, "getAiAliveInfo", "aiAliveInfo");
+        if (alive != null && (Reflect.string(alive, "getModelKey", "modelKey") != null
+                || Reflect.string(alive, "getModelPrompt", "modelPrompt") != null
+                || Reflect.string(alive, "getText", "text") != null)) {
+            return "AI Alive";
+        }
+        if (hasAiTask(Reflect.property(item, "getAiRemixInfo", "aiRemixInfo"))) return "AI remix";
+        if (hasAiTask(Reflect.property(item, "getAiPortraitInfo", "aiPortraitInfo"))) return "AI portrait";
+        if (hasAiTask(Reflect.property(item, "getAiTheaterInfo", "aiTheaterInfo"))) return "AI theater";
+        if (hasAiTask(Reflect.property(item, "getAiChatEditorInfo", "aiChatEditorInfo"))) return "AI chat";
+
+        if (hasAiAnchor(Reflect.property(item, "getAnchors", "anchors"))) return "AI effect anchor";
+        if (hasAiHashtag(item)) return "hashtag";
+        return null;
+    }
+
+    /** One of TikTok's AI effect structs, filled in: it names the task or the prompt it ran. */
+    private static boolean hasAiTask(Object info) {
+        return info != null && (Reflect.string(info, "getTaskId", "taskId") != null
+                || Reflect.string(info, "getPromptId", "promptId") != null);
+    }
+
+    private static boolean hasAiAnchor(Object anchors) {
+        if (!(anchors instanceof Collection)) return false;
+        for (Object anchor : (Collection<?>) anchors) {
+            if (anchor == null) continue;
+            // The list holds AnchorCommonStruct; an Anchor wraps one as its anchorInfo.
+            Object common = Reflect.property(anchor, "getAnchorInfo", "anchorInfo");
+            String key = Reflect.string(common != null ? common : anchor, "getComponentKey", "componentKey");
+            if (key != null && AI_ANCHOR_KEYS.contains(key.toLowerCase(Locale.ROOT))) return true;
+        }
+        return false;
+    }
+
+    /** The caption's hashtags as TikTok parsed them, then the caption text for a # it didn't. */
+    static boolean hasAiHashtag(Aweme item) {
+        Object extras = Reflect.property(item, "getTextExtra", "textExtra");
+        if (extras instanceof Collection) {
+            for (Object extra : (Collection<?>) extras) {
+                String tag = Reflect.string(extra, "getHashTagName", "hashTagName");
+                if (tag != null && AI_HASHTAGS.contains(tag.toLowerCase(Locale.ROOT))) return true;
+            }
+        }
+        String caption = Reflect.string(item, "getDesc", "desc");
+        if (caption == null) return false;
+        int at = caption.indexOf('#');
+        while (at >= 0) {
+            int end = at + 1;
+            while (end < caption.length()
+                    && (Character.isLetterOrDigit(caption.charAt(end)) || caption.charAt(end) == '_')) {
+                end++;
+            }
+            if (end > at + 1 && AI_HASHTAGS.contains(caption.substring(at + 1, end).toLowerCase(Locale.ROOT))) {
+                return true;
+            }
+            at = caption.indexOf('#', end);
+        }
+        return false;
     }
 
     /** Videos marked as paid partnership or branded content. */

@@ -6,6 +6,9 @@ package app.morphe.extension.facebook.reels;
 
 import android.os.SystemClock;
 import android.view.MotionEvent;
+import android.view.View;
+
+import org.robolectric.RuntimeEnvironment;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.ToDoubleFunction;
@@ -69,6 +72,24 @@ public final class ReelHoldForTests {
             return ReelHold.speedSet(reel, 1f) != 1f;
         } finally {
             ReelHold.forget();
+        }
+    }
+
+    /**
+     * A long press [x] pixels into a reel 300 pixels wide, as Facebook's edge check gets it: the
+     * press measured first, then the check's answer [facebooks] through the hook. Gives back what
+     * the hook answered.
+     */
+    public static boolean pressAt(float x, boolean facebooks) {
+        View reel = new View(RuntimeEnvironment.getApplication());
+        reel.layout(0, 0, 300, 600);
+        long now = SystemClock.uptimeMillis();
+        MotionEvent press = MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, x, 300, 0);
+        try {
+            ReelHold.edgeTouch(press, reel);
+            return ReelHold.anywhere(facebooks);
+        } finally {
+            press.recycle();
         }
     }
 

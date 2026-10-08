@@ -8,6 +8,10 @@ import com.android.tools.smali.dexlib2.immutable.reference.ImmutableMethodRefere
 import com.zeldrisho.patches.testing.syntheticMutableMethod
 import com.zeldrisho.patches.zalo.chat.suppressBusinessBoxInsertion
 import com.zeldrisho.patches.zalo.chat.suppressBusinessBoxPeriodicBranch
+import com.zeldrisho.patches.zalo.chat.suppressMediaBoxInsertion
+import com.zeldrisho.patches.zalo.chat.suppressMediaBoxInsertionAfterConstructor
+import com.zeldrisho.patches.zalo.chat.suppressZinstantAdInsertion
+import com.zeldrisho.patches.zalo.chat.suppressZinstantAdInsertionAfterConstructor
 import com.zeldrisho.patches.zalo.privacy.suppressSeenStatus
 import com.zeldrisho.patches.zalo.privacy.suppressTypingStatus
 import com.zeldrisho.patches.zalo.telemetry.disableNativeCrashHandler
@@ -67,6 +71,79 @@ class CorePatchTransformationTest {
         val periodic = method()
         suppressBusinessBoxPeriodicBranch(periodic, 0)
         assertEquals(Opcode.RETURN_VOID, periodic.implementation!!.instructions[0].opcode)
+    }
+
+    /** Verifies constructor-following list insertions are found and unrelated calls are rejected. */
+    @Test
+    fun mediaBoxAndZinstantAdInsertionLookupRequiresExpectedArrayListOverload() {
+        val mediaAdd = syntheticMutableMethod(
+            registerCount = 1,
+            instructions = listOf(
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_VIRTUAL,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    ImmutableMethodReference("Ljava/util/ArrayList;", "add", listOf("Ljava/lang/Object;"), "Z"),
+                ),
+                ImmutableInstruction10x(Opcode.RETURN_VOID),
+            ),
+        )
+        suppressMediaBoxInsertionAfterConstructor(mediaAdd, -1)
+        assertEquals(Opcode.NOP, mediaAdd.implementation!!.instructions[0].opcode)
+
+        val adAdd = syntheticMutableMethod(
+            registerCount = 1,
+            instructions = listOf(
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_VIRTUAL,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    ImmutableMethodReference("Ljava/util/ArrayList;", "add", listOf("I", "Ljava/lang/Object;"), "V"),
+                ),
+                ImmutableInstruction10x(Opcode.RETURN_VOID),
+            ),
+        )
+        suppressZinstantAdInsertionAfterConstructor(adAdd, -1)
+        assertEquals(Opcode.NOP, adAdd.implementation!!.instructions[0].opcode)
+
+        val wrongOverload = syntheticMutableMethod(
+            registerCount = 1,
+            instructions = listOf(
+                ImmutableInstruction35c(
+                    Opcode.INVOKE_VIRTUAL,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    ImmutableMethodReference("Ljava/util/ArrayList;", "add", emptyList(), "V"),
+                ),
+            ),
+        )
+        kotlin.test.assertFailsWith<IllegalStateException> {
+            suppressMediaBoxInsertionAfterConstructor(wrongOverload, -1)
+        }
+    }
+
+    /** Verifies that the Media Box and Zinstant ad list insertions are skipped in place. */
+    @Test
+    fun mediaBoxAndZinstantAdInsertionsBecomeNops() {
+        val mediaBox = method()
+        suppressMediaBoxInsertion(mediaBox, 0)
+        assertEquals(listOf(Opcode.NOP, Opcode.RETURN_VOID), mediaBox.implementation!!.instructions.map { it.opcode })
+
+        val ad = method()
+        suppressZinstantAdInsertion(ad, 0)
+        assertEquals(listOf(Opcode.NOP, Opcode.RETURN_VOID), ad.implementation!!.instructions.map { it.opcode })
     }
 
     /** Verifies that disabling crash registration preserves the following return instruction. */

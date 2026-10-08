@@ -45,6 +45,10 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *   AUTOPLAY_OFF_INIT_STATE, where the reel shows its play button, whose tap ("reels_play_button_click")
  *   goes through "unpause" to FbGrootPlayer's play with BY_USER. A yes changes nothing else: the
  *   control's state change only tells the player's event bus.
+ * - The reel check: FbGrootPlayer's one getter of its VideoPlayerParams, and the boolean the params'
+ *   debug dump reports as isFbShorts, the same two Keep the reel speed reads. 581's Reels tab starts
+ *   each reel it lands on with BY_AUTOPLAY, which feed videos send too, so the gate asks the params
+ *   (read from 581 on a phone, 2026-10-07).
  */
 
 internal const val TAP_TO_PLAY = "$EXTENSION_PACKAGE/media/TapToPlay;"
@@ -56,6 +60,11 @@ internal const val REBOUND = "$TAP_TO_PLAY->rebound(Ljava/lang/Object;)V"
 internal const val AUTOPLAY_SETTING = "$TAP_TO_PLAY->autoplaySetting(Ljava/lang/Object;)Ljava/lang/Object;"
 internal const val TOUCH = "$TAP_CLOCK->touch(Landroid/app/Activity;Landroid/view/MotionEvent;)V"
 internal const val SHOW_REEL_PLAY_BUTTON = "$TAP_TO_PLAY->showReelPlayButton(Z)Z"
+
+/** The extension's reel check stubs the patch fills, and the name the params' dump reports the flag under. */
+internal const val PLAYER_PARAMS_STUB = "playerParams"
+internal const val FB_SHORTS_STUB = "fbShorts"
+internal const val FB_SHORTS = "isFbShorts"
 
 internal const val GROOT_PLAY = "FbGrootPlayer.play"
 internal const val GROOT_PAUSE = "FbGrootPlayer.pause"

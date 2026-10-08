@@ -13,4 +13,9 @@ public final class MarketplaceSellerProfileForTests {
     public static boolean givesSellersViewProfile() {
         return MarketplaceSellerProfile.answerTrue(MarketplaceSellerProfile.FLAG);
     }
+
+    /** Whether the seller page's flag, read by its stable id, is answered true without asking Facebook. */
+    public static boolean givesSellersViewProfileById() {
+        return MarketplaceSellerProfile.answerTrueForSpec(49154, 15);
+    }
 }

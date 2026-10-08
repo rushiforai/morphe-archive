@@ -92,6 +92,16 @@ public class PatchFamilyTest {
         Settings.FORWARD_HIDE_SENDER.resetToDefault();
         Settings.VOICE_MUSIC_PLAYER.resetToDefault();
         Settings.SILENCE_NON_CONTACTS.resetToDefault();
+        Settings.DISABLE_ARCHIVE_PULL.resetToDefault();
+        Settings.REAR_CAMERA_FIRST.resetToDefault();
+        Settings.HIDE_GALLERY_CAMERA_TILE.resetToDefault();
+        Settings.HIDE_STICKER_TIME.resetToDefault();
+        Settings.IGNORE_MUTED_MENTIONS.resetToDefault();
+        Settings.HIDE_BLOCKED_IN_GROUPS.resetToDefault();
+        Settings.HIDE_FEATURES_AND_INVITE.resetToDefault();
+        Settings.MESSAGE_MENU_REPEAT.resetToDefault();
+        Settings.MESSAGE_MENU_COPY_PHOTO.resetToDefault();
+        Settings.MESSAGE_MENU_DETAILS.resetToDefault();
         HookStatus.clear();
     }
 
@@ -99,6 +109,96 @@ public class PatchFamilyTest {
      * A switch is a family's, or the settings entry's own (the release check), and never both: a
      * switch in neither list goes unmentioned by the screen and the tests that hold Pause to it.
      */
+    @Test
+    public void messageMenuHasThreeOwnOffByDefaultSwitchesThatApplyAtOnce() {
+        PatchFamily family = PatchFamily.MESSAGE_MENU_REPEAT;
+        assertEquals("Add Repeat to the message menu", family.patchName);
+        assertEquals(Arrays.asList(Settings.MESSAGE_MENU_REPEAT, Settings.MESSAGE_MENU_COPY_PHOTO, Settings.MESSAGE_MENU_DETAILS), family.switches);
+        for (BooleanSetting setting : family.switches) {
+            assertFalse(setting.key, setting.defaultValue);
+            assertFalse(setting.key, setting.rebootApp);
+        }
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void hideFeaturesAndInviteHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.HIDE_FEATURES_AND_INVITE;
+        assertEquals("Hide Telegram Features and Invite Friends", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_FEATURES_AND_INVITE), family.switches);
+        assertFalse(Settings.HIDE_FEATURES_AND_INVITE.defaultValue);
+        assertFalse(Settings.HIDE_FEATURES_AND_INVITE.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void hideBlockedInGroupsHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.HIDE_BLOCKED_IN_GROUPS;
+        assertEquals("Hide blocked users in groups", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_BLOCKED_IN_GROUPS), family.switches);
+        assertFalse(Settings.HIDE_BLOCKED_IN_GROUPS.defaultValue);
+        assertFalse(Settings.HIDE_BLOCKED_IN_GROUPS.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void ignoreMutedMentionsHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.IGNORE_MUTED_MENTIONS;
+        assertEquals("Ignore mentions in muted chats", family.patchName);
+        assertEquals(Collections.singletonList(Settings.IGNORE_MUTED_MENTIONS), family.switches);
+        assertFalse(Settings.IGNORE_MUTED_MENTIONS.defaultValue);
+        assertFalse(Settings.IGNORE_MUTED_MENTIONS.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void hideStickerTimeHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.HIDE_STICKER_TIME;
+        assertEquals("Hide time on stickers", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_STICKER_TIME), family.switches);
+        assertFalse(Settings.HIDE_STICKER_TIME.defaultValue);
+        assertFalse(Settings.HIDE_STICKER_TIME.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void hideGalleryCameraTileHasItsOwnOffByDefaultSwitch() {
+        PatchFamily family = PatchFamily.HIDE_GALLERY_CAMERA_TILE;
+        assertEquals("Hide gallery camera tile", family.patchName);
+        assertEquals(Collections.singletonList(Settings.HIDE_GALLERY_CAMERA_TILE), family.switches);
+        assertFalse(Settings.HIDE_GALLERY_CAMERA_TILE.defaultValue);
+        assertFalse(Settings.HIDE_GALLERY_CAMERA_TILE.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void rearCameraFirstHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
+        PatchFamily family = PatchFamily.REAR_CAMERA_FIRST;
+        assertEquals("Start the camera on the rear lens", family.patchName);
+        assertEquals(Collections.singletonList(Settings.REAR_CAMERA_FIRST), family.switches);
+        assertFalse(Settings.REAR_CAMERA_FIRST.defaultValue);
+        assertFalse(Settings.REAR_CAMERA_FIRST.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
+    @Test
+    public void disableArchivePullHasItsOwnOffByDefaultSwitchThatRestartsTheApp() {
+        PatchFamily family = PatchFamily.DISABLE_ARCHIVE_PULL;
+        assertEquals("Disable pull to archive", family.patchName);
+        assertEquals(Collections.singletonList(Settings.DISABLE_ARCHIVE_PULL), family.switches);
+        assertFalse(Settings.DISABLE_ARCHIVE_PULL.defaultValue);
+        assertTrue(Settings.DISABLE_ARCHIVE_PULL.rebootApp);
+        assertTrue(family.expectedCapabilities().isEmpty());
+        assertTrue(PatchFamily.CHATS_PAGE.contains(family));
+    }
+
     @Test
     public void silenceNonContactsHasItsOwnOffByDefaultSwitchThatAppliesAtOnce() {
         PatchFamily family = PatchFamily.SILENCE_NON_CONTACTS;
@@ -399,8 +499,9 @@ public class PatchFamilyTest {
         for (Map.Entry<PatchFamily, Set<PatchFamily.Capability>> entry : expected.entrySet()) {
             PatchFamily family = entry.getKey();
             assertEquals(entry.getValue(), family.expectedCapabilities());
-            assertEquals(1, family.switches.size());
-            assertFalse(family.switches.get(0).defaultValue);
+            // Show user and chat IDs carries a second switch, for the profile's data center.
+            assertEquals(family == PatchFamily.SHOW_LOCAL_IDS ? 2 : 1, family.switches.size());
+            for (BooleanSetting setting : family.switches) assertFalse(setting.key, setting.defaultValue);
             for (PatchFamily.Capability only : entry.getValue()) {
                 PatchFamily.capabilitiesForTests = EnumSet.of(only);
                 assertEquals(EnumSet.of(only), family.installedCapabilities());
@@ -510,7 +611,7 @@ public class PatchFamilyTest {
         assertEquals(Arrays.asList(
                 "Hide ads: on (hushtelegram_hide_ads=on)",
                 "Disable analytics: disabled by its switch (hushtelegram_disable_analytics=off)",
-                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Hide contacts on Telegram, Hide greeting stickers, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Use system font, AMOLED black, Hide translate bar, Exact numbers, Reveal spoilers, Hide keyboard on scroll, Keep videos muted on volume keys, Swipe back on profiles, Hide phone number, Message times with seconds, Allow chat blur on slower phones, Play voice messages one at a time, Turn off haptic feedback, Turn off reaction effects, Hide folder tab counters, Hide sender names when forwarding, Voice messages in the music player, Silence people outside your contacts, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration",
+                "not in this build: Hide Stories, Hide recommendations, Hide Premium, gifts and Stars, Hide promotional banners, Hide sponsored proxy channel, Hide popular apps, Hide contacts on Telegram, Hide greeting stickers, Disable chat swipe actions, Disable pull to next channel, Use normal paste, Show user and chat IDs, Disable double-tap reactions, Quiet contacts nag, Holiday look all year, Use system font, AMOLED black, Hide translate bar, Exact numbers, Reveal spoilers, Hide keyboard on scroll, Keep videos muted on volume keys, Swipe back on profiles, Hide phone number, Message times with seconds, Allow chat blur on slower phones, Play voice messages one at a time, Turn off haptic feedback, Turn off reaction effects, Hide folder tab counters, Hide sender names when forwarding, Voice messages in the music player, Silence people outside your contacts, Disable pull to archive, Start the camera on the rear lens, Hide gallery camera tile, Hide time on stickers, Ignore mentions in muted chats, Hide blocked users in groups, Hide Telegram Features and Invite Friends, Add Repeat to the message menu, Disable call debug upload, Disable draft link previews, Gallery camera on tap, Open links externally, Strip link tracking, Disable update checks, Repair Firebase push registration",
                 "Hide ads coverage: channel ads, video ads, search ads",
                 "Disable analytics coverage: device statistics reports, channel read metrics, Premium promo views, Premium promo taps, Premium promo accepts, Premium promo failures"),
                 running);

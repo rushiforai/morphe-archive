@@ -36,7 +36,9 @@ public final class ShareUrlSanitizer {
      */
     public static String rewriteShareUrl(String url) {
         try {
-            return stripAllQueryParams(withCustomDomain(url));
+            String rewritten = stripAllQueryParams(withCustomDomain(url));
+            if (ShortLinkExpander.wants(url)) ShortLinkExpander.later(rewritten, url);
+            return rewritten;
         } catch (Throwable ex) {
             HookStatus.threw("share links", "rewrite", ex);
             Logger.printException(() -> LOG_PREFIX + " Could not rewrite a share link", ex);

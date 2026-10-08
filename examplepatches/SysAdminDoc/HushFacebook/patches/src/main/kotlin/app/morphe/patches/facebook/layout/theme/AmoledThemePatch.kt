@@ -63,7 +63,7 @@ private const val BLACK = -0x1000000
 private const val DARK_MODE_TEXT = 0xFFF2F4F7.toInt()
 
 /** WCAG 2.2's AA contrast for text. */
-private const val TEXT_CONTRAST = 4.5
+internal const val TEXT_CONTRAST = 4.5
 
 /**
  * How far above the background colour the lightest surface AMOLED makes sits: an input's fill from
@@ -134,18 +134,112 @@ internal val AMOLED_COLOUR_CALLS: Map<String, String> =
 internal var routeTwoRestores = ""
 
 /**
+ * How far apart a lighter background keeps Facebook's primary text and the secondary text it lifts:
+ * a little under Material 3's dark scheme, whose secondary text (on-surface-variant, tone 80) sits
+ * about 1.32:1 under its primary (on-surface, tone 90). It sets how light the surfaces may go.
+ */
+internal const val TEXT_HIERARCHY = 1.3
+
+/**
+ * The fewest steps above a lighter background its lightest surface may take, so a card, a popover
+ * and an input still sit apart from the page and from each other.
+ */
+internal const val MIN_LIGHTEST_STEP = 8
+
+/**
+ * An unread notification's row on AMOLED: FDS's #192D88FF at AmoledTheme's NEW_NOTIFICATION_ALPHA
+ * (issue #72). Text sits on it, over the page.
+ */
+internal const val UNREAD_ROW = 0x402D88FF
+
+/** Facebook's dark cards (#333334), popovers (#3B3C3E) and an input's fill (#333334), as route one steps them. */
+private val SURFACE_STEPS = listOf(0x333334 - 0x212121, 0x3B3C3E - 0x212121, 0x333334 - 0x0D0D0D)
+
+/**
  * The colour the Background colour option asks for (issue #34): black when it's blank, or the
  * `#RRGGBB` given, `#FFRRGGBB` too, as a colour picker writes it. Null for anything else: a colour
- * that isn't opaque, or one so light that Facebook's dark-mode text would fall under 4.5:1 on the
- * lightest surface AMOLED makes from it.
+ * that isn't opaque, or one too light for any [lightestStep] to keep text readable on it.
  */
 internal fun backgroundColour(value: String?): Int? {
+    val colour = parsedBackground(value) ?: return null
+    return colour.takeIf { lightestStep(it) != null }
+}
+
+/** The opaque colour [value] gives, black when it's blank, before its contrast is judged. */
+private fun parsedBackground(value: String?): Int? {
     val hex = value?.trim()?.removePrefix("#").orEmpty()
     if (hex.isEmpty()) return BLACK
-    if (hex.length != 6 && !(hex.length == 8 && hex.startsWith("ff", ignoreCase = true))) return null
+    if (hex.length != 6 && hex.length != 8) return null
     if (!hex.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }) return null
-    val colour = (0xFF000000L or hex.takeLast(6).toLong(16)).toInt()
-    return colour.takeIf { contrast(DARK_MODE_TEXT, raised(colour, LIGHTEST_STEP)) >= TEXT_CONTRAST }
+    if (hex.length == 8 && !hex.startsWith("ff", ignoreCase = true)) return null
+    return (0xFF000000L or hex.takeLast(6).toLong(16)).toInt()
+}
+
+/**
+ * Why the Background colour option refuses [value], in words the person patching can act on, or
+ * null when it's taken.
+ */
+internal fun backgroundProblem(value: String?): String? {
+    val hex = value?.trim()?.removePrefix("#").orEmpty()
+    val looksLikeAColour = (hex.length == 6 || hex.length == 8) && hex.all { it.isDigit() || it.lowercaseChar() in 'a'..'f' }
+    return when {
+        !looksLikeAColour && hex.isNotEmpty() ->
+            "Background colour \"$value\" isn't a colour. Give it as #RRGGBB, like #0D1117, or leave it blank for black."
+        parsedBackground(value) == null ->
+            "Background colour $value is see-through. Give an opaque #RRGGBB colour, like #0D1117."
+        backgroundColour(value) == null ->
+            "Background colour $value is too light to keep Facebook's text readable. Pick a darker colour: " +
+                "any grey up to #3A3A3A keeps Facebook's own text, and a little lighter, up to about " +
+                "$LIGHTEST_ADMITTED_GREY for a grey, gets lighter text to match."
+        else -> null
+    }
+}
+
+/** The lightest grey the option takes, for [backgroundProblem]'s advice. AmoledBackgroundOptionTest holds it. */
+internal const val LIGHTEST_ADMITTED_GREY = "#535353"
+
+/**
+ * How far above [colour] the lightest surface AMOLED makes sits, which AmoledTheme.lightestStep
+ * gets: [LIGHTEST_STEP] when Facebook's dark-mode text keeps 4.5:1 on every surface, as it always
+ * has, so black and every colour taken before keep exactly the surfaces they had.
+ *
+ * A lighter colour gets the largest smaller step that leaves room for lifted secondary text: text
+ * at 4.5:1 on the lightest surface, an unread row's tint included, while staying [TEXT_HIERARCHY]
+ * under the primary text. The card, popover and input fill then have to stay in their order and
+ * apart. Null when no step does all that: the colour is too light.
+ */
+internal fun lightestStep(colour: Int): Int? {
+    if (contrast(DARK_MODE_TEXT, raised(colour, LIGHTEST_STEP)) >= TEXT_CONTRAST) return LIGHTEST_STEP
+    val ceiling = (luminance(DARK_MODE_TEXT) + 0.05) / (TEXT_HIERARCHY * TEXT_CONTRAST) - 0.05
+    val step = (LIGHTEST_STEP - 1 downTo MIN_LIGHTEST_STEP).firstOrNull { textSurface(colour, it) <= ceiling } ?: return null
+    return step.takeIf { surfaces(colour, it).zipWithNext().all { (lower, upper) -> luminance(lower) < luminance(upper) } }
+}
+
+/**
+ * The page and the surfaces route one makes on it with [lightest] as the lightest step, darkest
+ * first: page, card, popover and input fill, each step scaled as AmoledTheme.scaled does it.
+ */
+internal fun surfaces(colour: Int, lightest: Int): List<Int> {
+    fun scaled(step: Int): Int {
+        fun channel(shift: Int) = ((step shr shift and 0xFF) * lightest + LIGHTEST_STEP / 2) / LIGHTEST_STEP shl shift
+        return channel(16) or channel(8) or channel(0)
+    }
+    fun raisedBy(step: Int): Int {
+        fun channel(shift: Int) = minOf(0xFF, (colour shr shift and 0xFF) + (step shr shift and 0xFF)) shl shift
+        return BLACK or channel(16) or channel(8) or channel(0)
+    }
+    return listOf(colour) + SURFACE_STEPS.map { raisedBy(scaled(it)) }
+}
+
+/** The luminance of the lightest thing text sits on over [colour]: [lightest] above it, or an unread row's tint. */
+internal fun textSurface(colour: Int, lightest: Int): Double =
+    maxOf(luminance(raised(colour, lightest)), luminance(over(colour, UNREAD_ROW)))
+
+/** [tint] drawn over the opaque [base], rounded as AmoledTheme.over does it. */
+internal fun over(base: Int, tint: Int): Int {
+    val alpha = tint ushr 24
+    fun channel(shift: Int) = (((tint shr shift and 0xFF) * alpha + (base shr shift and 0xFF) * (0xFF - alpha) + 0x7F) / 0xFF) shl shift
+    return BLACK or channel(16) or channel(8) or channel(0)
 }
 
 /** [colour] with [step] added to each channel, as far as white. The extension raises a card the same way. */
@@ -160,7 +254,7 @@ internal fun contrast(first: Int, second: Int): Double {
     return (light + 0.05) / (dark + 0.05)
 }
 
-private fun luminance(colour: Int): Double {
+internal fun luminance(colour: Int): Double {
     fun linear(shift: Int): Double {
         val channel = (colour shr shift and 0xFF) / 255.0
         return if (channel <= 0.04045) channel / 12.92 else Math.pow((channel + 0.055) / 1.055, 2.4)
@@ -323,12 +417,14 @@ val amoledThemePatch = bytecodePatch(
         default = "#000000",
         title = "Background colour",
         description = "The colour dark mode's backgrounds take, as #RRGGBB. Cards and inputs take a lighter " +
-            "step of it. Leave it blank for black. A colour too light for Facebook's white text is refused.",
+            "step of it. Leave it blank for black. Greys up to #3A3A3A keep Facebook's own text. A little " +
+            "lighter, up to about $LIGHTEST_ADMITTED_GREY for a grey, gets smaller steps and lighter grey text " +
+            "so it stays readable. Anything lighter is refused.",
         required = false,
     ) { backgroundColour(it) != null }
     val background = {
         backgroundColour(backgroundOption)
-            ?: throw PatchException("Background colour $backgroundOption is not a dark #RRGGBB colour")
+            ?: throw PatchException(backgroundProblem(backgroundOption) ?: "Background colour $backgroundOption is refused")
     }
 
     dependsOn(amoledThemeResourcePatch(background))
@@ -344,6 +440,8 @@ val amoledThemePatch = bytecodePatch(
         // sends the value through the extension before the method returns it.
         hookColourResolvers(mig = APPLY, fds = APPLY)
         fillBackgroundColour(background())
+        // Issue #34: a lighter colour's surfaces step up less, and its text roles get lifted.
+        fillLightestStep(checkNotNull(lightestStep(background())))
 
         // Data mode's banner on Flex carriers asks for a card's colour, so route one left it near
         // black across the black page (issue #86). The page's own colour goes there instead. A build
@@ -747,6 +845,19 @@ internal fun BytecodePatchContext.fillBackgroundColour(colour: Int) {
         it.name == "backgroundColour" && it.parameterTypes.isEmpty() && it.returnType == "I"
     } ?: throw PatchException("AmoledTheme has no backgroundColour() for the Background colour option")
     stub.returnEarly(colour)
+}
+
+/**
+ * Puts [step] in AmoledTheme.lightestStep, the step of the lightest surface over the Background
+ * colour. The stub already answers [LIGHTEST_STEP], so black and the colours taken before #34's
+ * lighter ones leave it as it is and the extension does exactly what it did.
+ */
+internal fun BytecodePatchContext.fillLightestStep(step: Int) {
+    if (step == LIGHTEST_STEP) return
+    val stub = mutableClassDefBy(AMOLED).methods.singleOrNull {
+        it.name == "lightestStep" && it.parameterTypes.isEmpty() && it.returnType == "I"
+    } ?: throw PatchException("AmoledTheme has no lightestStep() for a lighter Background colour")
+    stub.returnEarly(step)
 }
 
 /** Puts route two's [table] in AmoledTheme.routeTwoColours, for light mode to read colours back. */

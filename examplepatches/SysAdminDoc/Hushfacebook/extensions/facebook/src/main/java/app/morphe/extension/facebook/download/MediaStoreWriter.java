@@ -94,10 +94,11 @@ final class MediaStoreWriter implements Downloader.Sink {
         // Read here, per file, like the folder. The top folder decides the collection too: only
         // the Downloads one takes Download, and it takes both kinds.
         SaveTo to = SaveTo.current();
-        // One folder name for both kinds, so a story's photos and its videos land side by side.
-        // It's read here, per file, and cleaned where it's read: a slash or a dot segment in the
-        // setting can't turn this into a path of the setting's choosing.
-        location = to.directory(video) + "/" + SaveFolder.leaf();
+        // One folder name for both kinds, so a story's photos and its videos land side by side,
+        // unless a kind has a subfolder of its own inside it. Both are read here, per file, and
+        // cleaned where they're read: a slash or a dot segment in a setting can't turn this into a
+        // path of the setting's choosing.
+        location = to.directory(video) + "/" + SaveFolder.path(video);
 
         Uri collection = to.collection(video);
 

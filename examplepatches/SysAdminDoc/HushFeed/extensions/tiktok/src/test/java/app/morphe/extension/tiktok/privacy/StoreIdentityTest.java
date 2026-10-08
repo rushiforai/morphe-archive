@@ -48,6 +48,7 @@ public class StoreIdentityTest {
 
     @After public void tearDown() {
         Settings.STORE_IDENTITY.save(Settings.STORE_IDENTITY.defaultValue);
+        Settings.STORE_IDENTITY_INSTALLER.save(Settings.STORE_IDENTITY_INSTALLER.defaultValue);
     }
 
     @Test public void theEmbeddedCertificateIsTikToks() throws Exception {
@@ -85,6 +86,28 @@ public class StoreIdentityTest {
         PackageManager pm = context.getPackageManager();
         pm.setInstallerPackageName(ownPackage, "com.morphe.manager");
         assertEquals(StoreIdentity.STORE, StoreIdentity.installerFor(pm, ownPackage));
+    }
+
+    @Test public void theInstallerReadsAsThePickedStore() {
+        PackageManager pm = context.getPackageManager();
+        pm.setInstallerPackageName(ownPackage, "com.morphe.manager");
+        Settings.STORE_IDENTITY_INSTALLER.save("com.sec.android.app.samsungapps");
+        assertEquals("com.sec.android.app.samsungapps", StoreIdentity.installerFor(pm, ownPackage));
+    }
+
+    /** A value off the list, from an edited backup, can't make TikTok read an arbitrary package. */
+    @Test public void aStoreOffTheListReadsAsThePlayStore() {
+        PackageManager pm = context.getPackageManager();
+        pm.setInstallerPackageName(ownPackage, "com.morphe.manager");
+        Settings.STORE_IDENTITY_INSTALLER.save("com.example.anything");
+        assertEquals(StoreIdentity.STORE, StoreIdentity.installerFor(pm, ownPackage));
+    }
+
+    @Test public void theSettingsRowOffersEveryStoreThePlayStoreFirst() {
+        String[] installers = StoreIdentity.installers();
+        assertEquals(4, installers.length);
+        assertEquals(StoreIdentity.STORE, installers[0]);
+        assertEquals(Settings.STORE_IDENTITY_INSTALLER.defaultValue, installers[0]);
     }
 
     @Test public void anotherPackageGetsTheRealCallWithWhatItThrows() {

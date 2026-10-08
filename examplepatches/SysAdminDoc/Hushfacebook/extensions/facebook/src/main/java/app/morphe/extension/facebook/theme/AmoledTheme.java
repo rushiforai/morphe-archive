@@ -41,7 +41,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * <p>Black is the default. The patch's Background colour option can ask for another dark colour
  * (issue #34), which {@link #backgroundColour} then answers: every route and both bars put it where
  * they put black, and a raised surface sits the same step above it that it sits above black.
- * Facebook's own black stays black on every route.
+ * Facebook's own black stays black on every route. A lighter colour, one where those steps would
+ * leave Facebook's text under 4.5:1, gets smaller steps in the same order ({@link #lightestStep},
+ * {@link #scaled}), and its text and icon roles come back just light enough ({@link #foreground}).
  *
  * <p>{@link #apply} runs for each colour on each layout pass. Thus it makes no object and writes no
  * log. The one thing it adds is a count in Hook status, a hash lookup and an increment once the
@@ -180,11 +182,71 @@ public final class AmoledTheme {
                     "BACKGROUND_BANNER",
                     "BACKGROUND_PRIMARY_UI")));
 
+    /**
+     * How far above the background colour the lightest surface route one makes sits: an input's
+     * fill from the lightest raised grey, {@link #MAX_RAISED_CHANNEL} less {@link #FILL_SHIFT}.
+     * Every step a surface takes is at most this.
+     */
+    static final int LIGHTEST_STEP = MAX_RAISED_CHANNEL - FILL_SHIFT;
+
+    /** WCAG 2.2's AA contrast for normal text, which a lighter background's text roles keep. */
+    static final double TEXT_CONTRAST = 4.5;
+
+    /**
+     * The colour tokens of text and icons that sit on the surfaces this class makes, which a
+     * lighter Background colour lifts ({@link #foreground}). FDS's long names, and the short names
+     * of Mig's text and glyph enums (PRIMARY, SECONDARY, TERTIARY and the rest), which no FDS token
+     * uses. MaterialYouTokenFixtureTest holds the FDS names and their dark colours to each fixture.
+     */
+    static final Set<String> TEXT_TOKENS = Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList(
+                    // FDS.
+                    "PRIMARY_TEXT",
+                    "PRIMARY_ICON",
+                    "SECONDARY_TEXT",
+                    "SECONDARY_ICON",
+                    "PLACEHOLDER_TEXT",
+                    "PLACEHOLDER_ICON",
+                    "META_TEXT",
+                    "META_ICON",
+                    "BLUE_LINK",
+                    "NAV_BAR_TEXT",
+                    "NAV_BAR_ICON",
+                    "TAB_BAR_ACTIVE_ICON",
+                    "TAB_BAR_INACTIVE_ICON",
+                    "FBLITE_STRONG_SECONDARY",
+                    // Mig.
+                    "PRIMARY",
+                    "SECONDARY",
+                    "SECONDARY_EMPHASIZED",
+                    "TERTIARY",
+                    "PLACEHOLDER",
+                    "LINK")));
+
+    /**
+     * Facebook's tint for an unread notification's row in dark mode (FDS's NEW_NOTIFICATION_BACKGROUND,
+     * #192D88FF), at the alpha {@link #unreadRow} gives it. Over a lighter Background colour it can
+     * be the lightest thing text sits on.
+     */
+    static final int UNREAD_ROW = NEW_NOTIFICATION_ALPHA << 24 | 0x2D88FF;
+
     /** Opaque black, what route two writes over a dark grey unless the patch asks for another colour. */
     private static final int BLACK = 0xFF000000;
 
     /** What a background turns into: {@link #backgroundColour} as the patch filled it in. */
     private static int background = backgroundColour();
+
+    /**
+     * How far above the background its lightest surface sits: {@link #lightestStep} as the patch
+     * filled it in. {@link #LIGHTEST_STEP}, unless a lighter Background colour asked for less.
+     */
+    private static int step = lightestStep();
+
+    /**
+     * With a lighter Background colour, the luminance of the lightest surface text sits on, which
+     * the text roles keep {@link #TEXT_CONTRAST} against. Unused at {@link #LIGHTEST_STEP}.
+     */
+    private static double textSurface = textSurface(background, step);
 
     /**
      * Route two's rewrites, sorted by resource id, and the colour Facebook had at each:
@@ -212,13 +274,17 @@ public final class AmoledTheme {
      * {@link #FILL_SHIFT} for an input or a pill's fill ({@link #FILL_TOKENS}), each that far above
      * the background colour, in Facebook's dark mode, or {@code color} unchanged. The background
      * colour itself comes back as it is, from route two's resources. An unread notification's tint
-     * comes back stronger ({@link #unreadRow}).
+     * comes back stronger ({@link #unreadRow}). On a lighter Background colour the steps are
+     * smaller ({@link #scaled}) and a text role comes back lifted ({@link #foreground}).
      */
     public static int apply(int color, Object token) {
         HookStatus.invoked(FamilyNames.AMOLED_THEME);
         if (!isDarkNeutral(color, MAX_RAISED_CHANNEL)) {
-            return (color >>> 24) < NEW_NOTIFICATION_ALPHA && token instanceof Enum && DarkMode.on()
-                    ? unreadRow(color, ((Enum<?>) token).name())
+            if ((color >>> 24) < NEW_NOTIFICATION_ALPHA) {
+                return token instanceof Enum && DarkMode.on() ? unreadRow(color, ((Enum<?>) token).name()) : color;
+            }
+            return step < LIGHTEST_STEP && token instanceof Enum && DarkMode.on()
+                    ? foreground(color, ((Enum<?>) token).name())
                     : color;
         }
         if (!(token instanceof Enum) || !DarkMode.on()) return color;
@@ -230,7 +296,81 @@ public final class AmoledTheme {
         // Every channel of a grey above the black band is at least MAX_CHANNEL + 1 - MAX_SPREAD,
         // above either shift, so no channel borrows from the next.
         int shift = FILL_TOKENS.contains(name) ? FILL_SHIFT : RAISED_SHIFT;
-        return raise(background, color - shift * 0x010101);
+        return raise(background, scaled(color - shift * 0x010101));
+    }
+
+    /**
+     * A text or icon colour on a lighter Background colour (issue #34): a text role
+     * ({@link #TEXT_TOKENS}) that would fall under {@link #TEXT_CONTRAST} on the lightest surface
+     * the theme makes from it comes back just light enough to keep it, moved toward white so a
+     * blue link stays blue. Facebook's secondary grey #B0B3B8 has 3.71:1 on #5B513F, and comes
+     * back as #D6D8DA.
+     *
+     * <p>Only a Background colour the patch let through with a smaller step ({@link #lightestStep})
+     * gets this. On black and every colour that keeps Facebook's own text readable, each colour
+     * comes back as it came, as it does for any other token, a translucent colour, and text darker
+     * than the surface. Material You asks the same after it recolours a text role.
+     */
+    static int foreground(int color, String token) {
+        if (step >= LIGHTEST_STEP || (color >>> 24) != 0xFF || !TEXT_TOKENS.contains(token)) return color;
+        double needs = TEXT_CONTRAST * (textSurface + 0.05) - 0.05;
+        double luminance = TonePalette.luminance(color);
+        if (luminance >= needs || luminance <= textSurface) return color;
+        // White passes on every surface the patch lets through, and each step toward it is at least
+        // as light as the one before, so the lightest passing step is the first.
+        int low = 0;
+        int high = 0xFF;
+        while (high - low > 1) {
+            int middle = (low + high) >>> 1;
+            if (TonePalette.luminance(towardWhite(color, middle)) >= needs) high = middle;
+            else low = middle;
+        }
+        return towardWhite(color, high);
+    }
+
+    /** {@code color} moved {@code amount}/255 of the way to white in each channel. */
+    private static int towardWhite(int color, int amount) {
+        int red = (color >> 16) & 0xFF;
+        int green = (color >> 8) & 0xFF;
+        int blue = color & 0xFF;
+        red += ((0xFF - red) * amount + 0x7F) / 0xFF;
+        green += ((0xFF - green) * amount + 0x7F) / 0xFF;
+        blue += ((0xFF - blue) * amount + 0x7F) / 0xFF;
+        return (color & 0xFF000000) | red << 16 | green << 8 | blue;
+    }
+
+    /**
+     * A surface's step above the background, each channel scaled from {@link #LIGHTEST_STEP} down
+     * to {@link #step}, rounded. At {@link #LIGHTEST_STEP} it comes back as it is, so black and the
+     * colours the theme always let through keep their surfaces exactly. A lighter Background colour
+     * keeps its card, popover and input in the same order, closer together.
+     */
+    static int scaled(int raw) {
+        if (step >= LIGHTEST_STEP) return raw;
+        return (raw & 0xFF000000) | scaledChannel((raw >> 16) & 0xFF) << 16
+                | scaledChannel((raw >> 8) & 0xFF) << 8 | scaledChannel(raw & 0xFF);
+    }
+
+    private static int scaledChannel(int channel) {
+        return (channel * step + LIGHTEST_STEP / 2) / LIGHTEST_STEP;
+    }
+
+    /**
+     * The luminance of the lightest surface text sits on over {@code colour}: its lightest raised
+     * surface, {@code lightest} above it, or an unread notification's tinted row on it.
+     */
+    static double textSurface(int colour, int lightest) {
+        double raised = TonePalette.luminance(raise(colour, lightest * 0x010101));
+        return Math.max(raised, TonePalette.luminance(over(colour, UNREAD_ROW)));
+    }
+
+    /** {@code tint} drawn over the opaque {@code base}. */
+    static int over(int base, int tint) {
+        int alpha = tint >>> 24;
+        int red = (((tint >> 16) & 0xFF) * alpha + ((base >> 16) & 0xFF) * (0xFF - alpha) + 0x7F) / 0xFF;
+        int green = (((tint >> 8) & 0xFF) * alpha + ((base >> 8) & 0xFF) * (0xFF - alpha) + 0x7F) / 0xFF;
+        int blue = ((tint & 0xFF) * alpha + (base & 0xFF) * (0xFF - alpha) + 0x7F) / 0xFF;
+        return BLACK | red << 16 | green << 8 | blue;
     }
 
     /**
@@ -254,7 +394,7 @@ public final class AmoledTheme {
      * one.
      *
      * @return the background colour, in Facebook's dark mode, for a dark grey or for what route one
-     * makes of a card: up to {@link #MAX_RAISED_CHANNEL} less {@link #RAISED_SHIFT} above the
+     * makes of a card: up to {@link #MAX_RAISED_CHANNEL} less {@link #RAISED_SHIFT} ({@link #scaled}) above the
      * background colour in each channel, which may have a hue of its own (issue #34). Otherwise, as
      * in light mode, {@code color} unchanged.
      */
@@ -267,7 +407,9 @@ public final class AmoledTheme {
         int blue = (color & 0xFF) - (background & 0xFF);
         int high = Math.max(red, Math.max(green, blue));
         int low = Math.min(red, Math.min(green, blue));
-        return low >= 0 && high <= MAX_RAISED_CHANNEL - RAISED_SHIFT && high - low <= MAX_SPREAD ? background : color;
+        return low >= 0 && high <= scaledChannel(MAX_RAISED_CHANNEL - RAISED_SHIFT) && high - low <= MAX_SPREAD
+                ? background
+                : color;
     }
 
     /**
@@ -314,7 +456,7 @@ public final class AmoledTheme {
     private static int withoutToken(int color) {
         if (!ownsWithoutToken(color)) return color;
         if (color == BLACK || color == background) return color;
-        return isDarkNeutral(color, MAX_CHANNEL) ? background : raise(background, color - RAISED_SHIFT * 0x010101);
+        return isDarkNeutral(color, MAX_CHANNEL) ? background : raise(background, scaled(color - RAISED_SHIFT * 0x010101));
     }
 
     /**
@@ -375,9 +517,26 @@ public final class AmoledTheme {
         return BLACK;
     }
 
+    /**
+     * Filled in by the patch: how far above the Background colour its lightest surface sits. It's
+     * {@link #LIGHTEST_STEP} for black and any colour that keeps Facebook's own text readable on
+     * every surface, and less for a lighter colour the patch lets through with lifted text (issue
+     * #34): there the surfaces step up less, and the text roles get {@link #foreground}.
+     */
+    public static int lightestStep() {
+        return LIGHTEST_STEP;
+    }
+
     /** Package-visible for tests: puts a background colour of {@link #backgroundColour}'s kind in use. */
     static void useBackground(int colour) {
+        useBackground(colour, LIGHTEST_STEP);
+    }
+
+    /** Package-visible for tests: a background colour and its {@link #lightestStep}, as the patch fills them. */
+    static void useBackground(int colour, int lightest) {
         background = colour;
+        step = lightest;
+        textSurface = textSurface(colour, lightest);
     }
 
     /** {@code base} with each channel of {@code step} added, as far as white. Both are opaque. */

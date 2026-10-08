@@ -20,6 +20,10 @@ import app.morphe.extension.shared.Utils;
  * the gallery, and a character nobody can see makes two folders that look the same. So the value
  * goes through {@link #sanitize} where it's used, whatever wrote it, and an empty result means
  * {@link #DEFAULT}.
+ *
+ * <p>Videos and photos can each go one folder deeper, into a subfolder of the save folder
+ * ({@link #subfolder}). Each is cleaned by the same rules, and an empty one means no subfolder, so
+ * by default both kinds land side by side as before.
  */
 public final class SaveFolder {
 
@@ -47,6 +51,38 @@ public final class SaveFolder {
         }
     }
 
+    /**
+     * The subfolder of the save folder that a video's ([video]) or a photo's save goes in, or empty
+     * for the save folder itself. Never throws, and never answers anything but a clean name or
+     * nothing.
+     */
+    public static String subfolder(boolean video) {
+        try {
+            if (!Utils.settingsReady()) return "";
+            return cleanSubfolder(video ? Settings.VIDEO_SUBFOLDER.get() : Settings.PHOTO_SUBFOLDER.get());
+        } catch (Throwable t) {
+            return "";
+        }
+    }
+
+    /** {@link #sanitize}'s rules for a subfolder: nothing left is no subfolder rather than {@link #DEFAULT}. */
+    public static String cleanSubfolder(String raw) {
+        return clean(raw, MAX_CODE_POINTS);
+    }
+
+    /**
+     * Where under its top folder a video's ([video]) or a photo's next save goes: the save folder,
+     * then the kind's subfolder when it has one.
+     */
+    public static String path(boolean video) {
+        return within(leaf(), subfolder(video));
+    }
+
+    /** [folder], then [subfolder] inside it when there's one. */
+    public static String within(String folder, String subfolder) {
+        return subfolder.isEmpty() ? folder : folder + "/" + subfolder;
+    }
+
     /** Whether [name] is already a folder name this would use exactly as written. */
     public static boolean isClean(String name) {
         return name != null && !name.isEmpty() && name.equals(sanitize(name));
@@ -61,6 +97,20 @@ public final class SaveFolder {
     public static boolean isImportable(String name) {
         if (name == null || name.isEmpty()) return false;
         return isClean(withUnknownAsKnown(name));
+    }
+
+    /** Whether [name] is already a subfolder the saves would use exactly as written, blank for none included. */
+    public static boolean isCleanSubfolder(String name) {
+        return name != null && name.equals(cleanSubfolder(name));
+    }
+
+    /**
+     * Whether a settings file's [name] may be taken as a subfolder: blank, which is no subfolder,
+     * or a name the subfolder row would keep as typed, a character this phone doesn't know counting
+     * as an ordinary one the way {@link #isImportable} counts it for the folder.
+     */
+    public static boolean isImportableSubfolder(String name) {
+        return name != null && isCleanSubfolder(withUnknownAsKnown(name));
     }
 
     /** [name] with each character this phone doesn't know turned into one every phone does. */

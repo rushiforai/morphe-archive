@@ -1,3 +1,21 @@
+## [1.3.0](https://github.com/[secure]/edge-window-patches/compare/v1.2.1...v1.3.0) (2026-10-08)
+
+### ✨ New Features
+
+* add opt-in inset diagnostics for cutout shift tracking ([e07a92d](https://github.com/[secure]/edge-window-patches/commit/e07a92dcb191fb6df129e536af8daecf2481d4f0))
+
+## [1.2.1](https://github.com/[secure]/edge-window-patches/compare/v1.2.0...v1.2.1) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* stop Chromium window re-fits from padding below the cutout ([92e994b](https://github.com/[secure]/edge-window-patches/commit/92e994b067f1244f6b3e834a2888dc7271c4ece3))
+
+## [1.2.0](https://github.com/[secure]/edge-window-patches/compare/v1.1.1...v1.2.0) (2026-10-08)
+
+### ✨ New Features
+
+* split hide status bar patch into YouTube and universal variants ([e70055f](https://github.com/[secure]/edge-window-patches/commit/e70055fbf3dbacde435c4ff2f3068cb638c62a53))
+
 ## [1.1.1](https://github.com/ymshin-dev/edge-window-patches/compare/v1.1.0...v1.1.1) (2026-09-26)
 
 ### 🐛 Bug Fixes

@@ -326,9 +326,13 @@ public class Utils {
         }
     }
 
-    /** Waits until background work submitted before this call has finished. */
+    /**
+     * Waits until background work submitted before this call has finished. The 30 seconds is room for
+     * a loaded machine: five ran out under a full worker queue beside other builds (2026-10-06), and
+     * the wait ends as soon as the pool drains.
+     */
     public static void awaitBackgroundTasksForTests() throws Exception {
-        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
+        long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(30);
         while (true) {
             long remaining = deadline - System.nanoTime();
             if (remaining <= 0) throw new TimeoutException("Background tasks did not finish");

@@ -122,11 +122,20 @@ public final class FinishLastVideo {
      * from both, which is the answer TikTok's own disable-scroll switch gives there.
      */
     public static boolean holdsSwipe(View pager) {
-        // Every touch of every feed pager reaches this, so the idle case is one volatile read.
-        if (finishing == null || pager == null || !pending()) return false;
+        // Every touch of every feed pager reaches this, so the idle case is a couple of reads.
+        if (pager == null) return false;
+        boolean waiting = finishing != null && pending();
+        boolean locked = !waiting && FeedLock.isOn();
+        // A shared video opened alone, while it is the one playing, and only in the pager it
+        // came up in. Another top tab or the Friends tab is a pager of its own, and one that
+        // opens on something that isn't a video keeps its swipe.
+        boolean alone = !waiting && !locked && FeedLock.linkVideoAlone();
+        if (!waiting && !locked && !alone) return false;
         Activity activity = activityOf(pager.getContext());
-        return activity != null && MAIN_ACTIVITY.equals(activity.getClass().getName())
-                && FeedVisibility.isOnFeed(activity);
+        if (activity == null || !MAIN_ACTIVITY.equals(activity.getClass().getName())) return false;
+        if (alone) return FeedLock.holdsAloneSwipe(pager);
+        // The feed lock turns the same swipe down, on the recommendation feed only.
+        return waiting ? FeedVisibility.isOnFeed(activity) : FeedLock.holdsSwipe(activity);
     }
 
     private static Activity activityOf(Context context) {

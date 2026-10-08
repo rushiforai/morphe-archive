@@ -586,6 +586,9 @@ public class Utils {
         // Before any hook reads a setting: whether this process runs with Hushfeed paused, and
         // the record that lets three crashed starts in a row turn safe mode on.
         HushfeedPause.onProcessStart(appContext);
+        // A timed capture keeps the end it was given, or is cleared when that passed while
+        // TikTok was closed.
+        app.morphe.extension.shared.diagnostics.DebugCapture.load();
 
         // Follow the activity rather than keeping the first one. The host recreates its main
         // activity on a configuration change it does not swallow, and this hook runs again for

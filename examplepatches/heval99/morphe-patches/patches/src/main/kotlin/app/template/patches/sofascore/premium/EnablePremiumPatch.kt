@@ -7,15 +7,17 @@ import app.template.util.returnBoxedBooleanEarly
 @Suppress("unused")
 val enablePremiumPatch = bytecodePatch(
     name = "Enable Premium",
-    description = "Unlocks AI insights and premium features locked behind the Sofascore Plus/Pro subscription."
+    description = "Marks the account as premium in the app. Note: AI insights and other premium " +
+        "content are served by Sofascore's servers for paying accounts and are not unlocked; " +
+        "use \"Disable ads\" for an ad-free app."
 ) {
     compatibleWith(COMPATIBILITY_SOFASCORE)
 
     execute {
         // Session premium flag (UserAccount) - read by the feature gates.
-        UserAccountHasPremiumFingerprint.methodOrNull?.returnBoxedBooleanEarly(true)
+        UserAccountHasPremiumFingerprint.method.returnBoxedBooleanEarly(true)
 
         // Server profile premium flag (ProfileData) - read by the profile/subscription UI.
-        ProfileDataHasPremiumFingerprint.methodOrNull?.returnBoxedBooleanEarly(true)
+        ProfileDataHasPremiumFingerprint.method.returnBoxedBooleanEarly(true)
     }
 }

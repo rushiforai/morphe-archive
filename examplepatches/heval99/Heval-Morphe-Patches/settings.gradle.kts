@@ -20,9 +20,3 @@ plugins {
     id("app.morphe.patches") version "1.3.3"
 }
 
-// The FotMob extension depends on a plain Android library module for shared
-// extension code (app.template.extension.shared). Extension bundle modules
-// directly under extensions/ (extensions/extension, extensions/shared,
-// extensions/fotmob) are auto-discovered by the app.morphe.patches plugin,
-// but this nested library submodule needs to be included explicitly.
-include(":extensions:shared:library")

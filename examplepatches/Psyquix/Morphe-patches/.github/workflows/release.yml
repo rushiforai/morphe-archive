@@ -49,6 +49,9 @@ jobs:
             echo "tagged=false" >> "$GITHUB_OUTPUT"
             echo "tag=$VER-morphe-ver-$(printf '%02d' "$N")" >> "$GITHUB_OUTPUT"
             echo "version=$VER" >> "$GITHUB_OUTPUT"
+            # Bundle version shown in managers (manifest + patches-list):
+            # 0.<NN>.0 tracks the release revision (ver-13 -> 0.13.0).
+            echo "mppver=0.$N.0" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Set up JDK 21
@@ -71,7 +74,7 @@ jobs:
 
       - name: Build patches
         if: steps.tag.outputs.tagged != 'true'
-        run: ./gradlew :patches:buildAndroid
+        run: ./gradlew :patches:buildAndroid -Pversion="${{ steps.tag.outputs.mppver }}"
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -88,4 +91,18 @@ jobs:
           git tag "$TAG"
           git push origin "$TAG"
           printf 'Built for Reddit %s (experimental).\n' "$VER" > /tmp/opencode-notes.md
-          gh release create "$TAG" --title "$TAG" --notes-file /tmp/opencode-notes.md patches/build/libs/*.mpp
+          # Name the bundle after the release revision: <reddit>-morphe-ver-<NN>
+          # ships 0.<NN>.0.mpp (e.g. ver-13 -> 0.13.0.mpp). Downstream
+          # resolves the asset by '*.mpp' glob, so the name is cosmetic.
+          # The bundle's internal version is set via -Pversion at build time.
+          MPP="${{ steps.tag.outputs.mppver }}.mpp"
+          # The test gate above already built patches-1.0.0.mpp; select the
+          # bundle matching this release's version (plugin names it
+          # patches-<version>.mpp) and normalize it to the exact asset name.
+          mapfile -t MPPS < <(compgen -G "patches/build/libs/*${{ steps.tag.outputs.mppver }}.mpp")
+          if [ "${#MPPS[@]}" -ne 1 ]; then
+            echo "error: expected exactly one .mpp bundle, found ${#MPPS[@]}" >&2
+            exit 1
+          fi
+          mv "${MPPS[0]}" "patches/build/libs/$MPP"
+          gh release create "$TAG" --title "$TAG" --notes-file /tmp/opencode-notes.md "patches/build/libs/$MPP"

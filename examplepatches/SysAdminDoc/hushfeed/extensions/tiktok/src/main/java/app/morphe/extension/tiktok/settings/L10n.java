@@ -39,11 +39,14 @@ public final class L10n {
         final Map<String, String> translations;
         /** The language the text is shown in: the table's, or English when there is none. */
         final Locale shown;
+        /** The table's tag as looked up ("pt-rbr"), or null for English. */
+        final String tag;
 
-        Table(String key, Map<String, String> translations, Locale shown) {
+        Table(String key, Map<String, String> translations, Locale shown, String tag) {
             this.key = key;
             this.translations = translations;
             this.shown = shown;
+            this.tag = tag;
         }
     }
 
@@ -79,6 +82,16 @@ public final class L10n {
      */
     public static boolean isTranslated(Context context) {
         return tableFor(tags(context)).translations != null;
+    }
+
+    /** The tag of the table the settings are shown from ("de", "pt-rbr"), or null for English. */
+    public static String tableTag(Context context) {
+        return tableFor(tags(context)).tag;
+    }
+
+    /** The language the settings are shown in: the table's, or English. */
+    public static Locale shownLocale(Context context) {
+        return tableFor(tags(context)).shown;
     }
 
     /** {@link String#format} over the translated form of {@code english}. */
@@ -283,6 +296,7 @@ public final class L10n {
 
         Map<String, String> found = null;
         Locale shown = Locale.ENGLISH;
+        String foundTag = null;
         for (String tag : tags) {
             if (tag.equals("en") || tag.startsWith("en-r")) {
                 break;
@@ -290,10 +304,11 @@ public final class L10n {
             found = L10nTranslations.of(tag);
             if (found != null) {
                 shown = localeOf(tag);
+                foundTag = tag;
                 break;
             }
         }
-        table = new Table(key, found, shown);
+        table = new Table(key, found, shown, foundTag);
         cached = table;
         return table;
     }

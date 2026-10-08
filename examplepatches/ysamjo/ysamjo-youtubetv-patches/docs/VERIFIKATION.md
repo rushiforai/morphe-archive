@@ -40,7 +40,7 @@ Auf dem Google TV Streamer, `com.google.android.youtube.tv` 7.25.302 und
 - **Der Hook greift zu.** Ein instrumentierter Lauf zählte 982 `JSON.parse`-Aufrufe, darunter
   Ergebnisse mit Ad-Keys (`adPlacements` u. a.), die entfernt wurden.
 
-### MOD-Kennzeichnung (2026-10-04)
+### MOD-Kennzeichnung (2026-10-04, Banner und Launcher-Cache ergänzt 2026-10-05)
 
 - **Der Tausch liegt im Artefakt.** Nach `-e "MOD-Kennzeichnung für Icon und Banner"` meldet der
   Patcher `Branding: 10 von 10 Ressourcen ersetzt`; alle zehn Dateien im Ausgabe-APK sind
@@ -51,14 +51,21 @@ Auf dem Google TV Streamer, `com.google.android.youtube.tv` 7.25.302 und
   dieselben zehn Bilder; `firstInstallTime` blieb stehen, `lastUpdateTime` wanderte.
 - **Das Icon wird gerendert.** `Einstellungen → Apps → Alle Apps` zeigt für TizenTube das
   YouTube-Logo mit MOD-Pille.
-- **Der Banner ist nur indirekt belegt.** Der Projectivy Launcher hält Icon und Banner in seiner
-  eigenen Datenbank; `am force-stop`, `pm clear --cache-only` und ein Reboot lesen sie nicht neu
-  ein, die Kachel zeigt weiter das **Original-Artwork von TizenTube** — auch nach dem Umbau des
-  Banners auf das YouTube-Logo. Ein Pixelvergleich der Kachel gegen das Original und gegen den
-  neuen Banner bestätigt das. Die Manifest-Verweise sind dabei unverändert
-  (`android:icon` → `0x7f0f0000`, `android:banner` → `0x7f090053`, vorher wie nachher), ein
-  Fehler im Patch ist damit ausgeschlossen. Belegt ist also nur, dass das APK die richtigen
-  Bytes trägt — nicht, dass dieser Launcher sie anzeigt.
+- **Der Banner ist auf der Home-Kachel belegt.** Nach `Einstellungen → Apps → Projectivy Launcher
+  → Cache leeren` (219 MB → 2,7 MB) und einem Neustart des Launchers zeigt die Kachel das neue
+  Artwork: YouTube-Logo mittig, `MOD` oben links, TizenTube-Zeichen oben rechts. Screenshot
+  `/tmp/ytv725/tile_cold_after_clear.png`; die Launcher-Konfiguration blieb dabei erhalten.
+- **Warum es vorher hängen blieb.** Der Projectivy Launcher hält das Kachel-Artwork in einem
+  eigenen Bild-Cache. Er überlebt `am force-stop`, `pm clear --cache-only`, einen kompletten
+  Reboot, ein Neuinstallieren der App und ein Entfernen/Wiederhinzufügen aus der Kategorie. Der
+  Cache ist **pro Fläche**: dasselbe Long-Press-Menü einer App zeigte den neuen Banner schon
+  vorher im Kopf, während die Kachel noch das Original hielt.
+- **Der `versionCode` als Cache-Brecher ist widerlegt.** Die Annahme, Projectivy schlüssle seinen
+  Cache auf `(Paketname, versionCode)`, wurde am Gerät geprüft: Build mit `versionCode 203`
+  statt 202 installiert, Kachel danach **pixelidentisch** zum Vorher-Screenshot
+  (`max=5`, 0 Pixel über der Rauschschwelle). Die Option wurde daraufhin nicht übernommen.
+- **Manifest unverändert** (`android:icon` → `0x7f0f0000`, `android:banner` → `0x7f090053`,
+  vorher wie nachher), ein Fehler im Patch ist damit ausgeschlossen.
 
 **Was weiterhin nicht belegt ist:** dass die Payload Werbung *beweisbar* entfernt. Ein
 kontrollierter A/B-Test über den Ad-Beacon ist gescheitert — siehe Abschnitt 4.

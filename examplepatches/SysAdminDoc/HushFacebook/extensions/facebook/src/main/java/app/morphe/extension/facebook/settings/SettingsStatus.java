@@ -110,6 +110,14 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean metaAiSummaries() {
+        return false;
+    }
+
+    public static boolean commentSheetOptions() {
+        return false;
+    }
+
     public static boolean tapToPlay() {
         return false;
     }
@@ -127,6 +135,10 @@ public final class SettingsStatus {
     }
 
     public static boolean turnOffHdrBrightness() {
+        return false;
+    }
+
+    public static boolean keepProgressBar() {
         return false;
     }
 
@@ -174,6 +186,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean originalChatMedia() {
+        return false;
+    }
+
     public static boolean audienceNetwork() {
         return false;
     }
@@ -202,11 +218,19 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean playStoreUpdates() {
+        return false;
+    }
+
     public static boolean amoledTheme() {
         return false;
     }
 
     public static boolean materialYouTheme() {
+        return false;
+    }
+
+    public static boolean accentColor() {
         return false;
     }
 
@@ -230,6 +254,10 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean followingHome() {
+        return false;
+    }
+
     public static boolean marketplaceOnly() {
         return false;
     }
@@ -243,6 +271,10 @@ public final class SettingsStatus {
     }
 
     public static boolean reelsTabDot() {
+        return false;
+    }
+
+    public static boolean tabBadges() {
         return false;
     }
 
@@ -262,11 +294,19 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean seenPosts() {
+        return false;
+    }
+
     public static boolean metaAiQuestions() {
         return false;
     }
 
     public static boolean postDates() {
+        return false;
+    }
+
+    public static boolean autoTranslation() {
         return false;
     }
 
@@ -282,11 +322,19 @@ public final class SettingsStatus {
         return false;
     }
 
+    public static boolean chatListCleanup() {
+        return false;
+    }
+
     public static boolean messengerIcon() {
         return false;
     }
 
     public static boolean menuPromotions() {
+        return false;
+    }
+
+    public static boolean metaUpsells() {
         return false;
     }
 

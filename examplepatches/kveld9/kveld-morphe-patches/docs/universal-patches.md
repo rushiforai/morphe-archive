@@ -205,13 +205,19 @@ The **`Universal Telemetry Neutralizer`** patch neutralizes pervasive third-part
 ### Neutralized Tracking & Analytics Frameworks
 
 - **Google & Firebase Measurement**: `AppMeasurementContentProvider`, `AppMeasurementService`, `AppMeasurementJobService`, `AppMeasurementReceiver`.
-- **Google DataTransport & Firebase Sessions**: `JobInfoSchedulerService`, `TransportBackendDiscovery`, `AlarmManagerSchedulerBroadcastReceiver`, `SessionLifecycleService`.
-- **Firebase ComponentDiscovery Registrars**: Prunes registrar `<meta-data>` tags within `ComponentDiscoveryService` for Analytics, Crashlytics, Performance Monitoring, and Sessions, preventing dependency injection from instantiating tracking classes in memory.
+- **Google Analytics (legacy)**: `AnalyticsService`, `AnalyticsJobService`, `AnalyticsReceiver`.
+- **Google DataTransport & Firebase Sessions**: `JobInfoSchedulerService`, `TransportBackendDiscovery`, `AlarmManagerSchedulerBroadcastReceiver`, `SessionLifecycleService`, `FirebaseInstanceIdReceiver`, `MlKitComponentDiscoveryService`.
+- **Firebase ComponentDiscovery Registrars**: Prunes registrar `<meta-data>` tags within `ComponentDiscoveryService` for Analytics, Crashlytics, Performance Monitoring, Sessions, MLKit/vision, IID, DynamicLoading, Transport, Installations, RemoteConfig, and AB testing (Abt), preventing dependency injection from instantiating tracking classes in memory.
 - **Sentry Crash & Performance**: `SentryInitProvider`, `SentryPerformanceProvider`.
 - **Facebook AppEvents**: `FacebookInitProvider`.
+- **Meta Analytics2 / OneFabric**: `FFAlarmUploadJobService`, `GooglePlayUploadService`, `AlarmBasedUploadService`, `Analytics2UploadService`, `LollipopUploadService`, `LollipopUploadSafeService`, `DelayedWorkerService`, `OneFabricUploadAlarmReceiver`, `HighPriUploadRetryReceiver`, `AnalyticsUploadAlarmReceiver`, `DelayedWorkerServiceReceiver`.
+- **Crash Detectors & Dump Upload (Lacrima)**: `DumperUploadService`, `ExceptionsUploadService`, `ProfiloUploadService`, `ProtectedLockScreenBroadcastReceiver`, `PublicLockScreenBroadcastReceiver`, `SystemShutdownBootBroadcastReceiver`, `InternalShutdownBootBroadcastReceiver`, `SecureShutdownBootBroadcastReceiver`, `CrashLoop$LastState`.
+- **Device-ID & Cross-App Identity**: `AccessLibraryContentProvider`, `AttributionIdProvider`, `InstallReferrerProvider`, `LastUsedTimestampProvider`, `FDIDLiteProvider`, `AsyncInstagramFDIDLiteProvider`, `AsyncInstagramPhoneIdProvider`, `UsdidValuesProvider`, `FirstPartyUserValuesLiteProvider`, `FirstPartyUserValuesLiteProviderV2`, `BarcelonaLiteContentProvider`, `AsyncFamilyAppsUserValuesProvider`, `FamilyAppsUserValuesProvider`, `FamilyAppsUserValuesLiteProvider`, `CrossSigningService`, `InstallReferrerFetchJobIntentService`, `GooglePlayInstallReferrerReceiver`, `InstagramPhoneIdRequestReceiver`, `PhoneIdRequestReceiver`, `CrossSigningBroadcastReceiver`.
 - **AppsFlyer Attribution**: `PluginInfoContentProvider`, `AFJobSchedulerService`, `SingleInstallBroadcastReceiver`, `MultipleInstallBroadcastReceiver`.
 - **Adjust Attribution**: `AdjustReferrerReceiver`.
 - **Flurry & Branch Analytics**: `FlurryContentProvider`, `BranchInitProvider`.
+- **Third-Party Ad & Engagement SDKs**: AudienceNetwork, Vungle, Braze, Fairtiq telemetry, AdMob (`MobileAdsInitProvider`, `AdService`), and mediation init providers (AppLovin, ironSource/LevelPlay, Mintegral, BidMachine) (`AudienceNetworkContentProvider`, `FacebookContentProvider`, `VungleProvider`, `StartupTimeProvider`, `TrackingServiceImpl`, `BrazePushReceiver`, `BrazeFlushPushDeliveryReceiver`, `AuthenticationTokenManager$CurrentAuthenticationTokenChangedBroadcastReceiver`, `CurrentAccessTokenExpirationBroadcastReceiver`, `AppLovinInitProvider`, `FullscreenAdService`, `IronsourceLifecycleProvider`, `LevelPlayActivityLifecycleProvider`, `MBComponentLifecycleProvider`, `BidMachineInitProvider`).
+- **Ad SDK Startup Initializers (`androidx.startup`)**: `AdsSdkInitializer` (Unity Ads auto-init entry within `InitializationProvider`).
 
 ### Configuration in Morphe Manager
 
@@ -221,6 +227,12 @@ The **`Universal Telemetry Neutralizer`** patch neutralizes pervasive third-part
 - **Disable Telemetry Receivers (`disableReceivers`)**: Sets `android:enabled="false"` on campaign, install referrer, and measurement broadcast receivers (Toggle, default: `true`).
 - **Inject Telemetry Opt-Out Flags & Prune Registrars (`injectOptOutFlags`)**: Injects declarative opt-out `<meta-data>` tags into `<application>` for Firebase Analytics, Crashlytics, Performance, Google Analytics, Sentry, AppsFlyer, and the Facebook SDK (`AutoLogAppEventsEnabled`, `AdvertiserIDCollectionEnabled`), and prunes Firebase discovery registrars (Toggle, default: `true`).
 - **Disable Firebase Init Provider (`disableFirebaseInit`)**: Sets `android:enabled="false"` on `FirebaseInitProvider` (Toggle, default: `false`). *Keep disabled if the target app relies on Firebase Core, Auth, or Cloud Messaging (FCM).*
+- **Disable Push Notification Services (`disablePushServices`)**: Sets `android:enabled="false"` on Meta Fbns, PushLite, and Firebase Cloud Messaging services (Toggle, default: `false`). *WARNING: this breaks push notifications; enable only to fully silence background push delivery.*
+- **Disable Google Analytics Services (`disableGoogleAnalytics`)**: Sets `android:enabled="false"` on legacy Google Analytics background services (`AnalyticsService`, `AnalyticsJobService`) and receivers (`AnalyticsReceiver`) (Toggle, default: `true`).
+- **Disable Meta Analytics Upload Pipeline (`disableMetaAnalytics`)**: Sets `android:enabled="false"` on Meta Analytics2/OneFabric upload services, Instagram upload scheduler receiver, and deferred analytics worker components (Toggle, default: `true`).
+- **Disable Crash Detectors & Dump Upload (`disableCrashDetectors`)**: Sets `android:enabled="false"` on Lacrima lock-screen/shutdown crash detectors, crash-loop state trackers, and background crash-dump upload services (Toggle, default: `true`).
+- **Disable Device-ID & Cross-App Identity Providers (`disableDeviceIdProviders`)**: Sets `android:enabled="false"` on attribution, FDID/PhoneId/USDiD, and FamilyApps cross-app identity providers plus referrer and cross-signing components (Toggle, default: `false`). *WARNING: may break login, account switching, and deferred deep links; enable only to fully silence device-identity collection.*
+- **Disable Ad SDK Startup Initializers (`disableAdStartupInitializers`)**: Removes ad SDK auto-init entries (`AdsSdkInitializer` / Unity Ads) from `androidx.startup.InitializationProvider` (Toggle, default: `false`). *WARNING: may break rewarded ads and ad-gated features; enable only to block SDK auto-initialization.*
 
 ---
 

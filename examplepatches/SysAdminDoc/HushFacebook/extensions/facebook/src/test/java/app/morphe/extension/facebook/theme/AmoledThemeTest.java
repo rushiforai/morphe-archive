@@ -20,7 +20,9 @@ import org.robolectric.annotation.Config;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /** The one colour rule the resolver hooks and the parseColor reroute share. */
 @RunWith(RobolectricTestRunner.class)
@@ -462,5 +464,179 @@ public class AmoledThemeTest {
         assertEquals(BLACK, AmoledTheme.apply(0xFF252728, Token.CARD_BACKGROUND));
         assertEquals("the step above black", 0xFF121213, AmoledTheme.raise(BLACK, 0xFF121213));
         assertEquals("as far as white", 0xFFFFFFFF, AmoledTheme.raise(0xFFF0F0F0, 0xFF353535));
+    }
+
+    /** Issue #34's lighter Background colour, which the patch lets through with a lightest step of 12. */
+    private static final int SAND = 0xFF5B513F;
+    private static final int SAND_STEP = 12;
+
+    /** Every text and icon role AmoledTheme lifts: FDS's names, then Mig's. */
+    enum Role { PRIMARY_TEXT, PRIMARY_ICON, SECONDARY_TEXT, SECONDARY_ICON, PLACEHOLDER_TEXT, PLACEHOLDER_ICON,
+        META_TEXT, META_ICON, BLUE_LINK, NAV_BAR_TEXT, NAV_BAR_ICON, TAB_BAR_ACTIVE_ICON, TAB_BAR_INACTIVE_ICON,
+        FBLITE_STRONG_SECONDARY, PRIMARY, SECONDARY, SECONDARY_EMPHASIZED, TERTIARY, PLACEHOLDER, LINK }
+
+    /**
+     * The colours the dark and darker FDS styles give each FDS text role in 577, 580 and 581.
+     * MaterialYouTokenFixtureTest holds this table to each fixture.
+     */
+    static final String ROLE_COLOURS = "PRIMARY_TEXT=F2F4F7,FFFFFF;PRIMARY_ICON=F2F4F7,FFFFFF;"
+            + "SECONDARY_TEXT=B0B3B8,A1A4A9;SECONDARY_ICON=B0B3B8,A1A4A9;PLACEHOLDER_TEXT=B0B3B8,84878B;"
+            + "PLACEHOLDER_ICON=B0B3B8,84878B;META_TEXT=B0B3B8;META_ICON=B0B3B8;BLUE_LINK=5AA7FF,3E93F8;"
+            + "NAV_BAR_TEXT=E8EAEE;NAV_BAR_ICON=E8EAEE;TAB_BAR_ACTIVE_ICON=F2F4F7;TAB_BAR_INACTIVE_ICON=F2F4F7;"
+            + "FBLITE_STRONG_SECONDARY=D0D3D7";
+
+    static double contrast(int first, int second) {
+        double a = TonePalette.luminance(first);
+        double b = TonePalette.luminance(second);
+        return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    }
+
+    /**
+     * Everything text sits on over the Background colour in use, as AMOLED makes it: the page, a
+     * card, both popovers, an input's fill, the lightest fill there is, a server's card, and an
+     * unread notification's tinted row over the page.
+     */
+    private static int[] surfaces() {
+        return new int[]{
+                AmoledTheme.apply(0xFF101011, Token.WASH),
+                AmoledTheme.apply(0xFF333334, Token.CARD_BACKGROUND),
+                AmoledTheme.apply(0xFF3B3C3E, Token.POPOVER_BACKGROUND),
+                AmoledTheme.apply(0xFF3E4042, Token.POPOVER_BACKGROUND),
+                AmoledTheme.apply(0xFF333334, Token.PRIMARY_UI),
+                AmoledTheme.apply(0xFF424242, Token.PRIMARY_UI),
+                AmoledTheme.parseColor("#FF333334"),
+                AmoledTheme.over(AmoledTheme.apply(0xFF101011, Token.WASH),
+                        AmoledTheme.apply(0x192D88FF, Token.NEW_NOTIFICATION_BACKGROUND)),
+        };
+    }
+
+    @Test
+    public void theRolesAreTheOnesItLifts() {
+        Set<String> names = new HashSet<>();
+        for (Role role : Role.values()) names.add(role.name());
+        assertEquals(AmoledTheme.TEXT_TOKENS, names);
+        for (String role : MaterialYouTheme.parseTokens(ROLE_COLOURS).keySet()) {
+            assertTrue(role + " is no role", names.contains(role));
+        }
+    }
+
+    /**
+     * Issue #34: a lighter Background colour's surfaces step up less than they do over black, in the
+     * same order and apart: page, card, popover, input fill, and the lightest fill 12 above the page.
+     */
+    @Test
+    public void aLighterBackgroundStepsItsSurfacesLessInTheSameOrder() {
+        AmoledTheme.useBackground(SAND, SAND_STEP);
+
+        assertEquals("the page", SAND, AmoledTheme.apply(0xFF101011, Token.WASH));
+        assertEquals("a card", 0xFF5F5543, AmoledTheme.apply(0xFF333334, Token.CARD_BACKGROUND));
+        assertEquals("a popover", 0xFF615746, AmoledTheme.apply(0xFF3B3C3E, Token.POPOVER_BACKGROUND));
+        assertEquals("the Video tab's popover", 0xFF625846, AmoledTheme.apply(0xFF3E4042, Token.POPOVER_BACKGROUND));
+        assertEquals("an input's fill", 0xFF645A48, AmoledTheme.apply(0xFF333334, Token.PRIMARY_UI));
+        assertEquals("the lightest fill", 0xFF675D4B, AmoledTheme.apply(0xFF424242, Token.BACKGROUND_PRIMARY_UI));
+        assertEquals("a server card", 0xFF5F5543, AmoledTheme.parseColor("#FF333334"));
+        assertEquals("a React card", 0xFF5F5543, AmoledTheme.react(0xFF333334));
+        assertEquals("the Data mode banner", SAND, AmoledTheme.flexBanner(AmoledTheme.apply(0xFF333334, Token.CARD_BACKGROUND)));
+        assertEquals("the bars", SAND, AmoledTheme.statusBar(0xFF333334, true));
+
+        int[] ordered = {SAND, 0xFF5F5543, 0xFF615746, 0xFF645A48, 0xFF675D4B};
+        for (int i = 1; i < ordered.length; i++) {
+            assertTrue(Integer.toHexString(ordered[i]) + " is no lighter than the surface under it",
+                    TonePalette.luminance(ordered[i]) > TonePalette.luminance(ordered[i - 1]));
+        }
+        assertEquals("an unread row keeps #72's 25% tint", 0x402D88FF,
+                AmoledTheme.apply(0x192D88FF, Token.NEW_NOTIFICATION_BACKGROUND));
+    }
+
+    /**
+     * Issue #34: on #5B513F Facebook's secondary grey #B0B3B8 has 3.71:1. Every colour Facebook's dark
+     * styles give a text or icon role comes back at 4.5:1 or more on every surface AMOLED makes there,
+     * and still apart from the primary text. The primary text already has it and keeps its colour.
+     */
+    @Test
+    public void aLighterBackgroundLiftsEachTextRoleToAa() {
+        AmoledTheme.useBackground(SAND, SAND_STEP);
+        int[] surfaces = surfaces();
+        assertTrue("#B0B3B8 starts under 4.5:1", contrast(0xFFB0B3B8, SAND) < 4.5);
+
+        Map<String, int[]> roles = MaterialYouTheme.parseTokens(ROLE_COLOURS);
+        assertEquals("every FDS role", 14, roles.size());
+        for (Map.Entry<String, int[]> role : roles.entrySet()) {
+            for (int colour : role.getValue()) {
+                int lifted = AmoledTheme.apply(colour, Role.valueOf(role.getKey()));
+                for (int surface : surfaces) {
+                    assertTrue(role.getKey() + " " + Integer.toHexString(colour) + " as " + Integer.toHexString(lifted)
+                                    + " on " + Integer.toHexString(surface),
+                            contrast(lifted, surface) >= AmoledTheme.TEXT_CONTRAST);
+                }
+                assertEquals(role.getKey() + " lifts once", lifted, AmoledTheme.apply(lifted, Role.valueOf(role.getKey())));
+            }
+        }
+
+        assertEquals("the primary text keeps its colour", 0xFFF2F4F7, AmoledTheme.apply(0xFFF2F4F7, Role.PRIMARY_TEXT));
+        int secondary = AmoledTheme.apply(0xFFB0B3B8, Role.SECONDARY_TEXT);
+        assertEquals("the secondary text", 0xFFD6D8DA, secondary);
+        assertTrue("still apart from the primary text", contrast(0xFFF2F4F7, secondary) >= 1.29);
+        assertEquals("a link stays blue", 0xFFBBDBFF, AmoledTheme.apply(0xFF5AA7FF, Role.BLUE_LINK));
+        assertEquals("the darker placeholder", 0xFFD7D8D9, AmoledTheme.apply(0xFF84878B, Role.PLACEHOLDER_TEXT));
+
+        // Mig's text and glyph roles come with no table, so any grey or blue it might give passes.
+        for (Role role : new Role[]{Role.PRIMARY, Role.SECONDARY, Role.SECONDARY_EMPHASIZED, Role.TERTIARY,
+                Role.PLACEHOLDER, Role.LINK}) {
+            for (int colour : new int[]{0xFF8A8D91, 0xFFA8ABAF, 0xFFB0B3B8, 0xFFE4E6EB, 0xFF4599FF}) {
+                int lifted = AmoledTheme.apply(colour, role);
+                for (int surface : surfaces) {
+                    assertTrue(role + " " + Integer.toHexString(colour), contrast(lifted, surface) >= AmoledTheme.TEXT_CONTRAST);
+                }
+            }
+        }
+    }
+
+    /** The mutation controls for #34's text: other tokens, disabled text, a tint, darker text and light mode keep theirs. */
+    @Test
+    public void aLighterBackgroundLiftsNothingElse() {
+        AmoledTheme.useBackground(SAND, SAND_STEP);
+
+        assertEquals("a divider", 0xFF65686C, AmoledTheme.apply(0xFF65686C, Token.DIVIDER));
+        assertEquals("a selected chip's tint", 0x331D85FC, AmoledTheme.apply(0x331D85FC, Token.ACCENT_DEEMPHASIZED));
+        assertEquals("a translucent text colour", 0x80B0B3B8, AmoledTheme.apply(0x80B0B3B8, Role.SECONDARY_TEXT));
+        assertEquals("text darker than the surfaces", 0xFF4A4A4A, AmoledTheme.apply(0xFF4A4A4A, Role.SECONDARY_TEXT));
+        assertEquals("no token to go on", 0xFFB0B3B8, AmoledTheme.apply(0xFFB0B3B8, "SECONDARY_TEXT"));
+        assertEquals("a server's text colour", 0xFFB0B3B8, AmoledTheme.parseColor("#FFB0B3B8"));
+
+        DarkMode.answer(false);
+        assertEquals("light mode's text", 0xFFB0B3B8, AmoledTheme.apply(0xFFB0B3B8, Role.SECONDARY_TEXT));
+        assertEquals("light mode's card", 0xFF333334, AmoledTheme.apply(0xFF333334, Token.CARD_BACKGROUND));
+    }
+
+    /**
+     * Black and every colour taken before #34's lighter ones keep exactly what they had: no text
+     * lifts, and each surface steps up by Facebook's full step.
+     */
+    @Test
+    public void blackAndTheColoursTakenBeforeKeepTheirOutput() {
+        for (int background : new int[]{BLACK, NAVY, 0xFF3A3A3A}) {
+            AmoledTheme.useBackground(background);
+            for (Role role : Role.values()) {
+                assertEquals(role + " on " + Integer.toHexString(background), 0xFFB0B3B8, AmoledTheme.apply(0xFFB0B3B8, role));
+                assertEquals(role + " on " + Integer.toHexString(background), 0xFF84878B, AmoledTheme.foreground(0xFF84878B, role.name()));
+            }
+            for (int grey = 0x2B; grey <= 0x42; grey++) {
+                int colour = 0xFF000000 | grey * 0x010101;
+                if (colour == background) continue;
+                assertEquals("a card " + Integer.toHexString(colour), AmoledTheme.raise(background, colour - 0x212121),
+                        AmoledTheme.apply(colour, Token.CARD_BACKGROUND));
+                assertEquals("a fill " + Integer.toHexString(colour), AmoledTheme.raise(background, colour - 0x0D0D0D),
+                        AmoledTheme.apply(colour, Token.PRIMARY_UI));
+            }
+        }
+    }
+
+    /** An unread row's tint drawn over a page: #5B513F under 25% of Facebook's blue. */
+    @Test
+    public void aTintIsDrawnOverThePage() {
+        assertEquals(0xFF4F5F6F, AmoledTheme.over(SAND, AmoledTheme.UNREAD_ROW));
+        assertEquals("no tint", SAND, AmoledTheme.over(SAND, 0x002D88FF));
+        assertEquals("all tint", 0xFF2D88FF, AmoledTheme.over(SAND, 0xFF2D88FF));
     }
 }

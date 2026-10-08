@@ -44,7 +44,11 @@ internal const val PATCH = "Hide posts by words"
  * The same patch hides posts from the people, Pages and sites the person lists: GraphQLStory's
  * accessors of its authors and its attachments go into PostSources' two stubs (see
  * PostSourceAnchors.kt), and a build where they can't be found keeps the words and leaves that list
- * reading nothing.
+ * reading nothing. Its four switches for kinds of post (photo, video, link and colored background
+ * posts) read an attachment's styles and the story's text format through PostTypes' two stubs (see
+ * PostTypeAnchors.kt), which a build without them leaves unfilled in the same way. Its reaction
+ * ceiling reads a story's feedback and the feedback's reactors through PostReactions' two stubs (see
+ * ReactionAnchors.kt), and counts them with the kept `getCachedInt(int)`.
  *
  * The lists live in Hushfacebook's settings on the phone. Nothing here reads a post until a
  * switch is on and its list has something in it, and nothing of the text, the names or the lists
@@ -53,9 +57,10 @@ internal const val PATCH = "Hide posts by words"
 @Suppress("unused")
 val hidePostsByWordsPatch = bytecodePatch(
     name = "Hide posts by words",
-    description = "Hides feed posts whose text has a word or phrase you list, unless it also has one from " +
-        "your keep list, and posts from people, Pages and sites you list. Hushfacebook never sends your lists " +
-        "anywhere. The switches start off, so turn one on and fill in its list in Hushfacebook's settings.",
+    description = "Hides feed posts whose text matches a word or pattern you list, unless it also matches your " +
+        "keep list. It also hides posts from people, Pages and sites you list, and, each with its own switch, " +
+        "photo, video, link and colored background posts. Hushfacebook never sends your lists anywhere. The " +
+        "switches start off, so turn one on and fill in its list in Hushfacebook's settings.",
     default = true,
 ) {
     category("Feed")
@@ -70,6 +75,22 @@ val hidePostsByWordsPatch = bytecodePatch(
             "$PATCH: GraphQLStory has ${attachedStoryAccessors(story).size} accessors of $ATTACHED_STORY_FIELD " +
                 "as $STORY_TYPE, expected one",
         )
+
+        // Found before anything is filled in. A build without them keeps the rest of the patch.
+        val types = try {
+            findPostTypeAccessors(story)
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on without the kinds of post.")
+            null
+        }
+
+        // The reaction ceiling is optional in the same way: a build without it keeps everything else.
+        val reactions = try {
+            findReactionAccessors(story)
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on without the reaction ceiling.")
+            null
+        }
 
         // The extension reads the text and the model's type tag through these, by reflection.
         if (!hasPublicStringReader(classDefBy(BASE_MODEL_WITH_TREE))) {
@@ -86,6 +107,8 @@ val hidePostsByWordsPatch = bytecodePatch(
         } catch (moved: PatchException) {
             patchLog.warning("${moved.message}. The patch goes on without the people, Pages and sites list.")
         }
+        if (types != null) fillPostTypeStubs(types)
+        if (reactions != null) fillReactionStubs(reactions)
         enableStatus("postWords")
     }
 }

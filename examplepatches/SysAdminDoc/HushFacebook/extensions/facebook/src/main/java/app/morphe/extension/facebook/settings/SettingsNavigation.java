@@ -92,6 +92,7 @@ final class SettingsNavigation extends BaseAdapter {
         section("Writing", L10n.t("Writing"), null, SettingsIcons.WRITING, false);
         section("Chats", L10n.t("Chats"), null, SettingsIcons.CHATS, false);
         section("Menu", L10n.t("Menu"), null, SettingsIcons.MENU, false);
+        section("Meta's other products", L10n.t("Meta's other products"), null, SettingsIcons.BLOCK, false);
         section("Search", L10n.t("Search"), null, SettingsIcons.SEARCH, false);
         section("Marketplace", L10n.t("Marketplace"), null, SettingsIcons.MARKETPLACE, false);
         section("Notifications", L10n.t("Notifications"), null, SettingsIcons.NOTIFICATIONS, false);
@@ -322,10 +323,10 @@ final class SettingsNavigation extends BaseAdapter {
         pageAction = (paused || nextPaused) && showsPausable();
         if (pageAction) {
             pageStatus.setTitle(paused ? L10n.t("Hushfacebook is paused") : L10n.t("Hushfacebook is on"));
-            // Worded like the Pause switch: Debug logging and what was set when patching stay in.
+            // Worded like the Pause switch: Debug logging, Lock Facebook and what was set when patching stay in.
             pageStatus.setSummary(paused == nextPaused
-                    ? L10n.t("Until you resume, every switch but Debug logging acts as if it were off. "
-                    + "Changes made when you patched stay in.")
+                    ? L10n.t("Until you resume, every switch but Debug logging and Lock Facebook acts as if it "
+                    + "were off. Changes made when you patched stay in.")
                     : paused ? L10n.t("Hushfacebook turns back on when Facebook restarts.")
                     : L10n.t("Hushfacebook pauses when Facebook restarts."));
             pageStatus.setIcon(SettingsIcons.icon(context, paused ? SettingsIcons.PAUSE : SettingsIcons.PATCHED,

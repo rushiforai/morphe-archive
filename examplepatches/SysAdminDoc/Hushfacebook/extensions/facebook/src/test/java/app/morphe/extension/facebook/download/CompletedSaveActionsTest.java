@@ -53,6 +53,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import app.morphe.extension.facebook.misc.AppLockForTests;
 import app.morphe.extension.facebook.settings.CompletedEntryForTests;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.facebook.settings.SettingsEntry;
@@ -447,6 +448,61 @@ public class CompletedSaveActionsTest {
         assertTrue(completed().isEmpty());
         assertEquals("Saved to " + L10n.isolate("Movies/Facebook"), ShadowToast.getTextOfLatestToast());
         assertEquals(Integer.valueOf(0), gallery.rows.get(1L).getAsInteger(MediaStore.MediaColumns.IS_PENDING));
+    }
+
+    /** A tap on Open or Share while Facebook is locked waits for the check; nothing opens before it. */
+    @Test public void aLockedFacebookOpensAndSharesNothingUntilTheCheckPasses() throws Exception {
+        Notification note = save(true, "video/mp4");
+        Settings.APP_LOCK.save(true);
+        try {
+            for (int action = 0; action < 2; action++) {
+                AppLockForTests.arm();
+                try (ActivityController<Activity> controller =
+                             Robolectric.buildActivity(Activity.class, entry(note, action)).create()) {
+                    SettingsEntry.onActivityCreate(controller.get());
+                    AppLockForTests.started(controller.get());
+                    controller.start().resume();
+                    AppLockForTests.resumed(controller.get());
+                    settle();
+                    assertNull("a locked Facebook opened a saved file",
+                            shadowOf(controller.get()).getNextStartedActivity());
+
+                    AppLockForTests.unlock();
+                    settle();
+                    Intent launched = shadowOf(controller.get()).getNextStartedActivity();
+                    assertNotNull("the tap was lost with the unlock", launched);
+                    Intent target = action == 0 ? launched : launched.getParcelableExtra(Intent.EXTRA_INTENT);
+                    assertEquals(gallery.uris.get(0), action == 0 ? target.getData()
+                            : target.getParcelableExtra(Intent.EXTRA_STREAM));
+                }
+            }
+        } finally {
+            AppLockForTests.disarm();
+            Settings.APP_LOCK.resetToDefault();
+        }
+    }
+
+    @Test public void aTapThatWaitedPastItsTimeOpensNothingAfterTheUnlock() throws Exception {
+        Notification note = save(true, "video/mp4");
+        Settings.APP_LOCK.save(true);
+        try {
+            AppLockForTests.arm();
+            try (ActivityController<Activity> controller =
+                         Robolectric.buildActivity(Activity.class, entry(note, 0)).create()) {
+                SettingsEntry.onActivityCreate(controller.get());
+                AppLockForTests.started(controller.get());
+                controller.start().resume();
+                AppLockForTests.resumed(controller.get());
+                settle();
+                org.robolectric.shadows.ShadowSystemClock.advanceBy(Duration.ofSeconds(31));
+                AppLockForTests.unlock();
+                settle();
+                assertNull(shadowOf(controller.get()).getNextStartedActivity());
+            }
+        } finally {
+            AppLockForTests.disarm();
+            Settings.APP_LOCK.resetToDefault();
+        }
     }
 
     @Test public void aLauncherHandoffDeliversOnTheNextLiveScreen() throws Exception {

@@ -42,7 +42,10 @@ import java.io.File
  * build writes; and the setter's only callers, that first choice and the Hero player's. Then the
  * patch itself, run on those classes: the extension asked first in the setter with its own two
  * arguments, told before every return of the constructor, where the constructor's own branches now
- * land, and each stub reading the member it stands for. Reads the fixture bundles from
+ * land, and each stub reading the member it stands for. The origin stubs reach the player origin
+ * and sub-origin through the evaluator's one AbrContextAwareConfiguration, which its constructor
+ * fills in, and that configuration's playbackPreferences, reading the two fields the configuration
+ * compares with "fb_stories" and "fb_shorts_viewer". Reads the fixture bundles from
  * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class DefaultPlaybackQualityFixtureTest {
@@ -127,10 +130,37 @@ class DefaultPlaybackQualityFixtureTest {
                     setOf("${evaluator.type}->${firstChoice.name}", "${holding.single().definingClass}->${holding.single().name}"),
                     callers.map { it.definingClass + "->" + it.name }.toSet())
 
+                // Where the video plays: the configuration the evaluator keeps, and the two names its
+                // playback preferences carry, each compared once by the configuration's constructor.
+                val configurations = evaluator.fields.filter { it.type == ABR_CONFIGURATION && !AccessFlags.STATIC.isSet(it.accessFlags) }
+                assertEquals("$name: configurations ${evaluator.type} keeps", 1, configurations.size)
+                val configurationField = configurations.single()
+                assertTrue("$name: ${configurationField.name} isn't public", AccessFlags.PUBLIC.isSet(configurationField.accessFlags))
+                assertTrue("$name: the constructor doesn't fill in ${configurationField.name}", constructor.code().any {
+                    it.opcode == Opcode.IPUT_OBJECT && it.field?.name == configurationField.name && it.field?.definingClass == evaluator.type
+                })
+                val configuration = FixtureDex.classes(bundle, setOf(ABR_CONFIGURATION)).values.single()
+                val preferences = configuration.fields.single { it.name == PLAYBACK_PREFERENCES }
+                val preferencesClass = FixtureDex.classes(bundle, setOf(preferences.type)).values.single()
+                val origins = originReads(configuration, preferences.type, STORIES_ORIGIN)
+                val subOrigins = originReads(configuration, preferences.type, REELS_SUB_ORIGIN)
+                assertEquals("$name: origins compared with \"$STORIES_ORIGIN\"", 1, origins.size)
+                assertEquals("$name: sub-origins compared with \"$REELS_SUB_ORIGIN\"", 1, subOrigins.size)
+                assertEquals("$name: sub-origins compared with \"fb_shorts_native_in_feed_unit\"", subOrigins,
+                    originReads(configuration, preferences.type, "fb_shorts_native_in_feed_unit"))
+                val origin = origins.single()
+                val subOrigin = subOrigins.single()
+                assertTrue("$name: the origin and the sub-origin are one field", origin.name != subOrigin.name)
+                for (field in listOf(origin, subOrigin)) {
+                    assertTrue("$name: $field isn't public",
+                        AccessFlags.PUBLIC.isSet(preferencesClass.fields.single { it.name == field.name && it.type == field.type }.accessFlags))
+                }
+                assertTrue("$name: ${preferencesClass.type} isn't public", AccessFlags.PUBLIC.isSet(preferencesClass.accessFlags))
+
                 val formatClass = FixtureDex.classes(bundle, setOf(format)).values.single()
                 val labelClass = FixtureDex.classes(bundle, setOf(labelOf.definingClass)).values.single()
                 val infoClass = FixtureDex.classes(bundle, setOf(label.definingClass)).values.single()
-                val context = PatchContexts.of(listOf(holders.single(), evaluator, formatClass, labelClass, infoClass)
+                val context = PatchContexts.of(listOf(holders.single(), evaluator, formatClass, labelClass, infoClass, configuration, preferencesClass)
                     .distinctBy { it.type } + listOf(ExtensionDex.classDef(QUALITY_CHOICE), ExtensionDex.classDef(SETTINGS_STATUS)))
                 defaultPlaybackQualityPatch.execute(context)
 
@@ -194,6 +224,21 @@ class DefaultPlaybackQualityFixtureTest {
                 assertEquals("$name: the label stub's call", labelOf.toString(), labelStub[1].call.toString())
                 assertEquals("$name: the label stub's read", Opcode.IGET_OBJECT to label.toString(), labelStub[3].opcode to labelStub[3].field.toString())
                 assertEquals("$name: the label stub's answer", Opcode.RETURN_OBJECT, labelStub[4].opcode)
+                for ((stubName, field) in listOf(ORIGIN_STUB to origin, SUB_ORIGIN_STUB to subOrigin)) {
+                    val stubMethod = stubs.methods.single { it.name == stubName }
+                    val parameter = stubMethod.implementation!!.registerCount - 1
+                    val all = stubMethod.implementation!!.instructions.toList()
+                    val reads = all.subList(0, all.indices.filter { all[it].opcode == Opcode.RETURN_OBJECT }[1] + 1)
+                    assertEquals("$name: the $stubName stub's cast", evaluator.type, cast(reads[0]))
+                    assertEquals("$name: the $stubName stub's reads",
+                        listOf(configurationField.name, PLAYBACK_PREFERENCES, field.name),
+                        reads.filter { it.opcode == Opcode.IGET_OBJECT }.map { it.field!!.name })
+                    assertEquals("$name: the $stubName stub's read of the name", field.toString(),
+                        reads.filter { it.opcode == Opcode.IGET_OBJECT }.last().field.toString())
+                    assertEquals("$name: the $stubName stub's reads stay in its one register", setOf(parameter),
+                        reads.filterIsInstance<OneRegisterInstruction>().map { it.registerA }.toSet())
+                    assertEquals("$name: the $stubName stub's answers", 2, reads.count { it.opcode == Opcode.RETURN_OBJECT })
+                }
 
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "defaultPlaybackQuality" }
                 assertEquals("$name: SettingsStatus.defaultPlaybackQuality() isn't switched on", 1,

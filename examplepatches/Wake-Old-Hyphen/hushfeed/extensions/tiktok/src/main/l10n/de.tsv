@@ -566,7 +566,7 @@ Hide the whole column on the right, from the avatar down to the music disc.	Die 
 Hide this creator on this phone	Diesen Creator auf diesem Gerät ausblenden
 Hide verified accounts	Verifizierte Konten ausblenden
 Hide video actions	Videoaktionen ausblenden
-Hide videos carrying TikTok's AI-generated label.	Videos mit TikToks Kennzeichnung für KI-generierte Inhalte ausblenden.
+Hide videos with TikTok's AI-generated label, AI content credentials, a TikTok AI effect such as AI Alive, or a tag like #ai or #aigenerated.	Videos mit TikToks KI-Kennzeichnung, KI-Inhaltsnachweisen, einem KI-Effekt von TikTok wie AI Alive oder einem Tag wie #ai oder #aigenerated ausblenden.
 Hide videos marked as paid partnership or branded content.	Videos ausblenden, die als bezahlte Partnerschaft oder Markeninhalt gekennzeichnet sind.
 Hide videos posted as part of a playlist.	Videos ausblenden, die als Teil einer Playlist veröffentlicht wurden.
 Hide videos posted by verified accounts.	Videos von verifizierten Konten ausblenden.
@@ -1489,7 +1489,7 @@ LIVE followers range	Spanne der LIVE-Follower
 Show only LIVEs from creators with this many followers.	Nur LIVEs von Creatorn mit so vielen Followern zeigen.
 Hide the comment bar on opened videos	Kommentarleiste bei geöffneten Videos ausblenden
 Hide the Clear display controls	Steuerelemente der freien Ansicht ausblenden
-While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.	Bei freier Ansicht auch den Fortschrittsbalken, die Schließen-Schaltfläche und die Pause- und Tempo-Schaltflächen unten ausblenden. Um die freie Ansicht zu verlassen, halte das Video gedrückt und tippe auf Anzeige wiederherstellen.
+While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.	Bei freier Ansicht auch den Fortschrittsbalken, die Schließen-Schaltfläche und die Pause- und Tempo-Schaltflächen unten ausblenden. Du kannst trotzdem am unteren Rand entlang ziehen, um im Video zu spulen. Um die freie Ansicht zu verlassen, halte das Video gedrückt und tippe auf Anzeige wiederherstellen.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Blende die Kommentarleiste unter Videos aus, die du über ein Profil, einen Hashtag, einen Sound oder die Suche öffnest, damit das Video den Bildschirm bis ganz unten füllt. Die Kommentar-Schaltfläche rechts öffnet die Kommentare weiterhin.
 Build details	Build-Informationen
 Copy or save patch-time choices and build identity.	Kopiere oder speichere die beim Patchen gewählten Optionen und die Build-Kennung.
@@ -1546,3 +1546,29 @@ Long-press menu on every post	Menü bei langem Drücken auf jedem Beitrag
 TikTok's hold to speed up	TikToks Halten zum Beschleunigen
 TikTok's background play and auto-scroll	TikToks Hintergrundwiedergabe und automatisches Scrollen
 Post dates in the feed	Beitragsdaten im Feed
+Show exact counts	Genaue Zahlen anzeigen
+Show counts as full numbers, like 1,234,567 instead of 1.2M.	Zeigt Zahlen vollständig an, etwa 1.234.567 statt 1.2M.
+Play SDR instead of HDR	SDR statt HDR abspielen
+Play the standard version of videos that also come in HDR, so the screen doesn't jump to full brightness when one starts. Videos TikTok only offers in HDR still play.	Bei Videos, die es auch in HDR gibt, die normale Version abspielen, damit der Bildschirm beim Start nicht auf volle Helligkeit springt. Videos, die TikTok nur in HDR anbietet, laufen weiterhin.
+Remove story rings	Story-Ringe entfernen
+Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Den Story-Ring von Profilbildern im Feed, in Kommentaren und auf Profilen entfernen. Ein Tipp auf das Bild öffnet dann das Profil statt der Story.
+Remove the LIVE ring	LIVE-Ring entfernen
+Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Den pulsierenden LIVE-Ring von Profilbildern im Feed und in Kommentaren entfernen. Ein Tipp auf das Bild einer Person, die gerade live ist, öffnet ihr Profil statt des LIVE.
+Writing	Schreiben
+Lift text length limits	Längenbegrenzungen für Text aufheben
+Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Kommentare, Repost-Notizen und deine Bio dürfen länger werden, als die TikTok-App sonst erlaubt. Die Server von TikTok können einen langen Text trotzdem ablehnen.
+Show only mutual friends on the Friends tab	Im Tab „Freunde“ nur gegenseitige Freunde zeigen
+On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.	Im Tab „Freunde“ Beiträge, Reposts und LIVEs von Konten ausblenden, denen ihr nicht gegenseitig folgt, auch vorgeschlagene Konten. Deine eigenen Beiträge bleiben.
+Show follow status	Folgestatus anzeigen
+Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.	Unter dem @Nutzernamen eines Profils anzeigen, ob es dir folgt oder dir nicht zurückfolgt. Follower- und Gefolgt-Listen markieren Konten, denen du folgst, die dir aber nicht zurückfolgen.
+Follows you	Folgt dir
+Doesn't follow you back	Folgt dir nicht zurück
+Copy bio and IDs	Bio und IDs kopieren
+Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID.	Halte eine Bio gedrückt, um sie zu kopieren. Das Teilen-Menü eines Profils bekommt Schaltflächen, die den Nutzernamen und die Nutzer-ID kopieren, das eines Videos eine, die die Video-ID kopiert.
+Bio copied	Bio kopiert
+Username copied	Nutzername kopiert
+User ID copied	Nutzer-ID kopiert
+Video ID copied	Video-ID kopiert
+Copy username	Nutzernamen kopieren
+Copy user ID	Nutzer-ID kopieren
+Copy video ID	Video-ID kopieren

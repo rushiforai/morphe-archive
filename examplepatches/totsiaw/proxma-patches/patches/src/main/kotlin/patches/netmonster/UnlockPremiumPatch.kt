@@ -1,46 +1,50 @@
 package patches.netmonster
 
+import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
 import app.morphe.patcher.patch.stringOption
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.formats.Instruction35c
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
-import com.android.tools.smali.dexlib2.iface.value.ArrayEncodedValue
-import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import org.w3c.dom.Element
 
 /*
- * NetMonster premium = an Adapty (server-validated) subscription surfaced through a Kotlin Flow
- * pipeline in the premium repo `er/o` (R8-obfuscated). The repo exposes the current premium / no-ads
- * state as two `StateFlow<Boolean>` getters that the UI collects to gate ads and the "manta"
- * LTE/NR-NSA location calc. Forcing the upstream Flow emit true (the 3.4.0 crack's trick) does NOT
- * transfer to 3.4.1 (the obfuscation reshuffled which flow the twin lambda feeds — verified: ad stays).
+ * NetMonster premium = an Adapty (server-validated) subscription. The whole app reads premium from a
+ * single `StateFlow<Boolean>` on the entitlement repo (`Liagsakvyq;` in 4.0.4). That flow's value is
+ * (re)computed on every Adapty profile update by the repo's FlowCollector `emit(...)`: it scans the
+ * user's `AdaptyProfile.Subscription`s and sets the boolean to true iff one is active or in grace.
  *
- * Consumers read the repo's `StateFlow<Boolean>` FIELDS DIRECTLY (`iget-object …, Ler/o;->k/l:Lkv/y0;`)
- * — they never call the getters (verified: 0 getter calls, 2+ direct field reads). So we overwrite the
- * FIELDS: at the end of the repo's constructor, after the real flow pipeline has populated them, store
- * a constant `MutableStateFlow(Boolean.TRUE)` into every `StateFlow` field. Every direct field read
- * then sees premium=true, downstream of all the Adapty/flow wiring (immune to the emit-vs-flow shuffle
- * that broke the 3.4.0-crack technique on 3.4.1, and to the getters being bypassed).
+ * 3.4.x approach (overwriting the StateFlow FIELDS at the repo constructor's end) no longer holds on
+ * 4.0.x: the collector re-writes the field after construction on the first profile update, reverting it
+ * to false. So we patch the STEADY-STATE WRITER instead: force the computed premium boolean to true in
+ * `emit()` right before it is boxed (`Boolean.valueOf(Z)`), so premium is always true no matter what the
+ * Adapty profile says. This unlocks real-time LTE/NR-NSA location calc, removes ads, and shows Active.
  *
- * Name-agnostic anchoring: the repo is found by its STABLE string constant "netmonster-premium"
- * (Adapty access-level id, unobfuscated); the MutableStateFlow factory is derived from the repo's own
- * bytecode (an `invoke-static (Object)Lkv/j0;`) rather than hardcoding the obfuscated `kv/a1`. We touch
- * only `Lkv/y0;` (StateFlow) instance fields — k and l, the premium + no-ads booleans.
- *
- * Injected at constructor end, per StateFlow field F:
- *   sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
- *   invoke-static {v0}, <factory>(Ljava/lang/Object;)Lkv/j0;
- *   move-result-object v0
- *   iput-object v0, p0, Ler/o;->F:Lkv/y0;
+ * Name-agnostic anchoring (obfuscated class/field/StateFlow-type names are NEVER hardcoded — they drift
+ * every release): the collector is identified purely by STABLE Adapty API names — the only `emit` method
+ * whose body calls BOTH `AdaptyProfile$Subscription.isActive()` and `.isInGracePeriod()`. We then inject
+ * `const/4 <reg>, 0x1` on the register feeding the single `Boolean.valueOf(Z)` in that method.
  */
+private const val SUBSCRIPTION = "Lcom/adapty/models/AdaptyProfile\$Subscription;"
 
-private const val PREMIUM_ACCESS_LEVEL = "netmonster-premium"
-private const val STATEFLOW = "Lzpf;"        // kotlinx StateFlow (obfuscated, 3.4.3)
-private const val FLOW = "Lli5;"              // kotlinx Flow (obfuscated, 3.4.3)
-private const val MUTABLE_STATEFLOW = "Lkha;" // kotlinx MutableStateFlow (obfuscated, 3.4.3)
+internal val premiumEmitFingerprint = Fingerprint(
+    returnType = "Ljava/lang/Object;",
+    // The FlowCollector that decides premium: the only emit() calling both Adapty subscription checks.
+    custom = { m, _ ->
+        m.name == "emit" && run {
+            val refs = (m.implementation?.instructions ?: emptyList())
+                .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            refs.any { it.definingClass == SUBSCRIPTION && it.name == "isActive" } &&
+                refs.any { it.definingClass == SUBSCRIPTION && it.name == "isInGracePeriod" }
+        }
+    },
+)
 
 /**
  * OPTIONAL. NetMonster's built-in Google Maps key is restricted to their release signing certificate,
@@ -92,83 +96,83 @@ private val fixMapsApiKeyPatch = resourcePatch(
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock premium (NetMonster)",
-    description = "Unlocks NetMonster Premium — forces the premium repo's derived flows so real-time " +
-        "LTE/NR-NSA location calculation is unlocked, ads are removed, and the status shows Active " +
-        "(far-future expiry) without an Adapty subscription.",
+    description = "Unlocks NetMonster Premium — forces the Adapty entitlement collector to always report " +
+        "premium active, so real-time LTE/NR-NSA location calculation is unlocked, ads are removed, and " +
+        "the status shows Active without a subscription.",
 ) {
     compatibleWith(COMPATIBILITY_NETMONSTER)
     // Optional map-key fix (no-op unless the user supplies -O maps-api-key=…).
     dependsOn(fixMapsApiKeyPatch)
 
     execute {
-        // Locate er/o via its stable access-level string constant.
-        val repoType = getAllClassesWithString(PREMIUM_ACCESS_LEVEL).firstOrNull()?.type
-            ?: error("NetMonster: premium repo (string \"$PREMIUM_ACCESS_LEVEL\") not found")
-        val repo = mutableClassDefBy(repoType)
+        // (1) emit-force: whenever the Adapty collector runs, force the computed premium flag true.
+        val emit = premiumEmitFingerprint.method
+        val emitInsns = emit.instructions
+        val valueOfIdx = emitInsns.indexOfFirst {
+            val r = (it as? ReferenceInstruction)?.reference as? MethodReference
+            r != null && r.definingClass == "Ljava/lang/Boolean;" && r.name == "valueOf" &&
+                r.parameterTypes.firstOrNull() == "Z"
+        }
+        check(valueOfIdx >= 0) { "NetMonster: Boolean.valueOf(Z) in premium emit() not found" }
+        val reg = (emitInsns[valueOfIdx] as Instruction35c).registerC
+        emit.addInstructions(valueOfIdx, "const/4 v$reg, 0x1")
 
-        // Derive the MutableStateFlow factory from the repo's own code: invoke-static (Object)->Lkv/j0;.
-        val factory: MethodReference = repo.methods.asSequence()
-            .flatMap { it.implementation?.instructions?.asSequence().orEmpty() }
+        // (2) THE effective fix: set the premium StateFlow's VALUE true at the repo constructor's end.
+        // emit only runs on an Adapty profile delivery (never on a re-signed / no-account build), so
+        // without this the flag stays at its init false and ads/locks stay on. We derive everything from
+        // emit's own bytecode so no obfuscated name is hardcoded:
+        //   - the MutableStateFlow type = the class of emit's compareAndSet ((Object,Object)Z) call,
+        //   - the premium field = the field read in emit whose type is that MSF (its class = the repo),
+        //   - setValue = that MSF class's instance (Object)V method (the StateFlow value setter).
+        val msfType = emitInsns
             .mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
-            .firstOrNull {
-                it.returnType == MUTABLE_STATEFLOW &&
-                    it.parameterTypes.size == 1 &&
-                    it.parameterTypes[0] == "Ljava/lang/Object;"
+            .first { it.returnType == "Z" && it.parameterTypes.size == 2 && it.parameterTypes.all { p -> p == "Ljava/lang/Object;" } }
+            .definingClass
+        val premiumField = emitInsns
+            .mapNotNull { (it as? ReferenceInstruction)?.reference as? FieldReference }
+            .first { it.type == msfType }
+        val repoType = premiumField.definingClass
+        val setValue = mutableClassDefBy(msfType).methods.first {
+            it.name != "<init>" && it.parameterTypes.size == 1 &&
+                it.parameterTypes[0] == "Ljava/lang/Object;" && it.returnType == "V"
+        }
+
+        // The repo constructor (the one that wires Adapty's profile listener).
+        val repo = mutableClassDefBy(repoType)
+        val ctor = repo.methods.firstOrNull { m ->
+            m.name == "<init>" && (m.implementation?.instructions ?: emptyList()).any {
+                ((it as? ReferenceInstruction)?.reference as? MethodReference)?.name == "setOnProfileUpdatedListener"
             }
-            ?: error("NetMonster: MutableStateFlow factory not found in repo")
+        } ?: repo.methods.first { it.name == "<init>" && it.implementation != null }
 
-        val mutableStateFlowOf = "${factory.definingClass}->${factory.name}(Ljava/lang/Object;)$MUTABLE_STATEFLOW"
+        // (3) THE effective fix — flip the build's own "paid flavor" flag true.
+        // In production this flag is false, so the ctor launches an Adapty collector that recomputes
+        // premium from the (empty, for a non-subscriber) subscription list and writes it back FALSE —
+        // reverting (1) and (2). Forcing the flag true makes the ctor take the dev-flavor branch, which
+        // sets premium TRUE and NEVER launches that collector, so nothing can ever overwrite it. Premium
+        // then stays owned for the app's lifetime → the premium card shows owned and ads are removed.
+        // Anchor: this ctor has exactly one `iget-boolean` (the flag read); its result gates the branch.
+        val ctorInsns = ctor.instructions
+        val flagIndices = ctorInsns.withIndex().filter { it.value.opcode == Opcode.IGET_BOOLEAN }.map { it.index }
+        check(flagIndices.size == 1) {
+            "NetMonster: expected exactly one iget-boolean (paid-flavor flag) in repo ctor, found ${flagIndices.size}"
+        }
+        val flagIdx = flagIndices[0]
+        val flagReg = (ctorInsns[flagIdx] as TwoRegisterInstruction).registerA
 
-        // Read a field's generic signature, e.g. "Lkv/y0<Ljava/lang/Boolean;>;", to know what it carries.
-        fun genericOf(field: com.android.tools.smali.dexlib2.iface.Field): String =
-            field.annotations.firstOrNull { it.type == "Ldalvik/annotation/Signature;" }
-                ?.elements?.firstOrNull { it.name == "value" }
-                ?.let { (it.value as? ArrayEncodedValue)?.value }
-                ?.joinToString("") { (it as? StringEncodedValue)?.value ?: "" }
-                ?: ""
-
-        // The repo's derived Flow/StateFlow fields the UI reads directly:
-        //   Boolean ones (k, l, j) → premium + no-ads gates + "is active" state  -> force MutableStateFlow(true)
-        //   OffsetDateTime one (i) → subscription EXPIRY the status label shows   -> force a far-future date,
-        //                                                                            so it reads "Active till …"
-        val flowFields = repo.fields.filter { it.type == STATEFLOW || it.type == FLOW }
-        var patchedBool = 0
-        var patchedDate = 0
-        val overwrite = flowFields.mapNotNull { f ->
-            val g = genericOf(f)
-            when {
-                g.contains("Ljava/lang/Boolean;") -> {
-                    patchedBool++
-                    """
-                        sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
-                        invoke-static {v0}, $mutableStateFlowOf
-                        move-result-object v0
-                        iput-object v0, p0, $repoType->${f.name}:${f.type}
-                    """.trimIndent()
-                }
-                g.contains("Ljava/time/OffsetDateTime;") -> {
-                    patchedDate++
-                    """
-                        invoke-static {}, Ljava/time/OffsetDateTime;->now()Ljava/time/OffsetDateTime;
-                        move-result-object v0
-                        const-wide/16 v1, 0x64
-                        invoke-virtual {v0, v1, v2}, Ljava/time/OffsetDateTime;->plusYears(J)Ljava/time/OffsetDateTime;
-                        move-result-object v0
-                        invoke-static {v0}, $mutableStateFlowOf
-                        move-result-object v0
-                        iput-object v0, p0, $repoType->${f.name}:${f.type}
-                    """.trimIndent()
-                }
-                else -> null // unknown generic (e.g. the raw subscription list) — leave untouched
-            }
-        }.joinToString("\n")
-        check(patchedBool >= 1) { "NetMonster: no Boolean premium flow fields found on $repoType" }
-
-        // After the constructor's real flow pipeline populates the fields, force them to constant-true.
-        val ctor = repo.methods.first { it.name == "<init>" && it.parameters.isNotEmpty() }
-        val returnIdx = ctor.implementation!!.instructions.toList()
-            .indexOfLast { it.opcode == Opcode.RETURN_VOID }
-        check(returnIdx >= 0) { "NetMonster: constructor return-void not found" }
-        ctor.addInstructions(returnIdx, overwrite)
+        // (2 cont.) belt-and-braces: also set the premium StateFlow value true at the ctor's return
+        // (covers the window before the flavor branch runs). retIdx > flagIdx, so inject here first.
+        val retIdx = ctorInsns.indexOfLast { it.opcode == Opcode.RETURN_VOID }
+        check(retIdx >= 0) { "NetMonster: repo constructor return-void not found" }
+        ctor.addInstructions(
+            retIdx,
+            """
+                iget-object v0, p0, $repoType->${premiumField.name}:$msfType
+                sget-object v1, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;
+                invoke-virtual {v0, v1}, $msfType->${setValue.name}(Ljava/lang/Object;)V
+            """.trimIndent(),
+        )
+        // The flavor-flag flip itself (flagIdx is unaffected by the return-site insertion above).
+        ctor.addInstructions(flagIdx + 1, "const/4 v$flagReg, 0x1")
     }
 }

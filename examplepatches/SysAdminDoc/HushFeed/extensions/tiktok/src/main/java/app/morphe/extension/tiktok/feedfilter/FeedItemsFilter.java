@@ -55,7 +55,9 @@ public final class FeedItemsFilter {
         new ContentMarkerFilters.PlaylistFilter(),
         new CardFilters.InsertedCardFilter(),
         new SeenVideoFilter(),
+        new OfflineVideoFilter(),
         new AdvancedFeedRules.KeywordFilter(),
+        new AdvancedFeedRules.StickerTextFilter(),
         new AdvancedFeedRules.CreatorFilter(),
         new AdvancedFeedRules.PromotionalMusicFilter(),
         new AdvancedFeedRules.LiveReplayFilter(),
@@ -67,6 +69,8 @@ public final class FeedItemsFilter {
     private static final AdvancedFeedRules.UnpersonalizedForYouFilter UNPERSONALIZED_FILTER =
         new AdvancedFeedRules.UnpersonalizedForYouFilter();
     static final String UNPERSONALIZED_REASON = "UnpersonalizedForYouFilter";
+    /** The AI filter's reason; the item log names the signal that caught it next to this. */
+    static final String AI_REASON = "AiGeneratedFilter";
     /** The For You batch's distribute sources, counted while the unpersonalized rule is on. */
     static final String FOR_YOU_DISTRIBUTION_SOURCE = "ForYouDistribution";
     static final String KEPT_WHOLE_KIND = "batches kept whole";
@@ -86,7 +90,7 @@ public final class FeedItemsFilter {
     private static final int CACHE_SOURCE_COLD_CACHE = 0;
     private static final int CACHE_SOURCE_FEED_UNCONSUMED = 1;
     private static final int CACHE_SOURCE_GOLDEN_HOUSE = 2;
-    private static final int CACHE_SOURCE_OFFLINE_MODE = 3;
+    static final int CACHE_SOURCE_OFFLINE_MODE = 3;
     private static final int CACHE_SOURCE_MERGE_CACHE = 4;
 
     private static final int MAX_NULL_ITEMS_LOGS = 3;
@@ -436,7 +440,7 @@ public final class FeedItemsFilter {
             logKeptItem(MID_AD_SOURCE, ad, verbose);
             return false;
         }
-        FeedFilterCounters.removed(MID_AD_SOURCE, 1, MID_AD_REASON);
+        FeedFilterCounters.removedItems(MID_AD_SOURCE, 1, MID_AD_REASON);
         logItem(ad, MID_AD_REASON, verbose);
         return true;
     }
@@ -487,7 +491,7 @@ public final class FeedItemsFilter {
                 }
                 return preloads;
             }
-            FeedFilterCounters.removed(TOP_VIEW_SOURCE, count, TOP_VIEW_REASON);
+            FeedFilterCounters.removedItems(TOP_VIEW_SOURCE, count, TOP_VIEW_REASON);
             for (Object ad : preloads) {
                 if (ad instanceof Aweme) logItem((Aweme) ad, TOP_VIEW_REASON, verbose);
             }
@@ -547,7 +551,7 @@ public final class FeedItemsFilter {
             }
             return ads;
         }
-        FeedFilterCounters.removed(PROFILE_AD_SOURCE, ads.size(), PROFILE_AD_REASON);
+        FeedFilterCounters.removedItems(PROFILE_AD_SOURCE, ads.size(), PROFILE_AD_REASON);
         for (Object item : ads) {
             if (item instanceof Aweme) logItem((Aweme) item, PROFILE_AD_REASON, verbose);
         }
@@ -625,8 +629,8 @@ public final class FeedItemsFilter {
         // Counted only once the page has actually been rewritten. The all-ads refusal above and
         // a failed write both leave the grid alone, and a counter that said otherwise would
         // point an ad report at a route that removed nothing.
-        FeedFilterCounters.removed(SEARCH_SOURCE, adsRemoved, "searchAd");
-        FeedFilterCounters.removed(SEARCH_SOURCE, shopRemoved, "searchShop");
+        FeedFilterCounters.removedItems(SEARCH_SOURCE, adsRemoved, "searchAd");
+        FeedFilterCounters.removedItems(SEARCH_SOURCE, shopRemoved, "searchShop");
 
         // printInfo is not gated on the debug switch, unlike printDebug, so every search page
         // used to append to the bounded diagnostic buffer and push out the events around a crash.
@@ -725,44 +729,88 @@ public final class FeedItemsFilter {
      * consumer reads that list straight off the field, so it is filtered where the response
      * is built rather than at any one delivery point.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public static void filterFriendsFeed(Object response) {
+        filterFriendsList(response, "friendFeedData", "FriendsFeedResponse", false);
+    }
+
+    /** The Friends V3 feed's route in the filter report. */
+    static final String FRIENDS_V3_SOURCE = "FriendsV3FeedResponse";
+
+    /**
+     * The Friends tab's V3 feed, as FriendsV3FeedNetworkSource starts handling a response off
+     * the wire. Its {@code friendsV3Feeds} entries are FriendsV3FeedModel, which has the same
+     * {@code aweme} and {@code roomStruct} fields as the older wrapper; a repost carries its
+     * video in {@code repostItem.repostedAweme} instead. The handler runs once per response,
+     * so this route is counted in the filter report.
+     */
+    public static void filterFriendsV3Feed(Object response) {
+        filterFriendsList(response, "friendsV3Feeds", FRIENDS_V3_SOURCE, true);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void filterFriendsList(Object response, String listField, String source, boolean count) {
         try {
             if (response == null) return;
 
+            Object raw = Reflect.readField(response, listField);
+            if (count) FeedFilterCounters.sawList(source, raw instanceof List ? ((List) raw).size() : 0);
+
             List<IFilter> activeFilters = getActiveFilters(CONTENT_FILTERS);
             boolean hideLive = Settings.HIDE_LIVE.get();
-            if (activeFilters.isEmpty() && !hideLive) return;
+            boolean mutualsOnly = Settings.FRIENDS_MUTUALS_ONLY.get();
+            if (activeFilters.isEmpty() && !hideLive && !mutualsOnly) return;
 
-            Object raw = Reflect.readField(response, "friendFeedData");
             if (!(raw instanceof List)) return;
             List items = (List) raw;
             if (items.isEmpty()) return;
 
+            String ownId = mutualsOnly ? SignedInUser.id() : null;
             ArrayList kept = new ArrayList(items.size());
             Map<String, Integer> reasonCounts = BaseSettings.DEBUG.get() ? new HashMap<>() : null;
+            String lastReason = null;
             for (Object entry : items) {
-                String reason = friendsFeedReason(entry, activeFilters, hideLive);
+                String reason = mutualsOnly && !FriendsMutuals.fromMutual(entry, ownId)
+                        ? FriendsMutuals.REASON
+                        : friendsFeedReason(entry, activeFilters, hideLive);
                 if (reason == null) {
                     kept.add(entry);
                 } else {
+                    lastReason = reason;
                     incrementReason(reasonCounts, reason);
+                    if (AI_REASON.equals(reason) && reasonCounts != null) {
+                        Aweme aweme = friendsEntryAweme(entry);
+                        final String signal = ContentMarkerFilters.aiSignal(aweme);
+                        final String aid = aweme == null ? null : aweme.getAid();
+                        Logger.printInfo(() -> "[Morphe TikTok FeedFilter] " + source + " aid=" + aid
+                            + " aiSignal=" + signal + " => FILTER(" + AI_REASON + ")");
+                    }
                 }
             }
             if (kept.size() == items.size()) return;
 
-            Field field = Reflect.field(response.getClass(), "friendFeedData");
+            Field field = Reflect.field(response.getClass(), listField);
             if (field == null) return;
             field.set(response, kept);
+            if (count) FeedFilterCounters.removedItems(source, items.size() - kept.size(), lastReason);
 
             final int before = items.size();
             final int after = kept.size();
             final String reasons = reasonCounts == null ? "" : " reasons=" + reasonCounts;
-            Logger.printInfo(() -> "[Morphe TikTok FeedFilter] filter(FriendsFeedResponse): size "
+            Logger.printInfo(() -> "[Morphe TikTok FeedFilter] filter(" + source + "): size "
                 + before + " -> " + after + " (removed=" + (before - after) + ")" + reasons);
         } catch (Throwable throwable) {
             Logger.printException(() -> "Could not filter the Friends feed", throwable);
         }
+    }
+
+    /** The video a Friends tab entry shows: its own, or the one a friend reposted. */
+    static Aweme friendsEntryAweme(Object entry) {
+        if (entry == null) return null;
+        Object aweme = Reflect.readField(entry, "aweme");
+        if (aweme instanceof Aweme) return (Aweme) aweme;
+        Object repost = Reflect.readField(entry, "repostItem");
+        aweme = Reflect.readField(repost, "repostedAweme");
+        return aweme instanceof Aweme ? (Aweme) aweme : null;
     }
 
     /** Why a Friends tab entry is dropped, or null to keep it. */
@@ -774,9 +822,9 @@ public final class FeedItemsFilter {
         // the room itself for a LIVE that is selling (#46).
         if (room != null && Settings.HIDE_SHOP.get() && ShopFilter.roomSells(room)) return "ShopFilter";
 
-        Object aweme = Reflect.readField(entry, "aweme");
-        if (!(aweme instanceof Aweme)) return null;
-        return getFilterReason(activeFilters, (Aweme) aweme);
+        Aweme aweme = friendsEntryAweme(entry);
+        if (aweme == null) return null;
+        return getFilterReason(activeFilters, aweme);
     }
 
     public static List filterLateInsertedAds(String source, List items) {
@@ -826,7 +874,7 @@ public final class FeedItemsFilter {
         }
 
         own.report();
-        FeedFilterCounters.removed(source, removed, lastReason);
+        FeedFilterCounters.removedItems(source, removed, lastReason);
         FeedFilterCounters.unreadable(source, notVideos);
         if (kept == null) return items;
         if (verbose && shouldLogBatch()) {
@@ -873,8 +921,7 @@ public final class FeedItemsFilter {
                 if (kept != null) kept.add(container);
                 continue;
             }
-            if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE &&
-                    !Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.get()) {
+            if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE && keepsOfflineVideos()) {
                 if (kept != null) kept.add(container);
                 continue;
             }
@@ -895,7 +942,7 @@ public final class FeedItemsFilter {
             logItem(item, reason, BaseSettings.DEBUG.get());
         }
 
-        FeedFilterCounters.removed(FINAL_INSERT_SOURCE + source, removed, lastReason);
+        FeedFilterCounters.removedItems(FINAL_INSERT_SOURCE + source, removed, lastReason);
         if (kept == null) return items;
         if (BaseSettings.DEBUG.get()) {
             int removedCount = removed;
@@ -914,9 +961,28 @@ public final class FeedItemsFilter {
 
     public static FeedItemList filterOfflineFeedList(FeedItemList feedItemList) {
         if (feedItemList == null || feedItemList.items == null) return null;
+        if (Settings.HIDE_OFFLINE_VIDEOS.get()) {
+            // Every item here is an offline copy, whatever cache source it carries yet.
+            int dropped = feedItemList.items.size();
+            FeedFilterCounters.sawList(OFFLINE_FALLBACK_SOURCE, dropped);
+            FeedFilterCounters.removedItems(OFFLINE_FALLBACK_SOURCE, dropped, OFFLINE_REASON);
+            feedItemList.items = new ArrayList<>();
+            return null;
+        }
         if (!Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.get()) return feedItemList;
-        filterCachedFeedItems("FeedItemList:offline-fallback", feedItemList);
+        filterCachedFeedItems(OFFLINE_FALLBACK_SOURCE, feedItemList);
         return feedItemList.items.isEmpty() ? null : feedItemList;
+    }
+
+    static final String OFFLINE_FALLBACK_SOURCE = "FeedItemList:offline-fallback";
+    static final String OFFLINE_REASON = "OfflineVideoFilter";
+
+    /**
+     * Whether an offline video skips the filters: the reader didn't ask for them to reach
+     * offline videos, and didn't ask for offline videos to go altogether.
+     */
+    private static boolean keepsOfflineVideos() {
+        return !Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.get() && !Settings.HIDE_OFFLINE_VIDEOS.get();
     }
 
     /**
@@ -966,8 +1032,7 @@ public final class FeedItemsFilter {
         if (item == null) return null;
 
         int cacheSourceType = AwemeBizExtKt.getCacheSourceType(item);
-        if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE &&
-                !Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.get()) {
+        if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE && keepsOfflineVideos()) {
             return null;
         }
 
@@ -1168,6 +1233,8 @@ public final class FeedItemsFilter {
         }
         if (countDistribution) {
             Integer dropped = reasonCounts.get(UNPERSONALIZED_REASON);
+            // A diagnostic share of this list's removals: the list's own count below adds them to
+            // the running count.
             FeedFilterCounters.removed(FOR_YOU_DISTRIBUTION_SOURCE, dropped == null ? 0 : dropped, UNPERSONALIZED_REASON);
         }
         // Never restore ads, blocked creators/words, seen videos, or other hard rejects.
@@ -1225,7 +1292,7 @@ public final class FeedItemsFilter {
             recordProbeScan(listId, removed, System.nanoTime() - startNs);
         }
 
-        FeedFilterCounters.removed(source, removed,
+        FeedFilterCounters.removedItems(source, removed,
             reasonCounts.isEmpty() ? null : reasonCounts.keySet().iterator().next());
         FeedFilterFeedback.onBatchResult(source, initialSize, resultList.size(), reasonCounts,
                 System.currentTimeMillis());
@@ -1460,6 +1527,7 @@ public final class FeedItemsFilter {
                 + " playCount=" + playCount
                 + " likeCount=" + likeCount
                 + " shareUrl=" + (finalShareUrl == null ? "null" : "\"" + finalShareUrl + "\"")
+                + (AI_REASON.equals(reason) ? " aiSignal=" + ContentMarkerFilters.aiSignal(item) : "")
                 + " => " + (reason == null ? "KEEP" : "FILTER(" + reason + ")");
         });
     }

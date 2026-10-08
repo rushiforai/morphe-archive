@@ -63,6 +63,17 @@ class MethodExtensionsTest {
     }
 
     @Test
+    fun generatedRegisterRequestsNeverShrinkOrUnderallocateFrame() {
+        val target = method(3)
+        var expected = 3
+        for (needed in listOf(0, 1, 4, 2, 8, 8, 16, 7, 32)) {
+            target.ensureRegisters(needed)
+            expected = maxOf(expected, needed)
+            assertEquals(expected, target.implementation!!.registerCount)
+        }
+    }
+
+    @Test
     fun zeroRegisterMethodsAreLeftUntouched() {
         val target = method(0, instructions = emptyList())
         target.ensureRegisters(0)

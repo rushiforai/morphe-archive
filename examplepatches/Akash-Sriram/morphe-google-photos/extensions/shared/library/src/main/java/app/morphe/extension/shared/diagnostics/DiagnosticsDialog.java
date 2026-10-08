@@ -1,7 +1,6 @@
 package app.morphe.extension.shared.diagnostics;
 
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
@@ -433,15 +432,7 @@ public final class DiagnosticsDialog {
         });
 
         btnClear.setOnClickListener(v -> {
-            new AlertDialog.Builder(activity)
-                .setTitle("Clear Old Sessions?")
-                .setMessage("This will delete all previous session logs. The active session log will be kept.")
-                .setPositiveButton("Clear", (d, which) -> {
-                    SessionLogManager.clearAllSessions(reloadSessions);
-                    Toast.makeText(activity, "Cleared previous sessions", Toast.LENGTH_SHORT).show();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
+            showClearConfirmationDialog(activity, theme, reloadSessions);
         });
 
         dialog.setOnDismissListener(d -> {
@@ -633,6 +624,99 @@ public final class DiagnosticsDialog {
             int dialogWidth = Math.min((int) (screenWidth * 0.88f), (int) (400 * density));
             int dialogHeight = Math.min((int) (screenHeight * 0.60f), (int) (450 * density));
             w.setLayout(dialogWidth, dialogHeight);
+            w.setGravity(Gravity.CENTER);
+        }
+        d.show();
+    }
+
+    private static void showClearConfirmationDialog(Activity activity, Theme theme, Runnable onConfirm) {
+        float density = activity.getResources().getDisplayMetrics().density;
+        Dialog d = new Dialog(activity);
+        d.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        LinearLayout root = new LinearLayout(activity);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackground(createRoundedDrawable(theme.surface, 28 * density));
+        int pad = (int) (24 * density);
+        root.setPadding(pad, pad, pad, (int) (18 * density));
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            root.setOutlineProvider(new ViewOutlineProvider() {
+                @Override
+                public void getOutline(View view, Outline outline) {
+                    outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), 28 * density);
+                }
+            });
+            root.setClipToOutline(true);
+        }
+
+        TextView tvTitle = new TextView(activity);
+        tvTitle.setText("Clear Old Sessions?");
+        tvTitle.setTextSize(18.5f);
+        tvTitle.setTypeface(null, Typeface.BOLD);
+        tvTitle.setTextColor(theme.textPrimary);
+        root.addView(tvTitle);
+
+        TextView tvMsg = new TextView(activity);
+        tvMsg.setText("This will delete all previous session logs. The active session log will be kept.");
+        tvMsg.setTextSize(14f);
+        tvMsg.setTextColor(theme.textSecondary);
+        LinearLayout.LayoutParams msgLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        msgLp.setMargins(0, (int) (12 * density), 0, (int) (24 * density));
+        tvMsg.setLayoutParams(msgLp);
+        root.addView(tvMsg);
+
+        LinearLayout actions = new LinearLayout(activity);
+        actions.setOrientation(LinearLayout.HORIZONTAL);
+        actions.setGravity(Gravity.END | Gravity.CENTER_VERTICAL);
+
+        int padH = (int) (16 * density);
+        int padV = (int) (10 * density);
+
+        TextView btnCancel = new TextView(activity);
+        btnCancel.setText("Cancel");
+        btnCancel.setTextSize(14f);
+        btnCancel.setTypeface(null, Typeface.BOLD);
+        btnCancel.setTextColor(theme.primary);
+        btnCancel.setGravity(Gravity.CENTER);
+        btnCancel.setClickable(true);
+        btnCancel.setFocusable(true);
+        btnCancel.setPadding(padH, padV, padH, padV);
+        btnCancel.setBackground(createRoundedDrawable(theme.surfaceContainer, 18 * density));
+        btnCancel.setOnClickListener(v -> d.dismiss());
+        LinearLayout.LayoutParams cancelLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cancelLp.setMargins(0, 0, (int) (10 * density), 0);
+        actions.addView(btnCancel, cancelLp);
+
+        TextView btnClearConfirm = new TextView(activity);
+        btnClearConfirm.setText("Clear");
+        btnClearConfirm.setTextSize(14f);
+        btnClearConfirm.setTypeface(null, Typeface.BOLD);
+        btnClearConfirm.setTextColor(theme.onPrimary);
+        btnClearConfirm.setGravity(Gravity.CENTER);
+        btnClearConfirm.setClickable(true);
+        btnClearConfirm.setFocusable(true);
+        btnClearConfirm.setPadding((int) (20 * density), padV, (int) (20 * density), padV);
+        btnClearConfirm.setBackground(createRoundedDrawable(theme.primary, 18 * density));
+        btnClearConfirm.setOnClickListener(v -> {
+            d.dismiss();
+            if (onConfirm != null) onConfirm.run();
+            Toast.makeText(activity, "Cleared previous sessions", Toast.LENGTH_SHORT).show();
+        });
+        actions.addView(btnClearConfirm, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        root.addView(actions);
+
+        d.setContentView(root);
+        Window w = d.getWindow();
+        if (w != null) {
+            w.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
+            w.setLayout(Math.min((int) (screenWidth * 0.88f), (int) (380 * density)),
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
             w.setGravity(Gravity.CENTER);
         }
         d.show();

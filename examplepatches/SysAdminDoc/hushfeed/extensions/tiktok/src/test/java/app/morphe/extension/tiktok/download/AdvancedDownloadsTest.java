@@ -36,6 +36,10 @@ public class AdvancedDownloadsTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
     @After public void tearDown() {
         SettingsStatus.advancedDownloadsEnabled = false;
+        // A saved value stays in the setting for the whole test JVM, so a template set here
+        // renamed the frames FrameSaverTest saves later.
+        Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.resetToDefault();
+        Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.resetToDefault();
     }
     public static final class Address extends UrlModel {
         private final String url;

@@ -76,8 +76,14 @@ public final class ReelsTabForTests {
         ReelsTab.forget();
     }
 
-    /** Asks the tab bar's count hook about the Reels tab. True when it answers none for it. */
+    /** Asks the tab bar's count hook about the Reels tab, with the patch in. True when it answers none for it. */
     public static boolean clearsTheDot() {
-        return ReelsTabDot.clear(new WatchTab());
+        Boolean before = ReelsTabDot.inBuildForTests;
+        ReelsTabDot.inBuildForTests = Boolean.TRUE;
+        try {
+            return ReelsTabDot.clear(new WatchTab());
+        } finally {
+            ReelsTabDot.inBuildForTests = before;
+        }
     }
 }

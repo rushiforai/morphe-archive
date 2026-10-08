@@ -34,6 +34,11 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * rejectPromise" is the one string that call holds). The hook goes first in postMessage: for an ad
  * message the extension answers the promise to reject, and the bridge rejects it there and returns,
  * so the message never reaches the service.
+ *
+ * It has a way to resolve one too, a method taking the promise id and the answer, which hands them
+ * to the call holding "...dispatched toJavascript: resolvePromise" (Facebook's spelling, with no
+ * space). With Answer rewarded game ads on, the extension gives an answer for a rewarded video and
+ * its load and show, and the bridge resolves the promise with it instead of rejecting it.
  */
 internal const val PATCH = "Block Instant Games ads"
 
@@ -52,12 +57,17 @@ internal val AD_MESSAGES = listOf(
 /** The one string of the call that builds a rejected promise's answer for the game. */
 internal const val REJECT_LOG = "Unexpected exception while constructing JSONObject to be dispatched to Javascript: rejectPromise"
 
+/** The one string of the call that builds a resolved promise's answer for the game. */
+internal const val RESOLVE_LOG = "Unexpected exception while constructing JSONObject to be dispatched toJavascript: resolvePromise"
+
 /** What the rejected game reads beside the code, as GameAds.NO_AD holds it. */
 internal const val NO_AD = "No ad is available."
 
 private const val GAME_ADS = "$EXTENSION_PACKAGE/ads/GameAds;"
 internal const val HELD_PROMISE = "$GAME_ADS->heldPromise(Ljava/lang/String;)Ljava/lang/String;"
 internal const val REJECTION = "$GAME_ADS->rejection(Ljava/lang/String;)Ljava/lang/String;"
+internal const val ANSWER = "$GAME_ADS->answer(Ljava/lang/String;)Ljava/lang/Object;"
+private const val OBJECT = "Ljava/lang/Object;"
 
 private fun Method.parameters() = parameterTypes.map { it.toString() }
 
@@ -70,25 +80,41 @@ internal fun isPostMessage(method: Method): Boolean =
 internal fun isRejectPromise(method: Method): Boolean =
     method.returnType == "V" && method.parameters() == listOf(STRING, STRING, STRING) && holdsString(method, REJECT_LOG)
 
+/** Whether [method] builds the game's resolved-promise answer: (String, Object)V holding [RESOLVE_LOG]. */
+internal fun isResolvePromise(method: Method): Boolean =
+    method.returnType == "V" && method.parameters() == listOf(STRING, OBJECT) && holdsString(method, RESOLVE_LOG)
+
 /**
  * The method of [bridge] that rejects a promise: an instance (String, String, String)V calling one of
  * [rejects], the methods that build the answer.
  */
-internal fun rejectOn(bridge: ClassDef, rejects: List<Method>): List<Method> = bridge.methods.filter { method ->
-    method.returnType == "V" && method.parameters() == listOf(STRING, STRING, STRING) &&
-        !AccessFlags.STATIC.isSet(method.accessFlags) &&
-        method.implementation?.instructions?.any { instruction ->
-            val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
-            rejects.any { it.definingClass == call.definingClass && it.name == call.name && it.parameters() == call.parameterTypes.map(CharSequence::toString) }
-        } == true
-}
+internal fun rejectOn(bridge: ClassDef, rejects: List<Method>): List<Method> =
+    callersOn(bridge, listOf(STRING, STRING, STRING), rejects)
 
 /**
- * Asks [HELD_PROMISE] first thing in postMessage and, on an answer, rejects that promise through
- * [reject] with [REJECTION]'s code and returns. Uses three locals, which nothing has written yet,
- * and `this` and the message, which are still in their registers.
+ * The method of [bridge] that resolves a promise: an instance (String, Object)V calling one of
+ * [resolves], the methods that build the answer.
  */
-internal fun MutableMethod.answerAdsWithNoAd(reject: Method) {
+internal fun resolveOn(bridge: ClassDef, resolves: List<Method>): List<Method> =
+    callersOn(bridge, listOf(STRING, OBJECT), resolves)
+
+private fun callersOn(bridge: ClassDef, parameters: List<String>, builders: List<Method>): List<Method> =
+    bridge.methods.filter { method ->
+        method.returnType == "V" && method.parameters() == parameters &&
+            !AccessFlags.STATIC.isSet(method.accessFlags) &&
+            method.implementation?.instructions?.any { instruction ->
+                val call = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+                builders.any { it.definingClass == call.definingClass && it.name == call.name && it.parameters() == call.parameterTypes.map(CharSequence::toString) }
+            } == true
+    }
+
+/**
+ * Asks [HELD_PROMISE] first thing in postMessage and, on an answer, resolves that promise through
+ * [resolve] when [ANSWER] gives something to resolve it with, or else rejects it through [reject]
+ * with [REJECTION]'s code, and returns. Uses three locals, which nothing has written yet, and `this`
+ * and the message, which are still in their registers.
+ */
+internal fun MutableMethod.answerAdsWithNoAd(reject: Method, resolve: Method) {
     val locals = localRegisterCount()
     // p1 goes in a four-bit register field, so it has to sit at v15 or below.
     if (locals < 3 || locals + 1 > 15) {
@@ -100,6 +126,12 @@ internal fun MutableMethod.answerAdsWithNoAd(reject: Method) {
             invoke-static { p1 }, $HELD_PROMISE
             move-result-object v0
             if-eqz v0, :post
+            invoke-static { p1 }, $ANSWER
+            move-result-object v2
+            if-eqz v2, :reject
+            invoke-virtual { p0, v0, v2 }, ${resolve.definingClass}->${resolve.name}($STRING$OBJECT)V
+            return-void
+            :reject
             invoke-static { p1 }, $REJECTION
             move-result-object v2
             const-string v1, "$NO_AD"

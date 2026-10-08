@@ -280,6 +280,48 @@ public final class MediaDownload {
         return true;
     }
 
+    /**
+     * Saves the photos at [urls], each as {@link #savePhoto} saves one and named from the same
+     * index of [details], one after another: each save is the usual one, with its notification and
+     * Cancel button, and the next starts when it ends and a save slot is free, so a post's photos
+     * never crowd out other saves. Addresses off Meta's media servers are skipped. Answers the
+     * thread running them, or null when nothing could start.
+     */
+    static Thread savePhotos(Context context, List<String> urls, List<PostDetails> details) {
+        List<Integer> usable = new ArrayList<>();
+        for (int i = 0; i < urls.size(); i++) {
+            String url = urls.get(i);
+            if (url != null && !metaOnly(Collections.singletonList(url)).isEmpty()) usable.add(i);
+        }
+        if (usable.isEmpty()) {
+            failure(() -> "nothing to save: no photo of the post was on Meta's media servers", null);
+            return null;
+        }
+        Context safe = ready(context);
+        if (safe == null) return null;
+        int count = usable.size();
+        info(() -> "saving " + count + " photo(s) of a post, one after another");
+        Thread chain = new Thread(() -> {
+            for (int i : usable) {
+                PostDetails known = i < details.size() && details.get(i) != null ? details.get(i) : PostDetails.NONE;
+                try {
+                    while (IN_FLIGHT.get() >= MAX_IN_FLIGHT) Thread.sleep(250);
+                    start(safe, false, known, fileJob(safe, urls.get(i), Downloader.Kind.IMAGE)).join();
+                } catch (InterruptedException stop) {
+                    Thread.currentThread().interrupt();
+                    return;
+                } catch (Throwable t) {
+                    // Nothing can leave this thread; the next photo still gets its turn.
+                    failure(() -> "a photo of the post could not start", t);
+                }
+            }
+        }, "hushfacebook-photo-saves");
+        chain.setDaemon(true);
+        chain.setPriority(Thread.NORM_PRIORITY - 1);
+        chain.start();
+        return chain;
+    }
+
     // ---------------------------------------------------------------- internals
 
     /** The named fields first, then whatever else the object can reach. */

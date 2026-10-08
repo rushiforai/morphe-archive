@@ -20,7 +20,7 @@ class ControllerHalPosePatchTest {
 
         assertContentEquals(byteArrayOf(0x7f, 0x45, 0x4c, 0x46), library.copyOfRange(0, 4))
         // extensions/controller-hal-pose, NDK 28.2.13676358, arm64-v8a, Release.
-        assertEquals("5ab5453536a08a04509e404f5d73afa436c1056404d938198f5562218df00e87", sha256(library))
+        assertEquals("be7b192fd72723c09d9106cdd32ee60f62464fe48ddfab670d9bf67c9068b28d", sha256(library))
         val text = String(library, Charsets.ISO_8859_1)
         assertTrue("xrNegotiateLoaderApiLayerInterface" in text)
         // Called by the bridge class in the extension, and the interface of its user service.

@@ -57,8 +57,8 @@ import java.util.Set;
  * the one feed guard goes, and the bundle's {@code FeedFilter.hideEdge} is the guard, under the
  * same names the contract file holds the real APK to. The bundle's two story-flag stubs are there
  * under their real names too, filled the way the patches fill them: a call to GraphQLStory's
- * accessor before anything returns. And two classes stand in for the feed's two Stories tray
- * adapters, each given a getItemCount() of its own in the patched builds, which calls
+ * accessor before anything returns. And three classes stand in for the feed's two Stories tray
+ * adapters and Home's composer row, each given a getItemCount() of its own in the patched builds, which calls
  * {@code FeedFilter.storiesTrayCount}. The reels patch's two
  * changes are there as well: a renamed feed unit class answering ShowcaseFeedUnit, whose accessor
  * the {@code ShowcaseType} stub calls, and a pre-EOF injector holding its adapter's name, with the
@@ -85,7 +85,9 @@ import java.util.Set;
  * bar's jewel count, holding its log name, with Hide the Reels tab dot's call to
  * {@code ReelsTabDot.clear} first. And the three places Facebook asks its configured tabs about a
  * link, holding "extra_launch_uri", "DEEPLINK" and "target_tab_id", each asking {@code TabBarFilter}
- * once, as the tab links patch has them. Beside each
+ * once, as the tab links patch has them. And a launcher badge writer of 18 registers, whose count
+ * parameter sits in v17, with Hide tab badges' call to {@code TabBadges.iconCount} first as a range
+ * call, as the patch has to make it there. Beside each
  * method a start-call, next-call,
  * sole-call or once-call rule picks sit methods holding part of what it's picked by: the
  * refresh controller's onPause, two other methods naming both surfaces and one
@@ -121,6 +123,7 @@ public class BadDexFixture {
 
     private static final String CLASSIC_TRAY = "Lfixture/ClassicTray;";
     private static final String UNIFIED_TRAY = "Lfixture/UnifiedTray;";
+    private static final String COMPOSER_ROW = "Lfixture/ComposerRow;";
     private static final ImmutableMethodReference STORIES_TRAY_COUNT =
             method(FILTER, "storiesTrayCount", "I", OBJECT, "I", "I");
     /** An extension class of the bundle's own, for an added method that writes past its registers. */
@@ -144,6 +147,11 @@ public class BadDexFixture {
     private static final String REEL_MODEL = "Lfixture/ReelModel;";
     private static final ImmutableMethodReference ATTRIBUTION_FINDER =
             method("Lfixture/Attributions;", "A02", MODEL, REEL_MODEL, "Ljava/lang/String;");
+
+    private static final String REEL_MID_CARDS = "Lapp/morphe/extension/facebook/reels/ReelMidCards;";
+    /** A Reels mid-card item and its read of the card's unit, both names Redex made up. */
+    private static final String MID_CARD_ITEM = "Lfixture/MidCardItem;";
+    private static final ImmutableMethodReference MID_CARD_UNIT = method(MID_CARD_ITEM, "A0F", OBJECT);
 
     private static final String FOLLOW_CHECK = "Lfixture/FollowCheck;";
     private static final String FB_USER_SESSION = "Lcom/facebook/auth/usersession/FbUserSession;";
@@ -180,6 +188,10 @@ public class BadDexFixture {
     private static final String TAB_TAG = "Lcom/facebook/navigation/tabbar/state/model/TabTag;";
     private static final String REELS_TAB_DOT = "Lapp/morphe/extension/facebook/navigation/ReelsTabDot;";
     private static final ImmutableMethodReference CLEAR_DOT = method(REELS_TAB_DOT, "clear", "Z", OBJECT);
+    private static final String ICON_BADGER = "Lfixture/IconBadger;";
+    private static final String TAB_BADGES = "Lapp/morphe/extension/facebook/navigation/TabBadges;";
+    private static final ImmutableMethodReference ICON_COUNT = method(TAB_BADGES, "iconCount", "I", "I");
+    private static final ImmutableMethodReference STORE_COUNT = method(ICON_BADGER, "store", "V", "I");
     private static final String TAB_LINKS = "Lfixture/TabLinks;";
     private static final String INTENT = "Landroid/content/Intent;";
     private static final String TAB_BAR_FILTER = "Lapp/morphe/extension/facebook/navigation/TabBarFilter;";
@@ -539,8 +551,8 @@ public class BadDexFixture {
     }
 
     /**
-     * One of the feed's two Stories tray adapter classes, which inherit their count as Facebook
-     * ships them. The tray patch gives each a getItemCount() of its own, [count] in it; [other]
+     * One of the feed's two Stories tray adapter classes or Home's composer row, which inherit their
+     * count as Facebook ships them. The tray patch gives each a getItemCount() of its own, [count] in it; [other]
      * stands in for another method of the class. Null leaves the method out.
      */
     private static ClassDef tray(String type, List<Instruction> count, List<Instruction> other) {
@@ -568,9 +580,10 @@ public class BadDexFixture {
                 op(Opcode.MOVE_RESULT, 0));
     }
 
-    /** Both tray classes, each given a count holding [classic] or [unified]; null leaves it out. */
-    private static List<ClassDef> trays(List<Instruction> classic, List<Instruction> unified) {
-        return Arrays.asList(tray(CLASSIC_TRAY, classic, null), tray(UNIFIED_TRAY, unified, null));
+    /** The three counted classes, each given a count holding [classic], [unified] or [composer]; null leaves it out. */
+    private static List<ClassDef> trays(List<Instruction> classic, List<Instruction> unified, List<Instruction> composer) {
+        return Arrays.asList(tray(CLASSIC_TRAY, classic, null), tray(UNIFIED_TRAY, unified, null),
+                tray(COMPOSER_ROW, composer, null));
     }
 
     /**
@@ -659,7 +672,7 @@ public class BadDexFixture {
     }
 
     private static List<ClassDef> hookedTrays() {
-        return trays(trayCount(0), trayCount(1));
+        return trays(trayCount(0), trayCount(1), trayCount(2));
     }
 
     private static ClassDef followCheck(List<Instruction> prefix) {
@@ -1030,6 +1043,41 @@ public class BadDexFixture {
         late.add(op(Opcode.NOP));                                         // 2
         late.addAll(dotHook(4));                                          // 3
         return late;
+    }
+
+    /**
+     * A launcher badge writer the way Facebook's twelve are shaped where it matters: an instance
+     * write taking a context and the count, in a method of 18 registers, so the count, p2, is v17.
+     * [hook] goes first, then Facebook's own use of the count, handed on as a range.
+     */
+    private static ClassDef iconBadger(List<Instruction> hook) {
+        List<Instruction> instructions = new ArrayList<>(hook);
+        instructions.add(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 17, 1, STORE_COUNT));
+        instructions.add(op(Opcode.RETURN_VOID));
+        return new ImmutableClassDef(ICON_BADGER, AccessFlags.PUBLIC.getValue(), OBJECT, null, null, null, null,
+                Collections.singletonList(define(ICON_BADGER, "write", "V", false,
+                        new ImmutableMethodImplementation(18, instructions, null, null), CONTEXT, "I")));
+    }
+
+    /** What Hide tab badges puts first: the count in v17 handed over as a range, its answer written back there. */
+    private static List<Instruction> iconHook() {
+        return Arrays.asList(new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 17, 1, ICON_COUNT),
+                op(Opcode.MOVE_RESULT, 17));
+    }
+
+    /**
+     * What Morphe's inline compiler made of {@code invoke-static { p2 }} and its move-result in that
+     * method: a plain invoke names only v0 to v15, so it dropped the call without a word and kept the
+     * move-result, which then takes the result of nothing (Hide tab badges on 581's Htc writer).
+     */
+    private static List<Instruction> droppedIconHook() {
+        return Collections.singletonList(op(Opcode.MOVE_RESULT, 17));
+    }
+
+    private static ClassDef tabBadges() {
+        return new ImmutableClassDef(TAB_BADGES, AccessFlags.PUBLIC.getValue() | AccessFlags.FINAL.getValue(),
+                OBJECT, null, null, null, null, Collections.singletonList(
+                        define(TAB_BADGES, "iconCount", "I", true, body(1, op(Opcode.RETURN, 0)), "I")));
     }
 
     private static ClassDef reelsTabDot() {
@@ -1628,6 +1676,7 @@ public class BadDexFixture {
                 recommendationLabel, showcaseUnit(), showcaseType, preEof, returnController(returnHook()), returnRefresh(),
                 shortcuts(Collections.<String>emptySet()), settingsEntry(), followCheck(followHook()), reelDeclutter(),
                 topBar(false, true, 1), finderStub(FILLED_FINDER_STUB),
+                stub(REEL_MID_CARDS, "midCardType", FILLED_MID_CARD_STUB),
                 emojiProvider(emojiHook(), Collections.<Instruction>emptyList()), systemEmoji(),
                 emojiPictures(emojiPicturesHook(), Collections.<Instruction>emptyList()),
                 batcher(heldBack(), false, false), reelWatchHistory(), edgeSwap(swapGuard(), false, false),
@@ -1638,14 +1687,14 @@ public class BadDexFixture {
                 speedToast(toastHook(3), Collections.<Instruction>emptyList()), reelSpeed(),
                 jewelController(dotHook(4), Collections.<Instruction>emptyList()), reelsTabDot(),
                 tabLinks(true, true, true), tabBarFilter(), postText(FILLED_STUB, FILLED_STUB),
-                postSources(FILLED_STUB, FILLED_STUB), mailbox(typingHook(), 1)));
+                postSources(FILLED_STUB, FILLED_STUB), mailbox(typingHook(), 1), iconBadger(iconHook()), tabBadges()));
         classes.addAll(chatStubs());
         return classes;
     }
 
     /** The clean host, Facebook's classes as they ship, with the batcher's flush making [handOver]. */
     private static List<ClassDef> clean(List<Instruction> handOver) {
-        List<ClassDef> classes = new ArrayList<>(trays(null, null));
+        List<ClassDef> classes = new ArrayList<>(trays(null, null, null));
         classes.addAll(Arrays.asList(cleanHost(),
                 showcaseUnit(), preEof(Collections.<Instruction>emptyList()), returnController(Collections.<Instruction>emptyList()),
                 shortcuts(allShortcutCalls()), followCheck(Collections.<Instruction>emptyList()),
@@ -1659,7 +1708,8 @@ public class BadDexFixture {
                 attachmentTap(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 speedToast(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
                 jewelController(Collections.<Instruction>emptyList(), Collections.<Instruction>emptyList()),
-                tabLinks(false, false, false), mailbox(Collections.<Instruction>emptyList(), 0)));
+                tabLinks(false, false, false), mailbox(Collections.<Instruction>emptyList(), 0),
+                iconBadger(Collections.<Instruction>emptyList())));
         return classes;
     }
 
@@ -1679,6 +1729,13 @@ public class BadDexFixture {
             new ImmutableInstruction3rc(Opcode.INVOKE_STATIC_RANGE, 0, 2, ATTRIBUTION_FINDER),
             op(Opcode.MOVE_RESULT_OBJECT, 0),
             op(Opcode.RETURN_OBJECT, 0));
+
+    /** What the reels patch writes in the Threads card stub: the item cast, then its first read. */
+    private static final ImmutableMethodImplementation FILLED_MID_CARD_STUB = body(2,
+            new ImmutableInstruction21c(Opcode.CHECK_CAST, 1, new ImmutableTypeReference(MID_CARD_ITEM)),
+            new ImmutableInstruction35c(Opcode.INVOKE_VIRTUAL, 1, 1, 0, 0, 0, 0, MID_CARD_UNIT),
+            op(Opcode.MOVE_RESULT_OBJECT, 1),
+            op(Opcode.RETURN_OBJECT, 1));
 
     /** The stub as the extension ships it, given a local for its marker: no call at all. */
     private static final ImmutableMethodImplementation UNFILLED_FINDER_STUB = body(3,
@@ -2042,6 +2099,9 @@ public class BadDexFixture {
         dexes.put("bad-move-result", withFeedEdge(body(4,
                 invoke(HIDE_EDGE, 2, 3), op(Opcode.NOP), op(Opcode.MOVE_RESULT, 0), ifEqz(0, 3),
                 op(Opcode.RETURN_VOID), op(Opcode.RETURN_VOID))));
+        // result: Hide tab badges' invoke-static { p2 } in an 18-register writer, as Morphe's inline
+        // compiler left it: the call dropped and its move-result first in the method.
+        dexes.put("bad-dropped-invoke", replaced(good(), iconBadger(droppedIconHook())));
         // try: the range starts inside the invoke it means to cover.
         dexes.put("bad-try-range", withTry(tryBlock(1, 2, 5)));
         // try: the handler starts inside the invoke.
@@ -2084,12 +2144,12 @@ public class BadDexFixture {
         // contract: the unified tray's count left without the tray patch's call.
         ClassDef filledGenAi = genAiLabel(FILLED_STUB);
         dexes.put("bad-tray-hook-missing", bundle(goodHost, filledGenAi, filledRecommendation,
-                trays(trayCount(0), Collections.<Instruction>emptyList())));
-        // contract: both calls in the classic tray's count and the unified tray given none.
+                trays(trayCount(0), Collections.<Instruction>emptyList(), trayCount(2))));
+        // contract: both tray calls in the classic tray's count and the unified tray given none.
         List<Instruction> countTwice = new ArrayList<>(trayCount(0));
         countTwice.addAll(trayCount(1));
         dexes.put("bad-tray-count-twice", bundle(goodHost, filledGenAi, filledRecommendation,
-                trays(countTwice, null)));
+                trays(countTwice, null, trayCount(2))));
         // contract: the unified tray's call in another of its methods, not its count.
         dexes.put("bad-tray-hook-wrong-method", replaced(good(), tray(CLASSIC_TRAY, trayCount(0), null),
                 tray(UNIFIED_TRAY, null, trayCount(1))));

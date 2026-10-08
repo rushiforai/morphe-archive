@@ -74,6 +74,10 @@ val hideSponsoredReelsPatch = bytecodePatch(
         // see ReelsAdPool.kt.
         reelsAdPoolVends().forEach { it.holdPoolAdFirst() }
 
+        // A profile's or Page's Reels tab fetches its own ads through a query of its own, outside
+        // the pool. It returns before sending it: see ProfileReelAds.kt.
+        profileReelAdFetch().holdProfileReelAdsFirst()
+
         // The client-side insert paths stay blocked. None of them fired in the logging run, but
         // they are what the app would use if a future release went back to inserting on the device,
         // and blocking them costs nothing.

@@ -8,7 +8,9 @@ import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.categories.SimSpoofPreferenceCategory;
 import app.morphe.extension.tiktok.spoof.sim.SimPreset;
 import app.morphe.extension.tiktok.spoof.sim.SimPresets;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 import org.junit.Before;
 import org.junit.After;
@@ -32,11 +34,100 @@ public class RegionSpoofTest {
         Settings.SIM_SPOOF.save(true);
         Settings.REGION_SPOOF.save(true);
         Settings.REGION_STORE_SPOOF.save(false);
+        Settings.REGION_REQUEST_SPOOF.save(false);
         Settings.SIM_SPOOF_ISO.save("jp");
+        Settings.SIMSPOOF_MCCMNC.save("44010");
     }
     @After public void tearDown() {
+        RegionSpoof.requestDone();
         SettingsStatus.simSpoofEnabled = false;
         SettingsStatus.regionSpoofEnabled = false;
+    }
+
+    @Test public void onlyPassportPathsAreSignIns() {
+        for (String path : new String[]{"/passport/user/login/", "/passport/mobile/send_code/v1/",
+                "//passport/email/register/v2/", "/passport/"}) {
+            assertTrue(path, RegionSpoof.isSignIn(path));
+        }
+        for (String path : new String[]{null, "", "/", "/aweme/v1/feed/", "/aweme/v1/passport/",
+                "/passports/", "/passport", "passport/user/login/", "/Passport/user/login/"}) {
+            assertFalse(String.valueOf(path), RegionSpoof.isSignIn(path));
+        }
+    }
+
+    @Test public void theTokenInterceptorsUrlsAreSignInsByTheirPath() {
+        for (String url : new String[]{
+                "https://api16-normal-useast5.tiktokv.us/passport/token/beat/v2/?aid=1233&ts=1",
+                "https://api.tiktokv.com/passport/token/change/",
+                "https://api.tiktokv.com/passport/user/logout/#x"}) {
+            assertTrue(url, RegionSpoof.isSignIn(RegionSpoof.pathOf(url)));
+        }
+        for (String url : new String[]{null, "", "https://api.tiktokv.com",
+                "https://api.tiktokv.com?next=/passport/user/logout/",
+                "https://api.tiktokv.com/aweme/v1/feed/?next=/passport/token/beat/",
+                "https://api.tiktokv.com/aweme/v1/passport/"}) {
+            assertFalse(String.valueOf(url), RegionSpoof.isSignIn(RegionSpoof.pathOf(url)));
+        }
+        assertEquals("/passport/token/beat/", RegionSpoof.pathOf("https://h/passport/token/beat/?a=1#b"));
+    }
+
+    @Test public void aTokenRequestMarksTheThreadLikeASignIn() {
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        RegionSpoof.requestUrl("https://api.tiktokv.com/passport/token/beat/v2/?aid=1233");
+        assertEquals("US", RegionSpoof.country("US"));
+        RegionSpoof.requestDone();
+        assertEquals("JP", RegionSpoof.country("US"));
+        RegionSpoof.requestUrl("https://api.tiktokv.com/aweme/v1/feed/");
+        assertEquals("JP", RegionSpoof.country("US"));
+        RegionSpoof.requestDone();
+    }
+
+    @Test public void aSignInKeepsTheRealRegionOnItsOwnThreadOnly() throws Exception {
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        Settings.REGION_STORE_SPOOF.save(true);
+        Locale locale = Locale.US;
+        TimeZone zone = TimeZone.getTimeZone("UTC");
+        RegionSpoof.requestPath("/passport/user/login/");
+        Map<String, String> params = requestParams();
+        RegionSpoof.requestParams(params);
+        assertEquals("a sign-in's fields took the preset", requestParams(), params);
+        assertEquals("US", RegionSpoof.country("US"));
+        assertEquals("US", RegionSpoof.storeCountry("US"));
+        assertSame(locale, RegionSpoof.locale(locale));
+        assertSame(zone, RegionSpoof.timeZone(zone));
+
+        // A feed request built on another thread at the same moment keeps the preset.
+        String[] elsewhere = new String[1];
+        Thread other = new Thread(() -> elsewhere[0] = RegionSpoof.country("US"));
+        other.start();
+        other.join();
+        assertEquals("JP", elsewhere[0]);
+
+        RegionSpoof.requestDone();
+        assertEquals("JP", RegionSpoof.country("US"));
+        assertEquals("JP", RegionSpoof.locale(locale).getCountry());
+        RegionSpoof.requestPath("/aweme/v1/feed/");
+        params = requestParams();
+        RegionSpoof.requestParams(params);
+        RegionSpoof.requestDone();
+        assertEquals("JP", params.get("current_region"));
+        assertEquals("440", params.get("carrier_region_v2"));
+    }
+
+    @Test public void aSignInIsLeftAloneWithoutTheRequestSwitchAndAMissedEndIsPutRight() {
+        // Without Match region fields in requests a sign-in is spoofed as it always was.
+        RegionSpoof.requestPath("/passport/user/login/");
+        assertEquals("JP", RegionSpoof.country("US"));
+        RegionSpoof.requestDone();
+
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        RegionSpoof.requestPath("/passport/user/login/");
+        // TikTok's fill threw before the end was called: the thread's next request puts it right.
+        RegionSpoof.requestPath("/aweme/v1/feed/");
+        assertEquals("JP", RegionSpoof.country("US"));
+        RegionSpoof.requestDone();
+        RegionSpoof.requestDone();
+        assertEquals("JP", RegionSpoof.country("US"));
     }
     @Test public void aKeptAnswerFollowsTheSettingAndEachZoneIsItsOwnCopy() {
         // Answers are kept between calls, because every Locale and TimeZone default in the app
@@ -123,6 +214,71 @@ public class RegionSpoofTest {
         if (Build.VERSION.SDK_INT >= 24) assertEquals("IS", android.icu.util.TimeZone.getRegion(RegionSpoof.timeZone(zone).getID()));
         else assertSame(zone, RegionSpoof.timeZone(zone));
     }
+    @Test public void requestFieldsTakeThePresetOnlyWhereTikTokSentThemAndOnlyWithTheirSwitch() {
+        assertEquals(Boolean.FALSE, Settings.REGION_REQUEST_SPOOF.defaultValue);
+        Map<String, String> params = requestParams();
+        RegionSpoof.requestParams(params);
+        assertEquals("the fields changed with their switch off", requestParams(), params);
+
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        RegionSpoof.requestParams(params);
+        assertEquals("JP", params.get("current_region"));
+        assertEquals("JP", params.get("residence"));
+        assertEquals("the network country code is the preset's MCC", "440", params.get("carrier_region_v2"));
+        // The hub's fields are the getter hooks' to answer, and the rest is not a region.
+        assertEquals("US", params.get("carrier_region"));
+        assertEquals("US", params.get("sys_region"));
+        assertEquals("US", params.get("region"));
+        assertEquals("US", params.get("op_region"));
+        assertEquals("US", params.get("account_region"));
+        assertEquals("en", params.get("app_language"));
+        assertEquals(requestParams().size(), params.size());
+
+        Map<String, String> sparse = new HashMap<>();
+        sparse.put("aid", "1233");
+        RegionSpoof.requestParams(sparse);
+        assertEquals("a field TikTok left out was added", 1, sparse.size());
+        RegionSpoof.requestParams(null);
+    }
+
+    @Test public void requestFieldsStayWhenThePresetCannotSayWhatToSend() {
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        Settings.SIMSPOOF_MCCMNC.save("44a10");
+        Map<String, String> params = requestParams();
+        RegionSpoof.requestParams(params);
+        assertEquals("JP", params.get("current_region"));
+        assertEquals("an unusable operator code still went out", "310", params.get("carrier_region_v2"));
+
+        Settings.SIMSPOOF_MCCMNC.save("44010");
+        params = requestParams();
+        params.put("carrier_region_v2", "us");
+        RegionSpoof.requestParams(params);
+        assertEquals("a value that isn't an MCC was replaced by one", "us", params.get("carrier_region_v2"));
+
+        for (Runnable off : new Runnable[]{
+                () -> Settings.SIM_SPOOF_ISO.save("zz"),
+                () -> Settings.REGION_SPOOF.save(false),
+                () -> Settings.SIM_SPOOF.save(false)}) {
+            setup();
+            Settings.REGION_REQUEST_SPOOF.save(true);
+            off.run();
+            params = requestParams();
+            RegionSpoof.requestParams(params);
+            assertEquals(requestParams(), params);
+        }
+    }
+
+    private static Map<String, String> requestParams() {
+        Map<String, String> params = new HashMap<>();
+        for (String field : new String[]{"carrier_region", "sys_region", "region", "op_region",
+                "current_region", "residence", "account_region"}) {
+            params.put(field, "US");
+        }
+        params.put("carrier_region_v2", "310");
+        params.put("app_language", "en");
+        return params;
+    }
+
     @Test public void legacyVariantKeepsScriptAndExtensionsWhenCountryChanges() {
         Locale original = Locale.forLanguageTag("zh-Hant-TW-u-nu-hanidec-x-custom-lvariant-WIN");
         Locale changed = RegionSpoof.locale(original);
@@ -156,6 +312,7 @@ public class RegionSpoofTest {
             new SimSpoofPreferenceCategory(activity, screen);
             assertNotNull(screen.findPreference("region_spoof"));
             assertNotNull(screen.findPreference("region_store_spoof"));
+            assertNotNull(screen.findPreference("region_request_spoof"));
             var country = (app.morphe.extension.tiktok.settings.preference.InputTextPreference)
                     screen.findPreference("simspoof_iso");
             assertFalse(country.callChangeListener("zz"));

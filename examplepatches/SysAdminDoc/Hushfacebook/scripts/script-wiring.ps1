@@ -1074,6 +1074,23 @@ function Test-PushGateRunsSuite {
     return $false
 }
 
+function Test-PushGatePatchesFixtures {
+    <#
+    .SYNOPSIS
+        Whether pre-push.ps1 runs the pushed commit's verify-all-patches.ps1: a reachable
+        Invoke-CommitScript call whose -Script names that file. A call in a comment, a dead branch
+        or a function nothing calls doesn't count.
+    #>
+    param([string]$Path)
+
+    foreach ($call in @(Get-LiveCommands (Get-ScriptAst $Path))) {
+        if ($call.GetCommandName() -ne 'Invoke-CommitScript') { continue }
+        $script = Get-CommandArgument $call 'Script'
+        if ($null -ne $script -and (Test-NamesFile $script 'verify-all-patches.ps1')) { return $true }
+    }
+    return $false
+}
+
 function Edit-ScriptNode {
     <#
     .SYNOPSIS

@@ -75,6 +75,11 @@ public final class SuggestedStories {
     static final String NOT_PATCHED = "reader not patched";
     static final String READ_FAILED = "read failed";
 
+    /** Debug intake is bounded and never expands an enum constant into a person's bucket fields. */
+    private static final int TYPE_DIAGNOSTIC_ITEMS = 256;
+    private static final int TYPE_DIAGNOSTIC_NAMES = 16;
+    private static final java.util.regex.Pattern TYPE_NAME = java.util.regex.Pattern.compile("[A-Z][A-Z0-9_]{0,95}");
+
     /** What {@link #suggested}, {@link #label} and {@link #bucketType} answer until the patch fills them in. */
     static final Object UNPATCHED = new Object();
 
@@ -238,11 +243,66 @@ public final class SuggestedStories {
             final String off = switches.offNote();
             Logger.printDebug(() -> "Stories tray: " + buckets.size() + " buckets, " + shown + " kept. Kinds: "
                     + summary(kinds) + off);
+            // Observe the actual delivery, including a refused copy. Diagnostics must not undo a filter.
+            final Object delivered = answer;
+            try {
+                Logger.printDebug(() -> keptTypeEvidence(delivered, access));
+            } catch (Throwable ignored) {
+                // A diagnostic failure leaves the already selected delivery intact.
+            }
             return answer;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SUGGESTED_STORIES, "tray bucket filter", failure);
             Logger.printException(() -> "Hide suggested stories: could not read the tray's buckets", failure);
             return buckets;
+        }
+    }
+
+    /**
+     * Names/counts of kept types other than STORY and the cards already counted by friendly kind.
+     * Other types can still hold friends' stories. This identifies no music prompt and makes no new
+     * removal decision. No labels, owner fields, IDs, enum toString(), exception values or class names
+     * are read or logged.
+     * Built lazily by Logger only with Debug on. Missing or omitted evidence is explicit.
+     */
+    private static String keptTypeEvidence(Object delivered, Buckets access) {
+        String prefix = "Stories tray kept unclassified types: ";
+        try {
+            if (!(delivered instanceof List)) return prefix + "unavailable. Complete false.";
+            List<?> items = (List<?>) delivered;
+            int size = items.size();
+            int visited = Math.min(size, TYPE_DIAGNOSTIC_ITEMS);
+            int unknown = 0;
+            int omitted = size - visited;
+            Map<String, Integer> names = new LinkedHashMap<>();
+            for (int index = 0; index < visited; index++) {
+                try {
+                    Object item = items.get(index);
+                    if (item == null || !access.isBucket(item)) { unknown++; continue; }
+                    Object type = access.type(item);
+                    if (!(type instanceof Enum)) { unknown++; continue; }
+                    String name = ((Enum<?>) type).name();
+                    if (!TYPE_NAME.matcher(name).matches()) { unknown++; continue; }
+                    if ("STORY".equals(name) || PYMK_TYPE.equals(name)
+                            || PYMK_PROFILE_FORWARD_TYPE.equals(name) || CONTACT_IMPORTER_TYPE.equals(name)) continue;
+                    Integer count = names.get(name);
+                    if (count != null) names.put(name, count + 1);
+                    else if (names.size() < TYPE_DIAGNOSTIC_NAMES) names.put(name, 1);
+                    else omitted++;
+                } catch (Throwable ignored) {
+                    unknown++; // The reader's exception can contain private fields, so keep only the count.
+                }
+            }
+            StringBuilder summary = new StringBuilder(prefix);
+            for (Map.Entry<String, Integer> entry : names.entrySet()) {
+                if (summary.length() > prefix.length()) summary.append(", ");
+                summary.append(entry.getKey()).append(' ').append(entry.getValue());
+            }
+            if (names.isEmpty()) summary.append("none");
+            return summary.append(". Complete ").append(unknown == 0 && omitted == 0)
+                    .append(", unknown ").append(unknown).append(", omitted ").append(omitted).append('.').toString();
+        } catch (Throwable ignored) {
+            return prefix + "unavailable. Complete false.";
         }
     }
 

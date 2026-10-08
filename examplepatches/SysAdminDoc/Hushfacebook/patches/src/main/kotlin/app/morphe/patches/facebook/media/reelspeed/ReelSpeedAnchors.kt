@@ -7,11 +7,16 @@ package app.morphe.patches.facebook.media.reelspeed
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
@@ -50,6 +55,25 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *   but an account whose Reels live in the Video tab plays them under "video_home" (its immersive
  *   player config's surface is FB_SHORTS_IN_WATCH_TAB), beside the tab's other videos, and reels
  *   in the feed play under others (fb_shorts_native_in_feed_unit and more).
+ * - The speeds the Reels menu's two pickers offer (read from 577, 580 and 581, 2026-10-07): each
+ *   builds a Float[] of fixed speeds, 0.5x, 1x, 2x, 2.5x and 3x, or 0.5x, 1x, 1.5x and 2x behind a
+ *   flag, then turns it into a List with Arrays.asList in one place both branches reach, and makes
+ *   one item per speed, labelled by the toast class's (F)String formatter. The attribute selector
+ *   is the toast class's static method answering FDSAttributeSelectorHScroll, a kept class (581
+ *   LX/JsV;->A00); the dropdown is the method holding "fds_control_playback_speed" (581
+ *   LX/TmY;->A08, 580 LX/U1V;->A08, 577 LX/UFS;->A09). Nothing branches to the instruction after
+ *   either asList's move-result.
+ * - The gear menu's speed sheet (read from 577, 580 and 581, 2026-10-07): its class holds
+ *   "PlayerControlsPlaybackSpeedBottomSheet" (581 LX/TkP;, 580 LX/TzE;, 577 LX/UCw;), and its
+ *   builder, A01 on all three, takes two booleans last and makes the gear pick's class. It gets
+ *   its labels from a server list or a resource array, and its speeds from the same server list,
+ *   from a resource array of floats, or, with the last boolean false, as zeros. Its paths meet,
+ *   and it then walks the labels: array-length of the labels, then per label aget-object, if-eqz
+ *   on the last boolean and aget of the speed. With the boolean false it parses each label with
+ *   the locale's NumberFormat, which needn't read "0.5" as a half where a comma marks decimals,
+ *   and makes items without a speed, which the pick parses the same way. With it true each item
+ *   carries its float and the pick reads that. Every caller passes false but one, which passes a
+ *   field.
  */
 
 internal const val REEL_SPEED = "$EXTENSION_PACKAGE/media/ReelSpeed;"
@@ -57,6 +81,7 @@ internal const val SPEED_SET = "$REEL_SPEED->speedSet(Ljava/lang/Object;F)V"
 internal const val PICKED = "$REEL_SPEED->picked(F)V"
 internal const val GEAR_PICKED = "$REEL_SPEED->gearPicked(F)V"
 internal const val STARTED = "$REEL_SPEED->started(Ljava/lang/Object;)V"
+internal const val SPEED_CHOICES = "$REEL_SPEED->speedChoices(Ljava/util/List;)Ljava/util/List;"
 internal const val SET_SPEED_STUB = "setPlayerSpeed"
 internal const val ORIGIN_STUB = "playerOrigin"
 internal const val REEL_PARAMS_STUB = "playerParams"
@@ -72,6 +97,92 @@ internal const val PLAYER_ORIGIN = "Lcom/facebook/video/common/playerorigin/Play
 internal const val SPEED_CACHE_SWITCH =
     "Lcom/facebook/video/heroplayer/setting/HeroPlayerSetting;->enableLastPlaybackSpeedCacheUpdate:Z"
 private const val CONTEXT = "Landroid/content/Context;"
+
+/** Kept literal. The Reels menu's speed dropdown names its control with it. */
+internal const val SPEED_DROPDOWN = "fds_control_playback_speed"
+
+/** Kept class the Reels menu's speed attribute selector answers. */
+internal const val ATTRIBUTE_SELECTOR = "Lcom/facebook/fds/attributeselector/FDSAttributeSelectorHScroll;"
+private const val AS_LIST = "Ljava/util/Arrays;->asList([Ljava/lang/Object;)Ljava/util/List;"
+private const val FLOATS = "[Ljava/lang/Float;"
+
+/** Kept literal. The gear menu's speed sheet's class holds it, and its pick logs under it. */
+internal const val GEAR_SHEET = "PlayerControlsPlaybackSpeedBottomSheet"
+internal const val GEAR_VALUES = "$REEL_SPEED->gearValues(Z)Z"
+internal const val GEAR_SPEEDS = "$REEL_SPEED->gearSpeeds([F)[F"
+internal const val GEAR_LABELS = "$REEL_SPEED->gearLabels([Ljava/lang/String;)[Ljava/lang/String;"
+private const val LOCALE_NUMBERS = "Ljava/text/NumberFormat;->getInstance(Ljava/util/Locale;)Ljava/text/NumberFormat;"
+
+/**
+ * Kept literal. HeroManager's setPlaybackSpeed logs it for a speed outside 0.25x to 4x, then keeps
+ * the speed and the pitch in that range before the service player gets them (581 LX/7t3;->A0D, read
+ * on a phone 2026-10-07: a 0.1x pick played at 0.25x). The service player's audio takes 0.1x to 8x.
+ */
+internal const val SPEED_RANGE_LOG = "Trying to set playback speed with invalid value"
+
+/** HeroManager's slowest speed, and the slowest of the slower speeds, which replaces it. */
+internal const val HERO_FLOOR = 0.25f
+internal const val SLOWEST = 0.1f
+
+/** The const/high16 instructions of [method] loading [HERO_FLOOR], by index. */
+internal fun speedFloors(method: Method): List<Int> =
+    method.implementation?.instructions?.withIndex()?.filter { (_, instruction) ->
+        instruction.opcode == Opcode.CONST_HIGH16 &&
+            (instruction as NarrowLiteralInstruction).narrowLiteral == HERO_FLOOR.toRawBits()
+    }?.map { it.index }.orEmpty()
+
+/** Whether [method] keeps a float from going under a floor with Math.max. */
+internal fun callsFloatMax(method: Method): Boolean = method.implementation?.instructions?.any {
+    (it as? ReferenceInstruction)?.reference?.toString() == "Ljava/lang/Math;->max(FF)F"
+} == true
+
+/**
+ * Where the gear menu's speed sheet builder walks its labels: [index] is the array-length of
+ * [labels], the walk reads each speed from [speeds], and [values] is the last parameter, the flag
+ * for reading speeds from floats.
+ */
+internal class GearMeet(val index: Int, val labels: Int, val speeds: Int, val values: Int)
+
+/**
+ * Whether [method] is the gear menu's speed sheet builder: it answers nothing, takes a boolean
+ * last, makes [pick], the sheet's pick class, and parses with the locale's NumberFormat.
+ */
+internal fun isGearSheet(method: Method, pick: String): Boolean {
+    if (method.returnType != "V" || method.parameters().lastOrNull() != "Z") return false
+    val code = method.implementation?.instructions ?: return false
+    return code.any { it.opcode == Opcode.NEW_INSTANCE && (it as ReferenceInstruction).reference.toString() == pick } &&
+        code.any { (it as? ReferenceInstruction)?.reference?.toString() == LOCALE_NUMBERS }
+}
+
+/**
+ * Where [method] walks its labels and reads each one's speed: an array-length of the labels, then
+ * within a few instructions an aget-object from them, an if-eqz on the last parameter and an aget
+ * of the speed. The last parameter is one register wide, a boolean, so it's the method's last.
+ * None when anything in [method] writes that register, since the flag is forced at its start.
+ */
+internal fun gearMeets(method: Method): List<GearMeet> {
+    val implementation = method.implementation ?: return emptyList()
+    val code = implementation.instructions.toList()
+    val values = implementation.registerCount - 1
+    val rewritten = code.any {
+        val written = (it as? OneRegisterInstruction)?.registerA
+        it.opcode.setsRegister() && written != null &&
+            (written == values || it.opcode.setsWideRegister() && written + 1 == values)
+    }
+    if (rewritten) return emptyList()
+    return code.withIndex().mapNotNull { (index, instruction) ->
+        if (instruction.opcode != Opcode.ARRAY_LENGTH) return@mapNotNull null
+        val labels = (instruction as TwoRegisterInstruction).registerB
+        val ahead = code.subList(index + 1, minOf(code.size, index + 8))
+        val label = ahead.indexOfFirst { it.opcode == Opcode.AGET_OBJECT && (it as ThreeRegisterInstruction).registerB == labels }
+        if (label < 0) return@mapNotNull null
+        val check = ahead.getOrNull(label + 1)
+        val speed = ahead.getOrNull(label + 2)
+        if (check?.opcode != Opcode.IF_EQZ || (check as OneRegisterInstruction).registerA != values) return@mapNotNull null
+        if (speed?.opcode != Opcode.AGET) return@mapNotNull null
+        GearMeet(index, labels, (speed as ThreeRegisterInstruction).registerB, values)
+    }
+}
 
 private fun Method.isStatic() = AccessFlags.STATIC.isSet(accessFlags)
 private fun Method.parameters() = parameterTypes.map(CharSequence::toString)
@@ -105,6 +216,23 @@ internal fun setterCalls(method: Method, owner: String, setter: Method): List<Pa
             else -> null
         }
     }.orEmpty()
+
+/**
+ * Where [method], which fills a Float[], turns an array into its list of speeds: the index of each
+ * Arrays.asList's move-result-object, with the register it writes. Empty when it fills no Float[].
+ */
+internal fun speedLists(method: Method): List<Pair<Int, Int>> {
+    val code = method.implementation?.instructions?.toList() ?: return emptyList()
+    if (code.none { it.opcode == Opcode.FILLED_NEW_ARRAY && (it as ReferenceInstruction).reference.toString() == FLOATS }) {
+        return emptyList()
+    }
+    return code.withIndex().mapNotNull { (index, instruction) ->
+        if ((instruction as? ReferenceInstruction)?.reference?.toString() != AS_LIST) return@mapNotNull null
+        val result = code.getOrNull(index + 1)
+        if (result?.opcode != Opcode.MOVE_RESULT_OBJECT) return@mapNotNull null
+        index + 1 to (result as OneRegisterInstruction).registerA
+    }
+}
 
 /** [owner]'s PlayerOrigin getters: instance methods with a body, taking nothing and answering one. */
 internal fun originGetters(owner: ClassDef): List<Method> = owner.methods.filter {

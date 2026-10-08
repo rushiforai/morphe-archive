@@ -198,7 +198,10 @@ val longPressPatch = bytecodePatch(
     name = "Long-press controls",
     description = "Lets a long press on a video keep TikTok's own action, do nothing, open " +
         "the video's comments, save the original sound, copy the link to the video or its " +
-        "sound, or look the sound up on YouTube Music. It can also turn a press on the left or " +
+        "sound, look the sound up on YouTube Music, set a sleep timer that stops the video and " +
+        "closes TikTok when it runs out, save the frame on screen as a JPEG, or save the video's " +
+        "cover. It can also turn " +
+        "a press on the left or " +
         "right third of the screen into a jump back or forward, and make a long press on " +
         "Comment, Share or Favorites play at the hold speed instead of opening TikTok's menu. " +
         "Brings Double-tap controls with it, which supplies the comment control. Switch: Hushfeed settings > Feed screen.",

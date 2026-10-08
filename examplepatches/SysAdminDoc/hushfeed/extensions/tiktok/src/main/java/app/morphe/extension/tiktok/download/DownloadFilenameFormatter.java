@@ -87,23 +87,13 @@ public final class DownloadFilenameFormatter {
             );
             long createdAt = readCreateTime(aweme);
             int index = photo ? nextPhotoIndex(aweme, aid, System.currentTimeMillis()) : 1;
-            String folder = hasCreatorFolder(template) ? creatorFolder(creator) : "";
-
-            File target = resolveTarget(
-                    original,
-                    filenameTemplate(template),
-                    extension,
-                    sanitizeToken(creator),
-                    formatDate(createdAt),
-                    sanitizeToken(aid),
-                    null,
-                    index
-            );
-            if (target.equals(original) && folder.isEmpty()) {
+            Planned planned = planTikTokSave(template, original.getName(), extension, creator, aid, createdAt, index);
+            String folder = planned.folder;
+            if (planned.name.equals(original.getName()) && folder.isEmpty()) {
                 return;
             }
             synchronized (PENDING_NAMES) {
-                PENDING_NAMES.put(original.getName(), new PendingName(target.getName(), folder, System.currentTimeMillis()));
+                PENDING_NAMES.put(original.getName(), new PendingName(planned.name, folder, System.currentTimeMillis()));
             }
             debug("prepared type=" + (photo ? "photo" : "video") + (folder.isEmpty() ? "" : " in a creator folder"));
         } catch (Throwable ex) {
@@ -154,7 +144,39 @@ public final class DownloadFilenameFormatter {
         return root + "/" + creatorFolder(creator);
     }
 
-    private static boolean hasCreatorFolder(String template) {
+    /** A name and the creator folder in front of it, empty when the template asks for none. */
+    static final class Planned {
+        final String folder;
+        final String name;
+
+        Planned(String folder, String name) {
+            this.folder = folder;
+            this.name = name;
+        }
+    }
+
+    /**
+     * What TikTok's own downloader saves a staging file named {@code originalName} as. An empty
+     * template keeps TikTok's name, and {@code {original}} is that name without its extension.
+     */
+    static Planned planTikTokSave(String template, String originalName, String extension, String creator,
+                                  String aid, long createdAt, int index) {
+        String folder = hasCreatorFolder(template) ? creatorFolder(creator) : "";
+        File original = new File(originalName);
+        File target = resolveTarget(
+                original,
+                filenameTemplate(template),
+                extension,
+                sanitizeToken(creator),
+                formatDate(createdAt),
+                sanitizeToken(aid),
+                null,
+                index
+        );
+        return new Planned(folder, target.getName());
+    }
+
+    static boolean hasCreatorFolder(String template) {
         return template != null && template.trim().replace('\\', '/').startsWith("{creator}/");
     }
 
@@ -162,7 +184,7 @@ public final class DownloadFilenameFormatter {
         return hasCreatorFolder(template) ? template.trim().substring("{creator}/".length()) : template;
     }
 
-    private static String creatorFolder(String creator) {
+    static String creatorFolder(String creator) {
         String folder = trimToLength(sanitizeToken(creator), MAX_BASENAME_LENGTH);
         return folder.isEmpty() ? "unknown" : folder;
     }
@@ -184,7 +206,11 @@ public final class DownloadFilenameFormatter {
     }
 
     public static String formatCommentMediaName(String extension, String mediaId) {
-        String template = Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE.get();
+        return formatCommentMediaName(Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE.get(), extension, mediaId,
+                System.currentTimeMillis());
+    }
+
+    static String formatCommentMediaName(String template, String extension, String mediaId, long now) {
         String normalizedExtension = sanitizeExtension(extension);
         File placeholder = new File(".", "comment." + normalizedExtension);
         File result = resolveTarget(
@@ -192,7 +218,7 @@ public final class DownloadFilenameFormatter {
                 template,
                 normalizedExtension,
                 null,
-                formatDate(System.currentTimeMillis()),
+                formatDate(now),
                 null,
                 sanitizeToken(mediaId),
                 1
@@ -244,14 +270,55 @@ public final class DownloadFilenameFormatter {
         return base + "_profile.jpg";
     }
 
+    /**
+     * A frame takes its video's own name and where in the video it was, so frames from one post
+     * sort together and beside the video itself: {@code <video name>_frame_1m05s.jpg}. A frame
+     * with no post to name it after (a LIVE, an ad) is named for when it was saved.
+     *
+     * @param positionMs where the video was, or a negative number when that isn't known
+     */
+    static String formatFrameName(Object aweme, long positionMs) {
+        String at = positionMs >= 0 ? "_" + frameTime(positionMs) : "";
+        if (aweme == null) {
+            return "frame_" + new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss", Locale.US).format(new Date()) + at + ".jpg";
+        }
+        String video = stripExtension(formatSourceName(aweme, 1, "jpg", false));
+        String suffix = "frame" + at;
+        // Cut from the video's name, never from the suffix: the time is what tells frames apart.
+        return boundTemplatedName(sanitizeBaseName(video + "_" + suffix), MAX_BASENAME_LENGTH, suffix) + ".jpg";
+    }
+
+    /**
+     * A cover takes its video's own name, so it sorts beside the video and its frames:
+     * {@code <video name>_cover.<extension>}. The extension is the one the fetched bytes end up as.
+     */
+    static String formatCoverName(Object aweme, String extension) {
+        String video = stripExtension(formatSourceName(aweme, 1, "jpg", false));
+        return boundTemplatedName(sanitizeBaseName(video + "_cover"), MAX_BASENAME_LENGTH, "cover")
+                + "." + sanitizeExtension(extension);
+    }
+
+    /** A position as minutes and two-digit seconds, 65,400 ms as 1m05s. */
+    static String frameTime(long positionMs) {
+        long seconds = Math.max(0, positionMs) / 1000;
+        return (seconds / 60) + "m" + String.format(Locale.US, "%02d", seconds % 60) + "s";
+    }
+
     private static String formatSourceName(Object aweme, int index, String extension, boolean photo) {
         Object author = invoke(aweme, "getAuthor");
         String creator = firstNonBlank(invokeString(author, "getUniqueId"), invokeString(author, "getNickname"), "unknown");
         String id = firstNonBlank(invokeString(aweme, "getAid"), "unknown");
-        String template = filenameTemplate(photo ? Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.get() : Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.get());
+        return formatSourceName(
+                photo ? Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE.get() : Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.get(),
+                creator, id, readCreateTime(aweme), index, extension, photo);
+    }
+
+    static String formatSourceName(String rawTemplate, String creator, String id, long createdAt, int index,
+                                   String extension, boolean photo) {
+        String template = filenameTemplate(rawTemplate);
         if (template == null || template.trim().isEmpty()) template = "{creator}_{date}_{video_id}" + (photo ? "_{index}" : "");
         String base = template.replace("{creator}", sanitizeToken(creator))
-                .replace("{date}", formatDate(readCreateTime(aweme)))
+                .replace("{date}", formatDate(createdAt))
                 .replace("{video_id}", sanitizeToken(id)).replace("{index}", String.valueOf(index));
         if (photo && !template.contains("{index}")) base += "_" + index;
         // Every photo of a slideshow comes through here with its own number, so that number has

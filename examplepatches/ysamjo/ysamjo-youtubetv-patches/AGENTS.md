@@ -158,14 +158,25 @@ also `/opt/homebrew/bin/gh` verwenden.
   nicht Teil dieses Repos. Wenn er gebraucht wird: eigenes Projekt, nicht hier hineinwachsen
   lassen.
 - **Ein getauschtes Icon beweist sich nicht im Launcher.** Der Projectivy Launcher
-  (`com.spocky.projengmenu`, Standard-Home auf dem Streamer) hält Icon und Banner in seiner
-  eigenen Datenbank fest. Weder `am force-stop`, noch `pm clear --cache-only`, noch ein Reboot
-  liest sie neu ein — die Kachel zeigt weiter das alte Artwork, obwohl im APK die neuen Bytes
-  liegen. `pm hide`/`unhide` ist als Auslöser nicht nutzbar (`MANAGE_USERS` fehlt der Shell).
-  Zum Belegen deshalb **die System-App-Liste** nehmen: `am start -n
-  com.android.tv.settings/.device.apps.AllAppsActivity` rendert das Icon frisch aus dem APK und
-  zeigt den Tausch sofort. Für den Banner gibt es dort keine Ansicht — der ist nur über den
-  Byte-Vergleich im APK belegbar.
+  (`com.spocky.projengmenu`, Standard-Home auf dem Streamer) hält das Artwork der Home-Kachel in
+  einem eigenen Bild-Cache. Weder `am force-stop`, noch ein Reboot, noch Neuinstallieren, noch
+  ein angehobener `versionCode` entwerten ihn — die Kachel zeigt weiter das alte Artwork, obwohl
+  im APK die neuen Bytes liegen. `pm hide`/`unhide` ist als Auslöser nicht nutzbar
+  (`MANAGE_USERS` fehlt der Shell). `pm clear --cache-only <pkg>` **hängt** über adb auf diesem
+  Gerät (kein Output, Abbruch mit 137) — dafür die Einstellungen nehmen.
+  - **Was hilft:** `Einstellungen → Apps → Projectivy Launcher → Cache leeren` (219 MB → 2,7 MB),
+    danach den Launcher einmal beenden. Die Kachel liest den Banner dann neu, die
+    Launcher-Konfiguration bleibt erhalten.
+  - **Zweite Belegfläche:** dasselbe Long-Press-Menü einer App zeigt im Kopf schon das neue
+    Artwork, während die Kachel noch das alte hält. Der Cache ist also pro Fläche, nicht global.
+  - **Icons belegen:** `am start -n com.android.tv.settings/.device.apps.AllAppsActivity` rendert
+    frisch aus dem APK und zeigt den Tausch sofort.
+- **Ein Banner, das nicht wie erwartet aussieht, ist nicht automatisch ein Fehler.** SmartTube
+  und Brave zeigen auf dem Streamer Banner, die man für fremdes Artwork halten kann (SmartTube:
+  rot mit blauem `M`; Brave: orange „TOGGO"-Wortmarke, weil es der regionale Build ist). Vor
+  einem Bugreport das `android:banner` der App selbst prüfen:
+  `aapt2 dump xmltree --file AndroidManifest.xml <apk> | grep banner`, dann die Datei aus dem
+  Ressourcen-Baum ziehen und ansehen.
 - **Rechtlicher Rahmen.** Die Patches verändern ein Google-APK für den privaten Gebrauch.
   Keine Builds weiterverteilen, die Googles Signatur tragen, und den Source-Stamp nicht als
   gültig darstellen.

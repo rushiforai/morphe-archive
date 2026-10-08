@@ -26,6 +26,7 @@ public class EsLanguagePack extends BaseLanguagePack {
         titles.put(PREF_KEY_AMOLED, "Tema AMOLED puro");
         titles.put(PREF_KEY_ZERO_BOTTOM_INSET, "Margen inferior cero");
         titles.put(PREF_KEY_BOTTOM_PADDING, "Relleno inferior (px)");
+        titles.put(PREF_KEY_HIDE_IME_NAV_BAR, "Ocultar barra de navegación IME");
         titles.put(PREF_KEY_KEY_SHAPE_SELECTION, "Forma de borde de teclas");
         titles.put(PREF_KEY_EMOJI_SCALE, "Escala de tamaño de emojis");
         titles.put(PREF_KEY_CAT_TOOLBAR, "Barra de herramientas y navegación");
@@ -33,6 +34,7 @@ public class EsLanguagePack extends BaseLanguagePack {
         titles.put(PREF_KEY_TOOLBAR_ITEM_COUNT, "Cantidad de elementos en barra");
         titles.put(PREF_KEY_DISMISS_SUGGESTIONS, "Botón de descartar sugerencias");
         titles.put(PREF_KEY_CURSOR_TRACKPAD, "Modo trackpad de cursor");
+        titles.put(PREF_KEY_HIDE_NUMBER_HINTS, "Ocultar números sobre letras");
         titles.put(PREF_KEY_CAT_CLIPBOARD, "Portapapeles");
         titles.put(PREF_KEY_CLIPBOARD_EXTENDED_RETENTION, "Retención extendida de historial");
         titles.put(PREF_KEY_CLIPBOARD_RETENTION_HOURS, "Límite de tiempo de retención (horas)");
@@ -63,12 +65,14 @@ public class EsLanguagePack extends BaseLanguagePack {
         summaries.put(PREF_KEY_AMOLED, "Forzar fondo negro puro (#000000) en temas oscuros");
         summaries.put(PREF_KEY_ZERO_BOTTOM_INSET, "Eliminar el margen inferior debajo del teclado en navegación por gestos");
         summaries.put(PREF_KEY_BOTTOM_PADDING, "Relleno del margen inferior en píxeles (0 para rasante total, predeterminado: 0)");
+        summaries.put(PREF_KEY_HIDE_IME_NAV_BAR, "Ocultar la barra de navegación IME del sistema (selector de teclado y botones de colapso) en Android 13+ para un teclado rasante. Desactívala para conservar esos botones");
         summaries.put(PREF_KEY_KEY_SHAPE_SELECTION, "Habilitar estilos de teclas redondeadas y sin bordes en temas");
         summaries.put(PREF_KEY_EMOJI_SCALE, "Ajustar el tamaño visual de emojis en el teclado (50% - 150%)");
         summaries.put(PREF_KEY_ACCESS_POINTS_REDESIGN, "Habilitar barra de acceso y panel rediseñados (Panel V2)");
         summaries.put(PREF_KEY_TOOLBAR_ITEM_COUNT, "Cantidad máxima de íconos mostrados en la barra superior (predeterminado: 5)");
         summaries.put(PREF_KEY_DISMISS_SUGGESTIONS, "Mostrar botón de cerrar (X) en la barra de sugerencias");
         summaries.put(PREF_KEY_CURSOR_TRACKPAD, "Navegación de cursor bidireccional (2D) en barra espaciadora");
+        summaries.put(PREF_KEY_HIDE_NUMBER_HINTS, "Oculta los números pequeños sobre la fila de letras. La pulsación larga sigue funcionando");
         summaries.put(PREF_KEY_CLIPBOARD_EXTENDED_RETENTION, "Habilitar límite de tiempo personalizado para elementos no fijados");
         summaries.put(PREF_KEY_CLIPBOARD_RETENTION_HOURS, "Horas de retención de elementos no fijados antes de eliminarlos (predeterminado: 24h)");
         summaries.put(PREF_KEY_CLIPBOARD_RAISE_LIMIT, "Habilitar límite personalizado para elementos no fijados en el historial");

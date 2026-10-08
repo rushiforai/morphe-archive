@@ -4,11 +4,17 @@
  */
 package app.morphe.extension.facebook.media;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
+import android.hardware.display.DisplayManager;
+import android.view.Display;
 import android.view.SurfaceView;
 import android.view.Window;
 
@@ -30,9 +36,10 @@ import app.morphe.extension.shared.settings.PauseForTests;
 
 /**
  * Turn off HDR brightness: with its switch on, Facebook's request for an HDR window comes out as
- * one for the default colour mode, a headroom as none, and on Android 15 a SurfaceView Facebook
- * builds asks for none. Every other colour mode goes through, and off or paused Facebook's
- * requests go through as asked.
+ * one for the default colour mode, a headroom as none, on Android 15 a SurfaceView Facebook
+ * builds asks for none, and an HDR screen answers Facebook's questions as one that shows no HDR.
+ * Every other colour mode goes through, and off or paused Facebook's requests and questions go
+ * through as asked.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 35)
@@ -97,6 +104,30 @@ public class HdrBrightnessTest {
                 + HdrBrightness.HEADROOM_HELD + " 2", statusLine());
     }
 
+    /**
+     * The phone's screen, set up to show HLG and HDR10, the kind Facebook lifts ordinary videos on.
+     * From DisplayManager, since an activity Robolectric only created has no display of its own.
+     */
+    private Display hdrScreen() {
+        Display display = activity.getSystemService(DisplayManager.class).getDisplay(Display.DEFAULT_DISPLAY);
+        shadowOf(display).setDisplayHdrCapabilities(display.getDisplayId(), 1000f, 500f, 0.1f,
+                Display.HdrCapabilities.HDR_TYPE_HLG, Display.HdrCapabilities.HDR_TYPE_HDR10);
+        return display;
+    }
+
+    @Test
+    public void theScreenAnswersAsShowingNoHdr() {
+        Display display = hdrScreen();
+        assertTrue("the screen itself shows HDR", display.isHdr());
+        assertEquals("the screen's own types", 2, display.getHdrCapabilities().getSupportedHdrTypes().length);
+
+        assertFalse("isHdr", HdrBrightness.isHdr(display));
+        assertEquals("the capabilities' types", 0, HdrBrightness.getSupportedHdrTypes(display.getHdrCapabilities()).length);
+        assertEquals("the mode's types", 0, HdrBrightness.getSupportedHdrTypes(display.getMode()).length);
+        assertEquals(FamilyNames.HDR_BRIGHTNESS + ": invoked 3, 1 found, 0 missing. Counted: "
+                + HdrBrightness.SCREEN_HELD + " 3", statusLine());
+    }
+
     @Test
     public void aSurfaceViewAsksForNoHeadroom() {
         HdrBrightness.surfaceBuilt(new SurfaceView(activity));
@@ -132,7 +163,13 @@ public class HdrBrightnessTest {
         assertEquals(when + ", an HDR window", ActivityInfo.COLOR_MODE_HDR, asked(ActivityInfo.COLOR_MODE_HDR));
         assertEquals(when + ", the headroom", 4f, askedHeadroom(4f), 0f);
         HdrBrightness.surfaceBuilt(new SurfaceView(activity));
+        Display display = hdrScreen();
+        assertTrue(when + ", isHdr", HdrBrightness.isHdr(display));
+        assertArrayEquals(when + ", the capabilities' types", display.getHdrCapabilities().getSupportedHdrTypes(),
+                HdrBrightness.getSupportedHdrTypes(display.getHdrCapabilities()));
+        assertArrayEquals(when + ", the mode's types", display.getMode().getSupportedHdrTypes(),
+                HdrBrightness.getSupportedHdrTypes(display.getMode()));
         String line = statusLine();
-        assertEquals(when + ", the report", FamilyNames.HDR_BRIGHTNESS + ": invoked 3, 0 found, 0 missing", line);
+        assertEquals(when + ", the report", FamilyNames.HDR_BRIGHTNESS + ": invoked 6, 0 found, 0 missing", line);
     }
 }

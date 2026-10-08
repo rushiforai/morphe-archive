@@ -169,7 +169,7 @@ val studioCreationDebloatPatch = rawResourcePatch(
 @Suppress("unused")
 val liveStreamSuiteOptimizerPatch = rawResourcePatch(
     name = "Remove LIVE extras",
-    description = "Empties TikTok's link-mic and LIVE match or minigame assets, then skips its gift-effect widget setup. Co-hosting, games and animated gifts may stop. The APK gets about 3 MB smaller.",
+    description = "Empties TikTok's co-host (link-mic) and LIVE match or minigame assets, then skips its gift-effect widget setup. In LIVE the red and blue battle score bar and the co-host guests' names can go missing, and co-hosting, games or animated gifts may stop working. The APK gets about 3 MB smaller.",
     default = false,
 ) {
     category("Performance")

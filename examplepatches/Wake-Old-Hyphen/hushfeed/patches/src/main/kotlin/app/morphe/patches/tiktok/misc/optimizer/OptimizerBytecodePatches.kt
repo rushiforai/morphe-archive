@@ -10,9 +10,12 @@ import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.shared.requireRegisters
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.util.addInstruction
 import app.morphe.util.implementationOrPatchException
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 @Suppress("unused")
 val instantLaunchSplashBlockerPatch = bytecodePatch(
@@ -106,48 +109,43 @@ val networkTrafficGovernorPatch = bytecodePatch(
 @Suppress("unused")
 val runtimeMemoryGovernorPatch = bytecodePatch(
     name = "Drop the animated image cache",
-    description = "Makes TikTok's reviewed Fresco animated-frame cache lookups return no cached frame. This can increase decoding work or change animation playback.",
+    description = "Has TikTok keep only the frame on screen for each animated sticker or GIF instead of caching every frame, and stops it decoding frames ahead of time. Each next frame is built from the one before it, so animations still play smoothly while using less memory.",
     default = false,
 ) {
     category("Performance")
     compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
-        val frameCache = mutableClassDefBy(FRESCO_FRAME_CACHE_DESCRIPTOR)
-        val indexed = frameCache.methods.filter { it.isIndexedFrameLookup() }
-        val direct = frameCache.methods.filter { it.isDirectFrameLookup() }
-        val removedDirect = frameCache.methods.filter { it.isRemovedDirectFrameLookup() }
-        if (indexed.size != 1) {
-            throw PatchException("Runtime Memory Governor: expected one indexed Fresco frame lookup, found ${indexed.size}.")
+        // Fresco's keep-last-frame cache (caching strategy 3) holds the one frame on screen,
+        // which is also the frame the next one is composed onto. The earlier version nulled the
+        // FrescoFrameCache reads instead, so every frame walked back toward the first and
+        // nothing was saved, since the preparer still filled the cache (#100).
+        val factory = AnimatedDrawableFactoryFingerprint.method
+        val strategy = factory.cachingStrategyRead()
+            ?: throw PatchException("Drop the animated image cache: the caching strategy read has an unreviewed shape.")
+        if (strategy.keepLastClass == FRESCO_FRAME_CACHE_DESCRIPTOR) {
+            throw PatchException("Drop the animated image cache: strategy $KEEP_LAST_FRAME_STRATEGY builds FrescoFrameCache.")
         }
-        if (direct.size > 1 || (direct.isEmpty() && removedDirect.size != 1)) {
-            throw PatchException(
-                "Runtime Memory Governor: expected one direct Fresco lookup or its reviewed void replacement, " +
-                    "found ${direct.size} lookup(s) and ${removedDirect.size} replacement(s).",
-            )
-        }
-
-        val indexedInstructions = indexed.single()
-            .implementationOrPatchException("Runtime Memory Governor").instructions.count()
-        val directInstructions = direct.singleOrNull()
-            ?.implementationOrPatchException("Runtime Memory Governor")?.instructions?.count()
-        val removedInstructions = if (direct.isEmpty()) {
-            removedDirect.single()
-                .implementationOrPatchException("Runtime Memory Governor").instructions.count()
-        } else {
-            null
-        }
-        if (!isReviewedFrescoProfile(indexedInstructions, directInstructions, removedInstructions)) {
-            throw PatchException(
-                "Runtime Memory Governor: unreviewed Fresco lookup profile " +
-                    "($indexedInstructions, $directInstructions, $removedInstructions).",
-            )
+        val keepLast = mutableClassDefBy(strategy.keepLastClass)
+        val fieldTypes = keepLast.fields.map { it.type }
+        if (fieldTypes.size != 2 || fieldTypes.count { it == "I" } != 1 || fieldTypes.count { it.startsWith("L") } != 1) {
+            throw PatchException("Drop the animated image cache: ${strategy.keepLastClass} isn't the keep-last-frame cache.")
         }
 
-        (indexed + direct).forEach {
-            it.requireRegisters("Runtime Memory Governor", 1)
-            it.returnEarly(null as Void?)
+        // The preparer decodes frames ahead into the cache. The keep-last cache drops them, so
+        // each would be decoded twice, and composed from frames it no longer holds.
+        val builderCall = factory.backendBuilderCall()
+            ?: throw PatchException("Drop the animated image cache: no animation backend builder call.")
+        val builder = mutableClassDefBy(factory.definingClass).methods.single {
+            it.name == builderCall.name && it.parameterTypes.map(CharSequence::toString) == builderCall.parameterTypes.map(CharSequence::toString) &&
+                it.returnType == builderCall.returnType
         }
+        val gate = builder.framePreparerGateIndex()
+            ?: throw PatchException("Drop the animated image cache: the frame preparer gate has an unreviewed shape.")
+        val gateRegister = builder.getInstruction<OneRegisterInstruction>(gate).registerA
+
+        builder.addInstruction(gate, "const/16 v$gateRegister, 0x0")
+        factory.addInstruction(strategy.resultIndex + 1, "const/16 v${strategy.register}, $KEEP_LAST_FRAME_STRATEGY")
     }
 }
 

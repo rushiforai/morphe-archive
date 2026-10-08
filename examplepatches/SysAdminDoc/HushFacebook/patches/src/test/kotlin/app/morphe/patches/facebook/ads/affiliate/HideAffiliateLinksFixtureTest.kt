@@ -16,6 +16,7 @@ import app.morphe.patches.facebook.reels.prompts.isOverlayEnum
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
@@ -32,12 +33,13 @@ import org.junit.Test
 import java.io.File
 
 /**
- * Hide affiliate product links' three anchors on every Facebook build the bundle declares: the reel
+ * Hide affiliate product links' four anchors on every Facebook build the bundle declares: the reel
  * overlay's one Z predicate in front of adding AFFILIATE_EYEBROW, the one string lookup the feed
- * video plugin's isFooterHidden… makes, and the floating card plugin's one static card reader.
- * Then the patch: every answer each of them gives goes through the extension on its own register,
- * cast back where the hook answers a wider type, and no branch skips the hook. Reads the fixture
- * bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
+ * video plugin's isFooterHidden… makes, the floating card plugin's one static card reader, and the
+ * reel overlay's one filterCtasForCategorySuppression. Then the patch: every answer each of them
+ * gives goes through the extension on its own register, cast back where the hook answers a wider
+ * type, the filter's with the list it was given beside it, and no branch skips the hook. Reads the
+ * fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class HideAffiliateLinksFixtureTest {
     private fun Method.code(): List<Instruction> = implementation!!.instructions.toList()
@@ -93,8 +95,39 @@ class HideAffiliateLinksFixtureTest {
         }
     }
 
+    /**
+     * Checks that each of the CTA filter's returns in [patched] reads what [KEEP_REEL_CTAS] answered
+     * for the register it was about to return and the untouched list in [list].
+     */
+    private fun assertCtaFiltered(name: String, original: List<Instruction>, patched: List<Instruction>, list: Int) {
+        val returns = original.filter { it.opcode == Opcode.RETURN_OBJECT }.map { (it as OneRegisterInstruction).registerA }
+        assertTrue("$name: never returns", returns.isNotEmpty())
+        assertTrue("$name: v$list, the list, is written", original.none { writesRegister(it, list) })
+        assertEquals("$name: 2 instructions in front of each return", original.size + 2 * returns.size, patched.size)
+        val patchedReturns = patched.withIndex().filter { it.value.opcode == Opcode.RETURN_OBJECT }.map { it.index }
+        assertEquals("$name: returns", returns.size, patchedReturns.size)
+        val injected = mutableSetOf<Int>()
+        for ((at, answer) in patchedReturns.zip(returns)) {
+            val call = patched[at - 2]
+            assertEquals("$name: the call before return v$answer", Opcode.INVOKE_STATIC, call.opcode)
+            assertEquals("$name: the call before return v$answer", KEEP_REEL_CTAS, ((call as ReferenceInstruction).reference as MethodReference).toString())
+            call as FiveRegisterInstruction
+            assertEquals("$name: two registers handed over", 2, call.registerCount)
+            assertEquals("$name: the answer handed over", answer, call.registerC)
+            assertEquals("$name: the full list handed over", list, call.registerD)
+            val result = patched[at - 1]
+            assertEquals("$name: the extension's answer", Opcode.MOVE_RESULT_OBJECT, result.opcode)
+            assertEquals("$name: the extension's answer lands where the return reads it", answer, (result as OneRegisterInstruction).registerA)
+            assertEquals("$name: the return", answer, (patched[at] as OneRegisterInstruction).registerA)
+            injected += listOf(at - 1, at)
+        }
+        for ((branch, target) in branchTargets(patched)) {
+            assertTrue("$name: the branch at $branch skips the extension", target !in injected)
+        }
+    }
+
     @Test
-    fun `each declared build has the three anchors once, and every answer goes through the extension`() {
+    fun `each declared build has the four anchors once, and every answer goes through the extension`() {
         val checked = mutableSetOf<String>()
         for ((version, bundles) in declaredBundles()) {
             for (bundle in bundles) {
@@ -118,10 +151,18 @@ class HideAffiliateLinksFixtureTest {
                 val footerIds = footerChecks.flatMap { footerIdCalls(it) }.map { it.toString() }.toSet()
                 assertEquals("$name: string lookups in $FOOTER_HIDDEN…", 1, footerIds.size)
 
+                val ctaFilters = FixtureDex.methodsWhere(bundle, dexFilter = { dex ->
+                    dex.methodSection.any { it.name == CTA_FILTER }
+                }) { isCtaFilter(it) }
+                assertEquals("$name: $CTA_FILTER($LIST$SET)$LIST", 1, ctaFilters.size)
+                val ctaFilter = ctaFilters.single()
+                val list = ctaListRegister(ctaFilter)
+                assertEquals("$name: the list is the filter's first parameter", ctaFilter.implementation!!.registerCount - 2, list)
+
                 val reelCheck = builders.flatMap { reelCardChecks(it, eyebrow!!) }.first()
                 val footerId = footerChecks.flatMap { footerIdCalls(it) }.first()
                 val types = (builders + footerChecks).map { it.definingClass }.toSet() +
-                    setOf(reelCheck.definingClass, footerId.definingClass, FLOATING_CARD_PLUGIN)
+                    setOf(reelCheck.definingClass, footerId.definingClass, FLOATING_CARD_PLUGIN, ctaFilter.definingClass)
                 val classes = FixtureDex.classes(bundle, types)
                 assertEquals("$name: classes read", types, classes.keys)
                 val plugin = classes.getValue(FLOATING_CARD_PLUGIN)
@@ -130,7 +171,7 @@ class HideAffiliateLinksFixtureTest {
 
                 fun original(reference: MethodReference) = classes.getValue(reference.definingClass).methods
                     .single { MethodUtil.methodSignaturesMatch(it, reference) }.code()
-                val originals = listOf(original(reelCheck), original(footerId), readers.single().code())
+                val originals = listOf(original(reelCheck), original(footerId), readers.single().code(), original(ctaFilter))
 
                 val context = PatchContexts.of(listOf(overlay) + classes.values + ExtensionDex.classDef(SETTINGS_STATUS))
                 hideAffiliateLinksPatch.execute(context)
@@ -140,6 +181,7 @@ class HideAffiliateLinksFixtureTest {
                 assertFiltered("$name reel card check", originals[0], patched(reelCheck), KEEP_REEL_CARD, null)
                 assertFiltered("$name footer id", originals[1], patched(footerId), KEEP_FOOTER, null)
                 assertFiltered("$name comment card", originals[2], patched(readers.single()), KEEP_COMMENT_CARD, readers.single().returnType)
+                assertCtaFiltered("$name CTA filter", originals[3], patched(ctaFilter), list)
 
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "affiliateLinks" }
                 assertEquals("$name: SettingsStatus.affiliateLinks() isn't switched on", 1,

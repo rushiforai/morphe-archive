@@ -20,4 +20,9 @@ public final class HdrBrightnessForTests {
     public static boolean holdsTheHeadroom() {
         return HdrBrightness.headroom(4f) == HdrBrightness.NO_HEADROOM;
     }
+
+    /** Whether the screen answers Facebook's questions as one that shows no HDR. */
+    public static boolean answersTheScreenAsShowingNoHdr() {
+        return HdrBrightness.holdsScreen();
+    }
 }

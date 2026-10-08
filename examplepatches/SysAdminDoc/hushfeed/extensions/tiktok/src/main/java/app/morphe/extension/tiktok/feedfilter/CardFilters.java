@@ -41,6 +41,15 @@ public final class CardFilters {
     }
 
     /**
+     * The Lemon8 install promo card is never asked for. Its request is the Lemon8 handler's
+     * answer to the card-insert round, and an empty answer is the app's own "nothing to insert".
+     * It rides Remove feed ads, like the same card's list filter in AdsFilter.
+     */
+    public static boolean shouldSkipLemon8PromoRequest() {
+        return Settings.REMOVE_ADS.get();
+    }
+
+    /**
      * TikTok locks scrolling until a short drama advert has counted down. It asks whether
      * the item is a blocking advert; answering no releases the scroll.
      */

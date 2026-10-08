@@ -78,12 +78,12 @@ internal fun renameApp(manifest: Document, name: String): Int {
     return launchers
 }
 
-private fun Element.isLauncherEntry(): Boolean =
+internal fun Element.isLauncherEntry(): Boolean =
     getElementsByTagName("intent-filter").elements().any { filter ->
         "android.intent.action.MAIN" in filter.getElementsByTagName("action").names() &&
             "android.intent.category.LAUNCHER" in filter.getElementsByTagName("category").names()
     }
 
-private fun NodeList.elements(): List<Element> = (0 until length).mapNotNull { item(it) as? Element }
+internal fun NodeList.elements(): List<Element> = (0 until length).mapNotNull { item(it) as? Element }
 
 private fun NodeList.names(): Set<String> = elements().mapTo(mutableSetOf()) { it.getAttribute("android:name") }

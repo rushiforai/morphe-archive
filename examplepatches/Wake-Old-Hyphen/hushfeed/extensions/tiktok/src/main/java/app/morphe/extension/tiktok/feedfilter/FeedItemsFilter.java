@@ -67,6 +67,8 @@ public final class FeedItemsFilter {
     private static final AdvancedFeedRules.UnpersonalizedForYouFilter UNPERSONALIZED_FILTER =
         new AdvancedFeedRules.UnpersonalizedForYouFilter();
     static final String UNPERSONALIZED_REASON = "UnpersonalizedForYouFilter";
+    /** The AI filter's reason; the item log names the signal that caught it next to this. */
+    static final String AI_REASON = "AiGeneratedFilter";
     /** The For You batch's distribute sources, counted while the unpersonalized rule is on. */
     static final String FOR_YOU_DISTRIBUTION_SOURCE = "ForYouDistribution";
     static final String KEPT_WHOLE_KIND = "batches kept whole";
@@ -725,44 +727,88 @@ public final class FeedItemsFilter {
      * consumer reads that list straight off the field, so it is filtered where the response
      * is built rather than at any one delivery point.
      */
-    @SuppressWarnings({"rawtypes", "unchecked"})
     public static void filterFriendsFeed(Object response) {
+        filterFriendsList(response, "friendFeedData", "FriendsFeedResponse", false);
+    }
+
+    /** The Friends V3 feed's route in the filter report. */
+    static final String FRIENDS_V3_SOURCE = "FriendsV3FeedResponse";
+
+    /**
+     * The Friends tab's V3 feed, as FriendsV3FeedNetworkSource starts handling a response off
+     * the wire. Its {@code friendsV3Feeds} entries are FriendsV3FeedModel, which has the same
+     * {@code aweme} and {@code roomStruct} fields as the older wrapper; a repost carries its
+     * video in {@code repostItem.repostedAweme} instead. The handler runs once per response,
+     * so this route is counted in the filter report.
+     */
+    public static void filterFriendsV3Feed(Object response) {
+        filterFriendsList(response, "friendsV3Feeds", FRIENDS_V3_SOURCE, true);
+    }
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private static void filterFriendsList(Object response, String listField, String source, boolean count) {
         try {
             if (response == null) return;
 
+            Object raw = Reflect.readField(response, listField);
+            if (count) FeedFilterCounters.sawList(source, raw instanceof List ? ((List) raw).size() : 0);
+
             List<IFilter> activeFilters = getActiveFilters(CONTENT_FILTERS);
             boolean hideLive = Settings.HIDE_LIVE.get();
-            if (activeFilters.isEmpty() && !hideLive) return;
+            boolean mutualsOnly = Settings.FRIENDS_MUTUALS_ONLY.get();
+            if (activeFilters.isEmpty() && !hideLive && !mutualsOnly) return;
 
-            Object raw = Reflect.readField(response, "friendFeedData");
             if (!(raw instanceof List)) return;
             List items = (List) raw;
             if (items.isEmpty()) return;
 
+            String ownId = mutualsOnly ? SignedInUser.id() : null;
             ArrayList kept = new ArrayList(items.size());
             Map<String, Integer> reasonCounts = BaseSettings.DEBUG.get() ? new HashMap<>() : null;
+            String lastReason = null;
             for (Object entry : items) {
-                String reason = friendsFeedReason(entry, activeFilters, hideLive);
+                String reason = mutualsOnly && !FriendsMutuals.fromMutual(entry, ownId)
+                        ? FriendsMutuals.REASON
+                        : friendsFeedReason(entry, activeFilters, hideLive);
                 if (reason == null) {
                     kept.add(entry);
                 } else {
+                    lastReason = reason;
                     incrementReason(reasonCounts, reason);
+                    if (AI_REASON.equals(reason) && reasonCounts != null) {
+                        Aweme aweme = friendsEntryAweme(entry);
+                        final String signal = ContentMarkerFilters.aiSignal(aweme);
+                        final String aid = aweme == null ? null : aweme.getAid();
+                        Logger.printInfo(() -> "[Morphe TikTok FeedFilter] " + source + " aid=" + aid
+                            + " aiSignal=" + signal + " => FILTER(" + AI_REASON + ")");
+                    }
                 }
             }
             if (kept.size() == items.size()) return;
 
-            Field field = Reflect.field(response.getClass(), "friendFeedData");
+            Field field = Reflect.field(response.getClass(), listField);
             if (field == null) return;
             field.set(response, kept);
+            if (count) FeedFilterCounters.removed(source, items.size() - kept.size(), lastReason);
 
             final int before = items.size();
             final int after = kept.size();
             final String reasons = reasonCounts == null ? "" : " reasons=" + reasonCounts;
-            Logger.printInfo(() -> "[Morphe TikTok FeedFilter] filter(FriendsFeedResponse): size "
+            Logger.printInfo(() -> "[Morphe TikTok FeedFilter] filter(" + source + "): size "
                 + before + " -> " + after + " (removed=" + (before - after) + ")" + reasons);
         } catch (Throwable throwable) {
             Logger.printException(() -> "Could not filter the Friends feed", throwable);
         }
+    }
+
+    /** The video a Friends tab entry shows: its own, or the one a friend reposted. */
+    static Aweme friendsEntryAweme(Object entry) {
+        if (entry == null) return null;
+        Object aweme = Reflect.readField(entry, "aweme");
+        if (aweme instanceof Aweme) return (Aweme) aweme;
+        Object repost = Reflect.readField(entry, "repostItem");
+        aweme = Reflect.readField(repost, "repostedAweme");
+        return aweme instanceof Aweme ? (Aweme) aweme : null;
     }
 
     /** Why a Friends tab entry is dropped, or null to keep it. */
@@ -774,9 +820,9 @@ public final class FeedItemsFilter {
         // the room itself for a LIVE that is selling (#46).
         if (room != null && Settings.HIDE_SHOP.get() && ShopFilter.roomSells(room)) return "ShopFilter";
 
-        Object aweme = Reflect.readField(entry, "aweme");
-        if (!(aweme instanceof Aweme)) return null;
-        return getFilterReason(activeFilters, (Aweme) aweme);
+        Aweme aweme = friendsEntryAweme(entry);
+        if (aweme == null) return null;
+        return getFilterReason(activeFilters, aweme);
     }
 
     public static List filterLateInsertedAds(String source, List items) {
@@ -1460,6 +1506,7 @@ public final class FeedItemsFilter {
                 + " playCount=" + playCount
                 + " likeCount=" + likeCount
                 + " shareUrl=" + (finalShareUrl == null ? "null" : "\"" + finalShareUrl + "\"")
+                + (AI_REASON.equals(reason) ? " aiSignal=" + ContentMarkerFilters.aiSignal(item) : "")
                 + " => " + (reason == null ? "KEEP" : "FILTER(" + reason + ")");
         });
     }

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -51,7 +52,20 @@ final class VideoDownloads {
         return withCaptions ? QualitySelector.chooseForFile(video, (List<?>) rates, "highest") : null;
     }
 
+    /** With the already-saved check on every video Download is this save's, and so is its cover. */
+    static boolean savesTheCover() {
+        return Settings.CHECK_SAVED_VIDEOS.get();
+    }
+
     static boolean start(Object aweme, Context context) {
+        return start(aweme, context, true);
+    }
+
+    /**
+     * {@code withCover} is false for a story's save, which goes through here too and has never
+     * made a cover.
+     */
+    static boolean start(Object aweme, Context context, boolean withCover) {
         if (context == null) return false;
         if (android.os.Build.VERSION.SDK_INT < 29
                 && context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
@@ -62,11 +76,16 @@ final class VideoDownloads {
         String quality = Settings.DOWNLOAD_VIDEO_QUALITY.get();
         boolean muted = Settings.DOWNLOAD_WITHOUT_SOUND.get();
         boolean withDetails = Settings.DOWNLOAD_DETAILS.get();
+        boolean detailsAsJson = Settings.DOWNLOAD_DETAILS_JSON.get();
+        boolean withTags = Settings.DOWNLOAD_TAGS.get();
         boolean checkSaved = Settings.CHECK_SAVED_VIDEOS.get();
         // Read as the save is accepted: a forget in settings while it runs leaves it unrecorded.
         long archiveGeneration = SavedVideoArchive.generation();
         boolean showProgress = Settings.DOWNLOAD_PROGRESS.get();
-        boolean extras = withDetails || checkSaved || showProgress;
+        boolean stampedFallback = stampedFallbackWanted();
+        // TikTok's own save has no second try, so a fallback to the stamped copy needs the save
+        // here.
+        boolean extras = withDetails || withTags || checkSaved || showProgress || stampedFallback;
         // Photo posts can carry a video model too. Quality, mute and subtitle choices must
         // not intercept their save before OriginalPhotos or TikTok's still/live-photo job.
         if (Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo") != null) return false;
@@ -83,6 +102,7 @@ final class VideoDownloads {
             selectedUrls = automaticUrls(video);
         }
         List<String> videoUrls = List.copyOf(selectedUrls);
+        List<String> stampedUrls = stampedFallback ? stampedFallbackUrls(video, videoUrls) : Collections.emptyList();
         boolean dash = selected != null && Boolean.TRUE.equals(Reflect.invoke(video, "hasDashBitrate"));
         List<String> audioUrls = dash ? List.copyOf(audioUrls(video, selected)) : Collections.emptyList();
         boolean unavailable = videoUrls.isEmpty() || (dash && !muted && audioUrls.isEmpty());
@@ -101,7 +121,9 @@ final class VideoDownloads {
         if (id == null) return false;
         Context app = context.getApplicationContext();
         String name, path;
-        DownloadDetails details = withDetails ? new DownloadDetails(aweme) : null;
+        DownloadDetails facts = withDetails || withTags ? new DownloadDetails(aweme, detailsAsJson) : null;
+        DownloadDetails details = withDetails ? facts : null;
+        Map<String, String> tags = withTags ? Mp4Tags.of(facts) : Collections.emptyMap();
         try {
             name = DownloadFilenameFormatter.formatSelectedVideoName(aweme);
             String destination = DownloadFilenameFormatter.destinationPath(aweme, false);
@@ -162,36 +184,56 @@ final class VideoDownloads {
             int[] subtitles = {0};
             boolean[] soundSkipped = {false};
             boolean[] remembered = {!checkSaved};
+            boolean[] stamped = {false};
             try {
                 SaveProgress.Outcome outcome = progress.run(index -> {
                     if (index == 0) {
                         try {
                             picture[0] = temp(app, temporary);
-                            RemoteMedia.fetch(videoUrls, picture[0], RemoteMedia.Kind.VIDEO, progress::transfer);
-                            progress.transfer(0, -1);
+                            // Whether the picture and the sound are separate files to be put
+                            // together. TikTok's stamped copy is one file with both in it.
+                            boolean separate = dash;
+                            try {
+                                RemoteMedia.fetch(videoUrls, picture[0], RemoteMedia.Kind.VIDEO, progress::transfer);
+                                progress.transfer(0, -1);
+                                if (dash && !muted) {
+                                    // The sound is a separate stream here and the save is not
+                                    // finished without it, so a failure to fetch it fails the whole thing.
+                                    sound[0] = temp(app, temporary);
+                                    RemoteMedia.fetch(audioUrls, sound[0], RemoteMedia.Kind.VIDEO);
+                                }
+                            } catch (MediaBudget.StopException stop) {
+                                // A cancel, or out of time or space, is the save's answer.
+                                throw stop;
+                            } catch (IOException clean) {
+                                if (stampedUrls.isEmpty()) throw clean;
+                                Logger.printException(() -> "The clean video couldn't be fetched, so TikTok's watermarked copy is saved instead", clean);
+                                sound[0] = null;
+                                RemoteMedia.fetch(stampedUrls, picture[0], RemoteMedia.Kind.VIDEO, progress::transfer);
+                                progress.transfer(0, -1);
+                                separate = false;
+                                stamped[0] = true;
+                            }
                             File result = picture[0];
-                            if (dash && !muted) {
-                                // The sound is a separate stream here and the save is not
-                                // finished without it, so a failure to fetch it fails the whole thing.
-                                sound[0] = temp(app, temporary);
-                                RemoteMedia.fetch(audioUrls, sound[0], RemoteMedia.Kind.VIDEO);
+                            if (separate && !muted) {
                                 result = temp(app, temporary);
                                 TrackMuxer.combine(picture[0], sound[0], result);
-                            } else if (dash && AudioDownloads.enabled() && !audioUrls.isEmpty()) {
+                            } else if (separate && AudioDownloads.enabled() && !audioUrls.isEmpty()) {
                                 // Muted, but the sound is wanted beside it as an .m4a. That is a
                                 // second file, so losing it is not a reason to lose the video as well.
                                 try {
-                                    File separate = temp(app, temporary);
-                                    RemoteMedia.fetch(audioUrls, separate, RemoteMedia.Kind.VIDEO);
-                                    sound[0] = separate;
+                                    File soundFile = temp(app, temporary);
+                                    RemoteMedia.fetch(audioUrls, soundFile, RemoteMedia.Kind.VIDEO);
+                                    sound[0] = soundFile;
                                 } catch (IOException | RuntimeException exception) {
                                     Logger.printException(() -> "Could not fetch the sound to save beside a muted video", exception);
                                 }
-                            } else if (!dash && muted) {
+                            } else if (!separate && muted) {
                                 // One file with both tracks in it, so the picture is copied out on its own.
                                 result = temp(app, temporary);
                                 TrackMuxer.videoOnly(picture[0], result);
                             }
+                            if (!tags.isEmpty()) result = tagged(app, temporary, result, tags);
                             published[0] = MediaFileWriter.publishForResult(app, result, name, "video/mp4", path, true);
                         } catch (IOException | RuntimeException failure) {
                             progress.stop();
@@ -233,9 +275,14 @@ final class VideoDownloads {
                     // since they name the tracks that came; the count for anything else.
                     String own = subtitleResult(captionSnapshot.size(), subtitles[0], path);
                     if (details != null) own = L10n.f("Video and details saved to %1$s", path);
+                    // Said over everything else, since it's not the file that was asked for.
+                    if (stamped[0]) own = L10n.f("The video without the watermark couldn't be fetched, so TikTok's watermarked copy was saved to %1$s. Try again later for the clean copy.", path);
                     boolean onlyTracks = details == null && outcome.cancelled == 0
                             && outcome.stop == SaveProgress.Stop.NONE && !soundSkipped[0];
-                    SaveNotice.saved(onlyTracks ? own : SaveProgress.message(outcome, own), published[0]);
+                    String said = onlyTracks ? own : SaveProgress.message(outcome, own);
+                    SaveNotice.saved(said, published[0]);
+                    // A count took the banner, so the watermark is said on its own.
+                    if (stamped[0] && !said.equals(own)) Utils.showToastLong(own);
                     if (!remembered[0]) Utils.showToastLong(L10n.t("The video was saved, but its record couldn't be updated. A later save may make another copy."));
                 }
             } catch (RuntimeException exception) {
@@ -249,6 +296,7 @@ final class VideoDownloads {
         // held for this second job, which lets go when it ends, or at once when the line is full.
         Runnable saveAgain = () -> {
             ASKING.remove(id);
+            if (withCover) CoverSaver.beside(app, aweme);
             SaveProgress again = SaveProgress.queued(files, showProgress);
             again.submit("video", key, () -> save.accept(again), release);
             again.acknowledge(null, L10n.t("Waiting to save video"));
@@ -273,6 +321,7 @@ final class VideoDownloads {
                     Utils.showToastLong(L10n.t("The already-saved check failed. Try again."));
                     return;
                 }
+                if (withCover) Utils.runOnMainThread(() -> CoverSaver.beside(app, aweme));
             }
             save.accept(first);
         }, () -> {
@@ -303,6 +352,24 @@ final class VideoDownloads {
         return file;
     }
 
+    /**
+     * The video with its details written in, or the same file when they can't be. The tags are a
+     * nicety, so a file this can't rewrite is still saved, just without them.
+     */
+    private static File tagged(Context context, List<File> files, File video, Map<String, String> tags) throws IOException {
+        try {
+            File withTags = temp(context, files);
+            if (Mp4Tags.write(video, withTags, tags)) return withTags;
+            Logger.printInfo(() -> "Saved the video without tags: its layout isn't one they can be written into");
+        } catch (MediaBudget.StopException stop) {
+            // Out of time or space is the save's answer, not the tags'.
+            throw stop;
+        } catch (IOException | RuntimeException exception) {
+            Logger.printException(() -> "Could not write the video's tags, so it's saved without them", exception);
+        }
+        return video;
+    }
+
     /** Every address the video itself can be fetched from, best first. */
     /**
      * Automatic, taken over for a switch like details or progress, keeps to the file TikTok's
@@ -313,6 +380,27 @@ final class VideoDownloads {
         if (DownloadsPatch.shouldRemoveWatermark()) return sourceUrls(video);
         List<String> stamped = urls(Reflect.property(video, "getDownloadAddr", "downloadAddr"));
         return stamped.isEmpty() ? sourceUrls(video) : stamped;
+    }
+
+    /**
+     * The stamped copy as a fallback is for a save that asked for the clean one. With Remove
+     * watermark off a failed fetch of a picked quality isn't a missing clean file, and the notice
+     * would blame the watermark for it.
+     */
+    static boolean stampedFallbackWanted() {
+        return Settings.DOWNLOAD_WATERMARK_FALLBACK.get() && DownloadsPatch.shouldRemoveWatermark();
+    }
+
+    /**
+     * TikTok's stamped copy, for when the clean file can't be fetched: the addresses of
+     * {@code downloadAddr} that the clean save isn't already trying. Remove watermark only ever
+     * fills {@code downloadNoWatermarkAddr}, so this one stays TikTok's own. Empty when the save
+     * is the stamped copy already, as Automatic is with Remove watermark off.
+     */
+    static List<String> stampedFallbackUrls(Object video, List<String> clean) {
+        List<String> stamped = new ArrayList<>(urls(Reflect.property(video, "getDownloadAddr", "downloadAddr")));
+        stamped.removeAll(clean);
+        return List.copyOf(stamped);
     }
 
     static List<String> sourceUrls(Object video) {

@@ -11,7 +11,9 @@
     standard input the way git supplies them. Run scripts/install-hooks.ps1 once to wire it up.
 
     Only what changed is checked: runtime tests when extension or patch sources, or the root files
-    those tests read, move, and the release facts when a published file moves. A move counts at
+    those tests read, move, and the release facts when a published file moves. A change to the
+    patch sources also has the bundle applied to each declared Facebook build in
+    HUSHFACEBOOK_FIXTURE_DIR and what it injected held to the dex checks. A move counts at
     both ends, the path it left and the one it took. The one check every push gets is a scan of
     every commit it publishes for tracked files that name the maintainer's machine or a phone.
     Set HUSHFACEBOOK_SKIP_PRE_PUSH=1 to push anyway.
@@ -502,6 +504,13 @@ try {
     $touchesInjectedRegisterVerifier = @($paths | Where-Object {
         $_ -in $injectedRegisterVerifierPaths
     }).Count -gt 0
+    # The patch sources, which decide what the bundle injects into Facebook. Only a patch run on a
+    # real build shows what Morphe's inline compiler made of a patch's smali: given
+    # invoke-static { p2 } in a method of more than 16 registers it drops the call without a word and
+    # keeps the move-result after it, and the app fails verification on a phone (Hide tab badges on
+    # 581's Htc badge writer). The runtime tests run each patch on the classes its own fixture test
+    # picks, and caught that only because the one test happened to read the call back.
+    $touchesInjectedCode = @($paths | Where-Object { $_ -like 'patches/src/main/*' }).Count -gt 0
     $resourceTableCheckPaths = @(
         'scripts/MergeSplits.java',
         'scripts/ResourceTableCheck.java',
@@ -723,6 +732,65 @@ try {
         # Dependency overrides need the actual settings and UTP classpaths before the smoke
         # check. Ordinary payload edits retain the smaller test/lint gate.
         if ($touchesToolingClasspaths) { $tasks += ':patches:releaseTooling' }
+        # The bundle the fixtures are patched with below: the jar in build/libs, which the desktop
+        # CLI loads as it is. The patch tests rerun it anyway; named here, it's there whatever they do.
+        if ($touchesInjectedCode) { $tasks += ':patches:jar' }
+
+        # Each declared Facebook build the fixture folder holds, patched with every patch in the
+        # bundle the build above left in patches/build/libs and put through verify-all-patches.ps1:
+        # the CLI's report, the manifest delta and the resource table, then the injected code against
+        # Meta's, where a move-result that follows no invoke or filled-new-array fails naming its
+        # class and method. The fixtures and the CLI aren't in the repository, so without them this
+        # says it didn't run, as the fixture tests skip.
+        function Invoke-PatchedFixtureCheck([string]$GateRoot) {
+            $fixtureDir = $env:HUSHFACEBOOK_FIXTURE_DIR
+            $desktopJar = Resolve-DesktopCli -Root $GateRoot
+            if (-not $fixtureDir -or -not $desktopJar) {
+                Write-Step ('patch sources changed, but HUSHFACEBOOK_FIXTURE_DIR or the Morphe desktop CLI is not set, ' +
+                    'so the bundle was not applied to the Facebook fixtures')
+                return
+            }
+            if (-not (Test-Path -LiteralPath $fixtureDir -PathType Container)) {
+                throw "HUSHFACEBOOK_FIXTURE_DIR names $fixtureDir, which is not a folder."
+            }
+            if (-not (Test-Path -LiteralPath (Join-Path $GateRoot 'scripts/verify-all-patches.ps1') -PathType Leaf)) {
+                throw 'scripts/verify-all-patches.ps1 is missing from the commit being pushed. The gate expects it, so the push stops.'
+            }
+            $bundle = Join-Path $GateRoot "patches/build/libs/patches-$(Get-BundleVersion -Root $GateRoot).mpp"
+            if (-not (Test-Path -LiteralPath $bundle -PathType Leaf)) {
+                throw "The runtime test build left no bundle at $bundle to apply to the fixtures."
+            }
+            $catalog = Get-Content -LiteralPath (Join-Path $GateRoot 'patches-list.json') -Raw | ConvertFrom-Json
+            $versions = @($catalog.patches | ForEach-Object { $_.compatibility } |
+                Where-Object { $_.packageName -eq 'com.facebook.katana' } | ForEach-Object { $_.targets } |
+                ForEach-Object { [string]$_.version } | Where-Object { $_ } | Sort-Object -Unique)
+            if ($versions.Count -eq 0) { throw 'patches-list.json declares no Facebook build to apply the bundle to.' }
+            $work = Join-Path ([System.IO.Path]::GetTempPath()) ('hushfacebook-patched-fixtures-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+            $failed = @()
+            foreach ($version in $versions) {
+                # The version's bundles, or its APKs when it has no bundle: 581 has an arm64 and an
+                # armeabi-v7a bundle, both declared. A declared version with no fixture would pass by
+                # not being looked at, and verify-all-patches.ps1 refuses a build the bundle doesn't
+                # declare.
+                $fixtures = @(Select-FixtureBuild -Folder $fixtureDir -Version $version)
+                if ($fixtures.Count -eq 0) {
+                    throw "HUSHFACEBOOK_FIXTURE_DIR holds no fixture of Facebook $version, a build the bundle declares."
+                }
+                foreach ($fixture in $fixtures) {
+                    Write-Step "applying every patch to $($fixture.Name) and checking what it injected"
+                    $global:LASTEXITCODE = 0
+                    Invoke-CommitScript -Script (Join-Path $GateRoot 'scripts/verify-all-patches.ps1') -Arguments @{
+                        Apk = $fixture.FullName; DesktopJar = $desktopJar; WorkDir = (Join-Path $work $fixture.BaseName); Bundle = $bundle }
+                    if ($LASTEXITCODE -ne 0) { $failed += $fixture.Name }
+                }
+            }
+            if ($failed.Count -gt 0) {
+                throw ("The bundle failed on $($failed -join ', '). Read the [verify] and [diff] lines above; a " +
+                    "result finding is a move-result that follows no invoke, as when Morphe drops a plain invoke of a " +
+                    "register past v15, which invoke-static/range fixes. The reports are in $work.")
+            }
+            Remove-Item -LiteralPath $work -Recurse -Force -ErrorAction SilentlyContinue
+        }
         # HUSHFACEBOOK_BUILD_WRAPPER names a PowerShell script that runs Gradle on this machine,
         # called as <wrapper> -ProjectDir <repository> -Tasks <task>...: a machine that shares its
         # CPU and memory between several builds points it at a governor. Unset, the Gradle
@@ -770,6 +838,7 @@ try {
                     }
                     if ($LASTEXITCODE -ne 0) { throw 'The tooling classpath compatibility check did not pass.' }
                 }
+                if ($touchesInjectedCode) { Invoke-PatchedFixtureCheck -GateRoot $gateRoot }
                 } finally {
                     if ($gateRoot -eq $Root) { Assert-TreeUnchanged 'the runtime test build' }
                 }

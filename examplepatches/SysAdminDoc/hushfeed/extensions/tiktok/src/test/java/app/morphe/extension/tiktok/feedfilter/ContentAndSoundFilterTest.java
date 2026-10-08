@@ -68,6 +68,60 @@ public class ContentAndSoundFilterTest {
         assertTrue(markers[0].getFiltered(item));
     }
 
+    /**
+     * The signals kveld9 and ReVanced read besides the visible label, each on its own, and the
+     * same structs left empty the way TikTok attaches them to ordinary posts.
+     */
+    @Test public void everyAiSignalMatchesAloneAndItsEmptyStructDoesNot() {
+        Item ordinary = new Item();
+        ordinary.aigcInfo = new Aigc(0, false);
+        ordinary.moderationAigcInfo = new Moderation(0, 0);
+        ordinary.c2paInfo = new C2pa("", " ", null);
+        ordinary.aiAliveInfo = new Alive("", null);
+        ordinary.aiRemixInfo = new Task(" ", "");
+        ordinary.aiPortraitInfo = new Task(null, null);
+        ordinary.anchors = List.of(new Anchor("anchor_shop"), new Anchor(null));
+        ordinary.textExtra = List.of(new Tag("aitutorial"), new Tag("fyp"));
+        ordinary.desc = "Trying the new #airfryer #aiden_fan and #a i";
+        assertNull(ContentMarkerFilters.aiSignal(ordinary));
+        assertFalse(markers[0].getFiltered(ordinary));
+
+        Object[][] cases = {
+                {"created by AI", (java.util.function.Consumer<Item>) i -> i.aigcInfo = new Aigc(0, true)},
+                {"moderation", (java.util.function.Consumer<Item>) i -> {
+                    Moderation guided = new Moderation(0, 0);
+                    guided.creatorGuidanceStatus = 1;
+                    i.moderationAigcInfo = guided;
+                }},
+                {"moderation", (java.util.function.Consumer<Item>) i -> {
+                    Moderation segment = new Moderation(0, 0);
+                    segment.moderationCreatorSegment = "short_drama_AIGC";
+                    i.moderationAigcInfo = segment;
+                }},
+                {"content credentials", (java.util.function.Consumer<Item>) i -> i.c2paInfo = new C2pa("", "", "openai")},
+                {"content credentials", (java.util.function.Consumer<Item>) i -> i.c2paInfo = new C2pa("dalle", null, null)},
+                {"AI Alive", (java.util.function.Consumer<Item>) i -> i.aiAliveInfo = new Alive("ai_alive_v2", null)},
+                {"AI Alive", (java.util.function.Consumer<Item>) i -> i.aiAliveInfo = new Alive(null, "Make it move")},
+                {"AI remix", (java.util.function.Consumer<Item>) i -> i.aiRemixInfo = new Task("7421", null)},
+                {"AI portrait", (java.util.function.Consumer<Item>) i -> i.aiPortraitInfo = new Task(null, "p-9")},
+                {"AI effect anchor", (java.util.function.Consumer<Item>) i -> i.anchors = List.of(new Anchor("anchor_shop"), new Anchor("anchor_aigc_avatar"))},
+                {"hashtag", (java.util.function.Consumer<Item>) i -> i.textExtra = List.of(new Tag("fyp"), new Tag("AIGenerated"))},
+                {"hashtag", (java.util.function.Consumer<Item>) i -> i.desc = "sunset over the bay #fyp #AI"},
+        };
+        Settings.HIDE_AI_GENERATED.save(true);
+        for (Object[] row : cases) {
+            Item item = new Item();
+            @SuppressWarnings("unchecked")
+            java.util.function.Consumer<Item> mark = (java.util.function.Consumer<Item>) row[1];
+            mark.accept(item);
+            assertEquals(row[0], ContentMarkerFilters.aiSignal(item));
+            assertTrue(markers[0].getFiltered(item));
+        }
+        assertTrue("each match is counted under its signal", String.join("\n",
+                app.morphe.extension.shared.diagnostics.FeedFilterCounters.report())
+                .contains(ContentMarkerFilters.AI_SIGNALS_SOURCE + ": "));
+    }
+
     @Test public void partnershipRequiresAccountsOrAnActualCommerceSignal() {
         Item item = new Item();
         item.brandContentAccounts = List.of();
@@ -268,6 +322,46 @@ public class ContentAndSoundFilterTest {
         public String commercialVideoInfo;
         public boolean isPaidContent;
         public Object mPaidContentInfo, mixInfo, playlist_info, author, music;
+        public Object c2paInfo, aiAliveInfo, aiRemixInfo, aiPortraitInfo, aiTheaterInfo, aiChatEditorInfo;
+        public List<Object> anchors, textExtra;
+        public String desc;
+    }
+    /** TikTok's AIGCInfo: the label type has a getter, createByAI is a field. */
+    private static final class Aigc {
+        private final int labelType;
+        final boolean createByAI;
+        Aigc(int labelType, boolean createByAI) { this.labelType = labelType; this.createByAI = createByAI; }
+        public int getAIGCLabelType() { return labelType; }
+    }
+    /** TikTok's C2PAInfo, whose sources are plain fields. */
+    private static final class C2pa {
+        final String aigcSrc, firstAigcSrc, lastAigcSrc;
+        C2pa(String aigcSrc, String firstAigcSrc, String lastAigcSrc) {
+            this.aigcSrc = aigcSrc; this.firstAigcSrc = firstAigcSrc; this.lastAigcSrc = lastAigcSrc;
+        }
+    }
+    private static final class Alive {
+        private final String modelKey, modelPrompt;
+        Alive(String modelKey, String modelPrompt) { this.modelKey = modelKey; this.modelPrompt = modelPrompt; }
+        public String getModelKey() { return modelKey; }
+        public String getModelPrompt() { return modelPrompt; }
+    }
+    /** AIRemixInfo, AIPortraitInfo and the other AI effect structs. */
+    private static final class Task {
+        private final String taskId, promptId;
+        Task(String taskId, String promptId) { this.taskId = taskId; this.promptId = promptId; }
+        public String getTaskId() { return taskId; }
+        public String getPromptId() { return promptId; }
+    }
+    private static final class Anchor {
+        private final String componentKey;
+        Anchor(String componentKey) { this.componentKey = componentKey; }
+        public String getComponentKey() { return componentKey; }
+    }
+    private static final class Tag {
+        private final String name;
+        Tag(String name) { this.name = name; }
+        public String getHashTagName() { return name; }
     }
     private static final class Label {
         private final int value;
@@ -335,6 +429,8 @@ public class ContentAndSoundFilterTest {
     private static final class Moderation {
         int moderationAigcLabelType;
         int moderationUserLabelStatus;
+        int creatorGuidanceStatus;
+        String moderationCreatorSegment;
 
         Moderation(int labelType, int userLabelStatus) {
             this.moderationAigcLabelType = labelType;

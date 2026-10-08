@@ -1,3 +1,9 @@
+## [1.0.14](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.13...v1.0.14) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* submenus now show only on customizations menu ([ae3b31c](https://github.com/rhubarbshoelaces/morphe-patches/commit/ae3b31cfe1d9081b5e4dc18eea7f68f60c7544d8))
+
 ## [1.0.13](https://github.com/rhubarbshoelaces/morphe-patches/compare/v1.0.12...v1.0.13) (2026-10-06)
 
 ### 🐛 Bug Fixes

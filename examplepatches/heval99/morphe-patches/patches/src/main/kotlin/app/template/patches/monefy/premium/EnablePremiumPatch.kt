@@ -13,13 +13,13 @@ val enablePremiumPatch = bytecodePatch(
 
     execute {
         // Master check: pro app id or cached purchase.
-        MasterProFingerprint.methodOrNull?.returnEarly(true)
+        MasterProFingerprint.method.returnEarly(true)
 
         // Cached purchase flag itself (read directly by the main activity).
-        ProBoughtFingerprint.methodOrNull?.returnEarly(true)
+        ProBoughtFingerprint.method.returnEarly(true)
 
         // RevenueCat can mark the subscription expired on every sync; treat it as never
         // expired so premium is not revoked client-side.
-        SubscriptionExpiredFingerprint.methodOrNull?.returnEarly(false)
+        SubscriptionExpiredFingerprint.method.returnEarly(false)
     }
 }

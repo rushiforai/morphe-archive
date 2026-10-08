@@ -408,5 +408,42 @@ private fun gmsCoreSupportResourcePatch() =
                     }
                 }
             }
+
+            // Bundle official phenotype baseline assets into APK assets
+            val phenotypeAssets = listOf(
+                "com.google.android.apps.photos.phenotype.xml",
+                "phenotype_account_file.xml",
+            )
+            for (name in phenotypeAssets) {
+                val stream = object {}.javaClass.classLoader.getResourceAsStream("app/morphe/patches/googlephotos/phenotype/$name")
+                if (stream != null) {
+                    val target = this["assets/phenotype/$name", false]
+                    target.parentFile?.mkdirs()
+                    stream.use { input ->
+                        target.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                }
+            }
+
+            // Bundle authentic Google Sans font assets into APK assets
+            val fontAssets = listOf(
+                "Google_Sans_Text-Bold.ttf",
+                "Google_Sans_Text-Medium.ttf",
+                "Google_Sans_Text-Regular.ttf",
+            )
+            for (name in fontAssets) {
+                val stream = object {}.javaClass.classLoader.getResourceAsStream("app/morphe/patches/googlephotos/fonts/$name")
+                if (stream != null) {
+                    val target = this["assets/fonts/$name", false]
+                    target.parentFile?.mkdirs()
+                    stream.use { input ->
+                        target.outputStream().use { output ->
+                            input.copyTo(output)
+                        }
+                    }
+                }
+            }
         }
     }

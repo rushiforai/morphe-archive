@@ -1,0 +1,153 @@
+/*
+ * Forked from:
+ * https://github.com/ArunTS96/FroggoMorphePatches/blob/319cde236e373ff8feb66fa30e99028e3d9dff6e/patches/src/main/kotlin/app/froggo/patches/facebook/ads/Facebook573AdsPatch.kt
+ * Copyright 2026 T.s. Arun (GPL-3.0).
+ *
+ * Modified for Hushfacebook (Facebook), 2026: only the Following feed swap of its
+ * fix/following-feed-home branch is taken. The builder is found by a literal it keeps instead of
+ * 573's obfuscated names, the feed types by the names they keep, and the swap is the extension's,
+ * behind a switch.
+ */
+package app.morphe.patches.facebook.feed.followinghome
+
+import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
+import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.feed.holdsString
+import app.morphe.patches.facebook.feed.methodsHolding
+import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.facebookExtensionPatch
+import app.morphe.patches.facebook.misc.extension.requireLocals
+import app.morphe.patches.facebook.misc.extension.requireStatusMethod
+import app.morphe.patches.facebook.misc.settings.settingsPatch
+import app.morphe.patches.shared.compat.AppCompatibilities
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
+
+private const val PATCH = "Following feed on Home"
+
+/** The trace section the news feed parameter builder opens before it sets the feed's style. */
+internal const val PAGED_NEWSFEED_PARAMS = "Companion.setPagedNewsfeedParams"
+
+/** Facebook's feed type. Redex keeps the name, and each feed type's own name. */
+internal const val HOME_FEED_TYPE_CLASS = "Lcom/facebook/api/feedtype/FeedType;"
+
+/** The name Home's ranked feed type keeps, the one the extension swaps. */
+internal const val HOME_FEED = "top_stories"
+
+/** The name the Following feed's type keeps, the one it's swapped for. */
+internal const val FOLLOWING_FEED = "following_feed"
+
+internal const val FOLLOWING_HOME = "$EXTENSION_PACKAGE/feed/FollowingHome;"
+internal const val FEED_TYPE_ASKED = "$FOLLOWING_HOME->feedType(Ljava/lang/Object;)Ljava/lang/Object;"
+
+/**
+ * Has Home ask for Facebook's Following feed instead of the ranked one.
+ *
+ * Facebook's NewsFeedQueryParamsPreparer builds every news feed request's parameters, and one of
+ * its static helpers, handed the feed type second, sets the query's feed style from it: FOLLOWING_FEED
+ * for the Following feed's type, MOST_RECENT_FEED_DEFAULT, FAVORITES_FEED and the rest for the Feeds
+ * tab's, and Home's own ordering for Home's. It's the one method that opens the
+ * "Companion.setPagedNewsfeedParams" trace section (581 `LX/1bb;->A02`, 580 `LX/1SU;->A02`, 577
+ * `LX/3JX;->A02`), and the preparer's prepare method is its one caller. Every later read of the feed
+ * type in it, the call it ends on included, reads the parameter, so a feed type put there first is
+ * the one the whole request is built for.
+ *
+ * The patch hands the parameter to the extension's FollowingHome first thing and keeps its answer
+ * there. While the switch is on, Home's feed type ("top_stories") comes back as the Following
+ * feed's ("following_feed"), both public constants of FeedType the extension finds by those names.
+ * Every other feed type comes back as it was.
+ *
+ * In the default selection with its switch off: it only acts once the switch is turned on.
+ */
+@Suppress("unused")
+val followingFeedHomePatch = bytecodePatch(
+    // The README table check reads this literal; PATCH carries the same text for the messages.
+    name = "Following feed on Home",
+    description = "Has Home load Facebook's Following feed instead of the ranked one. The Feeds tab's filters stay " +
+        "as they are. Its switch starts off, under Opening Facebook.",
+    default = true,
+) {
+    category("Feed")
+    dependsOn(settingsPatch, facebookExtensionPatch)
+    compatibleWith(*AppCompatibilities.facebook())
+
+    execute {
+        // Everything is found before anything changes, so a build missing one part is left as it was.
+        requireStatusMethod("followingHome")
+        val feedTypes = classDefByOrNull(HOME_FEED_TYPE_CLASS) ?: refuse("$HOME_FEED_TYPE_CLASS isn't in this APK")
+        feedTypeRefusal(feedTypes)?.let(::refuse)
+        val builder = newsFeedParamsBuilder()
+        mutableClassDefBy(builder.definingClass).methods.single { it.sameAs(builder) }.askForHomeFeed()
+        enableStatus("followingHome")
+    }
+}
+
+private fun refuse(detail: String): Nothing = throw PatchException("$PATCH: $detail")
+
+private fun Method.sameAs(other: Method) =
+    name == other.name && returnType == other.returnType &&
+        parameterTypes.map(CharSequence::toString) == other.parameterTypes.map(CharSequence::toString)
+
+/**
+ * Whether [method] is the news feed parameter builder: static, handed a feed type second, and
+ * opening the [PAGED_NEWSFEED_PARAMS] trace section.
+ */
+internal fun isNewsFeedParams(method: Method): Boolean =
+    AccessFlags.STATIC.isSet(method.accessFlags) &&
+        method.parameterTypes.getOrNull(1)?.toString() == HOME_FEED_TYPE_CLASS &&
+        holdsString(method, PAGED_NEWSFEED_PARAMS)
+
+/** The one news feed parameter builder among [holders]. Refuses unless there's exactly one. */
+internal fun newsFeedParams(holders: List<ClassDef>): Method {
+    val builders = holders.flatMap { methodsHolding(it, PAGED_NEWSFEED_PARAMS) }.filter(::isNewsFeedParams)
+    return builders.singleOrNull()
+        ?: refuse("expected one static method opening \"$PAGED_NEWSFEED_PARAMS\" with a feed type second, found ${builders.size}")
+}
+
+/**
+ * Why [feedTypes] can't answer the extension's lookup, or null when it can: its static initializer
+ * names both feed types, and every feed type it keeps as a static field is a public final one,
+ * which is what the extension reads.
+ */
+internal fun feedTypeRefusal(feedTypes: ClassDef): String? {
+    val initializer = feedTypes.methods.singleOrNull { it.name == "<clinit>" }
+        ?: return "$HOME_FEED_TYPE_CLASS has no static initializer"
+    listOf(HOME_FEED, FOLLOWING_FEED).firstOrNull { !holdsString(initializer, it) }
+        ?.let { return "$HOME_FEED_TYPE_CLASS names no \"$it\" feed type" }
+    val hidden = feedTypes.staticFields.filter { it.type == HOME_FEED_TYPE_CLASS }.filterNot {
+        AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.FINAL.isSet(it.accessFlags)
+    }
+    if (hidden.isNotEmpty()) return "$HOME_FEED_TYPE_CLASS keeps feed types the extension can't read: ${hidden.joinToString { it.name }}"
+    return null
+}
+
+/**
+ * First thing in the builder: hand the feed type to the extension and keep its answer, cast back
+ * to a FeedType, in the parameter's register, where every later read finds it. The parameter can
+ * sit past v15, so it's moved through v0 both ways.
+ */
+internal fun MutableMethod.askForHomeFeed() {
+    requireLocals(PATCH, 1)
+    addInstructions(
+        0,
+        """
+            move-object/from16 v0, p1
+            invoke-static { v0 }, $FEED_TYPE_ASKED
+            move-result-object v0
+            check-cast v0, $HOME_FEED_TYPE_CLASS
+            move-object/from16 p1, v0
+        """,
+    )
+}
+
+/** The builder [newsFeedParams] finds in this APK. */
+internal fun BytecodePatchContext.newsFeedParamsBuilder(): Method = newsFeedParams(
+    classDefByStrings(PAGED_NEWSFEED_PARAMS, StringComparisonType.EQUALS).filterNot { it.type.startsWith(EXTENSION_CLASSES) },
+)

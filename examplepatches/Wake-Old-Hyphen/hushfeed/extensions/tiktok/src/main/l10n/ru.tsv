@@ -623,7 +623,7 @@ Hide the whole column on the right, from the avatar down to the music disc.	Ск
 Hide this creator on this phone	Скрывать этого автора на этом телефоне
 Hide verified accounts	Скрывать верифицированные аккаунты
 Hide video actions	Скрывать действия под видео
-Hide videos carrying TikTok's AI-generated label.	Скрывать видео с пометкой TikTok о создании ИИ.
+Hide videos with TikTok's AI-generated label, AI content credentials, a TikTok AI effect such as AI Alive, or a tag like #ai or #aigenerated.	Скрывать видео с пометкой TikTok о создании ИИ, ИИ-метаданными C2PA, ИИ-эффектом TikTok вроде AI Alive или хештегом вроде #ai или #aigenerated.
 Hide videos marked as paid partnership or branded content.	Скрывать видео с пометкой «платное партнёрство» или «контент от бренда».
 Hide videos posted as part of a playlist.	Скрывать видео, опубликованные в составе плейлиста.
 Hide videos posted by verified accounts.	Скрывать видео от верифицированных аккаунтов.
@@ -1624,7 +1624,7 @@ LIVE followers range	Диапазон подписчиков авторов LIVE
 Show only LIVEs from creators with this many followers.	Показывать только трансляции авторов с таким количеством подписчиков.
 Hide the comment bar on opened videos	Скрывать строку комментария в открытых видео
 Hide the Clear display controls	Скрывать кнопки чистого вида
-While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.	В чистом виде также скрывать полосу прогресса, кнопку закрытия и кнопки паузы и скорости внизу. Чтобы выйти из чистого вида, нажмите на видео и удерживайте, затем выберите «Восстановить экран».
+While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.	В чистом виде также скрывать полосу прогресса, кнопку закрытия и кнопки паузы и скорости внизу. По нижнему краю по-прежнему можно провести пальцем, чтобы перемотать видео. Чтобы выйти из чистого вида, нажмите на видео и удерживайте, затем выберите «Восстановить экран».
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Убирать строку для ввода комментария под видео, открытыми из профиля, по хештегу, со страницы звука или из поиска, чтобы видео занимало экран до самого низа. Кнопка комментариев справа по-прежнему открывает комментарии.
 Build details	Сведения о сборке
 Copy or save patch-time choices and build identity.	Скопируйте или сохраните выбранные при применении патчей параметры и данные о сборке.
@@ -1681,3 +1681,29 @@ Long-press menu on every post	Меню долгого нажатия на каж
 TikTok's hold to speed up	Ускорение удержанием от TikTok
 TikTok's background play and auto-scroll	Фоновое воспроизведение и автопрокрутка от TikTok
 Post dates in the feed	Даты публикаций в ленте
+Show exact counts	Показывать точные числа
+Show counts as full numbers, like 1,234,567 instead of 1.2M.	Показывает числа полностью, например 1 234 567 вместо 1.2M.
+Play SDR instead of HDR	Воспроизводить SDR вместо HDR
+Play the standard version of videos that also come in HDR, so the screen doesn't jump to full brightness when one starts. Videos TikTok only offers in HDR still play.	Воспроизводить обычную версию видео, у которых есть и HDR, чтобы экран не вспыхивал на полную яркость при запуске. Видео, которые TikTok даёт только в HDR, по-прежнему воспроизводятся.
+Remove story rings	Убрать кольца историй
+Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Убирать кольцо истории с фото профиля в ленте, в комментариях и в профилях. Нажатие на фото открывает профиль, а не историю.
+Remove the LIVE ring	Убрать кольцо LIVE
+Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Убирать пульсирующее кольцо LIVE с фото профиля в ленте и в комментариях. Нажатие на фото автора в эфире открывает его профиль, а не LIVE.
+Writing	Написание
+Lift text length limits	Снять ограничения длины текста
+Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Комментарии, заметки к репостам и описание профиля могут быть длиннее, чем позволяет приложение TikTok. Серверы TikTok всё равно могут отклонить длинный текст.
+Show only mutual friends on the Friends tab	Показывать во вкладке «Друзья» только взаимных друзей
+On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.	Во вкладке «Друзья» скрывать публикации, репосты и LIVE аккаунтов без взаимной подписки, в том числе рекомендованных. Ваши собственные публикации остаются.
+Show follow status	Показывать статус подписки
+Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.	Под @именем пользователя в профиле показывать, подписан ли он на вас или не подписан в ответ. В списках подписчиков и подписок отмечаются аккаунты, на которые вы подписаны, но которые не подписаны на вас.
+Follows you	Подписан на вас
+Doesn't follow you back	Не подписан в ответ
+Copy bio and IDs	Копировать био и ID
+Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID.	Нажмите и удерживайте био, чтобы скопировать его. В меню «Поделиться» профиля появляются кнопки для копирования имени пользователя и ID пользователя, а в меню видео кнопка для копирования ID видео.
+Bio copied	Био скопировано
+Username copied	Имя пользователя скопировано
+User ID copied	ID пользователя скопирован
+Video ID copied	ID видео скопирован
+Copy username	Копировать имя пользователя
+Copy user ID	Копировать ID пользователя
+Copy video ID	Копировать ID видео

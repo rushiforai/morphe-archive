@@ -271,6 +271,42 @@ Voice messages in the music player	Pesan suara di pemutar musik
 While a voice message plays, tapping the bar above the chat opens Telegram's full music player with its seek bar, instead of jumping to the message. View-once voice messages stay as they are. Off by default in settings.	Saat pesan suara diputar, mengetuk bilah di atas obrolan membuka pemutar musik lengkap Telegram dengan bilah geser, bukan melompat ke pesannya. Pesan suara sekali dengar tetap seperti semula. Nonaktif secara default di pengaturan.
 Silence people outside your contacts	Senyapkan orang di luar kontak Anda
 A private message from someone who isn't in your contacts still shows a notification, just without sound or vibration. Bots, reminders and Telegram's login codes keep their sound. Off by default in settings.	Pesan pribadi dari orang yang tidak ada di kontak Anda tetap menampilkan notifikasi, hanya tanpa suara atau getaran. Bot, pengingat, dan kode masuk Telegram tetap bersuara. Nonaktif secara default di pengaturan.
+Disable pull to archive	Nonaktifkan tarik ke arsip
+Pulling down the chat list no longer brings up a hidden archive. You can open it from Archived chats in the chat list's menu, or pin it to keep it in the list. Off by default in settings.	Menarik daftar obrolan ke bawah tidak lagi memunculkan arsip yang tersembunyi. Anda bisa membukanya dari Obrolan yang diarsipkan di menu daftar obrolan, atau menyematkannya agar tetap ada di daftar. Nonaktif secara default di pengaturan.
+Start the camera on the rear lens	Mulai kamera dengan lensa belakang
+The camera in the attachment menu starts on the rear lens every time you open it, instead of the lens you used last. You can still flip it while it's open. Off by default in settings.	Kamera di menu lampiran selalu dimulai dengan lensa belakang, bukan lensa yang terakhir Anda pakai. Anda tetap bisa membaliknya saat kamera terbuka. Nonaktif secara default di pengaturan.
+Hide gallery camera tile	Sembunyikan kotak kamera galeri
+The photo grid in the attachment menu starts with your photos instead of a live camera tile. A chat picks it up the next time you open it. Off by default in settings.	Kisi foto di menu lampiran dimulai dengan foto Anda, bukan kotak kamera langsung. Sebuah obrolan menerapkannya saat Anda membukanya lagi. Nonaktif secara default di pengaturan.
+Hide time on stickers	Sembunyikan waktu pada stiker
+Stickers and big animated emoji no longer carry the time and read checks in their corner. Every other message keeps its time. Off by default in settings.	Stiker dan emoji animasi besar tidak lagi menampilkan waktu dan tanda centang baca di sudutnya. Pesan lain tetap menampilkan waktunya. Nonaktif secara default di pengaturan.
+Ignore mentions in muted chats	Abaikan sebutan di obrolan yang dibisukan
+Telegram still notifies you when someone mentions you or replies to you in a group or channel you've muted. With this on, those stay as quiet as the rest of the chat. Chats you haven't muted notify as before. Off by default in settings.	Telegram tetap memberi tahu Anda saat seseorang menyebut atau membalas Anda di grup atau kanal yang Anda bisukan. Jika ini aktif, notifikasi itu ikut senyap seperti isi obrolan lainnya. Obrolan yang tidak Anda bisukan tetap memberi notifikasi seperti biasa. Nonaktif secara default di pengaturan.
+Hide blocked users in groups	Sembunyikan pengguna yang diblokir di grup
+Messages from people you've blocked are left out of the groups and supergroups you open. Private chats and channel posts stay as they are. Nothing is deleted, so turning it off and reopening the chat brings them back. Telegram loads a long blocked list a bit at a time, so someone it hasn't loaded yet still shows. Off by default in settings.	Pesan dari orang yang Anda blokir tidak ditampilkan di grup dan supergrup yang Anda buka. Obrolan pribadi dan postingan kanal tetap seperti biasa. Tidak ada yang dihapus, jadi mematikannya lalu membuka ulang obrolan akan memunculkannya lagi. Telegram memuat daftar blokir yang panjang sedikit demi sedikit, jadi orang yang belum dimuat tetap terlihat. Nonaktif secara default di pengaturan.
+Hide Telegram Features and Invite Friends	Sembunyikan Fitur Telegram dan Undang Teman
+Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	Pengaturan tidak lagi menampilkan baris Fitur Telegram dan Kontak tidak lagi menampilkan Undang Teman. Jika Anda belum punya kontak, daftar undangan yang muncul di Kontak sebagai gantinya juga hilang. Nonaktif secara default di pengaturan.
+Add Repeat to the message menu	Tambahkan Ulangi ke menu pesan
+Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Menaruh Ulangi di bawah Teruskan pada menu yang Anda buka dengan menekan lama sebuah pesan. Pesan itu dikirim lagi ke obrolan yang sama sebagai pesan baru dari Anda. Hanya muncul jika Telegram menawarkan Teruskan dan Anda bisa menulis, jadi tidak pernah di obrolan terlindungi atau rahasia. Nonaktif secara default di pengaturan.
+Add Copy photo to the message menu	Tambahkan Salin foto ke menu pesan
+Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Menaruh Salin foto di bawah Teruskan pada menu yang Anda buka dengan menekan lama sebuah foto, setelah foto itu terunduh. Gambarnya sendiri yang disalin, jadi Anda bisa menempelkannya di aplikasi lain. Tidak muncul di obrolan terlindungi atau rahasia. Nonaktif secara default di pengaturan.
+Add Message details to the message menu	Tambahkan Detail pesan ke menu pesan
+Puts Message details at the end of a message's long-press menu. It shows the message's IDs, when it was sent and edited, where it was forwarded from and the file's data center and size, with a Copy button. Off by default in settings.	Menaruh Detail pesan di akhir menu yang Anda buka dengan menekan lama sebuah pesan. Menampilkan ID pesan, kapan dikirim dan diedit, dari mana diteruskan, serta pusat data dan ukuran file, dengan tombol Salin. Nonaktif secara default di pengaturan.
+Repeat	Ulangi
+Copy photo	Salin foto
+Photo copied	Foto disalin
+Message details	Detail pesan
+Message ID: %1$s	ID pesan: %1$s
+Chat ID: %1$s	ID obrolan: %1$s
+Sender ID: %1$s	ID pengirim: %1$s
+Sent: %1$s	Dikirim: %1$s
+Edited: %1$s	Diedit: %1$s
+Forwarded from: %1$s	Diteruskan dari: %1$s
+Original sender ID: %1$s	ID pengirim asli: %1$s
+Originally sent: %1$s	Awalnya dikirim: %1$s
+File data center: %1$s	Pusat data file: %1$s
+File size: %1$s	Ukuran file: %1$s
+Copy	Salin
+Message details copied	Detail pesan disalin
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Notifikasi
@@ -299,6 +335,8 @@ Show user and chat IDs	Tampilkan ID pengguna dan chat
 Disable double-tap reactions	Nonaktifkan reaksi ketuk dua kali
 Pastes text without Telegram's HTML, table or monospace conversion. Whitespace and URLs stay intact. Other clipboard actions stay available. Off by default in settings.	Menempel teks tanpa konversi HTML, tabel, atau monospace Telegram. Spasi dan URL tetap utuh. Tindakan papan klip lainnya tetap tersedia. Nonaktif secara default di pengaturan.
 Shows a copyable local user or chat ID in the inspected profile's menu. Access hashes stay hidden. No server request is added. Off by default in settings.	Menampilkan ID pengguna atau chat lokal yang dapat disalin di menu profil yang dibuka. Hash akses tetap tersembunyi. Tidak menambah permintaan server. Nonaktif secara default di pengaturan.
+Show profile data center	Tampilkan pusat data profil
+A profile's menu also shows which of Telegram's data centers, 1 to 5, holds the profile photo. A profile without a photo shows none, and no server request is added. Off by default in settings.	Menu profil juga menampilkan pusat data Telegram, 1 sampai 5, tempat foto profil disimpan. Profil tanpa foto tidak menampilkannya, dan tidak ada permintaan server tambahan. Nonaktif secara default di pengaturan.
 Double taps don't add reactions in chats or the reaction-settings preview. Scrolling, taps, selection and explicit reaction menus stay as they are. Off by default in settings.	Ketuk dua kali tidak menambahkan reaksi di chat atau pratinjau reaksi. Menggulir, mengetuk, memilih, dan menu reaksi tetap seperti biasa. Nonaktif secara default di pengaturan.
 compose text paste	tempel teks saat menulis
 caption text paste	tempel teks keterangan
@@ -311,3 +349,6 @@ Copy user ID %1$s	Salin ID pengguna %1$s
 Copy chat ID %1$s	Salin ID chat %1$s
 ID	ID
 ID copied	ID disalin
+Data center %1$s	Pusat data %1$s
+Copy data center %1$s	Salin pusat data %1$s
+Data center copied	Pusat data disalin

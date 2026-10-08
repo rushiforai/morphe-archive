@@ -6,6 +6,7 @@ import org.ungoogled.patches.maps.ui.SHAPES
 import org.ungoogled.patches.maps.ui.sharedExtensionPatch
 import org.ungoogled.patches.shared.Constants.COMPATIBILITY_MAPS
 import org.ungoogled.patches.shared.replaceBlockAtLabel
+import org.ungoogled.patches.maps.microg.MicrogSelection
 
 private const val TOAST_TEXT = "Can't sign in"
 
@@ -25,17 +26,15 @@ private const val TOAST_TEXT = "Can't sign in"
  * neighbouring row's code instead of the toast. The new body is placed AT the
  * case label and returns; the old one is left behind it, unreachable.
  */
-@Suppress("unused")
-val profileToastPatch = bytecodePatch(
-    name = "Your profile toast",
+internal val profileToastPatch = bytecodePatch(
     description = "Tapping \"Your profile\" shows a \"Can't sign in\" toast instead of opening nothing.",
-    default = true,
 ) {
     compatibleWith(COMPATIBILITY_MAPS)
     // Shapes.SKIP_DISMISS: with Keep account sheet open, the sheet stays up behind the toast.
     dependsOn(sharedExtensionPatch)
 
     execute {
+        if (MicrogSelection.replaces(this, "Remove sign-in prompts")) return@execute
         // Modern builder: 10 real instructions, this row's whole case.
         ProfileClickModernFingerprint.let { fp ->
             val matches = fp.instructionMatches

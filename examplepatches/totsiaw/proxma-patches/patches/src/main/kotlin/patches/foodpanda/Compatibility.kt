@@ -16,8 +16,9 @@ internal val COMPATIBILITY_FOODPANDA = Compatibility(
     signatures = emptySet(),
     targets = listOf(
         AppTarget(
+            // Actual APK manifest: minSdkVersion 29, targetSdk 36.
             version = "26.38.1",
-            minSdk = 32,
+            minSdk = 29,
         ),
     ),
 )

@@ -9,9 +9,12 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.tiktok.network.NetworkProxy;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
+import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.SimPresetPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.spoof.sim.SpoofSimPatch;
@@ -28,7 +31,8 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
         return SettingsStatus.simSpoofEnabled
-                || SettingsStatus.regionSpoofEnabled;
+                || SettingsStatus.regionSpoofEnabled
+                || SettingsStatus.networkProxyEnabled;
     }
 
     @Override
@@ -38,6 +42,53 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
 
     @Override
     public void addPreferences(Context context) {
+        // A bundle with only the proxy has no SIM or region rows to show: each would change nothing.
+        if (SettingsStatus.simSpoofEnabled || SettingsStatus.regionSpoofEnabled) addRegionRows(context);
+        if (SettingsStatus.networkProxyEnabled) addProxyRows(context);
+    }
+
+    /**
+     * The proxy TikTok's own traffic goes through. Every row is read once as TikTok starts, so
+     * each says a restart applies it, and each greys under the switch.
+     */
+    private void addProxyRows(Context context) {
+        addPreference(new SectionHeadingPreference(context, "Network proxy"));
+        addPreference(new TogglePreference(
+                context,
+                "Send TikTok through a proxy",
+                "Sends TikTok's own network stack, which carries the feed, search, comments and the rest of its API, "
+                        + "through the proxy below. Videos and LIVE streams load through TikTok's player, which connects "
+                        + "on its own, so they stay direct. Other apps aren't affected.",
+                Settings.NETWORK_PROXY
+        ));
+        addPreference(new ChoicePreference(context, "Proxy type", Settings.NETWORK_PROXY_TYPE,
+                new String[]{"HTTP", "SOCKS5"},
+                new String[]{NetworkProxy.TYPE_HTTP, NetworkProxy.TYPE_SOCKS5}));
+        addPreference(new InputTextPreference(
+                context,
+                "Proxy host", "The proxy's address, like 192.168.1.20 or proxy.example.com.",
+                Settings.NETWORK_PROXY_HOST
+        ).withCheck(NetworkProxy::hostProblem).withNameKeyboard());
+        addPreference(new InputTextPreference(
+                context,
+                "Proxy port", "The port the proxy listens on, like 8080 or 1080.",
+                Settings.NETWORK_PROXY_PORT
+        ).withCheck(NetworkProxy::portProblem));
+        addPreference(new InputTextPreference(
+                context,
+                "Proxy user name",
+                "Optional. TikTok's own network stack can't sign in to a proxy, so only plain Java connections use this. "
+                        + "Leave it empty for a proxy without a password.",
+                Settings.NETWORK_PROXY_USER
+        ).withNameKeyboard());
+        addPreference(new InputTextPreference(
+                context,
+                "Proxy password", "Optional, used with the user name. It isn't shown, logged or put in a backup.",
+                Settings.NETWORK_PROXY_PASSWORD
+        ).withSecret());
+    }
+
+    private void addRegionRows(Context context) {
         addPreference(new TogglePreference(
                 context,
                 "Override SIM details",
@@ -53,6 +104,8 @@ public class SimSpoofPreferenceCategory extends ConditionalPreferenceCategory {
                     "Also change the region TikTok reports internally. Keeps your interface language. Your IP address and your account's own rules still apply.", Settings.REGION_SPOOF));
             addPreference(new TogglePreference(context, "Override store region (experimental)",
                     "Use the preset for the region TikTok reports for your account and its shop too. May affect search.", Settings.REGION_STORE_SPOOF));
+            addPreference(new TogglePreference(context, "Match region fields in requests",
+                    "Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in sends your real region, apart from a few values TikTok saved as it started, which keep the preset. Your IP address and your account's own rules still apply.", Settings.REGION_REQUEST_SPOOF));
         }
         InputTextPreference countryIsoPreference = new InputTextPreference(
                 context,

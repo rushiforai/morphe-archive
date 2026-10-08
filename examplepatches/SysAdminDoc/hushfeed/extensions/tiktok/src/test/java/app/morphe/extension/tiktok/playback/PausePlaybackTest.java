@@ -8,7 +8,10 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
 import android.media.AudioManager;
+import android.net.Uri;
+import android.os.Bundle;
 import android.os.Looper;
 import android.view.View;
 import android.view.ViewGroup;
@@ -44,6 +47,7 @@ public class PausePlaybackTest {
         Utils.setContext(RuntimeEnvironment.getApplication());
         Settings.PAUSE_ON_COMMENTS.resetToDefault();
         Settings.NO_RESUME_ON_FOREGROUND.resetToDefault();
+        Settings.PAUSE_FIRST_VIDEO.resetToDefault();
         Settings.SESSION_BUDGET_VIDEOS.resetToDefault();
         Settings.SESSION_BUDGET_MINUTES.resetToDefault();
         Settings.SESSION_BUDGET_STATE.resetToDefault();
@@ -60,6 +64,7 @@ public class PausePlaybackTest {
         PausePlayback.resetForTests();
         Settings.PAUSE_ON_COMMENTS.resetToDefault();
         Settings.NO_RESUME_ON_FOREGROUND.resetToDefault();
+        Settings.PAUSE_FIRST_VIDEO.resetToDefault();
     }
 
     /**
@@ -468,6 +473,141 @@ public class PausePlaybackTest {
                     app.morphe.extension.tiktok.wellbeing.SessionLockOverlay
                             .navigationHeight(activity, root),
                     params.bottomMargin);
+        }
+    }
+
+    /** What a launcher sends for a tap on the icon. */
+    private static Intent launcher() {
+        return new Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER);
+    }
+
+    /**
+     * Opened from its icon, the feed's first video waits for one tap (#83), and only the first:
+     * coming back from another of TikTok's own screens later in the same run isn't a start.
+     */
+    @Test public void aStartFromTheLauncherHoldsTheFirstVideoUntilATapOnce() {
+        Settings.PAUSE_FIRST_VIDEO.save(true);
+        try (var feedOwner = Robolectric.buildActivity(HostActivity.class, launcher()).create();
+             var other = Robolectric.buildActivity(Activity.class)) {
+            Utils.setActivity(feedOwner.get());
+            PausePlayback.install(feedOwner.get());
+            feedOwner.start().resume().visible();
+
+            assertTrue("the first video played", PausePlayback.quietenedForTests());
+            View catcher = PausePlayback.catcherForTests();
+            assertNotNull("nothing was waiting for the tap", catcher);
+            catcher.performClick();
+            assertFalse("the tap did not start the feed", PausePlayback.quietenedForTests());
+            assertNull(PausePlayback.catcherForTests());
+
+            feedOwner.pause();
+            other.create().start().resume();
+            feedOwner.stop();
+            other.pause();
+            feedOwner.restart().resume();
+            other.stop().destroy();
+            assertNull("a later return to the feed was held as a start", PausePlayback.catcherForTests());
+            assertFalse(PausePlayback.quietenedForTests());
+        }
+    }
+
+    /** A link, a notification or a shortcut starts TikTok to open something, and that plays. */
+    @Test public void aStartThatCameToOpenSomethingIsNotHeld() {
+        Settings.PAUSE_FIRST_VIDEO.save(true);
+        Intent link = new Intent(Intent.ACTION_VIEW,
+                Uri.parse("https://www.tiktok.com/@creator_name/video/7312345678901234567"));
+        try (var feedOwner = Robolectric.buildActivity(HostActivity.class, link).create()) {
+            Utils.setActivity(feedOwner.get());
+            PausePlayback.install(feedOwner.get());
+            feedOwner.start().resume().visible();
+
+            assertFalse("a link's video was held", PausePlayback.quietenedForTests());
+            assertNull(PausePlayback.catcherForTests());
+        }
+
+        assertTrue(PausePlayback.startedFromTheLauncher(launcher()));
+        assertFalse("a shortcut with a page to open",
+                PausePlayback.startedFromTheLauncher(launcher().setData(Uri.parse("snssdk1233://search"))));
+        assertFalse("a notification's own action", PausePlayback.startedFromTheLauncher(
+                new Intent("com.ss.android.ugc.aweme.push").addCategory(Intent.CATEGORY_DEFAULT)));
+        assertFalse("ACTION_MAIN alone, without the launcher's category",
+                PausePlayback.startedFromTheLauncher(new Intent(Intent.ACTION_MAIN)));
+        assertFalse(PausePlayback.startedFromTheLauncher(null));
+        assertFalse("a notification sent as the launcher's intent, marked by TikTok's push extra",
+                PausePlayback.startedFromTheLauncher(launcher().putExtra("from_notification", true)));
+        assertFalse("a notification sent as the launcher's intent with a tab to open",
+                PausePlayback.startedFromTheLauncher(launcher().putExtra(
+                        "com.ss.android.ugc.aweme.intent.extra.EXTRA_AWEME_PUSH_TAB", "inbox")));
+        assertFalse("a reopen from Recents after Android closed TikTok",
+                PausePlayback.startedFromTheLauncher(launcher().addFlags(Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY)));
+    }
+
+    /**
+     * Android closed TikTok in the background and builds its screen again for a reopen from
+     * Recents: the intent is the launcher's from the first start, without the history flag, and
+     * the saved state is what says the reader was already watching.
+     */
+    @Test public void aScreenBuiltAgainFromSavedStateIsNotHeld() {
+        Settings.PAUSE_FIRST_VIDEO.save(true);
+        try (var feedOwner = Robolectric.buildActivity(HostActivity.class, launcher()).create(new Bundle())) {
+            Utils.setActivity(feedOwner.get());
+            PausePlayback.install(feedOwner.get(), new Bundle());
+            feedOwner.start().resume().visible();
+
+            assertFalse("a rebuilt screen was held as a start", PausePlayback.quietenedForTests());
+            assertNull(PausePlayback.catcherForTests());
+        }
+    }
+
+    @Test public void withTheFirstVideoSwitchOffAStartFromTheLauncherPlays() {
+        try (var feedOwner = Robolectric.buildActivity(HostActivity.class, launcher()).create()) {
+            Utils.setActivity(feedOwner.get());
+            PausePlayback.install(feedOwner.get());
+            feedOwner.start().resume().visible();
+
+            assertFalse(PausePlayback.quietenedForTests());
+            assertNull(PausePlayback.catcherForTests());
+        }
+    }
+
+    /**
+     * On a cold start the catcher goes up before TikTok has drawn its tab bar, so the room it
+     * leaves for the tabs is measured again as they arrive. Measured once, it covered them.
+     */
+    @Test public void theCatcherMakesRoomForATabBarDrawnAfterIt() {
+        Settings.NO_RESUME_ON_FOREGROUND.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            ViewGroup root = activity.findViewById(android.R.id.content);
+            PausePlayback.setWasAwayForTests(true);
+            PausePlayback.onForeground(activity);
+            View catcher = PausePlayback.catcherForTests();
+            assertNotNull(catcher);
+            assertEquals("no tab bar yet, so nothing to keep clear", 0,
+                    ((FrameLayout.LayoutParams) catcher.getLayoutParams()).bottomMargin);
+
+            android.widget.LinearLayout bar = new android.widget.LinearLayout(activity);
+            View home = new View(activity);
+            home.setId(0x7f0a4b89);
+            home.setSelected(true);
+            bar.addView(home, new android.widget.LinearLayout.LayoutParams(80, 60));
+            root.addView(bar, new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 60, android.view.Gravity.BOTTOM));
+            FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:omq", home.getId());
+            try {
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                root.getViewTreeObserver().dispatchOnGlobalLayout();
+
+                int tabs = app.morphe.extension.tiktok.wellbeing.SessionLockOverlay
+                        .navigationHeight(activity, root);
+                assertTrue("the fixture has no tab row to keep clear: " + tabs, tabs > 0);
+                assertNotNull("the catcher left the feed", PausePlayback.catcherForTests());
+                assertEquals("the catcher covers the tabs that arrived after it", tabs,
+                        ((FrameLayout.LayoutParams) catcher.getLayoutParams()).bottomMargin);
+            } finally {
+                FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:omq", 0);
+            }
         }
     }
 

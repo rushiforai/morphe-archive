@@ -123,7 +123,8 @@ public class FontFilePreferenceTest {
 
     /**
      * A file picked with the page open brings the way back right after Font file, ahead of the
-     * emoji switch that shares the section, not at the section's end.
+     * emoji switch that shares the section, not at the section's end. Text size leads the section in
+     * every build.
      */
     @Test
     public void aPickOnAnOpenPageBringsTheWayBackRightAfterFontFile() throws Exception {
@@ -138,7 +139,7 @@ public class FontFilePreferenceTest {
             PreferenceGroup section = page.findPreference(FontFilePreference.CHOOSE_KEY).getParent();
             List<String> keys = new ArrayList<>();
             for (int i = 0; i < section.getPreferenceCount(); i++) keys.add(section.getPreference(i).getKey());
-            assertEquals(Arrays.asList(Settings.USE_SYSTEM_FONT.key, FontFilePreference.CHOOSE_KEY,
+            assertEquals(Arrays.asList(Settings.TEXT_SIZE.key, Settings.USE_SYSTEM_FONT.key, FontFilePreference.CHOOSE_KEY,
                     FontFilePreference.PHONE_FONT_KEY, Settings.USE_SYSTEM_EMOJI.key), keys);
         }
     }

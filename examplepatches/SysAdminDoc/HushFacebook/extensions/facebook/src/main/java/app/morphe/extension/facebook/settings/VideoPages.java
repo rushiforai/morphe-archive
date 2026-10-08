@@ -16,6 +16,8 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.qualityRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.saveToRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.sendAppRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.subfolderRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.surfaceQualityRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;
 
 import android.content.Context;
@@ -107,6 +109,13 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.HIDE_REEL_SOCIAL_FOOTER,
                     L10n.t("The comment Facebook previews under a reel and the bubbles of friends who reacted. "
                             + "Open the comments to see them all.")));
+            reels.addPreference(toggle(context, Settings.HIDE_REEL_THREADS_CARDS,
+                    L10n.t("The \"Threads you might like\" card between reels, starting with the next batch Facebook "
+                            + "loads. It's off by default because it hasn't been tested on a real account yet.")));
+            reels.addPreference(toggle(context, Settings.REEL_CLEAN_MODE,
+                    L10n.t("Reels and videos open in Facebook's Clean mode, with the buttons down the side hidden. "
+                            + "You can still leave Clean mode on a video the usual way. It's off by default because "
+                            + "it hasn't been tested on a real account yet.")));
         }
         if (build.contains(PatchFamily.REEL_WATCH_HISTORY)) {
             reels.addPreference(toggle(context, Settings.DONT_SEND_REEL_WATCH_HISTORY,
@@ -121,11 +130,21 @@ final class VideoPages {
             reels.addPreference(toggle(context, Settings.KEEP_REEL_SPEED,
                     L10n.t("A playback speed you pick in a reel's menu stays for the next reels until you pick another "
                             + "or Facebook restarts. Off, every reel starts at normal speed.")));
+            reels.addPreference(toggle(context, Settings.KEEP_VIDEO_SPEED,
+                    L10n.t("A playback speed you pick in a feed or Watch video's gear menu stays for the next videos "
+                            + "until you pick another or Facebook restarts. Reels keep their own speed. It's off by "
+                            + "default because it hasn't been tested on a real account yet.")));
+            reels.addPreference(toggle(context, Settings.SLOWER_REEL_SPEEDS,
+                    L10n.t("The Reels speed menu and the gear menu on feed and Watch videos also offer 0.1x and 0.25x, "
+                            + "for a detail that goes by too fast.")));
         }
         if (build.contains(PatchFamily.REEL_HOLD)) {
             reels.addPreference(toggle(context, Settings.HOLD_REEL_FOR_2X,
                     L10n.t("Holding a reel plays it at double speed until you let go, in place of Facebook's long-press "
                             + "menu. The reel's more button still opens that menu.")));
+            reels.addPreference(toggle(context, Settings.HOLD_REEL_RIGHT_EDGE,
+                    L10n.t("With the switch above on, only a hold on the right third of a reel plays it at double "
+                            + "speed. Hold anywhere else and Facebook does what it always does, usually its long-press menu.")));
         }
         if (build.contains(PatchFamily.REEL_DOWNLOAD)) {
             reels.addPreference(toggle(context, Settings.DOWNLOAD_REELS,
@@ -138,11 +157,14 @@ final class VideoPages {
             Set<PatchFamily> build) {
         if (build.contains(PatchFamily.TAP_TO_PLAY) || build.contains(PatchFamily.RESUME_LONG_VIDEOS)
                 || build.contains(PatchFamily.PLAYBACK_QUALITY) || build.contains(PatchFamily.PICTURE_IN_PICTURE)
-                || build.contains(PatchFamily.HDR_BRIGHTNESS)) {
+                || build.contains(PatchFamily.HDR_BRIGHTNESS) || build.contains(PatchFamily.PROGRESS_BAR)) {
             PreferenceCategory playback = category(screen, L10n.t("Playback"));
             if (build.contains(PatchFamily.TAP_TO_PLAY)) {
                 playback.addPreference(toggle(context, Settings.TAP_TO_PLAY,
                         L10n.t("Videos, reels, stories and music wait for your tap. Facebook's Autoplay setting temporarily reads Off.")));
+                playback.addPreference(toggle(context, Settings.TAP_TO_PLAY_REELS_AFTER_FIRST,
+                        L10n.t("With the switch above on, once you play a reel, the reels you swipe to after it play on their own. "
+                                + "Back in Reels later, the first reel waits again. The feed, Watch and stories always wait.")));
             }
             if (build.contains(PatchFamily.RESUME_LONG_VIDEOS)) {
                 playback.addPreference(toggle(context, Settings.RESUME_LONG_VIDEOS,
@@ -152,16 +174,23 @@ final class VideoPages {
                 playback.addPreference(toggle(context, Settings.DEFAULT_PLAYBACK_QUALITY,
                         L10n.t("Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.")));
                 playback.addPreference(playbackQualityRow(context));
+                playback.addPreference(surfaceQualityRow(context, true));
+                playback.addPreference(surfaceQualityRow(context, false));
             }
             if (build.contains(PatchFamily.PICTURE_IN_PICTURE)) {
                 playback.addPreference(toggle(context, Settings.PICTURE_IN_PICTURE,
-                        L10n.t("A playing reel keeps going in a small window when you leave Facebook. Android 12 or later.")));
+                        L10n.t("A playing reel or full-screen video keeps going in a small window when you leave Facebook. Android 12 or later.")));
             }
             if (build.contains(PatchFamily.HDR_BRIGHTNESS)) {
                 // Asked as each screen comes to the front, so a change shows from the next one.
                 playback.addPreference(toggle(context, Settings.TURN_OFF_HDR_BRIGHTNESS,
                         L10n.t("HDR videos and photos stay at your screen's usual brightness instead of turning it up to "
                                 + "full. They keep their resolution.")));
+            }
+            if (build.contains(PatchFamily.PROGRESS_BAR)) {
+                playback.addPreference(toggle(context, Settings.KEEP_PROGRESS_BAR,
+                        L10n.t("A reel's progress bar stays full size, ready to drag. A full-screen video's controls "
+                                + "stay until you tap.")));
             }
         }
     }
@@ -178,10 +207,14 @@ final class VideoPages {
             if (build.contains(PatchFamily.VIDEO_DOWNLOAD)) {
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_VIDEOS,
                         L10n.t("Add Download to phone to feed and Watch video menus. Uses the quality below. Off or paused, Facebook's menu returns.")));
+                downloads.addPreference(toggle(context, Settings.CLIPBOARD_DOWNLOAD,
+                        L10n.t("With Download feed and Watch videos on, coming back to Facebook with a reel or video link copied offers to download it, once per link. Off, Facebook doesn't look at what you copied.")));
             }
             if (build.contains(PatchFamily.PHOTO_DOWNLOAD)) {
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_PHOTOS,
                         L10n.t("Shows Save photo on every photo you open, even where the poster turned saving off, and saves the biggest size where your downloads go. Off or paused, Facebook decides again.")));
+                downloads.addPreference(toggle(context, Settings.POST_MENU_PHOTO_SAVE,
+                        L10n.t("With Save any photo on, a post with photos gets Save photo in its three-dot menu too. A post with several saves each one, one after another.")));
             }
             // Every save reads it, a story's and a reel's as much as a feed video's, so it's here
             // whichever download patch is in, above the quality it keeps within.
@@ -199,6 +232,9 @@ final class VideoPages {
                 downloads.addPreference(downloadActionRow(context));
                 downloads.addPreference(sendAppRow(context));
             }
+            // Last, so the names stay next to the folder and what Download does stays under them.
+            downloads.addPreference(subfolderRow(context, true));
+            if (build.contains(PatchFamily.PHOTO_DOWNLOAD)) downloads.addPreference(subfolderRow(context, false));
             return downloads;
         }
         return null;

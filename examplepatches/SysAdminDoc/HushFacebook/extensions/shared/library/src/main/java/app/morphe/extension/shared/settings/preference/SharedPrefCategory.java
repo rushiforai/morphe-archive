@@ -38,7 +38,13 @@ public class SharedPrefCategory {
 
     public SharedPrefCategory(@NonNull String name) {
         this.name = Objects.requireNonNull(name);
-        preferences = Objects.requireNonNull(Utils.getContext()).getSharedPreferences(name, Context.MODE_PRIVATE);
+        Context context = Objects.requireNonNull(Utils.getContext());
+        // Android's first load of a file in a save's .bak window deletes the half-written file and renames
+        // the copy over it, which loses that save. Only the main process saves, so every other process
+        // reads the file itself and never opens it as SharedPreferences.
+        preferences = Utils.isMainProcess()
+                ? context.getSharedPreferences(name, Context.MODE_PRIVATE)
+                : new ReadOnlyPreferences(context, name);
     }
 
     private void removeConflictingPreferenceKeyValue(@NonNull String key) {

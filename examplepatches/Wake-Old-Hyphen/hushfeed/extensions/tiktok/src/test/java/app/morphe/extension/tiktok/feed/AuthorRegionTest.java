@@ -581,7 +581,96 @@ public class AuthorRegionTest {
     }
 
     /**
-     * A detail page started with no feed behind it (a share link) is hooked from its own onCreate.
+     * Opening the feed's own video from the creator's grid strips the feed row, and coming back
+     * neither lays the feed out again nor changes the video, so the country has to be put back
+     * when the hook returns.
+     */
+    @Test
+    public void aFeedComingBackFromADetailPageGetsItsCountryBackWithoutALayout() throws Exception {
+        Method reset = CurrentVideoAuthor.class.getDeclaredMethod("resetForTests");
+        reset.setAccessible(true);
+        reset.invoke(null);
+        Settings.SHOW_AUTHOR_HANDLE.save(false);
+        Settings.SHOW_AUTHOR_REGION.save(true);
+        try (ActivityController<MainActivity> feed = Robolectric.buildActivity(MainActivity.class).setup().visible()) {
+            LinearLayout row = feedRow("aittaac");
+            feed.get().setContentView(row);
+            Utils.setContext(feed.get());
+            AuthorRegion.install(feed.get());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            play(new Clip("feed", "aittaac", "aittaac", "AZ"));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            layOut(row.getRootView());
+            row.getViewTreeObserver().dispatchOnGlobalLayout();
+            assertEquals("aittaac · AZ", ((TextView) row.getChildAt(0)).getText().toString());
+
+            feed.pause();
+            try (ActivityController<DetailActivity> detail = Robolectric.buildActivity(DetailActivity.class).setup().visible()) {
+                detail.get().setContentView(feedRow("aittaac"));
+                AuthorRegion.install(detail.get());
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertEquals("aittaac", ((TextView) row.getChildAt(0)).getText().toString());
+                detail.pause();
+                detail.get().finish();
+            }
+            feed.resume();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            assertEquals("aittaac · AZ", ((TextView) row.getChildAt(0)).getText().toString());
+        } finally {
+            AuthorRegion.restore();
+            Settings.SHOW_AUTHOR_HANDLE.resetToDefault();
+            Settings.SHOW_AUTHOR_REGION.resetToDefault();
+            reset.invoke(null);
+        }
+    }
+
+    /**
+     * Back pressed within a frame of opening a video: the detail page's posted install runs after
+     * it has finished and the feed has resumed. It must leave the feed's row and hook alone.
+     */
+    @Test
+    public void aDetailInstallLandingAfterTheUserWentBackLeavesTheFeedDecorated() throws Exception {
+        Method reset = CurrentVideoAuthor.class.getDeclaredMethod("resetForTests");
+        reset.setAccessible(true);
+        reset.invoke(null);
+        Settings.SHOW_AUTHOR_HANDLE.save(false);
+        Settings.SHOW_AUTHOR_REGION.save(true);
+        try (ActivityController<MainActivity> feed = Robolectric.buildActivity(MainActivity.class).setup().visible()) {
+            LinearLayout row = feedRow("aittaac");
+            feed.get().setContentView(row);
+            Utils.setContext(feed.get());
+            AuthorRegion.install(feed.get());
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            play(new Clip("feed", "aittaac", "aittaac", "AZ"));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            layOut(row.getRootView());
+            row.getViewTreeObserver().dispatchOnGlobalLayout();
+            assertEquals("aittaac · AZ", ((TextView) row.getChildAt(0)).getText().toString());
+
+            feed.pause();
+            try (ActivityController<DetailActivity> detail = Robolectric.buildActivity(DetailActivity.class).create().start()) {
+                AuthorRegion.install(detail.get());
+                detail.get().finish();
+                feed.resume();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+            }
+
+            assertEquals("aittaac · AZ", ((TextView) row.getChildAt(0)).getText().toString());
+            ((TextView) row.getChildAt(0)).setText("aittaac");
+            row.getViewTreeObserver().dispatchOnGlobalLayout();
+            assertEquals("the feed's hook went with the detail page",
+                    "aittaac · AZ", ((TextView) row.getChildAt(0)).getText().toString());
+        } finally {
+            AuthorRegion.restore();
+            Settings.SHOW_AUTHOR_HANDLE.resetToDefault();
+            Settings.SHOW_AUTHOR_REGION.resetToDefault();
+            reset.invoke(null);
+        }
+    }
+
+    /**
+     * A detail page started with no feed behind it (a video restored after the process was killed) is hooked from its own onCreate.
      * It lays out while the feed's video is still the current one, and its own video starting is
      * what puts the right country on it.
      */

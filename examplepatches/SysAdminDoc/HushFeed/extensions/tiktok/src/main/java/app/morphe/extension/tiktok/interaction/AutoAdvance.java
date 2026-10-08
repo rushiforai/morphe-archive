@@ -18,6 +18,7 @@ import app.morphe.extension.tiktok.blockauthor.BlockAuthorOverlay;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.wellbeing.FeedLock;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -59,6 +60,25 @@ public final class AutoAdvance {
     }
 
     /**
+     * TikTok's search_auto_scroll flag, read where search decides whether its results feed gets
+     * auto scroll and which state that starts in. The feed runs the same component as For You, so
+     * once the flag lets it exist the hooks below start and stop it like any other. With either
+     * switch off, or Hushfeed paused, the server's answer goes through unchanged.
+     */
+    public static int searchFlag(int nativeValue) {
+        try {
+            return searchForced() ? 1 : nativeValue;
+        } catch (Throwable error) {
+            Logger.printException(() -> "Could not read the search auto-advance switch", error);
+            return nativeValue;
+        }
+    }
+
+    private static boolean searchForced() {
+        return Settings.AUTO_ADVANCE.get() && Settings.AUTO_ADVANCE_SEARCH.get();
+    }
+
+    /**
      * Answers the load strategy the host records beside its auto scroll component. TikTok
      * registers that component lazily, so nothing builds it until somebody opens the video panel
      * and asks for Auto scroll by hand. On a cold start with this setting already on, none of the
@@ -97,6 +117,40 @@ public final class AutoAdvance {
     public static void onResume(Object component) {
         WeakReference<Object> owner = new WeakReference<>(component);
         MAIN.post(() -> update(owner.get()));
+        watchRestore(component);
+    }
+
+    /** The component's page coming back, where the host runs the same search restore. */
+    public static void onPageResume(Object component) {
+        watchRestore(component);
+    }
+
+    /**
+     * On a search page the host hands every new or resumed component the state search last
+     * remembered, and a START there starts the component on its own. The flag answer above is
+     * what lets it remember at all, so a scroll Hushfeed started and left running on one page
+     * starts again by itself on the next one. Nothing of Hushfeed's started that one, so it was
+     * never owned, and the limit, the hold and the shared video check all passed it by. Leaving
+     * that read at the server's answer isn't the way out: it then says STOP on every resume and
+     * the host turns a running search scroll off each time. So the state is read here, before
+     * the host's restore runs, and a component that went from STOP to running in that one step
+     * is claimed as Hushfeed's.
+     */
+    private static void watchRestore(Object component) {
+        Control control = CONTROLS.get(component);
+        if (control == null) return;
+        try {
+            if (!control.armRestore(searchForced(), readState(component))) return;
+        } catch (RuntimeException error) {
+            Logger.printException(() -> "Could not watch the search auto scroll restore", error);
+            return;
+        }
+        WeakReference<Object> owner = new WeakReference<>(component);
+        MAIN.post(() -> {
+            Object live = owner.get();
+            Control current = CONTROLS.get(live);
+            if (current != null && current.adoptRestore(readState(live))) update(live);
+        });
     }
 
     public static void beforeCompletion(Object component, String completedId) {
@@ -114,8 +168,9 @@ public final class AutoAdvance {
         // Before the completion is recorded, not after. Reaching the hold check further down
         // through update() stood down one video late: the video that finished behind the panel
         // still spent a place in this session's limit, and could put its "stopped after N
-        // videos" toast on top of the hold.
-        if (SessionBudget.isLocked()) {
+        // videos" toast on top of the hold. A shared video playing alone stands it down the
+        // same way, before its end moves the feed on.
+        if (SessionBudget.isLocked() || FeedLock.linkVideoAlone()) {
             update(component);
             return;
         }
@@ -154,8 +209,31 @@ public final class AutoAdvance {
         int completedCount;
         private String lastCompletedId;
         private boolean limitNoticeShown;
+        private boolean restoreArmed;
         private int sessionLimit = Settings.AUTO_ADVANCE_LIMIT.get();
         Control(View view) { this.view = new WeakReference<>(view); }
+
+        /**
+         * Read just before the host's search restore: armed only when that could start it. An arm
+         * already waiting on its check stays as it is. onViewCreated restores and onResume follows
+         * in the same message when a page is added to a running activity, and the second read
+         * would see the START the first one is waiting to claim and disarm it.
+         */
+        boolean armRestore(boolean searchForced, Object stateBefore) {
+            if (restoreArmed) return false;
+            restoreArmed = searchForced && !owned && named(stateBefore, "AUTO_SCROLL_STATE_STOP");
+            return restoreArmed;
+        }
+
+        /** Claims a scroll the host started on its own since armRestore; true when it did. */
+        boolean adoptRestore(Object stateAfter) {
+            boolean armed = restoreArmed;
+            restoreArmed = false;
+            if (!armed || owned || !(stateAfter instanceof Enum<?>)
+                    || named(stateAfter, "AUTO_SCROLL_STATE_STOP")) return false;
+            owned = true;
+            return true;
+        }
 
         private void refreshLimit() {
             int next = Settings.AUTO_ADVANCE_LIMIT.get();
@@ -190,6 +268,17 @@ public final class AutoAdvance {
             // The settings page's canonical value is ready when its posted update runs.
             // Returning to the same value or changing another row preserves this session.
             refreshLimit();
+            // A shared video opened alone has no feed after it, so nothing moves on from it, and
+            // that takes in TikTok's own auto scroll too: started from the panel action, or by
+            // search on its own, it isn't Hushfeed's, and the pager's touch guard doesn't stop
+            // a move the app makes itself. Ownership is released, so the next look once another
+            // video plays starts it again. The switch and Pause Hushfeed are in linkVideoAlone.
+            if (FeedLock.linkVideoAlone()) {
+                Object now = state.read();
+                if (now instanceof Enum<?> && !named(now, "AUTO_SCROLL_STATE_STOP")) stop.run();
+                owned = false;
+                return;
+            }
             if (!Settings.AUTO_ADVANCE.get()) {
                 if (owned) { stop.run(); owned = false; }
                 return;

@@ -359,6 +359,42 @@ public class PostWordsTest {
         assertTrue("whole words p95 " + p95 / 1000 + " us", p95 < 16_700_000L);
     }
 
+    /** The steps a pattern takes on a text: the smallest budget that lets it finish. */
+    private static long stepsFor(String body, String text) throws Exception {
+        PostPattern pattern = PostPattern.compile(body);
+        long low = 0;
+        long high = 64L * text.length() + 64;
+        while (low < high) {
+            long middle = (low + high) / 2;
+            if (pattern.find(text, new PostPattern.Budget(middle)) == PostPattern.Result.TOO_SLOW) low = middle + 1;
+            else high = middle;
+        }
+        return low;
+    }
+
+    /**
+     * A capital letter made the folded copy differ from the post, so every pattern ran twice on one
+     * budget and a long post that fit once ran out. A copy that differs only by case is the same
+     * read, so it isn't added; one that differs by more (styled or full-width letters) still is.
+     */
+    @Test
+    public void aCapitalisedLongPostReadsEachPatternOnceAndStillHides() throws Exception {
+        long probe = 10_000;
+        long perProbe = stepsFor("az", repeat("A", (int) probe));
+        assertTrue("the probe pattern can start at every character and costs a step each", perProbe > probe / 2);
+        // Between half and the whole of the post's budget: it fits read once, never read twice.
+        int length = (int) (probe * (PostWords.STEPS_PER_POST * 3 / 4) / perProbe);
+        String longPost = repeat("A", length);
+        assertTrue(stepsFor("az", longPost) > PostWords.STEPS_PER_POST / 2);
+        assertTrue(stepsFor("az", longPost) < PostWords.STEPS_PER_POST);
+
+        assertEquals(PostWords.Verdict.NO_MATCH, judge("/az/", "", longPost));
+        assertEquals(PostWords.Verdict.HIDE_PATTERN, judge("/az/", "", longPost.substring(0, length - 1) + "Z"));
+        // Styled and full-width letters differ from their fold by more than case, so they still hide.
+        assertEquals(PostWords.Verdict.HIDE_PATTERN, judge("/az/", "", "ａｚ"));
+        assertEquals(PostWords.Verdict.HIDE_PATTERN, judge("/az/", "", "𝐚𝐳"));
+    }
+
     @Test
     public void aHidePhraseAnywhereInThePostsWordsHidesIt() {
         assertEquals(PostWords.Verdict.HIDE, judge("spoiler", "", "Huge SPOILER for the finale"));

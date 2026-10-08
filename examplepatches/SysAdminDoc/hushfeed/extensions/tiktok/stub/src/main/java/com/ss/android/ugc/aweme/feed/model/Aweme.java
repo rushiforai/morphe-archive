@@ -78,6 +78,11 @@ public class Aweme {
         throw new UnsupportedOperationException("Stub");
     }
 
+    /** When the video was posted, in Unix seconds, or 0 when TikTok didn't say. */
+    public long getCreateTime() {
+        throw new UnsupportedOperationException("Stub");
+    }
+
     public String getShareUrl() {
         throw new UnsupportedOperationException("Stub");
     }

@@ -6,6 +6,7 @@ package app.morphe.patches.facebook.media.taptoplay
 
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -14,15 +15,24 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
+import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.font.objectReturns
+import app.morphe.patches.facebook.media.resume.VIDEO_PLAYER_PARAMS
+import app.morphe.patches.facebook.media.resume.paramsGetters
+import app.morphe.patches.facebook.media.resume.reportedValues
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.parameterRegister
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
+import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.iface.ClassDef
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
 internal const val PATCH = "Tap to play"
 
@@ -30,7 +40,9 @@ internal const val PATCH = "Tap to play"
  * Every start of Facebook's media players asks the extension first, and a start that no tap asked
  * for is held. Facebook's own Autoplay setting reads Off while the switch is on, so the surfaces
  * that ask it draw their own play button, and the players' pauses and new videos tell the
- * extension when a start a tap let through has ended.
+ * extension when a start a tap let through has ended. The extension's reel check is filled with the
+ * player's params getter and their isFbShorts, so a reel's BY_AUTOPLAY start counts as the reel
+ * coming into view.
  */
 @Suppress("unused")
 val tapToPlayPatch = bytecodePatch(
@@ -44,8 +56,15 @@ val tapToPlayPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.facebook())
 
     execute {
-        val trigger = hookGrootPlayer()
-        hookLegacyPlayer(trigger)
+        val play = hookGrootPlayer()
+        hookLegacyPlayer(play.parameterTypes.single().toString())
+        // A build where the params moved keeps the rest of the patch.
+        try {
+            fillReelCheck(classDefBy(play.definingClass))
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on, and a reel Facebook starts with BY_AUTOPLAY " +
+                "counts as any other video's start.")
+        }
         val checker = hookAutoplaySetting()
         hookReelPlayButton(checker)
         hookReelPlayback()
@@ -54,8 +73,8 @@ val tapToPlayPatch = bytecodePatch(
     }
 }
 
-/** FbGrootPlayer's play, its inner pause and its bind. Answers the trigger type its play takes. */
-private fun BytecodePatchContext.hookGrootPlayer(): String {
+/** FbGrootPlayer's play, its inner pause and its bind. Answers the play, which takes the trigger. */
+private fun BytecodePatchContext.hookGrootPlayer(): Method {
     val plays = classDefByStrings(GROOT_PLAY, StringComparisonType.EQUALS)
         .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
         .flatMap(::grootPlays)
@@ -77,7 +96,58 @@ private fun BytecodePatchContext.hookGrootPlayer(): String {
     gateStart(mutableOwner.findMutableMethodOf(play), 0, ALLOW_START)
     tellFirst(mutableOwner.findMutableMethodOf(pause), PAUSED)
     tellFirst(mutableOwner.findMutableMethodOf(bind), REBOUND)
-    return trigger
+    return play
+}
+
+/**
+ * Fills the extension's reel check with [owner]'s one VideoPlayerParams getter and the boolean field
+ * the params' debug dumps report as isFbShorts. Each stub reads only its parameter, cast to the
+ * player's or the params' own type, and both are found before either changes.
+ */
+private fun BytecodePatchContext.fillReelCheck(owner: ClassDef) {
+    fun refuse(detail: String): Nothing = throw PatchException("$PATCH: reel check: $detail")
+    val objectType = "Ljava/lang/Object;"
+    val getters = paramsGetters(owner)
+    val getter = getters.singleOrNull()
+        ?: refuse("expected one getter of $VIDEO_PLAYER_PARAMS in ${owner.type}, found ${getters.size}")
+    val params = classDefByOrNull(VIDEO_PLAYER_PARAMS) ?: refuse("this build has no $VIDEO_PLAYER_PARAMS")
+    val fields = params.methods.filter { holdsString(it, FB_SHORTS) }
+        .mapNotNull { reportedValues(it)[FB_SHORTS] }.distinctBy(FieldReference::toString)
+    val field = fields.singleOrNull()
+        ?: refuse("expected $VIDEO_PLAYER_PARAMS to report $FB_SHORTS from one field, found ${fields.size}")
+    val declared = params.fields.singleOrNull {
+        it.name == field.name && it.type == "Z" && !AccessFlags.STATIC.isSet(it.accessFlags)
+    } ?: refuse("$FB_SHORTS is ${field.name}:${field.type}, not a boolean field of $VIDEO_PLAYER_PARAMS")
+    // The stubs run in the extension's package.
+    if (!AccessFlags.PUBLIC.isSet(declared.accessFlags)) refuse("$FB_SHORTS, ${field.name}, isn't public")
+    listOf(owner, params).forEach { if (!AccessFlags.PUBLIC.isSet(it.accessFlags)) refuse("${it.type} isn't public") }
+    if (!AccessFlags.PUBLIC.isSet(getter.accessFlags)) refuse("${owner.type}->${getter.name} isn't public")
+
+    if (classDefByOrNull(TAP_TO_PLAY) == null) refuse("the extension has no $TAP_TO_PLAY")
+    val extension = mutableClassDefBy(TAP_TO_PLAY)
+    fun stub(name: String, answer: String): MutableMethod = extension.methods.singleOrNull {
+        it.name == name && it.returnType == answer && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(CharSequence::toString) == listOf(objectType)
+    } ?: refuse("$TAP_TO_PLAY has no static $answer $name($objectType)")
+    val paramsStub = stub(PLAYER_PARAMS_STUB, objectType)
+    val flagStub = stub(FB_SHORTS_STUB, "Z")
+    paramsStub.addInstructions(
+        0,
+        """
+            check-cast p0, ${owner.type}
+            invoke-virtual/range { p0 .. p0 }, ${owner.type}->${getter.name}()$VIDEO_PLAYER_PARAMS
+            move-result-object p0
+            return-object p0
+        """,
+    )
+    flagStub.addInstructions(
+        0,
+        """
+            check-cast p0, $VIDEO_PLAYER_PARAMS
+            iget-boolean p0, p0, $VIDEO_PLAYER_PARAMS->${field.name}:Z
+            return p0
+        """,
+    )
 }
 
 /** The older Rich Video Player's playback controller: its play and its pause. */

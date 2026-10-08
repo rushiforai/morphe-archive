@@ -61,7 +61,8 @@ val inboxFilterPatch = bytecodePatch(
     name = "Hide inbox items",
     description = "Adds a switch for each row and header control on the Inbox tab, so " +
         "message requests, TikTok Tako, TikTok Shop, the stories tray and the rest can be " +
-        "hidden individually. Switch: Hushfeed settings > Inbox.",
+        "hidden individually, and switches for the call buttons, sticker suggestions and " +
+        "suggested replies inside a chat. Switch: Hushfeed settings > Inbox.",
     default = false,
 ) {
     category("Inbox")
@@ -89,5 +90,17 @@ val inboxFilterPatch = bytecodePatch(
         )
 
         MainActivityOnCreateFingerprint.method.installInboxLayoutFilter()
+
+        // The chat screen's switches. Each hook passes TikTok's own answer through while its
+        // switch is off, and a build missing an anchor stops the patch here.
+        SettingsStatusLoadFingerprint.method.addInstruction(
+            0,
+            "invoke-static {}, " +
+                "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableChatDeclutter()V",
+        )
+        ChatTitleBarRightBindFingerprint.method.hideCallButtonsAtBind()
+        ChatStickerBannerEnabledFingerprint.method.hideInboxWidget("shouldShowChatStickerBanner")
+        ChatSuggestedReplyEnabledFingerprint.method.hideInboxWidget("shouldShowChatAiReplies")
+        ChatSmartReplyIntroEnabledFingerprint.method.hideInboxWidget("shouldShowChatAiReplies")
     }
 }

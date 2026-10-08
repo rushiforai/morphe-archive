@@ -67,7 +67,7 @@ final class MediaFileWriter {
             values.put(MediaStore.MediaColumns.RELATIVE_PATH, path);
             values.put(MediaStore.MediaColumns.IS_PENDING, 1);
             Uri collection;
-            if ("application/x-subrip".equals(mime) || "text/plain".equals(mime)) {
+            if ("application/x-subrip".equals(mime) || "text/plain".equals(mime) || "application/json".equals(mime)) {
                 collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
             } else if (mime.startsWith("audio/")) {
                 // Sound goes in the audio collection whatever folder the video chose; the

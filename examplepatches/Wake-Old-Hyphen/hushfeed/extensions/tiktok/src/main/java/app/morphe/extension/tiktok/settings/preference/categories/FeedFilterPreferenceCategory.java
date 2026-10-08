@@ -99,6 +99,12 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         ));
         addPreference(new TogglePreference(
                 context,
+                "Show only mutual friends on the Friends tab",
+                "On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.",
+                Settings.FRIENDS_MUTUALS_ONLY
+        ));
+        addPreference(new TogglePreference(
+                context,
                 "Hide stories", "Hide stories from the feed.",
                 Settings.HIDE_STORY
         ));
@@ -110,7 +116,8 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new TogglePreference(
                 context,
                 "Hide AI-generated videos",
-                "Hide videos carrying TikTok's AI-generated label.",
+                "Hide videos with TikTok's AI-generated label, AI content credentials, a TikTok AI effect "
+                        + "such as AI Alive, or a tag like #ai or #aigenerated.",
                 Settings.HIDE_AI_GENERATED
         ));
         addPreference(new TogglePreference(

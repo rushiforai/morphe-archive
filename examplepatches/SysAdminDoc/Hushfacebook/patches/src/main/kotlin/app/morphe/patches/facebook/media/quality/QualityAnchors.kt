@@ -10,10 +10,12 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
 /*
  * Where Default playback quality hooks, found by kept names only (read from 577 and 580, 2026-09-29).
@@ -41,6 +43,14 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *   that row, so a pick stays with the video it was made on.
  * - Prefetching and offline saves use the evaluator's other choosers, which never read the
  *   preselected label, so only playback sees what the patch leaves there.
+ * - Where a video plays (read from 577, 580 and 581, 2026-10-07): the evaluator keeps the
+ *   AbrContextAwareConfiguration it's built with in its one field of that type (A06 on all three),
+ *   stored by its constructor before the hook runs. That configuration's kept playbackPreferences
+ *   (581 LX/5A5;, 580 LX/4UK;, 577 LX/4zu;) carries the player origin and sub-origin Facebook
+ *   names each player with, and the configuration's own constructor reads both to decide isStory:
+ *   the origin is the String it compares with "fb_stories" (A07 on 581 and 580, A06 on 577), the
+ *   sub-origin the one it compares with "fb_shorts_viewer" and "fb_shorts_native_in_feed_unit"
+ *   (A08 on 581 and 580, A07 on 577). The extension sorts reels and stories by those two names.
  */
 
 internal const val QUALITY_CHOICE = "$EXTENSION_PACKAGE/media/QualityChoice;"
@@ -50,9 +60,18 @@ internal const val PRESELECTED_STUB = "preselectedLabel"
 internal const val PRESELECT_STUB = "preselectLabel"
 internal const val FORMATS_STUB = "trackFormats"
 internal const val LABEL_STUB = "formatLabel"
+internal const val ORIGIN_STUB = "playOrigin"
+internal const val SUB_ORIGIN_STUB = "playSubOrigin"
 
 internal const val SET_CUSTOM_QUALITY = "HeroServicePlayer.setCustomQualityInternal"
 internal const val ABR_CONFIGURATION = "Lcom/facebook/exoplayer/formatevaluator/configuration/AbrContextAwareConfiguration;"
+internal const val PLAYBACK_PREFERENCES = "playbackPreferences"
+
+/** What the configuration compares the player origin with to call a video a story. */
+internal const val STORIES_ORIGIN = "fb_stories"
+
+/** What the configuration compares the player sub-origin with to call a video a reel. */
+internal const val REELS_SUB_ORIGIN = "fb_shorts_viewer"
 private const val STRING = "Ljava/lang/String;"
 
 private val Instruction.call: MethodReference?
@@ -118,5 +137,29 @@ internal fun preselectedReads(evaluator: ClassDef, setter: Method): List<FieldRe
             // The label read goes in as the argument, and the call and the read are on one evaluator.
             if (registers != listOf(fieldRead.registerB, fieldRead.registerA)) return@mapNotNull null
             field
+        }
+    }.distinctBy { it.toString() }
+
+/**
+ * The String fields of [preferences] that [configuration]'s constructors read and compare, ignoring
+ * case, with [literal]: the player origin for "fb_stories", the sub-origin for "fb_shorts_viewer".
+ * The field is the last read into the register the comparison takes besides the literal's.
+ */
+internal fun originReads(configuration: ClassDef, preferences: String, literal: String): List<FieldReference> =
+    configuration.methods.filter { it.name == "<init>" }.flatMap { method ->
+        val code = method.code()
+        code.indices.mapNotNull { index ->
+            val string = ((code[index] as? ReferenceInstruction)?.reference as? StringReference)?.string
+            if (string != literal) return@mapNotNull null
+            val literalRegister = (code[index] as OneRegisterInstruction).registerA
+            val compare = code.drop(index + 1).take(3).firstOrNull {
+                it.call?.let { call -> call.definingClass == STRING && call.name == "equalsIgnoreCase" } == true
+            } as? FiveRegisterInstruction ?: return@mapNotNull null
+            val other = listOf(compare.registerC, compare.registerD).filter { it != literalRegister }.singleOrNull()
+                ?: return@mapNotNull null
+            val read = code.subList(0, index).lastOrNull {
+                it.opcode.setsRegister() && (it as? OneRegisterInstruction)?.registerA == other
+            }?.takeIf { it.opcode == Opcode.IGET_OBJECT } ?: return@mapNotNull null
+            read.field?.takeIf { it.definingClass == preferences && it.type == STRING }
         }
     }.distinctBy { it.toString() }

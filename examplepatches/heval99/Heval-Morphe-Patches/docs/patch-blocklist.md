@@ -1,21 +1,11 @@
-# Do not revisit: apps that cannot be patched
+# Apps that could not be patched - attempt records
 
-A record of apps we tried and why they failed, so nobody spends time on them again.
-Keep entries short; link the blocker, not the story.
+A record of apps we tried and why they failed. Keep entries short; link the blocker,
+not the story.
 
-## Hard blockers — anti-tamper / PairIP
-
-| App | Package | Why |
-|---|---|---|
-| Swift Backup | `org.swiftapps.swiftbackup` | Developer deliberately blocks patched builds: the app crashes or uninstalls itself on patches, Xposed hooks, or spoofed Play purchase data, partly via a Firebase-backed check (<https://www.swiftapps.org/issues#piracy>). Our premium patch was removed in v1.3.2. A community bundle (byehi98) ships a "Tamper Protection" bypass; deliberately not ported. |
-| HabitNow | `com.habitnow` | PairIP license client (`com.pairip.licensecheck`) plus server-side purchase validation (`ProductivityNowApi`, `PurchaseApi`). |
-| Musicolet | `in.krosbits.musicolet` | PairIP protection. |
-| Fishbrain | `com.fishbrain.app` | PairIP plus RevenueCat server-side entitlements. |
-| KWGT / KLWP | `org.kustom.widget` / `org.kustom.wallpaper` | PairIP protection. |
-| AZ Screen Recorder | `com.hecorat.screenrecorder.free` | Full PairIP on 6.9.9 (`com.pairip.SignatureCheck`, `VMRunner`, `VmDecryptor`, `licensecheck`, PairIP `Application`), so a re-signed build is killed at runtime. |
-| Zedge | `net.zedge.android` | Full PairIP on 9.38.3 (`com.pairip.SignatureCheck`, `VMRunner`, `VmDecryptor`, `licensecheck` `LicenseClient`, PairIP `Application`), confirmed in the base APK after a crash-on-launch report (issue #29, reporter-supplied logcat pointed at `libpairipcore.so`). The shipped "Disable ads" patch was removed 2026-10-05. |
-| FC Pro 2 | `com.undergroundcreative.footballchairmanpro2` | Commercial app shield, verified 2026-09-19 on v1.2.2. All game logic sits in encrypted web assets: `www/js/min-122.js` and the language bundle are high-entropy blobs decrypted on the fly by a native `loader` library that the shield extracts from UUID-named files under `assets/j1O1pP4cpnaLPxs2xoSf/` (no `lib/` entries in the APK). String constants are natively encrypted (`m04sL2.r1L574`), and the loader kills the process if it cannot load (`Process.killProcess` in `yzROc7.kgeTd0.bYtcD4.ujE4X5`). A re-signed build fails the native integrity checks before any dex patch runs, and the live-update mechanism can replace local code. Unpacking the shield is a research project, not a Morphe patch. |
-| Autel MaxiAP200 | `com.autel.maxiap200.autelap` | SecNeo app shield (issue #31), verified 2026-10-05 on v1.64. The dex holds only the `com.secneo.apkwrapper` stub; real code is encrypted and loaded by `libDexHelper.so`. Even past the shield, the ask (unlimited car software downloads) is server-side: downloads are entitled per dongle serial + account, and the app talks to Autel's servers over Bluetooth-paired hardware. |
+> **2026-10-07 - owner policy change:** anti-tamper / app-shield bypass patches are no
+> longer categorically excluded from this bundle. Shielded apps (PairIP and similar) can
+> be revisited with that in mind; the entries below record the factual blockers.
 
 ## Server-side entitlement — a client patch cannot unlock
 
@@ -44,21 +34,6 @@ Keep entries short; link the blocker, not the story.
 | FX Explorer | `nextapp.fx` | Plus state is hidden behind its plugin registry. |
 | Cronometer | `com.cronometer.android` | APKMirror keeps returning Cloudflare 403 for our IP; likely RevenueCat/server-side anyway. |
 | RadarScope | `com.basevelocity.radarscope` | Paid app, not published on APKMirror — cannot obtain a base APK from our source. |
-| BeSoccer | `com.besoccer` | APKMirror slug lookup failed; package ID may be wrong. |
-
-## Already covered by community bundles — do not duplicate
-
-These are patchable by other Morphe bundles (checked against the 777-package aggregate of
-morphe-patches.software, September 2026):
-
-- SD Maid SE (`eu.darken.sdmse`) — Doom's patches, Paresh patches
-- Poweramp — Hooman's patches
-- Solid Explorer — Xtra patches, Hoodles patches
-- Podcast Addict, Windy — Hoodles patches
-- Hermit — Lain patches
-- Calimoto, Windy — Doom's patches
-- Nova Launcher, Sleep as Android — Doom's / Hoodles / Morning Entree patches
-- MiXplorer — FTL patches
 
 ## Known fingerprint drift (re-anchor later, app stays supported)
 

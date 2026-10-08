@@ -47,6 +47,9 @@ public class QualityChoiceTest {
     private static final class Evaluator {
         String preselected;
         final Object[] formats;
+        /** The player origin and sub-origin its configuration's playback preferences carry. */
+        String origin;
+        String subOrigin;
 
         Evaluator(String... labels) {
             formats = new Object[labels.length];
@@ -87,6 +90,16 @@ public class QualityChoiceTest {
         public String label(Object format) {
             return ((Format) format).label;
         }
+
+        @Override
+        public String origin(Object evaluator) {
+            return ((Evaluator) evaluator).origin;
+        }
+
+        @Override
+        public String subOrigin(Object evaluator) {
+            return ((Evaluator) evaluator).subOrigin;
+        }
     }
 
     private FakeAccess access;
@@ -108,6 +121,8 @@ public class QualityChoiceTest {
         PauseForTests.resume();
         Settings.DEFAULT_PLAYBACK_QUALITY.resetToDefault();
         Settings.PLAYBACK_QUALITY.resetToDefault();
+        Settings.REELS_PLAYBACK_QUALITY.resetToDefault();
+        Settings.STORIES_PLAYBACK_QUALITY.resetToDefault();
         HookStatus.clear();
         LogBufferManager.clearLogBuffer();
     }
@@ -186,6 +201,91 @@ public class QualityChoiceTest {
                 + QualityChoice.APPLIED + " 5", statusLine());
     }
 
+    /** A video built under [origin] and [subOrigin], as its configuration names its player. */
+    private static Evaluator playing(String origin, String subOrigin) {
+        Evaluator evaluator = new Evaluator(REEL);
+        evaluator.origin = origin;
+        evaluator.subOrigin = subOrigin;
+        return evaluator;
+    }
+
+    /** Facebook's own names sort a player the way its configuration does, and a little wider. */
+    @Test
+    public void playersSortByWhereFacebookSaysTheyPlay() {
+        assertSame(QualityChoice.Surface.STORY, QualityChoice.surfaceOf("fb_stories", "fb_stories_viewer"));
+        assertSame(QualityChoice.Surface.STORY, QualityChoice.surfaceOf("FB_STORIES", null));
+        // A reel shared into a story plays in the story viewer.
+        assertSame(QualityChoice.Surface.STORY, QualityChoice.surfaceOf("fb_stories", "fb_shorts_in_stories_reshare_sticker"));
+        assertSame(QualityChoice.Surface.REEL, QualityChoice.surfaceOf("fb_shorts_tab", "fb_shorts_viewer"));
+        assertSame(QualityChoice.Surface.REEL, QualityChoice.surfaceOf("feed", "fb_shorts_native_in_feed_unit"));
+        assertSame(QualityChoice.Surface.REEL, QualityChoice.surfaceOf(null, "FB_SHORTS_VIEWER"));
+        assertSame(QualityChoice.Surface.STORY, QualityChoice.surfaceOf("unknown", "fb_stories_tray"));
+        assertSame(QualityChoice.Surface.VIDEO, QualityChoice.surfaceOf("feed", "feed_story"));
+        assertSame(QualityChoice.Surface.VIDEO, QualityChoice.surfaceOf("reel_feed_timeline", null));
+        assertSame(QualityChoice.Surface.VIDEO, QualityChoice.surfaceOf(null, null));
+
+        for (SurfaceQuality choice : SurfaceQuality.values()) {
+            assertSame(choice, SurfaceQuality.fromFile(choice.fileValue));
+        }
+        assertNull(SurfaceQuality.fromFile("SAME"));
+        assertSame(PlaybackQuality.P480, SurfaceQuality.SAME.or(PlaybackQuality.P480));
+        assertSame(PlaybackQuality.HIGHEST, SurfaceQuality.HIGHEST.or(PlaybackQuality.P480));
+    }
+
+    /** Left as they come, reels and stories play at the one quality every video does. */
+    @Test
+    public void reelsAndStoriesFollowTheVideosUntilTheyHaveTheirOwn() {
+        assertSame(SurfaceQuality.SAME, Settings.REELS_PLAYBACK_QUALITY.get());
+        assertSame(SurfaceQuality.SAME, Settings.STORIES_PLAYBACK_QUALITY.get());
+        Settings.PLAYBACK_QUALITY.save(PlaybackQuality.P480);
+        assertEquals("480p", firstChoice(playing("fb_shorts_tab", "fb_shorts_viewer")));
+        assertEquals("480p", firstChoice(playing("fb_stories", "fb_stories_viewer")));
+        assertEquals("480p", firstChoice(playing("feed", "feed_story")));
+        assertEquals(FamilyNames.PLAYBACK_QUALITY + ": invoked 6, 1 found, 0 missing. Counted: "
+                + QualityChoice.APPLIED + " 3", statusLine());
+    }
+
+    /** The acceptance: set, reels and stories each start at their own choice, and other videos keep theirs. */
+    @Test
+    public void reelsAndStoriesStartAtTheirOwnQuality() {
+        Settings.PLAYBACK_QUALITY.save(PlaybackQuality.P720);
+        Settings.REELS_PLAYBACK_QUALITY.save(SurfaceQuality.DATA_SAVER);
+        Settings.STORIES_PLAYBACK_QUALITY.save(SurfaceQuality.HIGHEST);
+        assertEquals("240p", firstChoice(playing("fb_shorts_tab", "fb_shorts_viewer")));
+        assertEquals("240p", firstChoice(playing("feed", "fb_shorts_native_in_feed_unit")));
+        assertEquals("1080p", firstChoice(playing("fb_stories", "fb_stories_viewer")));
+        assertEquals("720p", firstChoice(playing("feed", "feed_story")));
+        assertEquals("720p", firstChoice(new Evaluator(REEL)));
+        assertEquals(FamilyNames.PLAYBACK_QUALITY + ": invoked 10, 1 found, 0 missing. Counted: "
+                + QualityChoice.REEL_OWN + " 2, " + QualityChoice.APPLIED + " 5, " + QualityChoice.STORY_OWN + " 1",
+                statusLine());
+
+        // Auto of their own leaves reels to Facebook even with a quality for every other video.
+        Settings.REELS_PLAYBACK_QUALITY.save(SurfaceQuality.AUTO);
+        assertNull(firstChoice(playing("fb_shorts_tab", "fb_shorts_viewer")));
+        // And a quality of their own works with Facebook's Auto for the rest.
+        Settings.PLAYBACK_QUALITY.save(PlaybackQuality.AUTO);
+        Settings.STORIES_PLAYBACK_QUALITY.save(SurfaceQuality.P480);
+        assertEquals("480p", firstChoice(playing("fb_stories", null)));
+        assertNull(firstChoice(playing("feed", "feed_story")));
+    }
+
+    /** Off, paused or out of the build, a reel's own quality changes nothing either. */
+    @Test
+    public void aReelsOwnQualityIsOffWhenTheSwitchIs() {
+        Settings.REELS_PLAYBACK_QUALITY.save(SurfaceQuality.DATA_SAVER);
+        Settings.DEFAULT_PLAYBACK_QUALITY.save(false);
+        assertNull(firstChoice(playing("fb_shorts_tab", "fb_shorts_viewer")));
+        Settings.DEFAULT_PLAYBACK_QUALITY.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertNull(firstChoice(playing("fb_shorts_tab", "fb_shorts_viewer")));
+        PauseForTests.resume();
+        QualityChoice.inBuildForTests = Boolean.FALSE;
+        assertNull(firstChoice(playing("fb_shorts_tab", "fb_shorts_viewer")));
+        QualityChoice.inBuildForTests = Boolean.TRUE;
+        assertEquals("240p", firstChoice(playing("fb_shorts_tab", "fb_shorts_viewer")));
+    }
+
     /** A track group with no quality labels, such as a video's sound, is left to Facebook. */
     @Test
     public void tracksWithoutQualitiesAreLeftToFacebook() {
@@ -260,5 +360,7 @@ public class QualityChoiceTest {
         assertNull(QualityChoice.preselectedLabel(new Object()));
         assertNull(QualityChoice.trackFormats(new Object()));
         assertNull(QualityChoice.formatLabel(new Object()));
+        assertNull(QualityChoice.playOrigin(new Object()));
+        assertNull(QualityChoice.playSubOrigin(new Object()));
     }
 }

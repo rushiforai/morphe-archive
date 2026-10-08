@@ -1,0 +1,69 @@
+## 0.68.0 (2026-10-06)
+
+* **TikTok:** Orijinal fotoğrafları indir artık her fotoğrafı JPEG olarak kaydediyor (#105). TikTok her fotoğrafı önce HEIF kopyası olarak listeliyor, bu yüzden fotoğraflar birçok galeri uygulamasının ve bilgisayarın açamadığı .heif dosyaları olarak iniyordu. Samsung dahil bazı telefonlar TikTok'un HEIF'ini hiç çözemiyor. Hushfeed artık TikTok'un her HEIF'in yanında listelediği WebP kopyasını alıp Android 9 ve üzerinde tam boyutlu JPEG olarak yeniden kaydediyor. TikTok bir JPEG kopyası listelediğinde, o kopya bayt bayt olduğu gibi kaydedilir. Dönüştürülemeyen bir fotoğraf TikTok'un gönderdiği dosyayı korur, saydam kısımları olan bir fotoğraf da öyle. Ayarın açıklaması da artık JPEG diyor, hikaye fotoğrafları da aynı şekilde çalışıyor.
+
+* **TikTok:** Durum çubuğunu gizlemek artık TikTok'un onun için videoların üstünde bıraktığı siyah şeridi de kaldırıyor. Android 14 ve daha eskisinde video, kamera çentiğinin altında değil arkasında çiziliyor (#97). Yeni Temiz ekran kontrollerini gizle anahtarı, Temiz ekran açıkken kapat düğmesini, ilerleme çubuğunu ve duraklat ile hız düğmelerini ekrandan kaldırıyor, fotoğraf gönderilerinin köşede gösterdiği kapat düğmesini de. Temiz ekrandan çıktığın anda geri geliyorlar.
+
+* **TikTok:** Temiz ekran artık TikTok'un açık bıraktığı hikayeler düğmesini Takip Edilenler'in üstünde gizliyor ve Temiz ekrandan çıkar çıkmaz geri koyuyor (#84). Duraklat, hem hikayeler düğmesini hem de üstteki sekmeleri TikTok'a bırakıyor. Otomatik temiz ekran ayrıca bir denemeyi saymadan önce TikTok'un ekranı gerçekten temizlemesini bekliyor, böylece TikTok'un henüz hazır olmadığı ilk video de temizleniyor.
+
+* **TikTok:** Otomatik temiz ekran, odak geri geldikten sonra geçerli videoda yeniden deniyor, başlangıçtan sonraki ilk video dahil (#84). İptal edilen ya da başarısız olan bir deneme artık yenisini engellemiyor. Elle çıkış hâlâ dikkate alınıyor ve önceki bir videonun geri çağrıları artık sonraki videonun zamanlayıcısını iptal edemiyor.
+
+* **TikTok:** Yedekle, Geri yükle ve İzleme geçmişini içe aktar artık yavaş bir dosya uygulamasının arkasında takılıp kalmıyor. Dosya uygulaması birkaç saniye içinde yanıt vermezse satır beklemeyi bırakmayı öneriyor. Bir şey okunmadan ya da yazılmadan önce durdurursan ayarların ve geçmişin olduğu gibi kalıyor. Tek istisna dosya uygulamasında zaten bulunan bir yedek: satır, dosya uygulamasının bunu kaydedip kaydetmediğini henüz bildirmediğini söylüyor ve gerçek yanıtı o bildirir bildirmez alıyorsun. Bir dosyayı hiç bırakmayan bir dosya uygulaması yalnızca o satırı tutuyor, satır da bunu söylüyor, arkasına daha fazla iş yığmıyor. Geri yükleme sırasında telefonu döndürürsen geri yükleme devam ediyor.
+
+* **TikTok:** Feature Gate Lab'daki Yüklenen değerleri dışa aktar ve Yüklenen değerleri içe aktar artık yavaş bir dosya uygulamasının arkasında takılıp kalmıyor. Dosya uygulaması birkaç saniye içinde yanıt vermezse Lab beklemeyi bırakmayı öneriyor. Bir şey okunmadan ya da yazılmadan önce durdurursan hiçbir şey değişmiyor, üzerine yazmak için seçtiğin dosya bile. Bir dosya hâlâ açıkken bunlardan birine yeniden dokunursan bunu söylüyor, eskiden olduğu gibi birincisi bitince çalışacak bir tane daha sıraya koymuyor. Ayrıca daha eski ve daha büyük bir dışa aktarmanın üzerine yazmak artık eski dosyanın sonunu geride bırakmıyor, bu da yenisini okunamaz hale getiriyordu.
+
+* **TikTok:** Üzerine yazmak için var olan bir yedek dosyasını seçmek artık onu kaybetme riski taşımıyor. Yedekleme durursa ya da dosyaya bir şey girmeden başarısız olursa (örneğin bir akış kuralı listesi yedek için fazla uzunsa), seçtiğin dosya silinmek yerine eski yedeğini koruyor. Dosya seçicinin yedek için oluşturduğu boş bir dosya hâlâ temizleniyor.
+
+* **TikTok:** Ayar araması, aradığın sözcüğün tam sözcük olduğu satırları önce listeliyor. "Sayılar" aramak eskiden yalnızca daha uzun bir sözcüğün içinde geçtiği Doğrulanmış hesapları gizle ve Engellenen içerik üreticileri satırlarını, gerçekten sayılarla ilgili satırların üstüne koyuyordu. Yalnızca daha uzun bir sözcüğün içinde eşleşen satırlar sayfa sırasıyla arkadan geliyor, çevrilmiş ayarlar da aynı kuralla sıralanıyor.
+
+* **TikTok:** Ayar araması artık bir onay listesindeki her kutuyu buluyor, işaretli olsun olmasın. Yani "sayılar" aramak sağ sütun listesinde Düğmelerin altındaki sayılar'ı buluyor. Bir kutunun sonucunu açmak, listeyi o kutuya kaydırılmış olarak açıyor ve kutuyu değiştirmiyor. Ekran dönerken açık olan bir liste, kaydedilmemiş işaretlerinle geri geliyor.
+
+* **TikTok:** Hushfeed ayarlarındaki anahtar satırları, ekran dar ve yazı büyük olduğunda biçim değiştiriyor. Anahtar metnin altına, satırın sonuna geçiyor ve başlık ile açıklama tüm genişliği alıyor. Küçük bir telefonda iki kat yazı boyutunda Almanca bir başlık artık sözcüğün ortasından dört kısa satıra bölünmüyor. Daha geniş ekranlar olağan düzenini koruyor ve bir biçimden diğerine kaydırılan bir satır geri değişiyor.
+
+* **TikTok:** Yenilikler artık diğer ayarlar senin dilinde olduğunda notların İngilizce olduğunu söylüyor. Notlar ayrıca ekran okuyucular için İngilizce metin olarak işaretlendi.
+
+* **TikTok:** Görülen videoları temizlemeyi geri al artık geçmişi arka planda geri yüklüyor ve temizlenen kayıtlardan kaçının geçmiş sınırlarına hâlâ sığdığını bildiriyor. Daha yeni izlemeler onlara yer bırakmadığında artık videoların geri yüklendiğini söylemiyor. Kaydetme başarısız olursa Geri al kullanılabilir kalıyor.
+
+* **TikTok:** Geri al artık geri yükleme sırasında kaydedilen izlemeleri saymadan önce işliyor. Sıradaki eski yazmalar da Geri al'ın zaten kaydettiği daha yeni izleme zamanlarını koruyor.
+
+* **TikTok:** Medya kaydetme artık bir yönlendirmeyi izlemeden ya da başka bir yansıyı veya altyazı kanalını denemeden önce sunucunun tam bekleme süresine, HTTP tarihleri dahil, uyuyor. Kaydetmenin zaman sınırını aşan bir bekleme, işi anlaşılır bir mesajla durduruyor ve zaten kaydedilmiş dosyaları koruyor. İptal de yeniden deneme beklemesini kesiyor.
+
+* **TikTok:** Bir tanılama raporunu ya da feature gate raporunu kaydetmek kendi iş parçacığında çalışıyor, böylece yavaş bir medya deposu Hushfeed'in geri kalanının paylaştığı iş parçacıklarını tutamıyor. Bir rapor hâlâ kaydedilirken yeniden Kaydet'e dokunmak ikinci bir tane başlatmak yerine bunu söylüyor.
+
+* **TikTok:** Hushfeed artık Morphe patcher 1.15.1 üzerinde derleniyor, bu yüzden Morphe Manager 1.34.0 veya daha yenisi gerekiyor. Manager 1.33.0, paketi yüklemeden önce güncelleme istiyor. ARSCLib patcher'ı 9b742c412d sürümüne kadar izliyor, karmaları indirilen dosyalara karşı kontrol ediliyor ve sürüm yamayı masaüstü CLI 1.18.1 ile denetliyor.
+
+* **TikTok:** Derlemedeki her Guava isteği artık GHSA-xxph-c9ww-hj94 dışındaki sürüm olan 33.7.2'ye çözülüyor, yalnızca kataloğun sabitlemesinin ulaştığı yerlerde değil ayarlar, eklenti ve proje grafiklerinin hepsinde. Sağlama toplamları, sıkı bağımlılık denetimi kabul etmeden önce Maven Central'a karşı doğrulandı. Guava derleme ve yamalama tarafında kalıyor: yama paketi ve eklenti ondan hiçbir şey taşımıyor. Yama kaynaklarının Guava'yı doğrudan içe aktarmadığını denetleyen kontrol eskiden tek bir dosya okumadan geçiyordu. Artık dosyaları okuyor.
+
+* **TikTok:** Yalnızca Java eklentisinde yapılan bir düzenleme artık APK fixture'larına karşı parmak izi denetimlerini yeniden çalıştırmıyor, çünkü onlar eklentiyi hiç okumuyor. Tam test komutları ve sürüm denetimleri her testi kapsamaya devam ediyor, bir yamada, testte, bağımlılıkta ya da fixture'da yapılan değişiklik de onları yine yeniden çalıştırıyor.
+
+* **TikTok:** Belge düzenlemeleri artık değişmemiş APK fixture testlerini yeniden çalıştırmıyor. Tam test komutları ve sürüm denetimleri her testi kapsamaya devam ediyor, kaynak okuyan denetimler de artık dış girdilerini izliyor. Boyut ve zaman damgası aynı olsa bile bir APK'yı değiştirmek test sonuçlarını geçersiz kılıyor.
+
+* **TikTok:** Yerel depolama tarayıcısı denetimleri artık Windows PowerShell'de başarılı çalıştırmaları hata saymadan Java tanılamalarını görünür tutuyor.
+
+* **TikTok:** Yerel APK imzalama artık yığın ve CPU sınırlarından kaynaklanan zararsız Java başlangıç mesajlarını kabul ediyor. Geçersiz sertifikalar ve başarısız imza denetimleri kurulumu durdurmaya devam ediyor.
+
+## 0.67.1 (2026-10-03)
+
+* **TikTok:** Ayarları bulmak artık daha kolay. Hushfeed'in videolara çizdiği beş düğmenin hepsi Akış ekranı > Videolardaki düğmeler altında bir arada duruyor. Oynatma artık ilerleme çubuğu ve küçük resmi dahil tüm oynatıcı anahtarlarını, döngüyü durdurmayı ve kaydırdıktan sonra devam etmeyi barındırıyor, bunlar daha önce Uygulama'daydı. Ekran görüntüleri ve durum çubuğu, TikTok'un kontrollerine mağaza uygulaması gibi görünün ile birlikte Uygulama > Sistem altına taşındı. Yine de Düet ve Stitch'e izin ver artık Paylaşım menüsü içinde. Kayıtlı seçimlerin olduğu gibi kalıyor.
+
+* **TikTok:** Hushfeed'in videolara çizdiği her düğme artık kapalı başlıyor: engelle, gizle, sesi engelle, İlgilenmiyorum ve sesi kapat. Yeni bir kurulum, Akış ekranı > Videolardaki düğmeler altından birini açana kadar hiçbirini göstermiyor. Sesi kapatma düğmesini kullandıysan Videolarda sesi kapatma düğmesini göster'i yeniden aç.
+
+* **TikTok:** Kullanılmayan dil paketlerini kaldır, Tutulacak diller Tümü olarak bırakıldığında ve APK kontrol edilmemiş bir dil kümesi taşıdığında, örneğin tek dille birleştirilmiş bölünmüş bir paket, artık tüm yama çalıştırmasını durdurmuyor. O durumda hiçbir şey kaldırılmıyor ve yama günlüğü nedenini söylüyor (#96).
+
+* **TikTok:** Bir seriyi sürdür altındaki seri satırı, TikTok her mesajı kabul ettiğinde "15/15 sohbete gönderildi" diyor. Teslimatı yalnızca devri hata veren ya da hiç bitmeyen bir sohbet için doğrulanmamış olarak adlandırıyor (#92).
+
+* **TikTok:** Videolarda gizle düğmesini göster ve Sesi engelle düğmesini göster, Videolarda engelle düğmesini göster kapalı olsa bile artık kendi akış kontrollerini çiziyor. İkisi de Akış filtresi üzerinden çalışıyor, bu yüzden yalnızca o yama dahil olduğunda listeleniyor. Yeni kurulumlar bu iki yardımcı anahtarı kapalı başlatıyor, böylece yazar engelleme düğmesini seçmek sen isteyene kadar fazladan çip eklemiyor (#95).
+
+* **TikTok:** Duraklat, kayıtlı Ana Sayfa uzun basma kısayolunu kullanılabilir tutuyor, böylece misafirler ekranı kapattıktan sonra ayarları yeniden açıp Hushfeed'i sürdürebiliyor. Devre dışı bırakılmış bir kısayol devre dışı kalıyor, normal Ana Sayfa dokunuşları çalışmaya devam ediyor ve TikTok'un kendi uzun basma eylemi korunuyor (#89).
+
+* **TikTok:** Android 6'daki ayarlar, Rusçadaki one, few ve many dahil, birlikte gelen dillerin çoğul biçimlerini kullanıyor. Eksik miktar çevirileri doğru tekil biçimle İngilizceye dönüyor. Daha yeni Android sürümleri kendi ICU kurallarını koruyor.
+
+* **TikTok:** Yenilikler, metin büyürken tam sürüm geçmişini koruyor. Büyük notlar ve uluslararası metin artık Java'nın tek bir dizgi oluşturma sınırını aşmıyor.
+
+* **TikTok:** Morphe Manager 1.33.0, 106 yamanın hepsini on kategorisinde gösteriyor, hiçbiri kategorisiz kalmıyor. Her derlemeden önce çalışan denetimler artık desteklenen her TikTok sürümünde tek ABI girdilerini kapsıyor ve değiştirilmiş yerel kitaplıkları ya da boş bir yama sonucunu reddediyor. Yayınlanan paketler GitHub sürüm doğrulamalarına ya da sabitlenmiş bir imza anahtarına karşı denetlenebiliyor.
+
+* **TikTok:** Arka plan trafiğini sınırla, Tümü seçiliyken bile varsayılan olarak push kurulumunu sağlam tutuyor. İsteğe bağlı Push kurulumunu atla seçeneği kapalı başlıyor ve açıldığında mesajları ve diğer bildirimleri durdurabiliyor. Mevcut APK'ların push kurulumunu geri getirmek için TikTok'un orijinal APK'sından yeniden yamalanması gerekiyor. Duraklat, yama sırasında yapılan bu değişikliği geri alamıyor (#86).
+
+* **TikTok:** Ayarları geri yükle artık mevcut derlemenin geri yükleyemediği anahtarları, eski bir yedekte eksik olan ayarlardan ayrı olarak bildiriyor. Taşınabilir ayarlar TikTok sürümleri arasında geçmeye devam ediyor, yerel cihaz durumu olduğu gibi kalıyor, Feature Gate Lab uyumluluğu ve Geri al da eskisi gibi davranıyor.
+
+* **TikTok:** Akış filtresi'nin Görülen videolar bölümü, gözden geçirilmiş TikTok JSON izleme geçmişi dışa aktarmasını içe aktarabiliyor. İzleme tarihleri ve seçilen hesap içe aktarmaya bağlı kalıyor, mevcut yaş sınırı geçerli ve bir afiş eklenen ve atlanan girdileri bildiriyor. İçe aktarmayı tekrarlamak hiçbir şey eklemiyor. Geçersiz ya da desteklenmeyen dosyalar ve başarısız yazmalar kayıtlı geçmişi değiştirmiyor. Dosyalar 2 MB ve 10.000 girdiyle sınırlı, bağlantılar telefondan asla çıkmıyor. Geçmiş ekleyen bir içe aktarma, daha önceki bir temizleme için Geri al'ı sonlandırıyor ve bu değişikliği açıklıyor.

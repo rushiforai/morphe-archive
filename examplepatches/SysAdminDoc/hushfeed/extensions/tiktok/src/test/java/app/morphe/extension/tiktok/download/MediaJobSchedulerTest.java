@@ -49,7 +49,7 @@ public class MediaJobSchedulerTest {
 
     private static void drain() throws Exception {
         for (int wait = 0; wait < 250; wait++) {
-            if (MediaJobScheduler.runningJobs() == 0 && MediaJobScheduler.queuedJobs() == 0) return;
+            if (MediaJobScheduler.idle()) return;
             Thread.sleep(20);
         }
         throw new IllegalStateException("the media pool never emptied: running="

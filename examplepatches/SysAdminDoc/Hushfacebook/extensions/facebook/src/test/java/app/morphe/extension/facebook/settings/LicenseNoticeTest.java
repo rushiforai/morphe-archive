@@ -40,6 +40,7 @@ public class LicenseNoticeTest {
         for (String upstream : new String[] {
                 "https://github.com/andrewliang25/morphe-patches",
                 "https://github.com/SapitoSucio/FroggoMorphePatches",
+                "https://github.com/ArunTS96/FroggoMorphePatches",
                 "https://github.com/SysAdminDoc/hushfeed",
                 "https://gitlab.com/ReVanced/revanced-patches"}) {
             assertTrue("NOTICE does not name " + upstream, LicenseNotice.TEXT.contains(upstream));

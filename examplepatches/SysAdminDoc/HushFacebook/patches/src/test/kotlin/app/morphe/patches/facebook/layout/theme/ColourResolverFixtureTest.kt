@@ -81,7 +81,15 @@ class ColourResolverFixtureTest {
     }
 
     @Test
-    fun `route one hooks four resolvers and six returns, each token intact, on each declared build`() {
+    fun `route one hooks four resolvers and six returns, each token intact, on each declared build`() =
+        routeOneIsHooked(mig = APPLY, fds = APPLY)
+
+    /** The Accent color patch hooks the same seams with its own targets, on the same builds. */
+    @Test
+    fun `the accent color patch hooks route one on each declared build`() =
+        routeOneIsHooked(mig = ACCENT_MIG, fds = ACCENT_FDS)
+
+    private fun routeOneIsHooked(mig: String, fds: String) {
         val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()
         for (version in versions) {
@@ -90,13 +98,13 @@ class ColourResolverFixtureTest {
                 val classes = routeOneClasses(bundle)
                 val context = PatchContexts.of(classes.values)
 
-                with(context) { hookColourResolvers(mig = APPLY, fds = APPLY) }
+                with(context) { hookColourResolvers(mig = mig, fds = fds) }
 
                 val hooked = classes.keys.flatMap { type -> context.mutableClassDefBy(type).methods }
                     .associate { method ->
                         "${method.definingClass}->${method.name}(${method.parameterTypes.joinToString("")})" to
                             (method.implementation?.instructions?.count {
-                            (it as? ReferenceInstruction)?.reference?.toString() == APPLY
+                            (it as? ReferenceInstruction)?.reference?.toString() in setOf(mig, fds)
                         } ?: 0)
                     }
                     .filterValues { it > 0 }

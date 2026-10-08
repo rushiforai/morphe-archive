@@ -24,6 +24,7 @@ import app.morphe.extension.tiktok.settings.preference.SettingsUi;
 import app.morphe.extension.tiktok.settings.preference.StartTodayOverPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.wellbeing.BudgetChanges;
+import app.morphe.extension.tiktok.wellbeing.FeedLock;
 import app.morphe.extension.tiktok.wellbeing.FinishLastVideo;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import app.morphe.extension.tiktok.wellbeing.SessionLockOverlay;
@@ -64,11 +65,33 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
         // never shows yesterday's budget with today's change still listed as waiting.
         BudgetChanges.applyDue(SessionBudget.now());
         addPreference(new SectionHeadingPreference(context, "Focus"));
+        addPreference(new TogglePreference(context, "Lock the feed",
+                "For You, Following and the other feed tabs stay behind a calm panel and won't "
+                        + "swipe. Messages, profiles and search work as usual, a link to one video "
+                        + "still opens that video, and the app opens on Inbox instead of the feed.",
+                Settings.FEED_LOCK));
+        // The link's arrival, cold and warm, is read by Feed tab navigation's hooks, so without
+        // that patch there is nothing for the switch to act on. The block author patch carries
+        // the rest of what it stands on and this whole page, as FeedLock.aloneIsOn asks of both.
+        if (SettingsStatus.blockAuthorEnabled && SettingsStatus.feedNavigationEnabled) {
+            // The time away is formatted in from the constant that applies it.
+            addPreference(new TogglePreference(context, "Open shared videos alone",
+                    L10n.f(context, "A link to one video opens just that video, and the feed won't "
+                            + "swipe past it. It swipes again once another video plays, like after a "
+                            + "refresh or a tap on Following, or when you come back to TikTok after "
+                            + "%1$d minutes or more away. Auto-advance doesn't move on from it either.",
+                            FeedLock.AWAY_ENDS_ALONE_MS / 60_000L),
+                    Settings.SHARED_VIDEO_ALONE));
+        }
         addPreference(new TogglePreference(context, "Don't start the feed on returning",
                 "The feed waits for one tap before it starts playing again when you "
                         + "come back to the app. Messages, profiles and search are still "
                         + "one tap away.",
                 Settings.NO_RESUME_ON_FOREGROUND));
+        addPreference(new TogglePreference(context, "Don't start the first video",
+                "When you open TikTok from its icon, the first video in the feed waits for one tap "
+                        + "before it plays. A link, a notification or a shortcut opens as usual.",
+                Settings.PAUSE_FIRST_VIDEO));
         addPreference(new TogglePreference(context, "Keep a paused video paused",
                 "A video you paused stays paused when you come back to the app instead of "
                         + "starting again. One you left playing starts as usual. "
@@ -191,8 +214,7 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
         // Past the lock, with Wait a day to loosen on, a change that loosens the budget is kept
         // for the next day instead of saved, and the row says what it becomes and when. Anything
         // else is a fresh choice for the row, so whatever was waiting for it goes.
-        Preference.OnPreferenceChangeListener waitToLoosen = (preference, value) -> {
-            if (!refuseWhileLocked.onPreferenceChange(preference, value)) return false;
+        Preference.OnPreferenceChangeListener keepOrSave = (preference, value) -> {
             Setting<?> setting = Setting.getSettingFromPath(preference.getKey());
             if (setting == null) return true;
             // A number row hands over the text it is about to save.
@@ -228,11 +250,25 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
                 Dialog dialog = ((DialogPreference) preference).getDialog();
                 if (dialog != null) dialog.dismiss();
             }
-            SettingsActionBanner.showNotice(context, L10n.f(context,
-                    "That loosens the budget. It waits until %1$s.",
-                    SessionLockOverlay.timeLabel(at)));
+            // One literal for each, because the translation gate reads the literal handed to L10n.
+            SettingsActionBanner.showNotice(context, setting == Settings.FEED_LOCK
+                    ? L10n.f(context, "That loosens the lock. It waits until %1$s.",
+                            SessionLockOverlay.timeLabel(at))
+                    : L10n.f(context, "That loosens the budget. It waits until %1$s.",
+                            SessionLockOverlay.timeLabel(at)));
             return false;
         };
+        Preference.OnPreferenceChangeListener waitToLoosen = (preference, value) ->
+                refuseWhileLocked.onPreferenceChange(preference, value)
+                        && keepOrSave.onPreferenceChange(preference, value);
+        // The feed lock is a commitment like the budget: turning it off loosens it, so with Wait
+        // a day to loosen on it turns off when the day starts over. Turning it on tightens, so a
+        // locked day, which holds the budget still, doesn't refuse that.
+        Preference.OnPreferenceChangeListener feedLockChange = (preference, value) ->
+                (Boolean.TRUE.equals(value) || refuseWhileLocked.onPreferenceChange(preference, value))
+                        && keepOrSave.onPreferenceChange(preference, value);
+        Preference feedLockRow = findPreference(Settings.FEED_LOCK.key);
+        if (feedLockRow != null) feedLockRow.setOnPreferenceChangeListener(feedLockChange);
         for (Setting<?> setting : new Setting<?>[]{Settings.SESSION_BUDGET_VIDEOS,
                 Settings.SESSION_BUDGET_MINUTES, Settings.SESSION_BUDGET_LOCK_MINUTES,
                 Settings.SESSION_BUDGET_RESET_HOUR, Settings.SESSION_BUDGET_PASSES_PER_DAY,
@@ -295,7 +331,7 @@ public final class ScreenTimePreferenceCategory extends ConditionalPreferenceCat
 
     /** Every row a budget change or a new day can move, in the order the page shows them. */
     private static Setting<?>[] budgetRows() {
-        return new Setting<?>[]{Settings.SESSION_BUDGET_VIDEOS, Settings.SESSION_BUDGET_MINUTES,
+        return new Setting<?>[]{Settings.FEED_LOCK, Settings.SESSION_BUDGET_VIDEOS, Settings.SESSION_BUDGET_MINUTES,
                 Settings.SESSION_BUDGET_LOCK_MINUTES, Settings.SESSION_BUDGET_RESET_HOUR,
                 Settings.SESSION_BUDGET_LOCK, Settings.SESSION_BUDGET_PASSES_PER_DAY,
                 Settings.SESSION_BUDGET_WAIT_TO_LOOSEN};

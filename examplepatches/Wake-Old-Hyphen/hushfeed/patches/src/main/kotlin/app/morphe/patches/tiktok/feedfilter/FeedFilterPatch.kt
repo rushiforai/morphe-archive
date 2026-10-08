@@ -59,14 +59,15 @@ val feedFilterPatch = bytecodePatch(
     name = "Feed filter",
     description = "Hides feed ads, including videos with creator commission disclosures and " +
         "creator posts TikTok runs as ads, TikTok " +
-        "Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, AI " +
-        "labeled videos, location-tagged videos, verified accounts, series, mini dramas, playlists, " +
+        "Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, " +
+        "AI-generated videos, location-tagged videos, verified accounts, series, mini dramas, playlists, " +
         "the playlist bar, the floating event badge and inserted cards. Videos can also be " +
         "filtered by your own caption words, creator handles or patterns, sound names, length, " +
         "the country they were posted from, the language of their original caption and their " +
         "view, like, comment, favorite and share counts. For You can also drop the fill-in " +
         "videos TikTok sends without picking them for you, and a batch that's all fill-in " +
-        "stays so the feed never runs dry. A short list of creator exceptions lets " +
+        "stays so the feed never runs dry. The Friends tab can show only mutual friends. " +
+        "A short list of creator exceptions lets " +
         "chosen accounts through the filters on the kind of post, its labels, age, length and " +
         "counts, and through the fill-in rule. Ads, blocked creators, words, sounds, countries " +
         "and caption languages, paid and " +
@@ -331,6 +332,13 @@ val feedFilterPatch = bytecodePatch(
             0,
             "invoke-static/range {p1 .. p1}, " +
                 "$EXTENSION_CLASS_DESCRIPTOR->filterFriendsFeed(Ljava/lang/Object;)V",
+        )
+
+        // The V3 Friends feed has its own response and list, handled in one place per response.
+        FriendsV3FeedHandleResponseFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range {p1 .. p1}, " +
+                "$EXTENSION_CLASS_DESCRIPTOR->filterFriendsV3Feed(Ljava/lang/Object;)V",
         )
 
         FriendsFeedResponseFingerprint.method.apply {

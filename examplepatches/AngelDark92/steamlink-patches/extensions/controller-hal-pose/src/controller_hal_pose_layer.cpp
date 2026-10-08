@@ -79,8 +79,13 @@ constexpr int64_t STATS_NS = 5000000000LL;
 // off the controller's rotation in SteamVR and skewed the linear velocity of the offset grip
 // point, so thrown objects left low (measured 2026-10-06 against SteamVR). The patch picks the
 // frame per Steam Link base in CONFIG below.
-// The reported pose is for this long after now; chosen by feel on the headset (2026-10-05).
-constexpr double DEFAULT_AHEAD_MS = 2.0;
+// The reported pose is for this long after now. 2 ms were chosen by feel on 2026-10-05 while
+// SteamVR on the PC still extrapolated the pose from vrlink's time stamp to the application's
+// photon time, and every larger value doubled that prediction. With the GalaxyXR PC driver's
+// poseTimeOffsetBiasMs (60 ms) that extrapolation is cancelled and the whole prediction is done
+// here by the controller HAL's IMU fusion: 60 ms, about the stream's round trip, was chosen by
+// feel on 2026-10-06 (30/30, 60/10, 60/20, 60/40 and 60/50 felt worse).
+constexpr double DEFAULT_AHEAD_MS = 60.0;
 // The HAL computes a pose only for a time later than the latest one anybody has asked it for;
 // a request for an earlier time gets a copy of an older reply. The system's controller service
 // asks once per display frame for that frame's display time, some 20 ms ahead, so a request

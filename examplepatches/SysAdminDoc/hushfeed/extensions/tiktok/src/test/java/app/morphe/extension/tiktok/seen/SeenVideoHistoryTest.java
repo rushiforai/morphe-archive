@@ -1485,6 +1485,123 @@ public class SeenVideoHistoryTest {
         assertEquals(Set.of("cleared"), persistedIds());
     }
 
+    private static final long DAY = 24L * 60L * 60L * 1000L;
+
+    @Test public void aSnapshotHoldsOnlyTheSignedInAccountsVideosInsideRetention() throws Exception {
+        long now = System.currentTimeMillis();
+        insert("7555000000000000001", now - 60_000);
+        insert("7555000000000000002", now - 40 * DAY);
+        database().execSQL("INSERT INTO seen_videos (account, aid, last_seen_ms) VALUES (?, ?, ?)",
+                new Object[]{"someone-else", "7555000000000000003", now - 60_000});
+        SeenVideoHistory.Snapshot snapshot = SeenVideoHistory.snapshot(SeenVideoHistory.captureImportTarget());
+        assertEquals(Map.of("7555000000000000001", now - 60_000), snapshot.videos);
+        assertTrue(snapshot.takenAt >= now);
+    }
+
+    @Test public void aSnapshotIsRefusedOnceAnotherAccountIsSignedIn() throws Exception {
+        insert("7555000000000000001", System.currentTimeMillis());
+        SeenVideoHistory.ImportTarget target = SeenVideoHistory.captureImportTarget();
+        SignedInUser.idForTests = "someone-else";
+        assertThrows(SeenVideoHistory.AccountChanged.class, () -> SeenVideoHistory.snapshot(target));
+        assertThrows(SeenVideoHistory.AccountChanged.class, () -> SeenVideoHistory.snapshot(null));
+    }
+
+    /**
+     * Save on one account, restore on another: every video comes back at its own time, the new
+     * account still hides them after a restart, the first account's record is untouched, and a
+     * settings backup carries none of it.
+     */
+    @Test public void aSavedFileRestoresIntoAnotherAccountAndOutlivesARestart() throws Exception {
+        long now = System.currentTimeMillis();
+        insert("7555000000000000011", now - 120_000);
+        insert("7555000000000000012", now - 60_000);
+        SeenVideoHistory.Snapshot snapshot = SeenVideoHistory.snapshot(SeenVideoHistory.captureImportTarget());
+        SeenHistoryFile.Encoded file = SeenHistoryFile.encode(snapshot.videos, snapshot.takenAt);
+        assertEquals(2, file.rows);
+        SeenHistoryFile.Contents contents = SeenHistoryFile.read(new ByteArrayInputStream(file.bytes));
+
+        SignedInUser.idForTests = "restorer";
+        SeenVideoHistory.ImportResult result = importAndWait(SeenVideoHistory.captureImportTarget(),
+                contents.records());
+        assertEquals(SeenVideoHistory.ImportStatus.IMPORTED, result.status);
+        assertEquals(2, result.imported);
+        assertEquals(0, result.skipped);
+        assertEquals(now - 120_000, lastSeen("restorer", "7555000000000000011"));
+        assertEquals(now - 60_000, lastSeen("restorer", "7555000000000000012"));
+
+        resetLoadedMemory();
+        SeenVideoHistory.size();
+        drain();
+        assertTrue(SeenVideoHistory.shouldHide("7555000000000000011"));
+        assertTrue(SeenVideoHistory.shouldHide("7555000000000000012"));
+        assertEquals(now - 120_000, lastSeen(ME, "7555000000000000011"));
+        assertEquals(now - 60_000, lastSeen(ME, "7555000000000000012"));
+        String backup = app.morphe.extension.tiktok.settings.SettingsBackup.create(false);
+        assertFalse("a settings backup carried a seen video", backup.contains("7555000000000000011"));
+    }
+
+    @Test public void aRestoreSaysWhyEachVideoItLeftOutWasLeftOut() throws Exception {
+        long now = System.currentTimeMillis();
+        insert("21", now - 60_000);
+        insert("22", now - 180_000);
+        Map<String, Long> file = new java.util.HashMap<>();
+        file.put("21", now - 120_000);
+        file.put("22", now - 60_000);
+        file.put("23", now - 40 * DAY);
+        file.put("24", now + DAY);
+        file.put("25", now - 30_000);
+        SeenVideoHistory.ImportResult result = importAndWait(SeenVideoHistory.captureImportTarget(),
+                new WatchHistoryImport.Records(file, 1, 6));
+        assertEquals(2, result.imported);
+        assertEquals("22 was there already and the file moved its date later", 1, result.refreshed);
+        assertEquals("21 was recorded later than the file has it", 1, result.alreadyRecorded);
+        assertEquals("23 is older than retention keeps", 1, result.expired);
+        assertEquals("24 is dated ahead of the clock", 1, result.future);
+        assertEquals(0, result.capped);
+        assertEquals(0, result.displaced);
+        assertEquals(1 + 5 - 2, result.skipped);
+        assertEquals(now - 60_000, lastSeen(ME, "21"));
+        assertEquals(now - 60_000, lastSeen(ME, "22"));
+        assertEquals(now - 30_000, lastSeen(ME, "25"));
+        assertFalse(persistedIds().contains("23"));
+        assertFalse(persistedIds().contains("24"));
+    }
+
+    @Test public void aRestorePastTheCapCountsWhatDidntFitAndWhatItPushedOut() throws Exception {
+        long now = System.currentTimeMillis();
+        SQLiteDatabase db = database();
+        db.beginTransaction();
+        try {
+            for (int index = 0; index < SeenVideoHistory.MAX_RECORDS; index++) {
+                db.execSQL("INSERT INTO seen_videos VALUES (?, ?, ?)",
+                        new Object[]{ME, "kept-" + index, now - 10_000 - index});
+            }
+            db.setTransactionSuccessful();
+        } finally {
+            db.endTransaction();
+        }
+        Map<String, Long> file = new java.util.HashMap<>();
+        file.put("fresh-1", now - 1_000);
+        file.put("fresh-2", now - 2_000);
+        file.put("stale", now - 10_000 - SeenVideoHistory.MAX_RECORDS - 50);
+        SeenVideoHistory.ImportResult result = importAndWait(SeenVideoHistory.captureImportTarget(),
+                new WatchHistoryImport.Records(file, 0, 3));
+        assertEquals(2, result.imported);
+        assertEquals("the file's oldest video didn't fit", 1, result.capped);
+        assertEquals("two of the oldest recorded videos made room", 2, result.displaced);
+        assertEquals(0, result.alreadyRecorded);
+        assertEquals(0, result.expired);
+        assertEquals(0, result.future);
+        assertEquals(1, result.skipped);
+        Set<String> ids = persistedIds();
+        assertEquals(SeenVideoHistory.MAX_RECORDS, ids.size());
+        assertFalse(ids.contains("stale"));
+        assertFalse(ids.contains("kept-" + (SeenVideoHistory.MAX_RECORDS - 1)));
+        assertFalse(ids.contains("kept-" + (SeenVideoHistory.MAX_RECORDS - 2)));
+        assertTrue(ids.contains("kept-" + (SeenVideoHistory.MAX_RECORDS - 3)));
+        assertTrue(ids.contains("fresh-2"));
+    }
+
     private static SeenVideoHistory.ImportResult importAndWait(SeenVideoHistory.ImportTarget target,
                                                                WatchHistoryImport.Records records) throws Exception {
         AtomicReference<SeenVideoHistory.ImportResult> result = new AtomicReference<>();

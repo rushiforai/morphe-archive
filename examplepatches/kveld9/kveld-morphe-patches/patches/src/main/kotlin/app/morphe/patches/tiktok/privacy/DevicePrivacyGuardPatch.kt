@@ -2,13 +2,20 @@ package app.morphe.patches.tiktok.privacy
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.Constants
 import app.morphe.patches.shared.sharedExtensionPatch
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 val devicePrivacyGuardPatch = bytecodePatch(
     name = "Device Privacy Guard",
-    description = "Neutralizes invasive runtime permissions (contacts sync, location tracking, nearby devices), advertising ID profiling, background clipboard snooping routines, and motion sensor profiling to protect user data.",
+    description = "Neutralizes invasive runtime permissions, contacts queries, package inventory inspection, location hardware tracking, advertising ID profiling, background clipboard snooping routines, and motion sensor profiling to protect user data.",
     default = true,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK)
@@ -392,6 +399,444 @@ val devicePrivacyGuardPatch = bytecodePatch(
             """.trimIndent(),
         )
         println("[Device Privacy Guard] Neutralized SmartHARServiceImpl.checkAndInit() -> return-void.")
+        patched++
+
+        // ==========================================
+        // 7. CONTENTRESOLVER CONTACTS QUERY ISOLATION
+        // ==========================================
+        // Note: We intentionally avoid both:
+        // (1) Single-index removeInstructions + replace: re-links branch targets into
+        //     the following move-result-object instruction, triggering an ART VerifyError
+        //     ("invalid use of move-result") and crashing at startup (verified on-device in X.02zD).
+        // (2) Register frame growth (ensureRegisterCount): expands total register count and shifts
+        //     parameter register numbers (v-numbers) up, leaving existing instructions pointing to
+        //     now-undefined low registers, triggering an ART VerifyError ("register vX has type Undefined").
+        // Therefore, we use strictly insert-only instrumentation with zero scratch registers, using
+        // range-singletons (invoke-static/range {vX .. vX}) immediately AFTER move-result-object.
+
+        var querySites = 0
+
+        // 7.1 query(Uri, String[], String, String[], String) -> 5 params
+        val query5ParamFp = Fingerprint(
+            custom = { method, _ ->
+                method.implementation?.instructions?.any { ins ->
+                    val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+                    ref.definingClass == "Landroid/content/ContentResolver;" &&
+                        ref.name == "query" &&
+                        ref.returnType == "Landroid/database/Cursor;" &&
+                        ref.parameterTypes.map { it.toString() } == listOf(
+                            "Landroid/net/Uri;",
+                            "[Ljava/lang/String;",
+                            "Ljava/lang/String;",
+                            "[Ljava/lang/String;",
+                            "Ljava/lang/String;",
+                        )
+                } == true
+            },
+        )
+        query5ParamFp.matchAll().forEach { match ->
+            val method = match.method
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            val edits = mutableListOf<Triple<Int, Int, Int>>()
+            instructions.forEachIndexed { index, instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+                if (ref.definingClass == "Landroid/content/ContentResolver;" &&
+                    ref.name == "query" &&
+                    ref.returnType == "Landroid/database/Cursor;" &&
+                    ref.parameterTypes.map { it.toString() } == listOf(
+                        "Landroid/net/Uri;",
+                        "[Ljava/lang/String;",
+                        "Ljava/lang/String;",
+                        "[Ljava/lang/String;",
+                        "Ljava/lang/String;",
+                    )
+                ) {
+                    val nextInsn = instructions.getOrNull(index + 1) ?: return@forEachIndexed
+                    if (nextInsn.opcode != Opcode.MOVE_RESULT_OBJECT) return@forEachIndexed
+                    val resultReg = (nextInsn as OneRegisterInstruction).registerA
+                    val uriReg = when (instruction) {
+                        is RegisterRangeInstruction -> instruction.startRegister + 1
+                        is FiveRegisterInstruction -> instruction.registerD
+                        else -> return@forEachIndexed
+                    }
+                    edits.add(Triple(index + 2, uriReg, resultReg))
+                }
+            }
+            if (edits.isNotEmpty()) {
+                edits.sortByDescending { it.first }
+                edits.forEach { (insertIndex, uriReg, resultReg) ->
+                    method.addInstructions(
+                        insertIndex,
+                        """
+                            invoke-static/range {v$uriReg .. v$uriReg}, ${Constants.TIKTOK_EXTENSION_PRIVACY_HOOK}->noteUri(Landroid/net/Uri;)V
+                            invoke-static/range {v$resultReg .. v$resultReg}, ${Constants.TIKTOK_EXTENSION_PRIVACY_HOOK}->filterNotedResult(Landroid/database/Cursor;)Landroid/database/Cursor;
+                            move-result-object v$resultReg
+                        """.trimIndent(),
+                    )
+                    querySites++
+                }
+            }
+        }
+
+        // 7.2 query(Uri, String[], String, String[], String, CancellationSignal) -> 6 params
+        val query6ParamFp = Fingerprint(
+            custom = { method, _ ->
+                method.implementation?.instructions?.any { ins ->
+                    val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+                    ref.definingClass == "Landroid/content/ContentResolver;" &&
+                        ref.name == "query" &&
+                        ref.returnType == "Landroid/database/Cursor;" &&
+                        ref.parameterTypes.map { it.toString() } == listOf(
+                            "Landroid/net/Uri;",
+                            "[Ljava/lang/String;",
+                            "Ljava/lang/String;",
+                            "[Ljava/lang/String;",
+                            "Ljava/lang/String;",
+                            "Landroid/os/CancellationSignal;",
+                        )
+                } == true
+            },
+        )
+        query6ParamFp.matchAll().forEach { match ->
+            val method = match.method
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            val edits = mutableListOf<Triple<Int, Int, Int>>()
+            instructions.forEachIndexed { index, instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+                if (ref.definingClass == "Landroid/content/ContentResolver;" &&
+                    ref.name == "query" &&
+                    ref.returnType == "Landroid/database/Cursor;" &&
+                    ref.parameterTypes.map { it.toString() } == listOf(
+                        "Landroid/net/Uri;",
+                        "[Ljava/lang/String;",
+                        "Ljava/lang/String;",
+                        "[Ljava/lang/String;",
+                        "Ljava/lang/String;",
+                        "Landroid/os/CancellationSignal;",
+                    )
+                ) {
+                    val nextInsn = instructions.getOrNull(index + 1) ?: return@forEachIndexed
+                    if (nextInsn.opcode != Opcode.MOVE_RESULT_OBJECT) return@forEachIndexed
+                    val resultReg = (nextInsn as OneRegisterInstruction).registerA
+                    val uriReg = when (instruction) {
+                        is RegisterRangeInstruction -> instruction.startRegister + 1
+                        is FiveRegisterInstruction -> instruction.registerD
+                        else -> return@forEachIndexed
+                    }
+                    edits.add(Triple(index + 2, uriReg, resultReg))
+                }
+            }
+            if (edits.isNotEmpty()) {
+                edits.sortByDescending { it.first }
+                edits.forEach { (insertIndex, uriReg, resultReg) ->
+                    method.addInstructions(
+                        insertIndex,
+                        """
+                            invoke-static/range {v$uriReg .. v$uriReg}, ${Constants.TIKTOK_EXTENSION_PRIVACY_HOOK}->noteUri(Landroid/net/Uri;)V
+                            invoke-static/range {v$resultReg .. v$resultReg}, ${Constants.TIKTOK_EXTENSION_PRIVACY_HOOK}->filterNotedResult(Landroid/database/Cursor;)Landroid/database/Cursor;
+                            move-result-object v$resultReg
+                        """.trimIndent(),
+                    )
+                    querySites++
+                }
+            }
+        }
+
+        // 7.3 query(Uri, String[], Bundle, CancellationSignal) -> 4 params (API 26)
+        val query4ParamFp = Fingerprint(
+            custom = { method, _ ->
+                method.implementation?.instructions?.any { ins ->
+                    val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+                    ref.definingClass == "Landroid/content/ContentResolver;" &&
+                        ref.name == "query" &&
+                        ref.returnType == "Landroid/database/Cursor;" &&
+                        ref.parameterTypes.map { it.toString() } == listOf(
+                            "Landroid/net/Uri;",
+                            "[Ljava/lang/String;",
+                            "Landroid/os/Bundle;",
+                            "Landroid/os/CancellationSignal;",
+                        )
+                } == true
+            },
+        )
+        query4ParamFp.matchAll().forEach { match ->
+            val method = match.method
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            val edits = mutableListOf<Triple<Int, Int, Int>>()
+            instructions.forEachIndexed { index, instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+                if (ref.definingClass == "Landroid/content/ContentResolver;" &&
+                    ref.name == "query" &&
+                    ref.returnType == "Landroid/database/Cursor;" &&
+                    ref.parameterTypes.map { it.toString() } == listOf(
+                        "Landroid/net/Uri;",
+                        "[Ljava/lang/String;",
+                        "Landroid/os/Bundle;",
+                        "Landroid/os/CancellationSignal;",
+                    )
+                ) {
+                    val nextInsn = instructions.getOrNull(index + 1) ?: return@forEachIndexed
+                    if (nextInsn.opcode != Opcode.MOVE_RESULT_OBJECT) return@forEachIndexed
+                    val resultReg = (nextInsn as OneRegisterInstruction).registerA
+                    val uriReg = when (instruction) {
+                        is RegisterRangeInstruction -> instruction.startRegister + 1
+                        is FiveRegisterInstruction -> instruction.registerD
+                        else -> return@forEachIndexed
+                    }
+                    edits.add(Triple(index + 2, uriReg, resultReg))
+                }
+            }
+            if (edits.isNotEmpty()) {
+                edits.sortByDescending { it.first }
+                edits.forEach { (insertIndex, uriReg, resultReg) ->
+                    method.addInstructions(
+                        insertIndex,
+                        """
+                            invoke-static/range {v$uriReg .. v$uriReg}, ${Constants.TIKTOK_EXTENSION_PRIVACY_HOOK}->noteUri(Landroid/net/Uri;)V
+                            invoke-static/range {v$resultReg .. v$resultReg}, ${Constants.TIKTOK_EXTENSION_PRIVACY_HOOK}->filterNotedResult(Landroid/database/Cursor;)Landroid/database/Cursor;
+                            move-result-object v$resultReg
+                        """.trimIndent(),
+                    )
+                    querySites++
+                }
+            }
+        }
+
+        if (querySites == 0) {
+            throw PatchException("Zero ContentResolver.query call sites found to intercept.")
+        }
+        println("[Device Privacy Guard] Intercepted $querySites ContentResolver.query call site(s) -> contacts queries filtered.")
+        patched++
+
+        // ==========================================
+        // 8. PACKAGEMANAGER INVENTORY READING ISOLATION (8.3)
+        // ==========================================
+
+        var packageSites = 0
+
+        // 8.3 queryIntentActivities(Intent, int)
+        val pkgQueryIntentFp = Fingerprint(
+            custom = { method, _ ->
+                method.implementation?.instructions?.any { ins ->
+                    val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+                    ref.definingClass == "Landroid/content/pm/PackageManager;" &&
+                        ref.name == "queryIntentActivities" &&
+                        ref.returnType == "Ljava/util/List;" &&
+                        ref.parameterTypes.map { it.toString() } == listOf("Landroid/content/Intent;", "I")
+                } == true
+            },
+        )
+        pkgQueryIntentFp.matchAll().forEach { match ->
+            val method = match.method
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            val edits = mutableListOf<Triple<Int, Int, Int>>()
+            instructions.forEachIndexed { index, instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+                if (ref.definingClass == "Landroid/content/pm/PackageManager;" &&
+                    ref.name == "queryIntentActivities" &&
+                    ref.returnType == "Ljava/util/List;" &&
+                    ref.parameterTypes.map { it.toString() } == listOf("Landroid/content/Intent;", "I")
+                ) {
+                    val nextInsn = instructions.getOrNull(index + 1) ?: return@forEachIndexed
+                    if (nextInsn.opcode != Opcode.MOVE_RESULT_OBJECT) return@forEachIndexed
+                    val resultReg = (nextInsn as OneRegisterInstruction).registerA
+                    val intentReg = when (instruction) {
+                        is RegisterRangeInstruction -> instruction.startRegister + 1
+                        is FiveRegisterInstruction -> instruction.registerD
+                        else -> return@forEachIndexed
+                    }
+                    edits.add(Triple(index + 2, intentReg, resultReg))
+                }
+            }
+            if (edits.isNotEmpty()) {
+                edits.sortByDescending { it.first }
+                edits.forEach { (insertIndex, intentReg, resultReg) ->
+                    method.addInstructions(
+                        insertIndex,
+                        """
+                            invoke-static/range {v$intentReg .. v$intentReg}, ${Constants.TIKTOK_EXTENSION_PRIVACY_HOOK}->noteIntent(Landroid/content/Intent;)V
+                            invoke-static/range {v$resultReg .. v$resultReg}, ${Constants.TIKTOK_EXTENSION_PRIVACY_HOOK}->filterNotedIntentResult(Ljava/util/List;)Ljava/util/List;
+                            move-result-object v$resultReg
+                        """.trimIndent(),
+                    )
+                    packageSites++
+                }
+            }
+        }
+
+        if (packageSites == 0) {
+            throw PatchException("Zero PackageManager inventory call sites found to intercept.")
+        }
+        println("[Device Privacy Guard] Intercepted $packageSites PackageManager inventory call site(s) -> package scanning filtered.")
+        patched++
+
+        // ==========================================
+        // 9. LOCATIONMANAGER HARDWARE QUERY ISOLATION
+        // ==========================================
+        // Note: requestSingleUpdate and requestLocationUpdates hooks are pruned entirely.
+        // Residual single-fix requests are non-blocking, and forcing LocationManager.getLastKnownLocation -> null
+        // combined with the neutralized startup location Lego tasks (Section 2.6) and suppressed scene
+        // permissions (Section 2.1-2.4) comprehensively neutralizes runtime location acquisition.
+
+        var locationSites = 0
+
+        // 9.1 getLastKnownLocation(String) -> Location
+        val locGetLastKnownFp = Fingerprint(
+            custom = { method, _ ->
+                method.implementation?.instructions?.any { ins ->
+                    val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+                    ref.definingClass == "Landroid/location/LocationManager;" &&
+                        ref.name == "getLastKnownLocation" &&
+                        ref.returnType == "Landroid/location/Location;" &&
+                        ref.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;")
+                } == true
+            },
+        )
+        locGetLastKnownFp.matchAll().forEach { match ->
+            val method = match.method
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            val edits = mutableListOf<Pair<Int, Int>>()
+            instructions.forEachIndexed { index, instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+                if (ref.definingClass == "Landroid/location/LocationManager;" &&
+                    ref.name == "getLastKnownLocation" &&
+                    ref.returnType == "Landroid/location/Location;" &&
+                    ref.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;")
+                ) {
+                    val nextInsn = instructions.getOrNull(index + 1) ?: return@forEachIndexed
+                    if (nextInsn.opcode != Opcode.MOVE_RESULT_OBJECT) return@forEachIndexed
+                    val resultReg = (nextInsn as OneRegisterInstruction).registerA
+                    edits.add(index + 2 to resultReg)
+                }
+            }
+            if (edits.isNotEmpty()) {
+                edits.sortByDescending { it.first }
+                edits.forEach { (insertIndex, resultReg) ->
+                    val constInsn = if (resultReg <= 15) "const/4 v$resultReg, 0x0" else "const/16 v$resultReg, 0x0"
+                    method.addInstructions(
+                        insertIndex,
+                        constInsn,
+                    )
+                    locationSites++
+                }
+            }
+        }
+
+        // 9.2 requestSingleUpdate(String, LocationListener, Looper) -> cancel via removeUpdates
+        var singleUpdateSites = 0
+        val locRequestSingleUpdateFp = Fingerprint(
+            custom = { method, _ ->
+                method.implementation?.instructions?.any { ins ->
+                    val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+                    ref.definingClass == "Landroid/location/LocationManager;" &&
+                        ref.name == "requestSingleUpdate" &&
+                        ref.returnType == "V" &&
+                        ref.parameterTypes.map { it.toString() } == listOf(
+                            "Ljava/lang/String;",
+                            "Landroid/location/LocationListener;",
+                            "Landroid/os/Looper;",
+                        )
+                } == true
+            },
+        )
+        locRequestSingleUpdateFp.matchAll().forEach { match ->
+            val method = match.method
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            val edits = mutableListOf<Pair<Int, String>>()
+
+            instructions.forEachIndexed { index, instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+                if (ref.definingClass == "Landroid/location/LocationManager;" &&
+                    ref.name == "requestSingleUpdate" &&
+                    ref.returnType == "V" &&
+                    ref.parameterTypes.map { it.toString() } == listOf(
+                        "Ljava/lang/String;",
+                        "Landroid/location/LocationListener;",
+                        "Landroid/os/Looper;",
+                    )
+                ) {
+                    val (managerReg, listenerReg) = when (instruction) {
+                        is FiveRegisterInstruction -> instruction.registerC to instruction.registerE
+                        is RegisterRangeInstruction -> instruction.startRegister to (instruction.startRegister + 2)
+                        else -> -1 to -1
+                    }
+
+                    if (managerReg in 0..15 && listenerReg in 0..15) {
+                        val smali = "invoke-virtual {v$managerReg, v$listenerReg}, Landroid/location/LocationManager;->removeUpdates(Landroid/location/LocationListener;)V"
+                        edits.add(index + 1 to smali)
+                    } else {
+                        println("[Device Privacy Guard] Note: Skipped removeUpdates cancellation for requestSingleUpdate (regs: manager=$managerReg, listener=$listenerReg > 15).")
+                    }
+                }
+            }
+
+            if (edits.isNotEmpty()) {
+                edits.sortByDescending { it.first }
+                edits.forEach { (insertIndex, smali) ->
+                    method.addInstructions(insertIndex, smali)
+                    singleUpdateSites++
+                    locationSites++
+                }
+            }
+        }
+        if (singleUpdateSites == 0) {
+            throw PatchException("Zero LocationManager.requestSingleUpdate call sites found to intercept.")
+        }
+        println("[Device Privacy Guard] Intercepted $singleUpdateSites LocationManager.requestSingleUpdate call site(s) -> cancelled via removeUpdates.")
+
+        // 9.3 isProviderEnabled(String)Z and isLocationEnabled()Z -> force false
+        var providerEnabledSites = 0
+        val locEnabledFp = Fingerprint(
+            custom = { method, _ ->
+                method.implementation?.instructions?.any { ins ->
+                    val ref = (ins as? ReferenceInstruction)?.reference as? MethodReference ?: return@any false
+                    if (ref.definingClass != "Landroid/location/LocationManager;" || ref.returnType != "Z") return@any false
+                    val params = ref.parameterTypes.map { it.toString() }
+                    (ref.name == "isProviderEnabled" && params == listOf("Ljava/lang/String;")) ||
+                        (ref.name == "isLocationEnabled" && params.isEmpty())
+                } == true
+            },
+        )
+        locEnabledFp.matchAll().forEach { match ->
+            val method = match.method
+            val instructions = method.implementation?.instructions?.toList() ?: return@forEach
+            val edits = mutableListOf<Pair<Int, Int>>()
+
+            instructions.forEachIndexed { index, instruction ->
+                val ref = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return@forEachIndexed
+                if (ref.definingClass == "Landroid/location/LocationManager;" && ref.returnType == "Z") {
+                    val params = ref.parameterTypes.map { it.toString() }
+                    val matches = (ref.name == "isProviderEnabled" && params == listOf("Ljava/lang/String;")) ||
+                        (ref.name == "isLocationEnabled" && params.isEmpty())
+                    if (matches) {
+                        val nextInsn = instructions.getOrNull(index + 1) ?: return@forEachIndexed
+                        if (nextInsn.opcode == Opcode.MOVE_RESULT) {
+                            val reg = (nextInsn as OneRegisterInstruction).registerA
+                            edits.add(index + 2 to reg)
+                        }
+                    }
+                }
+            }
+
+            if (edits.isNotEmpty()) {
+                edits.sortByDescending { it.first }
+                edits.forEach { (insertIndex, reg) ->
+                    val constInsn = if (reg <= 15) "const/4 v$reg, 0x0" else "const/16 v$reg, 0x0"
+                    method.addInstructions(insertIndex, constInsn)
+                    providerEnabledSites++
+                    locationSites++
+                }
+            }
+        }
+        if (providerEnabledSites == 0) {
+            throw PatchException("Zero LocationManager.isProviderEnabled / isLocationEnabled call sites found to intercept.")
+        }
+        println("[Device Privacy Guard] Intercepted $providerEnabledSites LocationManager.isProviderEnabled/isLocationEnabled call site(s) -> forced false.")
+
+        if (locationSites == 0) {
+            throw PatchException("Zero LocationManager call sites found to intercept.")
+        }
+        println("[Device Privacy Guard] Intercepted $locationSites LocationManager call site(s) -> hardware location queries suppressed.")
         patched++
 
         println("[Device Privacy Guard] Applied $patched device privacy protection hook(s).")

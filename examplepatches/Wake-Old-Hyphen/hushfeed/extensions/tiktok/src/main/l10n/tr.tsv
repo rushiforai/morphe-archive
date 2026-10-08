@@ -591,7 +591,7 @@ Hide the whole column on the right, from the avatar down to the music disc.	Avat
 Hide this creator on this phone	Bu içerik üreticisini bu telefonda gizle
 Hide verified accounts	Doğrulanmış hesapları gizle
 Hide video actions	Video eylemlerini gizle
-Hide videos carrying TikTok's AI-generated label.	TikTok'un yapay zeka ile üretildi etiketini taşıyan videoları gizle.
+Hide videos with TikTok's AI-generated label, AI content credentials, a TikTok AI effect such as AI Alive, or a tag like #ai or #aigenerated.	TikTok'un yapay zeka etiketini, yapay zeka içerik kimlik bilgilerini, AI Alive gibi bir TikTok yapay zeka efektini ya da #ai veya #aigenerated gibi bir etiketi taşıyan videoları gizle.
 Hide videos marked as paid partnership or branded content.	Ücretli ortaklık veya markalı içerik olarak işaretlenen videoları gizle.
 Hide videos posted as part of a playlist.	Bir oynatma listesinin parçası olarak paylaşılan videoları gizle.
 Hide videos posted by verified accounts.	Doğrulanmış hesapların paylaştığı videoları gizle.
@@ -1486,7 +1486,7 @@ LIVE followers range	CANLI takipçi aralığı
 Show only LIVEs from creators with this many followers.	Yalnızca bu kadar takipçisi olan içerik üreticilerinin CANLI yayınlarını göster.
 Hide the comment bar on opened videos	Açılan videolarda yorum çubuğunu gizle
 Hide the Clear display controls	Temiz ekran kontrollerini gizle
-While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.	Temiz ekran açıkken alttaki ilerleme çubuğunu, kapatma düğmesini, duraklatma ve hız düğmelerini de gizle. Temiz ekrandan çıkmak için videoya basılı tut ve Ekranı geri yükle'ye dokun.
+While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.	Temiz ekran açıkken alttaki ilerleme çubuğunu, kapatma düğmesini, duraklatma ve hız düğmelerini de gizle. Videoda ileri geri gitmek için yine de alt kenar boyunca sürükleyebilirsin. Temiz ekrandan çıkmak için videoya basılı tut ve Ekranı geri yükle'ye dokun.
 Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.	Bir profilden, hashtag'den, sesten veya aramadan açtığın videolardaki yorum yazma çubuğunu kaldır, böylece video ekranı en alta kadar doldurur. Sağdaki yorum düğmesi yorumları açmaya devam eder.
 Build details	Derleme ayrıntıları
 Copy or save patch-time choices and build identity.	Yama uygulanırken seçilen seçenekleri ve derleme kimliğini kopyalayın veya kaydedin.
@@ -1543,3 +1543,29 @@ Long-press menu on every post	Her gönderide uzun basma menüsü
 TikTok's hold to speed up	TikTok'un basılı tutarak hızlandırması
 TikTok's background play and auto-scroll	TikTok'un arka planda oynatma ve otomatik kaydırması
 Post dates in the feed	Akışta gönderi tarihleri
+Show exact counts	Tam sayıları göster
+Show counts as full numbers, like 1,234,567 instead of 1.2M.	Sayıları tam olarak gösterir, örneğin 1.2M yerine 1.234.567.
+Play SDR instead of HDR	HDR yerine SDR oynat
+Play the standard version of videos that also come in HDR, so the screen doesn't jump to full brightness when one starts. Videos TikTok only offers in HDR still play.	HDR sürümü de olan videoların normal sürümünü oynat, böylece biri başladığında ekran tam parlaklığa sıçramaz. TikTok'un yalnızca HDR olarak sunduğu videolar yine oynatılır.
+Remove story rings	Hikâye halkalarını kaldır
+Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.	Akışta, yorumlarda ve profillerde profil fotoğraflarındaki hikâye halkasını kaldır. Fotoğrafa dokunmak hikâye yerine profili açar.
+Remove the LIVE ring	LIVE halkasını kaldır
+Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.	Akışta ve yorumlarda profil fotoğraflarındaki yanıp sönen LIVE halkasını kaldır. Canlı yayındaki bir üreticinin fotoğrafına dokunmak LIVE yerine profilini açar.
+Writing	Yazma
+Lift text length limits	Metin uzunluğu sınırlarını kaldır
+Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.	Yorumlar, repost notları ve biyografin TikTok uygulamasının durduğu uzunluğu geçebilsin. TikTok sunucuları uzun bir metni yine de reddedebilir.
+Show only mutual friends on the Friends tab	Arkadaşlar sekmesinde yalnızca karşılıklı arkadaşları göster
+On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.	Arkadaşlar sekmesinde, önerilen hesaplar dahil karşılıklı takipleşmediğin hesapların gönderilerini, yeniden paylaşımlarını ve LIVE'larını gizle. Kendi gönderilerin kalır.
+Show follow status	Takip durumunu göster
+Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.	Bir profilde @kullanıcı adının altında seni takip edip etmediğini ya da geri takip etmediğini göster. Takipçi ve takip edilen listeleri, takip ettiğin ama seni geri takip etmeyen hesapları işaretler.
+Follows you	Seni takip ediyor
+Doesn't follow you back	Seni geri takip etmiyor
+Copy bio and IDs	Biyografiyi ve kimlikleri kopyala
+Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID.	Bir biyografiyi kopyalamak için üzerine uzun bas. Bir profilin paylaşım sayfasına kullanıcı adını ve kullanıcı kimliğini kopyalayan düğmeler, bir videonunkine de video kimliğini kopyalayan bir düğme eklenir.
+Bio copied	Biyografi kopyalandı
+Username copied	Kullanıcı adı kopyalandı
+User ID copied	Kullanıcı kimliği kopyalandı
+Video ID copied	Video kimliği kopyalandı
+Copy username	Kullanıcı adını kopyala
+Copy user ID	Kullanıcı kimliğini kopyala
+Copy video ID	Video kimliğini kopyala

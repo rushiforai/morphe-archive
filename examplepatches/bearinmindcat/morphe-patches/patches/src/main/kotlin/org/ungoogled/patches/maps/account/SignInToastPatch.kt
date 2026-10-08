@@ -4,18 +4,17 @@ import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import org.ungoogled.patches.shared.Constants.COMPATIBILITY_MAPS
+import org.ungoogled.patches.maps.microg.MicrogSelection
 
 private const val TOAST_TEXT = "Can't sign in"
 
-@Suppress("unused")
-val signInToastPatch = bytecodePatch(
-    name = "Sign-in toast",
+internal val signInToastPatch = bytecodePatch(
     description = "The \"Sign in\" pill shows a \"Can't sign in\" toast instead of failing silently.",
-    default = true,
 ) {
     compatibleWith(COMPATIBILITY_MAPS)
 
     execute {
+        if (MicrogSelection.replaces(this, "Remove sign-in prompts")) return@execute
         val matches = SignInClickFingerprint.instructionMatches
         val cast = matches.first().index
         val count = matches.last().index - cast + 1

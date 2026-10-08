@@ -35,10 +35,10 @@ first-call Lapp/morphe/extension/facebook/feed/PostSources;->attachments(Ljava/l
 # first call leaves the extension. Left unfilled it answers its marker, and the Reels rule keeps
 # every reel with nothing but a Hook status line to say why.
 first-call Lapp/morphe/extension/facebook/feed/GenAiReelFilter;->transparencyAttribution(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object; outside Lapp/morphe/extension/
-# The Stories tray patch gives each of the feed's two tray adapter classes, the classic and the
-# unified one, a getItemCount() of its own that asks the extension with Facebook's count. No other
-# method calls it, and neither class gets two.
-count-call Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I in getItemCount 2
+# The Stories tray patch gives three of the feed's adapter classes, the classic tray, the unified
+# tray and Home's composer row, a getItemCount() of its own that asks the extension with Facebook's
+# count. No other method calls it, and no class gets two.
+count-call Lapp/morphe/extension/facebook/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I in getItemCount 3
 # The reels patch fills the showcase stub with the story type accessor of the one class whose
 # getTypeName() answers ShowcaseFeedUnit, a class Redex renames, so the rule names it by that type.
 first-call Lapp/morphe/extension/facebook/feed/ShowcaseType;->storyType(Ljava/lang/Object;)Ljava/lang/Object; on-type-named ShowcaseFeedUnit
@@ -55,6 +55,11 @@ start-call Lapp/morphe/extension/facebook/feed/ReturnRefresh;->skip()Z holding F
 # author you don't follow, the Reels tab's among them. Nineteen methods name both surfaces; the check
 # is the one that's static, takes the session first and answers a boolean.
 start-call Lapp/morphe/extension/facebook/reels/ReelDeclutter;->hideFollowButton()Z in static (Lcom/facebook/auth/usersession/FbUserSession;*)Z holding friendly_feed friends_tab_ifu
+# Its Threads card filter reads each mid-card's type through a stub the patch fills with the mid-card
+# item's reads, whose classes are Redex names that no type name answers, so the rule asks only that
+# the stub's first call leaves the extension. Left unfilled it answers its marker, and every Threads
+# card stays with nothing but a Hook status line to say why.
+first-call Lapp/morphe/extension/facebook/reels/ReelMidCards;->midCardType(Ljava/lang/Object;)Ljava/lang/Object; outside Lapp/morphe/extension/
 # Use the phone's emoji asks the extension first thing in Facebook's emoji typeface provider, the one
 # method holding the end-to-end flag for the phone's emoji font and the provider's log tag. Left out
 # or put later, the provider hands out Meta's emoji font whatever the switch says. A string table

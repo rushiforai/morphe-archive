@@ -15,6 +15,7 @@ import app.morphe.patches.facebook.media.taptoplay.GROOT_PLAY
 import app.morphe.patches.facebook.media.taptoplay.grootPlays
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
+import app.morphe.patches.facebook.misc.extension.parameterRegisterNumber
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
@@ -45,7 +46,8 @@ import java.io.File
  * one read of the config; and both release listeners reading the player's speed with one public
  * getter. Then the patch itself, run on those
  * classes: every flag call's answer through the extension in the same register before its branch,
- * every return of the edge check and of the hold speed through the extension, the hold's start
+ * every return of the edge check and of the hold speed through the extension, the edge check's
+ * press and view handed over first, through the range form, the hold's start
  * straight after each "speed_up" load, the touch dispatch handing the event over first, the speed
  * setter handing the player and the speed over first and going on with the speed it gets back, and
  * the extension's speed stub calling the getter. Reads the fixture bundles from
@@ -171,6 +173,7 @@ class HoldReelFor2xFixtureTest {
                     handlers.flatMap { it.methods }.sumOf { hooks(it, LONG_PRESS) })
                 assertEquals("$name: the guard hooks the overlay's flag", 0, hooks(checks.single(), SPEED_UP))
                 assertEquals("$name: the guard hooks the edge check", 0, hooks(edge, ANYWHERE))
+                assertEquals("$name: the guard measures the edge check's press", 0, hooks(edge, EDGE_TOUCH))
                 assertEquals("$name: the guard hooks the hold speed", 0, hooks(holdSpeed, HOLD_SPEED))
                 assertEquals("$name: the guard's setter hook", 1, hooks(setter, SPEED_SET))
                 assertEquals("$name: the guard's touch hook", 1,
@@ -240,6 +243,14 @@ class HoldReelFor2xFixtureTest {
                     assertEquals("$name: the edge check takes the answer back", register,
                         (edgeAfter[index - 1] as OneRegisterInstruction).registerA)
                 }
+                // First in the edge check, the press and the reel's view it measures, its first two
+                // parameters, named by the range form whatever their numbers.
+                assertEquals("$name: the edge check's first call", EDGE_TOUCH, edgeAfter[0].call.toString())
+                assertEquals("$name: the edge check's press call", Opcode.INVOKE_STATIC_RANGE, edgeAfter[0].opcode)
+                assertEquals("$name: the press and view the edge check hands over",
+                    listOf(edge.parameterRegisterNumber(0), edge.parameterRegisterNumber(1)), edgeAfter[0].registers())
+                assertEquals("$name: the edge check's press calls", 1, edgeAfter.count { it.call?.toString() == EDGE_TOUCH })
+                assertEquals("$name: the edge check lost its own first instruction", edgeBefore[0].opcode, edgeAfter[1].opcode)
 
                 val speedBefore = holdSpeed.code()
                 val speedAfter = patched(holdSpeed)

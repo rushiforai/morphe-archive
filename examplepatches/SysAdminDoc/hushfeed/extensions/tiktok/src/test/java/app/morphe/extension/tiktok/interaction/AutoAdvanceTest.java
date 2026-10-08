@@ -4,7 +4,9 @@ import static org.junit.Assert.*;
 import android.view.View;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.wellbeing.FeedLock;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
+import app.morphe.extension.tiktok.wellbeing.SessionPlaybackHold;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.TikTokPreferenceFragment;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -247,6 +249,107 @@ public class AutoAdvanceTest {
 
         assertEquals("a video nobody could see was counted", 0, control.completedCount);
         assertFalse("the feed kept advancing behind the hold", control.owned);
+    }
+
+    @Test public void aSharedVideoPlayingAloneStandsAutoAdvanceDownUntilAnotherVideoPlays() {
+        // Open shared videos alone: a link's video has no feed after it, and the end of the
+        // video is where Auto-advance would have moved on into one.
+        SettingsStatus.blockAuthorEnabled = true;
+        SettingsStatus.feedNavigationEnabled = true;
+        Settings.SHARED_VIDEO_ALONE.save(true);
+        Object component = new Object();
+        java.util.Map<Object, AutoAdvance.Control> controls =
+                org.robolectric.util.ReflectionHelpers.getStaticField(AutoAdvance.class, "CONTROLS");
+        try {
+            FeedView feed = new FeedView();
+            var control = new AutoAdvance.Control(feed.indicator);
+            var state = new AtomicReference<>(State.AUTO_SCROLL_STATE_STOP);
+            var starts = new AtomicInteger();
+            Runnable start = () -> { starts.incrementAndGet(); state.set(State.AUTO_SCROLL_STATE_START); };
+            Runnable stop = () -> state.set(State.AUTO_SCROLL_STATE_STOP);
+            control.update(state::get, start, stop);
+            assertTrue(control.owned);
+
+            FeedLock.onNewIntent(new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://www.tiktok.com/@a/video/1")));
+            playing("linked");
+            assertTrue(FeedLock.linkVideoAlone());
+
+            // Its end, before the completion is counted: stood down, and not counted.
+            controls.put(component, control);
+            AutoAdvance.beforeCompletion(component, "linked");
+            assertFalse("Auto-advance moved on from a shared video", control.owned);
+            assertEquals("the shared video spent a place in the session's limit", 0, control.completedCount);
+            // The host's component, stopped by that stand-down through the native bridge.
+            state.set(State.AUTO_SCROLL_STATE_STOP);
+            control.update(state::get, start, stop);
+            assertEquals("it started again on the shared video", 1, starts.get());
+
+            playing("next");
+            assertFalse(FeedLock.linkVideoAlone());
+            control.update(state::get, start, stop);
+            assertEquals("it never started again once another video played", 2, starts.get());
+            assertTrue(control.owned);
+        } finally {
+            controls.remove(component);
+            Settings.SHARED_VIDEO_ALONE.resetToDefault();
+            SettingsStatus.blockAuthorEnabled = false;
+            SettingsStatus.feedNavigationEnabled = false;
+            org.robolectric.util.ReflectionHelpers.callStaticMethod(FeedLock.class, "resetForTests");
+            org.robolectric.util.ReflectionHelpers.setStaticField(SessionPlaybackHold.class, "current", null);
+        }
+    }
+
+    @Test public void tikToksOwnScrollStopsOnASharedVideoPlayingAloneToo() {
+        // Started from the panel action, or by search on its own: not Hushfeed's, and the
+        // pager's touch guard doesn't stop a move the app makes itself.
+        SettingsStatus.blockAuthorEnabled = true;
+        SettingsStatus.feedNavigationEnabled = true;
+        Settings.SHARED_VIDEO_ALONE.save(true);
+        try {
+            FeedView feed = new FeedView();
+            var control = new AutoAdvance.Control(feed.indicator);
+            var state = new AtomicReference<>(State.AUTO_SCROLL_STATE_START);
+            var stops = new AtomicInteger();
+            Runnable start = () -> fail("it started a scroll that was already running");
+            Runnable stop = () -> { stops.incrementAndGet(); state.set(State.AUTO_SCROLL_STATE_STOP); };
+            control.update(state::get, start, stop);
+            assertFalse(control.owned);
+            assertEquals("TikTok's own scroll was stopped with no shared video", 0, stops.get());
+
+            FeedLock.onNewIntent(new android.content.Intent(android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://www.tiktok.com/@a/video/1")));
+            playing("linked");
+            assertTrue(FeedLock.linkVideoAlone());
+            control.update(state::get, start, stop);
+            assertEquals("TikTok's own scroll moved on from a shared video", 1, stops.get());
+            control.update(state::get, start, stop);
+            assertEquals("a stopped scroll was stopped again", 1, stops.get());
+
+            // With Hushfeed's own Auto-advance off, TikTok's still doesn't move on from it.
+            Settings.AUTO_ADVANCE.save(false);
+            state.set(State.AUTO_SCROLL_STATE_PAUSE);
+            control.update(state::get, start, stop);
+            assertEquals(2, stops.get());
+
+            app.morphe.extension.shared.settings.PausedProcess.set(true);
+            state.set(State.AUTO_SCROLL_STATE_START);
+            control.update(state::get, start, stop);
+            assertEquals("paused, Hushfeed still stopped TikTok's scroll", 2, stops.get());
+        } finally {
+            app.morphe.extension.shared.settings.PausedProcess.set(false);
+            Settings.SHARED_VIDEO_ALONE.resetToDefault();
+            SettingsStatus.blockAuthorEnabled = false;
+            SettingsStatus.feedNavigationEnabled = false;
+            org.robolectric.util.ReflectionHelpers.callStaticMethod(FeedLock.class, "resetForTests");
+            org.robolectric.util.ReflectionHelpers.setStaticField(SessionPlaybackHold.class, "current", null);
+        }
+    }
+
+    /** The player reporting the video it plays, the way it reaches the hold and the feed lock. */
+    private static void playing(String awemeId) {
+        SessionPlaybackHold.onPlayerProgress(new Object(), awemeId);
+        org.robolectric.Shadows.shadowOf(android.os.Looper.getMainLooper()).idle();
     }
 
     @Test public void disabledSettingLeavesPreexistingNativeAutoScrollAlone() {

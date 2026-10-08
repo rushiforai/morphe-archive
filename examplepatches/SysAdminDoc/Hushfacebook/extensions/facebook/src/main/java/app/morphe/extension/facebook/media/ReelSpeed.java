@@ -9,9 +9,14 @@ import android.os.SystemClock;
 import androidx.annotation.Nullable;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.WeakHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
@@ -44,6 +49,17 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * Picking normal speed goes back to Facebook's reset for that viewer. The speeds live in memory
  * only, so they're gone when Facebook restarts, and nothing is kept or applied while the switch is
  * off, Hushfacebook is paused, the settings aren't ready, or anything here fails.
+ *
+ * <p>Keep the video speed, the patch's second switch, does the same for videos that aren't reels: a
+ * speed picked in a feed or Watch video's gear menu is kept once for every viewer, and each next
+ * video that isn't a reel, an ad or live starts at it, while reels keep the speed kept for them. The
+ * speed goes on through the same FbGrootPlayer setter Facebook's own gear menu uses. Stories, chats
+ * and the composer's previews keep Facebook's speed, so a pick there isn't kept either. With that
+ * switch off, a gear pick on a video that isn't a reel stays with that video, as Facebook has it.
+ *
+ * <p>Slower speeds, the third switch, adds 0.1x and 0.25x to the speeds the Reels menu's two pickers
+ * offer ({@link #speedChoices}) and to the gear menu's speed sheet ({@link #gearValues},
+ * {@link #gearSpeeds} and {@link #gearLabels}).
  */
 public final class ReelSpeed {
     static final float NORMAL = 1f;
@@ -56,6 +72,34 @@ public final class ReelSpeed {
 
     /** Counted under the patch's name for each reel started at the kept speed. */
     static final String APPLIED = "reel started at the kept speed";
+
+    /** Counted under the patch's name for each feed or Watch video started at the kept video speed. */
+    static final String VIDEO_APPLIED = "video started at the kept speed";
+
+    /** The speeds Slower speeds offers, slowest first. ExoPlayer plays down to 0.1x. */
+    static final float[] SLOWER = {0.1f, 0.25f};
+
+    /** Counted under the patch's name each time a Reels speed picker offers the slower speeds. */
+    static final String SLOWER_OFFERED = "Reels speed menu offered slower speeds";
+
+    /** Counted under the patch's name each time the gear menu's speed sheet offers the slower speeds. */
+    static final String GEAR_SLOWER_OFFERED = "gear speed sheet offered slower speeds";
+
+    /** The labels of the speeds {@link #gearSpeeds} just put ahead of the sheet's own, for {@link #gearLabels}. */
+    private static final ThreadLocal<String[]> GEAR_ADDED = new ThreadLocal<>();
+
+    /** A speed label with a decimal in it: what comes before the number, the decimal mark, and what comes after. */
+    private static final Pattern DECIMAL_LABEL = Pattern.compile("([^0-9]*)[0-9]+([.,])[0-9]+([^0-9]*)");
+
+    /**
+     * What a player's origin holds when it plays somewhere a kept video speed doesn't belong: chats,
+     * the composer and camera's previews, and the TV cast screen. Stories are told by how their
+     * origin starts, so feed_story still counts as the feed.
+     */
+    private static final String[] NOT_VIDEO_VIEWERS = {
+            "thread", "messenger", "message", "composer", "picker", "editor", "camera", "inspiration",
+            "living_room",
+    };
 
     private static final String FAMILY = FamilyNames.KEEP_REEL_SPEED;
 
@@ -123,6 +167,10 @@ public final class ReelSpeed {
 
     /** The params each player last started with a speed kept for its viewer, weakly. Players don't override equals. */
     private static final Map<Object, WeakReference<Object>> HANDLED = new WeakHashMap<>();
+
+    /** The speed kept for feed and Watch videos, the same in every viewer, or null for Facebook's. */
+    @Nullable
+    private static Float videoKept;
 
     @Nullable
     private static WeakReference<Object> lastSetPlayer;
@@ -200,20 +248,152 @@ public final class ReelSpeed {
 
     /**
      * The hook straight after each speed the gear menu's sheet sets, which shows no toast. Kept like
-     * a pick in the Reels menu when the player's video is a reel; a speed picked on any other video,
-     * in a Watch video's gear menu for one, stays with that video.
+     * a pick in the Reels menu when the player's video is a reel. A speed picked on any other video,
+     * in a Watch video's gear menu for one, is kept for the next feed and Watch videos with Keep the
+     * video speed on, and stays with that video with it off.
      */
     public static void gearPicked(float speed) {
         pick(speed, true, "gear speed picked");
     }
 
-    private static void pick(float speed, boolean reelsOnly, String where) {
+    /**
+     * The hook where each of the Reels menu's two speed pickers, the attribute selector and the
+     * dropdown, has just made its list of speeds, which it builds its items from (#95). With
+     * {@link Settings#SLOWER_REEL_SPEEDS} on, the list that comes back starts with the
+     * {@link #SLOWER} speeds slower than any it offers, so 0.1x and 0.25x come before Facebook's
+     * 0.5x. A pick of one goes through the toast and the speed setter like any other, so Keep the
+     * reel speed keeps it. Off, paused, or anything here failing, Facebook's own list comes back.
+     */
+    public static List<?> speedChoices(List<?> speeds) {
         try {
             HookStatus.invoked(FAMILY);
-            if (!on()) return;
+            if (speeds == null || speeds.isEmpty() || !Utils.settingsReady() || !Settings.SLOWER_REEL_SPEEDS.get()) {
+                return speeds;
+            }
+            HookStatus.bound(FAMILY, "speed menu");
+            float slowest = Float.MAX_VALUE;
+            for (Object speed : speeds) slowest = Math.min(slowest, ((Float) speed));
+            List<Object> choices = new ArrayList<>(speeds.size() + SLOWER.length);
+            for (float speed : SLOWER) {
+                if (speed < slowest - SAME) choices.add(speed);
+            }
+            choices.addAll(speeds);
+            HookStatus.counted(FAMILY, SLOWER_OFFERED);
+            return choices;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "speed menu", failure);
+            return speeds;
+        }
+    }
+
+    /**
+     * The hook first in the gear menu's speed sheet builder, on its flag for reading each speed from
+     * a float rather than parsing it back out of its label with the locale's NumberFormat (#95). With
+     * {@link Settings#SLOWER_REEL_SPEEDS} on it answers true, so {@link #gearSpeeds} gets the sheet's
+     * real speeds and a pick plays the speed it shows whatever the locale. Facebook's own builders
+     * pass true on some paths, and the pick reads the float whenever the flag is set. Off, paused or
+     * failing, Facebook's flag stands.
+     */
+    public static boolean gearValues(boolean values) {
+        try {
+            if (values || !Utils.settingsReady() || !Settings.SLOWER_REEL_SPEEDS.get()) return values;
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "gear speed sheet", failure);
+            return values;
+        }
+    }
+
+    /**
+     * The hook where the gear menu's speed sheet has its speeds and their labels and is about to
+     * make one item from each pair: the speeds come here first. With the switch on, the array that
+     * comes back starts with the {@link #SLOWER} speeds slower than any the sheet offers, and
+     * {@link #gearLabels}, called straight after, puts a label in front of the labels for each.
+     * Speeds of zero mean the sheet still reads its labels, so nothing is added. Off, paused or
+     * failing, Facebook's array comes back and so do its labels.
+     */
+    public static float[] gearSpeeds(float[] speeds) {
+        GEAR_ADDED.remove();
+        try {
+            HookStatus.invoked(FAMILY);
+            if (speeds == null || speeds.length == 0 || !Utils.settingsReady() || !Settings.SLOWER_REEL_SPEEDS.get()) {
+                return speeds;
+            }
+            float slowest = Float.MAX_VALUE;
+            for (float speed : speeds) slowest = Math.min(slowest, speed);
+            if (slowest <= 0) return speeds;
+            HookStatus.bound(FAMILY, "gear speed sheet");
+            int added = 0;
+            // SLOWER runs slowest first, so the speeds below the sheet's slowest are its first ones.
+            for (float speed : SLOWER) {
+                if (speed < slowest - SAME) added++;
+            }
+            if (added == 0) return speeds;
+            float[] choices = new float[added + speeds.length];
+            System.arraycopy(SLOWER, 0, choices, 0, added);
+            System.arraycopy(speeds, 0, choices, added, speeds.length);
+            // Labelled here, so all that's left for gearLabels is to join two arrays.
+            String[] names = new String[added];
+            for (int i = 0; i < added; i++) names[i] = String.valueOf(SLOWER[i]);
+            GEAR_ADDED.set(names);
+            HookStatus.counted(FAMILY, GEAR_SLOWER_OFFERED);
+            return choices;
+        } catch (Throwable failure) {
+            GEAR_ADDED.remove();
+            HookStatus.threw(FAMILY, "gear speed sheet", failure);
+            return speeds;
+        }
+    }
+
+    /**
+     * The labels for the speeds {@link #gearSpeeds} just added on this thread, ahead of the sheet's
+     * own labels and written like the first of those with a decimal in it: German's "0,5x" makes
+     * "0,25x", English's "0.5" makes "0.25" ({@link #styled}). Facebook's labels come back unchanged
+     * when nothing was added.
+     */
+    public static String[] gearLabels(String[] labels) {
+        String[] added = GEAR_ADDED.get();
+        GEAR_ADDED.remove();
+        if (added == null || labels == null) return labels;
+        try {
+            String model = null;
+            for (String label : labels) {
+                if (label != null && DECIMAL_LABEL.matcher(label).matches()) {
+                    model = label;
+                    break;
+                }
+            }
+            String[] choices = new String[added.length + labels.length];
+            for (int i = 0; i < added.length; i++) choices[i] = styled(added[i], model);
+            System.arraycopy(labels, 0, choices, added.length, labels.length);
+            return choices;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "gear speed sheet", failure);
+            return labels;
+        }
+    }
+
+    /**
+     * [plain], a speed like "0.25", with the decimal mark and whatever goes around the number in
+     * [model], a label of Facebook's like "0,5x". [plain] as it is with no model.
+     */
+    static String styled(String plain, @Nullable String model) {
+        if (model == null) return plain;
+        Matcher label = DECIMAL_LABEL.matcher(model);
+        if (!label.matches()) return plain;
+        return label.group(1) + plain.replace('.', label.group(2).charAt(0)) + label.group(3);
+    }
+
+    private static void pick(float speed, boolean gear, String where) {
+        try {
+            HookStatus.invoked(FAMILY);
+            boolean reels = reelsOn();
+            // Only the gear sheet is offered on videos that aren't reels; the toast is the Reels menu's.
+            boolean videos = gear && videosOn();
+            if (!reels && !videos) return;
             HookStatus.bound(FAMILY, where);
             Object player = pickedPlayer(speed, SystemClock.uptimeMillis());
-            if (reelsOnly) {
+            if (gear) {
                 if (player == null) {
                     Logger.printDebug(() -> "Reel speed: " + speed + "x picked in the gear menu, but no player found that was just set to it, so it isn't kept");
                     return;
@@ -224,7 +404,15 @@ public final class ReelSpeed {
                     return;
                 }
                 if (!access.reel(video)) {
-                    Logger.printDebug(() -> "Reel speed: " + speed + "x picked in the gear menu on a video that isn't a reel, it stays with that video");
+                    if (videos) {
+                        keepForVideos(player, video, speed);
+                    } else {
+                        Logger.printDebug(() -> "Reel speed: " + speed + "x picked in the gear menu on a video that isn't a reel, it stays with that video");
+                    }
+                    return;
+                }
+                if (!reels) {
+                    Logger.printDebug(() -> "Reel speed: " + speed + "x picked in the gear menu on a reel, Keep the reel speed is off, so it stays with that reel");
                     return;
                 }
             }
@@ -270,39 +458,83 @@ public final class ReelSpeed {
     }
 
     /**
+     * Keeps [speed], picked in the gear menu on [player]'s [params], a video that isn't a reel, for
+     * the next feed and Watch videos. Normal speed forgets it. A pick on an ad, a live video or in a
+     * viewer the speed doesn't go to stays with that video.
+     */
+    private static void keepForVideos(Object player, Object params, float speed) {
+        String origin = originName(player);
+        String skip = access.ad(params) ? "an ad" : access.live(params) ? "live"
+                : !videoViewer(origin) ? "not a feed or Watch video" : null;
+        if (skip != null) {
+            Logger.printDebug(() -> "Video speed: " + speed + "x picked in the gear menu on a video in " + origin
+                    + ", it's " + skip + ", so it stays with that video");
+            return;
+        }
+        synchronized (LOCK) {
+            videoKept = same(speed, NORMAL) ? null : speed;
+            // The video picked on already plays at the speed.
+            HANDLED.put(player, new WeakReference<>(params));
+        }
+        Logger.printDebug(() -> same(speed, NORMAL)
+                ? "Video speed: normal speed picked, feed and Watch videos start as Facebook starts them"
+                : "Video speed: keeping " + speed + "x for feed and Watch videos, picked in " + origin);
+    }
+
+    /**
      * The hook, first thing in FbGrootPlayer's maybeTrackVideoStart, which runs once the player has
-     * started playing. The first start of each video after a pick in the player's viewer gets the
-     * kept speed when the video is a reel that's neither an ad nor live.
+     * started playing. The first start of each video after a pick gets the kept speed: a reel gets
+     * its viewer's, and a feed or Watch video gets the video speed. Neither goes on an ad or a live video.
      */
     public static void started(Object player) {
         try {
             HookStatus.invoked(FAMILY);
-            if (player == null || !on()) return;
+            if (player == null) return;
+            boolean reels = reelsOn();
+            boolean videos = videosOn();
+            if (!reels && !videos) return;
             String origin = originName(player);
-            Float kept;
+            Float reelKept;
+            Float videoSpeed;
             synchronized (LOCK) {
                 lastStartedPlayer = new WeakReference<>(player);
-                kept = origin == null ? null : KEPT.get(origin);
+                reelKept = !reels || origin == null ? null : KEPT.get(origin);
+                videoSpeed = videos ? videoKept : null;
             }
-            // Nothing kept for this viewer yet: a later start of the same video can still get a pick.
-            if (kept == null) return;
+            // Nothing kept yet: a later start of the same video can still get a pick.
+            if (reelKept == null && videoSpeed == null) return;
             Object params = access.params(player);
             if (params == null) return;
+            boolean reel = access.reel(params);
+            Float kept = reel ? reelKept : videoSpeed;
+            if (kept == null) {
+                if (!reel) Logger.printDebug(() -> "Reel speed: a video in " + origin + " started at Facebook's speed, it's not a reel");
+                return;
+            }
             synchronized (LOCK) {
                 WeakReference<Object> handled = HANDLED.get(player);
                 if (handled != null && handled.get() == params) return;
                 HANDLED.put(player, new WeakReference<>(params));
             }
             float speed = kept;
-            String skip = !access.reel(params) ? "not a reel" : access.ad(params) ? "an ad" : access.live(params) ? "live" : null;
+            String skip = access.ad(params) ? "an ad" : access.live(params) ? "live"
+                    : !reel && !videoViewer(origin) ? "not a feed or Watch video" : null;
             if (skip != null) {
-                Logger.printDebug(() -> "Reel speed: a video in " + origin + " started at Facebook's speed, it's " + skip);
+                Logger.printDebug(() -> (reel ? "Reel speed: a video in " : "Video speed: a video in ") + origin
+                        + " started at Facebook's speed, it's " + skip);
                 return;
             }
-            HookStatus.bound(FAMILY, "player start");
-            access.setSpeed(player, speed);
-            HookStatus.counted(FAMILY, APPLIED);
-            Logger.printDebug(() -> "Reel speed: a reel in " + origin + " started, set to the kept " + speed + "x");
+            if (reel) {
+                HookStatus.bound(FAMILY, "player start");
+                access.setSpeed(player, speed);
+                HookStatus.counted(FAMILY, APPLIED);
+                Logger.printDebug(() -> "Reel speed: a reel in " + origin + " started, set to the kept " + speed + "x");
+            } else {
+                HookStatus.bound(FAMILY, "video start");
+                access.setSpeed(player, speed);
+                HookStatus.counted(FAMILY, VIDEO_APPLIED);
+                Logger.printDebug(() -> "Video speed: a video in " + origin + " started, set to the kept " + speed + "x");
+            }
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "player start", failure);
         }
@@ -311,7 +543,29 @@ public final class ReelSpeed {
     // ------------------------------------------------------------------ the rule
 
     private static boolean on() {
+        return reelsOn() || videosOn();
+    }
+
+    private static boolean reelsOn() {
         return Utils.settingsReady() && Settings.KEEP_REEL_SPEED.get();
+    }
+
+    private static boolean videosOn() {
+        return Utils.settingsReady() && Settings.KEEP_VIDEO_SPEED.get();
+    }
+
+    /**
+     * Whether a player from [origin] plays feed or Watch videos, where a kept video speed goes:
+     * not a story, a chat, the composer's or camera's previews or the TV cast screen.
+     */
+    static boolean videoViewer(@Nullable String origin) {
+        if (origin == null) return false;
+        String name = origin.toLowerCase(Locale.ROOT);
+        if (name.startsWith("fb_stories") || name.startsWith("story_") || name.startsWith("stories_")) return false;
+        for (String part : NOT_VIDEO_VIEWERS) {
+            if (name.contains(part)) return false;
+        }
+        return true;
     }
 
     private static boolean same(float a, float b) {
@@ -362,9 +616,17 @@ public final class ReelSpeed {
         }
     }
 
+    /** The speed kept for feed and Watch videos, or {@link #NORMAL} when none is. For tests. */
+    static float videoKept() {
+        synchronized (LOCK) {
+            return videoKept == null ? NORMAL : videoKept;
+        }
+    }
+
     /** Forgets every kept speed, the last speed set and every started video. For tests. */
     static void forget() {
         synchronized (LOCK) {
+            videoKept = null;
             lastSetPlayer = null;
             lastSetSpeed = NORMAL;
             lastSetAt = Long.MIN_VALUE;

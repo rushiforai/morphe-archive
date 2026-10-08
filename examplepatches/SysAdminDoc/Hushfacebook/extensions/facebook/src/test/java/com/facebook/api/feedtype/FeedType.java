@@ -13,6 +13,7 @@ public final class FeedType {
     public static final FeedType MOST_RECENT_FRIEND = new FeedType("most_recent_friend");
     public static final FeedType MOST_RECENT_GROUP = new FeedType("most_recent_group");
     public static final FeedType MOST_RECENT_PAGE = new FeedType("most_recent_page");
+    public static final FeedType FOLLOWING_FEED = new FeedType("following_feed");
 
     /** Not a feed type, so the lookup passes it by. */
     public static final String NAME = "favorites";

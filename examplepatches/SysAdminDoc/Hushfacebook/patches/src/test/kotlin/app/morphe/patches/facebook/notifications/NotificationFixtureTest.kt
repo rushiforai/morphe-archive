@@ -80,7 +80,7 @@ class NotificationFixtureTest {
     /** The kinds the extension's switches can block, read from the dex the bundle carries. */
     private fun extensionKinds(): Set<String> {
         val kinds = ExtensionDex.classDef(kindsClass).methods.flatMap(::literals).filter { constantName.matches(it) }.toSet()
-        assertEquals("kinds the extension can block: $kinds", 13, kinds.size)
+        assertEquals("kinds the extension can block: $kinds", 19, kinds.size)
         return kinds
     }
 

@@ -40,7 +40,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [LoV432](#-lov432-bundle-patch-list) | 1 | 1 | Generated |
 | [Alim-zanibekov](#-alim-zanibekov-bundle-patch-list) | 1 | 1 | Generated |
 | [Daboynb](#-daboynb-bundle-patch-list) | 1 | 1 | Generated |
-| [MojiRS-RIF](#-mojirs-rif-bundle-patch-list) | 3 | 2 | Generated |
+| [MojiRS-RIF](#-mojirs-rif-bundle-patch-list) | 4 | 2 | Generated |
 | [Edge-ReVanced](#-edge-revanced-bundle-patch-list) | 8 | 1 | Generated |
 | [Dbhavsar76](#-dbhavsar76-bundle-patch-list) | 1 | 1 | Generated |
 | [ChMate-ReVanced](#-chmate-revanced-bundle-patch-list) | 1 | 1 | Generated |
@@ -75,7 +75,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Gmaps](#-gmaps-bundle-patch-list) | 1 | 1 | Generated |
 | [Seobject](#-seobject-bundle-patch-list) | 2 | 2 | Generated |
 | [Abeja](#-abeja-bundle-patch-list) | 3 | 1 | Generated |
-| [Proxma](#-proxma-bundle-patch-list) | 17 | 8 | Generated |
+| [Proxma](#-proxma-bundle-patch-list) | 20 | 9 | Generated |
 | [Jouss](#-jouss-bundle-patch-list) | 58 | 23 | Generated |
 | [Cobalt-Morphe](#-cobalt-morphe-bundle-patch-list) | 1 | 1 | Generated |
 | [Pichiwa](#-pichiwa-bundle-patch-list) | 19 | 1 | Generated |
@@ -88,7 +88,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Bufferk](#-bufferk-bundle-patch-list) | 13 | 7 | Generated |
 | [Franticg33k](#-franticg33k-bundle-patch-list) | 26 | 13 | Generated |
 | [Gryphous-Morphe](#-gryphous-morphe-bundle-patch-list) | 6 | 2 | Generated |
-| [Okish-Morphe](#-okish-morphe-bundle-patch-list) | 91 | 40 | Generated |
+| [Okish-Morphe](#-okish-morphe-bundle-patch-list) | 93 | 41 | Generated |
 | [Xhehab](#-xhehab-bundle-patch-list) | 14 | 13 | Generated |
 | [Nai64](#-nai64-bundle-patch-list) | 5 | 1 | Generated |
 | [Morphe-Google](#-morphe-google-bundle-patch-list) | 2 | 1 | Generated |
@@ -113,7 +113,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Lain](#-lain-bundle-patch-list) | 45 | 33 | Generated |
 | [Edge-Morphe](#-edge-morphe-bundle-patch-list) | 5 | 2 | Generated |
 | [Anddea](#-anddea-bundle-patch-list) | 129 | 3 | Generated |
-| [Piko](#-piko-bundle-patch-list) | 136 | 2 | Generated |
+| [Piko](#-piko-bundle-patch-list) | 138 | 2 | Generated |
 | [HK-Morphe](#-hk-morphe-bundle-patch-list) | 12 | 4 | Generated |
 | [BholeyKaBhakt](#-bholeykabhakt-bundle-patch-list) | 24 | 15 | Generated |
 | [Andronedev](#-andronedev-bundle-patch-list) | 5 | 2 | Generated |
@@ -168,10 +168,10 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [RIVanced-Universal](#-rivanced-universal-bundle-patch-list) | 27 | 1 | Generated |
 | [Variablenine](#-variablenine-bundle-patch-list) | 164 | 4 | Generated |
 | [Stylus](#-stylus-bundle-patch-list) | 6 | 4 | Generated |
-| [HXReborn](#-hxreborn-bundle-patch-list) | 125 | 57 | Generated |
+| [HXReborn](#-hxreborn-bundle-patch-list) | 129 | 60 | Generated |
 | [Ikura](#-ikura-bundle-patch-list) | 6 | 1 | Generated |
 | [DH6K](#-dh6k-bundle-patch-list) | 12 | 9 | Generated |
-| [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 46 | 2 | Generated |
+| [AndrewLiang25](#-andrewliang25-bundle-patch-list) | 47 | 2 | Generated |
 | [Morning-Entree](#-morning-entree-bundle-patch-list) | 82 | 108 | Generated |
 | [VocaColle](#-vocacolle-bundle-patch-list) | 7 | 1 | Generated |
 | [DBTCoach](#-dbtcoach-bundle-patch-list) | 1 | 1 | Generated |
@@ -197,7 +197,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [FTL](#-ftl-bundle-patch-list) | 72 | 20 | Generated |
 | [braiNtropy](#-braintropy-bundle-patch-list) | 3 | 2 | Generated |
 | [Ang3lo](#-ang3lo-bundle-patch-list) | 1 | 1 | Generated |
-| [Heval99](#-heval99-bundle-patch-list) | 45 | 34 | Generated |
+| [Heval99](#-heval99-bundle-patch-list) | 58 | 41 | Generated |
 | [Atharv](#-atharv-bundle-patch-list) | 2 | 1 | Generated |
 | [Tiaruebar](#-tiaruebar-bundle-patch-list) | 1 | 1 | Generated |
 | [FTL-Portal](#-ftl-portal-bundle-patch-list) | 3 | 2 | Generated |
@@ -214,7 +214,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [RuStore-Privacy](#-rustore-privacy-bundle-patch-list) | 15 | 1 | Generated |
 | [Abhishek-Bhujang](#-abhishek-bhujang-bundle-patch-list) | 2 | 2 | Generated |
 | [MauroGamerVN](#-maurogamervn-bundle-patch-list) | 2 | 2 | Generated |
-| [Kveld](#-kveld-bundle-patch-list) | 119 | 10 | Generated |
+| [Kveld](#-kveld-bundle-patch-list) | 132 | 10 | Generated |
 | [Anime-Witcher](#-anime-witcher-bundle-patch-list) | 9 | 1 | Generated |
 | [Apos](#-apos-bundle-patch-list) | 1 | 1 | Generated |
 | [HH](#-hh-bundle-patch-list) | 4 | 1 | Generated |
@@ -268,12 +268,12 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [RingConn](#-ringconn-bundle-patch-list) | 2 | 1 | Generated |
 | [Yann-Soliman](#-yann-soliman-bundle-patch-list) | 7 | 3 | Generated |
 | [Picarica](#-picarica-bundle-patch-list) | 2 | 2 | Generated |
-| [Zeldrisho](#-zeldrisho-bundle-patch-list) | 25 | 2 | Generated |
+| [Zeldrisho](#-zeldrisho-bundle-patch-list) | 27 | 2 | Generated |
 | [Psylos](#-psylos-bundle-patch-list) | 5 | 1 | Generated |
 | [CrimeRadar](#-crimeradar-bundle-patch-list) | 13 | 2 | Generated |
 | [Vantage](#-vantage-bundle-patch-list) | 2 | 2 | Generated |
 | [BlueDragon4251-TikTok](#-bluedragon4251-tiktok-bundle-patch-list) | 37 | 1 | Generated |
-| [Santodan](#-santodan-bundle-patch-list) | 10 | 5 | Generated |
+| [Santodan](#-santodan-bundle-patch-list) | 12 | 5 | Generated |
 | [YouTube-VR](#-youtube-vr-bundle-patch-list) | 7 | 1 | Generated |
 | [LOCKhart07](#-lockhart07-bundle-patch-list) | 2 | 1 | Generated |
 | [Ekispert](#-ekispert-bundle-patch-list) | 1 | 1 | Generated |
@@ -347,7 +347,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [Zotero-Self-Hosted-Sync](#-zotero-self-hosted-sync-bundle-patch-list) | 4 | 1 | Generated |
 | [Chessable](#-chessable-bundle-patch-list) | 2 | 1 | Generated |
 | [Plyrs1](#-plyrs1-bundle-patch-list) | 31 | 6 | Generated |
-| [Edge-Window](#-edge-window-bundle-patch-list) | 2 | 1 | Generated |
+| [Edge-Window](#-edge-window-bundle-patch-list) | 2 | 2 | Generated |
 | [Morphe-Google-Photos](#-morphe-google-photos-bundle-patch-list) | 13 | 1 | Generated |
 | [Mighty-Michs](#-mighty-michs-bundle-patch-list) | 31 | 30 | Generated |
 | [Newuser7171-Telegram](#-newuser7171-telegram-bundle-patch-list) | 20 | 4 | Generated |
@@ -355,7 +355,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [PixelBoard](#-pixelboard-bundle-patch-list) | - | - | Pending patch list |
 | [CK-Zombies](#-ck-zombies-bundle-patch-list) | 8 | 1 | Generated |
 | [HushFacebook](#-hushfacebook-bundle-patch-list) | 70 | 1 | Generated |
-| [BearInMindCat](#-bearinmindcat-bundle-patch-list) | 33 | 1 | Generated |
+| [BearInMindCat](#-bearinmindcat-bundle-patch-list) | 22 | 1 | Generated |
 | [Pixincreate-Morpheus](#-pixincreate-morpheus-bundle-patch-list) | 17 | 1 | Generated |
 | [3jPatch](#-3jpatch-bundle-patch-list) | 1 | 1 | Generated |
 | [Letterboxd-Stremio-Nuvio](#-letterboxd-stremio-nuvio-bundle-patch-list) | 1 | 1 | Generated |
@@ -380,14 +380,14 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | [nicoid-re](#-nicoid-re-bundle-patch-list) | 1 | 1 | Generated |
 | [morphe-fb-lite](#-morphe-fb-lite-bundle-patch-list) | 6 | 1 | Generated |
 | [kizu](#-kizu-bundle-patch-list) | 1 | 1 | Generated |
-| [hushgram](#-hushgram-bundle-patch-list) | 48 | 1 | Generated |
+| [hushgram](#-hushgram-bundle-patch-list) | 75 | 1 | Generated |
 | [hushtelegram](#-hushtelegram-bundle-patch-list) | 25 | 2 | Generated |
 | [rosaldivo](#-rosaldivo-bundle-patch-list) | 1 | 1 | Generated |
 | [ysamjo-youtubetv](#-ysamjo-youtubetv-bundle-patch-list) | 3 | 2 | Generated |
 | [youtube-thread-ripper](#-youtube-thread-ripper-bundle-patch-list) | - | - | Pending patch list |
 | [railone](#-railone-bundle-patch-list) | 4 | 1 | Generated |
 | [piko-ig-lite](#-piko-ig-lite-bundle-patch-list) | - | - | Pending patch list |
-| [hushpinterest](#-hushpinterest-bundle-patch-list) | 20 | 1 | Generated |
+| [hushpinterest](#-hushpinterest-bundle-patch-list) | 23 | 1 | Generated |
 | [hakim](#-hakim-bundle-patch-list) | 11 | 2 | Generated |
 | [twitch-patched](#-twitch-patched-bundle-patch-list) | 10 | 1 | Generated |
 | [reddit-nsfw-blocker](#-reddit-nsfw-blocker-bundle-patch-list) | - | - | Pending patch list |
@@ -480,11 +480,12 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Proxma Bundle Patch List:
 [📦 Proxma-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-proxma-patches-bundle-morphe)
 <details>
-<summary><b>Proxma</b> - 17 patches, 8 apps</summary>
+<summary><b>Proxma</b> - 20 patches, 9 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Bypass anti-tamper (foodpanda)``` | ```Bypasses foodpanda's DeliveryHero MAS integrity block — forces the master security gate (`w9u.a`) to report the device/app as trusted, so re-signed / sideloaded builds no longer hit the "This device or application is not supported" BlockedActivity.``` | ```foodpanda``` | ```26.38.1``` |
+| ```Remove ads``` | ```Removes foodpanda's order-tracking ads (DeliveryHero adtech) and the forced, repeatedly-reappearing PandaMart "CrossSell" promo popup on the order-tracking screen.``` | ```foodpanda``` | ```26.38.1``` |
 | ```Unlock premium (foodpanda)``` | ```Unlocks foodpanda pandapro — forces every `isSubscribed()` check (status instanceof UserSubscriptionStatus.Subscribed) to report subscribed and forces Subscribed.hasBenefits() true, so the app's pro state, UI and entitlement gates unlock. Server-enforced benefits (free delivery, vouchers) still require a real subscription.``` | ```foodpanda``` | ```26.38.1``` |
 | ```Bypass PairIP license check``` | ```Disables Google PairIP's license/installer check (com.pairip.licensecheck) so a re-signed build runs on a real device instead of being redirected to the Play Store and killed. No-ops the LicenseContentProvider entry point and LicenseClient.initializeLicenseCheck().``` | ```Investify``` | ```5.6.0``` |
 | ```Unlock premium (remove ads)``` | ```Unlocks Investify premium — forces the backend `no_ads` entitlement getter to report true in both the model and its Realm proxy, so the app treats the account as ad-free without any purchase. Ad SDK loads are gated on this flag app-wide.``` | ```Investify``` | ```5.6.0``` |
@@ -495,9 +496,11 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Remove ads``` | ```Removes every Google Ad Manager ad (banners + interstitials) across Daily Rewards, Home, Test Your Skills and Explore by nulling the remote ad-config chokepoint, so each surface renders its no-ads layout and never requests an interstitial.``` | ```My Telenor``` | ```4.2.62``` |
 | ```Remove ads & tracking``` | ```Removes every ad (AdMob) and every tracker (Firebase Analytics, AppsFlyer, Facebook, TikTok, and the Veridium SDK's own Google Analytics) — event sends, full SDK init (AppsFlyer init, TikTok initializeSdk/startTrack, MobileAds.initialize), and auto-collection. Pushwoosh push is left intact. The app then phones home only to its own Zong API.``` | ```MyZong``` | ```5.19.19.112``` |
 | ```Unlock daily reward (skip ad)``` | ```Claim MyZong's daily reward with no 'watch ad' popup and no ad. Forces the reward-bubble tap to take the app's own direct-claim branch (the same claim call the post-ad path makes), upstream of both the popup and the rewarded ad.``` | ```MyZong``` | ```5.19.19.112``` |
-| ```Unlock premium (NetMonster)``` | ```Unlocks NetMonster Premium — forces the premium repo's derived flows so real-time LTE/NR-NSA location calculation is unlocked, ads are removed, and the status shows Active (far-future expiry) without an Adapty subscription.``` | ```NetMonster``` | ```3.4.3``` |
+| ```Unlock premium (NetMonster)``` | ```Unlocks NetMonster Premium — forces the Adapty entitlement collector to always report premium active, so real-time LTE/NR-NSA location calculation is unlocked, ads are removed, and the status shows Active without a subscription.``` | ```NetMonster``` | ```4.0.4``` |
 | ```Force dark mode``` | ```Forces OLX into dark (night) mode regardless of the system theme, using the app's built-in -night resources via UiModeManager.setApplicationNightMode at startup.``` | ```OLX``` | ```18.8.0``` |
 | ```Remove ads``` | ```Removes native feed ads (Google GMA), the full-height ad slot, and the "Buy with Delivery" promo section (bar, cards and View all) from OLX. Pinned to the 18.8.0 build (matches that build's obfuscated feed classes).``` | ```OLX``` | ```18.8.0``` |
+| ```Bypass license verification``` | ```Bypasses Google Play's PairIP license check so a re-signed Safar build runs instead of being blocked by the "Get this app from Play" paywall or a "Something went wrong" dialog.``` | ```Safar``` | ```3.0.1``` |
+| ```Remove ads``` | ```Removes Safar's AdMob banner, interstitial and app-open ads by stubbing the react-native-google-mobile-ads load funnels (no ad is requested, so none renders). User-initiated rewarded ads are left working.``` | ```Safar``` | ```3.0.1``` |
 | ```Bypass signature verification``` | ```Disables Simosa's anti-tamper signature check so a re-signed APK launches normally instead of stalling on the splash / "version is not correct" dialog.``` | ```Simosa``` | ```3.3.4.2``` |
 | ```Remove ads & tracking``` | ```Removes every ad (interstitial, banner, daily-reward) and every tracker (Mixpanel, Firebase, Facebook, AppsFlyer) — app events, network sends, ad-SDK requests (Google Ads / AppLovin / AnyMind / Prebid), SDK auto-collection, and the ipify IP leak. The app then phones home only to its own Jazz API.``` | ```Simosa``` | ```3.3.4.2``` |
 | ```Remove daily check-in ads``` | ```Removes the SocialPlus daily check-in / in-feed ads (FeedAdsManager banner + native loaders) and the day-10/20/30 milestone-claim RewardedAd (the award is still granted, just with no ad). Separate from "Remove ads & tracking" to keep that patch Morphe-Manager-safe; enable this one when patching with the desktop CLI.``` | ```Simosa``` | ```3.3.4.2``` |
@@ -769,7 +772,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Brave Origin``` | ```Unlocks Brave Origin and enables feature toggle controls.``` | ```Brave Browser``` | ```1.92.140``` |
 | ```Unlock premium``` | ```Unlocks all AT4K premium features by forcing the premium status to true.``` | ```com.overdevs.at4k``` | ```All versions``` |
 | ```Freedium``` | ```Adds a profile setting to choose the Freedium Mirror host, and a floating button on articles that opens the current article using the chosen Freedium Mirror in a webview.``` | ```Medium``` | ```4.5.1302097``` |
-| ```MyGate``` | ```Unlocks MyGate premium, removes ads, fixes notifications and e-Intercom.``` | ```MyGate``` | ```7.31.0, 7.26.1``` |
+| ```MyGate``` | ```Unlocks MyGate premium, removes ads, fixes notifications and e-Intercom.``` | ```MyGate``` | ```7.38.2``` |
 | ```Unlock Pro``` | ```Spoofs Splitwise Pro subscription status everywhere it is checked — bypasses the server-driven feature gate (charts, receipt scanning, currency conversion, default splits, auto-split, transaction import, itemization), forces Person.isPro() to true for receipt quality and UI gating, and suppresses all in-app upsell ad banners (home-screen, recent activity, post-add-expense). Works entirely client-side with no server interaction.``` | ```Splitwise``` | ```26.4.4``` |
 | ```Disable analytics``` | ```Suppresses Truecaller's CleverTap behavioural event tracking to prevent user-activity telemetry.``` | ```Truecaller``` | ```26.10.6``` |
 | ```Enable premium features``` | ```Unlocks all client-side premium features by bypassing the feature-availability gate.``` | ```Truecaller``` | ```26.10.6``` |
@@ -839,7 +842,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Okish-Morphe Bundle Patch List:
 [📦 Okish-Morphe-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-okish-morphe-patches-bundle-morphe)
 <details>
-<summary><b>Okish-Morphe</b> - 91 patches, 40 apps</summary>
+<summary><b>Okish-Morphe</b> - 93 patches, 41 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -881,8 +884,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Free Ad Rewards``` | ```Get your ad rewards for free. Every "watch ad" button gives you the reward right away — no ad to sit through, no waiting.``` | ```Head Basketball``` | ```4.6.4``` |
 | ```Free Store``` | ```Everything in the shop is free. Tap an item and you get it instantly — no paying, no waiting, no Google Play involved.``` | ```Head Basketball``` | ```4.6.4``` |
 | ```Unlimited Points``` | ```Free coins forever. Your point balance always reads as the maximum, so you can afford anything in the shop. You can still spend and save normally.``` | ```Head Basketball``` | ```4.6.4``` |
-| ```Free Ad Rewards``` | ```Every "watch ad" reward is granted instantly — no ad appears, no "failed to load advertisement" popup, and nothing to wait for.``` | ```Head Soccer``` | ```7.1.6``` |
-| ```Free Store``` | ```Everything in the shop is free. Tap an item and you get it right away — points, characters and presents — with no Google Play payment screen and nothing charged.``` | ```Head Soccer``` | ```7.1.6``` |
+| ```Free Ad Rewards``` | ```Every "watch ad" reward is granted instantly — no ad appears, no "failed to load advertisement" popup, and nothing to wait for.``` | ```Head Soccer``` | ```7.1.7``` |
+| ```Free Store``` | ```Everything in the shop is free. Tap an item and you get it right away — points, characters and presents — with no Google Play payment screen and nothing charged.``` | ```Head Soccer``` | ```7.1.7``` |
 | ```Hill Climb Racing Ad Removal``` | ```Removes all ads — banner and pop-up ads never show, and the game treats you as ad-free from the start without any repeat purchase pop-ups.``` | ```Hill Climb Racing``` | ```1.72.2``` |
 | ```Hill Climb Racing Free Store``` | ```Everything in the store is free — coins, gems, paints and bundles are added instantly with no Google Play payment.``` | ```Hill Climb Racing``` | ```1.72.2``` |
 | ```Hill Climb Racing Instant Rewarded Video Rewards``` | ```Rewarded ads pay out instantly — no video plays; the game gives you the reward as if you had watched the whole ad.``` | ```Hill Climb Racing``` | ```1.72.2``` |
@@ -919,6 +922,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Shooty Skies Ad-Free (Ads blocked + instant rewards)``` | ```Blocks banner, interstitial, app-open and native ads, and turns rewarded videos into instant rewards — nothing is ever fetched or displayed.``` | ```Shooty Skies``` | ```3.441.100101``` |
 | ```Shooty Skies Free store``` | ```Every store item is free — tap "Buy" and the purchase completes instantly with no Google Play payment, and owned items like ad removal are granted at startup.``` | ```Shooty Skies``` | ```3.441.100101``` |
 | ```Smash Hit Premium Unlock``` | ```Unlocks premium and all game modes without purchase.``` | ```Smash Hit``` | ```1.5.14``` |
+| ```Free Store``` | ```Everything in the shop is granted instantly and free — double coins, more gifts and the any-purchase perks — with no Google Play payment screen, no account and nothing charged.``` | ```Swamp Attack``` | ```4.8.7.0``` |
+| ```Remove Ads``` | ```Forced ads are gone for good — interstitials never load or show, even offline and regardless of server settings. Rewarded videos you choose to watch still work.``` | ```Swamp Attack``` | ```4.8.7.0``` |
 | ```Swift Backup Premium Unlock``` | ```Unlocks all Premium features.``` | ```Swift Backup``` | ```5.1.0``` |
 | ```Swift Backup Tamper Protection``` | ```Stops the app from closing itself on patched installs.``` | ```Swift Backup``` | ```5.1.0``` |
 | ```Swift Backup Web Login``` | ```Makes Google sign-in work for connecting cloud accounts.``` | ```Swift Backup``` | ```5.1.0``` |
@@ -2098,7 +2103,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 ### 🧩 Piko Bundle Patch List:
 [📦 Piko-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-piko-patches-bundle-morphe)
 <details>
-<summary><b>Piko</b> - 136 patches, 2 apps</summary>
+<summary><b>Piko</b> - 138 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -2114,7 +2119,7 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Customize navigation bar``` | ```Choose which tabs appear in the bottom navigation bar and reorder them``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Disable ads``` | ```N/A``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Disable analytics``` | ```Block analytics that are sent to Instagram/Facebook servers.``` | ```Instagram``` | ```447.0.0.55.81``` |
-| ```Disable comments``` | ```N/A``` | ```Instagram``` | ```447.0.0.55.81``` |
+| ```Disable comments``` | ```Disables comments and hides comment buttons and counts on posts and reels.``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Disable discover people``` | ```Hides suggested accounts``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Disable double tap like``` | ```Disable double tap like on post, reel, comment and message``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Disable explore``` | ```N/A``` | ```Instagram``` | ```447.0.0.55.81``` |
@@ -2136,6 +2141,8 @@ Patch lists are collapsed by default. Expand a bundle to inspect its generated p
 | ```Hide notes tray``` | ```Hides notes tray in DM section``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Hide Reels follow button``` | ```Removes the follow button from Reels.``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Hide reshare button``` | ```Hides the reshare button from both posts and reels.``` | ```Instagram``` | ```447.0.0.55.81``` |
+| ```Hide save buttons``` | ```Hides save buttons on posts and reels``` | ```Instagram``` | ```447.0.0.55.81``` |
+| ```Hide share button``` | ```Hides the share button on posts and reels``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Hide stories tray``` | ```Hides stories tray from main feed.``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Hide suggested content``` | ```Hides suggested stories, reels, threads (Suggested posts will still be shown).``` | ```Instagram``` | ```447.0.0.55.81``` |
 | ```Improve image viewing``` | ```Fetches max resolution images from server.``` | ```Instagram``` | ```447.0.0.55.81``` |
@@ -4928,8 +4935,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Remove ads``` | ```Disables Avito ads by removing ad SDK entry points and short-circuiting commercial banner loading.``` | ```Avito``` | ```234.5, 234.0, 233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
 | ```UI tweaks``` | ```Optional interface tweaks, each toggleable in Настройки Morphe: single-row home categories, hide the "Подписки" tab in Избранное, hide installments (Рассрочка) and the "Спросите у продавца" block on offers, expand descriptions by default (no "Читать далее"), hide reserved offers and offer recommendations, hide profile raffle, referral and Avito Pro promos, optionally hide profile sections (recommendations, tools, services, jobs), and hide the Avi assistant tab in the bottom navigation.``` | ```Avito``` | ```234.5, 234.0, 233.5, 233.1, 232.0, 231.5, 231.0, 230.5, 230.0, 229.1``` |
 | ```Remove Ozon ads``` | ```Removes Ozon ad widgets, banner carousels, video ads, and PDP promo blocks.``` | ```Ozon``` | ```19.38.0, 19.37.0, 19.36.1, 19.36.0, 19.35.0, 19.34.0, 19.33.1, 19.32.0, 19.31.0, 19.30.0, 19.29.0, 19.28.0, 19.27.0``` |
-| ```Bypass anti-tamper``` | ```Stubs TBank's native RASP executor calls and neutralizes tamper flag reporting.``` | ```TBank``` | ```8.3.0, 8.2.3, 8.2.1, 8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
-| ```Remove TBank ads``` | ```Removes TBank stories and promotional surfaces.``` | ```TBank``` | ```8.3.0, 8.2.3, 8.2.1, 8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
+| ```Bypass anti-tamper``` | ```Stubs TBank's native RASP executor calls and neutralizes tamper flag reporting.``` | ```TBank``` | ```8.4.2, 8.3.0, 8.2.3, 8.2.1, 8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
+| ```Remove TBank ads``` | ```Removes TBank stories and promotional surfaces.``` | ```TBank``` | ```8.4.2, 8.3.0, 8.2.3, 8.2.1, 8.1.0, 8.0.0, 7.40.1, 7.39.0``` |
 | ```Disable Adjust``` | ```Disables Adjust attribution manifest entry points.``` | ```Universal``` | ```All versions``` |
 | ```Disable AppMetrica``` | ```Disables AppMetrica and legacy Yandex Metrica SDK entry points.``` | ```Universal``` | ```All versions``` |
 | ```Disable AppsFlyer``` | ```Disables AppsFlyer install referrer and attribution manifest entry points.``` | ```Universal``` | ```All versions``` |
@@ -5500,12 +5507,13 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 MojiRS-RIF Bundle Patch List:
 [📦 MojiRS-RIF-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-mojirs-rif-patches-bundle-api-v4)
 <details>
-<summary><b>MojiRS-RIF</b> - 3 patches, 2 apps</summary>
+<summary><b>MojiRS-RIF</b> - 4 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```Disable ads``` | ```Removes AppLovin native feed ads, banner ads, and image-viewer ads from rif is fun.``` | ```com.andrewshu.android.reddit``` | ```All versions``` |
-| ```Fix imgur albums``` | ```Makes imgur albums work with the official ReVanced rif patches, which move album loading from rif's defunct proxy to imgur's v3 API: fixes the crash (or bounce back a page) caused by an invalid String.concat call in that code, and sends rif's imgur client ID with the album request (the proxy used to add it), so albums load reliably. Does nothing if that code isn't present.``` | ```com.andrewshu.android.reddit, com.andrewshu.android.redditdonation``` | ```All versions``` |
+| ```Fix comment video links``` | ```Makes videos posted in comments play in rif's video player instead of failing with "error retrieving Reddit video metadata".``` | ```com.andrewshu.android.reddit, com.andrewshu.android.redditdonation``` | ```All versions``` |
+| ```Fix imgur albums``` | ```Fixes imgur albums crashing or failing to load when patched alongside the official ReVanced rif patches. Does nothing without them.``` | ```com.andrewshu.android.reddit, com.andrewshu.android.redditdonation``` | ```All versions``` |
 | ```Inline comment images``` | ```Renders image links in comment and text-post bodies as embedded inline images (static + animated GIFs, common hosts).``` | ```com.andrewshu.android.reddit, com.andrewshu.android.redditdonation``` | ```All versions``` |
 
 </details>
@@ -5744,7 +5752,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 HXReborn Bundle Patch List:
 [📦 HXReborn-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hxreborn-patches-bundle-morphe)
 <details>
-<summary><b>HXReborn</b> - 125 patches, 57 apps</summary>
+<summary><b>HXReborn</b> - 129 patches, 60 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5752,6 +5760,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide Shorts``` | ```Hides the 1Weather Shorts card from the Today screen.``` | ```1Weather``` | ```13.1.0, 12.9.3``` |
 | ```Hide Skyla``` | ```Hides the Skyla AI assistant, its prompts and the Summarize buttons.``` | ```1Weather``` | ```13.1.0, 12.9.3``` |
 | ```Unlock premium``` | ```Unlocks premium and removes ads.``` | ```1Weather``` | ```13.1.0, 12.9.3``` |
+| ```Allow offline use``` | ```Opens the app without an internet connection.``` | ```All Video Player App``` | ```1.4``` |
 | ```Disable tracking``` | ```Stops Firebase Analytics, Crashlytics, Facebook and OneSignal from collecting usage data.``` | ```All Video Player App``` | ```1.4``` |
 | ```Hide ads``` | ```Removes app open, interstitial and native ads, and the promoted apps list.``` | ```All Video Player App``` | ```1.4``` |
 | ```Remove rating prompts``` | ```Removes the prompts asking for a rating.``` | ```All Video Player App``` | ```1.4``` |
@@ -5759,6 +5768,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```GmsCore support``` | ```Signs in through GmsCore instead of Google Play Services. Requires GmsCore to be installed.``` | ```All-In-One Calculator``` | ```3.4.0``` |
 | ```Unlock premium``` | ```Grants the pro entitlement, which removes the ads and the paywalled tools.``` | ```All-In-One Calculator``` | ```3.4.0``` |
 | ```Unlock full version``` | ```Unlocks the Off-Road Explorer features gated behind activation.``` | ```AlpineQuest``` | ```2.4.0e``` |
+| ```Unlock Platinum``` | ```Unlocks the Platinum plan with unlimited tracked items, every-minute updates, widgets, watchlists and backups.``` | ```AnyTracker``` | ```7.5.4``` |
 | ```Unlock premium``` | ```Unlocks the custom map sources, navigation settings and backup restore. Premium map packages are not included.``` | ```AtloMaps``` | ```1.0.6, 1.1.0``` |
 | ```Unlock premium``` | ```Unlocks all features and removes the ads.``` | ```atvTools``` | ```1.3.2``` |
 | ```Hide membership upselling``` | ```Hides the membership promotion on the Home screen and the free trial bottom sheet.``` | ```Audible``` | ```26.30.05, 26.38.08``` |
@@ -5802,6 +5812,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```GmsCore support``` | ```Signs in through GmsCore instead of Google Play Services. Requires GmsCore to be installed.``` | ```MemoNeet``` | ```62.6``` |
 | ```Unlock premium``` | ```Unlocks the premium question banks, notes, test series, previous-year papers and shop plans, with no energy cost or ads. Signing in requires GmsCore support.``` | ```MemoNeet``` | ```62.6``` |
 | ```All-In-One``` | ```Enables video playback and downloads, removes ads and upsell prompts, bypasses the region block, and unlocks the hidden Laboratory menu. Requires Android 10 or later.``` | ```MovieBox``` | ```4.0.02.0828.03, 4.0.02.0831.03, 4.0.02.0903.02, 4.0.03.0918.03``` |
+| ```Unlock premium``` | ```Unlocks offline lyrics, animated backgrounds and Android Auto lyrics.``` | ```Musixmatch``` | ```8.4.2``` |
 | ```Disable tracking``` | ```Stops the install identifier from reaching Expo and usage events from reaching Google. Disables OTA updates.``` | ```MyMoveset``` | ```1.3.2``` |
 | ```Unlock premium``` | ```Unlocks unlimited move views, goals and move cards, manual sync, earlier library updates and card customization. Disables OTA updates.``` | ```MyMoveset``` | ```1.3.2``` |
 | ```Unlock pro``` | ```Unlocks task lists, callouts, app lock, and the notebook, tag, colour and reminder limits. Requires a signed-in account. The server still enforces storage, attachment size, monographs and SMS 2FA.``` | ```Notesnook``` | ```3.4.12, 3.4.13``` |
@@ -5813,6 +5824,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Show AI progress``` | ```Reads the current stage off the real network activity instead of the fake progress bar InShot ships.``` | ```Photo Editor Pro``` | ```1.791.265, 1.802.266``` |
 | ```Speed up AI tools``` | ```Shortens the AI tool wait by polling for the result more often and uploading the photo in larger chunks.``` | ```Photo Editor Pro``` | ```1.791.265, 1.802.266``` |
 | ```Unlock premium``` | ```Adds an option to unlock the pro tools, remove the export watermark and hide the upgrade prompts.``` | ```Photo Editor Pro``` | ```1.791.265, 1.802.266``` |
+| ```Unlock premium``` | ```Unlocks all light sources, extended PAR, Pro guides, Pro settings and the full toolbox. Pro support is not included.``` | ```Photone``` | ```1.5.4``` |
 | ```Hide ads``` | ```Hides the banner and stops ads from loading.``` | ```Pocket Whip``` | ```2.3``` |
 | ```Unlock premium``` | ```Unlocks all whips.``` | ```Pocket Whip``` | ```2.3``` |
 | ```Disable tracking``` | ```Disables analytics and crash reporting.``` | ```Projectivy Launcher``` | ```4.71, 4.70``` |
@@ -5920,7 +5932,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 AndrewLiang25 Bundle Patch List:
 [📦 AndrewLiang25-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-andrewliang25-patches-bundle-morphe)
 <details>
-<summary><b>AndrewLiang25</b> - 46 patches, 2 apps</summary>
+<summary><b>AndrewLiang25</b> - 47 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -5957,6 +5969,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```[Fix] Restore chat backup sign-in via MicroG-RE``` | ```Makes Google Drive chat backup and restore work on a re-signed build, through MicroG-RE. Root Mount does not need it.``` | ```LINE``` | ```26.14.0``` |
 | ```[Fix] Restore location maps via MicroG-RE``` | ```Shows maps again on a re-signed build, with OpenFreeMap tiles. It needs MicroG-RE 7.0.0 or later. Root Mount does not need it.``` | ```LINE``` | ```26.14.0``` |
 | ```[Fix] Restore push notifications``` | ```When LINE is fully closed, push notifications work again on a re-signed build. A Root Mount install does not need this patch.``` | ```LINE``` | ```26.14.0``` |
+| ```[General] Andrew's Patch Setting``` | ```Adds "Andrew's Patch Setting" to LINE Settings, below "Profile". There you can turn some patches on or off without patching again, and see the credits and licenses.``` | ```LINE``` | ```26.14.0``` |
 | ```[General] Disable VOOM``` | ```VOOM deep links, shares, and notifications do nothing. If you open the standalone VOOM feed, it closes. Messaging and the other tabs do not change.``` | ```LINE``` | ```26.14.0``` |
 | ```[General] Hide Agent i buttons``` | ```Removes the Agent i button from the Home header and from the search bar.``` | ```LINE``` | ```26.14.0``` |
 | ```[General] Hide new item badges``` | ```Hides the green dots and N badges that mark new items, on header buttons, tabs, menus, lists and settings rows. Unread message counts do not change.``` | ```LINE``` | ```26.14.0``` |
@@ -6603,33 +6616,45 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Heval99 Bundle Patch List:
 [📦 Heval99-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-heval99-patches-bundle-morphe)
 <details>
-<summary><b>Heval99</b> - 45 patches, 34 apps</summary>
+<summary><b>Heval99</b> - 58 patches, 41 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
+| ```Disable ads``` | ```Stops the bundled Calldorado ad SDK: no in-app ads and no after-call ad screen.``` | ```#Notepad``` | ```5.4.3.19019``` |
+| ```Enable Premium``` | ```Unlocks #Notepad premium and hides the paywall and in-app ad slots.``` | ```#Notepad``` | ```5.4.3.19019``` |
 | ```Disable ads``` | ```Disables Google Mobile Ads (AdMob) initialization, blocking banner, interstitial, rewarded, native and mediated ads.``` | ```365Scores``` | ```14.9.4, 14.9.5``` |
+| ```Enable Premium``` | ```Unlocks the VIP interface and removes ads. Premium data the AiScore server delivers (e.g. predictions, dropping odds) is validated server-side and is not unlocked.``` | ```AiScore``` | ```4.3.1``` |
 | ```Enable Premium``` | ```Unlocks the Pro/Premium features and lifts the free-version feature locks.``` | ```Aqua Mail``` | ```2.7.0``` |
+| ```Disable ads``` | ```Disables banner, interstitial, native, app-open and rewarded ads and hides empty banner slots.``` | ```BeSoccer``` | ```6.6.0``` |
+| ```Disable license check``` | ```Skips the Play Store license check so the patched app starts.``` | ```BeSoccer``` | ```6.6.0``` |
 | ```Enable Premium``` | ```Unlocks the premium version (removes ads and lifts premium limits).``` | ```Bluecoins``` | ```13.1.79``` |
 | ```Disable ads``` | ```Disables AppLovin interstitial ads.``` | ```BoxBox``` | ```5.4.9``` |
 | ```Disable telemetry``` | ```Disables AppsFlyer, Firebase Analytics and Crashlytics event logging.``` | ```BoxBox``` | ```5.4.9``` |
 | ```Enable Premium``` | ```Unlocks premium features by bypassing RevenueCat subscription checks.``` | ```BoxBox``` | ```5.4.9``` |
-| ```Brave Origin``` | ```Unlocks Brave Origin and enables feature toggle controls.``` | ```Brave Browser``` | ```1.95.104``` |
+| ```Brave Origin``` | ```Unlocks Brave Origin and enables feature toggle controls.``` | ```Brave Browser``` | ```1.95.104, 1.96.61``` |
+| ```Disable ads``` | ```Experimental: hides sponsored new tab images (including full-page takeovers) and the "Earn BAT for viewing ads" Rewards signup popup.``` | ```Brave Browser``` | ```1.96.61``` |
+| ```Disable telemetry``` | ```Experimental: turns off P3A analytics and the usage ping on every start (overriding the in-app switches), stops crash report uploads and drops the install-referrer attribution code.``` | ```Brave Browser``` | ```1.96.61``` |
+| ```Hide promotional prompts``` | ```Experimental: stops the recurring "Set Brave as default browser" dialog, the "Rate Brave" dialog and card, retention and Rewards promo notifications, the search widget promo and the VPN card in Settings.``` | ```Brave Browser``` | ```1.96.61``` |
 | ```Disable ads``` | ```Disables banner, interstitial, native, app-open and rewarded ads.``` | ```Castbox``` | ```11.26.1``` |
 | ```Disable ads``` | ```Removes the 'notes_edit_banner' unit from utils/AdManager and the app-open ad from App$AppOpenAdManager. Both are gated on the single App.isAdFree() check, which normally depends on a VIP subscription.``` | ```EasyNotes``` | ```1.3.61.0907``` |
 | ```Enable Premium``` | ```Unlocks the VIP-only fonts, note backgrounds, stickers and drawing tools. The app checks entitlement entirely locally — there is no license server — so forcing the App.isVip() gate to return true unlocks everything, and stays unlocked even though BillingManager resets the underlying purchase flags from Play on every startup.``` | ```EasyNotes``` | ```1.3.61.0907``` |
 | ```Enable Pro``` | ```Unlocks the FairEmail pro features.``` | ```FairEmail``` | ```1.2337``` |
 | ```Enable Premium``` | ```Forces User.hasPremium() to return true, unlocking premium features locked behind the RevenueCat subscription entitlement.``` | ```FishBuddy``` | ```11.0.101``` |
+| ```Enable Premium``` | ```Unlocks Fishing Points premium features and removes ads.``` | ```Fishing Points``` | ```4.7.3``` |
 | ```Disable ads``` | ```Disables banner, interstitial, native, app-open and rewarded ads.``` | ```Flashscore``` | ```26.9.2``` |
 | ```Enable FotMob+``` | ```Enables app features locked behind the subscription paywall.``` | ```FotMob``` | ```237.17536.20260911, 236.17398.20260827, 236.17338.20260822``` |
 | ```Disable ads``` | ```Disables banner, interstitial, native, app-open and rewarded ads.``` | ```Futbin``` | ```27.02``` |
-| ```Disable ads``` | ```Disables Wortise ad SDK initialization, blocking banner, interstitial, native and mediated ads (AppLovin, Yandex, Google Mobile Ads, etc.).``` | ```IPTV``` | ```9.1.25``` |
-| ```Enable Premium``` | ```Forces IptvFreeApplication's pro/trial gate to return true, keeping pro features unlocked after the 20-minute trial expires and suppressing the in-app review / buy-pro upsell prompts.``` | ```IPTV``` | ```9.1.25``` |
+| ```Disable ads``` | ```Switches the app to its built-in no-ads provider, removing banner, interstitial and video pre-roll ads (Yandex, Wortise and mediated networks).``` | ```IPTV``` | ```9.1.25``` |
+| ```Enable Premium``` | ```Unlocks the Pro-only access control settings (parental PIN, locking playlist/EPG/proxy/import-export/recording settings, hiding playlist URLs) and suppresses the in-app review prompt. Start on boot and autoplay last channel are only implemented in the separate IPTV Pro app and stay unavailable.``` | ```IPTV``` | ```9.1.25``` |
 | ```Enable Pro``` | ```Unlocks jetAudio Premium, all plugins and the ad unlocker.``` | ```jetAudio``` | ```13.1.2``` |
 | ```Enable Premium``` | ```Unlocks the 'Advanced device settings' features (Personalized Volume, Adaptive Audio, accessibility configs, hearing protection, etc.) that LibrePods gates behind the Play Store 'Unlock advanced features' one-time purchase. The patch forces the premium entitlement (PlayBillingProvider's _isPremium StateFlow) to always be true.``` | ```LibrePods``` | ```1.0.0-rc1-play``` |
 | ```Disable ads``` | ```Forces AdsRemovalSettings.areAdsDisabled() to return true, disabling banner, interstitial, MPU, hero placement, coverage sponsorship and announcement ads.``` | ```Livescore``` | ```10.1``` |
 | ```Enable Premium``` | ```Unlocks the Monefy Pro features.``` | ```Monefy``` | ```1.22.11``` |
 | ```Disable ads``` | ```Disables Moon+ Reader's banner, interstitial, exit and native ads by forcing the central ad gate to always report ads as disabled.``` | ```Moon+ Reader``` | ```10.7``` |
 | ```Enable Premium+``` | ```Enables app features locked behind the subscription paywall.``` | ```MyFitnessPal``` | ```26.37.0, 26.38.0``` |
+| ```Disable license check``` | ```Skips the Play Store license check so the patched app starts.``` | ```Native Camera``` | ```1.4.3``` |
+| ```Enable Premium``` | ```Unlocks Native Camera premium (RAW DNG, 10-bit/HLG/UHDR video, boosted modes and the higher bitrate cap). Premium is a local flag; the license check is disabled as well so the patched app starts.``` | ```Native Camera``` | ```1.4.3``` |
+| ```Disable ads``` | ```Disables banner, interstitial, native/inline and app-open ads and hides the empty ad slots.``` | ```OneCricket``` | ```26.08.01``` |
 | ```Disable ads``` | ```Disables banner, interstitial, native, app-open and rewarded ads.``` | ```OneFootball``` | ```15.142.0``` |
 | ```Enable Premium``` | ```Unlocks OsmAnd Pro, Maps+ and live updates.``` | ```OsmAnd``` | ```5.4.5``` |
 | ```Disable ads``` | ```Disables banner, interstitial, native and rewarded ads.``` | ```Pi Music Player``` | ```3.2.0.0_release_2``` |
@@ -6641,11 +6666,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable telemetry``` | ```Disables Firebase Analytics event logging and Crashlytics crash reporting.``` | ```Shazam``` | ```16.62.0``` |
 | ```Disable ads``` | ```Disables banner, interstitial, native and rewarded ads.``` | ```Simple Radio``` | ```6.2.0``` |
 | ```Enable Premium``` | ```Unlocks Simple Radio Premium (ad-free listening) by forcing the local subscription checks to true.``` | ```Simple Radio``` | ```6.2.0``` |
-| ```Block marketing notifications``` | ```Blocks promotional and marketing prompts and modals. Note: this only affects in-app promo sheets. Match-alert push delivery on re-signed builds needs working push delivery - use MicroG integration + signature spoofing where Play Services is absent (issue #25).``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14``` |
-| ```Disable ads``` | ```Disables banner, interstitial, feed, native, preroll and rewarded ads.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14``` |
-| ```Disable Facebook SDK``` | ```Blocks Facebook Audience Network ads and disables Facebook event tracking while keeping Facebook Login working.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14``` |
-| ```Disable telemetry``` | ```Disables AppsFlyer and Firebase Analytics event logging, plus Crashlytics crash reporting.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14``` |
-| ```Enable Premium``` | ```Unlocks AI insights and premium features locked behind the Sofascore Plus/Pro subscription.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14``` |
+| ```Block marketing notifications``` | ```Blocks in-app promotional prompts, modals and promotion banners. Note: this only affects in-app promotions. Match-alert push delivery on re-signed builds needs working push delivery - use MicroG integration + signature spoofing where Play Services is absent (issue #25).``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14, 26.09.28``` |
+| ```Disable ads``` | ```Disables banner, interstitial, feed, native, preroll and rewarded ads.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14, 26.09.28``` |
+| ```Disable Facebook SDK``` | ```Blocks Facebook Audience Network ads and disables Facebook event tracking while keeping Facebook Login working.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14, 26.09.28``` |
+| ```Disable telemetry``` | ```Disables AppsFlyer and Firebase Analytics event logging, plus Crashlytics crash reporting.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14, 26.09.28``` |
+| ```Enable Premium``` | ```Marks the account as premium in the app. Note: AI insights and other premium content are served by Sofascore's servers for paying accounts and are not unlocked; use "Disable ads" for an ad-free app.``` | ```Sofascore``` | ```26.07.27, 26.08.24, 26.09.07, 26.09.14, 26.09.28``` |
+| ```Disable ads``` | ```Disables banner, interstitial, native, app-open and rewarded ads.``` | ```SoundHound``` | ```10.5.8``` |
 | ```Enable Full Version``` | ```Bypasses the Play license check so the paid app runs as licensed.``` | ```Tasker``` | ```6.6.18``` |
 | ```Enable Pro``` | ```Unlocks Textra Pro: removes ads and unlocks the paid features.``` | ```Textra``` | ```4.85``` |
 | ```Enable Pro``` | ```Unlocks Unified Remote Full by forcing the local license status check.``` | ```Unified Remote``` | ```3.25.1``` |
@@ -6899,15 +6925,15 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 |----------|---------------|---------------------|-------------------------|
 | ```Bigger Toolbar``` | ```Raises how many icons Gboard's toolbar can hold — five on a stock build — to 12, so Flexboard's hotkeys and text action buttons fit alongside Gboard's own. How many actually show stays yours, set by dragging them in Gboard's toolbar settings. Force-stop Gboard afterwards: a cached keyboard view can go on showing the old capacity.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Bypass Gboard Signature``` | ```Bypass Gboard's own startup signature check without changing other callers.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Crash reporter (debug)``` | ```For debugging. After a keyboard crash, the error is saved and copied to your clipboard the next time the keyboard starts, so it can be pasted into a bug report. This replaces whatever was on the clipboard. Off by default.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Enable Rambler``` | ```Exposes Google Rambler — Gboard's agentic dictation, which rewrites what you say into composed text — as a choice in Voice settings. It is not switched on for you: the feature uses a Google server, has its own quota and asks for consent, so picking it is left to you.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Hidden Features``` | ```Turns on two finished Gboard features that a resigned build can never receive: grammar check, and a close control on the chips Gboard offers unprompted. Their flags are delivered per app signature, so resigning the APK means they never arrive and stay off. Both are confirmed working on a device; five other flags were tried and dropped.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
-| ```Hidden Features (unconfirmed)``` | ```Turns on four finished Gboard features that a resigned build can never receive: Emoji Kitchen browse, the custom sticker tab, offline translation, and search in Gboard's settings. Off by default because none of the four has been seen working on a device — the flags flip, but some also need data Google only sends to an unpatched install. Safe to try: none of them crashes.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Install as Gboard Clone``` | ```Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Modern keypress haptics``` | ```Uses Android's haptic primitives for keypresses — the crisp tick the rest of the system uses — instead of a plain buzz. Gboard has the code and disables it with an impossible minimum Android version; this removes that. Devices whose vibrator cannot do primitives are unaffected, because Gboard's own hardware check still runs. Note that it changes what the vibration strength slider means, from milliseconds to intensity.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Suggested Settings``` | ```Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. Grammar check is the switch, not the feature: the row only exists on a resigned build if Hidden Features is applied too.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Swipe Left to Delete``` | ```Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's word-scrub engine; anywhere swipes have a one-word default cap, while deliberate backspace swipes keep Gboard's uncapped behaviour.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Swipe Right to Undo``` | ```Swipe right after deleting to put the words back — the swipe starts on the Delete key, or anywhere when Swipe Left to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
-| ```Swipe up to undo autocorrect``` | ```Swipe up on the keyboard to undo the last autocorrection: the word you typed comes back, as with Gboard's own undo autocorrect on backspace. Gboard's decoder decides whether there is one to undo; if not, the swipe does nothing. The key you swiped on is not typed. Not yet confirmed on a device. While it is on, a keyboard crash is saved and copied to your clipboard the next time the keyboard starts, so it can be pasted into a bug report. Off by default.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
+| ```Swipe up to undo autocorrect``` | ```Swipe up on the keyboard to undo the last autocorrection: the word you typed comes back, as with Gboard's own undo autocorrect on backspace. It works right after the correction, before you type anything else; otherwise the swipe does nothing. The key you swiped on is not typed.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Text Action Buttons``` | ```Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. These three share the toolbar with Gboard's own icons and with Toolbar Hotkeys. Bigger Toolbar, which is applied unless you deselect it, raises the ceiling from five to twelve; without it, five is all the bar can hold.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Toolbar Hotkeys``` | ```Adds eight configurable hotkey slots to Gboard's toolbar — each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart — there's no mid-session un-register). Text and icon edits apply on the next keyboard open. The slots share the toolbar with Gboard's own icons: Bigger Toolbar, which is applied unless you deselect it, makes room for twelve, but on a stock ceiling of five not all eight fit.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
 | ```Vibration Slider Everywhere``` | ```Forces Gboard to show its own vibration strength slider on every device, rather than deferring to the system haptic settings page, so the strength is adjustable instead of being fixed by whichever rollout the device landed in.``` | ```Gboard``` | ```18.0.3.954559732-release-arm64-v8a``` |
@@ -6985,31 +7011,32 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Kveld Bundle Patch List:
 [📦 Kveld-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-kveld-patches-bundle-morphe)
 <details>
-<summary><b>Kveld</b> - 119 patches, 10 apps</summary>
+<summary><b>Kveld</b> - 132 patches, 10 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Block Brave Telemetry``` | ```Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, Chromium UMA metrics, and Variations seed fetching.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Brave In-Product & Commercial Notification Optimizer``` | ```Eliminates background wakeups and notifications from Chromium tips scheduler (Job ID 105), Brave Rewards onboarding promo, and retention marketing campaigns.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Brave Origin``` | ```Unlocks Brave Origin and enables local feature toggle controls.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Brave Startup Performance Optimization``` | ```Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Clean New Tab Page``` | ```Removes sponsored wallpaper images, Brave News/Today feeds, marketing widgets, and promo cards from the New Tab Page.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Clean Share URL``` | ```Strips tracking parameters (utm_*, fbclid, gclid, igshid, si, msclkid) when sharing or copying links.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Disable Background Sync & Periodic Sync``` | ```Eliminates background wakeups, radio modem activity, and battery drain by forcing GooglePlayServicesChecker.shouldDisableBackgroundSync() -> true and neutralizing wakeup tasks.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Disable Battery Status API & OS Listener``` | ```Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Disable Tab Auto-Minimization``` | ```Prevents Brave from minimizing active tabs to the background and forcing a New Tab Page when returning to the browser after inactivity.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Locale PAK Slimmer``` | ```Strips unselected language resource PAKs from assets/locales/.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Native Bloat Slimmer``` | ```Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Sensor Privacy Guard``` | ```Neutralizes motion, ambient, and orientation sensor providers to prevent hardware fingerprinting and tracking via Generic Sensor APIs.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Skip First Run``` | ```Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
-| ```Suppress In-App Promos & Surveys``` | ```Suppresses intrusive in-app rating surveys, Play Store review prompts, and marketing promo popups (YouTube promo, ad-free callouts, and Brave Ads onboarding).``` | ```Brave Private Web Browser, VPN``` | ```1.96.61``` |
+| ```Block Brave Telemetry``` | ```Blocks P3A product analytics, Brave Stats usage pings, crash dump uploads, WDP, Chromium UMA metrics, and Variations seed fetching.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Brave In-Product & Commercial Notification Optimizer``` | ```Eliminates background wakeups and notifications from Chromium tips scheduler (Job ID 105), Brave Rewards onboarding promo, and retention marketing campaigns.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Brave Origin``` | ```Unlocks Brave Origin and enables local feature toggle controls.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Brave Startup Performance Optimization``` | ```Optimizes startup time and eliminates background CPU/disk overhead by disabling unused OEM carrier partner customizations.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Clean New Tab Page``` | ```Removes sponsored wallpaper images, Brave News/Today feeds, marketing widgets, and promo cards from the New Tab Page.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Clean Share URL``` | ```Strips tracking parameters (utm_*, fbclid, gclid, igshid, si, msclkid) when sharing or copying links.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Disable Background Sync & Periodic Sync``` | ```Eliminates background wakeups, radio modem activity, and battery drain by forcing GooglePlayServicesChecker.shouldDisableBackgroundSync() -> true and neutralizing wakeup tasks.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Disable Battery Status API & OS Listener``` | ```Neutralizes the Battery Status API (navigator.getBattery) to prevent cross-site device fingerprinting and drops OS battery change broadcasts.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Disable Content Capture``` | ```Stops Chromium from streaming on-screen page text and URLs to the Android ContentCapture system service (Android System Intelligence).``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Disable Tab Auto-Minimization``` | ```Prevents Brave from minimizing active tabs to the background and forcing a New Tab Page when returning to the browser after inactivity.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Locale PAK Slimmer``` | ```Strips unselected language resource PAKs from assets/locales/.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Native Bloat Slimmer``` | ```Strips unused native companion binaries (Impress Vision AI, WireGuard VPN, and Android XR) to significantly reduce APK size.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Sensor Privacy Guard``` | ```Neutralizes motion, ambient, and orientation sensor providers to prevent hardware fingerprinting and tracking via Generic Sensor APIs.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Skip First Run``` | ```Skips the welcome screen, search engine selection, and onboarding First Run Experience (FRE) on clean installs.``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
+| ```Suppress In-App Promos & Surveys``` | ```Suppresses intrusive in-app rating surveys, Play Store review prompts, and marketing promo popups (YouTube promo, ad-free callouts, and Brave Ads onboarding).``` | ```Brave Private Web Browser, VPN``` | ```1.97.56``` |
 | ```Block Telemetry``` | ```Disables background metrics dispatch, event logging, daily pings, Google Primes profiling, crash reporting, AppDoctor diagnostics, and Tenor share tracking.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
 | ```Clone Gboard``` | ```Changes the package name by appending a dot and custom suffix (defaults to 'clone') to allow installing Gboard alongside the original application.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
 | ```Disable Background Sync``` | ```Neutralizes AndroidX WorkManager schedulers, MDD (Mobile Data Download) periodic sync, and Superpacks eager asset synchronization (opt-in to preserve initial dictionary downloads).``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
 | ```Disable Cloud Backup``` | ```Disables Android backup for Gboard (allowBackup=false and backup agent removed) so keyboard settings, learned words, and personal dictionary data are never uploaded to Google Drive backups or copied by device-to-device transfer.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
-| ```Disable Play Services Integration``` | ```Makes Gboard's Google Play services availability check always report SERVICE_DISABLED, so GMS-backed code paths (Clearcut logging, Phenotype, account sync, Google Help feedback) are skipped at the source instead of being attempted.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
+| ```Disable Play Services Integration``` | ```Makes Gboard's Google Play services availability check always report SERVICE_DISABLED, so GMS-backed code paths (Clearcut logging, Phenotype, account sync, Google Help feedback) are skipped at the source instead of being attempted. Note: Disables Gboard's inline Google Translate tool, which relies on Play Services Cronet.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
 | ```Disable Remote Configuration``` | ```Disables periodic remote experiment flag synchronization and background updates.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
-| ```Gboard Enhancements``` | ```Master customization suite bundling in-app toggleable features (AMOLED Pure Black theme, zero bottom inset, independent keyboard vibration, force incognito, voice typing in incognito, clipboard retention, top toolbar icons count, cursor trackpad, and smart flags) managed directly from a top-level Morphe Patches category in Gboard Settings.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
+| ```Gboard Enhancements``` | ```Master customization suite bundling in-app toggleable features (AMOLED Pure Black theme, zero bottom inset, independent keyboard vibration, force incognito, voice typing in incognito, clipboard in incognito, clipboard retention, top toolbar icons count, cursor trackpad, and smart flags) managed directly from a top-level Morphe Patches category in Gboard Settings.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
 | ```Hardened Intent Security``` | ```Enables Gboard internal external intent protection against unauthorized intent hijacking and removes the exported, permissionless web debug bridge content provider.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
 | ```Offline Only``` | ```Completely isolates Gboard from the network by revoking network permissions, neutralizing HTTP clients (Cronet, OkHttp, Superpacks), and spoofing offline status.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
 | ```Resource Slimmer``` | ```Strips embedded third-party license text, onboarding tutorial Lottie animations, promotional GIFs, and APK root metadata/junk files.``` | ```Gboard Lite``` | ```18.4.1.985164140-lite_beta-arm64-v8a, 18.4.1.985164140-lite_beta-armeabi-v7a``` |
@@ -7024,21 +7051,23 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Block Telemetry & Trackers``` | ```Neutralizes Firebase Analytics, Google Measurement, TikTok Business SDK, and crashlytics tracking.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.6``` |
 | ```Multi-Store Debridger``` | ```Disables orphan billing activities, services, and permissions for alternative OEM stores (Huawei, Xiaomi, Samsung).``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.6``` |
 | ```Network Security Hardening``` | ```Enforces user trust anchors while preserving HTTP cleartext traffic for driver downloads and LAN printers.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.6``` |
+| ```Skip Welcome Dialog``` | ```Suppresses the first-launch About/privacy dialog by applying the app's own accept action silently. The About entry in the menu keeps working.``` | ```NokoPrint - WiFi, Bluetooth, USB``` | ```5.28.6``` |
 | ```Always Show Publish Date``` | ```Forces video publish/upload date to remain visible in video author information across all feed types.``` | ```TikTok``` | ```47.1.4``` |
 | ```Auto-Pause First Video``` | ```Automatically pauses the first video when opening TikTok, allowing the application to finish background initialization and preventing playback lag.``` | ```TikTok``` | ```47.1.4``` |
 | ```Bypass Mandatory Login``` | ```Neutralizes mandatory login walls, dynamic regional forced login gates, and guest browsing restrictions.``` | ```TikTok``` | ```47.1.4``` |
 | ```Bypass Screen Capture Detection``` | ```Clears FLAG_SECURE on protected windows, restores Circle to Search / screen translate and recent apps snapshots, and neutralizes screenshot detection listeners and feedback prompts.``` | ```TikTok``` | ```47.1.4``` |
+| ```Camera & Microphone Indicator``` | ```Shows a corner mark while TikTok holds camera/mic open.``` | ```TikTok``` | ```47.1.4``` |
 | ```Clean Share Panel``` | ```Removes clutter from the share panel and direct message dialog, including suggested quick emojis and the 'Send to new group' button.``` | ```TikTok``` | ```47.1.4``` |
-| ```Clean Share URL``` | ```Strips tracking parameters, user IDs, device fingerprints, and marketing tokens from shared TikTok links.``` | ```TikTok``` | ```47.1.4``` |
+| ```Clean Share URL``` | ```Strips tracking parameters, user IDs, device fingerprints, and marketing tokens from shared TikTok links, with optional custom host redirection.``` | ```TikTok``` | ```47.1.4``` |
 | ```Client-Side AI & Behavioral Profiling Governor``` | ```Neutralizes on-device machine learning inference (Pitaya), Tako AI chatbot entry points and icons, and AI smart search suggestion clutter.``` | ```TikTok``` | ```47.1.4``` |
-| ```Comment Customizer``` | ```Customizes TikTok's comment section, including native sort controls, clean text copying, disabling suggested emojis bar, hiding comment quick actions, hiding in-comment surveys and feedback cards, hiding profile photo story rings, enabling voice comments, and automatic comment translation.``` | ```TikTok``` | ```47.1.4``` |
+| ```Comment Customizer``` | ```Customizes TikTok's comment section, including native sort controls, clean text copying, disabling suggested emojis bar, hiding comment quick actions, hiding in-comment surveys and feedback cards, hiding profile photo story rings, enabling voice comments, automatic comment translation, fixing silent comment drops, and hiding comment popup ads.``` | ```TikTok``` | ```47.1.4``` |
 | ```Core Asset De-bloat``` | ```Strips embedded Microblink/FinTech card scanner models, Pitaya AI & ByteNN LLM engines, C2PA origin verification, DLNA cast scanners, and redundant non-Latin fonts to save APK space.``` | ```TikTok``` | ```47.1.4``` |
 | ```Custom Offline Videos Limit``` | ```Customizes the maximum number of videos available for offline download caching.``` | ```TikTok``` | ```47.1.4``` |
 | ```Custom Share Sheet``` | ```Customizes and cleans the native TikTok share sheet via individual toggle switches for third-party apps, essential sharing features, and secondary utility actions.``` | ```TikTok``` | ```47.1.4``` |
-| ```Device Privacy Guard``` | ```Neutralizes invasive runtime permissions (contacts sync, location tracking, nearby devices), advertising ID profiling, background clipboard snooping routines, and motion sensor profiling to protect user data.``` | ```TikTok``` | ```47.1.4``` |
-| ```Direct Message Declutter``` | ```Removes visual clutter in direct messages and chat list, including the call button, reaction tray, message forward button, camera icons, input action buttons, try effect button, and sticker reply suggestions.``` | ```TikTok``` | ```47.1.4``` |
-| ```Disable Double Tap to Like``` | ```Disables the double tap gesture to like videos in the feed, preventing accidental likes while scrolling or pausing. Videos can still be liked using the like button.``` | ```TikTok``` | ```47.1.4``` |
-| ```Disable Feed Long-Press Actions``` | ```Disables long-press action gestures on feed buttons, including Like to repost, Share to quick DMs, and Comment to quick emojis.``` | ```TikTok``` | ```47.1.4``` |
+| ```Device Privacy Guard``` | ```Neutralizes invasive runtime permissions, contacts queries, package inventory inspection, location hardware tracking, advertising ID profiling, background clipboard snooping routines, and motion sensor profiling to protect user data.``` | ```TikTok``` | ```47.1.4``` |
+| ```Direct Message Declutter``` | ```Removes visual clutter in direct messages and chat list, including the call button, reaction tray, message forward button, camera icons, input action buttons, try effect button, sticker reply suggestions, and the typing-triggered sticker strip.``` | ```TikTok``` | ```47.1.4``` |
+| ```Disable Double Tap to Like``` | ```Disables double tap like in the feed.``` | ```TikTok``` | ```47.1.4``` |
+| ```Disable Feed Long-Press Actions``` | ```Disables long-press action gestures on feed buttons, including Like to repost, Share to quick DMs, and Comment to quick emojis, with optional long-press video body redirection.``` | ```TikTok``` | ```47.1.4``` |
 | ```Disable HDR Video Playback``` | ```Forces the video playback engine to select standard SDR bitrates (BT.709/sRGB) instead of HDR (HDR10/PQ/HLG), preventing blinding screen brightness spikes and display thermal throttling while preserving smooth playback.``` | ```TikTok``` | ```47.1.4``` |
 | ```Disable Post-Download Share Dialog``` | ```Suppresses the automatic 'Share to' and friend suggestions bottom sheet that pops up after finishing a download.``` | ```TikTok``` | ```47.1.4``` |
 | ```Disable Profile Photo LIVE Status``` | ```Removes the pulsing LIVE ring and badge from creator avatars in the feed and ensures clicking navigates strictly to the user profile instead of launching the live stream.``` | ```TikTok``` | ```47.1.4``` |
@@ -7047,10 +7076,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Disable Search Video Autoplay``` | ```Disables automatic video playback in search results. Videos only play when tapped to view in detail.``` | ```TikTok``` | ```47.1.4``` |
 | ```Disable Watch History Recording``` | ```Prevents viewed videos from being recorded in account watch history, playback duration stores, and local history caches.``` | ```TikTok``` | ```47.1.4``` |
 | ```Display Refresh Rate Governor``` | ```Forces TikTok to run at peak display refresh rate (120Hz/90Hz/60Hz) and neutralizes video playback framerate downclocking routines.``` | ```TikTok``` | ```47.1.4``` |
+| ```Enable Live Search``` | ```Shows TikTok's search entry in the Live drawer where supported.``` | ```TikTok``` | ```47.1.4``` |
 | ```Enable Profile Banner``` | ```Unlocks the custom profile banner (background header cover) feature on user profiles and enables the banner selection and editing tools in Edit Profile.``` | ```TikTok``` | ```47.1.4``` |
 | ```Feed Ad Blocker``` | ```Removes sponsored advertisements, brand promotions, and promotional audio from the For You, Following, and Search feeds.``` | ```TikTok``` | ```47.1.4``` |
 | ```Feed Bloat & Distraction Blocker``` | ```Removes non-video clutter and floating ad widgets from the For You, Following, and Friends feeds, including Touchpoint Rewards pendants, floating ad stickers, suggested friend cards, mini-games, CapCut/template creation prompts, memories ('On This Day'), community/topic cards, post-video surveys and evaluation questionnaires, mini-drama paywalls, and in-feed search recommendations/interest cards.``` | ```TikTok``` | ```47.1.4``` |
-| ```Feed Interface Declutter``` | ```Customizes and cleans feed video overlay elements, including the full screen button, repost pill, video descriptions, profile photo follow badges, story rings, playlist bottom bars, save buttons, and music discs.``` | ```TikTok``` | ```47.1.4``` |
+| ```Feed Content Filter``` | ```Hides stories, photo posts, and videos outside configured view or like ranges from feeds.``` | ```TikTok``` | ```47.1.4``` |
+| ```Feed Interface Declutter``` | ```Customizes and cleans feed video overlay elements, including the full screen button, repost pill, interest feedback pills, video descriptions, profile photo follow badges, story rings, playlist bottom bars, save buttons, and music discs.``` | ```TikTok``` | ```47.1.4``` |
 | ```Feed Live Stream Blocker``` | ```Removes live stream broadcast cards and live recommendations from the For You and Following feeds.``` | ```TikTok``` | ```47.1.4``` |
 | ```Fix Google Login``` | ```Restores Google account sign-in after patching by forcing fallback to Web-based OAuth when Google Play Services rejects the modified APK signature.``` | ```TikTok``` | ```47.1.4``` |
 | ```Fix Spotify Login``` | ```Restores the 'Add to Spotify' music button after patching by routing the Spotify app sign-in, which rejects the modified APK signature, through Spotify's Web-based OAuth.``` | ```TikTok``` | ```47.1.4``` |
@@ -7061,41 +7092,49 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide Inbox Story & Status Tray``` | ```Hides the horizontal story, notes, and status tray (Skylight) displayed at the top of direct messages and the inbox.``` | ```TikTok``` | ```47.1.4``` |
 | ```Hide Popular Lives In Search``` | ```Removes the Popular LIVEs recommendation card and live stream broadcasts from the search discovery page.``` | ```TikTok``` | ```47.1.4``` |
 | ```Hide Seen Videos``` | ```Filters previously watched videos from incoming For You feed batches.``` | ```TikTok``` | ```47.1.4``` |
+| ```Hide Suggested Accounts``` | ```Removes suggested-account cards from profile headers and inbox surfaces.``` | ```TikTok``` | ```47.1.4``` |
 | ```Hide Suggested Searches``` | ```Removes the suggested search keywords section ('You may like' / 'Search suggestions') from the search discovery page.``` | ```TikTok``` | ```47.1.4``` |
 | ```Hide TikTok Shop & Mall``` | ```Removes product showcase badges, shopping cart tags, and the TikTok Shop / Mall tab from navigation bars and video posts.``` | ```TikTok``` | ```47.1.4``` |
 | ```In-App Browser Privacy Guard``` | ```Redirects external and third-party web links to the default system browser and neutralizes inline JavaScript tracking, DOM monitoring, and AJAX hooking in residual in-app WebViews.``` | ```TikTok``` | ```47.1.4``` |
 | ```Instant Launch & Splash Blocker``` | ```Eliminates cold startup delays, background resume splash advertisements, real-time splash requests, and TopView ad preloading.``` | ```TikTok``` | ```47.1.4``` |
 | ```Language Pack Purger``` | ```Strips unselected language string bundles from assets/strings#lang_* to save APK space.``` | ```TikTok``` | ```47.1.4``` |
 | ```Live Stream 3D Gift Optimizer``` | ```Disables Live 3D gift particle effect engine and widget rendering lifecycle to eliminate frame drops during live streams.``` | ```TikTok``` | ```47.1.4``` |
-| ```Live Stream SDK & Minigame De-bloat``` | ```Strips Live link mic SDK (liblink_mic_sdk.so), Lyrax RTC broadcasting engines (liblyrax.so), and live stream interactive minigames to reduce APK size and memory footprint.``` | ```TikTok``` | ```47.1.4``` |
+| ```Live Stream SDK & Minigame De-bloat``` | ```Strips Live link mic SDK (liblink_mic_sdk.so), Lyrax RTC broadcasting engines (liblyrax.so), DM voice/video call engine (libvoip.so), live RTM messaging (librtmglobal.so) and live base runtime (libbase_live.so), plus live stream interactive minigames to reduce APK size and memory footprint. Breaks live viewing/broadcasting and direct message calls.``` | ```TikTok``` | ```47.1.4``` |
 | ```Media Usability & Watermark-Free Downloader``` | ```Unblocks the download button on creator-restricted videos inside the Share panel, and routes downloads to clean unwatermarked media streams.``` | ```TikTok``` | ```47.1.4``` |
 | ```Navigation & Header Declutter``` | ```Removes clutter from the feed navigation and top header bar, including the Nearby feed tab, Community (Explore) tab, top-left LIVE broadcast button, central '+' create content button, in-video bottom search suggestion bar, friend profile photo previews on the bottom Friends tab, and unread notification badges on the bottom Messages (Inbox) tab.``` | ```TikTok``` | ```47.1.4``` |
+| ```Non-Personalized Search``` | ```Forces TikTok's non-personalized search mode instead of the saved account choice.``` | ```TikTok``` | ```47.1.4``` |
 | ```P2P Video Relay & Mesh CDN Blocker``` | ```Strips background Peer-to-Peer CDN distribution binaries (libavmdlp2pv2.so and libp2plivevdp.so) to prevent battery drain, background data upload, and mesh relay.``` | ```TikTok``` | ```47.1.4``` |
-| ```Playback Speed Persistence``` | ```Persists selected video playback speed across all feed videos and application restarts.``` | ```TikTok``` | ```47.1.4``` |
+| ```Playback Speed Persistence``` | ```Persists selected video playback speed across all feed videos and application restarts, and optionally enables the native hold-and-slide 2x speed lock gesture.``` | ```TikTok``` | ```47.1.4``` |
 | ```Popups & Prompts Suppressor``` | ```Suppresses intrusive popups, dialogs, and modal prompts, including 'Follow your friends' dialogs, contacts sync overlays, multi-account notification guides, 2SV security checkup modals, PopLayer promotional sheets, live stream teaser bubbles, sticker recommendations, and DM streak expiration warnings.``` | ```TikTok``` | ```47.1.4``` |
+| ```Remember Clear Display``` | ```Remembers TikTok's clear-display state between videos and re-applies it when new videos start.``` | ```TikTok``` | ```47.1.4``` |
 | ```Resource & Battery Governor``` | ```Throttles background sensor polling (gyroscope/accelerometer 3D ads) and prevents aggressive video buffer preloading to conserve battery and CPU resources.``` | ```TikTok``` | ```47.1.4``` |
 | ```Resume Video After Scroll``` | ```Remembers playback timestamp when scrolling away and resumes from where playback stopped upon returning.``` | ```TikTok``` | ```47.1.4``` |
+| ```Show Author Region``` | ```Displays the creator's country or region code next to their username in video author info across feeds and deep-linked detail views.``` | ```TikTok``` | ```47.1.4``` |
 | ```Show Seekbar``` | ```Restores TikTok's native video seekbar and scrubbing controls where normally hidden or disabled.``` | ```TikTok``` | ```47.1.4``` |
-| ```SIM Region Selector``` | ```Spoofs the detected SIM and network country ISO code to bypass regional feed restrictions and catalog blocks.``` | ```TikTok``` | ```47.1.4``` |
+| ```SIM Region Selector``` | ```Spoofs the detected SIM and network country ISO code, operator numeric codes, operator names, and cell identity MCC/MNC to bypass regional feed restrictions and catalog blocks.``` | ```TikTok``` | ```47.1.4``` |
+| ```Skip Content Warnings``` | ```Bypasses and clears sensitive content warnings, graphic media blur overlays, and age gates on feed videos.``` | ```TikTok``` | ```47.1.4``` |
 | ```Skip First-Launch Onboarding``` | ```Bypasses the entire first-run introduction funnel (interest pickers, swipe tutorials, language prompts, and consent sheets) directly to the feed.``` | ```TikTok``` | ```47.1.4``` |
 | ```Stop Video Looping``` | ```Stops videos at the end instead of replaying them in an infinite loop.``` | ```TikTok``` | ```47.1.4``` |
-| ```Studio & Creation De-bloat``` | ```Strips heavy video creation plugins, CapCut NLE editor SDKs, effect plugins, and AR camera face models to significantly reduce APK size.``` | ```TikTok``` | ```47.1.4``` |
+| ```Studio & Creation De-bloat``` | ```Strips heavy video creation plugins, CapCut NLE editor SDKs, effect plugins, camera dynamic features, upload video encoders, on-device AI runtimes (LiteRT), and AR camera face models to significantly reduce APK size.``` | ```TikTok``` | ```47.1.4``` |
 | ```System Font``` | ```Forces TikTok to use the Android system font instead of bundled proprietary TikTokSans fonts.``` | ```TikTok``` | ```47.1.4``` |
 | ```Unified Telemetry & Tracker Silencer``` | ```Neutralizes ByteDance AppLog user tracking, APM/Npth/Heimdallr crash monitors, AppsFlyer attribution, and Firebase analytics.``` | ```TikTok``` | ```47.1.4``` |
 | ```Update Prompt Suppressor``` | ```Neutralizes background update polling tasks and device ID check routines to prevent forced update popups.``` | ```TikTok``` | ```47.1.4``` |
-| ```Video Quality Governor``` | ```Caps video playback and download resolutions (1080p, 720p, 540p, 480p, 360p) independently to conserve battery, GPU/MediaCodec load, and mobile data.``` | ```TikTok``` | ```47.1.4``` |
+| ```Video Fit``` | ```Adjusts video display aspect ratio across feeds and story cells: 'fit' ensures the entire video is visible without cropping, or 'fill' expands the video to fill the screen.``` | ```TikTok``` | ```47.1.4``` |
+| ```Video Quality Governor``` | ```Caps video playback resolution (1080p, 720p, 540p, 480p, 360p) to conserve battery, GPU/MediaCodec load, and mobile data. Download quality is controlled separately by the Media Usability patch (downloadQuality).``` | ```TikTok``` | ```47.1.4``` |
+| ```Voice & Speech Engine De-bloat``` | ```Strips on-device voice recognition and speech synthesis engines (libspeechspg.so, libspeechsdk.so) and their loader stubs (libspeechengine.so, libspeechepg.so) to save APK space. Breaks voice search (microphone button), voice input, and editor text-to-speech/sing features.``` | ```TikTok``` | ```47.1.4``` |
 | ```APK Junk Cleaner``` | ```Strips non-functional build metadata, compiler properties, Kotlin coroutines debug tables, and duplicate license texts from META-INF and APK root.``` | ```Universal``` | ```All versions``` |
 | ```Background Sync & JobScheduler Purge``` | ```Strips RECEIVE_BOOT_COMPLETED and disables boot, package-replacement, and periodic background sync receivers and services in AndroidManifest.xml to eliminate background wakeups and conserve battery.``` | ```Universal``` | ```All versions``` |
 | ```DPI Resource Slimmer``` | ```Strips unselected screen density resource directories from res/ (e.g. drawable-mdpi, drawable-hdpi, mipmap-xhdpi). Density-independent resources (nodpi, anydpi) and orphan resources are safely preserved in-situ.``` | ```Universal``` | ```All versions``` |
 | ```Locale Resource Slimmer``` | ```Strips unselected language translation directories from res/ (e.g. values-*, raw-*, xml-*). Base fallback resources with no language qualifiers are always preserved.``` | ```Universal``` | ```All versions``` |
 | ```PNG Asset Optimizer``` | ```Losslessly recompresses PNG assets with maximum zlib compression and strips non-rendering metadata chunks (pHYs, tEXt, tIME) while preserving 9-patch structures and pixel accuracy.``` | ```Universal``` | ```All versions``` |
+| ```Universal Hosts Blocker``` | ```Rewrites Dalvik const-string URL/host literals matching a user-supplied hosts blocklist to a sink IP (default 0.0.0.0). The blocklist file is read at patch time, so daily DNS updates apply without patch releases.``` | ```Universal``` | ```All versions``` |
 | ```Universal Native Binary Trimmer``` | ```Strips non-essential tracking, crash reporting, and debug companion native libraries in lib/** (e.g. libcrashlytics, libsentry, libbugly, libgwp-asan) by zeroing bytes in-situ.``` | ```Universal``` | ```All versions``` |
 | ```Universal Offline Mode``` | ```Forces offline execution across any application by revoking INTERNET and network permissions from AndroidManifest.xml and blocking cleartext HTTP traffic at the OS level.``` | ```Universal``` | ```All versions``` |
 | ```Universal Privacy Permissions Stripper``` | ```Selectively strips sensitive privacy, sensor, and hardware permissions from AndroidManifest.xml via configurable boolean toggles.``` | ```Universal``` | ```All versions``` |
 | ```Universal Screen Brightness Governor``` | ```Prevents applications from overriding display brightness (such as in-app brightness sliders, barcode/QR full-screen brightness, or window-level overrides) by neutralizing all direct writes to WindowManager.LayoutParams.screenBrightness.``` | ```Universal``` | ```All versions``` |
 | ```Universal Screen Timeout Enforcer``` | ```Forces the target application to respect system screen timeout and sleep timers by neutralizing keepScreenOn view calls and stripping FLAG_KEEP_SCREEN_ON from windows and layout parameters.``` | ```Universal``` | ```All versions``` |
 | ```Universal Screenshot Protection Bypass``` | ```Neutralizes FLAG_SECURE on windows, layout params, and SurfaceViews, unlocks audio playback capture, and suppresses Android 14+ screenshot and screen recording detection callbacks.``` | ```Universal``` | ```All versions``` |
-| ```Universal Telemetry Neutralizer``` | ```Strips advertising and Privacy Sandbox permissions, disables analytics ContentProviders and telemetry background services (Firebase, Sentry, Adjust, AppsFlyer, DataTransport), prunes ComponentDiscovery registrars, and injects telemetry opt-out metadata.``` | ```Universal``` | ```All versions``` |
+| ```Universal Telemetry Neutralizer``` | ```Strips advertising and Privacy Sandbox permissions, disables analytics ContentProviders and telemetry background services (Firebase, Sentry, Adjust, AppsFlyer, DataTransport), prunes ComponentDiscovery registrars, and injects telemetry opt-out metadata. Includes an optional toggle to disable push notification services.``` | ```Universal``` | ```All versions``` |
 | ```Universal WebP Asset Optimizer``` | ```Losslessly strips non-rendering metadata and ancillary chunks (EXIF, XMP, ICCP) from WebP assets across res/ and assets/ to reduce APK size.``` | ```Universal``` | ```All versions``` |
 | ```Anti-Tamper Bypass``` | ```Bypasses Xposed and hook detection, neutralizes VPN and ADB security checks, bypasses root and emulator detection, and hardens WebView JavaScript bridges.``` | ```Xiaomi Earbuds``` | ```1.38.0i``` |
 | ```Background Optimizer``` | ```Neutralizes KeepAliveForegroundService, background BLE observation, companion device manager, and MIUI Nearby discovery to eliminate persistent notifications, wakelocks, and background battery drain.``` | ```Xiaomi Earbuds``` | ```1.38.0i``` |
@@ -7470,8 +7509,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Soccer Star Instant Rewarded``` | ```Rewarded and interstitial ad flows always report loaded and grant the success callback immediately without playing an ad, including offline.``` | ```Soccer Star``` | ```0.3.88``` |
 | ```Soccer Star VIP Unlock``` | ```Unlocks VIP subscription permanently: ownership keys always report active and unsubscribe can never clear the flag.``` | ```Soccer Star``` | ```0.3.88``` |
 | ```Solar Smash All Packages Purchased``` | ```Every in-app purchase package reports as purchased: the all weapons pack, all planets pack, remove ads and unlock levels and achievements stay permanently owned and unlocked, without contacting Google Play.``` | ```Solar Smash``` | ```2.7.5``` |
-| ```Subway Surfers Currency Hack``` | ```Coins and keys always report 2,147,483,647 and every purchase is always affordable.``` | ```Subway Surfers``` | ```3.69.2``` |
-| ```Subway Surfers Free IAP``` | ```Coins, keys and shop items are granted instantly and free without Google Play billing.``` | ```Subway Surfers``` | ```3.69.2``` |
+| ```Subway Surfers Currency Hack``` | ```Coins and keys always report 2,147,483,647 and every purchase is always affordable.``` | ```Subway Surfers``` | ```3.70.0``` |
+| ```Subway Surfers Free IAP``` | ```Coins, keys and shop items are granted instantly and free without Google Play billing.``` | ```Subway Surfers``` | ```3.70.0``` |
 | ```Bypass Google Play Install Check``` | ```App always behaves as if installed from Google Play, bypassing the install source check.``` | ```Toolbox for Minecraft PE``` | ```5.4.58``` |
 | ```Premium``` | ```Enables premium features by bypassing in-app purchase verification.``` | ```Toolbox for Minecraft PE``` | ```5.4.58``` |
 
@@ -8127,7 +8166,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Custom App Output Patch (Experimental, Enhanced)``` | ```Customizes APK install identity and launcher presentation. Name, icon, hide-icon, and Clone are independent; Clone enables side-by-side install. This cannot preserve original-app data when a package or signing identity changes. Clone mode rewrites supported manifest identifiers only; it does not rewrite bytecode strings, explicit process names, task affinities, or arbitrary SDK configuration. A clone has a new Android package identity and normally a new signing identity: package- or certificate-bound OAuth, Firebase, Google Play Games, billing, deep links, and server licenses may therefore not work and cannot be repaired safely by this patch. If PairIP Bypass is also enabled, server/package-bound PairIP enforcement can still reject the clone. Inspired by Nai64Patches from Nai64: Clone, Custom App Icon, and Hide App Icon patches. The optional Preserve App Data After Uninstall setting applies Android's fragile-user-data and backup compatibility flags. It does not guarantee data retention, and it cannot carry data from the original package into a clone with a different package identity. For target SDK compatibility, use Improve Legacy App / Game Compatibility for Modern Android Patch. Keeping target SDK handling there avoids duplicate manifest changes.``` | ```Universal``` | ```All versions``` |
 | ```Disable Forced Online Checks (Experimental)``` | ```Try to bypass high-confidence client-side “internet required” gates. This cannot bypass server-side login, entitlement, multiplayer, or game-state checks. Compatibility: Ads Block Patch can intentionally block ad hosts. Keep “Exclude ad SDK and networking code” enabled when both patches are selected so blocked ads are not falsely told the device is online and repeatedly retried. This does not bypass server-enforced online play.``` | ```Universal``` | ```All versions``` |
 | ```Embed Frida Gadget ( Advanced )``` | ```Embeds Frida Gadget and selected JavaScript in an APK. Extra scripts load in order; an empty entry leaves the APK unchanged. Minimal Footprint Mode disables script file watching; it is not stealth. Warning : This patch has the potential to modify internals of patched APK at runtime depending on given JavaScript files, but is also detectable! Use this patch at your own risk.``` | ```Universal``` | ```All versions``` |
-| ```Improve Legacy App / Game Compatibility for Modern Android Patch ( Experimental, Enhanced )``` | ```Improves older app and game compatibility on modern Android with manifest, storage, screen, native runtime, network, shared-library, device-identity, and OpenIAB receiver controls. Spoof Target SDK may help installation or launch, but cannot repair incompatible code. Use Control Embedded Auth / Stores Patch for Google Play license or Google Play Services checks; these options stay separate to prevent overlapping injections. This patch cannot restore shut-down servers, missing CPU architecture support, server licensing, Play Integrity, or unsupported native code. Conservative compatibility features are enabled by default; more invasive native, network, storage, library, and identity options remain disabled. Experimental: Its functionalities are not guaranteed to work in all apps. Credits: Nai64Patches from Nai64 for the original legacy compatibility functionality. Hidden API bypass uses AndroidHiddenApiBypass by LSPosed (Apache-2.0). UniPatches provides the merged settings, validation, manifest safeguards, compatibility organization, and provides suppress GPlay Login UI patch option.``` | ```Universal``` | ```All versions``` |
+| ```Legacy App Compatibility Patch ( Experimental, Enhanced )``` | ```Improves older app and game compatibility on modern Android with manifest, storage, screen, native runtime, network, shared-library, device-identity, and OpenIAB receiver controls. Spoof Target SDK may help installation or launch, but cannot repair incompatible code. Use Control Embedded Auth / Stores Patch for Google Play license or Google Play Services checks; these options stay separate to prevent overlapping injections. This patch cannot restore shut-down servers, missing CPU architecture support, server licensing, Play Integrity, or unsupported native code. Conservative compatibility features are enabled by default; more invasive native, network, storage, library, and identity options remain disabled. Experimental: Its functionalities are not guaranteed to work in all apps. Credits: Nai64Patches from Nai64 for the original legacy compatibility functionality. Credits to LSPosed for the Hidden API bypass approach and AndroidHiddenApiBypass implementation (Apache-2.0). UniPatches adds the merged settings, validation, manifest safeguards, compatibility organization, and the Suppress GPlay Login UI patch option.``` | ```Universal``` | ```All versions``` |
 | ```PairIP Bypass Patch (Experimental, Enhanced)``` | ```Merged experimental PairIP bypass for common legacy, V2, and V3 protection layouts. Automatic mode applies compatible strategies through the selected risk level; disable it to test individual strategies. Manual strategies remain disabled by default and are independent of the automatic risk level. This patch is experimental and app-dependent. It does not bypass server-side Play Integrity, server-side licensing, or other server-side enforcement. Compatibility: cloned APKs can still fail when PairIP or a server binds entitlement to the original package or signing certificate. Firebase component removal can break Firebase Auth, Google Play Games, billing, analytics, and ad rewards. Device spoofing can also change apps' device-integrity behavior. These identity and server-side conditions cannot be fixed safely by combining PairIP Bypass with Custom App Output, Ads Block Patch, or Emulator Detection. Compatibility: when combining this patch with Universal Overlay, the shared overlay startup bridge is preserved. PairIP Application redirect and Application.onCreate bypass strategies may be skipped if they would make that bridge unreachable. If combining this patch with Custom App Output, apply package cloning only when package- or certificate-bound services are not required. This enhanced patch is a merged product of the PairIP bypass patches from the credited developers, with improvements for broader functionality, safer strategy selection, and usability. Credits: Nai64Patches from Nai64, Entree, kondratjev, and rushiranpise (Doom).``` | ```Universal``` | ```All versions``` |
 | ```Permission Guard Patch ( Experimental, Overlay Support, UniManager Support )``` | ```Keeps declared permissions while guarding selected Android permission checks and requests. Optional Universal Overlay controls can change blocked groups at runtime. This patch includes an optional Universal Overlay addon. To use it, patch Permission Guard Patch together with Universal Overlay and enable “Overlay integration > Runtime controls > Permission Guard”. The Permission Guard module then appears in Universal Overlay and exposes the same runtime state to UniManager when “Quick setup > UniManager > Enable UniManager integration” is enabled. Internet Access only guards instrumented INTERNET checks and requests; it does not stop socket traffic. Native, privileged, already-granted, and unknown permission paths remain outside this guard.``` | ```Universal``` | ```All versions``` |
 | ```Universal Overlay Patch v2.6.1 ( Experimental, UniManager Support )``` | ```Customizable in-app overlay for Android apps and games. Choose a visual preset, select modules, optionally supply an icon, then patch. Modules are excluded and disabled by default; Monitor, Activity, Hook, System, and Advanced modules provide runtime controls and diagnostics. UI presets reuse supported appearance and icon settings; Morphe settings control the title, description, repository button text, and repository URL. Module selections remain app-specific. Experimental : This patch may not work on all apps. Compatibility: this patch owns one shared startup bridge for its runtime and integrated modules. PairIP Bypass preserves that bridge when its Application startup strategies run after Universal Overlay. If a patched APK still has an unusual entry point, use the explicit Activity override rather than selecting a library or SDK Activity. Custom App Display and Ads Block Patch attaches to this bridge when its runtime addons are enabled; it should not create a second overlay runtime. Ads Block Patch can also add runtime ad-control modules here, but Universal Overlay does not patch ad SDKs by itself. To use them, select Ads Block Patch and Universal Overlay, enable the desired options under Ads Block Patch's Overlay integration > Runtime controls. The Ads runtime policy is enabled automatically when at least one of those modules is selected. The available modules are Block Ads and Block Ads / Tracking Hosts. Their initial runtime values come from the Ads Block Patch settings, and later changes are session-only. When both patches are selected, Ads Block Patch attaches its policy to this overlay's exact startup bridge, including an explicit Activity override, instead of selecting a separate Activity. Attribution: The idea and initial works of Universal Overlay Patch are from Zanuaimi / Noobite.``` | ```Universal``` | ```All versions``` |
@@ -8377,7 +8416,7 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Zeldrisho Bundle Patch List:
 [📦 Zeldrisho-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-zeldrisho-patches-bundle-morphe)
 <details>
-<summary><b>Zeldrisho</b> - 25 patches, 2 apps</summary>
+<summary><b>Zeldrisho</b> - 27 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
@@ -8399,6 +8438,8 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Enable profile cover saving``` | ```Restores the “Save photo” action and allows screenshots for profile cover photos. Other viewer entry points are unchanged.``` | ```Zalo``` | ```26.08.01``` |
 | ```Filter promo notifications``` | ```Skips Zalo Timeline/Stories and Zalo Video push notifications (like/comment digests, new feeds/stories, video reminders) in the push dispatcher. Message, call, friend-request and birthday notifications are untouched; reaction/activity pushes on other channels may remain.``` | ```Zalo``` | ```26.08.01``` |
 | ```Hide Business Box``` | ```Removes Zalo's Business Box service entry from the main chat list without filtering ordinary conversations or user-initiated Official Account chats.``` | ```Zalo``` | ```26.08.01``` |
+| ```Hide chat list ads``` | ```Removes dedicated Zinstant ad cards from the message list. Server-inserted promotions or other ad surfaces may remain.``` | ```Zalo``` | ```26.08.01``` |
+| ```Hide Media Box``` | ```Hides Zalo's Media Box row from the conversation list; Media Box content and data are not deleted.``` | ```Zalo``` | ```26.08.01``` |
 | ```Keep expired media accessible``` | ```Keeps locally stored large chat media usable after Zalo's client-side expiry window by bypassing the expired/subscription state. It does not restore missing files or bypass server download authorization.``` | ```Zalo``` | ```26.08.01``` |
 | ```microG Drive support``` | ```Adds Zalo launch/provider checks and redirects Google Drive account selection and token binding to microG-RE (app.revanced / app.revanced.android.gms). Preserves the clone's actual caller identity; MicroG manifest metadata supplies the upstream Zalo identity.``` | ```Zalo``` | ```26.08.01``` |
 | ```Prefer original photo quality``` | ```Enables Zalo's existing original-quality photo path by default. It does not change server upload limits, account restrictions, or video handling.``` | ```Zalo``` | ```26.08.01``` |
@@ -8509,15 +8550,17 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Santodan Bundle Patch List:
 [📦 Santodan-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-santodan-patches-bundle-morphe)
 <details>
-<summary><b>Santodan</b> - 10 patches, 5 apps</summary>
+<summary><b>Santodan</b> - 12 patches, 5 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```MEO - Side-by-side installation``` | ```Installs a separately named MEO clone using a configurable package name and app name.``` | ```MEO (Android TV)``` | ```5.7.0``` |
 | ```MEO - Spoof supported device``` | ```Reports a Sagemcom DIW3930 to MEO provisioning and skips the server's non-blocking device-verification warning.``` | ```MEO (Android TV)``` | ```5.7.0``` |
-| ```NuvioTV - Merge tracking progress``` | ```Merges Nuvio Sync and connected tracking-provider progress, preserving the previous snapshot while providers refresh.``` | ```NuvioTV``` | ```1.1.0-beta.2``` |
-| ```NuvioTV - Remaining episodes in Continue Watching``` | ```Adds a disabled-by-default Continue Watching setting that displays aired, unwatched episode counts for every tracking integration.``` | ```NuvioTV``` | ```1.1.0-beta.2``` |
-| ```NuvioTV - Side-by-side installation``` | ```Installs a separately named NuvioTV clone using a configurable package name and app name.``` | ```NuvioTV``` | ```1.1.0-beta.2``` |
+| ```NuvioTV - Finale dates in library and collections``` | ```Adds separate disabled-by-default settings to show the latest scheduled episode date in library and collection posters.``` | ```NuvioTV``` | ```1.1.0-beta.4``` |
+| ```NuvioTV - Keep airing series in Upcoming``` | ```Adds a disabled-by-default setting that keeps currently-airing library series in Upcoming until the scheduled finale.``` | ```NuvioTV``` | ```1.1.0-beta.4``` |
+| ```NuvioTV - Merge tracking progress``` | ```Merges Nuvio Sync and connected tracking-provider progress, preserving the previous snapshot while providers refresh.``` | ```NuvioTV``` | ```1.1.0-beta.2, 1.1.0-beta.4``` |
+| ```NuvioTV - Remaining episodes in Continue Watching``` | ```Adds a disabled-by-default setting that displays aired, unwatched episode counts for every tracking integration. Controlled by Layout > Santodan-Patches on beta4.``` | ```NuvioTV``` | ```1.1.0-beta.2, 1.1.0-beta.4``` |
+| ```NuvioTV - Side-by-side installation``` | ```Installs a separately named NuvioTV clone using a configurable package name and app name.``` | ```NuvioTV``` | ```1.1.0-beta.2, 1.1.0-beta.4``` |
 | ```Peafowl - Unlock Theme Ownership (Experimental)``` | ```Use Peafowl's local free-theme path without the billing preflight. Experimental; server downloads are not guaranteed.``` | ```Peafowl Theme Maker for EMUI``` | ```GMS_27.5.1``` |
 | ```Pillo - Hybrid Lock-Screen Notifications``` | ```Use fullscreen alarms while the phone is locked and banner notifications while it is unlocked. Select Pillo's Banner/Light notification mode.``` | ```Pillo``` | ```0.6.20, 0.6.19``` |
 | ```Reddit - Content filters (Experimental)``` | ```Adds keyword and per-community flair filters under Morphe > Filters. Home-feed flair filtering requires Show flairs in home feed, which is installed automatically.``` | ```Reddit``` | ```2026.37.0``` |
@@ -8722,46 +8765,46 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Save deleted messages``` | ```Keeps a local copy of incoming DMs so ones the sender deletes stay readable. Messages are stored unencrypted in the app's private storage.``` | ```Instagram``` | ```450.0.0.50.77``` |
 | ```Remove Reddit Pro section``` | ```Removes the Reddit Pro section from the community drawer, and the Reddit Pro promos: the post creation and subreddit join upsell sheets, and the Reddit Pro banner on the profile feed.``` | ```Reddit``` | ```2026.37.0``` |
 | ```Remove Resources and Games on Reddit sections``` | ```Removes the Resources and Games on Reddit sections from the community drawer.``` | ```Reddit``` | ```2026.37.0``` |
-| ```Add ability to copy media link``` | ```Adds "Copy media link" to the post menu: the direct links of the post's photos, videos and GIFs.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Custom download folder``` | ```Saves downloaded photos and videos to a folder of your choice instead of Download/X.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Custom share menu``` | ```Hides options from the post menu.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Custom sharing domain``` | ```Shares and copies links with another domain, such as fxtwitter.com, in place of x.com.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Customize default reply sorting``` | ```Sets the sort replies open with.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Customize explore tabs``` | ```Hides tabs from the Explore page.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Customize Inline action Bar items``` | ```Hides actions from the bar under each post.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Customize Navigation Bar items``` | ```Hides tabs from the bottom navigation bar. Home always stays.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Customize notification tabs``` | ```Hides tabs from Notifications. At least one tab always stays.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Customize search suggestions``` | ```Hides kinds of suggestion from the search box.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Customize search tab items``` | ```Hides tabs from search results. At least one tab always stays.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Customize side bar items``` | ```Hides rows from the side bar.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Customize timeline top bar``` | ```Hides tabs from the top of the home timeline. At least one tab always stays.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Delete from database``` | ```Adds options to the Morphe settings to delete cached promoted entries or clear cached timelines.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Disable auto timeline scroll on launch``` | ```Opens the home timelines where you left them, instead of at the newest posts.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Enable debug menu for posts``` | ```Adds "Post data" to the post menu: everything the app knows about the post, as text.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Enable force HD videos``` | ```Always plays videos at the highest quality the device supports, whatever the connection.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Enable Undo Posts``` | ```Holds each post for a few seconds before sending it, so it can be undone.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Filter posts by keyword``` | ```Hides posts whose text contains any of your keywords, ignoring case. Edit the keywords from "Filtered keywords" in any post's menu, or in the Morphe settings.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Force enable translate``` | ```Offers to translate every post, not only those the server marks translatable.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Handle custom twitter links``` | ```Opens links to other X frontends, such as fxtwitter and vxtwitter, in the app. They have to be enabled under "Open by default" in the app's system settings.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Hide badges from navigation bar icons``` | ```Hides the unread counts and dots on the bottom navigation bar.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Hide Banner``` | ```Hides the "See new posts" pill at the top of the timeline.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Hide Community Notes``` | ```Hides Community Notes under posts.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Hide FAB``` | ```Hides the floating Post button.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Hide promote button``` | ```Hides the Boost button on your posts and the Boost item in their menu.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Hook feature flag``` | ```Overrides the app's feature switches with values chosen when patching.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Import/Export login token``` | ```Adds Export login and Import login to the Morphe settings, opened from the app icon's shortcuts. An export holds everything needed to use your account.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Legacy share links``` | ```Shares posts as x.com/<username>/status/<id> rather than x.com/i/status/<id>.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Native downloader``` | ```Lets every photo, video and GIF be saved from its long-press menu and the media viewer, without a watermark.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Native reader mode``` | ```Adds "Reader mode" to the post menu: the post's text, selectable, with links to its media.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Native translator``` | ```Adds "Translate with Google" to the post menu.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```No shortened URL``` | ```Opens links in posts at their real address instead of through t.co.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Remove Ads``` | ```Removes promoted posts, accounts and trends from timelines.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Remove premium upsell``` | ```Removes Premium upsells: the Upgrade button on the home timeline, the Premium side bar row, and the Get verified cards and prompts.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Share Tweet as Image``` | ```Adds "Share as image" to the share sheet of a post, which shares it as an image card.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Show poll results``` | ```Shows the results of polls without voting. Polls cannot be voted on while this is applied.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Show sensitive media``` | ```Shows media marked sensitive without blurring it behind a warning.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Support external downloader``` | ```Adds "Open in downloader" to the post menu, which shares the post's link with an app of your choice.``` | ```X``` | ```12.31.0-prod.01``` |
-| ```Unlock Premium checks``` | ```Makes the app's own Premium subscription checks always pass. Features the server enforces still need a subscription.``` | ```X``` | ```12.31.0-prod.01``` |
+| ```Add ability to copy media link``` | ```Adds "Copy media link" to the post menu: the direct links of the post's photos, videos and GIFs.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Custom download folder``` | ```Saves downloaded photos and videos to a folder of your choice instead of Download/X.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Custom share menu``` | ```Hides options from the post menu.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Custom sharing domain``` | ```Shares and copies links with another domain, such as fxtwitter.com, in place of x.com.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Customize default reply sorting``` | ```Sets the sort replies open with.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Customize explore tabs``` | ```Hides tabs from the Explore page.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Customize Inline action Bar items``` | ```Hides actions from the bar under each post.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Customize Navigation Bar items``` | ```Hides tabs from the bottom navigation bar. Home always stays.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Customize notification tabs``` | ```Hides tabs from Notifications. At least one tab always stays.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Customize search suggestions``` | ```Hides kinds of suggestion from the search box.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Customize search tab items``` | ```Hides tabs from search results. At least one tab always stays.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Customize side bar items``` | ```Hides rows from the side bar.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Customize timeline top bar``` | ```Hides tabs from the top of the home timeline. At least one tab always stays.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Delete from database``` | ```Adds options to the Morphe settings to delete cached promoted entries or clear cached timelines.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Disable auto timeline scroll on launch``` | ```Opens the home timelines where you left them, instead of at the newest posts.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Enable debug menu for posts``` | ```Adds "Post data" to the post menu: everything the app knows about the post, as text.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Enable force HD videos``` | ```Always plays videos at the highest quality the device supports, whatever the connection.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Enable Undo Posts``` | ```Holds each post for a few seconds before sending it, so it can be undone.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Filter posts by keyword``` | ```Hides posts whose text contains any of your keywords, ignoring case. Edit the keywords from "Filtered keywords" in any post's menu, or in the Morphe settings.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Force enable translate``` | ```Offers to translate every post, not only those the server marks translatable.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Handle custom twitter links``` | ```Opens links to other X frontends, such as fxtwitter and vxtwitter, in the app. They have to be enabled under "Open by default" in the app's system settings.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Hide badges from navigation bar icons``` | ```Hides the unread counts and dots on the bottom navigation bar.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Hide Banner``` | ```Hides the "See new posts" pill at the top of the timeline.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Hide Community Notes``` | ```Hides Community Notes under posts.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Hide FAB``` | ```Hides the floating Post button.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Hide promote button``` | ```Hides the Boost button on your posts and the Boost item in their menu.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Hook feature flag``` | ```Overrides the app's feature switches with values chosen when patching.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Import/Export login token``` | ```Adds Export login and Import login to the Morphe settings, opened from the app icon's shortcuts. An export holds everything needed to use your account.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Legacy share links``` | ```Shares posts as x.com/<username>/status/<id> rather than x.com/i/status/<id>.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Native downloader``` | ```Lets every photo, video and GIF be saved from its long-press menu and the media viewer, without a watermark.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Native reader mode``` | ```Adds "Reader mode" to the post menu: the post's text, selectable, with links to its media.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Native translator``` | ```Adds "Translate with Google" to the post menu.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```No shortened URL``` | ```Opens links in posts at their real address instead of through t.co.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Remove Ads``` | ```Removes promoted posts, accounts and trends from timelines.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Remove premium upsell``` | ```Removes Premium upsells: the Upgrade button on the home timeline, the Premium side bar row, and the Get verified cards and prompts.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Share Tweet as Image``` | ```Adds "Share as image" to the share sheet of a post, which shares it as an image card.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Show poll results``` | ```Shows the results of polls without voting. Polls cannot be voted on while this is applied.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Show sensitive media``` | ```Shows media marked sensitive without blurring it behind a warning.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Support external downloader``` | ```Adds "Open in downloader" to the post menu, which shares the post's link with an app of your choice.``` | ```X``` | ```12.32.0-prod.01``` |
+| ```Unlock Premium checks``` | ```Makes the app's own Premium subscription checks always pass. Features the server enforces still need a subscription.``` | ```X``` | ```12.32.0-prod.01``` |
 
 </details>
 
@@ -11090,12 +11133,12 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 Edge-Window Bundle Patch List:
 [📦 Edge-Window-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-edge-window-patches-bundle-morphe)
 <details>
-<summary><b>Edge-Window</b> - 2 patches, 1 app</summary>
+<summary><b>Edge-Window</b> - 2 patches, 2 apps</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Adjust app font scale``` | ```Scales text in this app without changing display density or layout sizing.``` | ```Universal``` | ```All versions``` |
-| ```Hide status bar and ignore display cutouts``` | ```Hides the status bar and removes top status-bar and cutout insets from app content.``` | ```Universal``` | ```All versions``` |
+| ```Hide status bar and ignore display cutouts (universal)``` | ```Hides the status bar and removes top status-bar and cutout insets from app content in any app.``` | ```Universal``` | ```All versions``` |
+| ```Hide status bar and ignore display cutouts``` | ```Hides the status bar and removes top status-bar and cutout insets from app content.``` | ```YouTube``` | ```All versions``` |
 
 </details>
 
@@ -11360,42 +11403,31 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 BearInMindCat Bundle Patch List:
 [📦 BearInMindCat-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-bearinmindcat-patches-bundle-morphe)
 <details>
-<summary><b>BearInMindCat</b> - 33 patches, 1 app</summary>
+<summary><b>BearInMindCat</b> - 22 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
 | ```120 refresh rate``` | ```Lifts the 60 Hz limit Maps puts on itself, on the app and on the map, so it can run at your screen's full refresh rate (such as 120 Hz). Uses more battery, most of all while navigating. Off by default: switch it on on the Customization screen.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Account sheet cleanup``` | ```Removes the "More from this app" label from the account sheet, and keeps the sheet open when you come back from Settings or Customization or tap "Your profile", instead of dropping back to the map.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Add microG support``` | ```Builds microG Maps, a separate app (org.ungoogled.android.apps.maps.microg) that signs in to your Google account through microG: saved places and lists, Timeline, location sharing, contributions and push messages. Remove sign-in prompts, Trim account menu and Remove permissions are left out of this build, Offline saved places keeps only its Local saved screen, which copies your account's saved lists to the phone (Pull from Google account), and its icon carries microG's C. Needs microG: MicroG-RE or ReVanced GmsCore. Not for root (mount) installs.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 | ```Better offline maps``` | ```Reworks the offline area picker: zooming out really selects more instead of being shrunk to Google's size cap, the box can be resized by dragging its edges and corners, a large area is split into several downloads whose true total size is shown, and areas already downloaded are drawn on the map. Can be turned off on the Customization screen.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 | ```Black theme``` | ```AMOLED-black theme. Pins Maps' own dark mode and its separate navigation colour scheme, and remaps colour resources, drawable fills and draw-time paints so no surface is left grey.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 | ```Blue pin``` | ```Chromium-coloured flat map pin on every in-app product logo and the search bar's leading icon.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Bypass Play Services checks``` | ```Makes Maps' bundled Play services signature and availability checks always pass, so it runs re-signed and with Play services disabled or absent.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Bypass Play Services checks``` | ```Makes Maps' bundled Play services signature and availability checks always pass, so it runs re-signed and with Play services disabled or absent, and lets it load tiles, search and routing by sending Google's own package and certificate in the identity headers the Maps backend checks. Where Play services rejects the re-signed app, Maps degrades instead of crashing.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 | ```Change app name``` | ```Sets the launcher and in-app app name.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 | ```Change package name``` | ```Installs alongside stock Google Maps under its own package name. On by default, because stock Maps comes built into most phones and cannot be replaced by a patched copy.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 | ```Customization screen``` | ```Adds a Customization row under Settings on the account sheet, with switches for the patches here that can be turned back off inside the app.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Hide ads``` | ```Hides promoted map pins and "Sponsored" search result rows.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Hide AI``` | ```Hides Gemini's AI summaries: the "Know before you go" card on place sheets and the review summary ("Summarized with Gemini") on the Reviews tab. Can be switched off on the Customization screen.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Hide explore feed``` | ```Hides the home tab's Explore feed sheet ("Local vibe"). Can be switched back on on the Customization screen.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Hide login promo``` | ```Hides the full-screen "Make it your map" page shown on first launch.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Hide navigation tabs``` | ```Hides the Explore / Contribute / You strip at the bottom of the home screen. Can be switched back on on the Customization screen.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Hide section title``` | ```Removes the "More from this app" label from the account sheet.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Hide sign-in button``` | ```Removes the "Sign in" pill from the account sheet.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Hide suggestions``` | ```Hides the row of businesses under an address on its place sheet: a preview of the address's Directory (the restaurants, shops and offices at that address). The Directory button still lists them. Can be switched off on the Customization screen.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Keep account sheet open``` | ```Returning from Settings or Customization, or tapping "Your profile", leaves the account sheet open instead of dropping back to the map.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Legacy icon``` | ```Uses the flat multicolour pin Maps had before the 2025 gradient icon as the launcher icon.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Location provider toggle``` | ```Adds a Location source choice to the Customization screen: Android's own location providers, or Google Play services' fused provider. With Android, Play services is never asked for a location. Play services is never used while it is missing or disabled, so location keeps working on phones without it.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Network location fallback``` | ```Keeps the network (Wi-Fi/cell) location provider registered when no fused location provider answers, instead of GPS-only, so a fix does not go stale indoors.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Offline saved places``` | ```Save places without a Google account, kept only on the phone: Save opens Maps' own "Place saved" sheet (Want to go, Travel plans, Starred places, Favorites, your own lists, a note), and a "Local saved" row on the account sheet rebuilds Maps' You tab -- your recent places (looked at, routed to, called, shared or saved), your lists and labels (Home, Work, your own) -- with export and import (backup file, KML, Google Takeout's Saved Places.json).``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Offline timeline``` | ```Adds a Timeline to the Local saved screen: a record of where the phone has been, grouped into days and visits, kept only on the phone, with GPX export. Recording is off until switched on there; it shows a notification while it runs.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Power saving mode``` | ```Brings the Pixel-only power saving mode to every phone: while driving with navigation, press the power button and Maps shows only key information such as the next turn on a black screen. Turn it on or off in Settings > Navigation > Power saving mode. Pixels that have it built in keep Google's own version unless Customization > Power saving mode is turned on.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Hide ads and clutter``` | ```Hides promoted map pins and "Sponsored" search results, Gemini's AI summaries ("Know before you go" and the review summary), the row of businesses under an address on its place sheet, the home tab's Explore feed and the Explore / Contribute / You tabs. Each can be switched back on on the Customization screen.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Legacy icon``` | ```Uses the flat multicolour pin Maps had before the 2025 gradient icon as the launcher icon and on the screen Maps opens with. With Add microG support, microG's C sits in the pin's circle.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Location provider toggle``` | ```Adds a Location source choice to the Customization screen: Android's own location providers, or Google Play services' fused provider. With Android, Play services is never asked for a location. Play services is never used while it is missing or disabled, so location keeps working on phones without it. Also keeps the network (Wi-Fi/cell) provider registered when no fused provider answers, instead of GPS only, so a fix does not go stale indoors.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Offline saved places``` | ```Save places without a Google account, kept only on the phone: Save opens Maps' own "Place saved" sheet (Want to go, Travel plans, Starred places, Favorites, your own lists, a note), and a "Local saved" row on the account sheet rebuilds Maps' You tab -- your recent places, your lists and labels (Home, Work, your own) -- with export and import (backup file, KML, Google Takeout's Saved Places.json). It also has a Timeline: where the phone has been, grouped into days and visits, kept only on the phone, with GPX export. Recording is off until switched on there; it shows a notification while it runs. With Add microG support, Maps' own Save keeps syncing to your account and Local saved instead copies the account's saved lists to the phone (Pull from Google account).``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Power saving mode``` | ```Brings the Pixel-only power saving mode to every phone: while driving with navigation, press the power button and Maps shows only key information such as the next turn on a black screen. Turn it on or off in Settings > Navigation > Power saving mode. Pixels that have it built in keep Google's own version unless Power saving mode is turned on in Power Saving Options, a row on the account sheet under Customization, which also has: a navigation button that opens the power saving screen without locking the phone, switching to it by itself when idle, a speedometer on it, a lower frame rate, and its black map in navigation or all over Maps.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 | ```Proxy``` | ```Adds a Proxy screen to Customization that sends Maps' own traffic, map data included, through an HTTP proxy -- for example Orbot's (127.0.0.1:8118) to use Tor. Map data never falls back to a direct connection: if the proxy stops, Maps stops loading. Needs a recent Play services network engine (Cronet); Maps warns when it cannot take the proxy.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 | ```Rectangle shapes``` | ```Squares off rounded corners across the UI, including the two round navigation buttons.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Remove permissions``` | ```Removes permissions that only serve Google-account features or Google's data collection: background location, physical activity, contacts, microphone (voice search stops working), camera (Lens and Live View stop working), car speed, advertising ID, push messages and Google services settings.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Remove sign-in promo``` | ```Removes the "Tired of typing?" sign-in card from the search screen.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Remove telemetry``` | ```Points the Firebase Installations and Play services compliance check-ins at an unresolvable host, stops every ad impression and click ping from being sent, and deregisters Google's logging, performance-monitoring, survey and Location History libraries and the on-device federated-learning services.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Restore map data``` | ```Lets a re-signed Maps load tiles, search and routing, by sending Google's own package and certificate in the identity headers the Maps backend checks, and by degrading instead of crashing when Play services rejects the re-signed app -- including skipping a view property that fails for that reason instead of crashing the screen.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Sign-in toast``` | ```The "Sign in" pill shows a "Can't sign in" toast instead of failing silently.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Trim account menu``` | ```Removes Your Timeline, Location sharing, Your data in Maps and Help & feedback from the account sheet.``` | ```Google Maps``` | ```26.36.04.973607363``` |
-| ```Your profile toast``` | ```Tapping "Your profile" shows a "Can't sign in" toast instead of opening nothing.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Remove permissions``` | ```Removes permissions that only serve Google-account features or Google's data collection: background location, physical activity, contacts, microphone (voice search stops working), camera (Lens and Live View stop working), car speed, advertising ID, push messages and Google services settings. Left out with Add microG support, whose account features need them.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Remove sign-in prompts``` | ```Removes Google's sign-in prompts: the first-launch "Make it your map" page, the search screen's "Tired of typing?" card and the account sheet's "Sign in" pill. Tapping "Your profile" (or the pill, where it still shows) answers with a "Can't sign in" toast instead of nothing. Left out with Add microG support, which signs in.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Remove telemetry``` | ```Points the Firebase Installations and Play services compliance check-ins at an unresolvable host, stops every ad impression and click ping from being sent, and deregisters Google's logging, performance-monitoring, survey and Location History libraries and the on-device federated-learning services. With Add microG support, Firebase Installations and Location History are left alone, so Timeline, account sync and push messages keep working.``` | ```Google Maps``` | ```26.36.04.973607363``` |
+| ```Trim account menu``` | ```Removes Your Timeline, Location sharing, Your data in Maps and Help & feedback from the account sheet. Left out with Add microG support, whose account features need them.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 | ```Zoom controls in navigation``` | ```Adds +, − and reset tiles during turn-by-turn that change the navigation zoom while the camera keeps following the car.``` | ```Google Maps``` | ```26.36.04.973607363``` |
 
 </details>
@@ -11767,58 +11799,85 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 hushgram Bundle Patch List:
 [📦 HushGram-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hushgram-patches-bundle-morphe)
 <details>
-<summary><b>hushgram</b> - 48 patches, 1 app</summary>
+<summary><b>hushgram</b> - 75 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Clean up Reels``` | ```Hides the Follow button on reels, the pills that push Edits, templates, Meta AI and Ray-Ban Meta glasses, and friends' activity with the comment preview. Each part has its own switch.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Copy comment``` | ```Adds an optional Copy action to the common comment menu. Copies the original text with its line breaks.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Default playback quality``` | ```Plays videos, reels and video stories at the quality you choose in HushGram's settings, such as Data saver or up to 720p, instead of the one Instagram picks as it plays.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Disable analytics``` | ```Sends Instagram's usage events and crash reports to an address on your phone that refuses them, instead of to Instagram's and Facebook's servers. It also skips the contacts and location setup screens, which would come back on every start without those events. Restart Instagram after changing the switch.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Don't send reel watch history``` | ```Stops telling Instagram which reels you watched and how far into them you got. It's used to rank your Reels, and nobody else sees it. Reels you've already watched may come back.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Download any reel``` | ```Adds Download to every reel's more menu. Reels save at the Download quality you set, best by default, without Instagram's watermark.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Download any story``` | ```Adds Download to the menu of anyone's story. A video saves at the Download quality you set, a photo at its largest size.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Download any video``` | ```Adds Download to the menu of a post in your feed with a video, and of a carousel showing a video. Videos save at the Download quality you set, without Instagram's watermark. A second switch does the same for photo posts.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide ads``` | ```Hides sponsored posts, reels and stories. Instagram is told the ad didn't go in, so no gap is left where it would have been.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide group buttons on the share sheet``` | ```Takes the New group button away from beside the share sheet's search bar, and the button that sends to the people you picked as one group, so they get it one by one. You can still start a group from your messages.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide highlights``` | ```Takes the row of story highlights off profiles, yours and other people's. Bios, counts, posts and the Add to highlight list on your stories stay.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide Meta AI``` | ```Takes Meta AI out of the search bars, in the Search tab and at the top of your messages, so they search the plain way, drops the Ask a follow-up bar under search results and Meta AI's buttons in Home's top bar and the message composer, hides its optional row in your inbox, and removes Meta AI's posts from your home feed. Search and posts have separate switches. The search switch applies after Instagram restarts.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide Reels in the feed``` | ```Removes the rows of suggested reels between posts in your home feed, and the other units that open the Reels viewer from there. A reel someone you follow posts stays.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide suggested accounts in Reels``` | ```Leaves out the cards of people and creators to follow that Instagram puts between reels. Every reel still plays.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide suggested people on profiles``` | ```Takes Suggested for you and the Discover people button off profiles, yours and other people's. Bios, counts, posts and follower lists stay.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide suggested posts``` | ```Removes the posts and reels from accounts you don't follow that Instagram puts in your home feed as Suggested for you, the rows of accounts, shops and hashtags it suggests you follow, and the posts and accounts from Threads it mixes in. Each has its own switch. Posts from accounts you follow stay.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide suggested stories``` | ```Removes the stories from accounts you don't follow, and the accounts Instagram suggests, from the row of stories at the top of Home. A second switch, off to start, takes the whole row away.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide the Explore grid``` | ```Empties the grid of posts and reels under the Search tab's bar. Search, your recent searches and search results stay.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide the notes row``` | ```Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide the Reels tab``` | ```Takes the Reels tab off the tab bar, and a start or a notification meant for it opens Home. Reels in your feed and reels people send you still open, and a change to the switch shows once Instagram restarts.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Hide the Repost button``` | ```Takes the Repost button and its count off posts and reels, so nothing gets reposted by mistake. Share still sends a post or reel to someone.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```HushGram settings``` | ```Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity, to turn features on or off, pause HushGram and export diagnostics. The licenses are there too.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Keep a seek bar on Reels``` | ```Keeps Instagram's seek bar under every reel, short ones too, with the time played and the reel's length above it, like 0:10 / 0:55. Ads keep Instagram's own rules.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Keep Reels auto scroll on``` | ```Once you turn on Instagram's auto scroll in Reels, it stays on after Instagram restarts or you leave Reels, until you turn it off yourself.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Keep the reel speed``` | ```Lock a reel at 2x with Instagram's own lock (hold its edge, then slide down) and the next reels play at 2x too, until you slide the lock off, hold the edge and let go, or Instagram restarts.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Loop a story``` | ```A story plays again from the start when it ends, instead of moving on to the next one. Tap or swipe to move on.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Open developer options``` | ```A long press on the Home tab opens Instagram's own developer options, where its server flags (MetaConfig and quick experiments) can be looked at and overridden on your phone. A wrong flag can break parts of Instagram until you reset it there.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Open links in external browser``` | ```Opens a web link you tap in your default browser instead of Instagram's in-app browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Pure black dark mode``` | ```Instagram's dark mode uses pure black instead of its near-black gray, which looks deeper and saves power on an OLED screen. Menus, sheets and buttons keep their own grays so they stay easy to see. Chosen when you patch, with no switch.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Remove build expired popup``` | ```Stops Instagram from locking you out with a screen that says this version is too old. A patched build doesn't update on its own, so without this it would stop working after a few weeks.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Remove the advertising ID``` | ```Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are taken out of the build, so Google Play services hands Instagram a string of zeros in place of the ID.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Remove the empty space at the bottom``` | ```Takes away the empty room Instagram leaves under its tab bar for a navigation bar that isn't there, on a phone that hides its navigation bar and in a pop-up window. A change to the switch shows once Instagram restarts.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Restore trust on re-signed builds``` | ```Lets Instagram's own signature checks pass on a re-signed build, so the parts of the app that check who signed it keep working. Threads, Facebook and Messenger patched with the same key open from Instagram too, and Instagram trusts them when they share to it or ask it for your sign-in. A Root Mount install doesn't need this patch.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Resume long videos``` | ```A video or reel longer than two minutes that you left partway picks up where you left it the next time it plays. Live videos and ads start as usual. Its switch starts off.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Sanitize sharing links``` | ```Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel, story or profile a link opens stays the same.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Save comment photo``` | ```Adds an optional Save action to the common comment menu when a comment has a photo of its own. It saves the largest size Instagram sent, the same way Download saves a post's photo.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Show a story's exact time``` | ```Shows the date and time a story was posted in its header, like Oct 2, 3:45 PM, instead of how long ago. It follows your phone's language and 12 or 24-hour setting.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Show if a profile follows you``` | ```Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any. A second switch, off to start, marks the accounts on your own Following list that don't follow you back.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Start Home on Following``` | ```Opens Home on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. A second switch, off to start, takes For you out of Home. A change to either shows once Instagram restarts.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Start on x86 devices``` | ```Keeps Instagram from crashing or freezing on an x86 device that runs its arm code through a translator, such as an x86 Chromebook or an emulator, by skipping the one code protection step that breaks there. Phones and tablets with arm chips run it as before.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Stop Reels scrolling``` | ```Keeps a swipe in Reels from moving on to the next reel, and a pull down from loading new ones. The reel you opened still plays, and its buttons still work.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Stop Story auto-advance``` | ```Keeps each story on screen until you tap or swipe. Turn the switch off for Instagram's timing.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Stop swipe to create``` | ```Keeps a sideways swipe on Home from opening the camera. The + button and every other way into the camera still work.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Story ring size``` | ```Draws the rings in the stories row at the top of Home smaller, so more fit on the screen, or larger. Pick the size in HushGram's settings.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Tap to play``` | ```Videos, reels and stories wait for your tap instead of starting by themselves. Feed videos show a play button, the way they do when Instagram saves mobile data.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```Turn off double tap to like``` | ```Stops a double tap on a post or a reel from liking it, and the heart doesn't show. A single tap still does what it did, and the Like button still likes.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```View DM photos and videos anonymously``` | ```Adds an off-by-default switch to hold back the opened receipt for view-once photos and videos in messages. Ordinary chat and voice receipts keep Instagram's behavior.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
-| ```View stories anonymously``` | ```Holds story-view reports while its switch is on. Replying or reacting still shows you, and stories you've watched keep showing as new. An optional Mark as seen button selects stories to send.``` | ```com.instagram.android``` | ```449.0.0.52.84``` |
+| ```Allow screenshots``` | ```Lets screenshots and screen recordings work wherever Instagram blocks them, like disappearing photos and videos in your chats.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Ask before a call``` | ```Asks before a call starts from a chat, so a stray tap on a call button doesn't ring anyone. Call starts it and Cancel doesn't. Its switch starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Ask before a like``` | ```Asks before the Like button under a post likes or unlikes it, so a stray tap doesn't. Continue goes ahead and Cancel doesn't. Its switch, under Feed, starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Ask before a refresh``` | ```Asks before pulling down refreshes Home, Reels or another list, so a stray pull keeps what's on screen. Refresh goes ahead, and Cancel stops the spinner. Its switch, under Feed, starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Change the like animation``` | ```Plays an animation you pick, from the ones Instagram made for Instagram Rings creators, in the heart that pops up when you double tap a post. Its switch, under Reels, starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Change version code``` | ```Raises this build's version code to the highest Android allows, so Google Play stops offering Meta's updates over it. Instagram's checks against the version it was built as still see the real one. Once it's in, going back to an unpatched Instagram means uninstalling first, which deletes Instagram's data on your phone, and later HushGram builds need this patch too or they won't install over this one.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Clean up Reels``` | ```Hides the Follow button on reels, the pills that push Edits, templates, Meta AI and Ray-Ban Meta glasses, friends' activity with the comment preview, and the comment bar under a reposted reel. Each part has its own switch.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Clear the media cache``` | ```Once Instagram's cache holds more than 500 MB of images and videos, deletes the images when it goes to the background and the videos the next time it starts. A Clear now row shows what it freed. Your sign-in, drafts and settings stay.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Copy comment``` | ```Adds an optional Copy action to the common comment menu. Copies the original text with its line breaks.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Data saver``` | ```Loads photos at a smaller size and starts videos, reels and stories at the lowest quality, on mobile data or on every network. It works through Full resolution photos and Default playback quality, so it brings both along.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Default playback quality``` | ```Plays videos, reels and video stories at the quality you choose in HushGram's settings, such as Data saver or up to 720p, instead of the one Instagram picks as it plays.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Disable analytics``` | ```Sends Instagram's usage events and crash reports to an address on your phone that refuses them, instead of to Instagram's and Facebook's servers. It also skips the contacts and location setup screens, which would come back on every start without those events. Restart Instagram after changing the switch.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Don't report screenshots``` | ```Keeps Instagram from noticing your screenshots, so whoever sent you a disappearing photo or video isn't told you took one.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Don't save recent searches``` | ```Keeps what you open from search out of Recent, both in the app and on Instagram's side. Searches already in Recent stay until you clear them.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Don't send reel watch history``` | ```Stops telling Instagram which reels you watched and how far into them you got. It's used to rank your Reels, and nobody else sees it. Reels you've already watched may come back.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Download any reel``` | ```Adds Download to every reel's more menu. Reels save at the Download quality you set, best by default, without Instagram's watermark. Turn on Download cover for a row that saves the still picture shown before the reel plays.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Download any story``` | ```Adds Download to the menu of anyone's story. A video saves at the Download quality you set, a photo at its largest size. A photo story with music offers Download as video and Download as photo.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Download any video``` | ```Adds Download to the menu of a post in your feed with a video, and of a carousel showing a video. Videos save at the Download quality you set, without Instagram's watermark. A second switch does the same for photo posts. Another adds Details, with the post's time, who posted it, its media ID and buttons that copy its direct link, the username and the caption.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Download voice messages``` | ```Adds an optional Save to the menu you get by holding a voice message in a chat. It saves the recording as an audio file. Its switch starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Full resolution photos``` | ```Loads photos in your feed, in carousels and in posts you open at the largest size Instagram sends rather than the size it picks for your screen. A second switch asks for a larger size on a phone under 1440 pixels wide. It can use more data.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Group Instagram's notifications``` | ```Puts Instagram's notifications in one group, or in a group per type with a second switch, so they don't fill the notification shade. A group of two or more shows how many it holds. Tapping a notification still opens what it did.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide ads``` | ```Hides sponsored posts, reels and stories. Instagram is told the ad didn't go in, so no gap is left where it would have been.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide comments``` | ```Takes the Comment button and the comment count off the posts in your feed, with a switch under Comments that starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide group buttons on the share sheet``` | ```Takes the New group button away from beside the share sheet's search bar, and the button that sends to the people you picked as one group, so they get it one by one. You can still start a group from your messages.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide highlights``` | ```Takes the row of story highlights off profiles, yours and other people's. Bios, counts, posts and the Add to highlight list on your stories stay.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide Instants``` | ```Takes the stack of Instants out of your messages. Instagram is told your account doesn't have Instants, its no-edit camera for friends.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide Meta AI``` | ```Takes Meta AI out of the search bars, in the Search tab and at the top of your messages, so they search the plain way, drops the Ask a follow-up bar under search results and Meta AI's buttons in Home's top bar and the message composer, hides its optional row in your inbox, and removes Meta AI's posts from your home feed. It can also take About this reel, or only its Ask Meta AI box, out of a reel's More menu. Search, posts, About this reel and Ask Meta AI have separate switches, and the last two start off. The search switch applies after Instagram restarts.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide Reels in the feed``` | ```Removes the rows of suggested reels between posts in your home feed, and the other units that open the Reels viewer from there. A reel someone you follow posts stays.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide suggested accounts in Reels``` | ```Leaves out the cards of people and creators to follow that Instagram puts between reels. Every reel still plays.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide suggested people on profiles``` | ```Takes Suggested for you and the Discover people button off profiles, yours and other people's. Bios, counts, posts and follower lists stay.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide suggested posts``` | ```Removes the posts and reels from accounts you don't follow that Instagram puts in your home feed as Suggested for you, the rows of accounts, shops and hashtags it suggests you follow, the posts and accounts from Threads it mixes in, the surveys it asks you to fill in, and its shopping rows. Each has its own switch. Posts from accounts you follow stay.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide suggested stories``` | ```Removes the stories from accounts you don't follow, and the accounts Instagram suggests, from the row of stories at the top of Home. More switches, off to start, take out rewinds, memories and recaps, stop the row's stories loading, or take the whole row away.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide that you're typing``` | ```Adds an off-by-default switch so the people you're chatting with don't see when you're typing. Unlike turning off the typing indicator in Instagram's settings, you still see when they're typing.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide the Explore grid``` | ```Empties the grid of posts and reels under the Search tab's bar. Search, your recent searches and search results stay.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide the home feed``` | ```Empties your home feed on purpose, so Home shows the stories row and nothing under it. Profiles, Explore and Reels still show posts.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide the notes row``` | ```Takes the row of notes off the top of your messages, the Map bubble in it too. Your chats, search and requests stay.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide the Reels tab``` | ```Takes the Reels tab off the tab bar, and a start or a notification meant for it opens Home. Reels in your feed and reels people send you still open, and a change to the switch shows once Instagram restarts.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide the Repost button``` | ```Takes the Repost button and its count off posts and reels, so nothing gets reposted by mistake. Share still sends a post or reel to someone.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Hide the Share button``` | ```Takes the Share button and its count off the posts in your feed and off reels, with a switch under Sharing that starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```HushGram settings``` | ```Adds HushGram settings to Instagram. Long-press Instagram's launcher icon and pick HushGram settings, or tap HushGram settings at the top of Instagram's Settings and activity. You can also choose one tab whose long press opens HushGram. That choice starts off. Turn features on or off, pause HushGram and export diagnostics. The licenses are there too.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Keep a seek bar on Reels``` | ```Keeps Instagram's seek bar under every reel, short ones too, with the time played and the reel's length above it, like 0:10 / 0:55. Ads keep Instagram's own rules.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Keep in chat``` | ```Keeps view once and replayable photos and videos in your chats, as if they'd been sent with Keep in chat, so they don't disappear after you open them. Turning it on or off reaches the ones already loaded once the chat loads again.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Keep Reels auto scroll on``` | ```Once you turn on Instagram's auto scroll in Reels, it stays on after Instagram restarts or you leave Reels, until you turn it off yourself.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Keep the reel speed``` | ```Lock a reel at 2x with Instagram's own lock (hold its edge, then slide down) and the next reels play at 2x too, until you slide the lock off, hold the edge and let go, or Instagram restarts.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Lock your messages``` | ```Adds switches that keep your inbox and chats, or all of Instagram, covered until your fingerprint, face or screen lock says it's you. They lock again when you leave Instagram or after the time you pick, and message notifications say only that a message came.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Loop a story``` | ```A story plays again from the start when it ends, instead of moving on to the next one. Tap or swipe to move on.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Open developer options``` | ```A long press on the Home tab opens Instagram's own developer options, where its server flags (MetaConfig and quick experiments) can be looked at and overridden on your phone. A wrong flag can break parts of Instagram until you reset it there.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Open links in external browser``` | ```Opens a web link you tap in your default browser instead of Instagram's in-app browser, without Instagram's click tracker. Instagram and other Meta pages, and ads, still open in the app.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Pure black dark mode``` | ```Instagram's dark mode uses pure black instead of its near-black gray, which looks deeper and saves power on an OLED screen. Menus, sheets and buttons keep their own grays so they stay easy to see. Chosen when you patch, with no switch.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Read messages without the seen receipt``` | ```Adds an off-by-default switch so opening a chat doesn't tell people you've seen their messages. Unlike turning off read receipts in Instagram's settings, you still see when they've seen yours. Instagram's Mark as read still lets them know, whether you long press one chat or pick several. View-once photos and videos have their own patch.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Remove build expired popup``` | ```Stops Instagram from locking you out with a screen that says this version is too old. A patched build doesn't update on its own, so without this it would stop working after a few weeks.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Remove the advertising ID``` | ```Instagram can't read your phone's advertising ID or tell Android's ad services which ads you saw or tapped. The permissions for them are taken out of the build, so Google Play services hands Instagram a string of zeros in place of the ID.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Remove the empty space at the bottom``` | ```Takes away the empty room Instagram leaves under its tab bar for a navigation bar that isn't there, on a phone that hides its navigation bar and in a pop-up window. A change to the switch shows once Instagram restarts.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Restore trust on re-signed builds``` | ```Lets Instagram's own signature checks pass on a re-signed build, so the parts of the app that check who signed it keep working. Threads, Facebook and Messenger patched with the same key open from Instagram too, and Instagram trusts them when they share to it or ask it for your sign-in. A Root Mount install doesn't need this patch.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Resume long videos``` | ```A video or reel longer than two minutes that you left partway picks up where you left it the next time it plays on the same account. Live videos and ads start as usual. Its switch starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Sanitize sharing links``` | ```Takes stkn, igsh, utm_source and Instagram's other tracking keys off the links you copy or share, and opens a bio link without going through Instagram's click tracker. The post, reel, story or profile a link opens stays the same.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Save comment photo``` | ```Adds an optional Save action to the common comment menu when a comment has a photo of its own. It saves the largest size Instagram sent, the same way Download saves a post's photo.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Save profile picture``` | ```Adds an optional Save profile picture row to the menu on someone's profile. It saves their picture at the largest size Instagram has. Its switch starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Show a post's exact time``` | ```Shows the date and time a post went up, like Oct 2, 3:45 PM, under it in your feed, and the date and time of each comment, instead of how long ago. It follows your phone's language and 12 or 24-hour setting.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Show a story's exact time``` | ```Shows the date and time a story was posted in its header, like Oct 2, 3:45 PM, instead of how long ago. A choice under its switch can show the time left before the story expires, or only the time it went up. It follows your phone's language and 12 or 24-hour setting.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Show if a profile follows you``` | ```Adds Follows you or Doesn't follow you beside the name on someone's profile, after their pronouns if they've set any, or as a chip under their counts that also says Following each other. A second switch, off to start, marks the accounts on your own Following list that don't follow you back.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Spoof location``` | ```Tells Instagram the phone is at a place you set in HushGram's settings, for the location sticker, nearby places and maps. Photos keep their own places.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Start Home on Following``` | ```Opens Home on posts from accounts you follow. Tap Following at the top to switch to For you, and Home remembers your pick. A second switch, off to start, takes For you out of Home. A change to either shows once Instagram restarts.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Start on x86 devices``` | ```Keeps Instagram from crashing or freezing on an x86 device that runs its arm code through a translator, such as an x86 Chromebook or an emulator, by skipping the one code protection step that breaks there. Phones and tablets with arm chips run it as before.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Stop Reels scrolling``` | ```Keeps a swipe in Reels from moving on to the next reel, and a pull down from loading new ones. The reel you opened still plays, and its buttons still work. A second switch lets you watch 20 reels, then stops swiping until you've had a 15 minute break.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Stop Story auto-advance``` | ```Keeps each story on screen until you tap or swipe. Turn the switch off for Instagram's timing.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Stop swipe to create``` | ```Keeps a sideways swipe on Home from opening the camera. The + button and every other way into the camera still work.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Stop swiping between tabs``` | ```Keeps a sideways swipe from moving between Home, Reels and the other main tabs. Tapping the tab bar still changes tabs, and Reels still scroll up and down.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Story ring size``` | ```Draws the rings in the stories row at the top of Home smaller, so more fit on the screen, or larger. Pick the size in HushGram's settings.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Tap to play``` | ```Videos, reels and stories wait for your tap instead of starting by themselves. Feed videos show a play button, the way they do when Instagram saves mobile data.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Turn off double tap to like``` | ```Stops a double tap on a post or a reel from liking it, and the heart doesn't show. A switch for comments starts off. A single tap still does what it did, and the Like button still likes.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```Turn off HDR brightness boosts``` | ```Keeps HDR photos and reels from brightening the screen above everything else, with a switch under Playback that starts off.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```View DM photos and videos anonymously``` | ```Adds an off-by-default switch to hold back the opened receipt for view-once photos and videos in messages. Ordinary chat and voice receipts keep Instagram's behavior.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```View live anonymously``` | ```Keeps you off the viewer list of the lives you watch, so the host isn't told you're there. A live that ends can keep looking live until you leave it. Your own lives still count their viewers.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
+| ```View stories anonymously``` | ```Holds story-view reports while its switch is on. Replying or reacting still shows you, and stories you've watched keep showing as new. An optional Mark as seen button selects stories to send.``` | ```com.instagram.android``` | ```450.0.0.50.77``` |
 
 </details>
 ### 🧩 hushtelegram Bundle Patch List:
@@ -11933,11 +11992,11 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 ### 🧩 hushpinterest Bundle Patch List:
 [📦 HushPinterest-Patches-Bundle](https://github.com/Jman-Github/ReVanced-Patch-Bundles#-hushpinterest-patches-bundle-morphe)
 <details>
-<summary><b>hushpinterest</b> - 20 patches, 1 app</summary>
+<summary><b>hushpinterest</b> - 23 patches, 1 app</summary>
 
 | **Name** | **Description** | **Compatible Apps** | **Compatible Versions** |
 |----------|---------------|---------------------|-------------------------|
-| ```Disable analytics``` | ```Stops Pinterest's usage-event and performance uploads, AppsFlyer tracking, Bugsnag crash reports and the recommendations Pinterest publishes to Google Engage. A switch and Pause restore those runtime paths. Firebase Analytics is disabled in the manifest and stays disabled until you patch again without this patch. Sign-in, pin requests and Firebase push components are preserved.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
+| ```Disable analytics``` | ```Stops Pinterest's usage-event and performance uploads, AppsFlyer tracking, Bugsnag crash reports and the recommendations Pinterest publishes to Google Engage. A switch and Pause restore those runtime paths. In the manifest it also turns off Firebase Analytics, Crashlytics and Performance collection and Google Analytics' ad ID collection, and sets Google's default analytics and ad consent to denied. That part stays until you patch again without this patch. Sign-in, pin requests and Firebase push components are preserved.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```Disable update nag``` | ```Stops Pinterest's in-app Play Store update prompts. You can still update Pinterest yourself.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```Download pins``` | ```Downloads a pin or selected visible grid pins using original images and the highest-resolution MP4 Pinterest supplies. Saves in Downloads on Android 10 or newer, or asks for a save location on Android 9. The pin menu can also copy that media's link. Turn it off in HushPinterest settings at any time.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```Filter pin menu``` | ```Adds separate switches for collage, visual-search and Promote pin menu entries. Download, share and copy-link actions remain available.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
@@ -11950,11 +12009,14 @@ _No generated patch list is available yet. The bundle metadata exists, but no `*
 | ```Hide save toasts``` | ```Stops the pop-up Pinterest shows after you save a pin, such as "Saved to" your board or the suggestion to follow the pin's creator. The pin is still saved.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```Hide search history``` | ```Hides recent-search rows and carousels on this device. It doesn't delete your account's search history.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```Hide shopping and product pins``` | ```Hides shoppable pins, shopping stories and featured board placements. Off by default. Turn it on in HushPinterest settings when you want a feed without shopping.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
+| ```Hide topic suggestions``` | ```Hides the "Ideas you might love" row of topic bubbles under pins without leaving a gap. Comments and related pins stay. Its switch starts off, so turn it on in HushPinterest settings.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```HushPinterest settings``` | ```Adds HushPinterest settings to Pinterest. Long-press Pinterest's launcher icon, or open Additional settings in the app on Pinterest's App info page, to turn features on or off, pause HushPinterest, save your switches to a file or load them, and export diagnostics. The licenses are there too.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```No screenshot share menu``` | ```Stops Pinterest's screenshot observer from opening sharing suggestions. Screenshots still work normally.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```Open links in your browser``` | ```Opens pin Visit links and profile websites in your web browser. Pinterest links and sign-in keep their usual behavior. Turn it off in HushPinterest settings at any time.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
-| ```Original-quality images``` | ```Has Pinterest's image model pick the original image before its large size wherever Pinterest supplied one. Uses more data.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
+| ```Original-quality images``` | ```Asks Pinterest for the original image with each pin and shows it in the pin closeup, and has collages pick the original before the large size. Uses more data.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```Quiet email reminders``` | ```Dismisses the optional confirm-your-email reminder. Account verification and sign-in checks still apply.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
+| ```Remove ad tracking permissions``` | ```Removes Google's advertising ID permission and Android's Privacy Sandbox ad services from Pinterest. It can't be turned back on in settings, only by patching again without it. While it's in, Hide advertising ID's switch can't hand back the real ID, because Google Play services answers with zeros.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
+| ```Spoof signature for Google sign-in``` | ```Adds Pinterest's original signing certificate to its manifest, so Google sign-in can work in the patched app. It only helps with microG-RE in place of Google Play services, or with the XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, and email and password sign-in doesn't need it.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```Strip link tracking``` | ```Removes known tracking parameters from URLs shared or copied from Pinterest. Keeps the destination, other parameters and opaque pin.it links. Turn it off or pause HushPinterest to share the original URLs.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 | ```System share sheet``` | ```Uses Android's share sheet when sharing a pin link. Screenshot and download actions keep their usual behavior. Turn it off in HushPinterest settings at any time.``` | ```com.pinterest``` | ```14.38.0, 14.25.0``` |
 

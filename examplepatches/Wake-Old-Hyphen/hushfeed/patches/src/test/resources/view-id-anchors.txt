@@ -45,11 +45,13 @@ feed/VideoOverlayHider.java|MUSIC_IDS|47.0.3:o6f,47.1.3:o97,47.1.4:o97|app|com.s
 feed/VideoOverlayHider.java|ACTION_BAR_IDS|47.0.3:liy,47.1.3:llj,47.1.4:llj|app|com.ss.android.ugc.feed.platform.cell.interact.InteractAreaComponent|on:View#4
 feed/VideoOverlayHider.java|SURVEY_IDS|47.0.3:f7u,47.1.3:f98,47.1.4:f98|app|layout:com.by.andInflater.common_feed_item_feed|tag:RelativeLayout#1
 feed/VideoOverlayHider.java|TAB_STRIP_IDS|47.0.3:uvy,47.1.3:uzf,47.1.4:uzf|app|com.ss.android.ugc.aweme.homepage.ui.view.tab.top.TopTabLayoutAbility|on:View
+feed/VideoOverlayHider.java|BOTTOM_TABS_IDS|47.0.3:omy,47.1.3:opp,47.1.4:opp|app|com.ss.android.ugc.aweme.main.assems.mainfragment.BottomTabAssemBase|-
 feed/VideoOverlayHider.java|FOLLOWING_STORY_IDS|47.0.3:wq0,47.1.3:wtr,47.1.4:wtr|app|com.by.andInflater.friends_tab_social_friends_tab_fragment_layout|on:FrameLayout#3
 feed/VideoOverlayHider.java|CLEAR_EXIT_IDS|47.0.3:e9j,47.1.3:e_5,47.1.4:e_5|app|com.by.andInflater.common_feed_immersive_clear_mode_bottom_interact_area|on:RelativeLayout
 feed/VideoOverlayHider.java|CLEAR_PLAYBACK_IDS|47.0.3:l6h,47.1.3:l83,47.1.4:l83|app|com.by.andInflater.common_feed_immersive_clear_mode_bottom_interact_area|on:LinearLayout
 feed/VideoOverlayHider.java|CLEAR_SEEK_BAR_IDS|video_seek_bar|app|com.by.andInflater.detail_feed_video_seek_bar|at:9
 feed/VideoOverlayHider.java|CLEAR_PHOTO_EXIT_IDS|47.0.3:uxv,47.1.3:v1c,47.1.4:v1c|app|layout:com.ss.android.ugc.aweme.feed.adapter.VideoViewCell|tag:RelativeLayout
+feed/VideoOverlayHider.java|ANCHOR_IDS|47.0.3:bql,47.1.3:bqv,47.1.4:bqv|app|com.by.andInflater.common_feed_info_area_feed|on:InteractFrameLayout
 feed/VideoOverlayHider.java|STATUS_BAR_SPACER_IDS|47.0.3:duc,47.1.3:dux,47.1.4:dux|app|com.by.andInflater.common_feed_video_container_area_feed|on:View#1
 feed/VideoOverlayHider.java|DETAIL_COMMENT_BAR_IDS|47.0.3:qo4,47.1.3:qqw,47.1.4:qqw|app|com.ss.android.ugc.aweme.comment.service.CommentDetailInputLayoutIdsImpl|at:2
 feed/VideoOverlayHider.java|DETAIL_COMMENT_STRIP_IDS|47.0.3:cn8,47.1.3:cnk,47.1.4:cnk|app|com.by.andInflater.common_feed_fragment_feed_base_opt|on:View#2

@@ -94,6 +94,22 @@ class StoriesTrayAdaptersTest {
         assertTrue(STORIES_TRAY_COUNT.endsWith("/feed/FeedFilter;->storiesTrayCount(Ljava/lang/Object;II)I"))
         assertTrue("LEGACY_TRAY differs", text.contains("public static final int LEGACY_TRAY = $LEGACY_TRAY;"))
         assertTrue("UNIFIED_TRAY differs", text.contains("public static final int UNIFIED_TRAY = $UNIFIED_TRAY;"))
+        assertTrue("HOME_COMPOSER differs", text.contains("public static final int HOME_COMPOSER = $HOME_COMPOSER;"))
+    }
+
+    /** The composer row getter: static, taking only its own class, holding the trace name. */
+    @Test
+    fun `the composer row getter holds its trace name and takes only its own class`() {
+        val getter = method("A02", listOf(INLINE_COMPOSER_ADAPTER), parameters = listOf(configuration))
+        assertEquals(listOf(getter), composerAdapters(classOf(getter)))
+
+        assertTrue("an instance method", composerAdapters(classOf(method("A02", listOf(INLINE_COMPOSER_ADAPTER),
+            flags = AccessFlags.PUBLIC.value, parameters = listOf(configuration)))).isEmpty())
+        assertTrue("the tray adapter shape", composerAdapters(classOf(method("A02", listOf(INLINE_COMPOSER_ADAPTER)))).isEmpty())
+        assertTrue("no trace name", composerAdapters(classOf(method("A02", listOf(ADD_STORIES_ADAPTER),
+            parameters = listOf(configuration)))).isEmpty())
+        assertTrue("returns nothing", composerAdapters(classOf(method("A02", listOf(INLINE_COMPOSER_ADAPTER),
+            parameters = listOf(configuration), returnType = "V"))).isEmpty())
     }
 
     private val classic = method("A00", listOf(ADD_STORIES_ADAPTER))

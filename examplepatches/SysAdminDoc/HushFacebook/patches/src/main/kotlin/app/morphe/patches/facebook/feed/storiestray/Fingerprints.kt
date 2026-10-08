@@ -38,6 +38,22 @@ internal const val TRAY_ADAPTER_STOP = "stories_tray_create_adapter_stop"
 internal const val TOFU = "tofu"
 internal const val IMMUTABLE_LIST_BUILDER = "Lcom/google/common/collect/ImmutableList\$Builder;"
 
+/**
+ * The trace name of the getter that hands the feed's adapter list the "What's on your mind?"
+ * composer row. It's a static method of the same configuration class taking only that class, and
+ * it returns the composer section adapter, a final class (`LX/2gQ;->A02` returning `LX/1um;` in
+ * 581, `LX/2Qi;->A02` and `LX/1v2;` in 580, `LX/2Tu;->A02` and `LX/1nx;` in 577, read 2026-10-06).
+ * The only place that adapter is built is EagerInlineComposerSectionAdapter's create method, so
+ * the count the patch gives it reaches Home's composer row and nothing else.
+ */
+internal const val INLINE_COMPOSER_ADAPTER = "NewsFeedAdapterConfiguration.<get-inlineComposerSectionAdapter>"
+
+/** The composer row getters of [configuration]: static, (its own class), an object back, and the trace name. */
+internal fun composerAdapters(configuration: ClassDef): List<Method> = configuration.methods.filter {
+    AccessFlags.STATIC.isSet(it.accessFlags) && it.implementation != null && it.returnType.startsWith("L") &&
+        it.parameterTypes.map(Any::toString) == listOf(it.definingClass) && holdsString(it, INLINE_COMPOSER_ADAPTER)
+}
+
 /** Whether [method] has a tray adapter's shape: static, (its own class, list builder), an object back. */
 internal fun isTrayAdapterShape(method: Method): Boolean =
     AccessFlags.STATIC.isSet(method.accessFlags) && method.implementation != null &&

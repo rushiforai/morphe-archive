@@ -176,12 +176,20 @@ public final class TonePalette {
      * Between two of the palette's steps it takes the hue and chroma between theirs, in CIELAB.
      */
     public int sameLightness(int family, int color) {
+        return atLightness(family, lstar(color), color & 0xFF000000);
+    }
+
+    /**
+     * The colour of this family at CIE L* {@code lightness} (held to 0 to 100), with the alpha bits
+     * {@code alpha} (0xAA000000).
+     */
+    public int atLightness(int family, double lightness, int alpha) {
         int[][] tables = byLightness;
         if (tables == null) tables = buildTables();
-        int step = (int) Math.round(lstar(color) * (STEPS / 100.0));
+        int step = (int) Math.round(lightness * (STEPS / 100.0));
         if (step < 0) step = 0;
         if (step > STEPS) step = STEPS;
-        return (color & 0xFF000000) | (tables[family][step] & 0x00FFFFFF);
+        return alpha | (tables[family][step] & 0x00FFFFFF);
     }
 
     private synchronized int[][] buildTables() {
@@ -244,7 +252,26 @@ public final class TonePalette {
         return cube > 216.0 / 24389.0 ? cube : (116 * f - 16) * 27.0 / 24389.0;
     }
 
+    /**
+     * An opaque colour at CIE L* {@code lightness} and LCh hue {@code hueDegrees}, with as much of
+     * {@code chroma} as sRGB can show at that lightness: the chroma comes down until no channel is
+     * out of range, so the lightness stays what was asked and only the vividness gives way.
+     */
+    static int gamutColour(double lightness, double chroma, double hueDegrees) {
+        double radians = Math.toRadians(hueDegrees);
+        for (double c = chroma; c > 0; c -= 0.5) {
+            int colour = fromLab(lightness, c * Math.cos(radians), c * Math.sin(radians), true);
+            if (colour != 0) return colour;
+        }
+        return fromLab(lightness, 0, 0, false);
+    }
+
     private static int fromLab(double l, double a, double b) {
+        return fromLab(l, a, b, false);
+    }
+
+    /** With {@code strict}, 0 for a colour any channel of which falls outside sRGB. */
+    private static int fromLab(double l, double a, double b, boolean strict) {
         double fy = (l + 16) / 116;
         double x = labInverse(fy + a / 500) * XN;
         double y = labInverse(fy);
@@ -252,6 +279,7 @@ public final class TonePalette {
         double r = 3.2406 * x - 1.5372 * y - 0.4986 * z;
         double g = -0.9689 * x + 1.8758 * y + 0.0415 * z;
         double bl = 0.0557 * x - 0.2040 * y + 1.0570 * z;
+        if (strict && (r < -0.002 || r > 1.002 || g < -0.002 || g > 1.002 || bl < -0.002 || bl > 1.002)) return 0;
         return 0xFF000000 | (channel(r) << 16) | (channel(g) << 8) | channel(bl);
     }
 

@@ -6,12 +6,14 @@ package app.morphe.extension.facebook.notifications;
 
 import androidx.annotation.Nullable;
 
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.IntSupplier;
 import java.util.regex.Pattern;
 
 import app.morphe.extension.facebook.settings.FamilyNames;
@@ -34,11 +36,13 @@ import app.morphe.extension.shared.settings.BooleanSetting;
  * {@link #block} first thing in the one method that goes on to post the notification, and a yes
  * returns before anything is posted.
  *
- * <p>Only the kinds in {@link #KINDS} can go, each under one of seven switches, and every switch
+ * <p>Only the kinds in {@link #KINDS} can go, each under one of eleven switches, and every switch
  * starts off. Messages, friend requests, comments, mentions, calls and login alerts are none of
- * them. The type is matched by Facebook's own constant names, never by a title or a line of text,
- * so it works in any language. It fails open: an unknown or unreadable type, a switch that's off, a
- * pause, settings that aren't ready, or any failure in here posts the notification as Facebook would.
+ * them. With quiet hours on, a switch blocks its kinds only between the two hours picked for it,
+ * and they come through the rest of the day. The type is matched by Facebook's own constant names,
+ * never by a title or a line of text, so it works in any language. It fails open: an unknown or
+ * unreadable type, a switch that's off, a pause, settings that aren't ready, or any failure in here
+ * posts the notification as Facebook would.
  */
 public final class NotificationKinds {
     /** One switch's worth of notification kinds. The setting is looked up only once settings are ready. */
@@ -49,7 +53,11 @@ public final class NotificationKinds {
         HIGHLIGHTS("Highlights", false),
         PEOPLE_YOU_MAY_KNOW("People you may know", true),
         NEARBY("Nearby and weather", false),
-        ACCOUNT_SETUP("Account setup reminders", false);
+        ACCOUNT_SETUP("Account setup reminders", false),
+        GROUP_ACTIVITY("Group activity", false),
+        EVENTS("Events", false),
+        LIVE_VIDEOS("Live videos", false),
+        REACTIONS("Reactions", false);
 
         /** What a blocked notification of this group is counted under. */
         final String counted;
@@ -81,6 +89,14 @@ public final class NotificationKinds {
                     return Settings.BLOCK_PEOPLE_YOU_MAY_KNOW_NOTIFICATIONS;
                 case NEARBY:
                     return Settings.BLOCK_NEARBY_NOTIFICATIONS;
+                case GROUP_ACTIVITY:
+                    return Settings.BLOCK_GROUP_ACTIVITY_NOTIFICATIONS;
+                case EVENTS:
+                    return Settings.BLOCK_EVENT_NOTIFICATIONS;
+                case LIVE_VIDEOS:
+                    return Settings.BLOCK_LIVE_VIDEO_NOTIFICATIONS;
+                case REACTIONS:
+                    return Settings.BLOCK_REACTION_NOTIFICATIONS;
                 case ACCOUNT_SETUP:
                 default:
                     return Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS;
@@ -118,6 +134,16 @@ public final class NotificationKinds {
         kinds.put("WEATHER_NOWCAST", Group.NEARBY);
         // "Finish setting up your account", sent again and again to a phone that's signed in.
         kinds.put("FB_REGISTRATION_REMINDER", Group.ACCOUNT_SETUP);
+        // New activity in your groups. Comments, replies and mentions in groups are other kinds.
+        kinds.put("GROUP_ACTIVITY", Group.GROUP_ACTIVITY);
+        // An invite to an event.
+        kinds.put("EVENT_INVITE", Group.EVENTS);
+        // Someone is live, whether Facebook picked them or you asked to hear about them.
+        kinds.put("LIVE_VIDEO", Group.LIVE_VIDEOS);
+        kinds.put("LIVE_VIDEO_EXPLICIT", Group.LIVE_VIDEOS);
+        // Likes and reactions to your posts and comments.
+        kinds.put("LIKE", Group.REACTIONS);
+        kinds.put("FEEDBACK_REACTION_GENERIC", Group.REACTIONS);
         KINDS = Collections.unmodifiableMap(kinds);
     }
 
@@ -152,6 +178,9 @@ public final class NotificationKinds {
     /** The debug lines already written this process: kind and answer. */
     private static final Set<String> LOGGED = ConcurrentHashMap.newKeySet();
 
+    /** The hour of the day on the phone's clock, which quiet hours go by. Tests set their own. */
+    static volatile IntSupplier hourOfDay = () -> Calendar.getInstance().get(Calendar.HOUR_OF_DAY);
+
     private NotificationKinds() {
     }
 
@@ -170,7 +199,7 @@ public final class NotificationKinds {
             if (kind == null) return false;
             Group group = KINDS.get(kind);
             // Ready first: Settings loads every switch, and it can't before the context is set.
-            boolean block = group != null && Utils.settingsReady() && (group.setting().get()
+            boolean block = group != null && Utils.settingsReady() && (picked(group)
                     || (group.marketplaceQuiets && MarketplaceOnly.quietNotifications()));
             if (block) FeedFilterCounters.removed(ROUTE, 1, group.counted);
             log(kind, block);
@@ -179,6 +208,16 @@ public final class NotificationKinds {
             HookStatus.threw(FamilyNames.PROMO_NOTIFICATIONS, TYPE_FIELD, failure);
             return false;
         }
+    }
+
+    /**
+     * Whether [group]'s own switch blocks it now: the switch is on, and quiet hours are off or
+     * holding. Loads Settings, so only after {@link Utils#settingsReady}.
+     */
+    private static boolean picked(Group group) {
+        if (!group.setting().get()) return false;
+        if (!Settings.NOTIFICATION_QUIET_HOURS.get()) return true;
+        return QuietHour.holds(hourOfDay.getAsInt(), Settings.QUIET_HOURS_FROM.get(), Settings.QUIET_HOURS_UNTIL.get());
     }
 
     /**

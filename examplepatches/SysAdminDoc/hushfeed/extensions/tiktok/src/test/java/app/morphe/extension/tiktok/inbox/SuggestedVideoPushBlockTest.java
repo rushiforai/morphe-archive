@@ -12,6 +12,7 @@ import android.content.Context;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,12 +33,17 @@ public class SuggestedVideoPushBlockTest {
 
     private Context context;
     private NotificationManager manager;
+    private boolean patchedBefore;
 
     @Before
     public void setUp() {
         context = RuntimeEnvironment.getApplication();
         Utils.setContext(context);
         BaseSettings.DEBUG.save(false);
+        // The filter is shared with Notification controls, so this check counts only in a build
+        // carrying this patch, which these tests are.
+        patchedBefore = SettingsStatus.suggestedVideoPushBlockEnabled;
+        SettingsStatus.suggestedVideoPushBlockEnabled = true;
         manager = context.getSystemService(NotificationManager.class);
         for (String id : new String[]{SUGGESTED, MESSAGES, FOLLOWED_VIDEOS}) {
             manager.createNotificationChannel(new NotificationChannel(id, id, NotificationManager.IMPORTANCE_HIGH));
@@ -47,6 +53,7 @@ public class SuggestedVideoPushBlockTest {
     @After
     public void tearDown() {
         Settings.BLOCK_SUGGESTED_VIDEO_NOTIFICATIONS.resetToDefault();
+        SettingsStatus.suggestedVideoPushBlockEnabled = patchedBefore;
     }
 
     @Test
@@ -69,6 +76,14 @@ public class SuggestedVideoPushBlockTest {
     @Test
     public void turningTheSwitchOffLetsThemThrough() {
         Settings.BLOCK_SUGGESTED_VIDEO_NOTIFICATIONS.save(false);
+        SuggestedVideoPushBlock.notify(manager, "app_notify_ame", 1, on(SUGGESTED));
+        assertEquals(1, posted());
+    }
+
+    @Test
+    public void withoutThisPatchItsDefaultDoesNothing() {
+        // Notification controls brings the same filter in on its own, and this switch starts on.
+        SettingsStatus.suggestedVideoPushBlockEnabled = false;
         SuggestedVideoPushBlock.notify(manager, "app_notify_ame", 1, on(SUGGESTED));
         assertEquals(1, posted());
     }

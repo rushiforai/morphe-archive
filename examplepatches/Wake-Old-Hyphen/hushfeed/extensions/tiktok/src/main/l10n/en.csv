@@ -197,6 +197,7 @@ Avatar and follow button,Avatar and follow button
 Back,Back
 Back up settings,Back up settings
 Backup and restore,Backup and restore
+Bio copied,Bio copied
 Black,Black
 Block clipboard reads,Block clipboard reads
 Block contact list access,Block contact list access
@@ -305,6 +306,7 @@ Confirm before liking a story,Confirm before liking a story
 Continue supported videos from where you stopped when you scroll back to them.,Continue supported videos from where you stopped when you scroll back to them.
 Controls,Controls
 Copy a quick report or save the full report as a file.,Copy a quick report or save the full report as a file.
+Copy bio and IDs,Copy bio and IDs
 Copy build details,Copy build details
 Copy comments without username,Copy comments without username
 Copy only the comment text when using TikTok's copy comment action.,Copy only the comment text when using TikTok's copy comment action.
@@ -313,6 +315,9 @@ Copy quick report,Copy quick report
 Copy report,Copy report
 Copy the sound link,Copy the sound link
 Copy the video link,Copy the video link
+Copy user ID,Copy user ID
+Copy username,Copy username
+Copy video ID,Copy video ID
 Couldn't add the older seen videos. Try again.,Couldn't add the older seen videos. Try again.
 Couldn't change the Lab settings. Try again.,Couldn't change the Lab settings. Try again.
 Couldn't clear seen videos. Try again.,Couldn't clear seen videos. Try again.
@@ -392,6 +397,7 @@ Discard edits,Discard edits
 Dismissed %1$s suggested accounts,Dismissed %1$s suggested accounts
 Dismissed one suggested account,Dismissed one suggested account
 Do nothing,Do nothing
+Doesn't follow you back,Doesn't follow you back
 Don't save new searches,Don't save new searches
 Don't start the feed on returning,Don't start the feed on returning
 Done,Done
@@ -464,6 +470,7 @@ Fit the video to the screen,Fit the video to the screen
 Focus,Focus
 Follow probe,Follow probe
 Following,Following
+Follows you,Follows you
 For You,For You
 For com.deniscerri.ytdl only. Ask YTDLnis for audio or video when the save button hands it a link.,For com.deniscerri.ytdl only. Ask YTDLnis for audio or video when the save button hands it a link.
 For com.deniscerri.ytdl only. Hide its download card and start the handoff in the background.,For com.deniscerri.ytdl only. Hide its download card and start the handoff in the background.
@@ -634,13 +641,13 @@ Hide unpersonalized For You videos,Hide unpersonalized For You videos
 Hide verified accounts,Hide verified accounts
 Hide verified creators' LIVEs,Hide verified creators' LIVEs
 Hide video actions,Hide video actions
-Hide videos carrying TikTok's AI-generated label.,Hide videos carrying TikTok's AI-generated label.
 Hide videos marked as paid partnership or branded content.,Hide videos marked as paid partnership or branded content.
 Hide videos marked as using promotional music.,Hide videos marked as using promotional music.
 Hide videos posted as part of a playlist.,Hide videos posted as part of a playlist.
 Hide videos posted by verified accounts.,Hide videos posted by verified accounts.
 Hide videos that belong to a paid Series.,Hide videos that belong to a paid Series.
 "Hide videos that use a sound blocked with the player's sound button, or named below.","Hide videos that use a sound blocked with the player's sound button, or named below."
+"Hide videos with TikTok's AI-generated label, AI content credentials, a TikTok AI effect such as AI Alive, or a tag like #ai or #aigenerated.","Hide videos with TikTok's AI-generated label, AI content credentials, a TikTok AI effect such as AI Alive, or a tag like #ai or #aigenerated."
 Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.,Hide videos with a lot of views and few comments. Works the same way as views per like. Zero turns it off.
 "Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if everything the feed just sent would go.","Hide videos with a lot of views and few likes. Lower numbers are stricter, zero turns the rule off, and one video is kept back if everything the feed just sent would go."
 Hide videos with blocked sounds,Hide videos with blocked sounds
@@ -728,10 +735,12 @@ Leave when TikTok says time is up,Leave when TikTok says time is up
 Length and views per like,Length and views per like
 Less than a minute left,Less than a minute left
 Let a LIVE fill the screen up to the top edge. The status bar comes back when you leave the LIVE. Swipe down from the top to peek at it.,Let a LIVE fill the screen up to the top edge. The status bar comes back when you leave the LIVE. Swipe down from the top to peek at it.
+"Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.","Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one."
 "Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this.","Let screenshots, screen recording and Circle to Search work on TikTok again. Restart TikTok to apply this."
 Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.,Let the Offline videos menu use your own limit instead of TikTok's fixed one. Restart TikTok to apply this.
 Let the last video finish,Let the last video finish
 Licenses,Licenses
+Lift text length limits,Lift text length limits
 Like,Like
 Likes range,Likes range
 Limits,Limits
@@ -752,6 +761,7 @@ Log diagnostics,Log diagnostics
 "Logging, hook status and reports","Logging, hook status and reports"
 Long press,Long press
 Long-press Home for Hushfeed settings,Long-press Home for Hushfeed settings
+"Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID.","Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID."
 Long-press menu on every post,Long-press menu on every post
 Look like the store app to TikTok's checks,Look like the store app to TikTok's checks
 Looking for apps,Looking for apps
@@ -856,6 +866,7 @@ Offline videos limit,Offline videos limit
 On,On
 On mobile data,On mobile data
 On or off,On or off
+"On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.","On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay."
 On. No reporting call has been observed in this process. Online status is unchanged.,On. No reporting call has been observed in this process. Online status is unchanged.
 On. Restore puts back the feed setup you had before.,On. Restore puts back the feed setup you had before.
 "Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out.","Once today's budget runs out, the hold stays and can't be dismissed. The budget settings are locked until the day starts over. Turn this off any time before the budget runs out."
@@ -917,7 +928,9 @@ Photos and stickers,Photos and stickers
 Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.,Pick the actions to remove from the share sheet. Names you typed by hand that TikTok hasn't shown yet stay in the list above.
 Pick the buttons to take off the column. The rest stay where they are.,Pick the buttons to take off the column. The rest stay where they are.
 "Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this.","Pick the shortcuts to remove from the row under a profile's bio, such as TikTok Studio or Your orders. Restart TikTok to apply this."
+Play SDR instead of HDR,Play SDR instead of HDR
 "Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound.","Play feed videos without sound and leave the phone's volume alone. Music from another app keeps playing while it's on. DMs, stories and LIVE keep their sound."
+"Play the standard version of videos that also come in HDR, so the screen doesn't jump to full brightness when one starts. Videos TikTok only offers in HDR still play.","Play the standard version of videos that also come in HDR, so the screen doesn't jump to full brightness when one starts. Videos TikTok only offers in HDR still play."
 Play videos TikTok has classified without the overlay asking to be tapped through first.,Play videos TikTok has classified without the overlay asking to be tapped through first.
 Playback,Playback
 Player,Player
@@ -974,6 +987,8 @@ Remove %1$s,Remove %1$s
 Remove all overrides,Remove all overrides
 Remove feed ads,Remove feed ads
 "Remove feed ads, creator commission posts, paid partnerships, and branded content.","Remove feed ads, creator commission posts, paid partnerships, and branded content."
+Remove story rings,Remove story rings
+Remove the LIVE ring,Remove the LIVE ring
 Remove tracking parameters from shared links.,Remove tracking parameters from shared links.
 Remove watermark,Remove watermark
 Removed %1$s,Removed %1$s
@@ -1129,12 +1144,16 @@ Show TikTok's own progress bar on videos where it's normally hidden.,Show TikTok
 "Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it.","Show TikTok's own sort sheet on every post, with its hot, newest, media and creator options, instead of whichever cut-down row your account was given. Restart TikTok to apply this. It reads the style once per run and remembers it."
 Show a progress bar while a video saves.,Show a progress bar while a video saves.
 Show a video preview thumbnail while dragging the progress bar.,Show a video preview thumbnail while dragging the progress bar.
+"Show counts as full numbers, like 1,234,567 instead of 1.2M.","Show counts as full numbers, like 1,234,567 instead of 1.2M."
 Show download progress,Show download progress
+Show exact counts,Show exact counts
 Show failures on screen,Show failures on screen
+Show follow status,Show follow status
 Show gates,Show gates
 Show last report,Show last report
 Show only LIVEs from creators with this many followers.,Show only LIVEs from creators with this many followers.
 Show only LIVEs with this many people watching.,Show only LIVEs with this many people watching.
+Show only mutual friends on the Friends tab,Show only mutual friends on the Friends tab
 Show only videos with this many comments.,Show only videos with this many comments.
 Show only videos with this many favorites.,Show only videos with this many favorites.
 Show only videos with this many likes.,Show only videos with this many likes.
@@ -1229,6 +1248,8 @@ Subtitles,Subtitles
 Swipe left,Swipe left
 System,System
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments."
+Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.,Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.
+"Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.","Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story."
 Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.,Takes TikTok's own Auto scroll action out of the video panel. Auto-advance keeps working.
 Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.,Tap Repost on the bar under a video twice within %1$d seconds. A repost with a note is left alone.
 Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.,Tap a comment's heart twice within %1$d seconds. A double tap on the comment needs a second one too. Removing a like stays immediate.
@@ -1439,6 +1460,7 @@ Unavailable on these TikTok builds. All verification challenges stay visible.,Un
 Unblock,Unblock
 Unblock this commenter,Unblock this commenter
 Unblocked %1$s,Unblocked %1$s
+"Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.","Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back."
 Undo,Undo
 Undo clearing seen videos,Undo clearing seen videos
 Undo didn't finish. Some settings may still be changed.,Undo didn't finish. Some settings may still be changed.
@@ -1466,6 +1488,8 @@ Use the preset for the region TikTok reports for your account and its shop too. 
 "Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone.","Use this account's TikTok JSON export, up to %1$s MB and %2$s entries. Dates without a time zone use this phone's time zone."
 Use value,Use value
 Use your own offline videos limit,Use your own offline videos limit
+User ID copied,User ID copied
+Username copied,Username copied
 Using TikTok's value,Using TikTok's value
 Value,Value
 Value to return,Value to return
@@ -1475,6 +1499,7 @@ Version %1$s,Version %1$s
 Version %1$s for TikTok %2$s,Version %1$s for TikTok %2$s
 Video,Video
 Video (MP4),Video (MP4)
+Video ID copied,Video ID copied
 Video and details saved to %1$s,Video and details saved to %1$s
 Video destination,Video destination
 Video download quality,Video download quality
@@ -1506,13 +1531,14 @@ What's new,What's new
 "When a video ends in full screen, stay on it instead of moving to the next one. Swiping still moves on.","When a video ends in full screen, stay on it instead of moving to the next one. Swiping still moves on."
 "When the budget runs out, the video on screen plays to its end before the hold covers the feed, and the feed won't swipe to another video meanwhile. A time budget the fade already dimmed goes straight to the hold. Needs a hold to wait for. It waits %1$d minutes at most.","When the budget runs out, the video on screen plays to its end before the hold covers the feed, and the feed won't swipe to another video meanwhile. A time budget the fade already dimmed goes straight to the hold. Needs a hold to wait for. It waits %1$d minutes at most."
 When to send,When to send
-"While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.","While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display."
+"While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.","While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display."
 "While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only.","While diagnostic logging is on, a message names the part of Hushfeed that failed. Off keeps failures in the report only."
 Who to message,Who to message
 Window width needed to enable the layout. Restart TikTok to apply this.,Window width needed to enable the layout. Restart TikTok to apply this.
 "Words, countries and languages","Words, countries and languages"
 Working,Working
 "Write the video's sound beside it as an .m4a. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.","Write the video's sound beside it as an .m4a. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos."
+Writing,Writing
 YTDLnis background mode,YTDLnis background mode
 YTDLnis download type,YTDLnis download type
 Yes,Yes

@@ -6,6 +6,7 @@ package app.morphe.extension.facebook.reels;
 
 import android.os.SystemClock;
 import android.view.MotionEvent;
+import android.view.View;
 
 import androidx.annotation.Nullable;
 
@@ -34,7 +35,9 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  *   <li>{@link #held}: the handler has taken the speed-up path, past the flag, the ad check and
  *       the edge check. That's a hold.</li>
  *   <li>{@link #anywhere}: the check of whether the press landed on an edge. Yes while the switch
- *       is on, so a hold anywhere on the reel counts.</li>
+ *       is on, so a hold anywhere on the reel counts. With Only on the right edge on too, yes only
+ *       where {@link #edgeTouch}, first in that check, found the press on the reel's right third,
+ *       and Facebook's own answer anywhere else.</li>
  *   <li>{@link #holdSpeed}: the speed a hold plays at, which the speed-up, the speed the lift puts
  *       back and the 2x label all read. Outside the Video tab Facebook answers a fixed 2x, and where
  *       an account's Reels live in the Video tab it answers a server value, which may say normal
@@ -73,6 +76,20 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 public final class ReelHold {
     /** Counted under the patch's name for each long press on a reel that went to the speed-up while the switch is on. */
     static final String HELD = "hold on a reel";
+
+    /** Counted for each hold Only on the right edge leaves to Facebook because it landed outside the right third. */
+    static final String OFF_THE_RIGHT_EDGE = "hold outside the right third";
+
+    /** Where the edge check's press landed: in the reel's right third, outside it, or not measured. */
+    private static final int UNMEASURED = -1;
+    private static final int OUTSIDE = 0;
+    private static final int RIGHT_THIRD = 1;
+
+    /** What {@link #edgeTouch} measured for the edge check running now, until its answer goes out. */
+    private static volatile int pressedAt = UNMEASURED;
+
+    /** Facebook's own last answer to the long-press handlers' speed-up flag, so a hold off the right edge gets Facebook's answer. */
+    private static volatile boolean facebooksHold;
 
     /** The hold speed while on, where Facebook's isn't faster than normal. */
     static final double DOUBLE_SPEED = 2.0;
@@ -157,6 +174,7 @@ public final class ReelHold {
     /** After the long-press handler asks Facebook's speed-up flag. Yes while on. */
     public static boolean longPress(boolean facebooks) {
         HookStatus.invoked(FAMILY);
+        facebooksHold = facebooks;
         return on("long press") || facebooks;
     }
 
@@ -240,10 +258,49 @@ public final class ReelHold {
         return DOUBLE_SPEED;
     }
 
-    /** After Facebook's check of whether a long press landed on a reel's edge. Yes while on. */
+    /**
+     * The hook, first thing in Facebook's check of whether a long press landed on a reel's edge, the
+     * press and the reel's view it measures against. Notes whether the press landed on the view's
+     * right third, as wide as the view is at the press, for {@link #anywhere} to answer from. Reads no
+     * setting, so it's safe whenever Facebook calls it.
+     */
+    public static void edgeTouch(MotionEvent event, View view) {
+        try {
+            pressedAt = UNMEASURED;
+            if (event == null || view == null || view.getWidth() <= 0) return;
+            pressedAt = event.getX() >= view.getWidth() * 2f / 3f ? RIGHT_THIRD : OUTSIDE;
+        } catch (Throwable failure) {
+            pressedAt = UNMEASURED;
+            HookStatus.threw(FAMILY, "right edge", failure);
+        }
+    }
+
+    /**
+     * After Facebook's check of whether a long press landed on a reel's edge. Yes while on. With Only
+     * on the right edge on too, yes on the reel's right third and Facebook's own answer anywhere else,
+     * which is no unless Facebook gives the account its own hold, so the press opens Facebook's
+     * long-press menu. A press {@link #edgeTouch} couldn't measure counts wherever it landed.
+     */
     public static boolean anywhere(boolean facebooks) {
         HookStatus.invoked(FAMILY);
-        return on("edge check") || facebooks;
+        int pressed = pressedAt;
+        pressedAt = UNMEASURED;
+        if (!on("edge check")) return facebooks;
+        if (pressed != OUTSIDE || !rightEdgeOnly()) return true;
+        boolean stock = facebooksHold && facebooks;
+        HookStatus.counted(FAMILY, OFF_THE_RIGHT_EDGE);
+        Logger.printDebug(() -> "Reel hold: a long press outside the right third, Facebook's answer " + stock);
+        return stock;
+    }
+
+    /** Whether Only on the right edge is on. Read only once {@link #on} said yes. A failure reads off. */
+    private static boolean rightEdgeOnly() {
+        try {
+            return Settings.HOLD_REEL_RIGHT_EDGE.get();
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "right edge", failure);
+            return false;
+        }
     }
 
     /** After the controls ask the speed-up flag to decide on a reel's release listener. Yes while on. */
@@ -357,6 +414,8 @@ public final class ReelHold {
         again = false;
         heldPlayer = null;
         before = Float.NaN;
+        pressedAt = UNMEASURED;
+        facebooksHold = false;
         speeds = PATCHED;
         holdInBuildForTests = null;
         keepInBuildForTests = null;

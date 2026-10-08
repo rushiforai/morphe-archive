@@ -38,13 +38,20 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.HushfacebookPause;
+import app.morphe.extension.facebook.download.ClipboardLink;
 import app.morphe.extension.facebook.download.SaveLeftovers;
 import app.morphe.extension.facebook.download.SavedFileActions;
 import app.morphe.extension.facebook.feed.ReturnRefresh;
 import app.morphe.extension.facebook.media.ResumePlayback;
+import app.morphe.extension.facebook.menu.MenuLayoutDump;
 import app.morphe.extension.facebook.media.TapToPlay;
+import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.misc.ScreenTransitions;
+import app.morphe.extension.facebook.misc.TextSize;
 import app.morphe.extension.facebook.navigation.ReelsTab;
+import app.morphe.extension.facebook.stories.StorySeenButton;
+import app.morphe.extension.facebook.theme.MaterialYouTheme;
 
 /**
  * How the Hushfacebook screen is reached.
@@ -95,18 +102,33 @@ public final class SettingsEntry {
     /**
      * Injected before each return of the application's {@code onCreate}, after Facebook's own
      * startup. Watches every Facebook activity, so a pending open lands on whichever one resumes next:
-     * signed out, the launcher hands straight over to the login screen. Also where the release
+     * signed out, the launcher hands straight over to the login screen. With Material You in the
+     * build, each activity's dark window background takes the palette from here on. Also where the release
      * check, when it's on, asks at most once a day, on a worker, and where what a save cut short
-     * by Android left behind is removed, on a worker too.
+     * by Android left behind is removed, on a worker too. In Facebook's other processes it only
+     * starts Lock Facebook's watch ({@link AppLock#watch}).
      */
     public static void onApplicationCreate(Context context) {
         try {
-            if (!Utils.isMainProcess()) return;
+            if (!Utils.isMainProcess()) {
+                // Instant Games, the Audience Network ads and Facebook's crash screen have
+                // processes of their own. Only the lock watches their screens.
+                AppLock.watch(context);
+                return;
+            }
             if (context instanceof Application && !callbacksRegistered) {
                 ((Application) context).registerActivityLifecycleCallbacks(new OpenWhenResumed());
                 callbacksRegistered = true;
             }
+            // After the entry's, so on a resume the cover goes on last, over anything they opened.
+            // Whether Facebook is locked is settled before a settings request is judged, since that
+            // waits for a post, and covering() holds it back. A window Facebook opens later lands
+            // above the cover, which then goes back on top (AppLock.Cover).
+            AppLock.watch(context);
             ReturnRefresh.register(context);
+            TextSize.application(context);
+            // Only with the theme in the build, so its class and palette aren't loaded otherwise.
+            if (SettingsStatus.materialYouTheme()) MaterialYouTheme.watchWindows(context);
         } catch (Exception ex) {
             Logger.printException(() -> "Settings entry: could not watch activities", ex);
         }
@@ -293,6 +315,8 @@ public final class SettingsEntry {
 
     /** Injected at the start of every Facebook activity's {@code onCreate}. */
     public static void onActivityCreate(Activity activity) {
+        HushfacebookPause.keepCrashMarkOnTop();
+        MenuLayoutDump.screenCreated(activity);
         try {
             SavedFileActions.receive(activity.getIntent());
             noteIntent(activity.getIntent());
@@ -463,9 +487,14 @@ public final class SettingsEntry {
         @Override
         public void onActivityResumed(Activity activity) {
             resumed = new WeakReference<>(activity);
+            TextSize.activity(activity);
+            ScreenLog.resumed(activity);
             SavedFileActions.onResumed(activity);
             ScreenTransitions.activityResumed(activity);
             TapToPlay.activityResumed(activity);
+            // Only with Download any video in the build, whose switch it is an option of.
+            if (SettingsStatus.videoDownload()) ClipboardLink.onResumed(activity);
+            if (SettingsStatus.storySeen()) StorySeenButton.activityResumed(activity);
             if (openPending) openWhenSettled(activity);
             relabelIfStale(activity);
             SavedShortcut.refresh(activity);
@@ -474,23 +503,35 @@ public final class SettingsEntry {
         @Override
         public void onActivityPaused(Activity activity) {
             SavedFileActions.onPaused(activity);
+            ClipboardLink.onPaused(activity);
+            StorySeenButton.activityPaused(activity);
             ScreenTransitions.activityPaused(activity);
             if (resumed != null && resumed.get() == activity) resumed = null;
             LastScreen.read(activity);
+        }
+
+        /** Before the activity's own onCreate, so its first layout is measured at the chosen text size. */
+        @Override
+        public void onActivityPreCreated(Activity activity, Bundle state) {
+            TextSize.activity(activity);
         }
 
         @Override
         public void onActivityCreated(Activity activity, Bundle state) {
             TapToPlay.activityCreated(activity, state);
             ScreenTransitions.activityCreated(activity);
+            if (SettingsStatus.storySeen()) StorySeenButton.activityCreated(activity);
         }
 
         @Override public void onActivityStarted(Activity activity) { }
         @Override public void onActivityStopped(Activity activity) { }
+
         @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
         @Override
         public void onActivityDestroyed(Activity activity) {
+            TextSize.destroyed(activity);
             SavedFileActions.onPaused(activity);
+            if (SettingsStatus.storySeen()) StorySeenButton.activityDestroyed(activity);
             // The screen can land on an activity just before it clears itself for the next one.
             // If its host goes away before the person closed it, ask again.
             WeakReference<Activity> shownOver = host;
@@ -541,6 +582,11 @@ public final class SettingsEntry {
                 Logger.printInfo(() -> "Settings wait: " + name + " is finishing");
                 return false;
             }
+            // A dialog over the lock's cover would show above it, and could turn the lock off.
+            if (AppLock.covering()) {
+                Logger.printInfo(() -> "Settings wait: Facebook is locked");
+                return false;
+            }
             FragmentManager fragments = activity.getFragmentManager();
             Fragment shown = fragments.findFragmentByTag(DIALOG_TAG);
             if (shown != null) {
@@ -561,6 +607,14 @@ public final class SettingsEntry {
             Logger.printException(() -> "Could not open the Hushfacebook settings over " + name, ex);
             return false;
         }
+    }
+
+    /**
+     * After the app lock lets Facebook in: a request the lock held back, from the launcher shortcut
+     * or a notification, opens over [activity] now rather than at the next screen.
+     */
+    public static void openIfRequested(Activity activity) {
+        if (openPending) OpenWhenResumed.openWhenSettled(activity);
     }
 
     /** Called by the screen when the person closes it, so it isn't reopened. */

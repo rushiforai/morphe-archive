@@ -26,7 +26,9 @@ import app.morphe.util.implementationOrPatchException
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -39,6 +41,8 @@ private const val EXTENSION = "Lapp/morphe/extension/tiktok/interaction/AutoAdva
 private const val COMPONENT = "Lcom/ss/android/ugc/feed/platform/panel/autoscroll/AutoScrollComponent;"
 private const val LAZY = "LAZY"
 private const val IMMEDIATE = "IMMEDIATE"
+private const val SEARCH_FLAG = "search_auto_scroll"
+private const val SEARCH_SERVICE = "Lcom/ss/android/ugc/aweme/search/common/communicate/AbsSearchService;"
 
 /** Where the panel records how the host should load one of its components. */
 private class Registration(
@@ -143,12 +147,84 @@ private object Completion : Fingerprint(definingClass = COMPONENT, name = "onPla
 private object Stop : Fingerprint(definingClass = COMPONENT, returnType = "V",
     parameters = listOf("Ljava/lang/String;", "Z"), strings = listOf("turn_off_auto_scroll"))
 
+/** Whether [method] loads exactly the search flag's key, not one of the longer keys it begins. */
+private fun loadsSearchFlag(method: Method) = method.implementation?.instructions?.any {
+    (it.opcode == Opcode.CONST_STRING || it.opcode == Opcode.CONST_STRING_JUMBO) &&
+        it.getReference<StringReference>()?.string == SEARCH_FLAG
+} == true
+
+// Search results take auto scroll from a flag of their own. It's read in two places: the gate
+// search asks before it gives its feed auto scroll, and the search service's starting state.
+// search_auto_scroll_hide_exit_button and _open_default begin with the same key and are other
+// flags, so each match also has to load the key exactly.
+private object SearchGate : Fingerprint(
+    returnType = "Z",
+    parameters = emptyList(),
+    strings = listOf(SEARCH_FLAG),
+    custom = { method, _ -> loadsSearchFlag(method) },
+)
+private object SearchStartState : Fingerprint(
+    definingClass = SEARCH_SERVICE,
+    parameters = emptyList(),
+    strings = listOf(SEARCH_FLAG),
+    custom = { method, _ -> loadsSearchFlag(method) },
+)
+
+/**
+ * Where [method] reads the search flag: the index of the move-result after each settings call
+ * handed exactly that key, as the first argument after its receiver, that answers an int. The
+ * call comes straight after the key on 47.0.3, 47.1.3 and 47.1.4, so anything else is a shape
+ * this hasn't seen and isn't counted.
+ */
+internal fun searchFlagReads(method: Method): List<Int> {
+    val instructions = method.implementation?.instructions?.toList() ?: return emptyList()
+    val reads = mutableListOf<Int>()
+    for ((index, instruction) in instructions.withIndex()) {
+        if (instruction.opcode != Opcode.CONST_STRING && instruction.opcode != Opcode.CONST_STRING_JUMBO) continue
+        if (instruction.getReference<StringReference>()?.string != SEARCH_FLAG) continue
+        val key = (instruction as OneRegisterInstruction).registerA
+        val call = instructions.getOrNull(index + 1) ?: continue
+        val reference = call.getReference<MethodReference>() ?: continue
+        if (reference.returnType != "I" ||
+            reference.parameterTypes.firstOrNull()?.toString() != "Ljava/lang/String;") continue
+        val argument = when {
+            call.opcode == Opcode.INVOKE_VIRTUAL && call is FiveRegisterInstruction -> call.registerD
+            call.opcode == Opcode.INVOKE_VIRTUAL_RANGE && call is RegisterRangeInstruction -> call.startRegister + 1
+            else -> continue
+        }
+        if (argument != key) continue
+        if (instructions.getOrNull(index + 2)?.opcode != Opcode.MOVE_RESULT) continue
+        reads += index + 2
+    }
+    return reads
+}
+
+/** Passes the one read of the search flag in this method through the extension's answer. */
+private fun MutableMethod.answerSearchFlag() {
+    val reads = searchFlagReads(this)
+    if (reads.size != 1) {
+        throw PatchException(
+            "Auto advance: $definingClass->$name reads $SEARCH_FLAG ${reads.size} times, expected once.",
+        )
+    }
+    val index = reads.single()
+    val register = (getInstruction(index) as OneRegisterInstruction).registerA
+    addInstructions(
+        index + 1,
+        """
+            invoke-static/range {v$register .. v$register}, $EXTENSION->searchFlag(I)I
+            move-result v$register
+        """,
+    )
+}
+
 @Suppress("unused")
 val autoAdvancePatch = bytecodePatch(
     name = "Automatic video advance",
     description = "Keeps TikTok's automatic advance enabled while preserving its pause, dialog " +
         "and gesture checks, and shows TikTok's own Auto scroll action in the video panel for " +
         "accounts outside its rollout, with a switch that hides that action instead. " +
+        "Another switch turns on TikTok's own auto scroll in search results. " +
         "Switch: Hushfeed settings > Playback.",
     default = false,
 ) {
@@ -254,6 +330,11 @@ val autoAdvancePatch = bytecodePatch(
                 .singleOrPatchException("Auto advance: component $name()")
                 .addInstruction(0, "invoke-static/range {p0 .. p0}, $EXTENSION->$name(Ljava/lang/Object;)V")
         }
+        // The page coming back runs the same search restore as onResume and onViewCreated, so
+        // the extension reads the state there too, before the host's own code does.
+        component.methods.filter { it.name == "onPageResume" && it.parameterTypes == listOf("I") }
+            .singleOrPatchException("Auto advance: component onPageResume(int)")
+            .addInstruction(0, "invoke-static/range {p0 .. p0}, $EXTENSION->onPageResume(Ljava/lang/Object;)V")
         completed.addInstruction(0,
             "invoke-static/range {p0 .. p1}, $EXTENSION->beforeCompletion(Ljava/lang/Object;Ljava/lang/String;)V")
         val available = Availability.method
@@ -311,6 +392,14 @@ val autoAdvancePatch = bytecodePatch(
                 """,
             )
         }
+
+        // Search results' own flag, answered through the child switch. Their feed builds the
+        // same component, so the hooks above start it there once the flag lets it exist. The
+        // starting state read has to be answered too: left alone it says STOP, and the host's
+        // resume then turns a running search scroll off every time. What it restores on its own
+        // is claimed by the extension's resume hooks above, so the limit and holds still apply.
+        SearchGate.method.answerSearchFlag()
+        SearchStartState.method.answerSearchFlag()
 
         SettingsStatusLoadFingerprint.method.addInstruction(0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableAutoAdvance()V")

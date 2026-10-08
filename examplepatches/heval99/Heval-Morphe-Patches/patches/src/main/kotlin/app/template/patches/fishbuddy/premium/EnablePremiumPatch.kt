@@ -13,6 +13,6 @@ val enablePremiumPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_FISHBUDDY)
 
     execute {
-        UserHasPremiumFingerprint.methodOrNull?.returnEarly(value = true)
+        UserHasPremiumFingerprint.method.returnEarly(value = true)
     }
 }

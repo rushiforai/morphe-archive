@@ -96,6 +96,7 @@ val gboardSettingsMenuPatch = resourcePatch(
         gboardCoreIntegrityPatch,
         gboardDecoupleHapticsPatch,
         gboardModernHapticsPatch,
+        gboardHideNumberHintsPatch,
         gboardAaptWorkaroundPatch,
     )
 
@@ -354,6 +355,16 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
     appearanceCategory.appendChild(
         createSwitch(
             doc = doc,
+            key = Constants.GboardPrefs.KEY_HIDE_IME_NAV_BAR,
+            title = "Hide IME Navigation Bar",
+            summary = "Hide the system IME navigation bar (keyboard switcher and collapse buttons) on Android 13+ for a flush keyboard. Turn off to keep those buttons",
+            defaultValue = "false",
+            dependency = Constants.GboardPrefs.KEY_ZERO_BOTTOM_INSET,
+        )
+    )
+    appearanceCategory.appendChild(
+        createSwitch(
+            doc = doc,
             key = Constants.GboardPrefs.KEY_KEY_SHAPE_SELECTION,
             title = "Key Border Shapes",
             summary = "Enable rounded and borderless key styles in themes",
@@ -411,6 +422,15 @@ private fun populateMorpheSettingsScreen(doc: Document): Boolean {
             key = Constants.GboardPrefs.KEY_CURSOR_TRACKPAD,
             title = "Cursor Trackpad Mode",
             summary = "2D spacebar trackpad cursor navigation and cursor lock mode",
+            defaultValue = "false",
+        )
+    )
+    toolbarCategory.appendChild(
+        createSwitch(
+            doc = doc,
+            key = Constants.GboardPrefs.KEY_HIDE_NUMBER_HINTS,
+            title = "Hide Number Hints",
+            summary = "Hide the small number hints above the letter row. Long-press symbols keep working",
             defaultValue = "false",
         )
     )

@@ -20,8 +20,9 @@ private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/tiktok/feed/AuthorRegion;"
 
 /**
- * A share link or a process restored with a video open can start the detail page with no main
- * feed behind it yet, and the hook in MainActivity.onCreate never runs before it.
+ * Videos opened from a profile play in the detail page, and a process restored with a video open
+ * can start it with no main feed behind it yet, so the hook in MainActivity.onCreate never runs
+ * before it. A share link opens in MainActivity on 47.1.x.
  */
 internal object DetailActivityOnCreateFingerprint : Fingerprint(
     definingClass = "Lcom/ss/android/ugc/aweme/detail/ui/DetailActivity;",

@@ -3,9 +3,8 @@
 Generates the patches section of README.md from patches-list.json
 and injects it between <!-- PATCHES_START --> / <!-- PATCHES_END --> markers.
 
-Spoilers are expanded (open by default) if:
-  1. Total patch count <= AUTO_EXPAND_THRESHOLD.
-  2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
+App sections are collapsed by default. App introductions are loaded from
+.github/readme-apps/<packageName>.md so regeneration preserves their content.
 
 python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
 """
@@ -13,7 +12,6 @@ python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [RE
 import json
 import re
 import sys
-import os
 from pathlib import Path
 
 
@@ -125,24 +123,22 @@ def versions_table(targets):
     return "\n".join(rows)
 
 
-def spoiler(label, count, targets, tbl, expanded=False):
-    """Wrap a patches table in a <details> spoiler with a versions sub-table.
-    If expanded=True, the spoiler is open by default (for repos with few patches).
-    """
+def spoiler(label, count, targets, tbl, description=""):
+    """Wrap the app introduction and tables in a collapsed <details> section."""
     noun = "patch" if count == 1 else "patches"
     vtbl = versions_table(targets)
     versions_section = f"**🎯 Supported versions:**\n\n{vtbl}\n\n" if vtbl else ""
-    tag = "<details open>" if expanded else "<details>"
-    return f"""{tag}
+    description_section = f"{description.strip()}\n\n" if description.strip() else ""
+    return f"""<details>
 <summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
 <br>
 
-{versions_section}{tbl}
+{description_section}{versions_section}{tbl}
 
 </details>"""
 
 
-def build_content(expanded=False):
+def build_content():
     """Build the full generated patches section."""
     lines = [
         f"> **[v{ver}](https://github.com/{owner}/{repo}/releases/tag/v{ver})**"
@@ -150,19 +146,20 @@ def build_content(expanded=False):
         f"{total} patches total"
     ]
 
-    # One spoiler per app, in the order they appear in the JSON
-    for pkg, entry in by_pkg.items():
+    # One spoiler per app, sorted alphabetically by display name.
+    for pkg, entry in sorted(by_pkg.items(), key=lambda item: item[1]["name"].casefold()):
         patches = list(entry["patches"].values())
         label   = f"{entry['emoji']} {entry['name']}"
-        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded))
+        description_path = Path(__file__).resolve().parent.parent / "readme-apps" / f"{pkg}.md"
+        description = description_path.read_text(encoding="utf-8") if description_path.is_file() else ""
+        lines.append(spoiler(label, len(patches), entry["targets"], patches_table(patches), description))
         lines.append("")
 
     # Universal patches (no specific app)
     if universal:
         uni_patches = list(universal.values())
         noun = "patch" if len(uni_patches) == 1 else "patches"
-        tag  = "<details open>" if expanded else "<details>"
-        lines.append(f"""{tag}
+        lines.append(f"""<details>
 <summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(uni_patches)} {noun}</summary>
 <br>
 
@@ -190,28 +187,15 @@ marker_match = re.search(START_PATTERN, readme)
 
 if not marker_match or END_MARKER not in readme:
     # Fallback: print to stdout so CI can catch the issue
-    print(build_content(expanded=False))
+    print(build_content())
     sys.stderr.write(
         f"⚠️  Markers <!-- PATCHES_START [EXPANDED] --> / {END_MARKER} not found in {readme_path}. "
         "Printed to stdout instead.\n"
     )
     sys.exit(1)
 
-actual_start = marker_match.group(0)
-
-# Auto-expand threshold
-AUTO_EXPAND_THRESHOLD = 20
-
-# Spoilers are expanded if:
-# 1. Total patch count is small (≤ AUTO_EXPAND_THRESHOLD)
-#    with only a few patches where collapsing adds no benefit.
-# 2. The README marker explicitly requests it: <!-- PATCHES_START EXPANDED -->
-expanded = (
-    total <= AUTO_EXPAND_THRESHOLD or
-    "EXPANDED" in actual_start
-)
-
-generated  = build_content(expanded=expanded)
+actual_start = "<!-- PATCHES_START -->"
+generated = build_content()
 
 # Replace template links if present
 readme = readme.replace("https://morphe.software/add-source?github=xyz-user/xyz-patches", f"https://morphe.software/add-source?github={repo_full}")
@@ -224,4 +208,4 @@ new_readme = re.sub(
     flags=re.DOTALL,
 )
 readme_path.write_text(new_readme, encoding="utf-8")
-print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, expanded={expanded})")
+print(f"✅ Injected patches section into {readme_path} (v{ver}, branch={branch}, {total} patches, collapsed=True)")

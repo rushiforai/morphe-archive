@@ -1,7 +1,7 @@
 ![HushThreads. Keep the thread. Cut the noise.](assets/readme-hero.png)
 
 <p align="center">
-  <a href="https://github.com/SysAdminDoc/HushThreads"><img src="https://img.shields.io/badge/version-0.0.11-000000" alt="Version 0.0.11"></a>
+  <a href="https://github.com/SysAdminDoc/HushThreads"><img src="https://img.shields.io/badge/version-0.0.12-000000" alt="Version 0.0.12"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-blue" alt="License GPL-3.0"></a>
   <img src="https://img.shields.io/badge/platform-Android%209%2B-3DDC84" alt="Platform Android 9+">
   <img src="https://img.shields.io/badge/Threads-450.0.0.51.78-000000" alt="Threads 450.0.0.51.78">
@@ -12,7 +12,7 @@
 
 HushThreads is a Morphe patch bundle for Android that takes the ads out of Threads, cleans the links you share and cuts down what the app reports back to Meta.
 
-The latest release is [v0.0.11](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.11), with 11 patches.
+The latest release is [v0.0.12](https://github.com/SysAdminDoc/HushThreads/releases/tag/v0.0.12), with 17 patches.
 
 [Add to Morphe](https://morphe.software/add-source?github=SysAdminDoc%2FHushThreads) | [Download a release](https://github.com/SysAdminDoc/HushThreads/releases/latest) | [Browse the patches](#patches)
 
@@ -35,7 +35,7 @@ This project has no connection to Meta or to the Morphe project. Neither endorse
 3. Get Threads 449.0.0.54.82 (`com.instagram.barcelona`) for arm64-v8a, version code 511908382 (120-640dpi, Android 9+). That's the build these patches are checked against. Morphe Manager warns about other builds of the same version.
 4. In Morphe Manager, pick that file, keep the default patch selection or change it, and patch.
 
-HushThreads v0.0.11 works with 449 and 448 below. Support for Threads 450.0.0.51.78 is in the source but not in a release yet, so with v0.0.11 stick to one of those two.
+HushThreads v0.0.12 works with all three builds below.
 
 | Threads version | Version code | Android floor |
 |---|---|---|
@@ -61,7 +61,7 @@ The same goes for the Threads you have now. A patched Threads can't install over
 
 ## Patches
 
-HushThreads v0.0.11 has 17 patches. All but Block background-return feed refresh, Change version code, Disable screenshot detection, Disable video autoplay, Max image quality, Pure black dark mode, Remove share targets and Trust user-added certificates are selected by default.
+HushThreads v0.0.12 has 17 patches. All but Block background-return feed refresh, Change version code, Disable screenshot detection, Disable video autoplay, Max image quality, Pure black dark mode, Remove share targets and Trust user-added certificates are selected by default.
 
 | Patch | What it does |
 |---|---|

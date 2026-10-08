@@ -10,6 +10,8 @@ import com.zeldrisho.patches.zalo.ads.StoryAdsConfig
 import com.zeldrisho.patches.zalo.backup.BackupConfiguration
 import com.zeldrisho.patches.zalo.backup.BackupScheduler
 import com.zeldrisho.patches.zalo.backup.MediaBackupEligibility
+import com.zeldrisho.patches.zalo.chat.MediaBoxListInsertion
+import com.zeldrisho.patches.zalo.chat.ZinstantAdListInsertion
 import com.zeldrisho.patches.zalo.chat.businessBoxFingerprints
 import com.zeldrisho.patches.zalo.media.mediaFingerprints
 import com.zeldrisho.patches.zalo.notif.StoryChannelArm
@@ -23,6 +25,8 @@ class FingerprintDescriptorInventoryTest {
     @Test
     fun zaloFingerprintDefinitionsExposeNonEmptyDescriptorsAndFilters() {
         val fingerprints = mediaFingerprints + businessBoxFingerprints + telemetryFingerprints + listOf(
+            MediaBoxListInsertion,
+            ZinstantAdListInsertion,
             FeedMergeMethod,
             OfflineAdsWindow,
             OfflineAdsGate,

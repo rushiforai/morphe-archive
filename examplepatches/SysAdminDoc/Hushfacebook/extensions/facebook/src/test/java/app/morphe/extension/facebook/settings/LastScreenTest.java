@@ -9,7 +9,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
+import android.graphics.drawable.GradientDrawable;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
@@ -108,6 +110,50 @@ public class LastScreenTest {
     }
 
     @Test
+    public void eachViewSaysWhatItPaintsBehindItself() {
+        Context context = RuntimeEnvironment.getApplication();
+        Screen screen = new Screen(context);
+        screen.root.setBackgroundColor(0xFF101011);
+        ImageView top = new ImageView(context);
+        top.setBackgroundColor(0x80252728);
+        screen.root.addView(top, new FrameLayout.LayoutParams(WIDTH, HEIGHT));
+        layOut(screen.root);
+
+        assertEquals(List.of("FrameLayout#content {#101011} > ImageView {#80252728} (2 views)"),
+                LastScreen.walks(screen.root, WIDTH * LastScreen.ACROSS, HEIGHT * 0.55f));
+
+        top.setBackground(new GradientDrawable());
+        assertEquals(" {GradientDrawable}", LastScreen.background(top));
+        GradientDrawable sheet = new GradientDrawable();
+        sheet.setColor(0xFF252728);
+        top.setBackground(sheet);
+        assertEquals(" {GradientDrawable #252728}", LastScreen.background(top));
+        top.setBackground(null);
+        assertEquals("", LastScreen.background(top));
+    }
+
+    /** Facebook shows the comment sheet as a dialog, a window of its own over the screen's (#37). */
+    @Test
+    public void aDialogShownOverTheScreenIsWalkedBeforeTheScreen() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        layOut(activity.getWindow().getDecorView());
+        Dialog dialog = new Dialog(activity);
+        FrameLayout content = new FrameLayout(activity);
+        content.setBackgroundColor(0xFF252728);
+        dialog.setContentView(content);
+        dialog.show();
+        layOut(dialog.getWindow().getDecorView());
+
+        LastScreen.read(activity);
+        List<String> lines = LastScreen.report(SystemClock.elapsedRealtime());
+
+        assertTrue(lines.toString(), lines.get(1).startsWith("window above: right edge 55% down: DecorView"));
+        assertTrue(lines.toString(), lines.get(1).contains("{#252728}"));
+        assertTrue(lines.toString(), lines.stream().anyMatch(line -> line.startsWith("right edge 55% down: DecorView")));
+        dialog.dismiss();
+    }
+
+    @Test
     public void whereNoChildHoldsThePointTheChildrenAreNamedWithTheirState() {
         Screen screen = new Screen(RuntimeEnvironment.getApplication());
 
@@ -140,15 +186,33 @@ public class LastScreenTest {
                 lines);
     }
 
-    /** A group with no children draws what's at the point itself, the way a Litho host can. */
+    /** A group with no children that paints a background draws what's at the point itself. */
     @Test
-    public void aGroupWithNoChildrenEndsTheWalk() {
+    public void aGroupWithNoChildrenAndABackgroundEndsTheWalk() {
+        Context context = RuntimeEnvironment.getApplication();
+        Screen screen = new Screen(context);
+        FrameLayout painted = new FrameLayout(context);
+        painted.setBackgroundColor(0xFF252728);
+        screen.root.addView(painted, new FrameLayout.LayoutParams(WIDTH, HEIGHT));
+        layOut(screen.root);
+
+        assertEquals(List.of("FrameLayout#content > FrameLayout {#252728} (2 views)"),
+                LastScreen.walks(screen.root, WIDTH * LastScreen.ACROSS, HEIGHT * 0.55f));
+    }
+
+    /**
+     * One with no background may draw nothing there, like the empty LithoView 581 lays over the
+     * comment list (#37), so the walk under it is written too.
+     */
+    @Test
+    public void aGroupWithNoChildrenOrBackgroundIsWrittenThenTheWalkGoesOnUnderIt() {
         Context context = RuntimeEnvironment.getApplication();
         Screen screen = new Screen(context);
         screen.root.addView(new FrameLayout(context), new FrameLayout.LayoutParams(WIDTH, HEIGHT));
         layOut(screen.root);
 
-        assertEquals(List.of("FrameLayout#content > FrameLayout (2 views)"),
+        assertEquals(List.of("FrameLayout#content > FrameLayout (2 views)",
+                        "FrameLayout#content > FrameLayout x2 > LinearLayout > ImageView (5 views)"),
                 LastScreen.walks(screen.root, WIDTH * LastScreen.ACROSS, HEIGHT * 0.55f));
     }
 

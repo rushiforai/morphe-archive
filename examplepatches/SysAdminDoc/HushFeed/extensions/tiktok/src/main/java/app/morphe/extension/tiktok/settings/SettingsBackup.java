@@ -196,6 +196,10 @@ public final class SettingsBackup {
             operation.abort();
             throw error;
         }
+        // The proxy's sign-in never goes into a file, so the defaults above leave it out and it
+        // outlived every reset. Nothing can bring it back either: Undo reads a file too.
+        Settings.NETWORK_PROXY_USER.resetToDefault();
+        Settings.NETWORK_PROXY_PASSWORD.resetToDefault();
     }
 
     private static void restoreWithOperation(Context context, String text, boolean saveUndo,

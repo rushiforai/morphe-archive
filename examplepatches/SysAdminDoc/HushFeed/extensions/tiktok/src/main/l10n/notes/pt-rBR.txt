@@ -1,0 +1,69 @@
+## 0.68.0 (2026-10-06)
+
+* **TikTok:** Baixar as fotos originais salva cada foto como JPEG (#105). O TikTok lista cada foto primeiro como uma cópia HEIF, então elas acabavam como arquivos .heif que muitos apps de galeria e computadores não conseguem abrir, e alguns celulares, Samsung inclusive, nem conseguem decodificar o HEIF do TikTok. Agora o Hushfeed pega a cópia WebP que o TikTok lista ao lado de cada HEIF e a salva de novo como JPEG em tamanho original no Android 9 e mais novos. Quando o TikTok lista uma cópia JPEG, é essa que vai, byte por byte. Uma foto que não dá para converter mantém o arquivo que o TikTok enviou, e o mesmo vale para uma com partes transparentes. A descrição da configuração também fala em JPEG agora, e as fotos de stories funcionam do mesmo jeito.
+
+* **TikTok:** Esconder a barra de status agora também remove a faixa preta que o TikTok mantém acima dos vídeos para ela. No Android 14 e mais antigos, o vídeo é desenhado atrás do recorte da câmera em vez de abaixo dele (#97). Uma nova chave, Esconder os controles da tela limpa, tira da tela o botão de fechar, a barra de progresso e os botões de pausa e velocidade enquanto a Tela limpa está ligada, junto com o botão de fechar que as publicações de fotos mostram no canto. Eles voltam assim que você sai da Tela limpa.
+
+* **TikTok:** A Tela limpa agora esconde o botão de stories acima de Seguindo quando o TikTok o deixa à mostra, e o coloca de volta assim que você sai da Tela limpa (#84). Pausar deixa o botão de stories e as abas do topo por conta do TikTok. Além disso, Limpar a tela automaticamente espera o TikTok limpar a tela de verdade antes de contar uma tentativa, então um primeiro vídeo para o qual o TikTok não estava pronto também é limpo.
+
+* **TikTok:** Limpar a tela automaticamente tenta de novo no vídeo atual depois que o foco volta, inclusive no primeiro vídeo após a inicialização (#84). Uma tentativa cancelada ou que falhou não impede mais outra. A saída manual continua sendo respeitada, e chamadas de um vídeo anterior não podem mais cancelar o timer do vídeo seguinte.
+
+* **TikTok:** Backup, Restaurar e Importar histórico de visualização não ficam mais presos atrás de um app de arquivos lento. Se o app de arquivos não responder em alguns segundos, a linha oferece parar de esperar, e parar antes de qualquer coisa ser lida ou escrita deixa suas configurações e seu histórico como estavam. Um backup que o app de arquivos já tem é a única exceção: a linha diz que o app de arquivos ainda não informou se salvou, e você recebe a resposta de verdade quando ele informar. Um app de arquivos que nunca solta um arquivo trava só aquela linha, que avisa isso, em vez de empilhar mais trabalho atrás. Girar o celular no meio de uma restauração mantém a restauração em andamento.
+
+* **TikTok:** Exportar os valores carregados e Importar os valores carregados do Laboratório de gates não ficam mais presos atrás de um app de arquivos lento. Se o app de arquivos não responder em alguns segundos, o Laboratório oferece parar de esperar, e parar antes de qualquer coisa ser lida ou escrita não muda nada, nem mesmo um arquivo que você escolheu para substituir. Tocar em qualquer um dos dois de novo enquanto um arquivo ainda está aberto avisa isso, em vez de enfileirar outro para rodar quando o primeiro terminasse. Além disso, exportar por cima de uma exportação mais antiga e maior não deixa mais o final do arquivo velho para trás, o que tornava o novo ilegível.
+
+* **TikTok:** Escolher um arquivo de backup existente para substituir não corre mais o risco de perdê-lo. Se o backup parar, ou falhar antes de qualquer coisa entrar no arquivo (uma lista de regras do feed grande demais para um backup, por exemplo), o arquivo escolhido mantém seu backup anterior em vez de ser apagado. Um arquivo vazio criado pelo seletor para o backup continua sendo limpo.
+
+* **TikTok:** A busca nas configurações lista primeiro as linhas em que o que você buscou é uma palavra inteira. Buscar "números" antes colocava Esconder as contas verificadas e Criadores bloqueados, onde só aparece dentro de outra palavra, acima das linhas que realmente tratam de números. As linhas que só combinam dentro de uma palavra mais longa vêm depois, na ordem da página, e as configurações traduzidas são ordenadas pela mesma regra.
+
+* **TikTok:** A busca nas configurações agora encontra cada caixa de uma lista de seleção, marcada ou não, então buscar "números" encontra Números sob os botões na lista da coluna da direita. Abrir o resultado de uma caixa abre a lista rolada até aquela caixa, sem mudá-la. Uma lista aberta quando a tela gira volta com as suas marcações ainda não salvas.
+
+* **TikTok:** As linhas com chave nas configurações do Hushfeed mudam de formato quando a tela é estreita e o texto é grande. A chave vai para baixo do texto, no fim da linha, e o título e a descrição ficam com a largura toda. Um título em alemão com o texto no dobro do tamanho em um celular pequeno não quebra mais no meio da palavra em quatro linhas curtas. Telas mais largas mantêm o layout de sempre, e uma linha rolada de um formato para o outro volta a mudar.
+
+* **TikTok:** Novidades agora avisa que as notas estão em inglês quando o resto das configurações está no seu idioma. As notas também são marcadas como texto em inglês para os leitores de tela.
+
+* **TikTok:** Desfazer a limpeza dos vídeos vistos agora restaura o histórico em segundo plano e informa quantos registros apagados ainda cabem nos limites do histórico. Ele não diz mais que os vídeos foram restaurados quando exibições mais novas não deixam espaço para eles. Se o salvamento falhar, Desfazer continua disponível.
+
+* **TikTok:** Desfazer agora confirma as exibições registradas durante a restauração antes de contá-las. Gravações antigas na fila também preservam os horários de exibição mais novos que Desfazer já salvou.
+
+* **TikTok:** Os salvamentos de mídia agora respeitam o tempo de espera completo do servidor, inclusive datas HTTP, antes de seguir um redirecionamento ou tentar outro espelho ou faixa de legendas. Uma espera além do limite de tempo do salvamento encerra a tarefa com uma mensagem clara e mantém os arquivos já salvos. Cancelar também interrompe a espera de uma nova tentativa.
+
+* **TikTok:** Salvar um relatório de diagnóstico ou um relatório de gates roda em uma thread própria, então um armazenamento de mídia lento não consegue travar as threads que o resto do Hushfeed compartilha. Tocar em Salvar de novo enquanto um relatório ainda está sendo salvo avisa isso em vez de iniciar um segundo.
+
+* **TikTok:** O Hushfeed agora é compilado com o Morphe patcher 1.15.1, então precisa do Morphe Manager 1.34.0 ou mais novo. O Manager 1.33.0 pede uma atualização antes de carregar o bundle. O ARSCLib acompanha o patcher até 9b742c412d, com os hashes conferidos nos arquivos baixados, e a release verifica o patch com a CLI desktop 1.18.1.
+
+* **TikTok:** Toda requisição do Guava no build agora resolve para 33.7.2, a versão fora do GHSA-xxph-c9ww-hj94, nos grafos de configurações, plugins e projeto, e não só onde o pin do catálogo chegava. Os checksums foram verificados no Maven Central antes de a checagem estrita de dependências aceitá-los. O Guava fica só do lado do build e do patching: o bundle de patches e a extensão não carregam nada dele. A checagem de que as fontes dos patches não importam o Guava diretamente antes passava sem ler nenhum arquivo. Agora ela lê.
+
+* **TikTok:** Uma alteração só na extensão Java não reexecuta mais as checagens de fingerprint contra os fixtures de APK, já que eles nunca a leem. Os comandos de teste completos e as checagens de release continuam cobrindo todos os testes, e uma alteração em um patch, um teste, uma dependência ou um fixture ainda os reexecuta.
+
+* **TikTok:** Edições na documentação não reexecutam mais testes de fixtures de APK que não mudaram. Os comandos de teste completos e as checagens de release continuam cobrindo todos os testes, e as checagens que leem fontes agora acompanham suas entradas externas. Trocar um APK invalida os resultados dos testes mesmo quando o tamanho e o carimbo de data e hora são iguais.
+
+* **TikTok:** As checagens do scanner de armazenamento local agora mantêm os diagnósticos do Java visíveis sem tratar execuções bem-sucedidas como falhas no Windows PowerShell.
+
+* **TikTok:** A assinatura local de APK agora aceita mensagens de inicialização do Java inofensivas por causa dos limites de heap e CPU. Certificados inválidos e verificações de assinatura que falham continuam interrompendo a instalação.
+
+## 0.67.1 (2026-10-03)
+
+* **TikTok:** As configurações ficaram mais fáceis de achar. Os cinco botões que o Hushfeed desenha nos vídeos ficam juntos em Tela do feed > Botões nos vídeos. Reprodução agora tem todas as chaves do player, inclusive a barra de progresso e sua miniatura, parar o loop e retomar depois de rolar, que ficavam em Aplicativo. Capturas de tela e a barra de status foram para Aplicativo > Sistema junto com Parecer o app da loja para as verificações do TikTok. Permitir Dueto e Costura mesmo assim agora fica em Folha de compartilhamento. Suas escolhas salvas continuam como estavam.
+
+* **TikTok:** Todo botão que o Hushfeed desenha nos vídeos agora começa desligado: bloquear, esconder, bloquear som, Não tenho interesse e silenciar. Uma instalação nova não mostra nenhum até você ligar um em Tela do feed > Botões nos vídeos. Se você usava o botão de silenciar, ligue Mostrar o botão de silenciar nos vídeos de novo.
+
+* **TikTok:** Remover pacotes de idioma não usados não interrompe mais a execução inteira dos patches quando Idiomas para manter está em Todos e o APK traz um conjunto de idiomas não verificado, como um bundle dividido combinado com um único idioma. Nesse caso nada é removido, e o log do patch explica o motivo (#96).
+
+* **TikTok:** A linha da sequência em Manter uma sequência diz "Enviado para 15/15 chats" quando o TikTok aceitou todas as mensagens. Ela só chama a entrega de não confirmada para um chat cuja passagem teve erro ou nunca terminou (#92).
+
+* **TikTok:** Mostrar o botão de esconder nos vídeos e Mostrar o botão de bloquear som agora desenham seus próprios controles do feed mesmo com Mostrar o botão de bloquear nos vídeos desligado. Os dois funcionam pelo Filtro do feed, então só aparecem na lista quando esse patch está incluído. Instalações novas começam com essas duas chaves auxiliares desligadas, para que escolher o botão de bloquear autor não adicione chips extras até você pedir (#95).
+
+* **TikTok:** Pausar mantém disponível o atalho salvo de toque longo em Início, para que convidados possam reabrir as configurações e retomar o Hushfeed depois de fechar a tela. Um atalho desativado continua desativado, os toques normais em Início ainda funcionam e a ação de toque longo do próprio TikTok é preservada (#89).
+
+* **TikTok:** As configurações no Android 6 usam as formas de plural dos idiomas incluídos, inclusive one, few e many do russo. Traduções de quantidade ausentes voltam para o inglês com a forma singular correta. Versões mais novas do Android mantêm suas próprias regras ICU.
+
+* **TikTok:** Novidades mantém todo o histórico de versões conforme o texto cresce. Notas grandes e texto internacional não passam mais do limite do Java para montar uma única string.
+
+* **TikTok:** O Morphe Manager 1.33.0 mostra todos os 106 patches em suas dez categorias, sem nenhum sem categoria. As verificações que rodam antes de cada build agora cobrem entradas de ABI única em toda versão compatível do TikTok e rejeitam bibliotecas nativas alteradas ou um resultado de patch vazio. Os bundles publicados podem ser conferidos com as atestações de release do GitHub ou com uma chave de assinatura fixada.
+
+* **TikTok:** Limitar o tráfego em segundo plano mantém intacta a configuração de push por padrão, inclusive quando Todos está selecionado. A opção Pular a configuração de push começa desligada e pode interromper mensagens e outras notificações quando ligada. APKs existentes precisam ser repatchados a partir do APK original do TikTok para recuperar a configuração de push. Pausar não consegue desfazer essa mudança feita na hora do patch (#86).
+
+* **TikTok:** Restaurar as configurações agora informa as chaves que o build atual não consegue restaurar, separadamente das configurações ausentes de um backup mais antigo. As configurações portáteis continuam migrando entre versões do TikTok, o estado local do dispositivo fica intacto, e a compatibilidade do Laboratório de gates e o Desfazer se comportam como antes.
+
+* **TikTok:** A seção Vídeos vistos do Filtro do feed pode importar a exportação JSON revisada do histórico de visualização do TikTok. As datas de visualização e a conta escolhida continuam ligadas à importação, o limite de idade existente se aplica e um aviso informa as entradas adicionadas e ignoradas. Repetir uma importação não adiciona nada. Arquivos inválidos ou sem suporte e gravações que falham deixam o histórico salvo como estava. Os arquivos são limitados a 2 MB e 10.000 entradas, e os links nunca saem do celular. Uma importação que adiciona histórico encerra o Desfazer de uma limpeza anterior e explica essa mudança.

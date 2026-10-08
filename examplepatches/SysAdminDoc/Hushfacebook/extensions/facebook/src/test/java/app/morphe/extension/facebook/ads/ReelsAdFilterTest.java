@@ -324,6 +324,30 @@ public class ReelsAdFilterTest {
     }
 
     /**
+     * A profile's Reels tab asks before it sends the query for its own ads. On, each ask is held and
+     * counted; off, the query goes out as Facebook wrote it.
+     */
+    @Test
+    public void aProfilesReelsTabSendsNoAdQueryOnlyWhileTheSwitchIsOn() {
+        HookStatus.clear();
+        try {
+            assertTrue(ReelsAdFilter.holdProfileReelAds());
+            Settings.HIDE_SPONSORED_REELS.save(false);
+            assertFalse(ReelsAdFilter.holdProfileReelAds());
+
+            String line = null;
+            for (String candidate : HookStatus.report()) {
+                if (candidate.startsWith("Hide sponsored reels:")) line = candidate;
+            }
+            assertNotNull(String.join("\n", HookStatus.report()), line);
+            assertTrue(line, line.contains("invoked 2"));
+            assertTrue(line, line.contains(ReelsAdFilter.PROFILE_ADS_HELD + " 1"));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /**
      * A reel, Watch or in-stream ad's floating button stays off its comments while the switch is on.
      * The pill's other plugins, and every plugin with the switch off, are Facebook's call.
      */

@@ -91,7 +91,7 @@ public class SettingsNavigationTest {
     @Test public void homeAndEveryCategoryAreReachableWithoutRemovingTheModel() {
         assertNotNull(page.navigation);
         assertEquals(9, list().getCount());
-        assertEquals(20, page.sections().size());
+        assertEquals(21, page.sections().size());
         int total = page.getPreferenceScreen().getRootAdapter().getCount();
         for (Preference section : page.sections()) {
             assertTrue(page.navigation.open(section));
@@ -186,8 +186,8 @@ public class SettingsNavigationTest {
         }
     }
 
-    private static final String PAUSED_LINE = "Until you resume, every switch but Debug logging acts as if it "
-            + "were off. Changes made when you patched stay in.";
+    private static final String PAUSED_LINE = "Until you resume, every switch but Debug logging and Lock Facebook "
+            + "acts as if it were off. Changes made when you patched stay in.";
 
     /**
      * Paused, a category page opens with a short line that says so, and the saved switches keep
@@ -584,6 +584,9 @@ public class SettingsNavigationTest {
         assertEquals("Playback", focusedTitle(a11y));
         page.navigation.navigate("more");
         layout(dialog.getView());
+        // A reader reaches About before opening it: it's the last row, below the fold here.
+        list().setSelection(list().getCount() - 1);
+        layout(dialog.getView());
         page.navigation.navigate("About");
         layout(dialog.getView());
         page.navigation.back();
@@ -787,9 +790,10 @@ public class SettingsNavigationTest {
         page.navigation.open(page.findPreference(Settings.TAP_TO_PLAY.key));
         recreate();
         assertTrue(contains(Settings.TAP_TO_PLAY.key));
-        // Playback: Tap to play, Resume long videos, Default playback quality and its Playback quality list, Picture-in-picture,
-        // Turn off HDR brightness.
-        assertEquals(6, list().getCount());
+        // Playback: Tap to play and Only the first reel waits, Resume long videos, Default playback quality and its
+        // Playback quality, Reels quality and Stories quality lists, Picture-in-picture, Turn off HDR brightness,
+        // Keep the progress bar.
+        assertEquals(10, list().getCount());
         page.navigation.back();
         findSearch(dialog.getView()).setText("other apps");
         recreate();
@@ -804,7 +808,7 @@ public class SettingsNavigationTest {
         assertEquals(9, list().getCount());
         page.navigation.navigate("About");
         dialog.getDialog().onBackPressed();
-        assertEquals(14, list().getCount());
+        assertEquals(15, list().getCount());
         dialog.getDialog().onBackPressed();
         assertEquals(9, list().getCount());
         dialog.getDialog().onBackPressed();

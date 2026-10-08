@@ -6,6 +6,13 @@ package app.morphe.extension.facebook.ads;
 
 import androidx.annotation.Nullable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -20,6 +27,11 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * the comment box. With the switch on, the first answers no and the other two answer null, which is
  * what Facebook gets for a post with no shop link.
  *
+ * <p>The reel overlay has other shop cards beside the affiliate one: products tagged on the reel, the
+ * creator's storefront and Shop similar, each a "Shop now" card above the creator's name. They are
+ * kinds of the overlay's call-to-action list, and with the switch on the list comes back without
+ * them.
+ *
  * <p>The "Commission eligible" label is a disclosure and is left alone.
  *
  * <p>Off, paused, before the settings are ready, or when anything here fails, the answer is
@@ -30,6 +42,20 @@ public final class AffiliateLinks {
     static final String REEL_CARD = "Reel product card kept out";
     static final String FEED_CARD = "Feed product card kept out";
     static final String COMMENT_CARD = "Comment sheet product card kept out";
+    /**
+     * Counted with the kind's name after it, so a report says which shop card a reel had. The name is
+     * one of {@link #SHOP_CTAS}, so the count's text stays fixed.
+     */
+    static final String REEL_SHOP_CARD = "Reel shop card kept out: ";
+
+    /**
+     * The reel overlay's call-to-action kinds that are shop cards, by their enum names, which Facebook
+     * keeps since its server sends them. 581 builds AFFILIATE_BANNER without any code naming it, so
+     * it is here for a build that draws it.
+     */
+    static final Set<String> SHOP_CTAS = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+            "AFFILIATE_BANNER", "AFFILIATE_EYEBROW", "PRODUCT_TAGGING", "PRODUCT_TAGGING_V2", "STOREFRONT",
+            "SHOP_SIMILAR")));
 
     private static final String FAMILY = FamilyNames.AFFILIATE_LINKS;
 
@@ -94,6 +120,36 @@ public final class AffiliateLinks {
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "comment card model", failure);
             return card;
+        }
+    }
+
+    /**
+     * The hook at each return of the reel overlay's filter of its call-to-action kinds, handed what it
+     * was about to answer and the full list it was given. The filter answers null when Facebook leaves
+     * no category out, and the overlay then keeps the full list. While the switch is on and the list
+     * has a shop card, the answer is a new list without the shop cards; otherwise it is Facebook's.
+     */
+    @Nullable
+    public static List<?> keepReelCtas(@Nullable List<?> filtered, @Nullable List<?> all) {
+        try {
+            HookStatus.invoked(FAMILY);
+            List<?> shown = filtered != null ? filtered : all;
+            if (shown == null || shown.isEmpty() || !hiding()) return filtered;
+            List<Object> kept = new ArrayList<>(shown.size());
+            List<String> dropped = new ArrayList<>(1);
+            for (Object cta : shown) {
+                if (cta instanceof Enum && SHOP_CTAS.contains(((Enum<?>) cta).name())) {
+                    dropped.add(((Enum<?>) cta).name());
+                } else {
+                    kept.add(cta);
+                }
+            }
+            if (dropped.isEmpty()) return filtered;
+            for (String kind : dropped) kept("reel CTA list", REEL_SHOP_CARD + kind);
+            return kept;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "reel CTA list", failure);
+            return filtered;
         }
     }
 

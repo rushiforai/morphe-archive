@@ -16,6 +16,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patcher.util.proxy.mutableTypes.MutableClass
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.tiktok.interaction.engagement.profileGridCountPatch
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
@@ -265,12 +266,13 @@ internal fun MutableMethod.interceptPhotoVideoConversion() {
 @Suppress("unused")
 val advancedDownloadsPatch = bytecodePatch(
     name = "Advanced downloads",
-    description = "Adds download quality choices, original Photo Mode images, separate audio files and optional video details. It can check for an existing saved video before downloading another copy. Long presses save profile pictures and stories. Switch: Hushfeed settings > Downloads.",
+    description = "Adds download quality choices, original Photo Mode images, separate audio files and optional video details. A photo post can also save as one video with its sound and no TikTok logo. It can check for an existing saved video before downloading another copy, and mark the videos it saved on profile grids. Long presses save profile pictures and stories. Switch: Hushfeed settings > Downloads.",
     default = false,
 ) {
     category("Downloads")
     compatibleWith(*AppCompatibilities.tiktok())
-    dependsOn(settingsPatch, sharedExtensionPatch)
+    // The grid cell's count, for the check mark on videos saved here.
+    dependsOn(settingsPatch, sharedExtensionPatch, profileGridCountPatch)
     execute {
         listOf(DownloadAddressFingerprint, CleanDownloadAddressFingerprint).forEach { fingerprint ->
             fingerprint.method.apply {

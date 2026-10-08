@@ -1,7 +1,16 @@
 #!/usr/bin/env python3
 """Applies Nai64ExtraPatches_Options.yaml to build/options.json.
-Hushfeed: all enabled except hushfeed_disabled list.
-Nai64: only listed patches enabled, with safe option-key matching."""
+
+YAML sections:
+  hushfeed_disabled: list of Hushfeed patch names to disable
+  hushfeed_options:  list of {name, options:{key: value}} applied to Hushfeed patches
+  patches:           Nai64 allowlist (enabled + options)
+
+Option keys are matched exactly, then normalized. If no requested key matches and
+the target patch has exactly one option, the value is applied to that option and
+the real key is printed to the log. List-typed options auto-wrap scalars
+(e.g. "en" -> ["en"]).
+"""
 import json
 import re
 import yaml
@@ -11,53 +20,79 @@ def norm(s):
     return re.sub(r"[^a-z0-9]", "", (s or "").lower())
 
 
+def apply_value(options_dict, key, new):
+    """Set an option value, adapting to the existing value's shape."""
+    cur = options_dict[key]
+    if isinstance(cur, dict) and "value" in cur:
+        inner = cur["value"]
+        cur["value"] = [new] if (isinstance(inner, list) and not isinstance(new, list)) else new
+    elif isinstance(cur, list) and not isinstance(new, list):
+        options_dict[key] = [new]
+    else:
+        options_dict[key] = new
+
+
 with open("build/options.json") as f:
     options = json.load(f)
 with open("Nai64ExtraPatches_Options.yaml") as f:
     cfg = yaml.safe_load(f) or {}
 
-requested = {p["name"].lower(): p for p in cfg.get("patches", [])}
+requested_nai64 = {p["name"].lower(): p for p in cfg.get("patches", [])}
 disabled_hushfeed = {norm(x) for x in cfg.get("hushfeed_disabled", [])}
+hushfeed_options = {norm(x.get("name", "")): x for x in cfg.get("hushfeed_options", [])}
+
+
+def apply_requested_options(patch_name, data, requested):
+    """Apply option values from the YAML to one patch, with safe key matching."""
+    existing = data.get("options") or {}
+    for k, v in (requested.get("options") or {}).items():
+        if k in existing:
+            apply_value(existing, k, v)
+            print(f"   -> {patch_name}: {k} = {v!r}")
+            continue
+        nk = norm(k)
+        match = next((ek for ek in existing if norm(ek) == nk), None)
+        if match:
+            apply_value(existing, match, v)
+            print(f"   -> {patch_name}: {match} = {v!r}")
+            continue
+        if len(existing) == 1:
+            only = next(iter(existing))
+            apply_value(existing, only, v)
+            print(f"   -> {patch_name}: key '{k}' not found; applied to its single option '{only}' = {v!r}")
+        else:
+            print(f"   !! {patch_name}: key '{k}' not found. Available keys: {list(existing.keys())}")
+    data["options"] = existing
+
 
 for i, bundle in enumerate(options):
     pd = bundle.get("patches", {})
 
     if i == 0:
+        # Hushfeed: enable all except disabled list; apply hushfeed_options
         for name, data in pd.items():
-            if norm(name) in disabled_hushfeed:
+            nn = norm(name)
+            if nn in disabled_hushfeed:
                 data["enabled"] = False
                 print(f"   -> Hushfeed disabled per YAML: {name}")
             else:
                 data["enabled"] = True
+            req = hushfeed_options.get(nn)
+            if req:
+                apply_requested_options(name, data, req)
 
     elif i == 1:
+        # Nai64: disable all, enable exactly what the YAML lists
         for name, data in pd.items():
             data["enabled"] = False
-            req = requested.get(name.lower())
+            req = requested_nai64.get(name.lower())
             if not (req and req.get("enabled", False)):
                 continue
             data["enabled"] = True
-            existing = data.get("options") or {}
-            for k, v in (req.get("options") or {}).items():
-                target = k if k in existing else None
-                if target is None:
-                    nk = norm(k)
-                    for ek in existing:
-                        if norm(ek) == nk:
-                            target = ek
-                            break
-                if target is None:
-                    print(f"   !! {name}: option key '{k}' not in bundle — skipped")
-                    continue
-                if isinstance(existing[target], dict) and "value" in existing[target]:
-                    existing[target]["value"] = v
-                else:
-                    existing[target] = v
-                print(f"   -> {name}: {target} = {v!r}")
-            data["options"] = existing
+            apply_requested_options(name, data, req)
 
         found = {n.lower() for n in pd}
-        for rn in requested:
+        for rn in requested_nai64:
             if rn not in found:
                 print(f"   !! Requested Nai64 patch not present in bundle: {rn}")
 

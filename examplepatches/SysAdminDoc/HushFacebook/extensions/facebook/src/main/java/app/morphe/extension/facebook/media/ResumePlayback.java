@@ -340,7 +340,13 @@ public final class ResumePlayback {
         String skip = skipReason(facts, length);
         if (skip != null) {
             count(skip);
-            if (!SHORT.equals(skip)) log(() -> "Resume long videos: left a start alone, " + skip);
+            if (REEL.equals(skip)) {
+                // Where each reel began, for reels whose seekbar shows time gone before they play.
+                log(() -> "Resume long videos: left a start alone, reel, " + startedAt(player, facts, length)
+                        + ", " + (trigger instanceof Enum ? ((Enum<?>) trigger).name() : "no trigger"));
+            } else if (!SHORT.equals(skip)) {
+                log(() -> "Resume long videos: left a start alone, " + skip);
+            }
             return;
         }
         ResumePoints store = points();
@@ -463,6 +469,13 @@ public final class ResumePlayback {
             HookStatus.bound(FAMILY, "player position");
         }
         return at;
+    }
+
+    /** Where [player] is as its video starts, of how long, and the start Facebook's params asked for. */
+    static String startedAt(Object player, Facts facts, int length) {
+        int at = access.position(player);
+        return "at " + (at == NOT_PATCHED_TIME ? "an unknown position" : at + " ms") + " of " + length
+                + " ms, Facebook's start " + facts.startPositionMs + " ms";
     }
 
     private static int readDuration(Object player) {

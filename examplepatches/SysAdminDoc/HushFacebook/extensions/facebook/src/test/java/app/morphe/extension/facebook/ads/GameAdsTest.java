@@ -5,9 +5,11 @@
 package app.morphe.extension.facebook.ads;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
@@ -36,6 +38,7 @@ public class GameAdsTest {
     public void restore() {
         PauseForTests.resume();
         Settings.BLOCK_GAME_ADS.resetToDefault();
+        Settings.ANSWER_REWARDED_GAME_ADS.resetToDefault();
         FeedFilterCounters.clear();
         HookStatus.clear();
     }
@@ -105,5 +108,42 @@ public class GameAdsTest {
         assertNull(GameAds.heldPromise("{\"type\":\"loadadasync\",\"content\":{}}"));
         assertNull(GameAds.heldPromise("{\"type\":\"loadadasync\",\"content\":{\"promiseID\":\"\"}}"));
         assertEquals("ADS_NO_FILL", GameAds.rejection(null));
+    }
+
+    private static String instanceMessage(String type, String instance) {
+        return "{\"type\":\"" + type + "\",\"content\":{\"promiseID\":\"2\",\"adInstanceID\":\"" + instance + "\"}}";
+    }
+
+    /** Answered as watched: the rewarded video, then its load and show; every other ad is still refused. */
+    @Test
+    public void aRewardedVideoIsAnsweredAsWatchedWithTheSwitchOn() throws Exception {
+        assertNull("off, it is rejected", GameAds.answer(message("getrewardedvideoasync", "1")));
+        Settings.ANSWER_REWARDED_GAME_ADS.save(true);
+        JSONObject instance = (JSONObject) GameAds.answer(message("getrewardedvideoasync", "1"));
+        assertNotNull("a rewarded video gets an ad instance", instance);
+        assertEquals("its placement", "1_2", instance.getString("placementID"));
+        String id = instance.getString("adInstanceID");
+        assertTrue(id, id.startsWith(GameAds.WATCHED));
+        assertNotNull("its load resolves", GameAds.answer(instanceMessage("loadadasync", id)));
+        assertNotNull("its show resolves", GameAds.answer(instanceMessage("showadasync", id)));
+        assertNull("another instance's show is refused", GameAds.answer(instanceMessage("showadasync", "123")));
+        assertNull("an interstitial is refused", GameAds.answer(message("getinterstitialadasync", "1")));
+        assertNull("a banner is refused", GameAds.answer(message("loadbanneradasync", "1")));
+        assertNull("another message goes on", GameAds.answer(message("setplayerdataasync", "1")));
+        assertTrue(HookStatus.report("").toString(),
+                HookStatus.report("").toString().contains("Counted: " + GameAds.ANSWERED + " 3"));
+    }
+
+    @Test
+    public void answeringNeedsBlockInstantGamesAdsAndStopsWhilePaused() {
+        Settings.ANSWER_REWARDED_GAME_ADS.save(true);
+        Settings.BLOCK_GAME_ADS.save(false);
+        assertNull(GameAds.answer(message("getrewardedvideoasync", "1")));
+        Settings.BLOCK_GAME_ADS.resetToDefault();
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertNull(GameAds.answer(message("getrewardedvideoasync", "1")));
+        PauseForTests.resume();
+        assertNotNull(GameAds.answer(message("getrewardedvideoasync", "1")));
+        assertNull("what it can't read", GameAds.answer(null));
     }
 }

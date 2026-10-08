@@ -108,6 +108,7 @@ public class PhotoSaveTest {
 
         TreeJNI oneSized = photo().with("imageHigh", new TreeJNI().with("uri", FULL)).with("imageLow", image(SMALL, 320, 240));
         assertEquals("a size beats none", SMALL, PhotoSave.largest(oneSized));
+        assertEquals("imageHigh unsized, image none, imageMedium none, imageLow 320x240", PhotoSave.sizes(oneSized));
 
         assertEquals("an image without an address is passed over", MEDIUM, PhotoSave.largest(
                 photo().with("imageHigh", new TreeJNI().number("width", 4000).number("height", 3000))

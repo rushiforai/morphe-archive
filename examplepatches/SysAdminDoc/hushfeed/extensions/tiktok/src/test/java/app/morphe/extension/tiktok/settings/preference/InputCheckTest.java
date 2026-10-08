@@ -362,6 +362,132 @@ public class InputCheckTest {
         });
     }
 
+    /** The preview line under the field, found by its heading. */
+    private static String previewIn(android.view.View view) {
+        if (view instanceof android.widget.TextView && !(view instanceof android.widget.EditText)
+                && ((android.widget.TextView) view).getText().toString().startsWith("Preview with a made-up post:")) {
+            android.widget.TextView text = (android.widget.TextView) view;
+            return text.getVisibility() == android.view.View.VISIBLE ? text.getText().toString() : null;
+        }
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                String found = previewIn(group.getChildAt(index));
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    @Test public void theFilenameEditorPreviewsWhatTheTypedTemplateSavesAs() throws Exception {
+        onScreen("DOWNLOADS", Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.key, field -> {
+            String saved = Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.get();
+            openDialog(field);
+            android.app.AlertDialog dialog = (android.app.AlertDialog) field.getDialog();
+            android.view.View root = dialog.getWindow().getDecorView();
+
+            field.getEditText().setText("{creator}_{vidoe_id}");
+            String shown = previewIn(root);
+            assertNotNull("no preview under the field", shown);
+            assertTrue(shown, shown.contains("/creator_name_{vidoe_id}.mp4"));
+            assertTrue(shown, shown.contains("Not a token here, kept as typed: {vidoe_id}"));
+
+            field.getEditText().setText("{video_id}");
+            shown = previewIn(root);
+            assertTrue("the preview follows the typing: " + shown, shown.contains("/7312345678901234567.mp4"));
+            assertFalse(shown, shown.contains("Not a token"));
+            assertEquals("looking saves nothing", saved, Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE.get());
+            dialog.dismiss();
+            // The dismissal reaches the row as a posted message, and run after the second opening
+            // it would clear that dialog instead, the way no tap can.
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+
+            // Opened again, the editor has one watcher, not one per opening.
+            openDialog(field);
+            field.getEditText().setText("{creator}");
+            assertTrue(previewIn(field.getDialog().getWindow().getDecorView()).contains("/creator_name.mp4"));
+            field.getDialog().dismiss();
+        });
+    }
+
+    /** The answer line under the sample box, found by its heading. */
+    private static android.widget.TextView wordRuleAnswer(android.view.View view) {
+        if (view instanceof android.widget.TextView && !(view instanceof android.widget.EditText)
+                && ((android.widget.TextView) view).getText().toString()
+                .startsWith("Word rules only, not every feed filter:")) {
+            return (android.widget.TextView) view;
+        }
+        if (view instanceof android.view.ViewGroup) {
+            android.view.ViewGroup group = (android.view.ViewGroup) view;
+            for (int index = 0; index < group.getChildCount(); index++) {
+                android.widget.TextView found = wordRuleAnswer(group.getChildAt(index));
+                if (found != null) return found;
+            }
+        }
+        return null;
+    }
+
+    @Test public void theWordEditorsTryUnsavedRulesOnASampleWithoutSavingAnything() throws Exception {
+        for (String[] editor : new String[][]{
+                {"blocked_caption_words", "Sample caption to test"},
+                {"live_hidden_categories", "Sample category to test"}}) {
+            onScreen("FEED_FILTER", editor[0], field -> {
+                String saved = field.getText();
+                openDialog(field);
+                android.app.AlertDialog dialog = (android.app.AlertDialog) field.getDialog();
+                android.view.View root = dialog.getWindow().getDecorView();
+                java.util.List<android.widget.EditText> boxes = new java.util.ArrayList<>();
+                collectEditTexts(root, boxes);
+                assertEquals("the rules box and the sample box", 2, boxes.size());
+                android.widget.EditText rules = boxes.get(0);
+                android.widget.EditText sample = boxes.get(1);
+                assertEquals(editor[1], sample.getHint().toString());
+                assertEquals("the sample box starts empty", "", sample.getText().toString());
+                android.widget.TextView answer = wordRuleAnswer(root);
+                assertNotNull("no answer line", answer);
+                assertEquals("read out as it changes",
+                        android.view.View.ACCESSIBILITY_LIVE_REGION_POLITE,
+                        answer.getAccessibilityLiveRegion());
+
+                rules.setText("\"cat\" !& \"dog\", Crypto");
+                sample.setText("Just a CAT");
+                assertTrue(answer.getText().toString(),
+                        answer.getText().toString().endsWith("Matches the rule: \"cat\" !& \"dog\""));
+                sample.setText("a cat and a dog");
+                assertTrue(answer.getText().toString(),
+                        answer.getText().toString().endsWith("No rule matches this text."));
+                rules.setText("\"cat\" & ");
+                assertTrue("a syntax error is not a non-match: " + answer.getText(),
+                        answer.getText().toString().contains("Can't check yet: "));
+                assertEquals("looking saves nothing", saved, field.getText());
+
+                // The sample is capped as it's typed.
+                assertEquals(1, sample.getFilters().length);
+                assertEquals(4_000,
+                        ((android.text.InputFilter.LengthFilter) sample.getFilters()[0]).getMax());
+
+                // Cancel leaves the setting alone, and the next opening starts clean.
+                dialog.getButton(android.app.AlertDialog.BUTTON_NEGATIVE).performClick();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertEquals(saved, field.getText());
+                openDialog(field);
+                java.util.List<android.widget.EditText> again = new java.util.ArrayList<>();
+                collectEditTexts(field.getDialog().getWindow().getDecorView(), again);
+                assertEquals("no second sample box per opening", 2, again.size());
+                assertEquals("", again.get(1).getText().toString());
+
+                // Save still follows the existing check.
+                again.get(0).setText("\"cat\" & ");
+                ((android.app.AlertDialog) field.getDialog())
+                        .getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();
+                Shadows.shadowOf(Looper.getMainLooper()).idle();
+                assertTrue("an unfinished rule still can't be saved", field.getDialog().isShowing());
+                assertEquals(saved, field.getText());
+                field.getDialog().dismiss();
+            });
+        }
+    }
+
     @Test public void aCreatorPatternThatWillNotCompileIsRefusedInTheDialog() throws Exception {
         onScreen("FEED_FILTER", "blocked_creators", field -> {
             assertFalse("an unclosed group should not save",

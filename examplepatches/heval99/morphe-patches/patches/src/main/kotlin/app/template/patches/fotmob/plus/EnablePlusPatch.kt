@@ -1,9 +1,9 @@
 package app.template.patches.fotmob.plus
 
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.returnEarly
-import app.template.patches.fotmob.misc.extension.sharedExtensionPatch
 import app.template.patches.shared.Constants.COMPATIBILITY_FOTMOB
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
@@ -22,19 +22,17 @@ val enablePlusPatch = bytecodePatch(
 ) {
     compatibleWith(COMPATIBILITY_FOTMOB)
 
-    dependsOn(sharedExtensionPatch)
-
     execute {
         // Disable the staff account bypass (forces the normal path).
-        val staffMethod = StaffAccountFingerprint.methodOrNull
+        val staffMethod = StaffAccountFingerprint.method
         staffMethod.returnEarlyIfImplemented(false)
 
         // The storage layer changes between releases (236 read SharedPreferencesRepository,
         // 237 goes through a settings holder), so locate the subscription getter by shape:
         // inside the manager class it is the only no-arg boolean method that is neither the
         // staff check (holds the staff email string) nor a constant-false stub. Force it true.
-        val manager = staffMethod?.definingClass ?: return@execute
-        val candidates = mutableClassDefByOrNull(manager)?.methods.orEmpty()
+        val manager = staffMethod.definingClass
+        val candidates = mutableClassDefBy(manager).methods
             .filter { it.implementation != null }
             .filter { it.parameterTypes.isEmpty() && it.returnType == "Z" }
             .filter { method ->
@@ -48,6 +46,8 @@ val enablePlusPatch = bytecodePatch(
                 !holdsStaffEmail && !constantFalse
             }
 
-        (candidates.singleOrNull() ?: candidates.firstOrNull())?.returnEarly(true)
+        val getter = candidates.firstOrNull()
+            ?: throw PatchException("Subscription getter not found in $manager")
+        getter.returnEarly(true)
     }
 }

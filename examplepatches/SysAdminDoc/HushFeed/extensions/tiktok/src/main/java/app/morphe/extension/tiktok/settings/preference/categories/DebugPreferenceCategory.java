@@ -21,6 +21,7 @@ import app.morphe.extension.tiktok.settings.preference.HookStatusPreference;
 import app.morphe.extension.tiktok.settings.preference.ScreenLayoutPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
+import app.morphe.extension.tiktok.settings.preference.TimedDiagnosticsPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
 @SuppressWarnings("deprecation")
@@ -49,9 +50,13 @@ public class DebugPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new TogglePreference(
                     context,
                     "Log diagnostics",
-                    "Turn this on while you record logs for a bug report, then turn it off again. While it's on, TikTok can feel slower and may crash.",
+                    "Keeps logging until you turn it off, even after a restart. TikTok can feel slower while it's on.",
                     BaseSettings.DEBUG
             ));
+
+            // One bug report's worth of logging that ends by itself, beside the switch rather
+            // than through it, so it never turns off logging someone left on.
+            addPreference(new TimedDiagnosticsPreference(context));
 
             // The switch behind the failure messages. It was read, persisted and backed up from
             // the first release and had no row anywhere, so nobody could turn the messages off

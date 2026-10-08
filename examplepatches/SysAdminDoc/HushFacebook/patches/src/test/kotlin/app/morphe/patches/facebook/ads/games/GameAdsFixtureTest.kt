@@ -21,7 +21,7 @@ import org.junit.Test
  */
 class GameAdsFixtureTest {
     @Test
-    fun `each declared build has one game bridge and one way to reject`() {
+    fun `each declared build has one game bridge and one way to reject and to resolve`() {
         val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
         val checked = mutableSetOf<String>()
         for (version in versions) {
@@ -34,6 +34,9 @@ class GameAdsFixtureTest {
                 val rejects = FixtureDex.classesHolding(bundle, REJECT_LOG).flatMap { it.methods.filter(::isRejectPromise) }
                 assertEquals("${bundle.name}: calls building a rejected promise", 1, rejects.size)
                 assertEquals("${bundle.name}: the bridge's reject methods", 1, rejectOn(bridges.single(), rejects).size)
+                val resolves = FixtureDex.classesHolding(bundle, RESOLVE_LOG).flatMap { it.methods.filter(::isResolvePromise) }
+                assertEquals("${bundle.name}: calls building a resolved promise", 1, resolves.size)
+                assertEquals("${bundle.name}: the bridge's resolve methods", 1, resolveOn(bridges.single(), resolves).size)
                 checked += version
             }
         }

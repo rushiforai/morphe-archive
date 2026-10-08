@@ -74,6 +74,11 @@ public final class DarkMode {
         return ON.get();
     }
 
+    /** Whether Facebook has answered since the app started, with either answer. */
+    static boolean hasAnswered() {
+        return answered;
+    }
+
     /** Whether Facebook has answered, and said its dark mode is on. */
     public static boolean saidOn() {
         return answered && ON.get();

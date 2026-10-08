@@ -150,3 +150,8 @@ CLAUDE.md
 /*_src/
 /*_classes/
 /probe_*
+
+# Local tool state and device logs
+.mimosa/
+.video_agent/
+Crashlogs/

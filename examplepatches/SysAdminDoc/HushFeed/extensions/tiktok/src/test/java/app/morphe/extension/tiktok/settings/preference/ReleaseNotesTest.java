@@ -57,7 +57,8 @@ public class ReleaseNotesTest {
         String generate = "import importlib.util,sys; from pathlib import Path; "
                 + "s=importlib.util.spec_from_file_location('notes',sys.argv[1]); "
                 + "m=importlib.util.module_from_spec(s); s.loader.exec_module(m); "
-                + "m.CHANGELOG=Path(sys.argv[2]); m.OUTPUT=Path(sys.argv[3]); m.main()";
+                + "m.CHANGELOG=Path(sys.argv[2]); m.OUTPUT=Path(sys.argv[3]); "
+                + "m.NOTES=Path(sys.argv[3]).parent / 'no-notes'; m.main()";
         Process generator = new ProcessBuilder("python", "-c", generate,
                 cursor.resolve("tools/gen-release-notes.py").toString(), changelog.toString(), source.toString())
                 .redirectErrorStream(true).start();
@@ -74,9 +75,16 @@ public class ReleaseNotesTest {
         try (var input = ReleaseNotes.class.getResourceAsStream("ReleaseNotes.class")) {
             Files.copy(input, consumer);
         }
+        // Its nested class has to come from the same loader, or the two sit in different
+        // runtime packages and can't reach each other's package-private members.
+        try (var input = ReleaseNotes.class.getResourceAsStream("ReleaseNotes$Section.class")) {
+            Files.copy(input, consumer.resolveSibling("ReleaseNotes$Section.class"));
+        }
         try (var loader = new URLClassLoader(new URL[]{root.toUri().toURL()}, getClass().getClassLoader()) {
             @Override protected Class<?> loadClass(String target, boolean resolve) throws ClassNotFoundException {
-                if (!target.equals(name) && !target.equals(name + "Data")) return super.loadClass(target, resolve);
+                if (!target.equals(name) && !target.equals(name + "Data") && !target.equals(name + "$Section")) {
+                    return super.loadClass(target, resolve);
+                }
                 synchronized (this) {
                     Class<?> loaded = findLoadedClass(target);
                     if (loaded == null) loaded = findClass(target);
@@ -277,6 +285,93 @@ public class ReleaseNotesTest {
             assertTrue(rowRemoved.get());
             assertFalse(ReleaseNotes.pending(activity, "0.60.0"));
             assertFalse(ReleaseNotes.pending(activity, "0.59.0"));
+        }
+    }
+
+    /** #91: a release translated for the phone's table shows in that language, the rest in English. */
+    @Test
+    public void aTranslatedReleaseReplacesItsEnglishAndOlderOnesStayEnglish() {
+        String english = "## 0.61.0 (date)\n\n* **TikTok:** Newer.\n\n## 0.60.0 (date)\n\n* **TikTok:** Older.\n";
+        String german = "## 0.61.0 (date)\n\n* **TikTok:** Neuer.\n";
+        java.util.List<ReleaseNotes.Section> shown = ReleaseNotes.sections(english, german, "0.61.0", "0.59.0");
+        assertEquals(2, shown.size());
+        assertEquals("Hushfeed 0.61.0 (date)\n\n• Neuer.\n", shown.get(0).text);
+        assertFalse(shown.get(0).english);
+        assertTrue(shown.get(1).text, shown.get(1).text.startsWith("Hushfeed 0.60.0 (date)\n\n• Older."));
+        assertTrue(shown.get(1).english);
+        // The English text the row and the pending check read doesn't change.
+        assertTrue(ReleaseNotes.text(english, "0.61.0", "0.59.0").contains("Newer."));
+    }
+
+    /** Every table carries the same releases, so no language is a release ahead of another. */
+    @Test
+    public void everyTableTranslatesTheSameReleases() {
+        java.util.regex.Pattern heading = java.util.regex.Pattern.compile("(?m)^## (\\d+\\.\\d+\\.\\d+) ");
+        java.util.Set<String> expected = null;
+        for (String tag : new String[]{"az", "de", "es", "in", "it", "pt-rbr", "ru", "tr"}) {
+            java.util.Set<String> versions = new java.util.TreeSet<>();
+            String notes = ReleaseNotesData.translated(tag);
+            if (notes != null) {
+                java.util.regex.Matcher match = heading.matcher(notes);
+                while (match.find()) versions.add(match.group(1));
+            }
+            if (expected == null) expected = versions;
+            assertEquals(tag + " translates different releases", expected, versions);
+        }
+        assertTrue("0.68.0 isn't translated", expected.contains("0.68.0"));
+        assertEquals(ReleaseNotesData.translated("in"), ReleaseNotesData.translated("id"));
+        assertEquals(null, ReleaseNotesData.translated("fr"));
+        assertEquals(null, ReleaseNotesData.translated(null));
+    }
+
+    @Test @Config(manifest = Config.NONE, sdk = 28, qualifiers = "de")
+    public void aGermanPhoneReadsATranslatedReleaseWithoutTheEnglishLabel() {
+        java.util.List<TextView> texts = dialogTexts("0.68.0", null);
+        assertEquals("a translated release needs no English label", 1, texts.size());
+        android.text.Spanned notes = (android.text.Spanned) texts.get(0).getText();
+        assertTrue(notes.toString(), notes.toString().startsWith("Hushfeed 0.68.0"));
+        assertFalse("the German phone got the English notes",
+                notes.toString().equals(ReleaseNotes.text("0.68.0", null)));
+        android.text.style.LocaleSpan[] spans = notes.getSpans(0, notes.length(), android.text.style.LocaleSpan.class);
+        assertEquals(1, spans.length);
+        assertEquals("de", spans[0].getLocale().getLanguage());
+        assertEquals(notes.length(), notes.getSpanEnd(spans[0]));
+    }
+
+    @Test @Config(manifest = Config.NONE, sdk = 28, qualifiers = "de")
+    public void olderEnglishReleasesUnderATranslatedOneAreLabelledAndMarked() {
+        java.util.List<TextView> texts = dialogTexts("0.68.0", "0.66.0");
+        assertEquals("expected the label, then the notes", 2, texts.size());
+        assertEquals("Ein Teil dieser Hinweise ist auf Englisch.", texts.get(0).getText().toString());
+        android.text.Spanned notes = (android.text.Spanned) texts.get(1).getText();
+        assertTrue(notes.toString().contains("Hushfeed 0.67.0"));
+        android.text.style.LocaleSpan[] spans = notes.getSpans(0, notes.length(), android.text.style.LocaleSpan.class);
+        assertEquals("one run per language", 2, spans.length);
+        java.util.Arrays.sort(spans, java.util.Comparator.comparingInt(notes::getSpanStart));
+        assertEquals("de", spans[0].getLocale().getLanguage());
+        assertEquals(0, notes.getSpanStart(spans[0]));
+        assertEquals(java.util.Locale.ENGLISH, spans[1].getLocale());
+        assertEquals(notes.toString().indexOf("Hushfeed 0.67.0"), notes.getSpanStart(spans[1]));
+        assertEquals(notes.length(), notes.getSpanEnd(spans[1]));
+    }
+
+    /** The What's new dialog's text views for {@code current}, after {@code dismissed} was. */
+    private static java.util.List<TextView> dialogTexts(String current, String dismissed) {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            activity.getSharedPreferences(ReleaseNotes.PREFS_NAME, Context.MODE_PRIVATE).edit()
+                    .putString("dismissed_version", dismissed).commit();
+            ReleaseNotes.show(activity, current, () -> {});
+            AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+            ViewGroup content = (ViewGroup)
+                    ((ViewGroup) org.robolectric.Shadows.shadowOf(dialog).getView()).getChildAt(0);
+            java.util.List<TextView> texts = new java.util.ArrayList<>();
+            for (int index = 0; index < content.getChildCount(); index++) {
+                texts.add((TextView) content.getChildAt(index));
+            }
+            dialog.dismiss();
+            return texts;
         }
     }
 }

@@ -14,7 +14,7 @@ val disableAdsPatch = bytecodePatch(
 
     execute {
         // Both overloads are entry points used by the Blaze GAM SDK wrapper.
-        MobileAdsInitializeFingerprint.methodOrNull?.returnEarly()
-        MobileAdsInitializeWithListenerFingerprint.methodOrNull?.returnEarly()
+        MobileAdsInitializeFingerprint.method.returnEarly()
+        MobileAdsInitializeWithListenerFingerprint.method.returnEarly()
     }
 }

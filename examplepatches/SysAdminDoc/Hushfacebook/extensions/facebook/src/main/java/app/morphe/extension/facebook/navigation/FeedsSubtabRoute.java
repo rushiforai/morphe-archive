@@ -158,7 +158,7 @@ public final class FeedsSubtabRoute {
 
     /** The feed type Facebook keeps as a constant of [types] and calls [name], or null. */
     @Nullable
-    static Object feedTypeNamed(Class<?> types, String name) {
+    public static Object feedTypeNamed(Class<?> types, String name) {
         if (!FEED_TYPE_CLASS.equals(types.getName())) return null;
         for (Field field : types.getFields()) {
             int modifiers = field.getModifiers();

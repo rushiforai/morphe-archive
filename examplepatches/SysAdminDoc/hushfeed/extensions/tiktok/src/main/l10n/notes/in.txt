@@ -1,0 +1,69 @@
+## 0.68.0 (2026-10-06)
+
+* **TikTok:** Unduh foto asli kini menyimpan setiap foto sebagai JPEG (#105). TikTok mencantumkan setiap foto lebih dulu sebagai salinan HEIF, jadi fotonya tersimpan sebagai file .heif yang tidak bisa dibuka banyak aplikasi galeri dan komputer, dan beberapa ponsel, termasuk Samsung, sama sekali tidak bisa mendekode HEIF milik TikTok. Sekarang Hushfeed mengambil salinan WebP yang dicantumkan TikTok di samping setiap HEIF lalu menyimpannya ulang sebagai JPEG ukuran penuh di Android 9 ke atas. Kalau TikTok mencantumkan salinan JPEG, salinan itulah yang disimpan, byte demi byte. Foto yang tidak bisa dikonversi tetap memakai file yang dikirim TikTok, begitu juga foto yang punya bagian transparan. Deskripsi pengaturannya juga menyebut JPEG sekarang, dan foto story bekerja dengan cara yang sama.
+
+* **TikTok:** Menyembunyikan bilah status kini juga menghilangkan strip hitam yang disisakan TikTok di atas video untuknya. Di Android 14 ke bawah, video digambar di belakang lubang kamera, bukan di bawahnya (#97). Sakelar baru, Sembunyikan kontrol Tampilan bersih, menghilangkan tombol tutup, bilah kemajuan, serta tombol jeda dan kecepatan dari layar selama Tampilan bersih aktif, bersama tombol tutup yang ditampilkan postingan foto di sudut. Semuanya muncul lagi begitu kamu keluar dari Tampilan bersih.
+
+* **TikTok:** Tampilan bersih kini menyembunyikan tombol story di atas Mengikuti saat TikTok membiarkannya tampil, dan memunculkannya lagi begitu kamu keluar dari Tampilan bersih (#84). Jeda menyerahkan tombol story dan tab di atas kepada TikTok. Tampilan bersih otomatis juga menunggu sampai TikTok benar-benar membersihkan layar sebelum menghitung satu percobaan, jadi video pertama yang belum siap bagi TikTok tetap dibersihkan.
+
+* **TikTok:** Tampilan bersih otomatis mencoba lagi di video saat ini setelah fokus kembali, termasuk video pertama setelah startup (#84). Percobaan yang dibatalkan atau gagal tidak lagi menghalangi percobaan berikutnya. Keluar manual tetap dihormati, dan panggilan balik dari video sebelumnya tidak bisa lagi membatalkan timer video berikutnya.
+
+* **TikTok:** Cadangkan, Pulihkan, dan Impor riwayat tontonan tidak lagi tersangkut di balik aplikasi file yang lambat. Kalau aplikasi file belum menjawab setelah beberapa detik, barisnya menawarkan untuk berhenti menunggu, dan berhenti sebelum ada yang dibaca atau ditulis membuat pengaturan dan riwayatmu tetap seperti semula. Cadangan yang sudah dimiliki aplikasi file adalah satu-satunya pengecualian: barisnya menyebut bahwa aplikasi file belum memberi tahu apakah cadangan itu tersimpan, dan kamu mendapat jawaban sebenarnya begitu ada. Aplikasi file yang tidak pernah melepas sebuah file hanya menahan baris itu, yang juga menyebutkannya, bukan menumpuk pekerjaan lain di belakangnya. Memutar ponsel di tengah pemulihan tidak menghentikan pemulihan.
+
+* **TikTok:** Ekspor nilai yang dimuat dan Impor nilai yang dimuat di Feature Gate Lab tidak lagi tersangkut di balik aplikasi file yang lambat. Kalau aplikasi file belum menjawab setelah beberapa detik, Lab menawarkan untuk berhenti menunggu, dan berhenti sebelum ada yang dibaca atau ditulis tidak mengubah apa pun, bahkan file yang kamu pilih untuk ditimpa. Mengetuk salah satunya lagi saat sebuah file masih terbuka akan memberi tahu hal itu, bukan mengantrekan satu lagi yang berjalan setelah yang pertama selesai. Selain itu, mengekspor di atas ekspor lama yang lebih besar tidak lagi meninggalkan ujung file lama, yang membuat file baru tidak bisa dibaca.
+
+* **TikTok:** Memilih file cadangan yang sudah ada untuk ditimpa tidak lagi berisiko membuatnya hilang. Kalau pencadangan berhenti, atau gagal sebelum ada yang masuk ke file (daftar aturan feed yang terlalu panjang untuk cadangan, misalnya), file yang kamu pilih tetap menyimpan cadangan lamamu, bukan terhapus. File kosong yang dibuat pemilih file untuk cadangan tetap dibersihkan.
+
+* **TikTok:** Pencarian pengaturan menampilkan lebih dulu baris yang kata pencarianmu berupa kata utuh. Mencari "angka" dulu menaruh Sembunyikan akun terverifikasi dan Kreator yang diblokir, yang hanya cocok di dalam kata lain, di atas baris yang memang membahas angka. Baris yang hanya cocok di dalam kata yang lebih panjang tetap menyusul, sesuai urutan halaman, dan pengaturan yang diterjemahkan diurutkan dengan aturan yang sama.
+
+* **TikTok:** Pencarian pengaturan kini menemukan setiap kotak dalam daftar centang, dicentang atau tidak, jadi mencari "angka" menemukan Angka di bawah tombol di daftar kolom kanan. Membuka hasil sebuah kotak akan membuka daftar yang digulir ke kotak itu tanpa mengubahnya. Daftar yang terbuka saat layar diputar kembali dengan centangmu yang belum disimpan.
+
+* **TikTok:** Baris sakelar di pengaturan Hushfeed berubah bentuk saat layar sempit dan teks besar. Sakelarnya pindah ke bawah teks, di ujung baris, dan judul serta deskripsi mendapat seluruh lebar. Judul bahasa Jerman dengan teks dua kali lipat di ponsel kecil tidak lagi terpotong di tengah kata menjadi empat baris pendek. Layar yang lebih lebar tetap memakai tata letak biasa, dan baris yang digulir dari satu bentuk ke bentuk lain berubah kembali.
+
+* **TikTok:** Yang baru kini memberi tahu bahwa catatannya berbahasa Inggris saat pengaturan lainnya memakai bahasamu. Catatan itu juga ditandai sebagai teks bahasa Inggris untuk pembaca layar.
+
+* **TikTok:** Urungkan penghapusan video yang dilihat kini memulihkan riwayat di latar belakang dan melaporkan berapa banyak catatan terhapus yang masih muat dalam batas riwayat. Aplikasi tidak lagi bilang video sudah dipulihkan saat tontonan yang lebih baru tidak menyisakan ruang. Kalau penyimpanan gagal, Urungkan tetap tersedia.
+
+* **TikTok:** Urungkan kini menyimpan tontonan yang tercatat selama pemulihan sebelum menghitungnya. Penulisan antrean yang lebih lama juga menjaga waktu tonton yang lebih baru yang sudah disimpan Urungkan.
+
+* **TikTok:** Penyimpanan media kini menghormati penuh waktu tunggu dari server, termasuk tanggal HTTP, sebelum mengikuti pengalihan atau mencoba mirror atau trek subtitel lain. Waktu tunggu yang melewati batas waktu penyimpanan menghentikan tugas dengan pesan yang jelas dan menyimpan file yang sudah tersimpan. Batalkan juga menghentikan waktu tunggu percobaan ulang.
+
+* **TikTok:** Menyimpan laporan diagnostik atau laporan feature gate berjalan di thread tersendiri, jadi penyimpanan media yang lambat tidak bisa menahan thread yang dipakai bersama oleh seluruh Hushfeed. Mengetuk Simpan lagi saat laporan masih disimpan akan memberi tahu hal itu, bukan memulai laporan kedua.
+
+* **TikTok:** Hushfeed kini dibangun dengan Morphe patcher 1.15.1, jadi perlu Morphe Manager 1.34.0 atau lebih baru. Manager 1.33.0 meminta pembaruan sebelum memuat bundel. ARSCLib mengikuti patcher ke 9b742c412d, dengan hash yang dicek terhadap file yang diunduh, dan rilis memeriksa patch dengan CLI desktop 1.18.1.
+
+* **TikTok:** Setiap permintaan Guava di build kini diselesaikan ke 33.7.2, rilis di luar GHSA-xxph-c9ww-hj94, di grafik pengaturan, plugin, dan proyek, bukan hanya di tempat pin katalog menjangkau. Checksum-nya diverifikasi terhadap Maven Central sebelum pemeriksaan dependensi yang ketat menerimanya. Guava tetap di sisi build dan patching: bundel patch dan ekstensi tidak membawa apa pun darinya. Pemeriksaan bahwa sumber patch tidak mengimpor Guava secara langsung dulu lolos tanpa membaca satu file pun. Sekarang file-nya dibaca.
+
+* **TikTok:** Perubahan pada ekstensi Java saja tidak lagi menjalankan ulang pemeriksaan fingerprint terhadap fixture APK, karena fixture itu tidak pernah membacanya. Perintah tes lengkap dan pemeriksaan rilis tetap mencakup setiap tes, dan perubahan pada patch, tes, dependensi, atau fixture tetap menjalankannya ulang.
+
+* **TikTok:** Pengeditan dokumentasi tidak lagi menjalankan ulang tes fixture APK yang tidak berubah. Perintah tes lengkap dan pemeriksaan rilis tetap mencakup setiap tes, dan pemeriksaan yang membaca sumber kini melacak masukan eksternalnya. Mengganti APK membatalkan hasil tes meskipun ukuran dan stempel waktunya sama.
+
+* **TikTok:** Pemeriksaan pemindai penyimpanan lokal kini tetap menampilkan diagnostik Java tanpa menganggap proses yang berhasil sebagai kegagalan di Windows PowerShell.
+
+* **TikTok:** Penandatanganan APK lokal kini menerima pesan startup Java yang tidak berbahaya akibat batas heap dan CPU. Sertifikat yang tidak valid dan pemeriksaan tanda tangan yang gagal tetap menghentikan instalasi.
+
+## 0.67.1 (2026-10-03)
+
+* **TikTok:** Pengaturan jadi lebih mudah ditemukan. Kelima tombol yang digambar Hushfeed di video kini berkumpul di Layar feed > Tombol di video. Pemutaran sekarang memuat semua sakelar pemutar, termasuk bilah kemajuan dan gambar mininya, hentikan pengulangan, dan lanjutkan setelah menggulir, yang tadinya ada di Aplikasi. Tangkapan layar dan bilah status pindah ke Aplikasi > Sistem bersama Tampak seperti aplikasi dari toko bagi pemeriksaan TikTok. Tetap izinkan Duet dan Stitch kini ada di Menu bagikan. Pilihan yang sudah kamu simpan tetap seperti semula.
+
+* **TikTok:** Setiap tombol yang digambar Hushfeed di video kini mulai dalam keadaan mati: blokir, sembunyikan, blokir suara, Tidak tertarik, dan senyap. Instalasi baru tidak menampilkan satu pun sampai kamu menyalakannya di Layar feed > Tombol di video. Kalau kamu memakai tombol senyap, nyalakan lagi Tampilkan tombol senyap di video.
+
+* **TikTok:** Hapus paket bahasa yang tidak terpakai tidak lagi menghentikan seluruh proses patch saat Bahasa yang dipertahankan diatur ke Semua dan APK membawa kumpulan bahasa yang belum diperiksa, seperti bundel terpisah yang digabung dengan satu bahasa. Dalam kasus itu tidak ada yang dihapus, dan log patch menjelaskan alasannya (#96).
+
+* **TikTok:** Baris rentetan di bawah Pertahankan rentetan menulis "Terkirim ke 15/15 obrolan" begitu TikTok menerima semua pesan. Pengiriman hanya disebut belum terkonfirmasi untuk obrolan yang serah terimanya mengalami error atau tidak pernah selesai (#92).
+
+* **TikTok:** Tampilkan tombol sembunyikan di video dan Tampilkan tombol blokir suara kini menggambar kontrol feed mereka sendiri meski Tampilkan tombol blokir di video mati. Keduanya bekerja lewat Filter feed, jadi hanya tercantum saat patch itu disertakan. Instalasi baru memulai kedua sakelar pembantu itu dalam keadaan mati, sehingga memilih tombol blokir penulis tidak menambah chip ekstra sampai kamu memintanya (#95).
+
+* **TikTok:** Jeda tetap menyediakan pintasan tekan lama di Beranda yang tersimpan, sehingga tamu bisa membuka pengaturan lagi dan melanjutkan Hushfeed setelah layar ditutup. Pintasan yang dinonaktifkan tetap nonaktif, ketukan Beranda biasa tetap bekerja, dan aksi tekan lama milik TikTok tetap terjaga (#89).
+
+* **TikTok:** Pengaturan di Android 6 memakai bentuk jamak dari bahasa yang disertakan, termasuk one, few, dan many dalam bahasa Rusia. Terjemahan jumlah yang hilang kembali ke bahasa Inggris dengan bentuk tunggal yang benar. Android versi lebih baru tetap memakai aturan ICU mereka sendiri.
+
+* **TikTok:** Yang baru menyimpan seluruh riwayat rilis saat teksnya bertambah. Catatan besar dan teks internasional tidak lagi melewati batas Java untuk menyusun satu string.
+
+* **TikTok:** Morphe Manager 1.33.0 menampilkan semua 106 patch dalam sepuluh kategorinya, tanpa ada yang tak berkategori. Pemeriksaan yang berjalan sebelum setiap build kini mencakup input ABI tunggal di setiap versi TikTok yang didukung dan menolak pustaka native yang diubah atau hasil patch yang kosong. Bundel yang dipublikasikan bisa diperiksa dengan atestasi rilis GitHub atau kunci tanda tangan yang dipin.
+
+* **TikTok:** Batasi lalu lintas latar belakang menjaga penyiapan push tetap utuh secara default, termasuk saat Semua dipilih. Pilihan opsional Lewati penyiapan push mulai dalam keadaan mati dan bisa menghentikan pesan serta notifikasi lain bila dinyalakan. APK yang sudah ada perlu dipatch ulang dari APK asli TikTok untuk memulihkan penyiapan push. Jeda tidak bisa membalik perubahan waktu patch ini (#86).
+
+* **TikTok:** Pulihkan pengaturan kini melaporkan kunci yang tidak bisa dipulihkan oleh build saat ini, terpisah dari pengaturan yang hilang di cadangan yang lebih lama. Pengaturan portabel tetap berpindah antarversi TikTok, status perangkat lokal tetap utuh, dan kompatibilitas Feature Gate Lab serta Urungkan tetap bekerja seperti sebelumnya.
+
+* **TikTok:** Bagian Video yang sudah dilihat di Filter feed bisa mengimpor ekspor JSON riwayat tontonan TikTok yang sudah ditinjau. Tanggal tonton dan akun yang dipilih tetap melekat pada impor, batas usia yang ada tetap berlaku, dan spanduk melaporkan entri yang ditambahkan dan dilewati. Mengulang impor tidak menambahkan apa pun. File yang tidak valid atau tidak didukung dan penulisan yang gagal membuat riwayat tersimpan tidak berubah. File dibatasi 2 MB dan 10.000 entri, dan tautan tidak pernah keluar dari ponsel. Impor yang menambah riwayat mengakhiri Urungkan untuk pembersihan sebelumnya dan menjelaskan perubahan itu.

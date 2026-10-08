@@ -35,6 +35,8 @@ public final class SessionPlaybackHold {
     // The pause switches' own pause (comments open, or the feed waiting for a tap after a
     // return), kept apart from the panel's so neither hands back a video the other paused.
     private static volatile boolean switchWanted;
+    // The app lock's own wish for the same pause, so it and the switches each hand it back alone.
+    private static volatile boolean lockWanted;
     private static final AtomicBoolean switchQueued = new AtomicBoolean();
     // Main thread only, like held.
     private static Target switchHeld;
@@ -180,6 +182,7 @@ public final class SessionPlaybackHold {
                 || !awemeId.equals(previous.awemeId)) {
             current = new Target(controller, awemeId);
         }
+        FeedLock.onVideo(awemeId);
         if (!SessionBudget.isLocked()) {
             Target waiting = waitingForFocus;
             if (waiting != null && waiting == current) {
@@ -200,10 +203,18 @@ public final class SessionPlaybackHold {
             }
             // TikTok starts the video again by itself, on a return above all, so while a pause
             // switch wants it stopped each report of it playing pauses it again.
-            if (switchWanted && switchQueued.compareAndSet(false, true)) {
+            if ((switchWanted || lockWanted) && switchQueued.compareAndSet(false, true)) {
                 MAIN.post(() -> {
                     switchQueued.set(false);
                     pauseForSwitchIfPlaying();
+                });
+            }
+            // The feed lock puts the same panel up with no budget behind it, so each report is
+            // where it finds out the feed is on screen, as the hold does just below.
+            if (FeedLock.covers() && syncQueued.compareAndSet(false, true)) {
+                MAIN.post(() -> {
+                    syncQueued.set(false);
+                    SessionLockOverlay.sync();
                 });
             }
             return;
@@ -235,6 +246,35 @@ public final class SessionPlaybackHold {
         if (controller == null || !target.isCurrentCell(controller)) return null;
         Object playing = Reflect.invoke(Reflect.invoke(controller, "getPlayerManager"), "isPlaying");
         return playing instanceof Boolean ? (Boolean) playing : null;
+    }
+
+    /**
+     * Plays or pauses the video on screen with TikTok's own controls, for a button that toggles it
+     * the way a tap on the video does (the picture-in-picture window's). Does nothing while the
+     * daily panel, a pause switch or the app lock holds the video, since each of those hands it
+     * back itself. Main thread.
+     *
+     * @return whether TikTok's player took the command
+     */
+    public static boolean setCurrentPlaying(boolean play) {
+        if (SessionBudget.isLocked() || switchWanted || lockWanted) return false;
+        Target target = current;
+        if (target == null) return false;
+        Object controller = target.controller.get();
+        if (controller == null || !target.isCurrentCell(controller)) return false;
+        return control(Reflect.invoke(controller, "getPlayerManager"), !play);
+    }
+
+    /** The post the player of the last reported video has on screen, or null. */
+    public static Object currentPlayingAweme() {
+        Target target = current;
+        Object controller = target == null ? null : target.controller.get();
+        if (controller == null) return null;
+        try {
+            return currentAweme(controller);
+        } catch (RuntimeException notAController) {
+            return null;
+        }
     }
 
     /** Runs on each visible hold sync, not only when the panel is first attached. */
@@ -276,6 +316,30 @@ public final class SessionPlaybackHold {
      */
     public static void releaseForSwitch(boolean resume) {
         switchWanted = false;
+        // The app lock still covers the screen, so the video stays stopped until it lifts.
+        if (lockWanted) return;
+        handBackSwitchPause(resume);
+    }
+
+    /**
+     * The app lock covers TikTok: the video on screen stops the way the switches stop it, and
+     * stays stopped on each report of it playing until {@link #releaseForLock}. Kept apart from
+     * the switches' own wish so neither one letting go starts a video the other still holds.
+     * Main thread.
+     */
+    public static void pauseForLock() {
+        lockWanted = true;
+        pauseForSwitchIfPlaying();
+    }
+
+    /** The lock lifted. With {@code resume} the video it stopped plays on. Main thread. */
+    public static void releaseForLock(boolean resume) {
+        lockWanted = false;
+        if (switchWanted) return;
+        handBackSwitchPause(resume);
+    }
+
+    private static void handBackSwitchPause(boolean resume) {
         Target owner = switchHeld;
         Object manager = switchManager.get();
         switchHeld = null;
@@ -292,7 +356,7 @@ public final class SessionPlaybackHold {
     }
 
     private static void pauseForSwitchIfPlaying() {
-        if (!switchWanted || SessionBudget.isLocked()) return;
+        if (!(switchWanted || lockWanted) || SessionBudget.isLocked()) return;
         Target target = current;
         if (target == null) return;
         Object controller = target.controller.get();

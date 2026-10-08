@@ -7,6 +7,7 @@ package app.morphe.patches.facebook.media.reelspeed
 import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
@@ -21,15 +22,18 @@ import app.morphe.patches.facebook.media.resume.trackers
 import app.morphe.patches.facebook.media.taptoplay.GROOT_PLAY
 import app.morphe.patches.facebook.media.taptoplay.grootPlays
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.patchLog
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.facebook.reels.hold.reelLiftGuardPatch
 import app.morphe.patches.facebook.reels.hold.SPEED_SET as GUARD_SPEED_SET
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findMutableMethodOf
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
@@ -44,13 +48,24 @@ internal const val PATCH = "Keep the reel speed"
  * sheet shows no toast, so its pick tells the extension straight after it sets the speed. The
  * extension's stubs are filled with the player's speed setter, its PlayerOrigin getter, its
  * VideoPlayerParams getter and the params' isFbShorts, isSponsored and isLiveNow.
+ *
+ * Keep the video speed, the extension's second switch for this patch, needs nothing more: the same
+ * hooks fire for every FbGrootPlayer, so a gear pick on a feed or Watch video and each later video's
+ * start already reach the extension, which tells reels from other videos by isFbShorts.
+ *
+ * Slower speeds, the third switch, hands the extension the list of speeds each of the Reels menu's
+ * pickers offers ([addSlowerSpeeds]), and a pick of one of the added speeds goes through the same
+ * toast and setter, so Keep the reel speed keeps it like any other. The gear menu's speed sheet
+ * gets them too ([addSlowerGearSpeeds]), and its pick goes through the setter the gear hook follows.
+ * Facebook's player keeps every speed at 0.25x or faster, so the patch lowers that floor to 0.1x
+ * ([lowerSpeedFloor]). Facebook itself never asks for less than 0.5x.
  */
 @Suppress("unused")
 val keepReelSpeedPatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Keep the reel speed",
     description = "A playback speed you pick in a reel's menu stays for the next reels until you pick another or " +
-        "Facebook restarts.",
+        "Facebook restarts. A second switch does the same for feed and Watch videos.",
     default = true,
 ) {
     category("Interface")
@@ -61,6 +76,22 @@ val keepReelSpeedPatch = bytecodePatch(
     execute {
         val anchors = findReelSpeedAnchors()
         applyReelSpeedAnchors(anchors)
+        // The slower speeds are the extension's third switch; a build where the menus moved keeps the rest.
+        try {
+            addSlowerSpeeds(anchors.toast)
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on without the slower speeds in that picker.")
+        }
+        try {
+            addSlowerGearSpeeds(anchors.gearPick)
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on without the slower speeds in the gear menu.")
+        }
+        try {
+            lowerSpeedFloor()
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on, and 0.1x plays at Facebook's slowest, 0.25x.")
+        }
         enableStatus("keepReelSpeed")
     }
 }
@@ -161,6 +192,96 @@ internal fun BytecodePatchContext.applyReelSpeedAnchors(anchors: ReelSpeedAnchor
         gear.addInstruction(call + 1, "invoke-static/range { v$speed .. v$speed }, $GEAR_PICKED")
     }
     fillStubs(anchors)
+}
+
+/**
+ * The Reels menu's two speed pickers hand their list of speeds to the extension as soon as
+ * Arrays.asList makes it, and build their items from the list it answers (#95): the attribute
+ * selector, found in the toast's class by the kept class it answers, and the dropdown, by the
+ * literal naming its control. More than one of either refuses before anything changes; either one
+ * missing refuses after the other is hooked.
+ */
+internal fun BytecodePatchContext.addSlowerSpeeds(toast: Method) {
+    val selectors = classDefBy(toast.definingClass).methods.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == ATTRIBUTE_SELECTOR && speedLists(it).isNotEmpty()
+    }
+    val dropdowns = classDefByStrings(SPEED_DROPDOWN, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { holder -> holder.methods.filter { holdsString(it, SPEED_DROPDOWN) && speedLists(it).isNotEmpty() } }
+    if (selectors.size > 1 || dropdowns.size > 1) {
+        refuse("expected one speed selector and one speed dropdown, found ${selectors.size} and ${dropdowns.size}")
+    }
+    (selectors + dropdowns).forEach { picker ->
+        val method = mutableClassDefBy(picker.definingClass).findMutableMethodOf(picker)
+        speedLists(method).asReversed().forEach { (result, list) ->
+            method.addInstructions(
+                result + 1,
+                """
+                    invoke-static/range { v$list .. v$list }, $SPEED_CHOICES
+                    move-result-object v$list
+                """,
+            )
+        }
+    }
+    if (selectors.isEmpty()) refuse("no speed selector answering $ATTRIBUTE_SELECTOR in ${toast.definingClass} fills a Float[]")
+    if (dropdowns.isEmpty()) refuse("no speed dropdown holding \"$SPEED_DROPDOWN\" fills a Float[]")
+}
+
+/**
+ * The gear menu's speed sheet (#95). Its builder, the one method of a class holding
+ * "PlayerControlsPlaybackSpeedBottomSheet" that makes [gearPick]'s class, hands the extension its
+ * last parameter first thing, the flag for reading each speed from its float, and takes the answer
+ * back in the same register, ahead of the copy the pick gets. Where its paths have met and it's about to walk the
+ * labels, it hands over the speeds and then the labels, each through the range form, and takes
+ * each back in its own register. That hook goes in under the walk's label, so a branch landing
+ * there runs it too. Refuses before anything changes.
+ */
+internal fun BytecodePatchContext.addSlowerGearSpeeds(gearPick: Method) {
+    val sheets = classDefByStrings(GEAR_SHEET, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { holder -> holder.methods.filter { isGearSheet(it, gearPick.definingClass) } }
+    val sheet = sheets.singleOrNull()
+        ?: refuse("expected one gear speed sheet builder making ${gearPick.definingClass}, found ${sheets.size}")
+    val meets = gearMeets(sheet)
+    val meet = meets.singleOrNull()
+        ?: refuse("expected one place ${sheet.definingClass}->${sheet.name} reads a speed for each label, found ${meets.size}")
+    val method = mutableClassDefBy(sheet.definingClass).findMutableMethodOf(sheet)
+    method.addInstructionsAtControlFlowLabel(
+        meet.index,
+        """
+            invoke-static/range { v${meet.speeds} .. v${meet.speeds} }, $GEAR_SPEEDS
+            move-result-object v${meet.speeds}
+            invoke-static/range { v${meet.labels} .. v${meet.labels} }, $GEAR_LABELS
+            move-result-object v${meet.labels}
+        """,
+    )
+    method.addInstructions(
+        0,
+        """
+            invoke-static/range { v${meet.values} .. v${meet.values} }, $GEAR_VALUES
+            move-result v${meet.values}
+        """,
+    )
+}
+
+/**
+ * HeroManager's setPlaybackSpeed keeps the speed and the pitch at [HERO_FLOOR] or faster. Its one
+ * load of that floor loads [SLOWEST] instead, into the same register, so a 0.1x pick reaches the
+ * service player, whose audio goes down to 0.1x.
+ */
+private fun BytecodePatchContext.lowerSpeedFloor() {
+    val methods = classDefByStrings(SPEED_RANGE_LOG, StringComparisonType.EQUALS)
+        .filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        .flatMap { holder -> holder.methods.filter { holdsString(it, SPEED_RANGE_LOG) } }
+    val method = methods.singleOrNull()
+        ?: refuse("expected one speed setter holding \"$SPEED_RANGE_LOG\", found ${methods.size}")
+    val floors = speedFloors(method)
+    val floor = floors.singleOrNull()
+        ?: refuse("expected ${method.definingClass}->${method.name} to load ${HERO_FLOOR}f once, found ${floors.size}")
+    if (!callsFloatMax(method)) refuse("${method.definingClass}->${method.name} keeps no speed over a floor")
+    val register = (method.implementation!!.instructions.elementAt(floor) as OneRegisterInstruction).registerA
+    mutableClassDefBy(method.definingClass).findMutableMethodOf(method)
+        .replaceInstruction(floor, "const v$register, 0x${SLOWEST.toRawBits().toString(16)}")
 }
 
 /** 2 when [setter] starts with the release guard's hook and its move-result, else 0. */

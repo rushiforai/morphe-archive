@@ -191,11 +191,12 @@ public class PausedHooksTest {
             return app.hushtelegram.extension.telegram.misc.NormalPaste.contextMenuAction(
                     new android.widget.EditText(RuntimeEnvironment.getApplication()), android.R.id.paste) == android.R.id.pasteAsPlainText;
         }));
-        probes.put(PatchFamily.SHOW_LOCAL_IDS, Collections.singletonList(() -> {
+        probes.put(PatchFamily.SHOW_LOCAL_IDS, Arrays.asList(() -> {
             android.widget.FrameLayout menu = new android.widget.FrameLayout(RuntimeEnvironment.getApplication());
             app.hushtelegram.extension.telegram.misc.LocalIds.addToProfile(menu, 42, 0);
             return menu.getChildCount() == 1;
-        }));
+        }, () -> app.hushtelegram.extension.telegram.misc.ProfileDcForTests.row(
+                new android.widget.FrameLayout(RuntimeEnvironment.getApplication()))));
         probes.put(PatchFamily.DISABLE_DOUBLE_TAP_REACTIONS, Collections.singletonList(
                 app.hushtelegram.extension.telegram.misc.DoubleTapReactions::stopReaction));
         probes.put(PatchFamily.HIDE_CONTACTS_BLOCK, Arrays.asList(
@@ -273,6 +274,32 @@ public class PausedHooksTest {
         // A stranger's notification goes out silently.
         probes.put(PatchFamily.SILENCE_NON_CONTACTS, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.NonContactsForTests.on()));
+        // A hidden archive stays out of the chat list.
+        probes.put(PatchFamily.DISABLE_ARCHIVE_PULL, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.ArchivePullForTests.on()));
+        // The attachment camera starts on the rear lens.
+        probes.put(PatchFamily.REAR_CAMERA_FIRST, Collections.singletonList(
+                () -> !app.hushtelegram.extension.telegram.misc.RearCamera.front(true)));
+        // The attachment gallery is built without its camera tile.
+        probes.put(PatchFamily.HIDE_GALLERY_CAMERA_TILE, Collections.singletonList(
+                () -> !app.hushtelegram.extension.telegram.misc.GalleryCameraTile.tile(true)));
+        // A sticker skips its time.
+        probes.put(PatchFamily.HIDE_STICKER_TIME, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.StickerTimeForTests.on()));
+        // A mention in a muted chat stays quiet.
+        probes.put(PatchFamily.IGNORE_MUTED_MENTIONS, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.MutedMentionsForTests.on()));
+        // A blocked person's group messages are left out.
+        probes.put(PatchFamily.HIDE_BLOCKED_IN_GROUPS, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.BlockedSendersForTests.on()));
+        // Settings loses Telegram Features and Contacts loses Invite Friends.
+        probes.put(PatchFamily.HIDE_FEATURES_AND_INVITE, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.FeaturesInviteForTests.on()));
+        // A message's long-press menu offers Repeat, Copy photo and Message details, each under its own switch.
+        probes.put(PatchFamily.MESSAGE_MENU_REPEAT, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.MessageMenuForTests.repeatOn(),
+                () -> app.hushtelegram.extension.telegram.misc.MessageMenuForTests.copyPhotoOn(),
+                () -> app.hushtelegram.extension.telegram.misc.MessageMenuForTests.detailsOn()));
         // The gallery's camera stays off until a tap, and a tap that asks for the permission wakes it.
         probes.put(PatchFamily.GALLERY_CAMERA_ON_TAP, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.GalleryCamera.keepCameraOff(new Object()),

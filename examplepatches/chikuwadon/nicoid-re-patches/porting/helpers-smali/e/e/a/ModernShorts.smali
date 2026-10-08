@@ -42,7 +42,7 @@
 
 .field private static final MODE:Ljava/lang/String; = "nicoid_re_shorts"
 
-.field private static final PATCH_VERSION:Ljava/lang/String; = "v1.7.1-dev.3 @chikuwadon"
+.field private static final PATCH_VERSION:Ljava/lang/String; = "v@NICOID_PATCH_VERSION@ @chikuwadon"
 
 .field private static final PLAYER:Ljava/lang/String; = "com.sauzask.nicoid.NicoidVideoActivity"
 
@@ -6639,7 +6639,7 @@
     if-eqz v1, :cond_87
 
     .line 219
-    const-string v4, "v1.7.1-dev.3 @chikuwadon"
+    const-string v4, "v@NICOID_PATCH_VERSION@ @chikuwadon"
 
     invoke-virtual {v1, v4}, Landroid/preference/Preference;->setSummary(Ljava/lang/CharSequence;)V
 

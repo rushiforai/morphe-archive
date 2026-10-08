@@ -20,6 +20,7 @@ import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.Utils;
 
@@ -28,6 +29,10 @@ import app.morphe.extension.shared.Utils;
  * activity, so Android 12's notification restrictions never require a receiver to start a screen.
  * A tap is consumed before Facebook reads the intent. It can be delivered to a resumed screen
  * for at most 30 seconds; no file list or durable handle is written by this class.
+ *
+ * <p>While Facebook is locked ({@link AppLock#covering}) nothing opens or shares: a tap waits, with
+ * the same 30 seconds, and is delivered once the lock's check passes. If the lock outlasts that,
+ * the tap is dropped and the file stays closed.
  */
 public final class SavedFileActions {
     static final String TAG = "hushfacebook-completed:";
@@ -61,13 +66,24 @@ public final class SavedFileActions {
     /** The launcher may hand over to another Facebook activity, so delivery waits for resume. */
     public static void onResumed(Activity activity) {
         resumed = new WeakReference<>(activity);
-        Request request = pending.getAndSet(null);
-        if (request == null || request.expired()) return;
+        Request request = pending.get();
+        if (request == null) return;
+        if (request.expired()) {
+            pending.compareAndSet(request, null);
+            return;
+        }
+        if (locked()) return; // Waits for the lock's check, or for its 30 seconds to run out.
+        if (!pending.compareAndSet(request, null)) return;
         Context application = activity.getApplicationContext();
         if (!Utils.runOnBackgroundThread(() -> {
             String mime = readableMime(application, request);
             Utils.runOnMainThread(() -> {
                 if (request.expired()) return;
+                if (locked()) {
+                    // Facebook locked while the file was being read: hold the tap for the unlock.
+                    pending.compareAndSet(null, request);
+                    return;
+                }
                 Activity host = resumed.get();
                 if (host == null || host.isFinishing() || host.isDestroyed()) {
                     if (!request.expired()) pending.compareAndSet(null, request);
@@ -81,6 +97,21 @@ public final class SavedFileActions {
             });
         })) {
             Feedback.show(application, L10n.t(application, "Couldn't open or share that saved file. Try again."), true);
+        }
+    }
+
+    /** The lock's check passed over [activity]: a tap that waited for it is delivered now. */
+    public static void onUnlocked(Activity activity) {
+        if (activity == null || activity.isFinishing() || activity.isDestroyed()) return;
+        onResumed(activity);
+    }
+
+    /** Whether Facebook is locked. A lock that can't be read counts as locked. */
+    private static boolean locked() {
+        try {
+            return AppLock.covering();
+        } catch (Throwable failure) {
+            return true;
         }
     }
 
@@ -122,6 +153,10 @@ public final class SavedFileActions {
     }
 
     private static void launch(Activity activity, Request request, String mime) {
+        if (locked()) {
+            pending.compareAndSet(null, request);
+            return;
+        }
         Intent target = new Intent(request.share ? Intent.ACTION_SEND : Intent.ACTION_VIEW)
                 .setType(mime)
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

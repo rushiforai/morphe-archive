@@ -46,7 +46,7 @@ notification mode for the hybrid routing to apply.
 
 ## NuvioTV 1.1.0-beta.2 and 1.1.0-beta.4
 
-Four patches target package `com.nuvio.tv` (the airing-series patch supports beta4 only):
+Five patches target package `com.nuvio.tv` (airing-series and finale-date patches support beta4 only):
 
 1. **NuvioTV - Merge tracking progress** combines Nuvio Sync and connected-provider
    progress for Continue Watching. It retains the last successful snapshot while the
@@ -69,9 +69,72 @@ known scheduled release from Nuvio's catalog; unknown dates are not estimated.
 Its preferences and runtime bridge are independent of the remaining-episodes patch.
 Use `SantodanAiring:D` for diagnostics.
 
+**NuvioTV - Finale dates in library and collections** adds independent opt-in switches
+under Layout > Santodan-Patches (beta4). It reuses the Upcoming badge style and latest known
+catalog episode date, including past dates, with `dd-MMM-yy` formatting and its own
+preferences and runtime.
+Library uses `ba.n3.m`; collection row cards use `ba.q1.o`, both MetaPreview fields.
+`ba.i1` scopes the library/collection calls. Card and restart lambdas capture that
+scope so recomposition retains the right setting and other catalog rows stay unaffected.
+Only poster images are hooked; collection logos are excluded. Unknown/non-IMDb IDs
+and movies are skipped. Dates refresh asynchronously with a six-hour persistent cache.
+Use `SantodanFinale:D` for diagnostics. Verify both switches independently on device.
+
+Beta4 runtime patches share an unnamed settings-menu dependency. It inserts one keyed
+lazy item in Layout's native section list, rendered with `sa.kc.a` as **Santodan-Patches**.
+The menu discovers installed runtime bridges independently and uses their existing
+preferences and Compose controls. Old beta4 injected settings rows and merged picker
+choices are removed; beta2 retains its original UI. Merged controls register `o9.a1`
+and capture the initialized `p8.e` component. If the coordinator has not been created,
+they resolve its native `w3` provider on demand; Layout must work before opening the
+native tracking settings page. They use its native `f` persistence route with a ContinuationImpl adapter, retaining the
+previous native source per profile when enabling merging. `SantodanSettings:D` diagnoses
+menu failures. Run `:patches:verifyNuvioSettingsMenuRuntime` for expansion/collapse,
+partial patch selections, and coroutine completion checks. Run
+`:patches:verifyNuvioSettingsStoreRuntime` for lazy coordinator resolution and reuse.
+Verify TV focus/scrolling,
+each patch alone, and saved choices on device.
+
+Merged watched badges must follow the same per-show provider winner as progress.
+The proxy's `g(Continuation)` supplies the coherent bulk watched episode map;
+`d()` supplies watched items. Alternate catalog IDs come from `v(Continuation)`
+on beta2 or `w(Continuation)` on beta4. These must not fall through to the carrier
+provider, which omits shows watched only on other connected providers. Resolve
+local watched items from repository `e` / store `h`, and retain one provider's
+episode numbering per show. Bulk requests immediately return cached watched
+projection instead of publishing a partial carrier map. Interface default accessors
+(such as Trakt's empty `d()`) need inherited-method reflection fallback.
+Run `:patches:verifyNuvioWatchedHistory` for source selection and alternate-ID checks.
+Cache `snapshot_v2_<profileId>` contains progress, seeds, origins, watched items, episode maps, and aliases. Restore it off the UI thread. Every merged getter emits immediately, including on first launch without a cache. Background refresh runs every two minutes and checks for profile changes every second; discard results when the active profile changes. Reflection members are cached, seeds are indexed by show, and badge publication uses one reusable worker.
+`SantodanMergedProgress` logs provider-read and total merge times, per-provider totals, and published
+badge totals. Capture live logs before reproducing, rather than using only `logcat -d`.
+
+Beta4 badge metadata runs in `la.e5`. Its unchanged-ID gate (`la.z3.V0`) can skip
+unresolved metadata after a cancelled batch; bypass that gate while merging is on.
+`la.t5.i` resolves metadata groups. Hook the loop after `hasNext`'s result to publish
+already-resolved metadata through native `la.t5.g` after each group, debounced off the
+UI thread. The live Home receiver is the same register used for `la.z3.T0`, not the
+original constructor argument. This avoids waiting for thousands of titles before
+library/collection labels update. New log lines are `Retrying badge metadata` and
+`Badge validation progress` (cached metadata, watched IDs, and label totals).
+Once per changed watched-history snapshot, before the key comparison, discard in-memory validation deadlines for IDs lacking
+episode metadata; a persisted "fresh" deadline alone cannot validate the new merged
+history. Preserve deadlines for cached metadata and keep existing labels until native
+validation decides their state. `Badge validation pending` reports missing metadata.
+Keep `__ambiguous__` sibling markers as markers; never create a title ID or cross-show
+alias group from them. The real beta4 DEX check verifies both badge-loader anchors.
+
 Beta4's remaining-episode hook reads `la.z3.T0`, the aired-episode map. `W0` is the
 provider-alias map and must never be used to count episodes: it produced six aliases
 per title and overwrote correct counts with `6` after synchronization.
+
+Remaining counts also follow native `publishBadgeUpdate`: watched-count coverage
+(`watched.size >= aired.size`) means zero aired episodes remain, even if provider and
+addon episode keys differ. Otherwise count exact unmatched aired keys, preserving
+watch-history gaps. Do not subtract raw totals for partially watched shows. Unaired
+episodes remain excluded. Cached counts use `count_v3_` to discard earlier incorrect
+values. Run `:patches:verifyNuvioRemainingCounts` for the Bleach regression (414 aired,
+418 watched, 41 exact matches), partial progress, gaps, specials, and empty sets.
 
 The progress and remaining-episode patches may be enabled independently. The
 side-by-side patch affects installation identity only. Rebuild from the original APK,
@@ -91,7 +154,7 @@ Provider origins use stable enum identities rather than obfuscated class names.
 Run `:patches:verifyNuvioBeta2` and `:patches:verifyNuvioBeta4` with original DEX files
 under the workspace's `.inspect-nuvio-beta2` and `.inspect-nuvio-beta4` directories.
 These checks exercise every bytecode hook, validate runtime reflection contracts,
-and write/reload the modified classes. Apply all four patches to the original beta4
+and write/reload the modified classes. Apply all five patches to the original beta4
 APK and run SDK DEX verification before distributing a build. Device testing must
 check provider refresh, both merged selection modes, and the optional episode badge.
 

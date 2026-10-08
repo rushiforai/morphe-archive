@@ -36,6 +36,21 @@ public class OpenLinksExternallyTest {
     assertEquals(Uri.parse("https://example.com/path"), started.getData());
   }
 
+  /** Verifies Unicode domain names pass IDN-aware validation and launch externally. */
+  @Test
+  public void internationalizedDomainLaunchesExternally() {
+    Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+    Uri uri = Uri.parse("https://bücher.de/");
+    Shadows.shadowOf(activity.getPackageManager())
+        .addResolveInfoForIntent(new Intent(Intent.ACTION_VIEW, uri), browser());
+
+    assertTrue(OpenLinksExternally.open(activity, "https://bücher.de/"));
+    Intent started = Shadows.shadowOf(activity).getNextStartedActivity();
+    assertNotNull(started);
+    assertEquals(Intent.ACTION_VIEW, started.getAction());
+    assertEquals(uri, started.getData());
+  }
+
   /**
    * Verifies invalid inputs are rejected and unresolved URLs are still passed to Android to launch.
    */
@@ -51,6 +66,31 @@ public class OpenLinksExternallyTest {
     Intent attempted = Shadows.shadowOf(activity).getNextStartedActivity();
     assertNotNull(attempted);
     assertEquals(Intent.ACTION_VIEW, attempted.getAction());
+  }
+
+  /** Verifies generated unsupported schemes and malformed authority forms are rejected. */
+  @Test
+  public void generatedInvalidUrlsAreRejected() {
+    Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+    String[] invalidUrls = {
+      "javascript:alert(1)",
+      "file:///etc/passwd",
+      "content://example.com/item",
+      "https://",
+      "http://",
+      "https:///path",
+      "https://?query=value",
+      "https://#fragment",
+      "https://exa mple.com",
+      "https://example.com:65536/",
+      "https://bücher.de:+80/",
+      "  javascript:alert(1)  "
+    };
+
+    for (String url : invalidUrls) {
+      assertFalse("Expected rejection for: " + url, OpenLinksExternally.open(activity, url));
+    }
+    assertNull(Shadows.shadowOf(activity).getNextStartedActivity());
   }
 
   /** Verifies that URLs resolving to the host package retain Threads link handling. */

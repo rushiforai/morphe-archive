@@ -76,6 +76,9 @@ public final class ReelsAdFilter {
     /** What the diagnostic report counts each time the ad pool is held to no ad. */
     static final String POOL_HELD = "Reels ad pool held to no ad";
 
+    /** What the diagnostic report counts each time a profile's Reels tab is kept from fetching its ads. */
+    static final String PROFILE_ADS_HELD = "Profile Reels ad query held";
+
     /** What the diagnostic report counts each time an ad-break fetch is answered with a failure. */
     static final String AD_BREAK_FETCH_HELD = "Ad-break fetch held";
 
@@ -289,6 +292,20 @@ public final class ReelsAdFilter {
             Logger.diagnosticDebug(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
                     () -> "the Reels ad pool was asked for an ad and held to none");
         }
+        return true;
+    }
+
+    /**
+     * Injection point, asked first thing in the method that sends a profile's or Page's Reels tab
+     * query for its ads (ProfileReelsAsyncAdsQuery): true makes it return before the query goes
+     * out, as it does when the ads it holds already fill the tab, so the tab shows that profile's
+     * own reels. Off, or asked before the settings are ready, Facebook fetches them. Never throws.
+     */
+    public static boolean holdProfileReelAds() {
+        HookStatus.invoked(FamilyNames.SPONSORED_REELS);
+        if (!switchedOn()) return false;
+
+        HookStatus.counted(FamilyNames.SPONSORED_REELS, PROFILE_ADS_HELD);
         return true;
     }
 

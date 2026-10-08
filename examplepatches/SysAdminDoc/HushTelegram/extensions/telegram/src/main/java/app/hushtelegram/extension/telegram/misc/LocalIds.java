@@ -21,13 +21,17 @@ public final class LocalIds {
 
     public static void addToProfile(View menu, long userId, long chatId) {
         HookStatus.invoked(FamilyNames.SHOW_LOCAL_IDS);
-        if (menu == null || !enabled() || !valid(userId, chatId)) return;
-        try {
-            View row = nativeAddRow(menu, label(menu.getContext(), userId, chatId));
-            if (row != null) bindRow(menu, row, userId, chatId);
-        } catch (Throwable failure) {
-            HookStatus.threw(FamilyNames.SHOW_LOCAL_IDS, "local inspection row", failure);
+        if (menu == null || !valid(userId, chatId)) return;
+        if (enabled()) {
+            try {
+                View row = nativeAddRow(menu, label(menu.getContext(), userId, chatId));
+                if (row != null) bindRow(menu, row, userId, chatId);
+            } catch (Throwable failure) {
+                HookStatus.threw(FamilyNames.SHOW_LOCAL_IDS, "local inspection row", failure);
+            }
         }
+        // The data center row has its own switch and goes under the ID row.
+        ProfileDc.addToProfile(menu, userId, chatId);
     }
 
     static boolean valid(long userId, long chatId) {

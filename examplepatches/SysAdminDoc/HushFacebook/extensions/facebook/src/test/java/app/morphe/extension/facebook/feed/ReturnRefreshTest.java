@@ -107,6 +107,133 @@ public class ReturnRefreshTest {
     }
 
     /**
+     * A tab switch back to Home, or the feed back from another screen, reaches the hot-start check,
+     * the stale-post executor and the tab's AUTO_REFRESH. With the switch on each keeps the feed, and
+     * switched off or paused each is Facebook's. Inside a return from the background the stale-post
+     * and tab checks get the return's answer without using it up, and the hot-start check goes on to
+     * the warm-start check that decides it.
+     */
+    @Test public void aTabSwitchBackToHomeKeepsTheFeedWithTheSwitchOn() {
+        long now = 1_000_000;
+        assertTrue(ReturnRefresh.askInAppAt(now, ReturnRefresh.HOT_START, false));
+        assertTrue(ReturnRefresh.askInAppAt(now, ReturnRefresh.STALE_POST, true));
+        assertTrue(ReturnRefresh.askInAppAt(now, ReturnRefresh.TAB_AUTO_REFRESH, true));
+
+        // Seven minutes away: the pause worker and the tab follow the return, which its own check decides.
+        ReturnRefresh.uiHidden(1_000);
+        long back = 1_000 + 7 * 60 * 1000;
+        assertTrue("the pause worker", ReturnRefresh.askInAppAt(back, ReturnRefresh.STALE_POST, true));
+        assertFalse("the hot-start check went past the warm-start check",
+                ReturnRefresh.askInAppAt(back, ReturnRefresh.HOT_START, false));
+        assertTrue("the return was used up", ReturnRefresh.askAt(back + 1, ReturnRefresh.WARM_START));
+        assertTrue(ReturnRefresh.askInAppAt(back + 2, ReturnRefresh.TAB_AUTO_REFRESH, true));
+
+        // Eleven minutes away: the return lets Facebook refresh, and so does each check within it.
+        ReturnRefresh.uiHidden(1_000);
+        back = 1_000 + 11 * 60 * 1000;
+        assertFalse(ReturnRefresh.askInAppAt(back, ReturnRefresh.STALE_POST, true));
+        assertFalse(ReturnRefresh.askAt(back + 1, ReturnRefresh.WARM_START));
+        assertFalse(ReturnRefresh.askInAppAt(back + 2, ReturnRefresh.TAB_AUTO_REFRESH, true));
+        // Past the return, a tab switch back to Home is inside the app again.
+        long later = back + ReturnRefresh.SAME_RETURN_MS + 3;
+        assertTrue(ReturnRefresh.askInAppAt(later, ReturnRefresh.HOT_START, false));
+
+        Settings.BLOCK_RETURN_REFRESH.save(false);
+        assertFalse("switch off", ReturnRefresh.askInAppAt(later, ReturnRefresh.STALE_POST, true));
+        assertFalse("switch off", ReturnRefresh.askInAppAt(later, ReturnRefresh.HOT_START, false));
+        Settings.BLOCK_RETURN_REFRESH.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("paused", ReturnRefresh.askInAppAt(later, ReturnRefresh.TAB_AUTO_REFRESH, true));
+        assertFalse("paused", ReturnRefresh.askInAppAt(later, ReturnRefresh.HOT_START, false));
+    }
+
+    /**
+     * The three in-app entries keep the feed and say so in the report, one count each. The hot-start
+     * check keeps it through the warm-start check it asks next, so both of its calls are invoked.
+     */
+    @Test public void theInAppEntriesKeepTheFeedAndSaySo() {
+        HookStatus.clear();
+        try {
+            ReturnRefresh.hotStart();
+            assertTrue(ReturnRefresh.holdWarmStart());
+            assertTrue(ReturnRefresh.holdStalePost());
+            assertTrue(ReturnRefresh.holdTabAutoRefresh());
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains(FamilyNames.RETURN_REFRESH + ": invoked 4"));
+            assertTrue(report, report.contains("kept the feed at hot start 1, kept the feed from a stale-post refresh 1, "
+                    + "kept the feed from the tab's auto refresh 1"));
+        } finally {
+            HookStatus.clear();
+        }
+    }
+
+    /**
+     * On accounts with the friendly feed, onTabEntered reloads it with a HOT_LOAD once Home was left
+     * long enough. With the switch on that keeps the feed and counts it, inside a return it gets the
+     * return's answer without using the return up, and switched off or paused it's Facebook's.
+     */
+    @Test public void theHomeTabsHotLoadKeepsTheFeedWithTheSwitchOn() {
+        HookStatus.clear();
+        try {
+            assertTrue(ReturnRefresh.holdTabEntryHotLoad());
+            String report = String.join("\n", HookStatus.report());
+            assertTrue(report, report.contains(FamilyNames.RETURN_REFRESH + ": invoked 1"));
+            assertTrue(report, report.contains("kept the feed from the Home tab's hot load 1"));
+        } finally {
+            HookStatus.clear();
+        }
+
+        ReturnRefresh.uiHidden(1_000);
+        long back = 1_000 + 7 * 60 * 1000;
+        assertTrue("seven minutes away", ReturnRefresh.askInAppAt(back, ReturnRefresh.TAB_ENTRY_HOT_LOAD, true));
+        assertTrue("the return was left for its own check", ReturnRefresh.askAt(back + 1, ReturnRefresh.WARM_START));
+        ReturnRefresh.uiHidden(1_000);
+        back = 1_000 + 11 * 60 * 1000;
+        assertFalse("eleven minutes away", ReturnRefresh.askInAppAt(back, ReturnRefresh.TAB_ENTRY_HOT_LOAD, true));
+        assertFalse(ReturnRefresh.askAt(back + 1, ReturnRefresh.WARM_START));
+        long later = back + ReturnRefresh.SAME_RETURN_MS + 3;
+        assertTrue("inside the app", ReturnRefresh.askInAppAt(later, ReturnRefresh.TAB_ENTRY_HOT_LOAD, true));
+
+        Settings.BLOCK_RETURN_REFRESH.save(false);
+        assertFalse("switch off", ReturnRefresh.holdTabEntryHotLoad());
+        Settings.BLOCK_RETURN_REFRESH.save(true);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("paused", ReturnRefresh.holdTabEntryHotLoad());
+    }
+
+    /**
+     * The hot-start check holds nothing itself, so an empty feed, which never reaches the warm-start
+     * check's question, still loads. The warm-start check it asks next gets the in-app answer once,
+     * and only straight after it, and only with no return from the background pending.
+     */
+    @Test public void onlyTheWarmStartCheckTheHotStartAsksGetsTheInAppAnswer() {
+        ReturnRefresh.hotStartAt(1_000);
+        assertTrue(ReturnRefresh.askedByHotStartInApp(1_000 + ReturnRefresh.HOT_START_ASKS_MS));
+        assertFalse("taken", ReturnRefresh.askedByHotStartInApp(1_001 + ReturnRefresh.HOT_START_ASKS_MS));
+        assertFalse("no hot start", ReturnRefresh.askedByHotStartInApp(5_000));
+
+        ReturnRefresh.hotStartAt(10_000);
+        assertFalse("too late", ReturnRefresh.askedByHotStartInApp(10_001 + ReturnRefresh.HOT_START_ASKS_MS));
+        ReturnRefresh.hotStartAt(20_000);
+        assertFalse("clock moved back", ReturnRefresh.askedByHotStartInApp(19_999));
+
+        ReturnRefresh.uiHidden(30_000);
+        ReturnRefresh.hotStartAt(40_000);
+        assertFalse("a return decides itself", ReturnRefresh.askedByHotStartInApp(40_001));
+    }
+
+    /** Outside the app's hot start, the warm-start check with no return pending is Facebook's own. */
+    @Test public void aWarmStartCheckOutsideAHotStartIsFacebooksOwn() {
+        assertFalse(ReturnRefresh.holdWarmStart());
+        ReturnRefresh.hotStart();
+        assertTrue(ReturnRefresh.holdWarmStart());
+        assertFalse("answered once", ReturnRefresh.holdWarmStart());
+        Settings.BLOCK_RETURN_REFRESH.save(false);
+        ReturnRefresh.hotStart();
+        assertFalse("switch off", ReturnRefresh.holdWarmStart());
+    }
+
+    /**
      * The warm-start check reaches the extension through its own entry, counted in the report
      * beside the resume callback's, and keeps the feed in the same return.
      */

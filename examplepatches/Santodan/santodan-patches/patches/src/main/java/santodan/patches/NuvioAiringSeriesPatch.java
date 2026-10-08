@@ -48,13 +48,13 @@ public final class NuvioAiringSeriesPatch {
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "NuvioTV", null, ApkFileType.APK,
                     null, null, List.of(new AppTarget(VERSION, false, null)), false));
+                builder.dependsOn(NuvioSettingsMenuPatch.getMenuPatch());
                 builder.extendWith(NuvioAiringSeriesPatch::extensionStream);
                 builder.execute(context -> {
                     String version = context.getPackageMetadata().getVersionName();
                     if (!PACKAGE.equals(context.getPackageMetadata().getPackageName()) || !VERSION.equals(version))
                         throw unsupported("Expected " + PACKAGE + " " + VERSION);
                     hookNextUpModel(context.mutableClassDefBy("Lla/aa;"));
-                    hookSettings(context.mutableClassDefBy("Lsa/o3;"), 0x7f1106c1);
                     hookUpcomingSplit(context.mutableClassDefBy("Lla/t5;"));
                     hookCard(context.mutableClassDefBy("Lba/e2;"), "Lc7/a;");
                     hookWide(context.mutableClassDefBy("Lba/d3;"));

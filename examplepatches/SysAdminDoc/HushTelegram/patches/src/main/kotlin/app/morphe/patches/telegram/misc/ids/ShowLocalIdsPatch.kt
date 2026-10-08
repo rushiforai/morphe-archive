@@ -32,7 +32,7 @@ internal const val LOCAL_ID_ROW = 0x48544944
 @Suppress("unused")
 val showLocalIdsPatch = bytecodePatch(
     name = "Show user and chat IDs",
-    description = "Adds a switch, off by default, that shows a copyable local user or chat ID in the inspected profile's menu. It doesn't expose access hashes or ask Telegram's server for anything.",
+    description = "Adds a switch, off by default, that shows a copyable local user or chat ID in the inspected profile's menu, and a second one, off by default, that adds the data center holding the profile's photo. Neither exposes access hashes or asks Telegram's server for anything.",
     default = true,
 ) {
     category("Chats")
@@ -40,6 +40,7 @@ val showLocalIdsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.telegram())
     execute {
         val plan = resolveLocalIds()
+        resolveProfileDc()
         plan.insert(MutableMethod(ImmutableMethod.of(plan.method)))
         val runtime = mutableClassDefBy(LOCAL_IDS)
         // Compile both bridges before changing any host method, runtime body or build flag.
@@ -51,6 +52,8 @@ val showLocalIdsPatch = bytecodePatch(
             old to replacement
         }
         bridges.forEach { (old, replacement) -> runtime.methods.remove(old); runtime.methods.add(replacement) }
+        // The data center row has its own switch but shares this hook and the row bridge.
+        writeProfileDc()
         plan.insert(plan.method)
         enableCapability("profileLocalIds")
         enableStatus("showLocalIds")

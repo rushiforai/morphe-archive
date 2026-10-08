@@ -41,7 +41,17 @@ _Supported version(s): 26.38.1_
 | Patch | Description |
 |-------|-------------|
 | **Bypass anti-tamper (foodpanda)** | Bypasses foodpanda's DeliveryHero MAS integrity block — forces the master security gate (`w9u.a`) to report the device/app as trusted, so re-signed / sideloaded builds no longer hit the "This device or application is not supported" BlockedActivity. |
+| **Remove ads** | Removes foodpanda's order-tracking ads (DeliveryHero adtech) and the forced, repeatedly-reappearing PandaMart "CrossSell" promo popup on the order-tracking screen. |
 | **Unlock premium (foodpanda)** | Unlocks foodpanda pandapro — forces every `isSubscribed()` check (status instanceof UserSubscriptionStatus.Subscribed) to report subscribed and forces Subscribed.hasBenefits() true, so the app's pro state, UI and entitlement gates unlock. Server-enforced benefits (free delivery, vouchers) still require a real subscription. |
+
+### Safar (`com.safar.fyi`)
+
+_Supported version(s): 3.0.1_
+
+| Patch | Description |
+|-------|-------------|
+| **Bypass license verification** | Bypasses Google Play's PairIP license check so a re-signed Safar build runs instead of being blocked by the "Get this app from Play" paywall or a "Something went wrong" dialog. |
+| **Remove ads** | Removes Safar's AdMob banner, interstitial and app-open ads by stubbing the react-native-google-mobile-ads load funnels (no ad is requested, so none renders). User-initiated rewarded ads are left working. |
 
 ### Simosa (`com.jazz.jazzworld`)
 
@@ -81,11 +91,11 @@ _Supported version(s): 5.19.19.112_
 
 ### NetMonster (`cz.mroczis.netmonster`)
 
-_Supported version(s): 3.4.3_
+_Supported version(s): 4.0.4_
 
 | Patch | Description |
 |-------|-------------|
-| **Unlock premium (NetMonster)** | Unlocks NetMonster Premium — forces the premium repo's derived flows so real-time LTE/NR-NSA location calculation is unlocked, ads are removed, and the status shows Active (far-future expiry) without an Adapty subscription. |
+| **Unlock premium (NetMonster)** | Unlocks NetMonster Premium — forces the Adapty entitlement collector to always report premium active, so real-time LTE/NR-NSA location calculation is unlocked, ads are removed, and the status shows Active without a subscription. |
 
 ## Troubleshooting
 

@@ -16,19 +16,19 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  *
  * <p>Fixture tests hold the real fingerprint objects to a build with this, instead of a copy of
  * their shape, so a change to a fingerprint is what the test sees (review #7: a copied string
- * list hid the 46.x keep-list failure until a full apply). One instruction filter that may sit
- * anywhere in the method is judged by the filter's own `matches`, which is the patcher's code:
- * the method takes it when any instruction does. Several filters (they match in order, with
- * gaps) and class fingerprints are not modelled, and a fingerprint using either is refused
- * rather than half judged.
+ * list hid the 46.x keep-list failure until a full apply). Instruction filters that may each sit
+ * anywhere after the one before are judged by the filters' own `matches`, which is the patcher's
+ * code: the method takes them when its instructions hold them in order, with gaps, and taking
+ * each filter's earliest instruction is enough to know. Filters placed any other way and class
+ * fingerprints are not modelled, and a fingerprint using either is refused rather than half
+ * judged.
  */
 internal fun Fingerprint.takes(method: Method, classDef: ClassDef): Boolean {
     require(classFingerprint == null) { "class fingerprints are not modelled: $this" }
-    val filter = filters.orEmpty().let { all ->
-        require(all.size <= 1 && all.all { it.location is InstructionLocation.MatchAfterAnywhere }) {
-            "only one instruction filter placed anywhere is modelled: $this"
+    val ordered = filters.orEmpty().also { all ->
+        require(all.all { it.location is InstructionLocation.MatchAfterAnywhere }) {
+            "only instruction filters placed anywhere are modelled: $this"
         }
-        all.singleOrNull()
     }
     declaredDefiningClass?.let { if (!typeMatches(method.definingClass, it)) return false }
     declaredName?.let { if (method.name != it) return false }
@@ -44,8 +44,14 @@ internal fun Fingerprint.takes(method: Method, classDef: ClassDef): Boolean {
             .orEmpty()
         if (wanted.any { want -> loaded.none { it.contains(want) } }) return false
     }
-    filter?.let { wanted ->
-        if (method.implementation?.instructions?.any { wanted.matches(method, it) } != true) return false
+    if (ordered.isNotEmpty()) {
+        val instructions = method.implementation?.instructions?.toList() ?: return false
+        var from = 0
+        for (wanted in ordered) {
+            val at = (from until instructions.size).firstOrNull { wanted.matches(method, instructions[it]) }
+                ?: return false
+            from = at + 1
+        }
     }
     custom?.let { if (!it(method, classDef)) return false }
     return true

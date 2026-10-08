@@ -43,7 +43,12 @@ import java.io.File
  * bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it. Also the hold's hooks: ReelsPipUtil's arming and
  * disarms, and FbGrootPlayer's pause and play; the helpers that hand the arming over and arm again,
  * and the stub calling the second; the runnable whose change is set aside; and the viewer's new view
- * id going through the extension.
+ * id going through the extension. And the Watch viewer's flag: the one fragment holding the engagement-state
+ * text, its onResume, and the MobileConfig read in front of its call of the check, answered through the
+ * extension in the read's own register. And the Video tab's arming: the one method loading its
+ * deep-dive surface's name that calls the check, its inlined copy of the gate (the gate's own
+ * settings fetch and lambda cases) before the check, and the flag after the name whose no falls
+ * into a disarm, both answered through the extension in their own registers.
  */
 class PictureInPictureFixtureTest {
     private fun Method.code(): List<Instruction> = implementation!!.instructions.toList()
@@ -118,13 +123,60 @@ class PictureInPictureFixtureTest {
                 val openings = viewers.flatMap { viewer -> viewer.methods.filter(::isViewerOpening) }
                 assertEquals("$name: viewer openings", 1, openings.size)
                 val opening = openings.single()
+                val topics = FixtureDex.classesHolding(bundle, TOPIC_FEED).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+                assertEquals("$name: classes holding \"$TOPIC_FEED\"", 1, topics.size)
+                val topic = topics.single()
+                val resume = topic.methods.single { it.name == "onResume" && it.parameterTypes.isEmpty() && it.returnType == "V" }
+                val resumeAt = topicFlagAt(resume, check)
+                assertTrue("$name: ${topic.type}->onResume has no flag in front of the check", resumeAt > 0)
+                val originalResume = resume.code()
+                val flagRegister = (originalResume[resumeAt] as OneRegisterInstruction).registerA
+                assertTrue("$name: the flag's register v$flagRegister isn't a local of ${resume.localRegisterCount()}",
+                    flagRegister < resume.localRegisterCount())
+                assertTrue("$name: the flag read isn't a MobileConfig boolean read", isConfigRead(originalResume[resumeAt - 1]))
+                val resumeCheckAt = originalResume.indexOfFirst {
+                    it.call?.name == check.name && it.call?.definingClass == check.definingClass
+                }
+                assertTrue("$name: the flag read isn't the last one before the check",
+                    (resumeAt until resumeCheckAt).none { isConfigRead(originalResume[it]) })
+
+                val homeHolders = FixtureDex.classesHolding(bundle, VIDEO_TAB_SURFACE).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+                val homes = homeHolders.flatMap { homeHolder -> homeHolder.methods.filter { isHome(it, check) } }
+                assertEquals("$name: methods loading \"$VIDEO_TAB_SURFACE\" that call the check", 1, homes.size)
+                val home = homes.single()
+                val homeClass = homeHolders.single { it.type == home.definingClass }
+                val originalHome = home.code()
+                val copyAt = homeGateAt(home, gate, check)
+                val homeFlag = homeFlagAt(home, disarms)
+                val homeCheckAt = originalHome.indexOfFirst { it.call?.name == check.name && it.call?.definingClass == check.definingClass }
+                assertTrue("$name: ${home.definingClass}->${home.name} has no copy of ${gate.name} before the check",
+                    copyAt in 1 until homeCheckAt)
+                assertTrue("$name: ${home.definingClass}->${home.name} has no flag after the check whose no disarms",
+                    homeFlag > homeCheckAt)
+                val gateFetch = settingsFetchAt(gate)
+                assertTrue("$name: the gate fetches no settings", gateFetch > 0)
+                val settings = gate.code()[gateFetch].call.toString()
+                val gateCases = gateRead(gate.code(), gateFetch).second
+                assertTrue("$name: the gate loads no lambda cases", gateCases.size >= 2)
+                val copyFetch = (copyAt downTo 0).first { originalHome[it].call?.toString() == settings }
+                assertEquals("$name: the copy loads the gate's lambda cases", copyAt - 1 to gateCases, gateRead(originalHome, copyFetch))
+                assertTrue("$name: the flag read isn't a MobileConfig boolean read", isFlagRead(originalHome[homeFlag - 1]))
+                val homeGateRegister = (originalHome[copyAt] as OneRegisterInstruction).registerA
+                val homeFlagRegister = (originalHome[homeFlag] as OneRegisterInstruction).registerA
+                assertTrue("$name: the copy's answer v$homeGateRegister isn't a local of ${home.localRegisterCount()}",
+                    homeGateRegister < home.localRegisterCount())
+                assertTrue("$name: the flag's answer v$homeFlagRegister isn't a local of ${home.localRegisterCount()}",
+                    homeFlagRegister < home.localRegisterCount())
+                val fallsInto = originalHome[homeFlag + 2].call
+                assertTrue("$name: a no from the flag doesn't fall into a disarm",
+                    disarms.any { it.definingClass == fallsInto?.definingClass && it.name == fallsInto.name })
 
                 val originalCheck = check.code()
                 val originalGate = gate.code()
                 val originalPlay = play.code()
                 val originalRun = run.code()
                 val originalOpening = opening.code()
-                val context = PatchContexts.of((listOf(util, holder, owner, runnable) + viewers + listOf(
+                val context = PatchContexts.of((listOf(util, holder, owner, runnable, topic, homeClass) + viewers + listOf(
                     ExtensionDex.classDef(PICTURE_IN_PICTURE), ExtensionDex.classDef(SETTINGS_STATUS))).distinctBy { it.type })
                 pictureInPicturePatch.execute(context)
 
@@ -208,13 +260,46 @@ class PictureInPictureFixtureTest {
                 assertEquals("$name: the answer is the id", idRegister, (opened[newId + 3] as OneRegisterInstruction).registerA)
                 assertEquals("$name: the rest of Facebook's opening", originalOpening.size + 2, opened.size)
 
+                val resumed = patchedOf(resume).code()
+                val swapped = resumed[resumeAt + 1] as RegisterRangeInstruction
+                assertEquals("$name: the call after the flag", IMMERSIVE_ALLOWED, resumed[resumeAt + 1].call.toString())
+                assertEquals("$name: the flag's answer is handed over by range", Opcode.INVOKE_STATIC_RANGE, resumed[resumeAt + 1].opcode)
+                assertEquals("$name: the register handed over is the flag's", listOf(flagRegister, 1),
+                    listOf(swapped.startRegister, swapped.registerCount))
+                assertEquals("$name: the answer goes back in the flag's register", Opcode.MOVE_RESULT, resumed[resumeAt + 2].opcode)
+                assertEquals("$name: the answer is the flag's register", flagRegister, (resumed[resumeAt + 2] as OneRegisterInstruction).registerA)
+                assertEquals("$name: the branch follows the answer", Opcode.IF_EQZ, resumed[resumeAt + 3].opcode)
+                assertEquals("$name: the rest of Facebook's onResume", originalResume.size + 2, resumed.size)
+
+                // The copy of the gate first, then the flag two instructions further down than before.
+                val homed = patchedOf(home).code()
+                for ((at, hook, register) in listOf(
+                    Triple(copyAt, HOME_GATE_ALLOWED, homeGateRegister),
+                    Triple(homeFlag + 2, HOME_FLAG_ALLOWED, homeFlagRegister),
+                )) {
+                    val handOver = homed[at + 1] as RegisterRangeInstruction
+                    assertEquals("$name: the call after the answer at $at", hook, homed[at + 1].call.toString())
+                    assertEquals("$name: the answer at $at is handed over by range", Opcode.INVOKE_STATIC_RANGE, homed[at + 1].opcode)
+                    assertEquals("$name: the register handed over is the answer's", listOf(register, 1),
+                        listOf(handOver.startRegister, handOver.registerCount))
+                    assertEquals("$name: the extension's answer goes back", Opcode.MOVE_RESULT, homed[at + 2].opcode)
+                    assertEquals("$name: in the answer's own register", register, (homed[at + 2] as OneRegisterInstruction).registerA)
+                }
+                assertEquals("$name: Facebook's branch on the copy follows", originalHome[copyAt + 1].opcode, homed[copyAt + 3].opcode)
+                assertEquals("$name: Facebook's branch on the flag follows", Opcode.IF_NEZ, homed[homeFlag + 5].opcode)
+                assertEquals("$name: then its disarm", fallsInto.toString(), homed[homeFlag + 6].call.toString())
+                assertEquals("$name: the rest of the Video tab's arming", originalHome.size + 4, homed.size)
+
                 val status = context.mutableClassDefBy(SETTINGS_STATUS).methods.single { it.name == "pictureInPicture" }
                 assertEquals("$name: SettingsStatus.pictureInPicture() isn't switched on", 1,
                     (status.code()[0] as NarrowLiteralInstruction).narrowLiteral)
                 println("$name: check ${check.definingClass}->${check.name}, gate ${gate.definingClass}->${gate.name} " +
                     "asked by ${arming.name}, armed in ${arm.name}, disarmed in ${disarms.joinToString { it.name }}, " +
                     "player ${play.definingClass}->${play.name}/${pause.name}, video ${videoParams.call.name}, " +
-                    "set aside in ${runnable.type}, viewer ${opening.definingClass}->${opening.name}")
+                    "set aside in ${runnable.type}, viewer ${opening.definingClass}->${opening.name}, " +
+                    "watch viewer ${topic.type}->onResume flag at $resumeAt in v$flagRegister of ${resume.localRegisterCount()} locals, " +
+                    "video tab ${home.definingClass}->${home.name} gate copy (cases $gateCases) at $copyAt in v$homeGateRegister " +
+                    "and flag at $homeFlag in v$homeFlagRegister of ${home.localRegisterCount()} locals")
                 checked += version
             }
         }

@@ -36,7 +36,9 @@ import app.morphe.extension.shared.SettingsContextRule;
 import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.HushfacebookPause;
+import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.PauseForTests;
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 /**
  * The rule Resume long videos holds every player to: a long video stopped partway is saved, its
@@ -198,6 +200,28 @@ public class ResumePlaybackTest {
         for (String kind : new String[]{"under two minutes 1", "reel 1", "live 1", "ad 1", "loops 1", "GIF 1",
                 "audio only 1"}) {
             assertTrue(kind + " in " + report, report.contains(kind));
+        }
+    }
+
+    /** A reel is left alone, and Debug logging says where it began, for reels that open partway (issue #90). */
+    @Test
+    public void debugLoggingSaysWhereAReelStarted() {
+        BaseSettings.DEBUG.save(true);
+        LogBufferManager.clearLogBuffer();
+        try {
+            Params params = new Params("8", 15_000);
+            params.reel = true;
+            Player player = new Player(params);
+            player.position = 4_250;
+            ResumePlayback.started(player, Trigger.BY_USER);
+            ResumePlaybackForTests.runLater();
+            assertTrue("a reel moved: " + player.seeks, player.seeks.isEmpty());
+            String report = LogBufferManager.buildExportText();
+            assertTrue(report, report.contains(
+                    "Resume long videos: left a start alone, reel, at 4250 ms of 15000 ms, Facebook's start 0 ms, BY_USER"));
+        } finally {
+            BaseSettings.DEBUG.resetToDefault();
+            LogBufferManager.clearLogBuffer();
         }
     }
 

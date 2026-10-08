@@ -813,6 +813,8 @@ val verifyBouncyCastleBuildGraph = tasks.register("verifyBouncyCastleBuildGraph"
 // has looked at. :patches:test is what scripts/pre-push.ps1 runs when a patch source changes.
 tasks.withType<Test>().configureEach {
     dependsOn(verifyBouncyCastleBuildGraph)
+    // Fixture tests hold whole Telegram classes such as MessagesController, past the 512 MB default.
+    maxHeapSize = "2g"
 }
 
 dependencies {

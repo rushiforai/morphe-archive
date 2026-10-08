@@ -43,8 +43,9 @@ class ExtensionHostsTest {
         val openers = sources().filter { (_, source) -> NETWORK.containsMatchIn(split(source).second) }
             .map { it.first }.toSortedSet()
         assertEquals(
-            "The README says the extension goes online by itself only to download what you save, and " +
-                "to ask GitHub for the newest release once that check is turned on. These files open connections",
+            "The README says the extension goes online by itself only to download what you save (reading " +
+                "where a copied short link leads first), and to ask GitHub for the newest release once that " +
+                "check is turned on. These files open connections",
             TRANSPORTS.toSortedSet(),
             openers,
         )
@@ -113,6 +114,7 @@ class ExtensionHostsTest {
         const val RELEASE_CHECK =
             "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/ReleaseCheck.java"
         val TRANSPORTS = listOf(
+            "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ClipboardLink.java",
             "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/Downloader.java",
             "extensions/facebook/src/main/java/app/morphe/extension/facebook/settings/ReleaseTransport.java",
         )

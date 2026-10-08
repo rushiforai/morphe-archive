@@ -276,8 +276,19 @@
         "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
       },
       "contaminatedBy": null,
-      "disposition": "candidate",
-      "reason": "A GPL-3.0 fork of Froggo that adds suggested-post filtering and a Following-feed home for 573.",
+      "disposition": "adopted",
+      "adopted": {
+        "commit": "319cde236e373ff8feb66fa30e99028e3d9dff6e",
+        "fixtures": {
+          "receipt": "https://github.com/SysAdminDoc/Hushfacebook/releases/download/v0.7.2/release-receipt-0.7.2.json",
+          "builds": [
+            "581.0.0.45.58",
+            "580.0.0.51.74",
+            "577.0.0.50.72"
+          ]
+        }
+      },
+      "reason": "A GPL-3.0 fork of Froggo that adds suggested-post filtering and a Following-feed home for 573. Following feed on Home is rewritten from its fix/following-feed-home branch at 319cde23 and found by kept names on 577, 580 and 581, since its 573 code names the builder and the feed types by their obfuscated names.",
       "archived": false,
       "forks": [],
       "contentHashes": [],

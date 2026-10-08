@@ -30,7 +30,7 @@ public final class NuvioRemainingEpisodes {
     private static final String TAG = "SantodanRemaining";
     private static final String PREFS = "santodan_nuvio_remaining_episodes";
     private static final String ENABLED = "enabled";
-    private static final String COUNT_PREFIX = "count_v2_";
+    private static final String COUNT_PREFIX = "count_v3_";
     private static final long FALLBACK_GRACE_MS = 500L;
     private static final Map<String, String> TITLES = new ConcurrentHashMap<>();
     private static final Map<String, Integer> REMAINING = new ConcurrentHashMap<>();
@@ -218,15 +218,18 @@ public final class NuvioRemainingEpisodes {
             Set<?> airedValue = episodeSet(airedById, id);
             if (airedValue == null) return;
             Set<?> watchedValue = episodeSet(watchedById, id);
-            int count = 0;
-            for (Object item : airedValue.toArray()) {
-                if (watchedValue == null || !watchedValue.contains(item)) count++;
-            }
+            // Match Nuvio's publishBadgeUpdate: watched-count coverage also marks
+            // a series caught up when the provider and addon number it differently.
+            Set<?> airedSnapshot = new HashSet<>(java.util.Arrays.asList(airedValue.toArray()));
+            Set<?> watchedSnapshot = watchedValue == null ? Collections.emptySet()
+                : new HashSet<>(java.util.Arrays.asList(watchedValue.toArray()));
+            int count = NuvioEpisodeCounts.remaining(airedSnapshot, watchedSnapshot);
             Integer previous = REMAINING.put(id, count);
             preferences().edit().putInt(COUNT_PREFIX + id, count).apply();
             if (previous == null || previous.intValue() != count) {
-                Log.d(TAG, "native count id=" + id + " aired=" + airedValue.size()
-                    + " watched=" + (watchedValue == null ? 0 : watchedValue.size()) + " remaining=" + count);
+                Log.d(TAG, "native count id=" + id + " aired=" + airedSnapshot.size()
+                    + " watched=" + watchedSnapshot.size() + " remaining=" + count
+                    + " countCoverage=" + (watchedSnapshot.size() >= airedSnapshot.size()));
                 bumpRevision();
             }
         } catch (Throwable error) {

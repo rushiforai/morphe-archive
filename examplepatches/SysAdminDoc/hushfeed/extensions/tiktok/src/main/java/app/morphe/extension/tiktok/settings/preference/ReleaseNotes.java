@@ -8,7 +8,7 @@ package app.morphe.extension.tiktok.settings.preference;
 
 import android.app.AlertDialog;
 import android.content.Context;
-import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.LocaleSpan;
 import android.view.ViewGroup;
@@ -19,7 +19,11 @@ import android.widget.TextView;
 import app.morphe.extension.tiktok.settings.L10n;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,53 +56,135 @@ public final class ReleaseNotes {
     }
 
     static String text(String source, String current, String dismissed) {
-        BigInteger[] installed = version(current);
-        if (installed == null) return "";
-        BigInteger[] last = version(dismissed);
-        if (last != null && compare(last, installed) >= 0) return "";
+        return render(sections(source, null, current, dismissed), Locale.ENGLISH).toString();
+    }
 
+    /** One release's notes as shown, and whether they came from the English changelog. */
+    static final class Section {
+        final String text;
+        final boolean english;
+
+        Section(String text, boolean english) {
+            this.text = text;
+            this.english = english;
+        }
+    }
+
+    /**
+     * The releases the reader hasn't dismissed, newest first, each already formatted. A release
+     * {@code translated} holds comes in the phone's language (#91), and the rest in English.
+     */
+    static List<Section> sections(String source, String translated, String current, String dismissed) {
+        List<Section> shown = new ArrayList<>();
+        BigInteger[] installed = version(current);
+        if (installed == null) return shown;
+        BigInteger[] last = version(dismissed);
+        if (last != null && compare(last, installed) >= 0) return shown;
+
+        Map<String, String> ownLanguage = releases(translated);
         Matcher matcher = HEADING.matcher(source);
-        StringBuilder visible = new StringBuilder();
         while (matcher.find()) {
-            BigInteger[] entry = version(matcher.group(1));
+            String number = matcher.group(1);
+            BigInteger[] entry = version(number);
             if (entry == null || compare(entry, installed) > 0
                     || (last == null && compare(entry, installed) != 0)
                     || (last != null && compare(entry, last) <= 0)) continue;
             int start = matcher.start();
             int end = matcher.find() ? matcher.start() : source.length();
             matcher.region(end, source.length());
-            if (visible.length() > 0) visible.append("\n\n");
-            visible.append(source, start, end);
+            String own = ownLanguage.get(number);
+            shown.add(new Section(format(own != null ? own : source.substring(start, end)), own == null));
         }
-        if (visible.length() == 0) return "";
-        return visible.toString().trim()
+        return shown;
+    }
+
+    /** Each release section of {@code notes} by its version, or none for null. */
+    private static Map<String, String> releases(String notes) {
+        Map<String, String> found = new HashMap<>();
+        if (notes == null) return found;
+        Matcher matcher = HEADING.matcher(notes);
+        while (matcher.find()) {
+            String number = matcher.group(1);
+            int start = matcher.start();
+            int end = matcher.find() ? matcher.start() : notes.length();
+            matcher.region(end, notes.length());
+            found.put(number, notes.substring(start, end));
+        }
+        return found;
+    }
+
+    /**
+     * The changelog's markdown as the dialog shows it. Every rule works line by line, so a
+     * section formats the same alone as inside the whole text.
+     */
+    private static String format(String section) {
+        return section
                 .replaceAll("(?m)^## ", "Hushfeed ")
                 .replaceAll("(?m)^\\* (\\*\\*TikTok:\\*\\* )?", "• ")
                 .replace("**", "");
     }
 
+    /** The sections one after another, each run of one language marked with its LocaleSpan. */
+    private static SpannableStringBuilder render(List<Section> sections, Locale own) {
+        SpannableStringBuilder notes = new SpannableStringBuilder();
+        int runStart = 0;
+        for (int index = 0; index < sections.size(); index++) {
+            Section section = sections.get(index);
+            if (index > 0) {
+                notes.append("\n\n");
+                if (section.english != sections.get(index - 1).english) {
+                    span(notes, runStart, notes.length(), sections.get(index - 1).english ? Locale.ENGLISH : own);
+                    runStart = notes.length();
+                }
+            }
+            notes.append(section.text);
+        }
+        // The last section's trailing blank lines go, as trim() took them from the whole text.
+        int end = notes.length();
+        while (end > 0 && Character.isWhitespace(notes.charAt(end - 1))) end--;
+        notes.delete(end, notes.length());
+        if (!sections.isEmpty()) {
+            span(notes, runStart, notes.length(),
+                    sections.get(sections.size() - 1).english ? Locale.ENGLISH : own);
+        }
+        return notes;
+    }
+
+    private static void span(SpannableStringBuilder notes, int start, int end, Locale locale) {
+        if (end > start) notes.setSpan(new LocaleSpan(locale), start, end, Spanned.SPAN_INCLUSIVE_INCLUSIVE);
+    }
+
     static void show(Context context, String current, Runnable onDismiss) {
         TextView body = new TextView(context);
-        // The notes come from the English changelog. A LocaleSpan is what a screen reader that
+        // A release translated for the phone's table shows in that language (#91), and the rest
+        // come from the English changelog. A LocaleSpan per run is what a screen reader that
         // switches languages reads; the text locale only sets line breaking and hyphenation.
-        SpannableString notes = new SpannableString(text(current, context.getSharedPreferences(
-                PREFS_NAME, Context.MODE_PRIVATE).getString(DISMISSED, null)));
-        notes.setSpan(new LocaleSpan(Locale.ENGLISH), 0, notes.length(), Spanned.SPAN_INCLUSIVE_INCLUSIVE);
-        body.setText(notes);
+        Locale own = L10n.shownLocale(context);
+        List<Section> sections = sections(ReleaseNotesData.TEXT,
+                ReleaseNotesData.translated(L10n.tableTag(context)), current,
+                context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).getString(DISMISSED, null));
+        boolean anyEnglish = false;
+        boolean allEnglish = true;
+        for (Section section : sections) {
+            anyEnglish |= section.english;
+            allEnglish &= section.english;
+        }
+        body.setText(render(sections, own));
         body.setTextColor(SettingsUi.textPrimary());
         body.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_BODY);
         body.setTextIsSelectable(true);
-        body.setTextLocale(Locale.ENGLISH);
+        body.setTextLocale(allEnglish ? Locale.ENGLISH : own);
         int padding = SettingsUi.dp(context, 22);
         body.setPadding(padding, padding, padding, padding);
 
         LinearLayout content = new LinearLayout(context);
         content.setOrientation(LinearLayout.VERTICAL);
-        // Title and buttons follow the phone's language and the notes don't (#91), so a reader
-        // with a translated table is told so before the English starts.
-        if (L10n.isTranslated(context)) {
+        // A reader with a translated table is told before any English starts: all of it, or the
+        // older releases from before the notes were translated (#91).
+        if (L10n.isTranslated(context) && anyEnglish) {
             TextView english = new TextView(context);
-            english.setText(L10n.t(context, "These notes are in English."));
+            english.setText(L10n.t(context, allEnglish ? "These notes are in English."
+                    : "Some of these notes are in English."));
             english.setTextColor(SettingsUi.textSecondary());
             english.setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, SettingsUi.TEXT_LABEL);
             english.setPadding(padding, padding, padding, 0);

@@ -422,4 +422,57 @@ public class SessionPlaybackHoldTest {
                     player.manager.resumes);
         }
     }
+
+    /** The picture-in-picture button plays and pauses the reported video with TikTok's own controls. */
+    @Test public void thePlayButtonTogglesTheReportedVideo() {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            owner.windowFocusChanged(true);
+            feedTab(owner.get());
+            NativeController player = new NativeController();
+            player.bind("first");
+            player.reportProgress();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertFalse(SessionBudget.isLocked());
+            assertSame(player.current, SessionPlaybackHold.currentPlayingAweme());
+            assertEquals(Boolean.TRUE, SessionPlaybackHold.currentPlaying());
+
+            assertTrue(SessionPlaybackHold.setCurrentPlaying(false));
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            assertEquals(1, player.manager.pauses);
+            assertEquals(Boolean.FALSE, SessionPlaybackHold.currentPlaying());
+
+            assertTrue(SessionPlaybackHold.setCurrentPlaying(true));
+            assertEquals(1, player.manager.resumes);
+            assertEquals(Boolean.TRUE, SessionPlaybackHold.currentPlaying());
+        }
+    }
+
+    /** A held video stays held: the button can't play what the daily panel paused. */
+    @Test public void thePlayButtonCantPlayAHeldVideo() {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            owner.windowFocusChanged(true);
+            feedTab(owner.get());
+            NativeController player = new NativeController();
+            startHold(player);
+            int resumes = player.manager.resumes;
+            assertFalse(SessionPlaybackHold.setCurrentPlaying(true));
+            assertEquals(resumes, player.manager.resumes);
+        }
+    }
+
+    /** Once the cell moved on to a video the player hasn't reported, there's nothing to play or pause. */
+    @Test public void thePlayButtonDoesNothingOnceTheCellMovedOn() {
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            owner.windowFocusChanged(true);
+            feedTab(owner.get());
+            NativeController player = new NativeController();
+            player.bind("first");
+            player.reportProgress();
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            player.bind("second");
+            assertEquals(null, SessionPlaybackHold.currentPlaying());
+            assertFalse(SessionPlaybackHold.setCurrentPlaying(false));
+            assertEquals(0, player.manager.pauses);
+        }
+    }
 }

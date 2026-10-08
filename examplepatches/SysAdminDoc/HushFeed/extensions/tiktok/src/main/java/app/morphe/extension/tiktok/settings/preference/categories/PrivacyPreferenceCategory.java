@@ -12,6 +12,7 @@ import app.morphe.extension.tiktok.privacy.BenchmarkRuns;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.L10n;
+import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
 import app.morphe.extension.tiktok.settings.preference.GhostModePreference;
 import app.morphe.extension.tiktok.settings.preference.HookStatusPreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
@@ -32,12 +33,12 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
 
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
-        return hasTracking() || hasDeviceAccess() || hasLinks();
+        return SettingsStatus.appLockEnabled || hasTracking() || hasDeviceAccess() || hasLinks();
     }
 
     private static boolean hasTracking() {
         return SettingsStatus.disableTelemetryEnabled || SettingsStatus.ghostModeEnabled
-                || SettingsStatus.searchHistoryEnabled;
+                || SettingsStatus.searchHistoryEnabled || SettingsStatus.watchHistoryEnabled;
     }
 
     private static boolean hasDeviceAccess() {
@@ -62,6 +63,21 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
 
     @Override
     public void addPreferences(Context context) {
+        if (SettingsStatus.appLockEnabled) {
+            addPreference(new SectionHeadingPreference(context, "App lock"));
+            addPreference(new TogglePreference(
+                    context,
+                    "Lock TikTok",
+                    "Ask for the unlock your phone uses, like a fingerprint or a PIN, when TikTok "
+                            + "starts and when you come back to it. A link you open from another app "
+                            + "still goes to its video once you unlock. While this is on, TikTok's "
+                            + "preview in recent apps stays blank. Needs a screen lock on the phone.",
+                    Settings.APP_LOCK
+            ));
+            addPreference(new ChoicePreference(context, "Lock again after", Settings.APP_LOCK_TIMEOUT,
+                    new String[]{"Right away", "After 1 minute", "After 5 minutes", "After 15 minutes"},
+                    new String[]{"0", "1", "5", "15"}));
+        }
         if (hasTracking()) {
             addPreference(new SectionHeadingPreference(context, "Tracking"));
         }
@@ -76,6 +92,16 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
         }
         if (SettingsStatus.ghostModeEnabled) {
             addPreference(new GhostModePreference(context));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide online status",
+                    "Stop sending TikTok's activity reports, so friends don't see a green dot or "
+                            + "Active now while you're in the app. It works only while Ghost mode is "
+                            + "on. The same report brings back your friends' status, so theirs may "
+                            + "stop updating for you while it's on. Your last status can stay "
+                            + "visible for a while.",
+                    Settings.GHOST_HIDE_ONLINE_STATUS
+            ));
             HookStatusPreference diagnostics = new HookStatusPreference(context);
             diagnostics.setKey("action_ghost_mode_diagnostics");
             diagnostics.setTitle(L10n.t(context, "Ghost mode diagnostics"));
@@ -89,6 +115,17 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                             + "Searches already there stay until you delete them, and TikTok's servers "
                             + "may still keep their own record.",
                     Settings.STOP_SEARCH_HISTORY
+            ));
+        }
+        if (SettingsStatus.watchHistoryEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Keep videos out of Watch history",
+                    "Stops the view report TikTok sends for each video you watch, which is how videos get "
+                            + "into Activity center > Watch history. Your views stop adding to view counts and "
+                            + "For You has less to learn from. Videos already there stay, and TikTok still sees "
+                            + "likes, follows, searches and its usage logs.",
+                    Settings.STOP_WATCH_HISTORY
             ));
         }
 
@@ -129,6 +166,21 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                     "Block clipboard reads",
                     "Stop TikTok reading what you copied. Copying a link from TikTok still works.",
                     Settings.BLOCK_CLIPBOARD_READS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide a VPN connection",
+                    "Keep TikTok from telling you're on a VPN. Only the VPN shows as off to it, and "
+                            + "your other connections read as they really are. Leave this off if you "
+                            + "need a feature that checks for a VPN.",
+                    Settings.HIDE_VPN
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Block the advertising id",
+                    "Hand TikTok a blank advertising id, the same one Android gives after you reset "
+                            + "yours, so this device can't be matched across apps by it.",
+                    Settings.BLOCK_ADVERTISING_ID
             ));
         }
         if (SettingsStatus.resourceGovernorEnabled) {
@@ -181,6 +233,15 @@ public final class PrivacyPreferenceCategory extends ConditionalPreferenceCatego
                             + "links are changed, and only the host: nothing is sent anywhere new.",
                     Settings.CUSTOM_SHARE_DOMAIN
             ).withNameKeyboard());
+            addPreference(new TogglePreference(
+                    context,
+                    "Copy the full link for short links",
+                    "When Copy link gives you a short vt.tiktok.com or vm.tiktok.com link, Hushfeed "
+                            + "opens it once in the background to read the full video link and puts "
+                            + "that on your clipboard instead. TikTok sees that open, the same as when "
+                            + "anyone taps the link. A link you send to another app goes out as it was.",
+                    Settings.EXPAND_SHORT_SHARE_LINKS
+            ));
         }
         if (SettingsStatus.externalBrowserEnabled) {
             addPreference(new TogglePreference(

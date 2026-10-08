@@ -52,7 +52,7 @@ val hideVideoOverlaysPatch = bytecodePatch(
         "button, location labels, the effect, template and CapCut tags above descriptions, and the Report " +
         "button some regions get above the creator's picture, without removing videos or changing location permissions. " +
         "One more takes the Add comment bar off those opened videos so they fill the screen, and another " +
-        "clears the close button, progress bar and pause and speed buttons Clear display leaves at the bottom. " +
+        "clears the close button, progress bar and pause and speed buttons Clear display leaves at the bottom. Swipe for brightness and volume turns a vertical drag along the left or right edge of a video into screen brightness or volume. " +
         "Switches: Hushfeed settings > Feed screen, and App for the status bar.",
     default = false,
 ) {

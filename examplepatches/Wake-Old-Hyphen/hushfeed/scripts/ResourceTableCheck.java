@@ -1,5 +1,8 @@
 import com.reandroid.arsc.chunk.PackageBlock;
 import com.reandroid.arsc.chunk.TableBlock;
+import com.reandroid.arsc.chunk.xml.AndroidManifestBlock;
+import com.reandroid.arsc.chunk.xml.ResXmlAttribute;
+import com.reandroid.arsc.chunk.xml.ResXmlElement;
 import com.reandroid.arsc.container.SpecTypePair;
 import com.reandroid.arsc.model.ResourceEntry;
 import com.reandroid.arsc.value.Entry;
@@ -41,7 +44,9 @@ import java.util.zip.ZipFile;
  * id, with the same type and a value in every configuration the stock table gives it; every file
  * a patched value names has to be in the patched archive; and every value the patches changed has
  * to point at something the patched table has. A style keeps its parent, and a file keeps the bytes
- * the stock archive has for it, since no patch writes either. A failure names the id and exits 1.
+ * the stock archive has for it, since no patch writes either, with one exception: Custom launcher
+ * icon restyles the adaptive icon XML that the manifest's icon and round icon name, so a changed
+ * XML file of one of those ids is reported, not failed. A failure names the id and exits 1.
  *
  * <p>What the patches changed is reported, not failed: each rewritten value with its old and new
  * value (the AMOLED dark theme's palette and sheet colors), each entry the rebuild renamed (it
@@ -69,6 +74,9 @@ public final class ResourceTableCheck {
     private final List<String> added = new ArrayList<>();
     private final List<String> moved = new ArrayList<>();
     private final List<String> absentInStock = new ArrayList<>();
+    /** The ids the stock manifest's application, activities and aliases name as icon or round icon. */
+    private final Set<Integer> launcherIcons = new HashSet<>();
+    private final List<String> restyledIcons = new ArrayList<>();
     private int stockResources;
     private int stockValues;
     private int patchedResources;
@@ -83,6 +91,7 @@ public final class ResourceTableCheck {
         File patchedFile = new File(args[1]);
         ResourceTableCheck check = new ResourceTableCheck();
         try (ZipFile stockZip = new ZipFile(stockFile); ZipFile patchedZip = new ZipFile(patchedFile)) {
+            check.launcherIcons.addAll(launcherIcons(stockZip));
             check.run(table(stockZip), stockZip, table(patchedZip), patchedZip);
         }
         List<String> lines = check.lines(stockFile.getName(), patchedFile.getName());
@@ -100,6 +109,32 @@ public final class ResourceTableCheck {
         try (InputStream in = new BufferedInputStream(zip.getInputStream(arsc))) {
             return TableBlock.load(in);
         }
+    }
+
+    private static final int ICON = 0x01010002;
+    private static final int ROUND_ICON = 0x0101052c;
+
+    private static Set<Integer> launcherIcons(ZipFile zip) throws IOException {
+        Set<Integer> ids = new HashSet<>();
+        ZipEntry manifest = zip.getEntry("AndroidManifest.xml");
+        if (manifest == null) return ids;
+        AndroidManifestBlock block;
+        try (InputStream in = new BufferedInputStream(zip.getInputStream(manifest))) {
+            block = AndroidManifestBlock.load(in);
+        }
+        ResXmlElement root = block.getManifestElement();
+        if (root == null) return ids;
+        Iterator<?> elements = root.recursiveElements();
+        while (elements.hasNext()) {
+            ResXmlElement element = (ResXmlElement) elements.next();
+            String name = element.getName();
+            if (!"application".equals(name) && !"activity".equals(name) && !"activity-alias".equals(name)) continue;
+            for (int attribute : new int[]{ICON, ROUND_ICON}) {
+                ResXmlAttribute value = element.searchAttributeByResourceId(attribute);
+                if (value != null && value.getValueType() == ValueType.REFERENCE) ids.add(value.getData());
+            }
+        }
+        return ids;
     }
 
     private void run(TableBlock stock, ZipFile stockZip, TableBlock patched, ZipFile patchedZip) {
@@ -266,10 +301,15 @@ public final class ResourceTableCheck {
                     }
                     if (stockPath == null || stockFile == null) continue;
                     if (!stockPath.equals(path)) moved.add(where + " " + stockPath + " -> " + path);
-                    // No patch writes a resource file, so a file whose bytes changed is one the
+                    // No patch writes a resource file but Custom launcher icon, which restyles the
+                    // launcher's adaptive icon XML. Any other file whose bytes changed is one the
                     // rebuild swapped or damaged (a path clash loses content as well as paths).
                     if (stockFile.getCrc() != file.getCrc() || stockFile.getSize() != file.getSize()) {
-                        failures.add(where + ": " + path + " is not the file the stock archive holds for it");
+                        if (launcherIcons.contains(resource.getResourceId()) && path.endsWith(".xml")) {
+                            restyledIcons.add(where + " " + path);
+                        } else {
+                            failures.add(where + ": " + path + " is not the file the stock archive holds for it");
+                        }
                     }
                 }
             }
@@ -403,6 +443,7 @@ public final class ResourceTableCheck {
                 files, moved.size(), absentInStock.size()));
         for (String line : moved) lines.add("  moved " + line);
         for (String line : absentInStock) lines.add("  absent in both " + line);
+        section(lines, "launcher icon files restyled (Custom launcher icon)", restyledIcons);
         if (failures.isEmpty()) {
             lines.add(String.format(Locale.ROOT, "[resources] every one of the stock table's %d resources resolves in the patched table, with its type and a value in each of its configurations, and every file and reference the patched values name is there",
                     stockResources));

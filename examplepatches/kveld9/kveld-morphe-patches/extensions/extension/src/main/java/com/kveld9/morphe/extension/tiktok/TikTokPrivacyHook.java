@@ -1,17 +1,34 @@
 package com.kveld9.morphe.extension.tiktok;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public final class TikTokPrivacyHook {
     private static final String TAG = "MorpheTikTok";
+
+    private static final ThreadLocal<Uri> LAST_URI = new ThreadLocal<>();
+    private static final ThreadLocal<Intent> LAST_INTENT = new ThreadLocal<>();
+
+    private static final Set<String> CONTACTS_AUTHORITIES = new HashSet<>(Arrays.asList(
+        "contacts",
+        "com.android.contacts",
+        "contacts-provider",
+        "call_log"
+    ));
 
     private static final Set<String> BLOCKED_PERMISSIONS = new HashSet<>(Arrays.asList(
         "android.permission.READ_CONTACTS",
@@ -142,5 +159,49 @@ public final class TikTokPrivacyHook {
         }
         Log.w(TAG, "[Device Privacy Guard] Intercepted external package query: " + packageName);
         throw new PackageManager.NameNotFoundException("Package query blocked by Device Privacy Guard: " + packageName);
+    }
+
+    private static boolean isContactsUri(Uri uri) {
+        if (uri == null) return false;
+        String auth = uri.getAuthority();
+        if (auth == null) return false;
+        String lower = auth.toLowerCase();
+        if (lower.contains("contacts") || CONTACTS_AUTHORITIES.contains(lower)) {
+            return true;
+        }
+        return false;
+    }
+
+    public static void noteUri(Uri uri) {
+        LAST_URI.set(uri);
+    }
+
+    public static Cursor filterNotedResult(Cursor cursor) {
+        Uri uri = LAST_URI.get();
+        LAST_URI.remove();
+        if (isContactsUri(uri)) {
+            Log.w(TAG, "[Device Privacy Guard] Filtered contacts query for URI: " + uri);
+            if (cursor != null) {
+                try {
+                    cursor.close();
+                } catch (Throwable ignored) {}
+            }
+            return new MatrixCursor(new String[0]);
+        }
+        return cursor;
+    }
+
+    public static void noteIntent(Intent intent) {
+        LAST_INTENT.set(intent);
+    }
+
+    public static List<ResolveInfo> filterNotedIntentResult(List<ResolveInfo> activities) {
+        Intent intent = LAST_INTENT.get();
+        LAST_INTENT.remove();
+        if (intent != null && (intent.getPackage() != null || intent.getComponent() != null)) {
+            return activities;
+        }
+        Log.w(TAG, "[Device Privacy Guard] Filtered broad package inventory query: " + intent);
+        return Collections.emptyList();
     }
 }

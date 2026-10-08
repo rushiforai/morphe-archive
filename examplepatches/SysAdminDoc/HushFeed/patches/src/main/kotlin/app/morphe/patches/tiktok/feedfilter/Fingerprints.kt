@@ -616,6 +616,19 @@ internal object FriendsFeedSuccessFingerprint : Fingerprint(
     },
 )
 
+/**
+ * The Friends tab's V3 feed handles each response off the wire here, before it walks
+ * `friendsV3Feeds` into the list the tab shows. Both the main request and the text feed
+ * requests end in it. It is the class's only method taking just the response, named LJ and
+ * public final on 47.0.3, 47.1.3 and 47.1.4, so p1 is the response.
+ */
+internal object FriendsV3FeedHandleResponseFingerprint : Fingerprint(
+    definingClass = "Lcom/ss/android/ugc/aweme/friendstab/repo/FriendsV3FeedNetworkSource;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Lcom/ss/android/ugc/aweme/friendstab/repo/FriendsV3FeedResponse;"),
+)
+
 internal object TakoAiFeedButtonSetVisibleFingerprint : Fingerprint(
     definingClass = "/feed/assem/tikbot/TakoAssem;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
@@ -910,6 +923,21 @@ internal object RecUserCardInsertFingerprint : Fingerprint(
     returnType = "Lkotlin/Pair;",
     strings = listOf("friend_recommend_card"),
     custom = { method, _ -> method.isRecUserCardInsertion() },
+)
+
+/**
+ * The Lemon8 card handler's request builder, a LIZJ(handler, FeedCardInsertData, List) that
+ * answers a list of card type requests. Every card-insert handler has this shape, and the one
+ * that keeps the not-interested time of the Lemon8 big card is the only one with this key.
+ */
+internal object Lemon8CardRequestFingerprint : Fingerprint(
+    returnType = "Ljava/util/List;",
+    parameters = listOf(
+        "L",
+        "Lcom/ss/android/ugc/feed/platform/cardinsert/data/FeedCardInsertData;",
+        "Ljava/util/List;",
+    ),
+    strings = listOf("fyp_big_card_not_interested_time"),
 )
 
 /** Loads the Lynx view behind an inserted card, which happens before any list filter runs. */

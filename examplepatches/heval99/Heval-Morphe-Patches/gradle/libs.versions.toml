@@ -4,13 +4,9 @@ morphe-patcher = "1.8.0"
 smali = "d92701d947"
 gson = "2.14.0"
 morphe-patches-library = "1.0.4"
-annotation = "1.9.1"
 agp = "9.1.0"
 
 [libraries]
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 morphe-patches-library = { module = "app.morphe:morphe-patches-library", version.ref = "morphe-patches-library" }
-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 
-[plugins]
-android-library = { id = "com.android.library", version.ref = "agp" }

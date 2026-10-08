@@ -32,7 +32,7 @@
 - Extension artifact or class-descriptor renames must update both Gradle wiring in `patches/build.gradle.kts` and injected bytecode call sites.
 - Follow `docs/patch-development.md#file-layout` for exact compatibility targets, patch descriptions, and risky-patch defaults.
 - Follow `docs/release.md#rules` for generated-file ownership; do not hand-edit release metadata or the generated README patch list.
-- Follow `docs/release.md#changelog-policy` for `CHANGELOG.md`; add only user-visible app changes under `## Unreleased`.
+- Follow `docs/release.md#changelog-policy` for `CHANGELOG.md`; add only user-visible app changes under `## Unreleased`. For audits or cleanup, follow `docs/release.md#changelog-audits-and-edits`.
 - Follow `docs/development.md#testing-guidance` for synthetic DEX tests, Robolectric tests, and opt-in private APK qualification.
 - Before extracting, check the gitignored `analysis/<app>/<version>/` workspace and notes and reuse verified evidence. Follow `docs/reverse-engineering.md#analysis-workspace`.
 - Build and unit-test success does not establish real-APK compatibility or device behavior; use `docs/validation.md`.

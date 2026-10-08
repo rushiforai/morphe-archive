@@ -23,6 +23,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.reandroid.arsc.chunk.TableBlock
+import com.reandroid.arsc.chunk.xml.ResXmlDocument
+import com.reandroid.arsc.chunk.xml.ResXmlElement
 import com.reandroid.arsc.model.ResourceEntry
 import com.reandroid.arsc.value.Entry
 import com.reandroid.arsc.value.ResConfig
@@ -60,6 +62,14 @@ import org.w3c.dom.Element
  */
 class MaterialYouTokenFixtureTest {
     private companion object {
+        /** WASH in Facebook's dark style, the page under the feed's last unit. */
+        const val WASH_DARK = 0xFF101011.toInt()
+
+        const val ANDROID_THEME = 0x01010000
+        const val ANDROID_NAME = 0x01010003
+        const val WINDOW_BACKGROUND = 0x01010054
+        const val MAIN_ACTIVITY = "com.facebook.katana.activity.FbMainTabActivity"
+
         /**
          * The FDS tokens 577 and 580 resolve and read as `TypedValue.data`: straight from a literal, off a
          * token constant, or through a helper handed the attribute or a token constant as a parameter.
@@ -230,6 +240,77 @@ class MaterialYouTokenFixtureTest {
     }
 
     /**
+     * The page under the feed's last unit in dark mode: FbMainTabActivity's theme, through its
+     * parents, sets `android:windowBackground` to `?attr/WASH`, and the dark style gives WASH
+     * #101011, one of SURFACES. The framework draws that background, so MaterialYouTheme.recolourWindow
+     * gives it the palette from an activity callback rather than a hook.
+     */
+    @Test
+    fun `the main activity's window background is WASH, dark's #101011, in each declared build`() {
+        assertTrue("SURFACES lists #101011", WASH_DARK in listedSurfaces())
+        var builds = 0
+        for (target in AppCompatibilities.facebook().single().targets) {
+            val version = checkNotNull(target.version)
+            for (fixture in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                withBaseApk(fixture) { apk -> checkWindowBackground(fixture.name, apk) }
+                builds++
+            }
+        }
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
+    }
+
+    private fun checkWindowBackground(build: String, apk: File) {
+        val attributes = tokenAttributes(apk)
+        val wash = attributes["WASH"] ?: error("$build: no FDS token WASH")
+        val styles = fdsStyles(apk, attributes.values.toSet())
+        val light = styles.values.single { it.parent == 0 && it.sets > 300 }
+        val dark = styles.values.single { it.parent == light.id && it.sets > 300 }
+        assertEquals("$build: dark's WASH", WASH_DARK, dark.values[wash])
+
+        val byId = resources(apk)
+        var style = mainActivityTheme(apk)
+        var found = false
+        var depth = 0
+        while (!found && style ushr 24 == 0x7f && depth++ < 40) {
+            val entries = checkNotNull(byId[style]) { "$build: theme %08x isn't in the table".format(style) }
+                .iterator().asSequence().filter { it != null && !it.isNull && it.isComplex }.toList()
+            for (entry in entries) {
+                for (item in entry.tableEntry as ResTableMapEntry) {
+                    if (item.nameId != WINDOW_BACKGROUND) continue
+                    val where = "$build: style %08x %s windowBackground".format(style, entry.resConfig)
+                    assertEquals(where, ValueType.ATTRIBUTE, item.valueType)
+                    assertEquals(where, wash, item.data)
+                    found = true
+                }
+            }
+            style = (entries.firstOrNull { it.resConfig.isDefault }?.tableEntry as? ResTableMapEntry)?.parentId ?: 0
+        }
+        assertTrue("$build: FbMainTabActivity's theme sets no windowBackground", found)
+    }
+
+    /** The theme the manifest gives FbMainTabActivity. */
+    private fun mainActivityTheme(apk: File): Int = ZipFile(apk).use { zip ->
+        val manifest = ResXmlDocument()
+        zip.getInputStream(zip.getEntry("AndroidManifest.xml")).use { manifest.readBytes(it) }
+        fun ResXmlElement.attribute(id: Int) = (0 until attributeCount).map { getAttributeAt(it) }.firstOrNull { it.nameId == id }
+        val activity = manifest.recursiveElements().asSequence().filterIsInstance<ResXmlElement>().single {
+            it.name == "activity" && it.attribute(ANDROID_NAME)?.valueString == MAIN_ACTIVITY
+        }
+        checkNotNull(activity.attribute(ANDROID_THEME)) { "$MAIN_ACTIVITY names no theme" }.data
+    }
+
+    private fun resources(apk: File): Map<Int, ResourceEntry> {
+        val table = ZipFile(apk).use { zip -> zip.getInputStream(zip.getEntry(TableBlock.FILE_NAME)).use { TableBlock.load(it) } }
+        val byId = mutableMapOf<Int, ResourceEntry>()
+        for (block in table.listPackages()) {
+            for (pair in block.listSpecTypePairs()) {
+                for (resource in pair.resources) if (resource != null && !resource.isEmpty) byId[resource.resourceId] = resource
+            }
+        }
+        return byId
+    }
+
+    /**
      * Issue #37: FDS_SHARED lists the blues Facebook gives a token in both themes, which only
      * Facebook's dark mode answer can tell apart. Each listed colour has to be the one the light
      * style gives that token and the one the dark style gives it too, and no colour of a token may
@@ -344,6 +425,88 @@ class MaterialYouTokenFixtureTest {
                     }
                     assertTrue("${fixture.name}: CARD_BACKGROUND is no longer above the black band, found $raisedTokens",
                         "CARD_BACKGROUND" in raisedTokens)
+                }
+                builds++
+            }
+        }
+        assertEquals("one fixture for each declared build", declaredBuilds(), builds)
+    }
+
+    /** AmoledTheme's TEXT_TOKENS: FDS's names, then Mig's, as its comments mark them. */
+    private fun amoledTextRoles(): Pair<Set<String>, Set<String>> {
+        val start = amoled.indexOf("TEXT_TOKENS =")
+        val block = amoled.substring(start, amoled.indexOf(")));", start))
+        val mig = block.indexOf("// Mig.")
+        check(start >= 0 && mig >= 0) { "AmoledTheme's TEXT_TOKENS has no Mig part" }
+        fun names(text: String) = Regex(""""([A-Z_]+)"""").findAll(text).map { it.groupValues[1] }.toSet()
+        return names(block.substring(0, mig)) to names(block.substring(mig))
+    }
+
+    /** AmoledThemeTest's ROLE_COLOURS, the colours its #34 matrix lifts, as listedTokens reads a table. */
+    private fun roleColours(): Map<String, Set<Int>> {
+        val test = File(RepoFiles.root,
+            "extensions/facebook/src/test/java/app/morphe/extension/facebook/theme/AmoledThemeTest.java").readText()
+        val start = test.indexOf("static final String ROLE_COLOURS =")
+        check(start >= 0) { "AmoledThemeTest declares no ROLE_COLOURS" }
+        val table = Regex(""""([^"]*)"""").findAll(test.substring(start, test.indexOf("\";", start) + 1))
+            .joinToString("") { it.groupValues[1] }
+        return table.split(";").associate { entry ->
+            val (name, values) = entry.split("=")
+            name to values.split(",").map { it.toInt(16) or -0x1000000 }.toSet()
+        }
+    }
+
+    /** The constant names of each Mig colour enum the dark scheme's (token) resolver takes, from their static initializers. */
+    private fun migColourNames(apk: File): Set<String> {
+        val container = DexFileFactory.loadDexContainer(apk, Opcodes.getDefault())
+        val classes = mutableMapOf<String, ClassDef>()
+        for (name in container.dexEntryNames) {
+            for (classDef in container.getEntry(name)!!.dexFile.classes) classes.putIfAbsent(classDef.type, classDef)
+        }
+        val tokenTypes = classes.getValue(DARK_COLOR_SCHEME).methods
+            .filter { it.returnType == "I" && it.parameterTypes.size == 1 && it.parameterTypes[0].toString() != "Ljava/lang/Integer;" }
+            .map { it.parameterTypes[0].toString() }.toSet()
+        return classes.values
+            .filter { it.superclass == "Ljava/lang/Enum;" && it.interfaces.any { type -> type in tokenTypes } }
+            .flatMap { enum ->
+                enum.methods.single { it.name == "<clinit>" }.implementation!!.instructions
+                    .mapNotNull { ((it as? ReferenceInstruction)?.reference as? StringReference)?.string }
+            }.toSet()
+    }
+
+    /**
+     * Issue #34: on a lighter Background colour AMOLED lifts text and icon roles by their token's
+     * name, so the roles are held to each declared build before a colour is let through. Each FDS
+     * role has to be a token whose dark and darker styles give it only colours AmoledThemeTest's
+     * matrix lifts to 4.5:1 on #5B513F's surfaces (ROLE_COLOURS), and each of those colours has to
+     * be one the styles give. Each of Mig's short names has to be a constant of a Mig colour enum
+     * the dark scheme resolves, and no FDS token's, so the name alone says it's a text role.
+     */
+    @Test
+    fun `every text role AMOLED lifts is a token with the colours its matrix covers in each declared build`() {
+        val (fds, mig) = amoledTextRoles()
+        assertTrue("FDS's text roles", fds.size >= 14 && "SECONDARY_TEXT" in fds && "PLACEHOLDER_TEXT" in fds)
+        assertTrue("Mig's text roles", "SECONDARY" in mig && "PLACEHOLDER" in mig)
+        val matrix = roleColours()
+        assertEquals("the matrix covers every FDS role", fds, matrix.keys)
+        var builds = 0
+        for (target in AppCompatibilities.facebook().single().targets) {
+            val version = checkNotNull(target.version)
+            for (fixture in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                withBaseApk(fixture) { apk ->
+                    val attributes = tokenAttributes(apk)
+                    val styles = fdsStyles(apk, attributes.values.toSet())
+                    val light = styles.values.single { it.parent == 0 && it.sets > 300 }
+                    val dark = styles.values.single { it.parent == light.id && it.sets > 300 }
+                    val darker = styles.values.single { it.parent == dark.id }
+                    for (name in fds) {
+                        val attribute = attributes[name] ?: error("${fixture.name}: no FDS token $name")
+                        val colours = setOfNotNull(dark.values[attribute], darker.values[attribute])
+                        assertEquals("${fixture.name}: $name's dark colours", matrix.getValue(name), colours)
+                    }
+                    val names = migColourNames(apk)
+                    assertTrue("${fixture.name}: Mig's enums have no ${mig - names}", names.containsAll(mig))
+                    assertTrue("${fixture.name}: FDS tokens named ${mig intersect attributes.keys}", (mig intersect attributes.keys).isEmpty())
                 }
                 builds++
             }
@@ -524,13 +687,7 @@ class MaterialYouTokenFixtureTest {
 
     /** Every style that sets 20 or more FDS attributes, with each one's colour where it resolves to one. */
     private fun fdsStyles(apk: File, fdsAttributes: Set<Int>): Map<Int, Style> {
-        val table = ZipFile(apk).use { zip -> zip.getInputStream(zip.getEntry(TableBlock.FILE_NAME)).use { TableBlock.load(it) } }
-        val byId = mutableMapOf<Int, ResourceEntry>()
-        for (block in table.listPackages()) {
-            for (pair in block.listSpecTypePairs()) {
-                for (resource in pair.resources) if (resource != null && !resource.isEmpty) byId[resource.resourceId] = resource
-            }
-        }
+        val byId = resources(apk)
         val styles = mutableMapOf<Int, Style>()
         for (resource in byId.values) {
             if (!resource.type.startsWith("style")) continue

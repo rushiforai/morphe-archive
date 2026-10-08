@@ -80,6 +80,16 @@ public class MetaAiFeedUnitTest {
                 + "Removed: XFBFBImplicitMetaAIFeedUnit 1. Kinds: ENGAGEMENT 1", feedLine());
     }
 
+    /** The card promoting Vibes goes under the same switch, named by its own type. */
+    @Test
+    public void aVibesPromotionIsHidden() {
+        assertTrue(guard(new TypedFeedUnit("VibesRifuQuickPromotionFeedUnit"), true));
+        assertEquals(FeedFilter.FEED_ROUTE + ": 1 lists, 1 items, 1 removed. Last reason: VibesRifuQuickPromotionFeedUnit. "
+                + "Removed: VibesRifuQuickPromotionFeedUnit 1. Kinds: ENGAGEMENT 1", feedLine());
+        Settings.HIDE_META_AI_FEED_UNITS.save(false);
+        assertFalse(guard(new TypedFeedUnit("VibesRifuQuickPromotionFeedUnit"), true));
+    }
+
     /** A post, a unit with a near name and a unit whose type can't be read all stay. */
     @Test
     public void everyOtherUnitStays() {

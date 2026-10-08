@@ -1,0 +1,44 @@
+name: Bug report
+description: A patch applies, but the patched app or feature behaves incorrectly
+title: "[Bug] "
+labels: []
+body:
+  - type: input
+    id: version
+    attributes:
+      label: VK Video version
+      placeholder: "1.163"
+    validations:
+      required: true
+  - type: input
+    id: version_code
+    attributes:
+      label: versionCode
+      placeholder: "51920"
+    validations:
+      required: true
+  - type: dropdown
+    id: patch
+    attributes:
+      label: Patch
+      options:
+        - Disable in-app update
+        - Remove video ads
+        - Hide promoted banner content
+        - Disable ad pixel tracking
+        - Multiple / unknown
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Explain expected and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Morphe / logcat output
+      description: Paste relevant text logs. Do not upload proprietary APK files or secrets.
+      render: text

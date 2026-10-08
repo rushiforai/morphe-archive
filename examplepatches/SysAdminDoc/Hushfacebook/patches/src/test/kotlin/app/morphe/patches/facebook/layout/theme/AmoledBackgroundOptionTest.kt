@@ -52,18 +52,92 @@ class AmoledBackgroundOptionTest {
     /**
      * Text has to stay readable on every surface AMOLED makes from the colour, and the lightest is an
      * input's fill, [LIGHTEST_STEP] above it. The last grey that keeps Facebook's white text at 4.5:1
-     * there is #3A3A3A; the next one up is refused, and so is anything lighter.
+     * there is #3A3A3A, and up to it every colour keeps Facebook's full step. Issue #34 lets a little
+     * lighter through with a smaller step and lifted text, up to #535353 for a grey; the next one up
+     * is refused, and so is anything lighter.
      */
     @Test
     fun aColourTooLightForTheTextIsRefused() {
         assertEquals(0xFF3A3A3A.toInt(), backgroundColour("#3A3A3A"))
+        assertEquals(LIGHTEST_STEP, lightestStep(0xFF3A3A3A.toInt()))
         assertTrue(contrast(text, raised(0xFF3A3A3A.toInt(), LIGHTEST_STEP)) >= 4.5)
 
-        assertNull(backgroundColour("#3B3B3B"))
+        assertEquals("the first lighter grey", 0xFF3B3B3B.toInt(), backgroundColour("#3B3B3B"))
         assertTrue(contrast(text, raised(0xFF3B3B3B.toInt(), LIGHTEST_STEP)) < 4.5)
+        assertEquals(35, lightestStep(0xFF3B3B3B.toInt()))
 
-        for (light in listOf("#808080", "#FFFFFF", "#4A90E2", "#F2F4F7")) assertNull(light, backgroundColour(light))
+        assertEquals("the last grey", 0xFF535353.toInt(), backgroundColour(LIGHTEST_ADMITTED_GREY))
+        assertEquals(11, lightestStep(0xFF535353.toInt()))
+        assertNull("the next grey up", backgroundColour("#545454"))
+
+        for (light in listOf("#808080", "#FFFFFF", "#4A90E2", "#F2F4F7", "#6A6A6A")) assertNull(light, backgroundColour(light))
         assertTrue("#808080 is under 4.5:1 even on its own", contrast(text, 0xFF808080.toInt()) < 4.5)
+    }
+
+    /**
+     * Every colour the option took before #34's lighter ones keeps [LIGHTEST_STEP], which the patch
+     * leaves in the extension's stub as it is, so their output stays what it was: every opaque
+     * colour with channels in steps of 0x0B up to 0x58, judged by the rule as it stood.
+     */
+    @Test
+    fun everyColourTakenBeforeKeepsItsStep() {
+        var before = 0
+        var lighter = 0
+        val channels = (0..0x58 step 0x0B)
+        for (red in channels) for (green in channels) for (blue in channels) {
+            val colour = (0xFF000000L or (red.toLong() shl 16) or (green.toLong() shl 8) or blue.toLong()).toInt()
+            val takenBefore = contrast(text, raised(colour, LIGHTEST_STEP)) >= 4.5
+            if (takenBefore) {
+                before++
+                assertEquals("%08X".format(colour), LIGHTEST_STEP, lightestStep(colour))
+            } else if (lightestStep(colour) != null) {
+                lighter++
+                assertTrue("%08X".format(colour), lightestStep(colour)!! < LIGHTEST_STEP)
+            }
+        }
+        assertTrue("taken before: $before", before > 50)
+        assertTrue("taken now: $lighter", lighter > 10)
+    }
+
+    /**
+     * Issue #34's #5B513F: Facebook's white has 7.08:1 on it but 3.26:1 on the lightest surface the
+     * full step makes, so it gets a step of 12. Its page, card, popover and input fill stay in order
+     * and apart, its lightest surface and an unread row's tint stay light enough for secondary text
+     * at 4.5:1 that is still [TEXT_HIERARCHY] under the primary, and the primary text keeps 4.5:1.
+     */
+    @Test
+    fun aLighterColourGetsSmallerStepsInTheSameOrder() {
+        val sand = 0xFF5B513F.toInt()
+        assertEquals(sand, backgroundColour("#5b513f"))
+        assertEquals(7.08, contrast(text, sand), 0.01)
+        assertEquals(3.26, contrast(text, raised(sand, LIGHTEST_STEP)), 0.01)
+        assertEquals(12, lightestStep(sand))
+
+        val surfaces = surfaces(sand, 12)
+        assertEquals(listOf(sand, 0xFF5F5543.toInt(), 0xFF615746.toInt(), 0xFF645A48.toInt()), surfaces)
+        assertEquals("ordered and apart", surfaces, surfaces.sortedBy { luminance(it) }.distinct())
+        assertEquals(0xFF4F5F6F.toInt(), over(sand, UNREAD_ROW))
+
+        val ceiling = (luminance(text) + 0.05) / (TEXT_HIERARCHY * TEXT_CONTRAST) - 0.05
+        assertTrue(textSurface(sand, 12) <= ceiling)
+        assertTrue("one step lighter would leave no room", textSurface(sand, 13) > ceiling)
+        for (surface in surfaces + raised(sand, 12) + over(sand, UNREAD_ROW)) {
+            assertTrue("primary text on %08X".format(surface), contrast(text, surface) >= 4.5)
+        }
+    }
+
+    /** What the option says when it refuses a colour: how to give it, or what to pick instead. */
+    @Test
+    fun aRefusalSaysWhatToDo() {
+        for (good in listOf(null, "", "#000000", "#0D1117", "#5B513F", "#FF3B3B3B")) assertNull(good, backgroundProblem(good))
+        assertTrue(backgroundProblem("navy")!!.contains("#RRGGBB"))
+        assertTrue(backgroundProblem("#123")!!.contains("isn't a colour"))
+        assertTrue(backgroundProblem("#800D1117")!!.contains("see-through"))
+        val tooLight = backgroundProblem("#808080")!!
+        assertTrue(tooLight, tooLight.contains("too light") && tooLight.contains("#3A3A3A") && tooLight.contains(LIGHTEST_ADMITTED_GREY))
+        for (message in listOf("navy", "#800D1117", "#808080").map { backgroundProblem(it)!! }) {
+            assertTrue("no dashes: $message", '—' !in message && '–' !in message && " - " !in message)
+        }
     }
 
     /** The WCAG 2.2 ratios the rule stands on: black on white is 21:1, a colour against itself 1:1. */

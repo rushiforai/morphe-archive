@@ -2,6 +2,7 @@ package app.morphe.patches.tiktok.usability
 
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.stringOption
 import app.morphe.patches.shared.Constants
@@ -13,7 +14,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 
 val videoQualityGovernorPatch = bytecodePatch(
     name = "Video Quality Governor",
-    description = "Caps video playback and download resolutions (1080p, 720p, 540p, 480p, 360p) independently to conserve battery, GPU/MediaCodec load, and mobile data.",
+    description = "Caps video playback resolution (1080p, 720p, 540p, 480p, 360p) to conserve battery, GPU/MediaCodec load, and mobile data. Download quality is controlled separately by the Media Usability patch (downloadQuality).",
     default = false,
 ) {
     compatibleWith(Constants.COMPATIBILITY_TIKTOK)
@@ -27,11 +28,19 @@ val videoQualityGovernorPatch = bytecodePatch(
         required = false,
     )
 
-    val maxDownloadQuality by stringOption(
-        key = "maxDownloadQuality",
-        title = "Maximum Download Resolution",
-        description = "Select maximum video download resolution ceiling: 1080 (1080p Maximum Quality), 720 (720p SuperHigh), 540 (540p H_High), 480 (480p High), or 360 (360p Standard).",
-        default = "1080",
+    val avoidByteVC2 by booleanOption(
+        key = "avoidByteVC2",
+        default = true,
+        title = "Avoid ByteVC2 Software Decoding",
+        description = "Drops ByteVC2 renditions from playback bitrate lists when an H.264 or ByteVC1 alternative exists, so videos use the hardware decoder instead of TikTok's CPU-bound ByteVC2 software decoder.",
+        required = false,
+    )
+
+    val dropUndecodableVideo by booleanOption(
+        key = "dropUndecodableVideo",
+        default = true,
+        title = "Drop Undecodable Video Streams",
+        description = "When the ladder's lowest video stream exceeds the device hardware decoder capability (queried via MediaCodecList), drops video streams and keeps audio-only instead of entering decoder-reject retry loops that freeze the device.",
         required = false,
     )
 
@@ -50,11 +59,11 @@ val videoQualityGovernorPatch = bytecodePatch(
         }
 
         val chosenPlaybackRes = parseResolution(maxQuality, 480)
-        val chosenDownloadRes = parseResolution(maxDownloadQuality, 1080)
 
         var patched = 0
 
-        // 1. Initialize default maxAllowedResolution & downloadAllowedResolution in TikTokVideoQualityHook.<clinit>
+        // 1. Initialize default maxAllowedResolution in TikTokVideoQualityHook.<clinit> and
+        // retire the legacy download ceiling (download quality lives in Media Usability now).
         val hookClinitFp = Fingerprint(
             definingClass = Constants.TIKTOK_EXTENSION_QUALITY_HOOK,
             name = "<clinit>",
@@ -65,6 +74,11 @@ val videoQualityGovernorPatch = bytecodePatch(
         val returnIdx = clinitInstructions.indexOfLast { it.opcode == Opcode.RETURN_VOID }
         val insertIdx = if (returnIdx != -1) returnIdx else 0
 
+        val avoidByteVC2Enabled = avoidByteVC2 ?: true
+        val avoidByteVC2Const = if (avoidByteVC2Enabled) 1 else 0
+        val dropUndecodableEnabled = dropUndecodableVideo ?: true
+        val dropUndecodableConst = if (dropUndecodableEnabled) 1 else 0
+
         hookClinit.addInstructions(
             insertIdx,
             """
@@ -72,11 +86,15 @@ val videoQualityGovernorPatch = bytecodePatch(
                 sput-boolean v0, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->isGovernorEnabled:Z
                 const/16 v0, $chosenPlaybackRes
                 sput v0, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->maxAllowedResolution:I
-                const/16 v0, $chosenDownloadRes
+                const/4 v0, 0
                 sput v0, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->downloadAllowedResolution:I
+                const/4 v0, $avoidByteVC2Const
+                sput-boolean v0, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->avoidByteVC2:Z
+                const/4 v0, $dropUndecodableConst
+                sput-boolean v0, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->dropUndecodableVideo:Z
             """.trimIndent(),
         )
-        println("[Video Quality Governor] Initialized default caps: playback=${chosenPlaybackRes}p, download=${chosenDownloadRes}p.")
+        println("[Video Quality Governor] Initialized playback cap: playback=${chosenPlaybackRes}p, avoidByteVC2=$avoidByteVC2Enabled, dropUndecodable=$dropUndecodableEnabled (download ceiling retired).")
         patched++
 
         // 2. Hook Aweme.getVideo() return points to cap Video model and default play addresses
@@ -120,7 +138,7 @@ val videoQualityGovernorPatch = bytecodePatch(
             videoMethod.addInstructionsAtControlFlowLabel(
                 returnIndex,
                 """
-                    invoke-static {v$reg}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->filterBitrates(Ljava/util/List;)Ljava/util/List;
+                    invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->filterBitratesEx(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;
                     move-result-object v$reg
                 """.trimIndent(),
             )
@@ -146,7 +164,7 @@ val videoQualityGovernorPatch = bytecodePatch(
             rawMethod.addInstructionsAtControlFlowLabel(
                 returnIndex,
                 """
-                    invoke-static {v$reg}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->filterBitrates(Ljava/util/List;)Ljava/util/List;
+                    invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->filterBitratesEx(Ljava/util/List;Ljava/lang/Object;)Ljava/util/List;
                     move-result-object v$reg
                 """.trimIndent(),
             )
@@ -182,60 +200,113 @@ val videoQualityGovernorPatch = bytecodePatch(
             patched++
         }
 
-        // 6. Hook Video.getDownloadNoWatermarkAddr() to enforce download resolution ceiling
-        val downloadNoWrmkFp = Fingerprint(
-            definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Video;",
-            name = "getDownloadNoWatermarkAddr",
-            returnType = "Lcom/ss/android/ugc/aweme/base/model/UrlModel;",
+        // 6. Hook SimVideoUrlModel.getRawBitRate() for detail-page PlayerKit playback engine
+        val simGetRawBitrateFp = Fingerprint(
+            definingClass = "Lcom/ss/android/ugc/playerkit/simapicommon/model/SimVideoUrlModel;",
+            name = "getRawBitRate",
+            returnType = "Ljava/util/List;",
         )
-        val downloadNoWrmkMethod = downloadNoWrmkFp.method
-        val downloadNoWrmkIndices = downloadNoWrmkMethod.implementation?.instructions?.withIndex()
+        val simRawMethod = simGetRawBitrateFp.method
+        val simRawReturnIndices = simRawMethod.implementation?.instructions?.withIndex()
             ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
             ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
             ?.toList() ?: emptyList()
 
-        downloadNoWrmkIndices.asReversed().forEach { (returnIndex, reg) ->
-            downloadNoWrmkMethod.addInstructionsAtControlFlowLabel(
+        simRawReturnIndices.asReversed().forEach { (returnIndex, reg) ->
+            simRawMethod.addInstructionsAtControlFlowLabel(
                 returnIndex,
                 """
-                    invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->enforceDownloadCap(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+                    invoke-static {v$reg}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->filterBitrates(Ljava/util/List;)Ljava/util/List;
                     move-result-object v$reg
-                    check-cast v$reg, Lcom/ss/android/ugc/aweme/base/model/UrlModel;
                 """.trimIndent(),
             )
         }
-        if (downloadNoWrmkIndices.isNotEmpty()) {
-            println("[Video Quality Governor] Hooked Video.getDownloadNoWatermarkAddr() (${downloadNoWrmkIndices.size} return point(s)) -> Download cap active.")
+        if (simRawReturnIndices.isNotEmpty()) {
+            println("[Video Quality Governor] Hooked SimVideoUrlModel.getRawBitRate() (${simRawReturnIndices.size} return point(s)) -> Detail playback bitrate filter active.")
             patched++
         }
 
-        // 7. Hook Video.getDownloadAddr() to enforce download resolution ceiling
-        val downloadAddrFp = Fingerprint(
+        // 7. Hook Video.getProperPlayAddr() return points to enforce capped play address.
+        // Covers direct URL reads on every path (feed, detail, search, profile) even when
+        // Aweme.getVideo() is bypassed by the detail page.
+        val videoGetProperPlayAddrFp = Fingerprint(
             definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Video;",
-            name = "getDownloadAddr",
-            returnType = "Lcom/ss/android/ugc/aweme/base/model/UrlModel;",
+            name = "getProperPlayAddr",
+            returnType = "Lcom/ss/android/ugc/aweme/feed/model/VideoUrlModel;",
         )
-        val downloadAddrMethod = downloadAddrFp.method
-        val downloadAddrIndices = downloadAddrMethod.implementation?.instructions?.withIndex()
+        val properPlayAddrMethod = videoGetProperPlayAddrFp.method
+        val properPlayAddrReturnIndices = properPlayAddrMethod.implementation?.instructions?.withIndex()
             ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
             ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
             ?.toList() ?: emptyList()
 
-        downloadAddrIndices.asReversed().forEach { (returnIndex, reg) ->
-            downloadAddrMethod.addInstructionsAtControlFlowLabel(
+        properPlayAddrReturnIndices.asReversed().forEach { (returnIndex, reg) ->
+            properPlayAddrMethod.addInstructionsAtControlFlowLabel(
                 returnIndex,
                 """
-                    invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->enforceDownloadCap(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-                    move-result-object v$reg
-                    check-cast v$reg, Lcom/ss/android/ugc/aweme/base/model/UrlModel;
+                    invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->enforcePlaybackCap(Ljava/lang/Object;Ljava/lang/Object;)V
                 """.trimIndent(),
             )
         }
-        if (downloadAddrIndices.isNotEmpty()) {
-            println("[Video Quality Governor] Hooked Video.getDownloadAddr() (${downloadAddrIndices.size} return point(s)) -> Download cap active.")
+        if (properPlayAddrReturnIndices.isNotEmpty()) {
+            println("[Video Quality Governor] Hooked Video.getProperPlayAddr() (${properPlayAddrReturnIndices.size} return point(s)) -> Detail-path play address enforcement active.")
             patched++
         }
 
-        println("[Video Quality Governor] Applied $patched video resolution capping hook(s) (playback: ${chosenPlaybackRes}p, download: ${chosenDownloadRes}p).")
+        // 8. Hook Video.getPlayAddr() return points with the same enforcement.
+        val videoGetPlayAddrFp = Fingerprint(
+            definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Video;",
+            name = "getPlayAddr",
+            returnType = "Lcom/ss/android/ugc/aweme/feed/model/VideoUrlModel;",
+        )
+        val playAddrMethod = videoGetPlayAddrFp.method
+        val playAddrReturnIndices = playAddrMethod.implementation?.instructions?.withIndex()
+            ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+            ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+            ?.toList() ?: emptyList()
+
+        playAddrReturnIndices.asReversed().forEach { (returnIndex, reg) ->
+            playAddrMethod.addInstructionsAtControlFlowLabel(
+                returnIndex,
+                """
+                    invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->enforcePlaybackCap(Ljava/lang/Object;Ljava/lang/Object;)V
+                """.trimIndent(),
+            )
+        }
+        if (playAddrReturnIndices.isNotEmpty()) {
+            println("[Video Quality Governor] Hooked Video.getPlayAddr() (${playAddrReturnIndices.size} return point(s)) -> Direct play address enforcement active.")
+            patched++
+        }
+
+        // 9-11. Hook codec-specific play address getters with the same enforcement.
+        // Detail playback of HEVC/ ByteVC1 ladders may read these instead of getPlayAddr().
+        val codecPlayAddrMethods = listOf("getPlayAddrBytevc1", "getPlayAddrH264", "getH264PlayAddr")
+        for (getterName in codecPlayAddrMethods) {
+            val getterFp = Fingerprint(
+                definingClass = "Lcom/ss/android/ugc/aweme/feed/model/Video;",
+                name = getterName,
+                returnType = "Lcom/ss/android/ugc/aweme/feed/model/VideoUrlModel;",
+            )
+            val getterMethod = getterFp.method
+            val getterReturnIndices = getterMethod.implementation?.instructions?.withIndex()
+                ?.filter { it.value.opcode == Opcode.RETURN_OBJECT }
+                ?.map { it.index to (it.value as OneRegisterInstruction).registerA }
+                ?.toList() ?: emptyList()
+
+            getterReturnIndices.asReversed().forEach { (returnIndex, reg) ->
+                getterMethod.addInstructionsAtControlFlowLabel(
+                    returnIndex,
+                    """
+                        invoke-static {v$reg, p0}, ${Constants.TIKTOK_EXTENSION_QUALITY_HOOK}->enforcePlaybackCap(Ljava/lang/Object;Ljava/lang/Object;)V
+                    """.trimIndent(),
+                )
+            }
+            if (getterReturnIndices.isNotEmpty()) {
+                println("[Video Quality Governor] Hooked Video.$getterName() (${getterReturnIndices.size} return point(s)) -> Codec play address enforcement active.")
+                patched++
+            }
+        }
+
+        println("[Video Quality Governor] Applied $patched video resolution capping hook(s) (playback: ${chosenPlaybackRes}p).")
     }
 }

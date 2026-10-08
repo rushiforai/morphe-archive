@@ -325,7 +325,9 @@ final class FeedFilterFeedback {
         if ("InsertedCardFilter".equals(reason)) return "Inserted cards";
         if ("MidAdFilter".equals(reason)) return "Mid-roll ads";
         if ("SeenVideoFilter".equals(reason)) return "Seen videos";
+        if ("OfflineVideoFilter".equals(reason)) return "Offline videos";
         if ("KeywordFilter".equals(reason)) return "Blocked caption words";
+        if ("StickerTextFilter".equals(reason)) return "Text sticker words";
         if ("CreatorFilter".equals(reason)) return "Blocked and hidden creators";
         if ("PromotionalMusicFilter".equals(reason)) return "Promotional music";
         if ("LiveReplayFilter".equals(reason)) return "LIVE replays";

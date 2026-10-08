@@ -28,7 +28,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
 
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
-        return SettingsStatus.playbackQualityEnabled || SettingsStatus.playbackSpeedEnabled
+        return SettingsStatus.playbackQualityEnabled || SettingsStatus.sdrPlaybackEnabled
+                || SettingsStatus.playbackSpeedEnabled
                 || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled
                 || SettingsStatus.fullScreenHoldEnabled || SettingsStatus.feedMuteEnabled
                 || SettingsStatus.backgroundPlayEnabled
@@ -202,14 +203,23 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     new String[]{"1.25x", "1.5x", "1.75x", "2x", "2.5x", "3x"},
                     new String[]{"1.25", "1.5", "1.75", "2", "2.5", "3"}));
         }
-        if (SettingsStatus.playbackQualityEnabled) {
+        if (SettingsStatus.playbackQualityEnabled || SettingsStatus.sdrPlaybackEnabled) {
             addPreference(new SectionHeadingPreference(context, "Quality"));
+        }
+        if (SettingsStatus.playbackQualityEnabled) {
             addPreference(new ChoicePreference(context, "Video playback quality", Settings.PLAYBACK_QUALITY,
                     new String[]{"Automatic", "Highest", "Lowest", "1080p", "720p", "540p", "480p", "360p"},
                     new String[]{"auto", "highest", "lowest", "1080", "720", "540", "480", "360"}));
             addPreference(new ChoicePreference(context, "On mobile data", Settings.PLAYBACK_QUALITY_METERED,
                     new String[]{"No limit", "Highest", "Lowest", "1080p", "720p", "540p", "480p", "360p"},
                     new String[]{"off", "highest", "lowest", "1080", "720", "540", "480", "360"}));
+        }
+        if (SettingsStatus.sdrPlaybackEnabled) {
+            addPreference(new TogglePreference(context, "Play SDR instead of HDR",
+                    "Play the standard version of videos that also come in HDR, so the screen "
+                            + "doesn't jump to full brightness when one starts. Videos TikTok only "
+                            + "offers in HDR still play.",
+                    Settings.PLAY_SDR));
         }
     }
 }

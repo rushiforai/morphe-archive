@@ -34,8 +34,9 @@ public final class MenuSectionsForTests {
         return MenuSections.hideServerSection(Group.PRODUCTS_FROM_FACEBOOK);
     }
 
-    /** Forgets the debug lines already written, as a new Facebook process would start without them. */
+    /** Forgets the debug lines already written and the layout reads, as a new Facebook process would start without them. */
     public static void newProcess() {
         MenuSections.forgetLog();
+        MenuLayoutDump.resetForTests();
     }
 }

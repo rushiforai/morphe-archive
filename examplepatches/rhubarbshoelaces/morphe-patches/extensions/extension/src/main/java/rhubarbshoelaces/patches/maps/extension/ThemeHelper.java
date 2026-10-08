@@ -38,9 +38,15 @@ public final class ThemeHelper {
         return false;
     }
 
-    // --- UI INJECTOR: HYBRID THEME ROW (WITH SLIDING SWITCH & AUTO-RESTART) ---
+    // --- UI INJECTOR: HYBRID THEME ROW ---
     public static void addHybridThemeRow(Activity customizationActivity) {
         try {
+            // --- 100% ROBUST SUBMENU GUARD ---
+            android.content.Intent intent = customizationActivity.getIntent();
+            if (intent != null && intent.hasExtra("org.ungoogled.ui.page")) {
+                return;
+            }
+
             ViewGroup root = (ViewGroup) customizationActivity.findViewById(android.R.id.content);
             if (root == null || root.getChildCount() == 0) return;
 
@@ -72,7 +78,6 @@ public final class ThemeHelper {
                         customizationActivity.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
                         rowLayout.setBackgroundResource(outValue.resourceId);
 
-                        // Text Layout (Left side, Weight = 1)
                         LinearLayout textContainer = new LinearLayout(customizationActivity);
                         textContainer.setOrientation(LinearLayout.VERTICAL);
 
@@ -93,7 +98,6 @@ public final class ThemeHelper {
                         LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1.0f);
                         rowLayout.addView(textContainer, textParams);
 
-                        // Sliding Switch Widget (Right side)
                         SharedPreferences prefs = customizationActivity.getSharedPreferences("ungoogled_prefs", Context.MODE_PRIVATE);
                         boolean enabled = prefs.getBoolean("hybrid_theme", false);
 
@@ -106,7 +110,6 @@ public final class ThemeHelper {
                         switchParams.setMarginStart(dp(customizationActivity, 16));
                         rowLayout.addView(toggleSwitch, switchParams);
 
-                        // Row Click Handler (Toggles Switch & Auto-Restarts)
                         rowLayout.setOnClickListener(v -> {
                             boolean newState = !prefs.getBoolean("hybrid_theme", false);
                             prefs.edit().putBoolean("hybrid_theme", newState).apply();
@@ -117,10 +120,10 @@ public final class ThemeHelper {
                             Toast.makeText(app, "Restarting Maps to apply theme...", Toast.LENGTH_SHORT).show();
 
                             new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                                Intent intent = app.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
-                                if (intent != null) {
-                                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                    app.startActivity(intent);
+                                android.content.Intent restartIntent = app.getPackageManager().getLaunchIntentForPackage(app.getPackageName());
+                                if (restartIntent != null) {
+                                    restartIntent.addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK | android.content.Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                    app.startActivity(restartIntent);
                                 }
                                 Runtime.getRuntime().exit(0);
                             }, 500);

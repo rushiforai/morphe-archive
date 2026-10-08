@@ -31,6 +31,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
         return SettingsStatus.inboxFilterEnabled
                 || SettingsStatus.hideSuggestedAccountsEnabled
                 || SettingsStatus.hideInboxStoriesEnabled
+                || SettingsStatus.chatDeclutterEnabled
                 || SettingsStatus.expandActivityListEnabled
                 || SettingsStatus.notificationControlsEnabled
                 || SettingsStatus.suggestedVideoPushBlockEnabled
@@ -131,6 +132,30 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                 Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS
         ));
         }
+        if (SettingsStatus.chatDeclutterEnabled) {
+            addPreference(new SectionHeadingPreference(context, "In a chat"));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide call buttons",
+                    "The voice and video call buttons leave the top of a chat. Calls still ring, "
+                            + "and the chat details button stays.",
+                    Settings.HIDE_CHAT_CALL_BUTTONS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide sticker suggestions",
+                    "The sticker suggestion banner stops showing in a chat. Your own stickers "
+                            + "are still in the sticker picker.",
+                    Settings.HIDE_CHAT_STICKER_BANNER
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide suggested replies",
+                    "TikTok's suggested reply cells and their intro banner stop showing in a "
+                            + "chat. Messages you type or receive are untouched.",
+                    Settings.HIDE_CHAT_AI_REPLIES
+            ));
+        }
         if (SettingsStatus.notificationControlsEnabled || SettingsStatus.expandActivityListEnabled
                 || SettingsStatus.suggestedVideoPushBlockEnabled) {
             addPreference(new SectionHeadingPreference(context, "Controls"));
@@ -153,6 +178,15 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                             + "the drawer. Every other notification is left alone, and the "
                             + "follower still appears in the Inbox.",
                     Settings.HIDE_FOLLOWER_NOTIFICATIONS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Turn off push notifications",
+                    "TikTok's push service stays off and nothing it sends reaches the drawer. "
+                            + "It can't keep your phone awake either. You won't hear about new "
+                            + "messages until you open TikTok, and a notification hidden while "
+                            + "this is on doesn't come back. Ongoing ones like media controls stay.",
+                    Settings.TURN_OFF_PUSH_NOTIFICATIONS
             ));
             addPreference(new TogglePreference(
                     context,

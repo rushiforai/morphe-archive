@@ -8,6 +8,7 @@ package app.morphe.extension.shared.settings;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
@@ -17,6 +18,7 @@ import android.content.Context;
 import android.os.Looper;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 import org.junit.After;
 import org.junit.Before;
@@ -29,6 +31,9 @@ import org.robolectric.shadows.ShadowActivityManager;
 import org.robolectric.shadows.ShadowSystemClock;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /** Three crashed starts in a row, the marker file and the way back, for Pause Hushfacebook. */
@@ -287,6 +292,91 @@ public class HushfacebookPauseTest {
 
     private static boolean stored(BooleanSetting setting) {
         return Setting.preferences.preferences.getBoolean(setting.key, setting.defaultValue);
+    }
+
+    @Test public void theCrashHandlerKeepsTheTraceAndHandsTheCrashOn() {
+        Thread.UncaughtExceptionHandler before = Thread.getDefaultUncaughtExceptionHandler();
+        List<Throwable> handedOn = new ArrayList<>();
+        try {
+            Thread.setDefaultUncaughtExceptionHandler((thread, crash) -> handedOn.add(crash));
+            LogBufferManager.clearLogBuffer();
+            start(null);
+            Throwable crash = new IllegalStateException("a start that crashed");
+            Thread.getDefaultUncaughtExceptionHandler().uncaughtException(Thread.currentThread(), crash);
+
+            assertEquals("the crash didn't reach the handler that was there before",
+                    Collections.singletonList(crash), handedOn);
+            String kept = LogBufferManager.readCrashReport(context);
+            assertTrue("the trace wasn't kept for the report: " + kept,
+                    kept.contains("java.lang.IllegalStateException: a start that crashed"));
+            assertTrue("the start wasn't marked", HushfacebookPause.read(record).trim().endsWith("crashed"));
+        } finally {
+            Thread.setDefaultUncaughtExceptionHandler(before);
+            LogBufferManager.clearLogBuffer();
+        }
+    }
+
+    @Test public void aScreenPutsTheCrashHandlerBackInFrontOfOneFacebookAdded() {
+        Thread.UncaughtExceptionHandler before = Thread.getDefaultUncaughtExceptionHandler();
+        try {
+            // A process that never installed it, a side process, is left as it is.
+            Thread.UncaughtExceptionHandler facebooks = (thread, crash) -> { };
+            Thread.setDefaultUncaughtExceptionHandler(facebooks);
+            HushfacebookPause.keepCrashMarkOnTop();
+            assertSame(facebooks, Thread.getDefaultUncaughtExceptionHandler());
+
+            start(null);
+            Thread.UncaughtExceptionHandler ours = Thread.getDefaultUncaughtExceptionHandler();
+            assertEquals("CrashMark", ours.getClass().getSimpleName());
+            Thread.setDefaultUncaughtExceptionHandler(facebooks);
+            HushfacebookPause.keepCrashMarkOnTop();
+            Thread.UncaughtExceptionHandler front = Thread.getDefaultUncaughtExceptionHandler();
+            assertEquals("the handler wasn't put back in front", "CrashMark", front.getClass().getSimpleName());
+
+            // Already in front, it isn't wrapped again.
+            HushfacebookPause.keepCrashMarkOnTop();
+            assertSame(front, Thread.getDefaultUncaughtExceptionHandler());
+        } finally {
+            Thread.setDefaultUncaughtExceptionHandler(before);
+        }
+    }
+
+    /** A handler that puts itself back in front each time gets the front after a bounded number of moves. */
+    @Test public void theCrashHandlerMovesToTheFrontABoundedNumberOfTimes() {
+        Thread.UncaughtExceptionHandler before = Thread.getDefaultUncaughtExceptionHandler();
+        try {
+            start(null);
+            Thread.UncaughtExceptionHandler pushy = (thread, crash) -> { };
+            int moves = 0;
+            for (int screen = 0; screen < HushfacebookPause.CRASH_MARK_MOVES_MAX + 5; screen++) {
+                Thread.setDefaultUncaughtExceptionHandler(pushy);
+                HushfacebookPause.keepCrashMarkOnTop();
+                if (Thread.getDefaultUncaughtExceptionHandler() != pushy) moves++;
+            }
+            assertEquals(HushfacebookPause.CRASH_MARK_MOVES_MAX, moves);
+            assertSame("past the bound it stays behind", pushy, Thread.getDefaultUncaughtExceptionHandler());
+        } finally {
+            Thread.setDefaultUncaughtExceptionHandler(before);
+        }
+    }
+
+    /** An exception off the main thread that a later handler swallowed leaves the earlier crash in the report. */
+    @Test public void aSwallowedExceptionOffTheMainThreadLeavesTheEarlierCrash() throws Exception {
+        Thread.UncaughtExceptionHandler before = Thread.getDefaultUncaughtExceptionHandler();
+        try {
+            Thread.setDefaultUncaughtExceptionHandler((thread, crash) -> { });
+            LogBufferManager.clearLogBuffer();
+            LogBufferManager.persistCrashReport(context, "an earlier start's crash");
+            start(null);
+            Thread.getDefaultUncaughtExceptionHandler()
+                    .uncaughtException(new Thread("CombinedTP3"), new IllegalStateException("swallowed"));
+            String kept = LogBufferManager.readCrashReport(context);
+            assertTrue(kept, kept.contains("an earlier start's crash"));
+            assertFalse(kept, kept.contains("swallowed"));
+        } finally {
+            Thread.setDefaultUncaughtExceptionHandler(before);
+            LogBufferManager.clearLogBuffer();
+        }
     }
 
     @Test public void theStreakFileSurvivesNonsense() {

@@ -12,14 +12,23 @@ import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragm
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.fileNameSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.fitAboveKeyboard;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.folderSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.lockAfterSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.photoNameSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.seenKeepSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.playbackQualitySummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.qualitySummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.accentSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.textSizeSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.quietHourLabel;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.saveToSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.sendAppSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.showAllText;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.sourcesSummary;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.startTabSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.subfolderSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.surfaceQualitySummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.ceilingSummary;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.packResult;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsEditorLine;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsRefusal;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.wordsSummary;
@@ -49,11 +58,20 @@ import app.morphe.extension.facebook.download.SaveFolder;
 import app.morphe.extension.facebook.download.SaveTo;
 import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.feed.PostWords;
+import app.morphe.extension.facebook.feed.ReactionCeiling;
+import app.morphe.extension.facebook.feed.TopicPacks;
+import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.media.PlaybackQuality;
+import app.morphe.extension.facebook.media.SurfaceQuality;
+import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.TextSize;
+import app.morphe.extension.facebook.theme.AccentColor;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
+import app.morphe.extension.facebook.notifications.QuietHour;
 import app.morphe.extension.facebook.settings.SettingsRows.RowSemantics;
 import app.morphe.extension.shared.L10n;
+import app.morphe.extension.shared.Utils;
 
 /**
  * The rows that edit a value: the text rows, whose dialogs fit above the keyboard, and the lists,
@@ -64,6 +82,31 @@ import app.morphe.extension.shared.L10n;
 @SuppressWarnings("deprecation")
 final class ValueRows {
     private ValueRows() { }
+
+    /**
+     * A list row whose summary is shown as written. Android's ListPreference runs its summary
+     * through String.format with the chosen entry, so a summary with a percent sign in it, like
+     * the text size row's "130% of the size", threw as the row was drawn and closed Facebook.
+     */
+    abstract static class PlainSummaryList extends ListPreference {
+        @Nullable
+        private CharSequence summary;
+
+        PlainSummaryList(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setSummary(@Nullable CharSequence summary) {
+            this.summary = summary;
+            super.setSummary(summary);
+        }
+
+        @Override
+        public CharSequence getSummary() {
+            return summary;
+        }
+    }
 
     /**
      * The save folder's row. Its summary follows its text, whoever sets it: the person, the shared
@@ -98,6 +141,46 @@ final class ValueRows {
     }
 
     /**
+     * The row of the subfolder videos ([video]) or photos go in. Its summary follows its text,
+     * whoever sets it, and names the folder the kind's saves land in.
+     */
+    static final class SubfolderRow extends EditTextPreference {
+        final boolean video;
+
+        SubfolderRow(Context context, boolean video) {
+            super(context);
+            this.video = video;
+        }
+
+        @Override
+        public void setText(String text) {
+            super.setText(text);
+            showSummary();
+        }
+
+        /** Also redone when the save folder or Save to changes, since the path starts with those. */
+        void showSummary() {
+            setSummary(subfolderSummary(video, SaveFolder.cleanSubfolder(getText())));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its edit dialog takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+            fitAboveKeyboard(getDialog());
+        }
+    }
+
+    /**
      * A word list's row. Its summary follows its text, whoever sets it: the person, the shared page
      * syncing it from the setting, or an import. Its dialog says, as the list is typed, how full the
      * room the two lists share would be, and Save refuses a list that doesn't fit with the dialog
@@ -110,6 +193,11 @@ final class ValueRows {
         @Nullable private TextView count;
         /** The other list's share of the room, read when the dialog opens. */
         private int otherBytes;
+        /**
+         * Opens the list of topic packs, set by the page for the list that hides posts. The words a
+         * pack adds go into the open dialog's text as ordinary lines, and nothing is saved until Save.
+         */
+        @Nullable Runnable choosePack;
 
         WordsRow(Context context, boolean hides) {
             super(context);
@@ -156,7 +244,34 @@ final class ValueRows {
             count.setTextSize(14);
             count.setTextColor(colors.summary);
             count.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
-            return scrollingBody(context, help, count, getEditText());
+            if (choosePack == null) return scrollingBody(context, help, count, getEditText());
+            Button packs = new Button(context);
+            packs.setText(L10n.t("Add a topic pack"));
+            packs.setAllCaps(false);
+            packs.setTextSize(14);
+            packs.setTextColor(colors.heading);
+            packs.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+            int touch = Math.round(48 * context.getResources().getDisplayMetrics().density);
+            packs.setMinHeight(touch);
+            packs.setMinimumHeight(touch);
+            packs.setPadding(0, 0, 0, 0);
+            packs.setGravity(android.view.Gravity.START | android.view.Gravity.CENTER_VERTICAL);
+            packs.setOnClickListener(ignored -> choosePack.run());
+            return scrollingBody(context, help, count, packs, getEditText());
+        }
+
+        /**
+         * Adds [pack]'s words to the text in the open dialog, after what's there, and says what came
+         * of it. The list isn't saved: the words are lines in the editor until Save.
+         */
+        void addPack(TopicPacks.Pack pack) {
+            String typed = getEditText().getText().toString();
+            TopicPacks.Result result = TopicPacks.add(typed, pack, otherBytes);
+            if (result.added > 0) {
+                getEditText().setText(result.text);
+                getEditText().setSelection(getEditText().getText().length());
+            }
+            Utils.showToastLong(packResult(pack, result));
         }
 
         @Override protected void onBindDialogView(View view) {
@@ -353,7 +468,7 @@ final class ValueRows {
      * The download quality's row. Its summary follows its value, whoever sets it: the person, the
      * shared page syncing it from the setting, or an import.
      */
-    static final class QualityRow extends ListPreference {
+    static final class QualityRow extends PlainSummaryList {
         QualityRow(Context context) {
             super(context);
         }
@@ -392,7 +507,7 @@ final class ValueRows {
      * The Save to row. Its summary follows its value, whoever sets it: the person, the shared page
      * syncing it from the setting, or an import.
      */
-    static final class SaveToRow extends ListPreference {
+    static final class SaveToRow extends PlainSummaryList {
         SaveToRow(Context context) {
             super(context);
         }
@@ -431,7 +546,7 @@ final class ValueRows {
      * The download action's row. Its summary follows its value, whoever sets it: the person or the
      * shared page syncing it from the setting.
      */
-    static final class DownloadActionRow extends ListPreference {
+    static final class DownloadActionRow extends PlainSummaryList {
         DownloadActionRow(Context context) {
             super(context);
         }
@@ -499,7 +614,7 @@ final class ValueRows {
      * The start tab's row. Its summary follows its value, whoever sets it: the person, the shared
      * page syncing it from the setting, or an import.
      */
-    static final class StartTabRow extends ListPreference {
+    static final class StartTabRow extends PlainSummaryList {
         StartTabRow(Context context) {
             super(context);
         }
@@ -538,7 +653,7 @@ final class ValueRows {
      * The Feeds filter's row, under the start tab's. Its summary follows its value, whoever sets
      * it: the person, the shared page syncing it from the setting, or an import.
      */
-    static final class FeedsSubtabRow extends ListPreference {
+    static final class FeedsSubtabRow extends PlainSummaryList {
         FeedsSubtabRow(Context context) {
             super(context);
         }
@@ -577,7 +692,7 @@ final class ValueRows {
      * The comment order's row. Its summary follows its value, whoever sets it: the person, the
      * shared page syncing it from the setting, or an import.
      */
-    static final class CommentOrderRow extends ListPreference {
+    static final class CommentOrderRow extends PlainSummaryList {
         CommentOrderRow(Context context) {
             super(context);
         }
@@ -613,10 +728,220 @@ final class ValueRows {
     }
 
     /**
+     * The app lock's time away row. Its summary follows its value, whoever sets it: the person, the
+     * shared page syncing it from the setting, or an import.
+     */
+    static final class LockAfterRow extends PlainSummaryList {
+        LockAfterRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            AppLock.After after = AppLock.After.ONE_MINUTE;
+            for (AppLock.After candidate : AppLock.After.values()) {
+                if (candidate.name().equals(getValue())) after = candidate;
+            }
+            setSummary(lockAfterSummary(after));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The seen posts row: how long a post you've scrolled past stays hidden. Its summary follows its
+     * value, whoever sets it: the person, the shared page syncing it from the setting, or an import.
+     */
+    static final class SeenKeepRow extends PlainSummaryList {
+        SeenKeepRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            SeenPosts.Keep keep = SeenPosts.Keep.SEVEN_DAYS;
+            for (SeenPosts.Keep candidate : SeenPosts.Keep.values()) {
+                if (candidate.name().equals(getValue())) keep = candidate;
+            }
+            setSummary(seenKeepSummary(keep));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The text size row. Its summary follows its value, whoever sets it: the person, the shared
+     * page syncing it from the setting, or an import.
+     */
+    static final class TextSizeRow extends PlainSummaryList {
+        TextSizeRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            TextSize.Scale scale = TextSize.Scale.P100;
+            for (TextSize.Scale candidate : TextSize.Scale.values()) {
+                if (candidate.name().equals(getValue())) scale = candidate;
+            }
+            setSummary(textSizeSummary(scale));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The reaction ceiling row. Its summary follows its value, whoever sets it: the person, the
+     * shared page syncing it from the setting, or an import.
+     */
+    static final class ReactionCeilingRow extends PlainSummaryList {
+        ReactionCeilingRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            ReactionCeiling ceiling = ReactionCeiling.OFF;
+            for (ReactionCeiling candidate : ReactionCeiling.values()) {
+                if (candidate.name().equals(getValue())) ceiling = candidate;
+            }
+            setSummary(ceilingSummary(ceiling));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The accent color row. Its summary follows its value, whoever sets it: the person, the shared
+     * page syncing it from the setting, or an import.
+     */
+    static final class AccentRow extends PlainSummaryList {
+        /** Whether the Material You theme is in the build, so it picks the colors and this row does nothing. */
+        private final boolean materialYou;
+
+        AccentRow(Context context, boolean materialYou) {
+            super(context);
+            this.materialYou = materialYou;
+            setEnabled(!materialYou);
+        }
+
+        /** The shared page enables every row it syncs from a setting; with Material You this one stays off. */
+        @Override
+        public void setEnabled(boolean enabled) {
+            super.setEnabled(enabled && !materialYou);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            if (materialYou) {
+                setSummary(L10n.t("Material You theme is in this build and picks Facebook's colors, so this has no effect."));
+                return;
+            }
+            AccentColor.Preset accent = AccentColor.Preset.FACEBOOK;
+            for (AccentColor.Preset candidate : AccentColor.Preset.values()) {
+                if (candidate.name().equals(getValue())) accent = candidate;
+            }
+            setSummary(accentSummary(accent));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
      * The playback quality's row. Its summary follows its value, whoever sets it: the person, the
      * shared page syncing it from the setting, or an import.
      */
-    static final class PlaybackQualityRow extends ListPreference {
+    static final class PlaybackQualityRow extends PlainSummaryList {
         PlaybackQualityRow(Context context) {
             super(context);
         }
@@ -633,6 +958,85 @@ final class ValueRows {
                 if (candidate.name().equals(getValue())) quality = candidate;
             }
             setSummary(playbackQualitySummary(quality));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The Reels ([reels]) or Stories quality's row. Its summary follows its value, whoever sets it,
+     * as the playback quality's does.
+     */
+    static final class SurfaceQualityRow extends PlainSummaryList {
+        final boolean reels;
+
+        SurfaceQualityRow(Context context, boolean reels) {
+            super(context);
+            this.reels = reels;
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            SurfaceQuality choice = SurfaceQuality.SAME;
+            for (SurfaceQuality candidate : SurfaceQuality.values()) {
+                if (candidate.name().equals(getValue())) choice = candidate;
+            }
+            setSummary(surfaceQualitySummary(choice, reels));
+        }
+
+        @Override
+        protected void onBindView(View view) {
+            super.onBindView(view);
+            showAllText(view);
+            ScreenColors.row(view, this);
+            view.setAccessibilityDelegate(new RowSemantics(this, Button.class));
+        }
+
+        /** Its list takes the screen's colours, as the other rows' dialogs do. */
+        @Override
+        protected void showDialog(Bundle state) {
+            super.showDialog(state);
+            if (getDialog() instanceof AlertDialog) ScreenColors.dialog((AlertDialog) getDialog());
+        }
+    }
+
+    /**
+     * The row for the hour quiet hours start or end. Its summary follows its value, whoever sets it,
+     * as the playback quality's does.
+     */
+    static final class QuietHourRow extends PlainSummaryList {
+        QuietHourRow(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void setValue(String value) {
+            super.setValue(value);
+            showSummary();
+        }
+
+        void showSummary() {
+            for (QuietHour candidate : QuietHour.values()) {
+                if (candidate.name().equals(getValue())) setSummary(quietHourLabel(candidate));
+            }
         }
 
         @Override

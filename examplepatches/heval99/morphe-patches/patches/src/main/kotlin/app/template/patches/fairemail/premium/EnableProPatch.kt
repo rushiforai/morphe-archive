@@ -12,6 +12,6 @@ val enableProPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_FAIREMAIL)
 
     execute {
-        BillingIsProFingerprint.methodOrNull?.returnEarly(true)
+        BillingIsProFingerprint.method.returnEarly(true)
     }
 }

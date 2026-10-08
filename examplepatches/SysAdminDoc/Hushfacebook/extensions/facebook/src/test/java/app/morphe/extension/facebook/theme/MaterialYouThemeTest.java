@@ -8,16 +8,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
+import static org.robolectric.Shadows.shadowOf;
 
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.os.Looper;
+import android.view.View;
+import android.view.Window;
+import android.widget.FrameLayout;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
@@ -199,6 +208,46 @@ public class MaterialYouThemeTest {
         assertEquals("an alpha AMOLED doesn't give", 0x332D88FF, MaterialYouTheme.fds(0x332D88FF, row));
         assertEquals("AMOLED's alpha on another token", 0x402D88FF,
                 MaterialYouTheme.fds(0x402D88FF, Token.ACCENT_DEEMPHASIZED));
+    }
+
+    /**
+     * Issue #34 with both themes: on AMOLED's lighter #5B513F, a text role reaches this theme lifted.
+     * It takes the palette at the lifted lightness, and on every surface AMOLED makes there it keeps
+     * 4.5:1, Mig's roles too. Over black the secondary grey takes the palette as it always did.
+     */
+    @Test
+    public void amoledsLiftedTextTakesThePaletteAndKeepsItsContrast() {
+        DarkMode.answer(true);
+        int sand = 0xFF5B513F;
+        int[] surfaces = {sand, 0xFF5F5543, 0xFF615746, 0xFF625846, 0xFF645A48, 0xFF675D4B,
+                AmoledTheme.over(sand, AmoledTheme.UNREAD_ROW)};
+        try {
+            AmoledTheme.useBackground(sand, 12);
+            for (Token token : new Token[]{Token.SECONDARY_TEXT, Token.PRIMARY_TEXT}) {
+                int colour = DARK[token.ordinal()];
+                int amoled = AmoledTheme.apply(colour, token);
+                int drawn = MaterialYouTheme.fds(amoled, token);
+                assertNotEquals("kept AMOLED's grey for " + Integer.toHexString(colour), amoled, drawn);
+                for (int surface : surfaces) {
+                    assertTrue(Integer.toHexString(drawn) + " on " + Integer.toHexString(surface),
+                            AmoledThemeTest.contrast(drawn, surface) >= AmoledTheme.TEXT_CONTRAST);
+                }
+            }
+            int link = MaterialYouTheme.fds(AmoledTheme.apply(0xFF5AA7FF, Token.BLUE_LINK), Token.BLUE_LINK);
+            for (int surface : surfaces) assertTrue("the link", AmoledThemeTest.contrast(link, surface) >= AmoledTheme.TEXT_CONTRAST);
+            for (int colour : new int[]{0xFFA8ABAF, 0xFFB0B3B8, 0xFFE4E6EB}) {
+                int drawn = MaterialYouTheme.mig(AmoledTheme.apply(colour, AmoledThemeTest.Role.SECONDARY), AmoledThemeTest.Role.SECONDARY);
+                for (int surface : surfaces) {
+                    assertTrue("Mig's " + Integer.toHexString(colour), AmoledThemeTest.contrast(drawn, surface) >= AmoledTheme.TEXT_CONTRAST);
+                }
+            }
+            assertEquals("a divider AMOLED leaves still takes the palette", palette.sameLightness(TonePalette.NEUTRAL, 0xFF65686C),
+                    MaterialYouTheme.fds(0xFF65686C, Token.DIVIDER));
+        } finally {
+            AmoledTheme.useBackground(AmoledTheme.backgroundColour());
+        }
+        assertEquals("over black", palette.sameLightness(TonePalette.NEUTRAL, 0xFFB0B3B8),
+                MaterialYouTheme.fds(AmoledTheme.apply(0xFFB0B3B8, Token.SECONDARY_TEXT), Token.SECONDARY_TEXT));
     }
 
     /** Issue #37: the Like button's blue after you like, a dark-only colour, takes the palette. */
@@ -678,6 +727,136 @@ public class MaterialYouThemeTest {
         DarkMode.answer(false);
         ColorDrawable light = new ColorDrawable(0xFF252728);
         assertEquals("light mode", 0xFF252728, ((ColorDrawable) MaterialYouTheme.recolour(light)).getColor());
+    }
+
+    /**
+     * The page under the feed's last unit in dark mode is the window's own background, the #101011
+     * the dark style gives WASH, and the framework draws it with no hook to see it. Once the activity
+     * is created, and again as it resumes, it takes the palette's neutral at the same lightness, the
+     * colour route three gives the rest of the page. Light mode, AMOLED, another colour and a
+     * background that is no plain colour keep theirs.
+     */
+    @Test
+    public void theWindowUnderTheFeedTakesThePaletteInDarkMode() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        Window window = activity.getWindow();
+        MaterialYouTheme.WindowBackgrounds callbacks = new MaterialYouTheme.WindowBackgrounds();
+        int themed = palette.sameLightness(TonePalette.NEUTRAL, 0xFF101011);
+        assertNotEquals("the palette moves #101011", 0xFF101011, themed);
+
+        DarkMode.answer(true);
+        window.setBackgroundDrawable(new ColorDrawable(0xFF101011));
+        callbacks.onActivityPostCreated(activity, null);
+        assertEquals("once the activity is created", themed, windowColour(window));
+        assertFalse("the palette's colour is left as it is", MaterialYouTheme.recolourWindow(window, false));
+        window.setBackgroundDrawable(new ColorDrawable(0xFF101011));
+        callbacks.onActivityResumed(activity);
+        assertEquals("as it resumes", themed, windowColour(window));
+
+        window.setBackgroundDrawable(new ColorDrawable(0xFF101011));
+        assertFalse("AMOLED", MaterialYouTheme.recolourWindow(window, true));
+        assertEquals(0xFF101011, windowColour(window));
+        window.setBackgroundDrawable(new ColorDrawable(0xFFC9CCD1));
+        assertFalse("a colour that is no dark surface", MaterialYouTheme.recolourWindow(window, false));
+        assertEquals(0xFFC9CCD1, windowColour(window));
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(0xFF101011);
+        window.setBackgroundDrawable(shape);
+        assertFalse("a background that is no plain colour", MaterialYouTheme.recolourWindow(window, false));
+        assertFalse("no window", MaterialYouTheme.recolourWindow(null, false));
+
+        DarkMode.answer(false);
+        window.setBackgroundDrawable(new ColorDrawable(0xFF101011));
+        callbacks.onActivityResumed(activity);
+        assertEquals("light mode", 0xFF101011, windowColour(window));
+    }
+
+    /**
+     * On a cold start the feed's window had #101011 again after both callbacks ran, four starts of
+     * four on 581. From the resume on, the window takes the palette before each frame too, and one
+     * that has no decor yet as it resumes is watched once the framework has made it.
+     */
+    @Test
+    public void aWindowGivenItsDarkBackgroundLaterTakesThePaletteBeforeTheNextFrame() {
+        // Attached but not created, since Robolectric's create() makes the decor already.
+        Activity activity = Robolectric.buildActivity(Activity.class).get();
+        Window window = activity.getWindow();
+        MaterialYouTheme.WindowBackgrounds callbacks = new MaterialYouTheme.WindowBackgrounds();
+        int themed = palette.sameLightness(TonePalette.NEUTRAL, 0xFF101011);
+        DarkMode.answer(true);
+
+        assertEquals("no decor before the resume", null, window.peekDecorView());
+        callbacks.onActivityPostCreated(activity, null);
+        callbacks.onActivityResumed(activity);
+        // What the framework does right after the activity resumes, before the posted watch runs.
+        window.getDecorView();
+        shadowOf(Looper.getMainLooper()).idle();
+
+        window.setBackgroundDrawable(new ColorDrawable(0xFF101011));
+        window.peekDecorView().getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals("before the next frame", themed, windowColour(window));
+        callbacks.onActivityResumed(activity);
+        window.setBackgroundDrawable(new ColorDrawable(0xFF101011));
+        window.peekDecorView().getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals("after another resume", themed, windowColour(window));
+
+        DarkMode.answer(false);
+        window.setBackgroundDrawable(new ColorDrawable(0xFF101011));
+        window.peekDecorView().getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals("light mode", 0xFF101011, windowColour(window));
+    }
+
+    /**
+     * The comment sheet is a dialog fragment over the screen, and its comment list sits on a view
+     * with a plain #252728 background (#37). A window the screen opens above its own takes the
+     * palette on such views, then again after each of its layouts; other colours and light mode
+     * keep theirs.
+     */
+    @Test
+    public void aSheetOverTheScreenTakesThePaletteOnItsPlainDarkSurfaces() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        int themed = palette.sameLightness(TonePalette.NEUTRAL, 0xFF252728);
+        DarkMode.answer(true);
+        Dialog sheet = new Dialog(activity);
+        FrameLayout content = new FrameLayout(activity);
+        View list = plain(activity, 0xFF252728);
+        View light = plain(activity, 0xFFC9CCD1);
+        content.addView(list);
+        content.addView(light);
+        sheet.setContentView(content);
+        sheet.show();
+        View root = sheet.getWindow().getDecorView();
+        root.measure(View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(2000, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, 1000, 2000);
+
+        MaterialYouTheme.watchWindowsAbove(activity, activity.getWindow().getDecorView());
+        assertEquals("the list's background", themed, ((ColorDrawable) list.getBackground()).getColor());
+        assertEquals("a colour that is no dark surface", 0xFFC9CCD1, ((ColorDrawable) light.getBackground()).getColor());
+
+        View later = plain(activity, 0xFF252728);
+        content.addView(later);
+        root.getViewTreeObserver().dispatchOnGlobalLayout();
+        assertEquals("a view added later, after the next layout", themed, ((ColorDrawable) later.getBackground()).getColor());
+
+        DarkMode.answer(false);
+        View inLightMode = plain(activity, 0xFF252728);
+        content.addView(inLightMode);
+        root.getViewTreeObserver().dispatchOnGlobalLayout();
+        assertEquals("light mode", 0xFF252728, ((ColorDrawable) inLightMode.getBackground()).getColor());
+        sheet.dismiss();
+    }
+
+    private static View plain(Context context, int color) {
+        View view = new View(context);
+        view.setBackgroundColor(color);
+        return view;
+    }
+
+    private static int windowColour(Window window) {
+        Drawable background = window.getDecorView().getBackground();
+        if (background instanceof InsetDrawable) background = ((InsetDrawable) background).getDrawable();
+        return ((ColorDrawable) background).getColor();
     }
 
     /** The tokens of the bars at the bottom of the screen. */

@@ -7,12 +7,16 @@
 package app.morphe.patches.tiktok.misc.inbox
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.patch.PatchException
 import app.morphe.util.addInstruction
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.patches.tiktok.misc.optimizer.InitPushTaskFingerprint
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.privacy.invokeSitesOf
+import app.morphe.patches.tiktok.privacy.replaceSites
 import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.getReference
@@ -21,6 +25,28 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val EXTENSION = "Lapp/morphe/extension/tiktok/inbox/NotificationControls;"
+private const val PUSH_SHUTOFF = "Lapp/morphe/extension/tiktok/inbox/PushShutoff;"
+private const val POWER_MANAGER = "Landroid/os/PowerManager;"
+private const val WAKE_LOCK = "Landroid/os/PowerManager\$WakeLock;"
+
+/**
+ * Every wake lock call Turn off push notifications stands in front of, by the framework's own
+ * descriptor, each to a PushShutoff static taking the receiver first. PowerManager and WakeLock
+ * are final, so no call names a subclass. 47.0.3 makes 46 of these calls (FCM, TikTok's early
+ * push lock, the push handler lighting the screen, WorkManager, JobIntentService, app
+ * measurement and LIVE). On 47.1.3 and 47.1.4 R8 moved every one of them into X.00kn's API
+ * outlines (le, me, ne and oe), apart from app measurement's own acquire, so those builds have
+ * five. newWakeLock is there for the tag, which is how the extension tells a kept lock from
+ * the rest, and release because a skipped acquire would make a reference counted release throw.
+ */
+internal val WAKE_LOCK_CALLS = mapOf(
+    "$POWER_MANAGER->newWakeLock(ILjava/lang/String;)$WAKE_LOCK" to
+        "$PUSH_SHUTOFF->newWakeLock(${POWER_MANAGER}ILjava/lang/String;)$WAKE_LOCK",
+    "$WAKE_LOCK->acquire()V" to "$PUSH_SHUTOFF->acquire($WAKE_LOCK)V",
+    "$WAKE_LOCK->acquire(J)V" to "$PUSH_SHUTOFF->acquire(${WAKE_LOCK}J)V",
+    "$WAKE_LOCK->release()V" to "$PUSH_SHUTOFF->release($WAKE_LOCK)V",
+    "$WAKE_LOCK->release(I)V" to "$PUSH_SHUTOFF->release(${WAKE_LOCK}I)V",
+)
 
 /**
  * The one method on the push handler that hands a built notification to Android. The class
@@ -63,11 +89,16 @@ val notificationControlsPatch = bytecodePatch(
     description = "Adds a switch for the notification saying somebody new followed you, and " +
         "one for message streaks, neither of which TikTok lets you turn off. The follower " +
         "switch drops the notification before Android is asked to post it, so nothing else " +
-        "in the drawer is affected. Switch: Hushfeed settings > Inbox.",
+        "in the drawer is affected. A third switch, off by default, turns push notifications " +
+        "off altogether. TikTok's push service doesn't start and nothing it posts reaches the " +
+        "drawer, apart from ongoing ones like media controls. It can't hold your phone awake " +
+        "either. You won't hear about new messages until you open TikTok, and turning the " +
+        "switch off sets push up again the next time TikTok starts. Switch: Hushfeed settings > Inbox.",
     default = false,
 ) {
     category("Inbox")
-    dependsOn(settingsPatch, sharedExtensionPatch)
+    // The notify filter carries the drawer half of Turn off push notifications.
+    dependsOn(settingsPatch, sharedExtensionPatch, notificationFilterPatch)
 
     compatibleWith(*AppCompatibilities.tiktok())
 
@@ -113,6 +144,26 @@ val notificationControlsPatch = bytecodePatch(
                 )
             }
         }
+
+        // Turn off push notifications. TikTok's push setup is one startup task, so a guard at its
+        // entry keeps the push service from starting for a launch with the switch on, and the
+        // first launch after it goes off sets push up as usual. Limit background traffic's Skip
+        // push setup option puts a return at the start of the same method at patch time, and
+        // with both in, whichever comes first ends it.
+        InitPushTaskFingerprint.method.guardAtEntry(
+            "Notification controls",
+            "invoke-static {}, $PUSH_SHUTOFF->skipPushSetup()Z",
+            "return-void",
+        )
+
+        val wakeLockSites = invokeSitesOf(WAKE_LOCK_CALLS.keys)
+        for (call in listOf("$POWER_MANAGER->newWakeLock(", "$WAKE_LOCK->acquire(", "$WAKE_LOCK->release(")) {
+            if (wakeLockSites.none { it.target.startsWith(call) }) {
+                throw PatchException("Notification controls: found no ${call.substringAfter("->")}) call outside the extension.")
+            }
+        }
+        replaceSites(wakeLockSites, WAKE_LOCK_CALLS)
+        println("[Notification controls] Took ${wakeLockSites.size} wake lock calls.")
 
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,

@@ -94,6 +94,10 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting SHOW_LOCAL_IDS =
             new BooleanSetting("hushtelegram_show_local_ids", FALSE);
 
+    /** The profile menu also shows the data center of the profile photo Telegram already caches. */
+    public static final BooleanSetting PROFILE_DATA_CENTER =
+            new BooleanSetting("hushtelegram_profile_data_center", FALSE);
+
     public static final BooleanSetting DISABLE_DOUBLE_TAP_REACTIONS =
             new BooleanSetting("hushtelegram_disable_double_tap_reactions", FALSE);
 
@@ -221,6 +225,63 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting SILENCE_NON_CONTACTS =
             new BooleanSetting("hushtelegram_silence_non_contacts", FALSE);
+
+    /**
+     * A hidden archive stays out of the chat list, so pulling down doesn't bring it up. The chat
+     * list's menu opens it instead.
+     */
+    public static final BooleanSetting DISABLE_ARCHIVE_PULL =
+            new BooleanSetting("hushtelegram_disable_archive_pull", FALSE, true);
+
+    /**
+     * The attachment menu's camera starts on the rear lens each time, instead of the lens used last.
+     */
+    public static final BooleanSetting REAR_CAMERA_FIRST =
+            new BooleanSetting("hushtelegram_rear_camera_first", FALSE);
+
+    /**
+     * The attachment menu's photo grid starts with your photos, without the live camera tile.
+     */
+    public static final BooleanSetting HIDE_GALLERY_CAMERA_TILE =
+            new BooleanSetting("hushtelegram_hide_gallery_camera_tile", FALSE);
+
+    /**
+     * Stickers and big animated emoji show no time or read checks.
+     */
+    public static final BooleanSetting HIDE_STICKER_TIME =
+            new BooleanSetting("hushtelegram_hide_sticker_time", FALSE);
+
+    /**
+     * A mention or a reply to you in a muted group or channel stays as quiet as the rest of the chat.
+     */
+    public static final BooleanSetting IGNORE_MUTED_MENTIONS =
+            new BooleanSetting("hushtelegram_ignore_muted_mentions", FALSE);
+
+    /**
+     * Messages from people you've blocked are left out of the groups and supergroups you open.
+     */
+    public static final BooleanSetting HIDE_BLOCKED_IN_GROUPS =
+            new BooleanSetting("hushtelegram_hide_blocked_in_groups", FALSE);
+
+    /**
+     * Settings drops its Telegram Features row and Contacts drops its Invite Friends rows.
+     */
+    public static final BooleanSetting HIDE_FEATURES_AND_INVITE =
+            new BooleanSetting("hushtelegram_hide_features_and_invite", FALSE);
+
+    /**
+     * A message's long-press menu gets Repeat, which sends the message again to the same chat.
+     */
+    public static final BooleanSetting MESSAGE_MENU_REPEAT =
+            new BooleanSetting("hushtelegram_message_menu_repeat", FALSE);
+
+    /** A photo's long-press menu gets Copy photo, which puts the downloaded picture on the clipboard. */
+    public static final BooleanSetting MESSAGE_MENU_COPY_PHOTO =
+            new BooleanSetting("hushtelegram_message_menu_copy_photo", FALSE);
+
+    /** A message's long-press menu gets Message details, a dialog of its IDs, times and file facts. */
+    public static final BooleanSetting MESSAGE_MENU_DETAILS =
+            new BooleanSetting("hushtelegram_message_menu_details", FALSE);
 
     /**
      * The device statistics report the server can ask for (a storage-type boolean, sent as a

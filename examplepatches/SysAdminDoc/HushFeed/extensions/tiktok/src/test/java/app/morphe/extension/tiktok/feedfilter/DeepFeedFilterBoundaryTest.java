@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.FeedFilterCounters;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.BooleanSetting;
@@ -171,6 +172,7 @@ public class DeepFeedFilterBoundaryTest {
         save(Settings.HIDE_PROMOTIONAL_MUSIC);
         save(Settings.HIDE_LIVE_REPLAYS);
         save(Settings.FILTER_OFFLINE_FALLBACK_VIDEOS);
+        save(Settings.HIDE_OFFLINE_VIDEOS);
 
         save(Settings.BLOCKED_CAPTION_WORDS);
         save(Settings.BLOCKED_CREATORS);
@@ -238,6 +240,7 @@ public class DeepFeedFilterBoundaryTest {
         Settings.HIDE_PROMOTIONAL_MUSIC.save(false);
         Settings.HIDE_LIVE_REPLAYS.save(false);
         Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.save(true);
+        Settings.HIDE_OFFLINE_VIDEOS.save(false);
         Settings.BLOCKED_CAPTION_WORDS.save("");
         Settings.BLOCKED_CREATORS.save("");
         Settings.LOCAL_HIDDEN_CREATORS.save("");
@@ -551,6 +554,46 @@ public class DeepFeedFilterBoundaryTest {
         filteredOffline.items = new ArrayList<>(List.of(offlineAd));
         assertNull(FeedItemsFilter.filterOfflineFeedList(filteredOffline));
         assertFalse(FeedItemsFilter.shouldKeepCachedAweme(offlineAd));
+    }
+
+    /**
+     * Keep offline videos out of the feed takes every offline copy out on each route TikTok puts
+     * one in, even with no other filter on and with the other filters told to leave them alone.
+     */
+    @Test
+    public void offlineVideosStayOutOfTheFeedOnlyWhenAsked() {
+        Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.save(false);
+        Video offline = new Video("offline", false, 500, "");
+        offline.cacheSourceType = 3;
+        Video fresh = new Video("fresh", false, 500, "");
+        Video cached = new Video("cached", false, 500, "");
+        cached.cacheSourceType = 2;
+
+        FeedItemList fallback = new FeedItemList();
+        fallback.items = new ArrayList<>(List.of(offline));
+        assertSame("off, the fallback list passes as before", fallback, FeedItemsFilter.filterOfflineFeedList(fallback));
+        assertTrue(FeedItemsFilter.shouldKeepCachedAweme(offline));
+        List<Aweme> lagging = Arrays.asList(fresh, offline);
+        assertEquals(lagging, FeedItemsFilter.filterInsertedFeedItems(
+                new ForYouPanel(), 0, "middle_insert_when_video_lagging", lagging));
+
+        Settings.HIDE_OFFLINE_VIDEOS.save(true);
+        assertFalse("the other switch greys out", Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.isAvailable());
+        FeedItemList dropped = new FeedItemList();
+        // An item the fallback hands over may not carry its cache source yet; the whole list goes.
+        dropped.items = new ArrayList<>(List.of(offline, new Video("unmarked", false, 500, "")));
+        assertNull(FeedItemsFilter.filterOfflineFeedList(dropped));
+        assertTrue(dropped.items.isEmpty());
+        assertTrue("counted under its own line: " + FeedFilterCounters.report(), FeedFilterCounters.report().contains(
+                FeedItemsFilter.OFFLINE_FALLBACK_SOURCE + ": 1 lists, 2 items, 2 removed. Last reason: OfflineVideoFilter"));
+        assertFalse(FeedItemsFilter.shouldKeepCachedAweme(offline));
+        assertTrue(FeedItemsFilter.shouldKeepCachedAweme(cached));
+        assertEquals(List.of(fresh), FeedItemsFilter.filterInsertedFeedItems(
+                new ForYouPanel(), 0, "middle_insert_when_video_lagging", Arrays.asList(fresh, offline)));
+        FeedItemList page = new FeedItemList();
+        page.items = new ArrayList<>(Arrays.asList(fresh, offline, cached));
+        FeedItemsFilter.filter(page);
+        assertEquals(Arrays.asList(fresh, cached), page.items);
     }
 
     @Test

@@ -8,23 +8,15 @@ Independent patches for the [Morphe](https://morphe.software/) patcher.
 https://github.com/Santodan/santodan-patches
 ```
 
-MEO 5.7.0 patches provide a separately installable clone and compatibility handling for unverified Android TV hardware. The side-by-side patch renames the package, launcher label, task affinity, app-owned permission, and every provider authority. The device patch reports a Sagemcom DIW3930 during provisioning and skips only MEO's non-fatal equipment-verification warning; authentication and fatal provisioning errors remain unchanged.
-
-Recent NuvioTV additions include merged tracking progress, an optional remaining-episode counter for Continue Watching, and side-by-side installation with the official app. Merged progress preserves the last successful Continue Watching snapshot during startup and replaces it after connected providers refresh. The side-by-side patch lets you choose a unique Android package name and launcher app name, so multiple patched test installations can coexist on the same device.
-
-On NuvioTV **1.1.0-beta.4**, the independent **Keep airing series in Upcoming** patch adds a disabled-by-default setting under Continue Watching. Enable **Show unaired next up episodes**, select **Separate Upcoming Row**, then enable **Keep airing series in Upcoming**. Series with future scheduled episodes stay in Upcoming until the latest known episode airs, retaining labels such as New Season. Poster, Card, and Wide displays show the scheduled finale date as a bottom-center blue badge with white text in `dd-MMM` format. The badge overlays card captions. Dates come from Nuvio's catalog; an unknown finale is not estimated.
-
-The beta4 Remaining Episodes patch also correctly reads aired episodes instead of provider aliases, fixing counts that changed to `6` after synchronization.
-
-Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Banner/Light mode, it keeps fullscreen alarms while the device is locked and uses banner notifications while the device is unlocked.
-
 ## Patches
 
-<!-- PATCHES_START EXPANDED -->
-> **[v0.7.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.7.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;11 patches total
-<details open>
+<!-- PATCHES_START -->
+> **[v0.8.0](https://github.com/Santodan/santodan-patches/releases/tag/v0.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;12 patches total
+<details>
 <summary>📦 MEO (Android TV)&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
+
+MEO 5.7.0 patches provide a separately installable clone and compatibility handling for unverified Android TV hardware. The side-by-side patch renames the package, launcher label, task affinity, app-owned permission, and every provider authority. The device patch reports a Sagemcom DIW3930 during provisioning and skips only MEO's non-fatal equipment-verification warning; authentication and fatal provisioning errors remain unchanged.
 
 **🎯 Supported versions:**
 
@@ -38,9 +30,32 @@ Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Ba
 
 </details>
 
-<details open>
-<summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;4 patches</summary>
+<details>
+<summary>📦 NuvioTV&nbsp;&nbsp;•&nbsp;&nbsp;5 patches</summary>
 <br>
+
+These are the available patches for NuvioTV:
+
+- **Finale dates in library and collections**: Adds separate settings to show the latest scheduled episode date on library and collection posters in `dd-MMM-yy` format.
+
+| Collections | Library |
+| -- | -- |
+| <img src="images/NuvioTVDateCollection.png" width="400" alt="Collections"> | <img src="images/NuvioTVDateLibrary.png" width="400" alt="Library"> |
+
+- **Keep airing series in Upcoming**: Adds a setting to keep series in the separate Upcoming row until their latest scheduled episode airs, with a finale-date badge.
+
+![Upcoming](images/NuvioTVUpcoming.png)
+
+- **Merge tracking progress**: Combines Nuvio Sync and connected tracking-provider progress and watched-show history, with a choice between highest progress and the most recent update. Library and collection Watched labels follow the selected provider for each show. Cached progress and watched history load without waiting for provider refresh; synchronization continues in the background.
+- **Remaining episodes in Continue Watching**: Adds a setting to show the number of aired, unwatched episodes on Continue Watching cards.
+
+![Remaining](images/NuvioTVRemainingCount.png)
+
+- **Side-by-side installation**: Lets you choose a different package name and launcher name so the patched app can coexist with the official app.
+
+On NuvioTV **1.1.0-beta.4**, patch settings are under **Layout > Santodan-Patches**. The two finale-date patches require beta.4; the other patches also support beta.2. Package and launcher names are configured when patching the APK.
+
+<img src="images/NuvioTVMenu.png" width="800" alt="Santodan-Patches menu">
 
 **🎯 Supported versions:**
 
@@ -49,14 +64,15 @@ Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Ba
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
+| [NuvioTV - Finale dates in library and collections](#nuviotv-finale-dates-in-library-and-collections) | Adds separate disabled-by-default settings to show the latest scheduled episode date in library and collection posters. |  |
 | [NuvioTV - Keep airing series in Upcoming](#nuviotv-keep-airing-series-in-upcoming) | Adds a disabled-by-default setting that keeps currently-airing library series in Upcoming until the scheduled finale. |  |
 | [NuvioTV - Merge tracking progress](#nuviotv-merge-tracking-progress) | Merges Nuvio Sync and connected tracking-provider progress, preserving the previous snapshot while providers refresh. |  |
-| [NuvioTV - Remaining episodes in Continue Watching](#nuviotv-remaining-episodes-in-continue-watching) | Adds a disabled-by-default Continue Watching setting that displays aired, unwatched episode counts for every tracking integration. |  |
+| [NuvioTV - Remaining episodes in Continue Watching](#nuviotv-remaining-episodes-in-continue-watching) | Adds a disabled-by-default setting that displays aired, unwatched episode counts for every tracking integration. Controlled by Layout > Santodan-Patches on beta4. |  |
 | [NuvioTV - Side-by-side installation](#nuviotv-side-by-side-installation) | Installs a separately named NuvioTV clone using a configurable package name and app name. | • Package name<br>• App name |
 
 </details>
 
-<details open>
+<details>
 <summary>📦 Peafowl Theme Maker for EMUI&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
@@ -71,9 +87,11 @@ Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Ba
 
 </details>
 
-<details open>
+<details>
 <summary>📦 Pillo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
+
+Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Banner/Light mode, it keeps fullscreen alarms while the device is locked and uses banner notifications while the device is unlocked.
 
 **🎯 Supported versions:**
 
@@ -86,7 +104,7 @@ Pillo's hybrid notification patch supports both 0.6.19 and 0.6.20. In Pillo's Ba
 
 </details>
 
-<details open>
+<details>
 <summary>📦 Reddit&nbsp;&nbsp;•&nbsp;&nbsp;3 patches</summary>
 <br>
 
@@ -131,7 +149,7 @@ On Linux or macOS:
 ./gradlew :patches:generatePatchesList
 ```
 
-The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `patches-list.json`, `patches-bundle.json`, and the generated section of this README are release-owned files and should not be edited manually.
+The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `patches-list.json`, `patches-bundle.json`, and the generated section of this README are release-owned files and should not be edited manually. App introductions are maintained in `.github/readme-apps/<packageName>.md` and included inside the collapsed app sections by the README generator.
 
 ## Patch targets
 
@@ -139,6 +157,7 @@ The generated bundle is written to `patches/build/libs/patches-<version>.mpp`. `
 | --- | --- | --- | --- |
 | MEO (Android TV) | `com.alticelabs.meo.androidtv` | `5.7.0` | Side-by-side installation; Spoof supported device |
 | NuvioTV | `com.nuvio.tv` | `1.1.0-beta.2`, `1.1.0-beta.4` | Merge tracking progress; Remaining episodes in Continue Watching; Side-by-side installation |
+| NuvioTV | `com.nuvio.tv` | `1.1.0-beta.4` | Keep airing series in Upcoming; Finale dates in library and collections |
 | Reddit | `com.reddit.frontpage` | `2026.37.0` | Content filters (Experimental); Show flairs in home feed (Experimental); Start as guest |
 | Peafowl Theme Maker for EMUI | `h7.hamzio.emuithemeotg` | `GMS_27.5.1` | Unlock Theme Ownership (Experimental) |
 | Pillo | `xyz.rtrvr.pillo` | `0.6.19`, `0.6.20` | Hybrid Lock-Screen Notifications |

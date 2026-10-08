@@ -8,6 +8,7 @@ import app.morphe.Fixtures
 import app.morphe.PatchContexts
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.facebook.feed.FixtureDex
+import app.morphe.patches.facebook.reels.THREADS_CARD_SECTION_FILTER
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
@@ -19,7 +20,8 @@ import org.junit.Test
 
 /**
  * The three methods a Reels page enters by, found in each declared build the way the patch finds
- * them, with both page filters put on each as the two patches put them: the page copied down into
+ * them, with both page filters put on each as the two patches put them, and Clean up Reels' Threads
+ * card filter on the controller's page method too: the page copied down into
  * v0, the class name in v1, and the answer copied back. 577's controller page method has 15
  * registers, its page in v14, so two more would have put the page out of the filter call's reach.
  */
@@ -79,12 +81,16 @@ class ReelPagesFixtureTest {
                 pages.insertPage.filterPageFirst("fixture.Model", "Lfixture/Reels;->pages(Ljava/util/Collection;Ljava/lang/String;)Ljava/util/Collection;")
                 pages.announcePage.filterPageFirst("fixture.Model", "Lfixture/Reels;->pages(Ljava/util/Collection;Ljava/lang/String;)Ljava/util/Collection;")
                 pages.addPage.filterSectionsFirst("fixture.Model", "Lfixture/Reels;->sections(Ljava/util/List;Ljava/lang/String;)Ljava/util/List;")
+                // And Clean up Reels its Threads card filter, on the controller's page method only.
+                pages.addPage.filterSectionsFirst("fixture.MidCard", THREADS_CARD_SECTION_FILTER, "Clean up Reels")
 
                 methods.forEachIndexed { index, method ->
                     val page = expected.getValue(version)[index].second
                     val where = "${bundle.name}: ${method.definingClass}->${method.name}"
-                    method.assertFilteredAtTop("$where, the AI filter", page, at = 0)
-                    method.assertFilteredAtTop("$where, the ad filter", page, at = 5)
+                    val first = if (method == pages.addPage) 5 else 0
+                    if (method == pages.addPage) method.assertFilteredAtTop("$where, the Threads card filter", page, at = 0)
+                    method.assertFilteredAtTop("$where, the AI filter", page, at = first)
+                    method.assertFilteredAtTop("$where, the ad filter", page, at = first + 5)
                 }
                 checked += version
             }

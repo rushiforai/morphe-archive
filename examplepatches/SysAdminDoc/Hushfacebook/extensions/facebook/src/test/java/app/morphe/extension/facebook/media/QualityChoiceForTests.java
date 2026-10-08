@@ -46,6 +46,16 @@ public final class QualityChoiceForTests {
             public String label(Object format) {
                 return (String) format;
             }
+
+            @Override
+            public String origin(Object evaluator) {
+                return null;
+            }
+
+            @Override
+            public String subOrigin(Object evaluator) {
+                return null;
+            }
         };
         try {
             Evaluator evaluator = new Evaluator();

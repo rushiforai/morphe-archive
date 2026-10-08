@@ -145,11 +145,11 @@ private fun Method.findInstructionIndexFromToString(fieldName: String) : Int {
  *
  * @param fieldName The name of the field to find.  Partial matches are allowed.
  */
-context(BytecodePatchContext)
+context(patchContext: BytecodePatchContext)
 @Suppress("DEPRECATION")
-internal fun Method.findMethodFromToString(fieldName: String) : MutableMethod {
+internal fun Method.findMethodFromToString(fieldName: String) : MutableMethod = with(patchContext) {
     val methodUsageIndex = findInstructionIndexFromToString(fieldName)
-    return navigate(this).to(methodUsageIndex).stop()
+    return navigate(this@findMethodFromToString).to(methodUsageIndex).stop()
 }
 
 /**
@@ -455,9 +455,9 @@ inline fun <reified T : Reference> Instruction.getReference() = (this as? Refere
 /**
  * @return The mutable method for this method call reference.
  */
-context(BytecodePatchContext)
-fun MethodReference.getMutableMethod(): MutableMethod {
-    return mutableClassDefBy(this.definingClass).methods.first { classMethod ->
+context(patchContext: BytecodePatchContext)
+fun MethodReference.getMutableMethod(): MutableMethod = with(patchContext) {
+    return mutableClassDefBy(this@getMutableMethod.definingClass).methods.first { classMethod ->
         MethodUtil.methodSignaturesMatch(classMethod, this@getMutableMethod)
     }
 }
@@ -784,10 +784,12 @@ fun BytecodePatchContext.forEachLiteralValueInstruction(
  *
  * **Fingerprint match indexes will be increased positively by [numberOfParameterRegistersLogical]**.
  */
-context(BytecodePatchContext)
-fun Method.cloneMutableAndPreserveParameters() = cloneMutableAndPreserveParameters(
-    mutableClassDefBy(definingClass)
-)
+context(patchContext: BytecodePatchContext)
+fun Method.cloneMutableAndPreserveParameters() = with(patchContext) {
+    cloneMutableAndPreserveParameters(
+        mutableClassDefBy(definingClass)
+    )
+}
 
 /**
  * Additional registers effectively take the place of the pX parameters (p0, p1, p2, etc)
@@ -1334,8 +1336,8 @@ internal fun BytecodePatchContext.addStaticFieldToExtension(
     }
 }
 
-context(BytecodePatchContext)
-internal fun setExtensionIsPatchIncluded(patchExtensionClassType: String) {
+context(patchContext: BytecodePatchContext)
+internal fun setExtensionIsPatchIncluded(patchExtensionClassType: String) = with(patchContext) {
     val methodName = "isPatchIncluded"
     val returnType = "Z"
 
@@ -1368,11 +1370,12 @@ fun customLiteral(literalSupplier: () -> Long): ((method: Method, classDef: Clas
     { method, _ ->
         method.containsLiteralInstruction(literalSupplier())
     }
-context(BytecodePatchContext)
+
+context(patchContext: BytecodePatchContext)
 fun Fingerprint.matchAllMethodIndicesForEach(
     requireMatches: Boolean = true,
     block: MutableMethod.(Int) -> Unit
-) {
+) = with(patchContext) {
     requireNotNull(filters)
     require(filters!!.size == 1) {
         "Fingerprint must contain exactly 1 filter"
@@ -1381,7 +1384,7 @@ fun Fingerprint.matchAllMethodIndicesForEach(
     val matches = matchAllOrNull()
     if (matches == null) {
         if (requireMatches) throw PatchException("Could not find any matches of $this")
-        return
+        return@with
     }
 
     val filter = filters!!.first()

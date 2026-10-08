@@ -29,6 +29,7 @@ import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
 import app.morphe.extension.tiktok.navigation.NavigationTabsFilter;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -100,6 +101,13 @@ public final class VideoOverlayHider {
     private static final String[] ACTION_BAR_IDS = {"47.0.3:liy", "47.1.3:llj", "47.1.4:llj"};
     private static final String[] SURVEY_IDS = {"47.0.3:f7u", "47.1.3:f98", "47.1.4:f98"};
     private static final String[] TAB_STRIP_IDS = {"47.0.3:uvy", "47.1.3:uzf", "47.1.4:uzf"};
+    /**
+     * The bottom tab bar (Home, Friends, the create button, Inbox, Profile). TikTok takes it away
+     * when Clear display starts, but the automatic path can switch the mode on before the bar is
+     * laid out after a cold start, and then the bar stays over the first video (#84). It sits
+     * outside the cells, under the feed.
+     */
+    private static final String[] BOTTOM_TABS_IDS = {"47.0.3:omy", "47.1.3:opp", "47.1.4:opp"};
     /** The story-count button is a sibling of the main feed, outside its tab strip and cells. */
     private static final String[] FOLLOWING_STORY_IDS = {"47.0.3:wq0", "47.1.3:wtr", "47.1.4:wtr"};
     /**
@@ -115,6 +123,13 @@ public final class VideoOverlayHider {
      * inside the cell. TikTok takes it and its parent away as Clear display ends.
      */
     private static final String[] CLEAR_PHOTO_EXIT_IDS = {"47.0.3:uxv", "47.1.3:v1c", "47.1.4:v1c"};
+    /**
+     * The anchor row under the caption: a related search, a place, a product or a template.
+     * Clear display only fades it, so it stayed tappable while out of sight and a tap near the
+     * bottom of the picture opened a search (#84). It goes invisible rather than gone, which
+     * takes it out of reach without moving the caption above it.
+     */
+    private static final String[] ANCHOR_IDS = {"47.0.3:bql", "47.1.3:bqv", "47.1.4:bqv"};
     /**
      * The blank TikTok keeps above the video on tall screens, as tall as the status bar, so the
      * bar never covers the picture. With the bar hidden it's only a black strip (#97).
@@ -223,6 +238,8 @@ public final class VideoOverlayHider {
     private static final int STATUS_BAR_SPACER_TARGET = COUNT_TEXT_TARGET_START
             + RAIL_COUNT_TEXT_IDS.length;
     private static final int CLEAR_PHOTO_EXIT_TARGET = STATUS_BAR_SPACER_TARGET + 1;
+    private static final int BOTTOM_TABS_TARGET = CLEAR_PHOTO_EXIT_TARGET + 1;
+    private static final int ANCHOR_TARGET = BOTTOM_TABS_TARGET + 1;
     private static final String[][] TRAVERSAL_TARGET_IDS = traversalTargetIds();
     private static final int LOGICAL_TARGET_COUNT = TRAVERSAL_TARGET_IDS.length;
     private static final int TRAVERSAL_TARGET_COUNT = candidateCount(TRAVERSAL_TARGET_IDS);
@@ -240,6 +257,21 @@ public final class VideoOverlayHider {
      * back on.
      */
     private static final Map<View, Integer> HIDDEN_HERE = new WeakHashMap<>();
+
+    /** Views this class made see-through instead of hiding, with the alpha each had before. */
+    private static final Map<View, Float> FADED_HERE = new WeakHashMap<>();
+
+    /**
+     * Views faded to the chosen opacity (#84): the alpha each had before, and the alpha this class
+     * wrote, so a value TikTok wrote since (an animation ending) is told apart from our own.
+     */
+    private static final Map<View, float[]> FADED_TO = new WeakHashMap<>();
+
+    /** The lowest opacity the tabs are faded to, so the way around the app stays findable. */
+    static final int NAVIGATION_FADE_FLOOR = 10;
+
+    /** The opacity the current pass fades the controls to, 100 meaning not at all. */
+    private static int fadeLevel = 100;
 
     /**
      * How long a status bar may stay visible before it is hidden again on Android 11 and
@@ -289,6 +321,7 @@ public final class VideoOverlayHider {
             boolean installed = LAYOUT_HOOK.install(root, VideoOverlayHider::refresh);
             activityReference = new WeakReference<>(activity);
             LiveStatusBar.follow(activity);
+            EdgeSwipeLevels.sync(activity);
             follow(activity.getApplication());
             if (installed) {
                 Logger.printDebug(() -> "Video overlay hider installed on " + activity.getClass().getSimpleName());
@@ -313,7 +346,7 @@ public final class VideoOverlayHider {
 
             @Override public void onActivityCreated(Activity created, Bundle state) { }
             @Override public void onActivityStarted(Activity started) { }
-            @Override public void onActivityPaused(Activity paused) { }
+            @Override public void onActivityPaused(Activity paused) { EdgeSwipeLevels.onPaused(paused); }
             @Override public void onActivityStopped(Activity stopped) { }
             @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
             @Override public void onActivityDestroyed(Activity destroyed) { }
@@ -340,6 +373,9 @@ public final class VideoOverlayHider {
             if (activity.isFinishing()) {
                 return;
             }
+            // Swipe for brightness and volume wraps the window once, and gives the brightness
+            // back on this pass when its switch goes off or Hushfeed is paused.
+            EdgeSwipeLevels.sync(activity);
             // The names above the feed follow their own switch on the strip TikTok's tab filter
             // hides; this pass is the one thing that runs on every layout, so it carries the ask.
             NavigationTabsFilter.refreshTopTabStrips();
@@ -370,14 +406,32 @@ public final class VideoOverlayHider {
             // the first swipe. Following the live state keeps it away until the tap that ends
             // the mode. The persisted setting cannot be used here: the automatic path never
             // writes it, so it would answer false for exactly the case this is meant to fix.
+            // Automatic clear display with no delay clears each video as it starts, so between
+            // a swipe and that clear the incoming video would show its buttons, caption, music,
+            // the tabs and (with the controls hidden) TikTok's ordinary progress bar (#84).
+            // Carried over, they stay away across the swipe.
+            boolean carry = !HushfeedPause.isPaused() && RememberClearDisplayPatch.isCarryingClear();
             boolean tabStrip = !detailPager && !HushfeedPause.isPaused()
-                    && RememberClearDisplayPatch.isClearDisplayNow();
-            // The comment bar is the detail pager's own; the main feed has the tabs there.
-            boolean detailCommentBar = detailPager && Settings.HIDE_DETAIL_COMMENT_BAR.get();
+                    && (RememberClearDisplayPatch.isClearDisplayNow() || carry);
+            // The comment bar is the opened post's own; the main feed has the tabs there. TikTok
+            // leaves it up in Clear display on a photo or video opened from search or a profile
+            // (#84), so it goes then too and comes back with the controls. A video opens in the
+            // detail pager, but on 47.1.4 a photo from search opens in the main activity
+            // (DetailSafRootFragment) with the same bar, so Clear display doesn't ask which
+            // window it's in: only an opened post has the bar, and the strip under it is left
+            // alone wherever the bar isn't found (see the pairing after the walk).
+            boolean detailCommentBar = (detailPager && Settings.HIDE_DETAIL_COMMENT_BAR.get())
+                    || (!HushfeedPause.isPaused() && (RememberClearDisplayPatch.isClearDisplayNow() || carry));
+            boolean anchor = !HushfeedPause.isPaused()
+                    && (RememberClearDisplayPatch.isClearDisplayNow() || carry);
             // Asked for here and confirmed after the walk by TikTok's own bar being on screen,
             // which it shows only in Clear display; see gateClearControls.
             boolean clearControls = !HushfeedPause.isPaused() && Settings.HIDE_CLEAR_DISPLAY_CONTROLS.get();
             boolean statusBar = Settings.HIDE_STATUS_BAR.get();
+            // The fade belongs to the overlay patch: a value saved before a repatch without it
+            // does nothing, and Pause answers the stock look.
+            fadeLevel = HushfeedPause.isPaused() || !SettingsStatus.videoOverlaysEnabled ? 100
+                    : Math.max(0, Math.min(100, Settings.FADE_CONTROLS_OPACITY.get()));
             boolean counts = Settings.HIDE_RAIL_COUNTS.get();
             boolean[] rail = TRAVERSAL.rail;
             updateRailButtonsWanted(rail);
@@ -395,17 +449,23 @@ public final class VideoOverlayHider {
             } catch (NumberFormatException ignored) {
             }
             touchScale = Math.min(MAX_TOUCH_SCALE, Math.max(1f, touchScale));
-            if (caption || music || actionBar || surveys || tabStrip || detailCommentBar || clearControls
-                    || statusBar || anyRail || !HIDDEN_HERE.isEmpty() || touchScale != 1f || scaledLastPass) {
+            if (caption || music || actionBar || surveys || tabStrip || carry || detailCommentBar || anchor
+                    || clearControls
+                    || statusBar || anyRail || !HIDDEN_HERE.isEmpty() || !FADED_HERE.isEmpty()
+                    || fadeLevel != 100 || !FADED_TO.isEmpty()
+                    || touchScale != 1f || scaledLastPass) {
                 ViewGroup root = activity.findViewById(android.R.id.content);
                 int[] ids = TRAVERSAL.ids;
                 boolean[] hidden = TRAVERSAL.hidden;
                 boolean[] wanted = TRAVERSAL.wanted;
-                wanted[CAPTION_TARGET] = caption;
-                wanted[MUSIC_TARGET] = music;
+                wanted[CAPTION_TARGET] = caption || carry;
+                wanted[MUSIC_TARGET] = music || carry;
                 wanted[ACTION_BAR_TARGET] = actionBar;
                 wanted[SURVEY_TARGET] = surveys;
                 wanted[TAB_STRIP_TARGET] = tabStrip;
+                // Only over the Home feed. A live state that outlasts the feed (Inbox opened from
+                // a notification) must not take the tabs off another page.
+                wanted[BOTTOM_TABS_TARGET] = tabStrip && FeedVisibility.isOnFeed(activity);
                 wanted[FOLLOWING_STORY_TARGET] = tabStrip && !FeedVisibility.isStoryVisible(activity);
                 wanted[DETAIL_COMMENT_BAR_TARGET] = detailCommentBar;
                 wanted[DETAIL_COMMENT_STRIP_TARGET] = detailCommentBar;
@@ -413,14 +473,15 @@ public final class VideoOverlayHider {
                 wanted[CLEAR_PLAYBACK_TARGET] = clearControls;
                 wanted[CLEAR_SEEK_BAR_TARGET] = clearControls;
                 wanted[CLEAR_PHOTO_EXIT_TARGET] = clearControls;
+                wanted[ANCHOR_TARGET] = anchor;
                 wanted[STATUS_BAR_SPACER_TARGET] = statusBar;
                 for (int i = 0; i < RAIL_BUTTON_IDS.length; i++) {
-                    wanted[RAIL_TARGET_START + i] = rail[i];
+                    wanted[RAIL_TARGET_START + i] = rail[i] || carry;
                 }
                 for (int i = 0; i < RAIL_COUNT_ROW_IDS.length; i++) {
                     boolean hideCount = counts || rail[RAIL_COUNT_BUTTON_INDEX[i]];
-                    wanted[COUNT_ROW_TARGET_START + i] = hideCount;
-                    wanted[COUNT_TEXT_TARGET_START + i] = hideCount;
+                    wanted[COUNT_ROW_TARGET_START + i] = hideCount || carry;
+                    wanted[COUNT_TEXT_TARGET_START + i] = hideCount || carry;
                 }
 
                 int candidateAt = 0;
@@ -450,7 +511,7 @@ public final class VideoOverlayHider {
                     }
                     selectCurrentTargets(found, TRAVERSAL.selected);
                     pairDetailCommentBar(hidden, TRAVERSAL.selected);
-                    gateClearControls(hidden, found, TRAVERSAL.selected);
+                    gateClearControls(hidden, found, TRAVERSAL.selected, carry);
                     applySelectedTargets(ids, hidden, found, TRAVERSAL.selected,
                             touchScale != 1f);
                     // The size goes on the icon inside each button, not the button. The slots
@@ -613,7 +674,7 @@ public final class VideoOverlayHider {
     }
 
     private static String[][] traversalTargetIds() {
-        String[][] targets = new String[CLEAR_PHOTO_EXIT_TARGET + 1][];
+        String[][] targets = new String[ANCHOR_TARGET + 1][];
         targets[CAPTION_TARGET] = CAPTION_IDS;
         targets[MUSIC_TARGET] = MUSIC_IDS;
         targets[ACTION_BAR_TARGET] = ACTION_BAR_IDS;
@@ -634,15 +695,17 @@ public final class VideoOverlayHider {
         }
         targets[STATUS_BAR_SPACER_TARGET] = STATUS_BAR_SPACER_IDS;
         targets[CLEAR_PHOTO_EXIT_TARGET] = CLEAR_PHOTO_EXIT_IDS;
+        targets[BOTTOM_TABS_TARGET] = BOTTOM_TABS_IDS;
+        targets[ANCHOR_TARGET] = ANCHOR_IDS;
         return targets;
     }
 
     /**
-     * Main-feed tabs and story count, the Clear display controls, and the detail pager's comment
-     * bar are outside the cells.
+     * Main-feed tabs (top and bottom) and story count, the Clear display controls, and the
+     * detail pager's comment bar are outside the cells.
      */
     private static boolean outsideCells(int target) {
-        return target >= TAB_STRIP_TARGET && target < RAIL_TARGET_START;
+        return (target >= TAB_STRIP_TARGET && target < RAIL_TARGET_START) || target == BOTTOM_TABS_TARGET;
     }
 
     private static int candidateCount(String[][] targets) {
@@ -692,7 +755,8 @@ public final class VideoOverlayHider {
      * shares its id with the one TikTok shows outside Clear display, so without this the switch
      * would take that away too; and when TikTok takes the bar down, all three come back.
      */
-    private static void gateClearControls(boolean[] hidden, List<List<View>> found, int[] selected) {
+    private static void gateClearControls(boolean[] hidden, List<List<View>> found, int[] selected,
+                                          boolean carry) {
         // A photo's close button carries its own signal: TikTok shows its parent only in Clear
         // display. Put back once that parent is gone, the button stays out of sight and out of reach.
         int photoExit = selected[CLEAR_PHOTO_EXIT_TARGET];
@@ -703,7 +767,9 @@ public final class VideoOverlayHider {
         if (exit >= 0 && anyParentShown(found.get(exit))) return;
         hidden[firstCandidate(CLEAR_EXIT_TARGET)] = false;
         hidden[firstCandidate(CLEAR_PLAYBACK_TARGET)] = false;
-        hidden[firstCandidate(CLEAR_SEEK_BAR_TARGET)] = false;
+        // Across a carried swipe the bar on screen is the incoming video's ordinary one, which
+        // its own clear is about to take; it stays away until then.
+        if (!carry) hidden[firstCandidate(CLEAR_SEEK_BAR_TARGET)] = false;
     }
 
     private static boolean anyParentShown(List<View> views) {
@@ -739,7 +805,22 @@ public final class VideoOverlayHider {
                 String diagnostic = String.join("|", names);
                 HookStatus.recoveredViewId("overlay", diagnostic);
                 HookStatus.bound("overlay", names[chosen - candidateAt]);
-                for (View view : found.get(chosen)) setHidden(view, wanted);
+                for (View view : found.get(chosen)) {
+                    // The progress bar only goes see-through, so a drag along the bottom edge
+                    // still seeks while it's out of sight (#84).
+                    if (target == CLEAR_SEEK_BAR_TARGET) setTransparent(view, wanted);
+                    else if (target == ANCHOR_TARGET) setHidden(view, wanted, View.INVISIBLE);
+                    else if (target == ACTION_BAR_TARGET) {
+                        // The rail, caption and music row share this column. Fully faded it goes
+                        // the way Clear display takes it, so nothing invisible takes a tap.
+                        boolean gone = wanted || fadeLevel == 0;
+                        setFaded(view, gone ? 100 : fadeLevel);
+                        setHidden(view, gone);
+                    } else if (target == TAB_STRIP_TARGET || target == BOTTOM_TABS_TARGET) {
+                        setFaded(view, wanted ? 100 : Math.max(NAVIGATION_FADE_FLOOR, fadeLevel));
+                        setHidden(view, wanted);
+                    } else setHidden(view, wanted);
+                }
             // A survey is content TikTok inserts only on selected posts. Its absence from an
             // ordinary feed cell says nothing about whether this build still has the anchor.
             } else if (target != SURVEY_TARGET && (wanted || (scaling
@@ -962,23 +1043,80 @@ public final class VideoOverlayHider {
      * had its own reason for that.
      */
     static void setHidden(View view, boolean hidden) {
+        setHidden(view, hidden, View.GONE);
+    }
+
+    /**
+     * The same with INVISIBLE, which keeps the view's space: only a showing view is taken, so
+     * one TikTok had already put away stays as TikTok left it.
+     */
+    static void setHidden(View view, boolean hidden, int hiddenAs) {
         if (view == null) {
             return;
         }
 
         if (hidden) {
             int visibility = view.getVisibility();
-            if (visibility != View.GONE) {
+            if (hiddenAs == View.GONE ? visibility != View.GONE : visibility == View.VISIBLE) {
                 HIDDEN_HERE.put(view, visibility);
-                view.setVisibility(View.GONE);
+                view.setVisibility(hiddenAs);
             }
             return;
         }
 
         Integer before = HIDDEN_HERE.remove(view);
-        if (before != null && view.getVisibility() == View.GONE) {
+        if (before != null && view.getVisibility() == hiddenAs) {
             view.setVisibility(before);
         }
+    }
+
+    /**
+     * Makes a view see-through but leaves it on screen and touchable, or puts back one this
+     * class faded. Every pass sets it again, since TikTok may fade its own bar back in.
+     */
+    static void setTransparent(View view, boolean transparent) {
+        if (view == null) {
+            return;
+        }
+
+        if (transparent) {
+            if (!FADED_HERE.containsKey(view)) FADED_HERE.put(view, view.getAlpha());
+            if (view.getAlpha() != 0f) view.setAlpha(0f);
+            return;
+        }
+
+        Float before = FADED_HERE.remove(view);
+        if (before != null && view.getAlpha() == 0f) {
+            view.setAlpha(before);
+        }
+    }
+
+    /**
+     * Fades a view to {@code percent} of the opacity it had, leaving it touchable, or puts back
+     * one this class faded. Every pass writes it again: views are recycled and re-bound, and
+     * TikTok writes alpha itself (an animation ends by writing its own value back).
+     */
+    static void setFaded(View view, int percent) {
+        if (view == null) {
+            return;
+        }
+        float[] held = FADED_TO.get(view);
+        if (percent >= 100) {
+            if (held != null) {
+                FADED_TO.remove(view);
+                if (view.getAlpha() == held[1]) view.setAlpha(held[0]);
+            }
+            return;
+        }
+        if (held == null) {
+            held = new float[]{view.getAlpha(), view.getAlpha()};
+            FADED_TO.put(view, held);
+        } else if (view.getAlpha() != held[1]) {
+            // TikTok wrote its own value since the last pass; that is the new look to fade.
+            held[0] = view.getAlpha();
+        }
+        held[1] = held[0] * percent / 100f;
+        if (view.getAlpha() != held[1]) view.setAlpha(held[1]);
     }
 
     /** Lets a test stand in for a TikTok resource id, which only the real APK resolves. */

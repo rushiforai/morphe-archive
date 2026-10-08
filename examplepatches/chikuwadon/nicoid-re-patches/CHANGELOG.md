@@ -1,3 +1,10 @@
+## 1.7.2 (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* **nicoid:** Fix settings-screen theming when using the legacy Android PreferenceActivity.
+* **nicoid:** Fix background playback when switching apps and preserve the playback position during the transition. ([#37](https://github.com/chikuwadon/nicoid-re-patches/issues/37))
+
 ## 1.7.1 (2026-10-07)
 
 ### ✨ New Features

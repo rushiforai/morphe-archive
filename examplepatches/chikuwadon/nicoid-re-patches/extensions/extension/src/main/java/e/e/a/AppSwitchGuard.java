@@ -26,6 +26,7 @@ public final class AppSwitchGuard {
         final Activity activity = (Activity) owner;
         track(activity);
         if (resumed.get() == null) resumed = new WeakReference<>(activity);
+        final Runnable transfer = PlaybackTransfer.capture(activity);
         Runnable old = PENDING.remove(activity);
         if (old != null) MAIN.removeCallbacks(old);
         final WeakReference<Activity> reference = new WeakReference<>(activity);
@@ -36,6 +37,7 @@ public final class AppSwitchGuard {
                 PENDING.remove(target);
                 // In-app navigation resumes another Activity before this deadline.
                 if (resumed.get() != null) return;
+                if (transfer != null) { transfer.run(); return; }
                 dispatching = true;
                 try {
                     Class.forName("e.e.a.PlaybackSession")

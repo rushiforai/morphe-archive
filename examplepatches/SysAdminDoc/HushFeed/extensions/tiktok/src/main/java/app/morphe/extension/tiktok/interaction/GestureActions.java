@@ -20,12 +20,15 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.blockauthor.CurrentVideoAuthor;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
+import app.morphe.extension.tiktok.download.CoverSaver;
 import app.morphe.extension.tiktok.download.OriginalSoundDownloads;
 import app.morphe.extension.tiktok.download.ExternalDownloader;
+import app.morphe.extension.tiktok.download.FrameSaver;
 import app.morphe.extension.tiktok.share.ShareUrlSanitizer;
 import app.morphe.extension.tiktok.feedfilter.SoundIdentity;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.L10n;
+import app.morphe.extension.tiktok.wellbeing.SleepTimer;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.util.Locale;
@@ -99,7 +102,9 @@ public final class GestureActions {
     public static boolean takesLongPress(String action) {
         return "nothing".equals(action) || "comments".equals(action)
                 || "original_sound".equals(action) || "copy_link".equals(action)
-                || "copy_sound_link".equals(action) || "youtube_music".equals(action);
+                || "copy_sound_link".equals(action) || "youtube_music".equals(action)
+                || "sleep_timer".equals(action) || "save_frame".equals(action)
+                || "save_cover".equals(action);
     }
 
     /**
@@ -199,6 +204,23 @@ public final class GestureActions {
             Context context = Utils.getActivity();
             YouTubeMusicSearch.open(onScreenAweme(),
                     context != null ? context : Utils.getContext());
+            return true;
+        }
+        if ("sleep_timer".equals(action)) {
+            // Posted, so the picker opens after the press is done with the touch.
+            Utils.runOnMainThread(() -> SleepTimer.choose(Utils.getVisibleActivity()));
+            return true;
+        }
+        if ("save_frame".equals(action)) {
+            // Read on the press itself, so the frame saved is the one under the finger. The
+            // position only names the file, and only when the ticks are this video's.
+            Object aweme = onScreenAweme();
+            String videoId = Reflect.string(aweme, "getAid", "aid");
+            FrameSaver.save(Utils.getVisibleActivity(), aweme, FeedSeek.positionOf(videoId));
+            return true;
+        }
+        if ("save_cover".equals(action)) {
+            CoverSaver.save(Utils.getActivity(), onScreenAweme());
             return true;
         }
         if (!"comments".equals(action)) return false;

@@ -937,14 +937,9 @@ public final class PhenotypeFlagManager {
                 }
             }
 
-            // 2. Custom / Imported Flags (Strictly non-curated overrides)
+            // 2. Custom / Imported Flags (Strictly user-added non-curated overrides)
             Set<String> customKeys = prefs.getStringSet(CUSTOM_FLAGS_KEY, Collections.emptySet());
             for (String k : customKeys) {
-                if (!k.startsWith("_") && !k.startsWith("__") && !PhotoFlagsRegistry.FLAG_MAP.containsKey(k)) {
-                    customKeysSet.add(k);
-                }
-            }
-            for (String k : all.keySet()) {
                 if (!k.startsWith("_") && !k.startsWith("__") && !PhotoFlagsRegistry.FLAG_MAP.containsKey(k)) {
                     customKeysSet.add(k);
                 }
@@ -2251,7 +2246,8 @@ public final class PhenotypeFlagManager {
             msgLayout.addView(tvMsg);
 
             createM3ActionDialog(activity, "Reset All Flags?", msgLayout, "Reset all", () -> {
-                prefs.edit().clear().putBoolean("_presets_loaded", false).apply();
+                prefs.edit().clear().putBoolean("_presets_loaded", false).commit();
+                PhenotypeSeedData.restoreOfficialFlags(activity, prefs);
                 GooglePhotosAccountAvatar.syncOneGoogleFlags(activity);
                 try {
                     File sharedDir = new File(activity.getFilesDir(), "phenotype/shared");

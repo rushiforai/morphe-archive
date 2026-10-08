@@ -41,8 +41,10 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  *   (580 LX/83J;->A0H, 577 LX/7mG;->A0H) remembers the reel's speed and sets the config's
  *   long-press speed, 2x unless the server says otherwise, through FbGrootPlayer's speed setter.
  * - The edge check: the one method of the build taking (MotionEvent, View, FbUserSession, the
- *   config, boolean) and answering a boolean (580 LX/88V;->A06, 577 LX/9bD;->A06). One long-press
- *   handler calls it itself, the other through a lazy value.
+ *   config, boolean) and answering a boolean (581 LX/881;->A08, 580 LX/88V;->A06, 577 LX/9bD;->A06),
+ *   an instance method of ten registers on all three. One long-press handler calls it itself, the
+ *   other through a lazy value. It measures the press's getX() against the view's width, so the
+ *   right-edge switch measures the same two.
  * - The release listeners: lambdas keeping $isInLongPress2xPlaybackSpeed and
  *   $immersiveFeedPlayerConfig (580 LX/88y; and LX/UoP;, 577 LX/9bh; and LX/V0G;), a reel's touch
  *   listener. Each asks a second flag with no arguments (580 AgX, 577 Aiv) and, straight after its
@@ -77,6 +79,7 @@ internal const val REEL_HOLD = "$EXTENSION_PACKAGE/reels/ReelHold;"
 internal const val TOUCH = "$REEL_HOLD->touch(Landroid/view/MotionEvent;)V"
 internal const val LONG_PRESS = "$REEL_HOLD->longPress(Z)Z"
 internal const val ANYWHERE = "$REEL_HOLD->anywhere(Z)Z"
+internal const val EDGE_TOUCH = "$REEL_HOLD->edgeTouch(Landroid/view/MotionEvent;Landroid/view/View;)V"
 internal const val SPEED_UP = "$REEL_HOLD->speedUp(Z)Z"
 internal const val RELEASE = "$REEL_HOLD->release(Z)Z"
 internal const val HELD = "$REEL_HOLD->held()V"

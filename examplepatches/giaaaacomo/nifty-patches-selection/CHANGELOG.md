@@ -1,3 +1,27 @@
+## [0.3.3](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.3.2...v0.3.3) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* **samsung:** fit Daily Board onboarding on phones ([#23](https://github.com/giaaaacomo/nifty-patches-selection/issues/23)) ([098ba0c](https://github.com/giaaaacomo/nifty-patches-selection/commit/098ba0cf6672199df573f964866d651b0dbd6b22))
+
+## [0.3.3-dev.1](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.3.2...v0.3.3-dev.1) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* **samsung:** fit Daily Board onboarding on phones ([#23](https://github.com/giaaaacomo/nifty-patches-selection/issues/23)) ([098ba0c](https://github.com/giaaaacomo/nifty-patches-selection/commit/098ba0cf6672199df573f964866d651b0dbd6b22))
+
+## [0.3.2](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.3.1...v0.3.2) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* **samsung:** use an explicit onboarding settings intent ([9fb226f](https://github.com/giaaaacomo/nifty-patches-selection/commit/9fb226f39f9789a4ee4ed7723dc688ec4d367edb))
+
+## [0.3.2-dev.1](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.3.1...v0.3.2-dev.1) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* **samsung:** use an explicit onboarding settings intent ([9fb226f](https://github.com/giaaaacomo/nifty-patches-selection/commit/9fb226f39f9789a4ee4ed7723dc688ec4d367edb))
+
 ## [0.3.1](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.3.0...v0.3.1) (2026-10-05)
 
 ### 🐛 Bug Fixes

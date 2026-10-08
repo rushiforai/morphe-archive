@@ -31,7 +31,8 @@ import java.io.File
 
 /**
  * Turn off HDR brightness on each declared Facebook build: every call of Window.setColorMode and
- * Window.setDesiredHdrHeadroom outside the extension becomes the extension's call with the same
+ * Window.setDesiredHdrHeadroom, and every question of what the screen shows (Display.isHdr and
+ * the two getSupportedHdrTypes), outside the extension becomes the extension's call with the same
  * registers, and every SurfaceView Facebook builds goes to the extension right after its
  * constructor, with nothing else in those methods changed. The extension's own calls stay
  * Android's, or its setColorMode would call itself.
@@ -72,11 +73,22 @@ class TurnOffHdrBrightnessFixtureTest {
         // the helper asks for headroom on Android 15.
         assertTrue("${bundle.name}: $modes colour mode calls", modes >= 5)
         assertTrue("${bundle.name}: $headrooms headroom calls", headrooms >= 1)
+        // Probed on all three builds (2026-10-07): ExoPlayer's Dolby Vision checks and the device
+        // details ask isHdr; the inverse tone mapping check, a surface check and the device details
+        // read a mode's types; the Dolby Vision checks, the device details and two more read the
+        // capabilities' types.
+        val isHdr = calls(OWN_IS_HDR)
+        val modeTypes = calls(OWN_MODE_HDR_TYPES)
+        val capabilityTypes = calls(OWN_CAPABILITY_HDR_TYPES)
+        assertTrue("${bundle.name}: $isHdr isHdr calls", isHdr >= 3)
+        assertTrue("${bundle.name}: $modeTypes mode type reads", modeTypes >= 4)
+        assertTrue("${bundle.name}: $capabilityTypes capability type reads", capabilityTypes >= 5)
 
         val owners = FixtureDex.classes(bundle, callers.map { it.definingClass }.toSet())
         val context = PatchContexts.of(owners.values)
         assertEquals("${bundle.name}: the callers", owners.keys, context.windowCallers())
-        assertEquals("${bundle.name}: calls sent", modes + headrooms, context.hookWindowCalls(owners.keys))
+        assertEquals("${bundle.name}: calls sent", modes + headrooms + isHdr + modeTypes + capabilityTypes,
+            context.hookWindowCalls(owners.keys))
         for ((type, original) in owners) {
             for (method in context.mutableClassDefBy(type).methods) {
                 val body = method.implementation?.instructions?.toList() ?: continue
@@ -165,6 +177,28 @@ class TurnOffHdrBrightnessFixtureTest {
             .mapNotNull { (it as? ReferenceInstruction)?.reference?.toString() }
         assertEquals(listOf(SET_COLOR_MODE), calledBy(extension))
         assertEquals(listOf(OWN_SET_COLOR_MODE), calledBy("LX/app;"))
+    }
+
+    @Test
+    fun `a screen question goes to the extension and its result is still read`() {
+        val asker = type(
+            "LX/asker;",
+            method(
+                "LX/asker;", listOf(DISPLAY), "Z", 2,
+                """
+                    invoke-virtual { p0 }, $IS_HDR
+                    move-result v0
+                    return v0
+                """.trimIndent(),
+            ),
+        )
+        val context = PatchContexts.of(listOf(asker, windowCaller("LX/app;", "invoke-virtual { p0, p1 }, $SET_COLOR_MODE")))
+        assertEquals(setOf("LX/asker;", "LX/app;"), context.windowCallers())
+        assertEquals(2, context.hookWindowCalls())
+        val body = context.mutableClassDefBy("LX/asker;").methods.single().implementation!!.instructions.toList()
+        assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.RETURN), body.map { it.opcode })
+        assertEquals(OWN_IS_HDR, (body[0] as ReferenceInstruction).reference.toString())
+        assertEquals(listOf(1), registers(body[0]))
     }
 
     @Test

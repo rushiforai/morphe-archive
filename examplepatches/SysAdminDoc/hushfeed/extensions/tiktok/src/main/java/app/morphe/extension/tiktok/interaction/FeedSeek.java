@@ -53,6 +53,17 @@ public final class FeedSeek {
     }
 
     /**
+     * Where {@code videoId} was at its last progress tick, in milliseconds, or -1 when the ticks
+     * describe another video or none at all. Ticks come several times a second, so it can trail
+     * the picture by a fraction of one.
+     */
+    static long positionOf(String videoId) {
+        String playing = source;
+        if (videoId == null || playing == null || !playing.equals(videoId) || durationMs <= 0) return -1;
+        return positionMs;
+    }
+
+    /**
      * Moves {@code videoId} by {@code deltaMs}, kept inside its length. False when that is not
      * the video the player has been reporting, which is the case for anything that scrolled
      * past without ever playing.

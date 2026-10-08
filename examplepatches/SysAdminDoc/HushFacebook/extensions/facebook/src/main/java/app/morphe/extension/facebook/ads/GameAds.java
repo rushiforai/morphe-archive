@@ -8,6 +8,8 @@ import androidx.annotation.Nullable;
 
 import org.json.JSONObject;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import app.morphe.extension.facebook.settings.FamilyNames;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.Logger;
@@ -26,6 +28,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * from {@link #rejection}, the way the SDK reports an ad it can't serve. Nothing goes on to Facebook's
  * ad service, so no ad is fetched or shown and a rewarded ad grants no reward. The game hears no ad
  * and carries on.
+ *
+ * <p>With Answer rewarded game ads on too, the patch asks {@link #answer} before rejecting: a
+ * request for a rewarded video is resolved with an ad instance of Hushfacebook's own, through
+ * Facebook's own resolve call, and loading and showing that instance resolve at once, so the SDK
+ * reports a watched ad and the game grants its reward. Interstitials and banners are still
+ * rejected. No ad is fetched either way.
  *
  * <p>Every other message, and every message while the switch is off, Hushfacebook is paused or the
  * settings aren't ready, goes on to Facebook as it came. So does anything it can't read.
@@ -48,6 +56,14 @@ public final class GameAds {
 
     /** The message a rejected game gets beside the code, for its developer's console. */
     static final String NO_AD = "No ad is available.";
+
+    /** What the id of an ad instance {@link #answer} made starts with, so its load and show resolve too. */
+    static final String WATCHED = "hushfacebook-watched-";
+
+    /** The HookStatus count of rewarded ad messages answered as watched. */
+    static final String ANSWERED = "rewarded ad messages answered as watched";
+
+    private static final AtomicInteger instances = new AtomicInteger();
 
     private GameAds() {
     }
@@ -74,6 +90,41 @@ public final class GameAds {
             return promise;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.GAME_ADS, "game message", failure);
+            return null;
+        }
+    }
+
+    /**
+     * Injection point, after {@link #heldPromise} answered a promise for [message]. With Answer
+     * rewarded game ads on, what to resolve that promise with: a rewarded video request gets an ad
+     * instance whose id starts with {@link #WATCHED}, and a load or show of such an instance gets an
+     * empty answer, which the SDK takes as loaded or watched. Null rejects the promise as before.
+     * Never throws.
+     */
+    @Nullable
+    public static Object answer(@Nullable String message) {
+        try {
+            String type = type(message);
+            if (type == null || !Utils.settingsReady() || !Settings.BLOCK_GAME_ADS.get()
+                    || !Settings.ANSWER_REWARDED_GAME_ADS.get()) return null;
+            JSONObject content = new JSONObject(message).optJSONObject("content");
+            if (content == null) return null;
+            JSONObject payload;
+            if ("getrewardedvideoasync".equals(type)) {
+                payload = new JSONObject()
+                        .put("placementID", content.optString("placementID", ""))
+                        .put("adInstanceID", WATCHED + instances.incrementAndGet());
+            } else if (("loadadasync".equals(type) || "showadasync".equals(type))
+                    && content.optString("adInstanceID", "").startsWith(WATCHED)) {
+                payload = new JSONObject();
+            } else {
+                return null;
+            }
+            HookStatus.counted(FamilyNames.GAME_ADS, ANSWERED);
+            Logger.printDebug(() -> "Instant Games ads: answered " + type + " as watched");
+            return payload;
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.GAME_ADS, "rewarded answer", failure);
             return null;
         }
     }

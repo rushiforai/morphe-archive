@@ -216,10 +216,14 @@ public final class MediaCache {
      * given stands in; with null here every sweep returned at once and nothing was ever cleaned.
      * Only the main process starts a sweep. All journal readers and writers also take the
      * durable file lock, so another process cannot overwrite a publication's recovery record.
+     *
+     * <p>It also gets the profile grid's saved-video marks ready. That waits for the main thread,
+     * which reaches it once the application has started: the settings aren't read this early.
      */
     public static void reconcileAsync(Context context) {
         if (context == null || !Utils.isMainProcess()
                 || !RECONCILIATION_STARTED.compareAndSet(false, true)) return;
+        Utils.runOnMainThread(SavedVideoMark::warm);
         Context app = applicationOr(context);
         try {
             Utils.submitOnBackgroundThread(() -> {

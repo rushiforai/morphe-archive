@@ -32,6 +32,15 @@ internal const val SET_HDR_HEADROOM = "$WINDOW->setDesiredHdrHeadroom(F)V"
 internal const val OWN_SET_COLOR_MODE = "$HDR_BRIGHTNESS->setColorMode(${WINDOW}I)V"
 internal const val OWN_SET_HDR_HEADROOM = "$HDR_BRIGHTNESS->setDesiredHdrHeadroom(${WINDOW}F)V"
 internal const val OWN_SURFACE_BUILT = "$HDR_BRIGHTNESS->surfaceBuilt($SURFACE_VIEW)V"
+internal const val DISPLAY = "Landroid/view/Display;"
+internal const val DISPLAY_MODE = "Landroid/view/Display\$Mode;"
+internal const val HDR_CAPABILITIES = "Landroid/view/Display\$HdrCapabilities;"
+internal const val IS_HDR = "$DISPLAY->isHdr()Z"
+internal const val MODE_HDR_TYPES = "$DISPLAY_MODE->getSupportedHdrTypes()[I"
+internal const val CAPABILITY_HDR_TYPES = "$HDR_CAPABILITIES->getSupportedHdrTypes()[I"
+internal const val OWN_IS_HDR = "$HDR_BRIGHTNESS->isHdr($DISPLAY)Z"
+internal const val OWN_MODE_HDR_TYPES = "$HDR_BRIGHTNESS->getSupportedHdrTypes($DISPLAY_MODE)[I"
+internal const val OWN_CAPABILITY_HDR_TYPES = "$HDR_BRIGHTNESS->getSupportedHdrTypes($HDR_CAPABILITIES)[I"
 
 /**
  * Keeps HDR video and photos from turning the screen up to full brightness. Facebook asks Android
@@ -41,7 +50,11 @@ internal const val OWN_SURFACE_BUILT = "$HDR_BRIGHTNESS->surfaceBuilt($SURFACE_V
  * for the default colour mode and no headroom instead while the switch is on, so Android draws
  * the same video tone-mapped into the usual range. A SurfaceView doesn't follow its window's
  * mode, so each one Facebook builds goes to the extension as well, which on Android 15 asks it
- * for no headroom.
+ * for no headroom. Each of Facebook's questions of what the screen shows (Display.isHdr and the
+ * two getSupportedHdrTypes) goes there too, and the screen answers as one with no HDR, so before
+ * Android 15 Facebook doesn't lift ordinary videos into HDR and a Dolby Vision video takes its
+ * fallback track. Display.isHdrSdrRatioAvailable stays Facebook's: the AV1 decoder backs its
+ * own HDR lift off only when it can read a low ratio.
  *
  * Off in the default selection: HDR is how Facebook means those videos to look, and some people
  * want it. Picked, its switch starts on.
@@ -70,21 +83,25 @@ val turnOffHdrBrightnessPatch = bytecodePatch(
 
 /**
  * The extension method taking the place of [instruction], when it's one of Facebook's calls of
- * [SET_COLOR_MODE] or [SET_HDR_HEADROOM]. Null for anything else.
+ * [SET_COLOR_MODE] or [SET_HDR_HEADROOM], or one of its questions of the screen ([IS_HDR],
+ * [MODE_HDR_TYPES], [CAPABILITY_HDR_TYPES]). Null for anything else.
  */
 internal fun ownWindowCall(instruction: Instruction): String? {
     if (instruction.opcode != Opcode.INVOKE_VIRTUAL && instruction.opcode != Opcode.INVOKE_VIRTUAL_RANGE) return null
     return when ((instruction as ReferenceInstruction).reference.toString()) {
         SET_COLOR_MODE -> OWN_SET_COLOR_MODE
         SET_HDR_HEADROOM -> OWN_SET_HDR_HEADROOM
+        IS_HDR -> OWN_IS_HDR
+        MODE_HDR_TYPES -> OWN_MODE_HDR_TYPES
+        CAPABILITY_HDR_TYPES -> OWN_CAPABILITY_HDR_TYPES
         else -> null
     }
 }
 
 /**
- * The classes outside the extension that make one of Facebook's window calls ([ownWindowCall]).
- * Throws when none of them sets a colour mode: Facebook asks for its HDR window somewhere else
- * then.
+ * The classes outside the extension that make one of Facebook's window calls or screen questions
+ * ([ownWindowCall]). Throws when none of them sets a colour mode: Facebook asks for its HDR window
+ * somewhere else then.
  */
 internal fun BytecodePatchContext.windowCallers(): Set<String> {
     val owners = mutableSetOf<String>()
@@ -101,8 +118,10 @@ internal fun BytecodePatchContext.windowCallers(): Set<String> {
 }
 
 /**
- * Sends each of Facebook's calls of [SET_COLOR_MODE] and [SET_HDR_HEADROOM] in [owners] to the
- * extension's method of the same name, which takes the window first and makes the call itself.
+ * Sends each of Facebook's calls of [SET_COLOR_MODE] and [SET_HDR_HEADROOM] and each screen
+ * question in [owners] to the extension's method of the same name, which takes the window (or the
+ * display, mode or capabilities) first and makes the call itself. A question's move-result stays
+ * where it was and reads the extension's answer of the same type.
  * The call keeps its registers in their order and its place, so a jump to it or a try block's
  * edge on it stays where it was. Answers how many calls it sent.
  */

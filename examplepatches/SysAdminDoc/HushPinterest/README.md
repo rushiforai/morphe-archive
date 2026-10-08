@@ -12,9 +12,7 @@
 
 HushPinterest is a Morphe patch bundle for Android that takes promoted pins out of Pinterest and can hide the pins Pinterest labels as AI. It also adds pin downloads, browser and sharing choices, privacy controls and switches for the interface.
 
-The latest release is [v0.0.4](https://github.com/SysAdminDoc/HushPinterest/releases/tag/v0.0.4), with 20 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out.
-
-The source version is **0.0.5**. It hasn't been released.
+The latest release is [v0.0.5](https://github.com/SysAdminDoc/HushPinterest/releases/tag/v0.0.5), with 23 patches. Add this repo to Morphe Manager as a patch source and it'll offer each new release when it comes out.
 
 ## Which Pinterest
 

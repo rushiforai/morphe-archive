@@ -97,4 +97,44 @@ public class MarketplaceSellerProfileTest {
         assertEquals(when + ", the report", FamilyNames.SELLER_VIEW_PROFILE + ": invoked 1, 0 found, 0 missing",
                 statusLine());
     }
+
+    /** The by-id reads fold the two keys the way the module's own helper does, config key on top. */
+    @Test
+    public void theTwoKeysFoldLikeTheModulesHelper() {
+        assertEquals(0xC002_0000_000FL, MarketplaceSellerProfile.FLAG_SPEC);
+        assertEquals(MarketplaceSellerProfile.FLAG_SPEC, MarketplaceSellerProfile.spec(49154, 15));
+        assertEquals(MarketplaceSellerProfile.FLAG_SPEC, MarketplaceSellerProfile.spec(49154.0, 15.0));
+    }
+
+    @Test
+    public void theSellerPageFlagByIdIsAnsweredTrue() {
+        assertTrue(MarketplaceSellerProfile.answerTrueForSpec(49154, 15));
+        assertTrue("a read by name stopped answering beside it",
+                MarketplaceSellerProfile.answerTrue(MarketplaceSellerProfile.FLAG));
+        assertEquals(FamilyNames.SELLER_VIEW_PROFILE + ": invoked 2, 2 found, 0 missing. Counted: "
+                + MarketplaceSellerProfile.ANSWERED + " 2", statusLine());
+    }
+
+    @Test
+    public void everyOtherIdGoesToFacebookUncounted() {
+        double[][] others = {{49154, 14}, {49154, 16}, {49155, 15}, {49153, 15}, {15, 49154}, {0, 0},
+                {1961, 131}, {Double.NaN, 15}, {49154, Double.NaN}, {-49154, 15}};
+        for (double[] keys : others) {
+            assertFalse(keys[0] + ", " + keys[1], MarketplaceSellerProfile.answerTrueForSpec(keys[0], keys[1]));
+        }
+        assertNull("a read of another flag by id was counted", statusLine());
+    }
+
+    @Test
+    public void offOrPausedTheFlagByIdGoesToFacebook() {
+        Settings.SHOW_SELLER_VIEW_PROFILE.save(false);
+        assertFalse("off", MarketplaceSellerProfile.answerTrueForSpec(49154, 15));
+        Settings.SHOW_SELLER_VIEW_PROFILE.save(true);
+        for (HushfacebookPause.Reason reason : PAUSES) {
+            PauseForTests.pause(reason);
+            assertFalse("paused by " + reason, MarketplaceSellerProfile.answerTrueForSpec(49154, 15));
+            PauseForTests.resume();
+        }
+        assertTrue("the switch didn't come back after the pause", MarketplaceSellerProfile.answerTrueForSpec(49154, 15));
+    }
 }

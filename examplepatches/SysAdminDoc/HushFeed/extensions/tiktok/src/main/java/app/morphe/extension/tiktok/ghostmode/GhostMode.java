@@ -53,6 +53,7 @@ public final class GhostMode {
     private static final String PROFILE_VIEW = "profile view";
     private static final String TYPING_STATUS = "typing status";
     private static final String STORY_PLAY_STATS = "story play stats";
+    private static final String ONLINE_STATUS = "online status";
 
     /** TikTok's aweme types for a story; getIsTikTokStory covers the rest. */
     private static final int STORY_TYPE = 40;
@@ -141,6 +142,16 @@ public final class GhostMode {
         return answer(STORY_PLAY_STATS);
     }
 
+    /**
+     * TikTok's activity status report, the call that tells the server you're active so a friend
+     * sees a green dot or "Active now". Held back only when Ghost mode and its own Hide online
+     * status switch are both on, and asked at every report, so flipping the switch takes effect
+     * at the next one. A paused process answers false through both settings.
+     */
+    public static boolean shouldBlockOnlineStatus() {
+        return answer(ONLINE_STATUS, Settings.GHOST_MODE.get() && Settings.GHOST_HIDE_ONLINE_STATUS.get());
+    }
+
     static boolean isStory(Aweme aweme) {
         if (aweme == null) return false;
         try {
@@ -162,7 +173,10 @@ public final class GhostMode {
 
     /** The setting, recorded against the call site that asked for it. */
     private static boolean answer(String callSite) {
-        boolean blocked = Settings.GHOST_MODE.get();
+        return answer(callSite, Settings.GHOST_MODE.get());
+    }
+
+    private static boolean answer(String callSite, boolean blocked) {
         if (blocked && !blockedCallObserved) {
             blockedCallObserved = true;
             stateChanged();

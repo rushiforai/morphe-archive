@@ -171,21 +171,24 @@ public final class PlaybackQuality {
     private static List<?> filterGears(List<?> original, String owner, String member) {
         String mode = mode();
         if (original == null || original.isEmpty() || "auto".equals(mode)) return original;
-        Object selected = QualitySelector.choose(original, mode);
+        // With Play SDR instead of HDR on, the choice is made among the SDR gears, whichever of
+        // the two setter hooks runs first.
+        List<?> offered = SdrPlayback.dropHdr(original);
+        Object selected = QualitySelector.choose(offered, mode);
         if (selected == null) {
             HookStatus.missingMember(FAMILY, "playable gear list from", owner, member);
             if (DESCRIBED.add(owner + '#' + member)) {
                 Logger.printDebug(() -> owner + '.' + member
                         + " returned gears with no playable address, so playback quality leaves it to the app");
             }
-            return original;
+            return offered;
         }
         HookStatus.bound(FAMILY, owner + '#' + member);
         // One gear is nothing to choose from. The list goes back as it came and no line is
         // written, or a feed of single-gear items pushes the choices that matter out of the
         // export, which is what the first export with gear lines in it looked like.
-        if (original.size() == 1) return original;
-        describeChoice(owner, member, mode, original, selected);
+        if (offered.size() == 1) return offered;
+        describeChoice(owner, member, mode, offered, selected);
         return new ArrayList<>(Collections.singletonList(selected));
     }
 

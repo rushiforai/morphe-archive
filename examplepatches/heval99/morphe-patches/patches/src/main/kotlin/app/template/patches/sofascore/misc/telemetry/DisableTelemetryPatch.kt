@@ -26,10 +26,10 @@ val disableTelemetryPatch = bytecodePatch(
 
     execute {
         // AppsFlyer
-        AppsFlyerLogEventFingerprint.methodOrNull?.returnEarlyIfImplemented()
+        AppsFlyerLogEventFingerprint.method.returnEarlyIfImplemented()
 
         // Firebase Analytics / Google Measurement
-        GmsMeasurementLogEventFingerprint.methodOrNull?.returnEarlyIfImplemented()
+        GmsMeasurementLogEventFingerprint.method.returnEarlyIfImplemented()
 
         // Crashlytics: two classes reference the collection-enabled pref key - the
         // settings holder (boolean getter that decides whether anything is collected)

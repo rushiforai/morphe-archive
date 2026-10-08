@@ -1,3 +1,48 @@
+## [1.7.4](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.3...v1.7.4) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* pull from google account in ungoogled maps' local saved too ([b5e4b94](https://github.com/bearinmindcat/morphe-patches/commit/b5e4b940e8a11f7e3fadfd6d6279a2b8f17f935e))
+
+## [1.7.3](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.2...v1.7.3) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* local saved in microG Maps, with pull from Google account ([c6b8d13](https://github.com/bearinmindcat/morphe-patches/commit/c6b8d13c94d12b10fb50527680e6e0440cd0731a))
+
+## [1.7.2](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.1...v1.7.2) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* power saving options has its own row on the account sheet ([b30ab45](https://github.com/bearinmindcat/morphe-patches/commit/b30ab4502ec2dddb2b4a056906c7e21de5f67e53))
+
+## [1.7.1](https://github.com/bearinmindcat/morphe-patches/compare/v1.7.0...v1.7.1) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* account picture stays round inside its ring ([54b9f9f](https://github.com/bearinmindcat/morphe-patches/commit/54b9f9f745783799483c09fa968778ad32f97d9c))
+* microG Maps no longer crashes or freezes at start ([c7d4723](https://github.com/bearinmindcat/morphe-patches/commit/c7d472383ff4d196fefa3bb0f7abf50995546ddd))
+* splash screen shows the app's own icon ([b2d512e](https://github.com/bearinmindcat/morphe-patches/commit/b2d512e655db74a34d8564e69283d07841cf63bb))
+
+## [1.6.0](https://github.com/bearinmindcat/morphe-patches/compare/v1.5.1...v1.6.0) (2026-10-07)
+
+### ✨ New Features
+
+* add microG Maps (separate app that signs in through MicroG-RE) ([78d3edc](https://github.com/bearinmindcat/morphe-patches/commit/78d3edcac5f9fd458f87216d8f84197b0c5e3a97))
+* give microG Maps its own icon ([920a8ad](https://github.com/bearinmindcat/morphe-patches/commit/920a8ad26013ac3fdfa8805bed765d3f436c4a10))
+
+## [1.5.1](https://github.com/bearinmindcat/morphe-patches/compare/v1.5.0...v1.5.1) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* merge related patches into fewer patches (33 to 21) ([871e40b](https://github.com/bearinmindcat/morphe-patches/commit/871e40b8ba3e2ace5ef2c393aa79c2593746a1ff))
+
+## [1.5.0](https://github.com/bearinmindcat/morphe-patches/compare/v1.4.4...v1.5.0) (2026-10-07)
+
+### ✨ New Features
+
+* add power saving options (open without locking, idle switch, speedometer, lower frame rate, black map) ([3ce8b9d](https://github.com/bearinmindcat/morphe-patches/commit/3ce8b9df60dd458234d1b1660e64899edea1e277))
+
 ## [1.4.4](https://github.com/bearinmindcat/morphe-patches/compare/v1.4.3...v1.4.4) (2026-10-06)
 
 ### 🐛 Bug Fixes

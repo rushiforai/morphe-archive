@@ -30,6 +30,7 @@ private const val TOP_TAB_LAYOUT_ABILITY =
 private const val EXTENSION_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/NavigationTabsFilter;"
 private const val TAB_BADGES_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/TabBadges;"
 private const val FEED_REFRESH_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/FeedRefresh;"
+private const val FEED_LOCK_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/wellbeing/FeedLock;"
 private const val START_PAGE_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/StartPage;"
 private const val FEED_BUTTONS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/navigation/FeedButtons;"
 
@@ -348,6 +349,13 @@ val feedTabNavigationPatch = bytecodePatch(
                 """,
             )
         }
+
+        // A link that reaches the running app. The feed lock lets the one video it opens through,
+        // so it reads the intent first thing: p1 is the Intent and nothing has touched it yet.
+        MainNewIntentFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p1 .. p1 }, $FEED_LOCK_CLASS_DESCRIPTOR->onNewIntent(Landroid/content/Intent;)V",
+        )
 
         // The feed tab across the top a start opens on. The home pager picks it as its view is
         // built, from TikTok's home page service or else "For You", and switches to it by its tag;

@@ -116,10 +116,18 @@ nicht das `android:icon`; ein Patch nur auf `ic_app` wäre dort unsichtbar.
 | Nicht enthalten | `android:label` bleibt `TizenTube`; der Name ist kein Bild |
 
 > **Launcher-Cache.** Manche Launcher zeigen nach dem Tausch weiter das alte Artwork, obwohl
-> im APK die neuen Bytes liegen. Der Projectivy Launcher (`com.spocky.projengmenu`) hält Icon
-> und Banner in seiner eigenen Datenbank — `am force-stop`, `pm clear --cache-only` und ein
-> Reboot lesen sie nicht neu ein. Verlässlicher Beleg ist stattdessen die System-Liste
-> (`Einstellungen → Apps → Alle Apps`), die das Icon frisch aus dem APK rendert.
+> im APK die neuen Bytes liegen. Beim Projectivy Launcher (`com.spocky.projengmenu`) liegt das
+> nicht an der App, sondern an seinem eigenen Bild-Cache: derselbe Launcher zeigt im
+> Long-Press-Menü einer App bereits den neuen Banner, während die Kachel auf dem Home-Screen
+> noch die alte Grafik hält. Weder `am force-stop`, noch ein Reboot, noch Neuinstallieren, noch
+> ein angehobener `versionCode` entwerten diesen Cache.
+>
+> Was hilft (am Gerät belegt): `Einstellungen → Apps → Projectivy Launcher → Cache leeren`
+> (219 MB → 2,7 MB), danach den Launcher einmal beenden. Die Kachel liest den Banner dann neu;
+> die Launcher-Konfiguration bleibt erhalten, weil nur der Cache geleert wird.
+>
+> Unabhängig davon rendert die System-Liste (`Einstellungen → Apps → Alle Apps`) das Icon frisch
+> aus dem APK und belegt den Tausch ohne Launcher-Zwischenschicht.
 
 > **Installationshinweis.** Das Manifest setzt `com.android.vending.splits.required=true`
 > und `requiredSplitTypes="base__abi"`. Die App läuft deshalb nicht aus `base.apk` allein.
@@ -189,7 +197,7 @@ Zwei Dinge sind **nicht** beweisbar und werden hier auch nicht behauptet:
 | --- | --- | --- | --- |
 | Cobalt-Start-URL ändern | ✅ im Bundle | ✅ angewandt, Manifest-Wert belegt | ✅ Engine lädt die gesetzte URL |
 | Werbe-Blocker-Userscript einspritzen | ✅ im Bundle | ✅ angewandt, Instruktion im Bytecode belegt | ✅ läuft und greift zu; A/B-Test nicht möglich (siehe oben) |
-| MOD-Kennzeichnung für Icon und Banner | ✅ im Bundle | ✅ 10/10 Ressourcen getauscht, Ressourcentabelle unverändert | ✅ installiert, Icon in der System-Liste sichtbar; Banner je nach Launcher gecacht |
+| MOD-Kennzeichnung für Icon und Banner | ✅ im Bundle | ✅ 10/10 Ressourcen getauscht, Ressourcentabelle unverändert | ✅ installiert, Icon in der System-Liste und Banner auf der Home-Kachel sichtbar (nach Leeren des Launcher-Caches) |
 
 Verifiziert gegen `com.google.android.youtube.tv` 7.25.302 und
 `io.gh.reisxd.tizentube.cobalt` 2.0.2, beide von einem Google TV Streamer (`kirkwood`,

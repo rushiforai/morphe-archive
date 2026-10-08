@@ -24,14 +24,14 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 
 | Category | Patch Name | Type | Key Target / Mechanism |
 | :--- | :--- | :--- | :--- |
-| **Usability** | **Media Usability & Watermark-Free Downloader** | `bytecodePatch` | Unblocks download button in Share panel, extracts clean original streams without watermark stamps. |
+| **Usability** | **Media Usability & Watermark-Free Downloader** | `bytecodePatch` | Unblocks download button in Share panel, extracts clean original streams without watermark stamps, with saved-video quality preference (`downloadQuality`: high/medium/low or 1080/720/540/480/360 ceiling) and watermark toggle (`removeWatermark`). |
 | **Usability** | **Disable Post-Download Share Dialog** | `bytecodePatch` | Suppresses the automatic 'Share to' and friend suggestions bottom sheet that pops up after finishing a download. |
 | **Usability** | **[Show Seekbar](#8-show-seekbar)** | `bytecodePatch` | Restores video seekbar and scrubbing controls where hidden or disabled. |
-| **Usability** | **Always Show Publish Date** | `bytecodePatch` | Forces video publish and upload timestamps to remain permanently visible on feed cards. |
-| **Usability** | **[Comment Customizer](#2-comment-customizer-commentcustomizerpatch)** | `bytecodePatch` | Customizes comment section: native sort controls, clean text copying, disabling suggested emojis bar, hiding comment quick actions, hiding in-comment surveys and feedback cards, hiding profile photo story rings, voice comments, and automatic translation. |
+| **Usability** | **Always Show Publish Date** | `bytecodePatch` | Forces video publish and upload timestamps to remain permanently visible on feed cards, with optional creator country code tags (`showAuthorRegion`) and sensitive warning suppression (`skipContentWarnings`). |
+| **Usability** | **[Comment Customizer](#2-comment-customizer-commentcustomizerpatch)** | `bytecodePatch` | Customizes comment section: native sort controls, clean text copying, disabling suggested emojis bar, hiding comment quick actions, hiding in-comment surveys and feedback cards, hiding profile photo story rings, voice comments, automatic translation with do-not-translate language exclusions (`translationExcludedLanguages`), comment send fix, comment popup ad blocking. |
 | **Usability** | **Disable Double Tap to Like** | `bytecodePatch` | Disables the double tap gesture to like videos in the feed, preventing accidental likes while scrolling or pausing. Videos can still be liked using the like button. |
-| **Usability** | **Playback Speed Persistence** | `bytecodePatch` | Persists user-selected video speed across feed scrolling and restarts. |
-| **Usability** | **[Video Quality Governor](#2-video-quality-governor)** | `bytecodePatch` | Decoupled resolution ceilings for playback (e.g. 480p) and downloads (e.g. 1080p). |
+| **Usability** | **Playback Speed Persistence** | `bytecodePatch` | Persists user-selected video speed across feed scrolling and restarts, with optional native hold-and-slide 2x speed lock gesture (`enableSpeedLock`). |
+| **Usability** | **[Video Quality Governor](#2-video-quality-governor)** | `bytecodePatch` | Playback resolution ceiling (e.g. 480p). Download quality lives in Media Usability (`downloadQuality`). |
 | **Usability** | **Skip First-Launch Onboarding** | `bytecodePatch` | Bypasses interest pickers, swipe-up tutorial, language prompts, and consent sheets directly to FYP. |
 | **Usability** | **[Custom Offline Videos Limit](#4-custom-offline-videos-limit)** | `bytecodePatch` | Customizes maximum offline videos download caching limit (~X mins, Y GB/MB). |
 | **Usability** | **[Custom Share Sheet](#5-custom-share-sheet)** | `bytecodePatch` | Customizes and cleans the share menu via individual boolean toggles for third-party apps, essential actions, and direct message friend rows. |
@@ -41,36 +41,43 @@ Comprehensive technical, architectural, and configuration guide for **TikTok** (
 | **Usability** | **Disable Profile Photo LIVE Status** | `bytecodePatch` | Removes pulsing LIVE ring/badge from creator avatars in feed and forces clicks directly to user profile. |
 | **Usability** | **Force Auto-Scroll** | `bytecodePatch` | Forces the activation of the native video auto-scroll experiment flag for accounts and regions that lack it due to A/B testing. |
 | **Usability** | **Hide Popular Lives In Search** | `bytecodePatch` | Removes the Popular LIVEs recommendation card and live stream broadcasts from the search discovery page. |
+| **Usability** | **Enable Live Search** | `bytecodePatch` | Shows TikTok's search entry in the Live drawer where supported. |
 | **Usability** | **Hide Suggested Searches** | `bytecodePatch` | Removes the suggested search keywords section ('You may like' / 'Search suggestions') from the search discovery page. |
 | **Usability** | **Disable Search Video Autoplay** | `bytecodePatch` | Disables automatic video playback in search results. Videos only play when tapped to view in detail. |
 | **Usability** | **Auto-Pause First Video** | `bytecodePatch` | Automatically pauses the initial video on startup (frame 0) with center play icon; resumes upon screen tap or feed scroll. |
 | **Usability** | **Hide Seen Videos** | `bytecodePatch` | Filters previously watched videos from incoming For You feed batches based on playback progress. |
+| **Usability** | **Feed Content Filter** | `bytecodePatch` | Hides stories, photo posts, and videos outside configured view or like ranges from feeds (`minViews`/`maxViews`/`minLikes`/`maxLikes`/`hideStories`/`hidePhotoPosts`). |
 | **Usability** | **Resume Video After Scroll** | `bytecodePatch` | Resumes video playback from previous playback position when returning to a video in the feed. |
+| **Usability** | **Remember Clear Display** | `bytecodePatch` | Remembers TikTok's clear-display state between videos and re-applies it when new videos start. |
 | **Usability** | **Stop Video Looping** | `bytecodePatch` | Prevents videos from looping continuously on playback completion. |
 | **Usability** | **[Hide Inbox Promos & Alerts](#9-hide-inbox-promos--alerts)** | `bytecodePatch` | Hides promotional banners, streak mascot cards, contact sync suggestions, friend recommendations, and migration guide tooltips in the inbox and direct messages. |
 | **Usability** | **Hide Inbox Story & Status Tray** | `bytecodePatch` | Removes the horizontal story, notes, and status tray (Skylight) displayed at the top of direct messages and the inbox. |
 | **Usability** | **[Direct Message Declutter](#10-direct-message-declutter)** | `bytecodePatch` | Cleans direct message conversations and chat list items via individual toggles for chat list camera icons, header voice/video call buttons, message forward buttons, streak mascot and reaction bars, input camera buttons, right-side input action buttons (gallery, emoji, mic), try effect buttons on shared videos, and automatic sticker reply suggestions. |
-| **Usability** | **[Disable Feed Long-Press Actions](#7-disable-feed-long-press-actions)** | `bytecodePatch` | Disables long-press action gestures on feed buttons, including Like to repost, Share to quick DMs, and Comment to quick emojis. |
+| **Usability** | **[Disable Feed Long-Press Actions](#7-disable-feed-long-press-actions)** | `bytecodePatch` | Disables long-press action gestures on feed buttons, including Like to repost, Share to quick DMs, and Comment to quick emojis, with optional video-body long-press modes (`longPressVideo`). |
 | **Usability** | **Enable Profile Banner** | `bytecodePatch` | Unlocks custom profile banner header cover feature and banner editing tools in Edit Profile. |
 | **Usability** | **System Font** | `bytecodePatch` | Forces TikTok to use the Android system font instead of bundled proprietary TikTokSans fonts. |
 | **Usability** | **[Popups & Prompts Suppressor](#23-popups--prompts-suppressor-popupsandpromptssuppressorpatch)** | `bytecodePatch` | Suppresses intrusive popups, dialogs, and modal prompts, including 'Follow your friends' dialogs, contacts sync overlays, multi-account notification guides, 2SV security checkup modals, PopLayer promotional sheets, live stream teaser bubbles, sticker recommendations, and DM streak expiration warnings. |
+| **Usability** | **Video Fit** | `bytecodePatch` | Adjusts video aspect ratio across feeds and story cells: fit video without cropping, fill screen, or off (`fitMode`). |
+| **Privacy** | **Camera & Microphone Indicator** | `bytecodePatch` | Shows an on-screen corner indicator while TikTok holds camera or microphone open. |
 | **Privacy** | **Fix Google Login** | `bytecodePatch` | Restores Google account sign-in via Web OAuth fallback when GMS rejects modified APK signature. |
 | **Privacy** | **Fix Spotify Login** | `bytecodePatch` | Restores 'Add to Spotify' by intercepting the Spotify SDK SSO intent (rejected by the Spotify app for the re-signed APK) and completing Spotify Web OAuth in a WebView hosted over the SDK `LoginActivity`. |
 | **Privacy** | **Bypass Mandatory Login** | `bytecodePatch` | Neutralizes mandatory login walls, dynamic regional forced login gates, and guest browsing restrictions. |
 | **Privacy** | **Bypass Screen Capture Detection** | `bytecodePatch` | Clears `FLAG_SECURE` on protected windows, restores Circle to Search / screen translate and recent apps snapshots, and neutralizes screenshot detection listeners and feedback prompts. |
-| **Privacy** | **Clean Share URL** | `bytecodePatch` | Strips tracking query parameters, user tokens, and campaign IDs from shared links. |
-| **Privacy** | **Device Privacy Guard** | `bytecodePatch` | Intercepts runtime permission prompts (contacts, location, nearby devices, AdServices), suppresses in-app permission nag dialogs, settings redirect prompts, and background sync tasks, zeroes Advertising ID, blocks clipboard inspection, isolates package queries, and silences HAR motion sensors. |
+| **Privacy** | **Clean Share URL** | `bytecodePatch` | Strips tracking query parameters, user tokens, and campaign IDs from shared links, with optional custom host redirection (`shareHost`). |
+| **Privacy** | **Device Privacy Guard** | `bytecodePatch` | Intercepts runtime permission prompts (contacts, location, nearby devices, AdServices), ContentResolver/PackageManager/LocationManager interception, suppresses in-app permission nag dialogs, settings redirect prompts, and background sync tasks, zeroes Advertising ID, blocks clipboard inspection, isolates package queries, and silences HAR motion sensors. |
 | **Privacy** | **In-App Browser Privacy Guard** | `bytecodePatch` | Redirects external links to default system browser, neutralizes WebView JS tracking injection and AJAX hookers. |
 | **Privacy** | **Client-Side AI & Behavioral Profiling Governor** | `bytecodePatch` | Neutralizes Pitaya on-device ML, Tako AI chatbot entries, and AI search clutter. |
-| **Privacy** | **[SIM Region Selector](#1-sim-region-selector)** | `bytecodePatch` | Spoofs SIM and network country ISO codes to bypass regional restrictions. |
+| **Privacy** | **[SIM Region Selector](#1-sim-region-selector)** | `bytecodePatch` | Spoofs SIM and network country ISO codes, operator numeric codes/names, and cell identity MCC/MNC to bypass regional restrictions. |
 | **Privacy** | **Feed Ad Blocker** | `bytecodePatch` | Filters sponsored cards, brand promotions, commercial audio, and search video scroll advertisements across For You, Following, and Search feeds. |
 | **Privacy** | **Hide TikTok Shop & Mall** | `bytecodePatch` | Removes product anchors, showcase badges, and bottom/top Shop navigation tabs (configurable via `hideShopTab` and `hideVideoAnchors`). |
 | **Privacy** | **Friends Feed Strict Mutuals** | `bytecodePatch` | Filters suggested accounts, recommended videos, and non-mutual profiles (such as 'People you may know') from the Friends feed so it strictly reproduces content from mutual friends. |
+| **Privacy** | **Hide Suggested Accounts** | `bytecodePatch` | Removes suggested-account cards from profile headers and inbox/notification surfaces. |
 | **Privacy** | **Hide AI-Generated Content** | `bytecodePatch` | Filters and skips videos tagged with native AI-generated metadata, C2PA content credentials, or creator AI disclosure tags across the For You, Following, and Friends feeds. |
 | **Privacy** | **Feed Live Stream Blocker** | `bytecodePatch` | Removes live broadcast cards and live recommendations from FYP and Following. |
 | **Privacy** | **Feed Bloat & Distraction Blocker** | `bytecodePatch` | Removes friend suggestions, suggested account carousels, mini-games, CapCut prompts, memories, community/topic cards, post-video evaluation surveys, questionnaires, mini-dramas, Lemon8 promo, in-feed search recommendations/interest cards, and floating rewards pendants across For You, Following, and Friends feeds. |
 | **Privacy** | **Unified Telemetry & Tracker Silencer** | `bytecodePatch` | Neutralizes ByteDance AppLog, APM/Npth/Heimdallr crash telemetry, and AppsFlyer. |
 | **Privacy** | **Disable Search History Recording** | `bytecodePatch` | Prevents search queries and keywords from being recorded in local history, databases, and analytics stores. |
+| **Privacy** | **Non-Personalized Search** | `bytecodePatch` | Forces TikTok's non-personalized search mode instead of the saved account choice. |
 | **Privacy** | **Disable Watch History Recording** | `bytecodePatch` | Prevents viewed videos from being recorded in account watch history, playback duration stores, and local history caches. |
 | **Privacy** | **Update Prompt Suppressor** | `bytecodePatch` | Neutralizes background update polling tasks and version enforcement dialogs. |
 | **Performance** | **[Display Refresh Rate Governor](#3-display-refresh-rate-governor)** | `bytecodePatch` | Locks window to peak hardware refresh rate (120Hz/90Hz) and neutralizes playback downclocking. |
@@ -97,6 +104,8 @@ The **`SIM Region Selector`** patch bypasses geographic content restrictions, re
 | Option | Key | Type | Default | Range / Format | Description |
 | :--- | :--- | :--- | :---: | :--- | :--- |
 | **Region** | `region` | String | `CH` | 2-letter ISO 3166-1 alpha-2 code | 2-letter ISO country code to spoof for SIM and network country checks. |
+| **Operator Numeric** | `operatorNumeric` | String | _(empty)_ | 5-6 digits (MCC+MNC, e.g. `22801`) | Numeric operator code spoofed at every TelephonyManager operator and CellIdentity MCC/MNC call site. Empty keeps stock values. |
+| **Operator Name** | `operatorName` | String | _(empty)_ | Carrier display name | Name reported for SIM/network operator queries. Empty keeps the stock name. |
 
 #### Region Selection Guide & Operational Trade-Offs
 
@@ -163,14 +172,35 @@ TH, TR, TW, UA, US, UY, VN, ZA
 
 ### 2. Video Quality Governor
 
-The **`Video Quality Governor`** patch enforces user-configured maximum resolution ceilings (`1080p`, `720p`, `540p`, `480p`, `360p`, or unconstrained) across video feeds while allowing independent configuration of download quality. While standard TikTok features like "Data Saver" only compress network transfers under cellular conditions without capping hardware decoders, this governor caps the actual rendition ladder (`bitRateList` and `SimBitRate`) parsed by PlayerKit/TTPlayer, reducing hardware MediaCodec load, thermals, GraphicBuffers memory consumption, and frame drops on lower-spec or battery-sensitive devices.
+The **`Video Quality Governor`** patch enforces a user-configured maximum playback resolution ceiling (`1080p`, `720p`, `540p`, `480p`, `360p`, or unconstrained) across video feeds. While standard TikTok features like "Data Saver" only compress network transfers under cellular conditions without capping hardware decoders, this governor caps the actual rendition ladder (`bitRateList` and `SimBitRate`) parsed by PlayerKit/TTPlayer, reducing hardware MediaCodec load, thermals, GraphicBuffers memory consumption, and frame drops on lower-spec or battery-sensitive devices.
 
-Crucially, **playback quality and download quality are decoupled**: users can browse their feed in battery-efficient 360p or 480p while downloading clean videos in full 1080p, or set a download ceiling (e.g. 720p or 480p) to conserve bandwidth and storage. Download capping directly hooks `Video.getDownloadNoWatermarkAddr()` and `Video.getDownloadAddr()` with dual H.264/ByteVC1 candidate resolution.
+Coverage includes the detail page: hooks on `Video.getPlayAddr()` / `getProperPlayAddr()` (plus codec variants `getPlayAddrBytevc1()`, `getPlayAddrH264()`, `getH264PlayAddr()`) and `SimVideoUrlModel.getRawBitRate()` enforce the cap on directly-read play addresses, which the detail view reaches without passing through `Aweme.getVideo()`. Enforcement resolves the best stream at or below the cap from the video's own ladder and rewrites the returned URL model in place; when the ladder offers no stream below the cap, the lowest available stream is kept.
+
+Download quality is **not** configured here: it lives solely in the Media Usability patch (`downloadQuality`: `high`/`medium`/`low` or a `1080`/`720`/`540`/`480`/`360` ceiling), which always wins for saved files. (The former `maxDownloadQuality` option was retired for exactly this reason: one place for download quality.)
 
 | Option | Key | Type | Default | Supported Ceilings | Description |
 | :--- | :--- | :--- | :---: | :--- | :--- |
 | **Maximum Playback Resolution** | `maxQuality` | String | `480` | `1080`, `720`, `540`, `480`, `360`, `none` | Caps video playback height in vertical pixels. Discards higher rendition profiles in feed. |
-| **Maximum Download Resolution** | `maxDownloadQuality` | String | `1080` | `1080`, `720`, `540`, `480`, `360`, `none` | Sets download resolution ceiling independently of playback, allowing high-fidelity saving. |
+| **Avoid ByteVC2 Software Decoding** | `avoidByteVC2` | Boolean | `true` | `true`, `false` | Drops ByteVC2 renditions when an H.264 or ByteVC1 alternative exists, forcing hardware decoding. |
+| **Drop Undecodable Video Streams** | `dropUndecodableVideo` | Boolean | `true` | `true`, `false` | When the ladder floor exceeds the hardware decoder, keeps audio-only instead of decoder-reject retry loops. |
+
+ByteVC2 is ByteDance's proprietary codec with no hardware decoder, so TikTok decodes it on the CPU. Dropping it lets H.264/ByteVC1 renditions play through the hardware MediaCodec decoder. As a trade-off, ByteVC1 and H.264 renditions are larger, so mobile data usage can increase slightly; if a video only offers ByteVC2, it is kept.
+
+Measured A/B on a Moto G56 (Dimensity MT6855G, TikTok 47.1.4, 15 feed videos per arm, same build except the flag):
+
+| Metric | avoidByteVC2 on | avoidByteVC2 off |
+| --- | --- | --- |
+| ByteVC2 renditions dropped | 4 | 0 |
+| ByteVC2 software decoder instances created | 0 | 2 |
+| Hardware (ByteVC1) decode lines | 24 | 28 |
+| Software VDecod threads observed | none | VDecod2-V15/V16 active |
+| Crashes | 0 | 0 |
+
+Caveat: per-core CPU delta was not rigorously measured (point samples, different content per arm); the historical ~0.6 CPU cores per video figure comes from a Snapdragon 636 baseline, not from this test.
+
+Undecodable guard: stream dimensions are resolved from bitrate metadata and compared against the largest long side reported by `MediaCodecList` for the stream codec family (`video/hevc` for ByteVC1/HEVC, `video/avc` otherwise). No orientation is assumed: any single known side above the hardware maximum already proves undecodability. When ladder entries hide their own size, the parent `Video` dimensions (authoritative server metadata) are used as fallback. When even the lowest ladder rendition exceeds it (e.g. `2160x3840` on a decoder topped at `2560x1440`, observed as `C2MtkVdec: BAD VALUE: Resolution not supported` retry loops), video streams are dropped and the audio track is preserved so playback fails fast instead of freezing the device. ByteVC2 is excluded (dedicated CPU decoder) and unknown dimensions or hardware fail open (ladder kept).
+
+Single-rendition 4K limitation: when a video exposes only one rendition above both the playback cap and the hardware decoder capability (observed: 2160x3840 HEVC Main 10 HLG on a decoder topped at 2560x1440, C2MtkVdec BAD VALUE retry loop ending in TikTok's couldn't play this video error), no client-side patch can conjure the missing lower renditions. The Governor still protects every other video in feed, search, profile, and detail pages; this ladder shape remains unplayable on the affected device.
 
 #### Supported Resolution Ceilings
 
@@ -332,6 +362,8 @@ The **`Popups & Prompts Suppressor`** patch suppresses intrusive dialogs, bottom
   - **`hideStoryRings` (default: true)**: Removes profile photo story rings from avatars in the comment section. Stubs `AvatarRing.setMode` with `return-void`, rewrites `AvatarRing.draw` to pass through to `FrameLayout.draw` without rendering ring arcs, and neutralizes `AvatarRing.onInterceptTouchEvent` -> `false`.
   - **`enableVoiceComments` (default: true)**: Forces native voice comment recording buttons in comment input bars, bypassing regional rollout restrictions and remote server blocks (`audio_comment_publish`, `comment_audio_publish_entry_forbidden`, `VEAudioRecorder`).
   - **`autoTranslate` (default: false)**: Automatically dispatches batch translations for incoming comments via TikTok's native engine (`BaseCommentCell`, `CommentList.onLoaded`).
+  - **`commentSendFix` (default: true)**: Fixes silently dropped comments by substituting the null top-page screen with the owning panel screen (`CommentPublishViewModel.kJ1`, event `click_comment_send`).
+  - **`hideCommentPopupAds` (default: true)**: Blocks brand surprise animations over comments via `CommentSurpriseStruct` with path tags (`page/publish/milestone`, self-celebrations are preserved).
 
 ### 3. Device Privacy Guard (`devicePrivacyGuardPatch`)
 > [!NOTE]
@@ -357,6 +389,12 @@ The **`Popups & Prompts Suppressor`** patch suppresses intrusive dialogs, bottom
 - **Contacts Isolation**: Neutralizes BPEA contacts reader `LX/0OFU.LIZ()` to return empty list and `LX/0OFw.LIZ()` to return a null cursor safely.
 - **HAR Motion Sensor Silencing**: Injects `return -1` into `HarSensorManager` init and stubs `onSensorChanged` to stop physical movement fingerprinting.
 - **Clipboard Protection**: Blocks programmatic and BPEA background clipboard reading methods (`LX/01ZZ.LIZ`, `LX/0jUy.LIZIZ`).
+- **Framework Call-Site Filtering (insert-only)**:
+  - `ContentResolver.query` (3 overloads) filtered by URI via `noteUri`/`filterNotedResult` (contacts -> empty cursor).
+  - `queryIntentActivities` filtered via `noteIntent`/`filterNotedIntentResult` (explicit intents pass through, broad queries -> empty list).
+  - `getLastKnownLocation` -> `null`.
+  - `requestSingleUpdate` canceled via `removeUpdates`.
+  - `isProviderEnabled` / `isLocationEnabled` -> `false`.
 
 ### 4. Bypass Screen Capture Detection (`bypassScreenCapturePatch`)
 - Clears `FLAG_SECURE` (`0x2000`) on window layouts via `AntiScreenRecordController.applyFlag(enabled=false)`, `makeScreenProtection(enable=false)`, and neutralizes global Activity `FLAG_SECURE` enforcement (`setFlags(8192, 8192)`), enabling screenshots and screen recordings across restricted views, live courses, and ephemeral chats.

@@ -86,4 +86,70 @@ public class PictureInPictureTest {
             PauseForTests.resume();
         }
     }
+
+    @Test
+    public void onTheWatchViewerFlagOpensAndCountsOnlyAFlip() {
+        assertTrue("a no stayed a no with the switch on", PictureInPictureForTests.immersiveAllows());
+        assertTrue("a yes turned into a no", PictureInPictureForTests.immersiveAllows(Build.VERSION_CODES.S, true));
+        assertEquals(FamilyNames.PICTURE_IN_PICTURE + ": invoked 2, 1 found, 0 missing. Counted: "
+                + PictureInPicture.IMMERSIVE + " 1", statusLine());
+    }
+
+    @Test
+    public void offPausedOrBeforeAndroid12TheWatchViewerFlagIsFacebooks() {
+        assertFalse("Android 11 changed a no", PictureInPictureForTests.immersiveAllows(Build.VERSION_CODES.R, false));
+        assertTrue("Android 11 changed a yes", PictureInPictureForTests.immersiveAllows(Build.VERSION_CODES.R, true));
+        Settings.PICTURE_IN_PICTURE.save(false);
+        assertFalse("the switch off changed a no", PictureInPictureForTests.immersiveAllows());
+        assertTrue("the switch off changed a yes", PictureInPictureForTests.immersiveAllows(Build.VERSION_CODES.S, true));
+        Settings.PICTURE_IN_PICTURE.save(true);
+        for (HushfacebookPause.Reason reason : new HushfacebookPause.Reason[] {
+                HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP}) {
+            PauseForTests.pause(reason);
+            assertFalse("a Hushfacebook paused by " + reason + " changed a no", PictureInPictureForTests.immersiveAllows());
+            assertTrue("a Hushfacebook paused by " + reason + " changed a yes",
+                    PictureInPictureForTests.immersiveAllows(Build.VERSION_CODES.S, true));
+            PauseForTests.resume();
+        }
+        String line = statusLine();
+        assertFalse("a flag left alone was counted", line != null && line.contains(PictureInPicture.IMMERSIVE));
+    }
+
+    @Test
+    public void onTheVideoTabsGateAndFlagOpenAndCountOnlyAFlip() {
+        assertTrue("the gate's no stayed a no with the switch on", PictureInPictureForTests.homeGateAllows());
+        assertTrue("the gate's yes turned into a no", PictureInPictureForTests.homeGateAllows(Build.VERSION_CODES.S, true));
+        assertTrue("the flag's no stayed a no with the switch on", PictureInPictureForTests.homeFlagAllows());
+        assertTrue("the flag's yes turned into a no", PictureInPictureForTests.homeFlagAllows(Build.VERSION_CODES.S, true));
+        assertEquals(FamilyNames.PICTURE_IN_PICTURE + ": invoked 4, 2 found, 0 missing. Counted: "
+                + PictureInPicture.HOME_GATE + " 1, " + PictureInPicture.HOME_FLAG + " 1", statusLine());
+    }
+
+    @Test
+    public void offPausedOrBeforeAndroid12TheVideoTabsAnswersAreFacebooks() {
+        for (boolean answer : new boolean[] {false, true}) {
+            assertEquals("Android 11 changed the gate's answer", answer,
+                    PictureInPictureForTests.homeGateAllows(Build.VERSION_CODES.R, answer));
+            assertEquals("Android 11 changed the flag's answer", answer,
+                    PictureInPictureForTests.homeFlagAllows(Build.VERSION_CODES.R, answer));
+            Settings.PICTURE_IN_PICTURE.save(false);
+            assertEquals("the switch off changed the gate's answer", answer,
+                    PictureInPictureForTests.homeGateAllows(Build.VERSION_CODES.S, answer));
+            assertEquals("the switch off changed the flag's answer", answer,
+                    PictureInPictureForTests.homeFlagAllows(Build.VERSION_CODES.S, answer));
+            Settings.PICTURE_IN_PICTURE.save(true);
+            for (HushfacebookPause.Reason reason : new HushfacebookPause.Reason[] {
+                    HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP}) {
+                PauseForTests.pause(reason);
+                assertEquals("a Hushfacebook paused by " + reason + " changed the gate's answer", answer,
+                        PictureInPictureForTests.homeGateAllows(Build.VERSION_CODES.S, answer));
+                assertEquals("a Hushfacebook paused by " + reason + " changed the flag's answer", answer,
+                        PictureInPictureForTests.homeFlagAllows(Build.VERSION_CODES.S, answer));
+                PauseForTests.resume();
+            }
+        }
+        String line = statusLine();
+        assertFalse("an answer left alone was counted", line != null
+                && (line.contains(PictureInPicture.HOME_GATE) || line.contains(PictureInPicture.HOME_FLAG)));
+    }
 }

@@ -117,13 +117,18 @@ public final class AuthorRegion {
 
     private static void installNow(Activity activity) {
         try {
+            if (activity.isFinishing()) {
+                // Only the window the hook is on is torn down. A detail page whose posted install
+                // runs after the user has already gone back would otherwise strip the feed's row
+                // and take its hook, and the feed has resumed by then, so nothing reinstalls it.
+                if (activity == activityReference.get()) {
+                    stop();
+                }
+                return;
+            }
             if (activity != activityReference.get()) {
                 // The row in the window left behind gets its own name back.
                 restore();
-            }
-            if (activity.isFinishing()) {
-                stop();
-                return;
             }
             ViewGroup root = activity.findViewById(android.R.id.content);
             if (root == null) {
@@ -148,6 +153,9 @@ public final class AuthorRegion {
             if (installed) {
                 Logger.printDebug(() -> "Author region installed");
             }
+            // A window coming back from behind a detail page need not lay out again, and its video
+            // can be the one the detail page played, so no video change follows either.
+            Utils.runOnMainThread(AuthorRegion::apply);
         } catch (Throwable ex) {
             Logger.printException(() -> "Could not install the author region", ex);
         }

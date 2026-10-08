@@ -36,7 +36,7 @@ public class FeedFilterTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     /** Stands in for GraphQLFeedStoryCategory: only the constant names matter to the rule. */
-    enum Category { ORGANIC, SPONSORED, PROMOTION, INJECTED_STORY, ENGAGEMENT, ENGAGEMENT_QP, FB_SHORTS, FB_SHORTS_FALLBACK, END_OF_FEED_REELS, FB_STORIES }
+    enum Category { ORGANIC, SPONSORED, PROMOTION, INJECTED_STORY, TRENDING, ENGAGEMENT, ENGAGEMENT_QP, FB_SHORTS, FB_SHORTS_FALLBACK, END_OF_FEED_REELS, FB_STORIES }
 
     @After
     public void restoreSwitches() {
@@ -195,15 +195,33 @@ public class FeedFilterTest {
 
     /**
      * On a signed-in feed, posts from accounts nobody there followed arrived as ENGAGEMENT stories,
-     * like posts from friends, and no INJECTED_STORY edge ever came. The "Suggested for you" switch
-     * reads Facebook's own recommendation flag now (RecommendationRuleTest), and the category on its
-     * own hides nothing.
+     * like posts from friends, and no INJECTED_STORY edge ever came, so the "Suggested for you"
+     * switch reads Facebook's own recommendation flag (RecommendationRuleTest). The two categories
+     * Facebook can file a post it picked under go with that switch as well, as extras no feed has
+     * served yet, whatever the flag reads. Each counts under its own name. Without the patch, or
+     * with the switch off, they stay.
      */
     @Test
-    public void theStoryCategoryAloneNoLongerMarksASuggestedPost() {
+    public void aSuggestedCategoryGoesWithTheSuggestedForYouSwitch() {
+        FeedFilterCounters.clear();
+        for (Category category : new Category[] {Category.INJECTED_STORY, Category.TRENDING}) {
+            assertTrue(category.name(), FeedFilter.hideEdge(category, new Object(), false, true));
+            assertTrue(category + " stayed for a false flag", FeedFilter.hideEdge(category, new GraphQLStory(), false, true,
+                    story -> FeedGuardForTests.recommendationContext(false), false, GenAiLabel.PATCHED));
+            assertFalse("without the patch " + category + " went", FeedFilter.hideEdge(category, new Object(), true, false));
+        }
+        assertFalse("an ordinary post went", FeedFilter.hideEdge(Category.ENGAGEMENT, new Object(), false, true));
+        String report = String.join("\n", FeedFilterCounters.report());
+        assertTrue(report, report.contains("Removed: INJECTED_STORY 2, TRENDING 2"));
+
+        // The units switch doesn't hold them back; only their own does.
+        Settings.HIDE_SUGGESTED_POSTS.save(false);
+        assertTrue(FeedFilter.hideEdge(Category.TRENDING, new Object(), false, true));
+        Settings.HIDE_SUGGESTED_FOR_YOU.save(false);
         assertFalse(FeedFilter.hideEdge(Category.INJECTED_STORY, new Object(), false, true));
-        assertFalse(FeedFilter.hideEdge(Category.INJECTED_STORY, new GraphQLStory(), false, true,
-                story -> FeedGuardForTests.recommendationContext(false), false, GenAiLabel.PATCHED));
+        assertFalse(FeedFilter.hideEdge(Category.TRENDING, new Object(), false, true));
+        assertNull(FeedFilter.suggestedCategory(null));
+        assertNull(FeedFilter.suggestedCategory("ENGAGEMENT"));
     }
 
     /**

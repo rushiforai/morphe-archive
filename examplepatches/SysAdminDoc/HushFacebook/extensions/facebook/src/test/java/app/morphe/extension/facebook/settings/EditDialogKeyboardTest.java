@@ -3,6 +3,7 @@ package app.morphe.extension.facebook.settings;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -39,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.feed.PostWordsTest;
+import app.morphe.extension.facebook.feed.TopicPacks;
 import app.morphe.extension.shared.SettingsContextRule;
 
 /**
@@ -240,6 +242,52 @@ public class EditDialogKeyboardTest {
             assertFalse(dialog.isShowing());
             assertEquals(fits, Settings.HIDDEN_WORDS.savedValue());
         }
+    }
+
+    /**
+     * A topic pack goes into the open editor as ordinary lines and nothing is saved until Save. The
+     * button is on the list that hides posts and not on the keep list. A word already typed isn't
+     * added twice, and Cancel keeps the saved list.
+     */
+    @Test
+    public void aTopicPackFillsTheEditorAndSavesNothingUntilSave() {
+        PatchFamily.inBuildForTests = EnumSet.allOf(PatchFamily.class);
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            ValueRows.WordsRow keep = (ValueRows.WordsRow) shown(controller, Settings.KEPT_WORDS.key);
+            assertNull("the keep list offers topic packs", keep.choosePack);
+            keep.getDialog().dismiss();
+        }
+        try (ActivityController<Activity> controller = Robolectric.buildActivity(Activity.class).setup()) {
+            ValueRows.WordsRow row = (ValueRows.WordsRow) shown(controller, Settings.HIDDEN_WORDS.key);
+            AlertDialog dialog = (AlertDialog) row.getDialog();
+            assertNotNull(row.choosePack);
+            ArrayList<View> buttons = new ArrayList<>();
+            dialog.getWindow().getDecorView().findViewsWithText(buttons, "Add a topic pack", View.FIND_VIEWS_WITH_TEXT);
+            assertFalse("no Add a topic pack button in the dialog", buttons.isEmpty());
+
+            row.getEditText().setText("Bitcoin");
+            ShadowAlertDialog.reset();
+            buttons.get(0).performClick();
+            ShadowLooper.idleMainLooper();
+            AlertDialog packs = ShadowAlertDialog.getLatestAlertDialog();
+            assertTrue("the pack list didn't open", packs != null && packs != dialog);
+            int crypto = TopicPacks.Pack.CRYPTO.ordinal();
+            assertEquals(TopicPacks.Pack.values().length, Shadows.shadowOf(packs).getItems().length);
+            Shadows.shadowOf(packs).clickOnItem(crypto);
+            ShadowLooper.idleMainLooper();
+
+            String typed = row.getEditText().getText().toString();
+            assertTrue(typed.startsWith("Bitcoin" + (char) 10));
+            assertEquals("the pack's lines went in once after the typed word",
+                    1 + TopicPacks.Pack.CRYPTO.lines().size(), PostWords.count(typed));
+            assertEquals("nothing is saved yet", "", Settings.HIDDEN_WORDS.savedValue());
+
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
+            ShadowLooper.idleMainLooper();
+            assertFalse(dialog.isShowing());
+            assertEquals("the words are ordinary saved lines", typed, Settings.HIDDEN_WORDS.savedValue());
+        }
+        Settings.HIDDEN_WORDS.resetToDefault();
     }
 
     private static String why(PostWords.Size size) {

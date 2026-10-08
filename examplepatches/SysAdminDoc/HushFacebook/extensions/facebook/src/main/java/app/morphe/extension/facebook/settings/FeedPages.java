@@ -9,15 +9,22 @@ package app.morphe.extension.facebook.settings;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.category;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.commentOrderRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.feedsSubtabRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.mark;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.reactionCeilingRow;
+import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.seenKeepRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.startTabRow;
 import static app.morphe.extension.facebook.settings.HushfacebookPreferenceFragment.toggle;
 
 import android.content.Context;
+import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceScreen;
+import android.preference.SwitchPreference;
 
 import java.util.Set;
 
+import app.morphe.extension.facebook.comments.CommentSheetOptions;
+import app.morphe.extension.facebook.feed.SeenPosts;
 import app.morphe.extension.facebook.navigation.MarketplaceOnly;
 import app.morphe.extension.facebook.settings.SettingsRows.Row;
 import app.morphe.extension.shared.L10n;
@@ -33,10 +40,11 @@ final class FeedPages {
     private FeedPages() {
     }
 
-    /** Opening Facebook: Marketplace only, and the tab Facebook opens on. */
+    /** Opening Facebook: Marketplace only, the tab Facebook opens on, and the feed Home loads. */
     static void opening(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
-        if (build.contains(PatchFamily.START_TAB) || build.contains(PatchFamily.MARKETPLACE_ONLY)) {
+        if (build.contains(PatchFamily.START_TAB) || build.contains(PatchFamily.MARKETPLACE_ONLY)
+                || build.contains(PatchFamily.FOLLOWING_HOME)) {
             // First: it's what happens before anything the other rows change comes on screen.
             PreferenceCategory opening = category(screen, L10n.t("Opening Facebook"));
             if (build.contains(PatchFamily.MARKETPLACE_ONLY)) {
@@ -70,6 +78,11 @@ final class FeedPages {
                 opening.addPreference(startTabRow(context));
                 opening.addPreference(feedsSubtabRow(context));
             }
+            if (build.contains(PatchFamily.FOLLOWING_HOME)) {
+                // Home asks for its feed each time it loads one, so no restart is needed.
+                opening.addPreference(toggle(context, Settings.FOLLOWING_FEED_HOME,
+                        L10n.t("Home loads Facebook's Following feed instead of the ranked one. The Feeds tab's filters stay as they are.")));
+            }
         }
     }
 
@@ -84,8 +97,10 @@ final class FeedPages {
                 || build.contains(PatchFamily.AFFILIATE_LINKS)
                 || build.contains(PatchFamily.POST_WORDS)
                 || build.contains(PatchFamily.POST_PROMPTS)
+                || build.contains(PatchFamily.SEEN_POSTS)
                 || build.contains(PatchFamily.META_AI_QUESTIONS)
                 || build.contains(PatchFamily.POST_DATES)
+                || build.contains(PatchFamily.AUTO_TRANSLATION)
                 || build.contains(PatchFamily.FEEDS_HEADER)) {
             PreferenceCategory feed = category(screen, L10n.t("News feed"));
             if (build.contains(PatchFamily.SPONSORED_POSTS)) {
@@ -141,6 +156,10 @@ final class FeedPages {
                 feed.addPreference(toggle(context, Settings.HIDE_STORIES_BETWEEN_POSTS,
                         L10n.t("Rows, large tiles and viewers of Stories between posts, starting with the next "
                                 + "feed Facebook loads. The top Stories tray has its own switch.")));
+                feed.addPreference(toggle(context, Settings.HIDE_HOME_COMPOSER,
+                        L10n.t("The \"What's on your mind?\" row at the top of Home. The create button in the "
+                                + "top bar still starts a post.") + " "
+                                + L10n.t("A change shows the next time you pull down to refresh.")));
             }
             if (build.contains(PatchFamily.FEED_REELS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_FEED_REELS,
@@ -152,6 +171,9 @@ final class FeedPages {
                                 + "or who recently commented, and the follow and chat suggestions in the same place. "
                                 + "The post stays.")));
             }
+            if (build.contains(PatchFamily.SEEN_POSTS)) {
+                seenPosts(feed, context);
+            }
             if (build.contains(PatchFamily.META_AI_QUESTIONS)) {
                 feed.addPreference(toggle(context, Settings.HIDE_META_AI_QUESTIONS,
                         L10n.t("The row of Meta AI questions under some posts. The post, its link card and its "
@@ -162,6 +184,12 @@ final class FeedPages {
                         L10n.t("The line under the poster's name keeps the post's date instead of Facebook's "
                                 + "rotating details, which go blank on some phones.")));
             }
+            if (build.contains(PatchFamily.AUTO_TRANSLATION)) {
+                // Each post and reel reads the answer as it's drawn, so a change shows on the next ones.
+                feed.addPreference(toggle(context, Settings.TURN_OFF_AUTO_TRANSLATION,
+                        L10n.t("Posts and reel captions stay in the language they were written in. Facebook's "
+                                + "See translation link stays under them.")));
+            }
             if (build.contains(PatchFamily.FEEDS_HEADER)) {
                 // Facebook settles the Feeds tab's header as the tab is built, so a change waits for a restart.
                 feed.addPreference(toggle(context, Settings.HIDE_FEEDS_HEADER,
@@ -170,7 +198,8 @@ final class FeedPages {
             }
             if (build.contains(PatchFamily.RETURN_REFRESH)) {
                 feed.addPreference(toggle(context, Settings.BLOCK_RETURN_REFRESH,
-                        L10n.t("Returning to Facebook within ten minutes keeps your place. Pull to refresh still works.")));
+                        L10n.t("Returning to Facebook within ten minutes, or switching back to Home, keeps your place. "
+                                + "Pull to refresh still works.")));
                 feed.addPreference(toggle(context, Settings.RETURN_REFRESH_NO_LIMIT,
                         L10n.t("With the switch above on, your place stays however long you're away. Pull to refresh and a fresh start still load new posts.")));
             }
@@ -185,8 +214,8 @@ final class FeedPages {
                                 + "both kinds go. It's off by default because it hasn't been tested on a real feed "
                                 + "yet.")));
                 feed.addPreference(toggle(context, Settings.HIDE_META_AI_FEED_UNITS,
-                        L10n.t("The Meta AI cards Facebook adds to the feed between posts. People's posts stay, "
-                                + "whatever they say about AI.")));
+                        L10n.t("The Meta AI cards Facebook adds to the feed between posts, and its cards promoting "
+                                + "the Vibes app. People's posts stay, whatever they say about AI.")));
                 feed.addPreference(toggle(context, Settings.HIDE_AI_CHARACTER_POSTS,
                         L10n.t("Posts featuring one of Meta's AI characters, the chatbots people and creators make "
                                 + "with Meta AI Studio. It's off by default because it hasn't been tested on a real "
@@ -205,8 +234,55 @@ final class FeedPages {
                         L10n.t("Posts by a person or Page on your list below, or linking to a site on it, and shares "
                                 + "of them. Your list only leaves the phone in a settings file you export.")));
                 feed.addPreference(page.sourcesRow(context));
+                feed.addPreference(toggle(context, Settings.HIDE_PHOTO_POSTS,
+                        L10n.t("Posts that show a photo or an album, and shares of them.")));
+                feed.addPreference(toggle(context, Settings.HIDE_VIDEO_POSTS,
+                        L10n.t("Posts that show a video, and shares of them. Reels in the feed have a switch of their "
+                                + "own.")));
+                feed.addPreference(toggle(context, Settings.HIDE_LINK_POSTS,
+                        L10n.t("Posts that share a link to a website, with its preview card.")));
+                feed.addPreference(toggle(context, Settings.HIDE_BACKGROUND_POSTS,
+                        L10n.t("Short posts Facebook shows as big text on a colored background.")));
+                feed.addPreference(reactionCeilingRow(context));
             }
         }
+    }
+
+    /**
+     * Hide posts you've already seen, with how long they stay hidden and a row that forgets them.
+     * The keep time is greyed out while the switch is off, Forget seen posts never is, and turning
+     * the switch off forgets the list.
+     */
+    private static void seenPosts(PreferenceCategory feed, Context context) {
+        SwitchPreference seen = toggle(context, Settings.HIDE_SEEN_POSTS,
+                L10n.t("Posts you've scrolled past stay out of the feed when it loads again. Facebook decides what "
+                        + "counts as seen. The list stays on this phone, and a change shows on the next load. "
+                        + "Turning this off empties the list."));
+        Preference keep = seenKeepRow(context);
+        Row forget = new Row(context);
+        forget.setTitle(L10n.t("Forget seen posts"));
+        forget.setSummary(L10n.t("Empties the list of posts you've seen, so they can show up again."));
+        forget.setPersistent(false);
+        forget.actsAtOnce = true;
+        forget.setOnPreferenceClickListener(p -> {
+            SeenPosts.clear();
+            Utils.showToastShort(SeenPosts.clearedMessage());
+            return true;
+        });
+        mark(forget, SettingsIcons.DELETE);
+        // The keep time follows the switch and is greyed out until it's on. Forget seen posts
+        // works either way, so a list is never out of reach.
+        keep.setEnabled(Settings.HIDE_SEEN_POSTS.savedValue());
+        seen.setOnPreferenceChangeListener((preference, value) -> {
+            boolean now = Boolean.TRUE.equals(value);
+            keep.setEnabled(now);
+            // Off forgets the list. The file goes on a background thread.
+            if (!now) SeenPosts.clear();
+            return true;
+        });
+        feed.addPreference(seen);
+        feed.addPreference(keep);
+        feed.addPreference(forget);
     }
 
     /** Stories. */
@@ -234,12 +310,18 @@ final class FeedPages {
             if (build.contains(PatchFamily.STORY_AUTO_ADVANCE)) {
                 stories.addPreference(toggle(context, Settings.BLOCK_STORY_AUTO_ADVANCE,
                         L10n.t("A finished story stays on screen until you tap or swipe. Turn this off for Facebook's timing.")));
+                stories.addPreference(toggle(context, Settings.LOOP_STORIES,
+                        L10n.t("With Stop Story auto-advance on, a finished story plays again from the start "
+                                + "instead of waiting on its last frame. Tap or swipe to move on.")));
             }
             if (build.contains(PatchFamily.STORY_SEEN)) {
                 stories.addPreference(toggle(context, Settings.VIEW_STORIES_ANONYMOUSLY,
                         L10n.t("Facebook isn't told which stories you watch, so you stay off their viewer lists. "
                                 + "Replying or reacting still shows you, and stories you've watched keep their "
                                 + "unwatched ring.")));
+                stories.addPreference(toggle(context, Settings.MARK_STORIES_SEEN,
+                        L10n.t("Adds an eye button to the top of each story while you view anonymously. Tap it to "
+                                + "show up on that story's viewer list. The other stories stay hidden.")));
             }
             if (build.contains(PatchFamily.STORY_DOWNLOAD)) {
                 stories.addPreference(toggle(context, Settings.DOWNLOAD_STORIES,
@@ -248,15 +330,57 @@ final class FeedPages {
         }
     }
 
-    /** Comments: the order they open in. */
+    /**
+     * Comments: the order they open in, Meta AI's summaries of them, and what the comment box and
+     * the Like button offer.
+     */
     static void comments(HushfacebookPreferenceFragment page, PreferenceScreen screen, Context context,
             Set<PatchFamily> build) {
-        if (build.contains(PatchFamily.DEFAULT_COMMENT_ORDER)) {
-            PreferenceCategory comments = category(screen, L10n.t("Comments"));
+        boolean order = build.contains(PatchFamily.DEFAULT_COMMENT_ORDER);
+        boolean summaries = build.contains(PatchFamily.META_AI_SUMMARIES);
+        boolean options = build.contains(PatchFamily.COMMENT_SHEET_OPTIONS);
+        if (!order && !summaries && !options) return;
+        PreferenceCategory comments = category(screen, L10n.t("Comments"));
+        if (order) {
             comments.addPreference(toggle(context, Settings.DEFAULT_COMMENT_ORDER,
                     L10n.t("Use the order below. A choice made on a post lasts until restart. Links to comments keep Facebook's order.")));
             comments.addPreference(commentOrderRow(context));
         }
+        if (summaries) {
+            comments.addPreference(toggle(context, Settings.HIDE_META_AI_SUMMARIES,
+                    L10n.t("Comments open without Meta AI's summary at the top, and posts lose the summary of their comments "
+                            + "under the buttons. The comments themselves stay.")));
+        }
+        if (options) {
+            comments.addPreference(toggle(context, Settings.LIKE_ONLY,
+                    L10n.t("A long press on Like doesn't open the reactions. A tap still likes.")));
+            comments.addPreference(toggle(context, Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS,
+                    L10n.t("The comment box loses its GIF and sticker buttons. Typing, photos and posting work as before.")));
+            comments.addPreference(toggle(context, Settings.OPEN_REPLY_THREADS,
+                    L10n.t("Comments show their replies right away, so there's no View replies to tap.")));
+            comments.addPreference(reactionCountsRow(context));
+        }
+    }
+
+    /**
+     * Opens Facebook's own settings, where Preferences has Reaction preferences and its switches
+     * for hiding reaction counts. Facebook keeps those on its servers, so Hushfacebook doesn't
+     * rebuild them.
+     */
+    static Preference reactionCountsRow(Context context) {
+        Preference row = new Row(context);
+        row.setTitle(L10n.t("Hide reaction counts"));
+        row.setSummary(L10n.t("Facebook has its own setting for this. Open Facebook's settings, then Preferences "
+                + "and Reaction preferences."));
+        row.setPersistent(false);
+        row.setOnPreferenceClickListener(p -> {
+            if (!CommentSheetOptions.openReactionSettings(p.getContext())) {
+                Utils.showToastLong(L10n.t("Facebook's settings didn't open. You'll find Reaction preferences in its Settings, "
+                        + "under Preferences."));
+            }
+            return true;
+        });
+        return mark(row, SettingsIcons.OPENING);
     }
 
     /** Writing: when Facebook suggests someone to tag. */

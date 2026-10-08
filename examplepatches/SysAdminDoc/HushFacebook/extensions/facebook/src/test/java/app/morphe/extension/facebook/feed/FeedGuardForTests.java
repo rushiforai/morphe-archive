@@ -4,11 +4,15 @@
  */
 package app.morphe.extension.facebook.feed;
 
+import com.facebook.graphql.model.GraphQLMedia;
+import com.facebook.graphql.model.GraphQLStory;
+import com.facebook.graphql.model.GraphQLStoryAttachment;
 import com.facebook.graphql.modelutil.BaseModelWithTree;
 import com.facebook.graphservice.tree.TreeJNI;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -116,6 +120,36 @@ public final class FeedGuardForTests {
     public static boolean hidesByWords(Object category, Object feedUnit, Object message) {
         return FeedFilter.hideEdge(category, feedUnit, true, true, story -> null, false, GenAiLabel.PATCHED, false,
                 ShowcaseType.PATCHED, true, story -> message, story -> null);
+    }
+
+    /** Stands in for Facebook's attachment style enum, whose constants keep their names. */
+    public enum AttachmentStyle { PHOTO }
+
+    /**
+     * The guard for a story with one attachment drawn as a photo, through stand-ins for the stubs
+     * Hide posts by words fills for its kinds of post.
+     */
+    public static boolean hidesPhotoPost(Object category) {
+        GraphQLStory story = new GraphQLStory(null, new GraphQLStoryAttachment(new GraphQLMedia("Photo")));
+        PostTypes.Readers readers = new PostTypes.Readers(unit -> ((GraphQLStory) unit).A0n(),
+                attachment -> Collections.singletonList(AttachmentStyle.PHOTO), unit -> null);
+        return FeedFilter.hideEdge(category, story, true, true, unit -> null, false, GenAiLabel.PATCHED, false,
+                ShowcaseType.PATCHED, true, unit -> null, unit -> null, unit -> null, null, null, readers);
+    }
+
+    /**
+     * The guard for a story whose feedback says 5,000 reactions, through stand-ins for the stubs the
+     * reaction ceiling reads it with.
+     */
+    public static boolean hidesPopularPost(Object category) {
+        BaseModelWithTree reactors = new BaseModelWithTree(0);
+        reactors.number("count", 5_000);
+        GraphQLStory story = new GraphQLStory();
+        com.facebook.graphql.model.GraphQLFeedback feedback = new com.facebook.graphql.model.GraphQLFeedback();
+        PostTypes.Readers readers = new PostTypes.Readers(unit -> null, unit -> null, unit -> null,
+                unit -> feedback, unit -> reactors);
+        return FeedFilter.hideEdge(category, story, true, true, unit -> null, false, GenAiLabel.PATCHED, false,
+                ShowcaseType.PATCHED, true, unit -> null, unit -> null, unit -> null, null, null, readers);
     }
 
     /** A story's message, of the type Facebook's posts carry, holding [text]. */

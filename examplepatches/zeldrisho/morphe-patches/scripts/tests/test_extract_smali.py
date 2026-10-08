@@ -63,6 +63,41 @@ class ExtractSmaliTest(unittest.TestCase):
                 extract_smali.main()
             self.assertEqual("existing", (out / "keep.smali").read_text())
 
+    def test_generated_archive_member_names_enforce_path_safety(self):
+        """Exercise path validation across generated safe and unsafe ZIP names."""
+        safe_names = [f"split_{index}/classes{index}.dex" for index in range(1, 25)] + [
+            f"base_{index}.apk" for index in range(1, 25)
+        ]
+        unsafe_names = (
+            [f"../escape_{index}.apk" for index in range(1, 25)]
+            + [f"nested/../../escape_{index}.dex" for index in range(1, 25)]
+            + [f"nested\\\\escape_{index}.apk" for index in range(1, 25)]
+        )
+
+        with tempfile.TemporaryDirectory() as temp:
+            bundle = Path(temp) / "generated.zip"
+            with zipfile.ZipFile(bundle, "w") as archive:
+                for name in safe_names:
+                    archive.writestr(name, b"fixture")
+            with zipfile.ZipFile(bundle) as archive:
+                for suffix in (".apk", ".dex"):
+                    members = extract_smali.validated_members(archive, suffix)
+                    self.assertTrue(
+                        all(m.filename.lower().endswith(suffix) for m in members)
+                    )
+                    self.assertEqual(
+                        len(members),
+                        sum(n.lower().endswith(suffix) for n in safe_names),
+                    )
+
+            for name in unsafe_names:
+                with self.subTest(name=name):
+                    with zipfile.ZipFile(bundle, "w") as archive:
+                        archive.writestr(name, b"fixture")
+                    with zipfile.ZipFile(bundle) as archive:
+                        with self.assertRaisesRegex(ValueError, "Unsafe archive path"):
+                            extract_smali.validated_members(archive, ".apk")
+
     def test_archive_rejects_symlink_members(self):
         """Reject symbolic-link entries even when their names end in .apk."""
         with tempfile.TemporaryDirectory() as temp:

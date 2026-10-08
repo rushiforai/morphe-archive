@@ -76,7 +76,7 @@ final class AnimatedWebpMp4Converter {
     private static final String MIME_TYPE = "video/avc";
     private static final int FRAME_RATE = 30;
     private static final int I_FRAME_INTERVAL_SECONDS = 1;
-    private static final long CODEC_TIMEOUT_US = 10_000L;
+    static final long CODEC_TIMEOUT_US = 10_000L;
 
     private AnimatedWebpMp4Converter() {
     }
@@ -258,12 +258,30 @@ final class AnimatedWebpMp4Converter {
         drainEncoder(encoder, muxer, endOfStream, state, null);
     }
 
-    private static void drainEncoder(
+    /** Package-private for {@link SlideshowEncoder}, which drains its encoder the same way. */
+    static void drainEncoder(
             MediaCodec encoder,
             MediaMuxer muxer,
             boolean endOfStream,
             EncoderState state,
             File directory
+    ) throws IOException {
+        drainEncoder(encoder, muxer, endOfStream, state, directory, CODEC_TIMEOUT_US);
+    }
+
+    /**
+     * As above, waiting at most {@code timeoutUs} for output that isn't there yet. A caller
+     * draining between frames can pass 0 while the encoder keeps up: it's still working on the
+     * frame just sent, and waiting for it each time cost a slideshow about a minute across
+     * thousands of frames.
+     */
+    static void drainEncoder(
+            MediaCodec encoder,
+            MediaMuxer muxer,
+            boolean endOfStream,
+            EncoderState state,
+            File directory,
+            long timeoutUs
     ) throws IOException {
         MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
         while (true) {
@@ -271,7 +289,7 @@ final class AnimatedWebpMp4Converter {
             // spinning. One of the three media worker threads was then gone for the life of the
             // process. This is the only place in the loop that can notice the job deadline.
             MediaBudget.check(null);
-            int outputIndex = encoder.dequeueOutputBuffer(info, CODEC_TIMEOUT_US);
+            int outputIndex = encoder.dequeueOutputBuffer(info, endOfStream ? CODEC_TIMEOUT_US : timeoutUs);
             if (outputIndex == MediaCodec.INFO_TRY_AGAIN_LATER) {
                 if (!endOfStream) return;
             } else if (outputIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
@@ -289,6 +307,7 @@ final class AnimatedWebpMp4Converter {
                     outputBuffer.limit(info.offset + info.size);
                     MediaBudget.checkDiskSpace(directory, info.size);
                     muxer.writeSampleData(state.trackIndex, outputBuffer, info);
+                    state.samples++;
                 }
                 encoder.releaseOutputBuffer(outputIndex, false);
                 if ((info.flags & MediaCodec.BUFFER_FLAG_END_OF_STREAM) != 0) return;
@@ -358,9 +377,12 @@ final class AnimatedWebpMp4Converter {
     static final class EncoderState {
         int trackIndex = -1;
         boolean muxerStarted;
+        /** Encoded frames written to the file, so a caller can tell how far the encoder lags. */
+        long samples;
     }
 
-    private static final class CodecSurface {
+    /** The encoder's input surface behind EGL. {@link SlideshowEncoder} draws its photos through it too. */
+    static final class CodecSurface {
         private static final float[] VERTICES = {
                 -1f, -1f, 0f, 1f,
                 1f, -1f, 1f, 1f,
@@ -452,9 +474,15 @@ final class AnimatedWebpMp4Converter {
         }
 
         void draw(Bitmap bitmap, long presentationTimeNs) {
-            GLES20.glViewport(0, 0, width, height);
-            GLES20.glClearColor(0f, 0f, 0f, 0f);
-            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+            upload(bitmap);
+            present(presentationTimeNs);
+        }
+
+        /**
+         * Puts {@code bitmap} in the texture every later {@link #present} draws. A slideshow holds
+         * one photo for many frames, and uploading eight megabytes for each of them bought nothing.
+         */
+        void upload(Bitmap bitmap) {
             GLES20.glUseProgram(program);
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture);
             // The flag is sticky and nothing else here reads it, so program and texture setup
@@ -469,10 +497,18 @@ final class AnimatedWebpMp4Converter {
             // caller writes the WebP as it came instead, which beats writing a black MP4.
             int uploadError = GLES20.glGetError();
             if (uploadError != GLES20.GL_NO_ERROR) {
-                throw new IllegalStateException("Could not upload a sticker frame to the GPU, "
+                throw new IllegalStateException("Could not upload a frame to the GPU, "
                         + "OpenGL error 0x" + Integer.toHexString(uploadError));
             }
+        }
 
+        /** Draws the uploaded texture as one frame stamped {@code presentationTimeNs}. */
+        void present(long presentationTimeNs) {
+            GLES20.glViewport(0, 0, width, height);
+            GLES20.glClearColor(0f, 0f, 0f, 0f);
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+            GLES20.glUseProgram(program);
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, texture);
             int positionLocation = GLES20.glGetAttribLocation(program, "aPosition");
             int textureLocation = GLES20.glGetAttribLocation(program, "aTexCoord");
             vertices.position(0);

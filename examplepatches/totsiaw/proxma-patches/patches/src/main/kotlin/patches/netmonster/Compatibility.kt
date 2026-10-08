@@ -13,8 +13,8 @@ internal val COMPATIBILITY_NETMONSTER = Compatibility(
     signatures = emptySet(),
     targets = listOf(
         AppTarget(
-            version = "3.4.3",
-            minSdk = 32,
+            version = "4.0.4",
+            minSdk = 27,
         ),
     ),
 )

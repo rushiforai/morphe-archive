@@ -765,6 +765,7 @@ public class GmsCoreSupportPatch {
         }
 
         String[] knownClasses = new String[]{
+            "bqyk", "defpackage.bqyk",
             "bqll", "defpackage.bqll",
             "bqbb", "defpackage.bqbb",
             "bprq", "defpackage.bprq",

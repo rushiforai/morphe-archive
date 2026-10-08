@@ -17,6 +17,6 @@ val disableTelemetryPatch = bytecodePatch(
         // Braze logCustomEvent (both overloads share the same name: one takes
         // just the event name, the other also takes a BrazeProperties map).
         // returnEarly() with no value returns void, which is correct for both.
-        BrazeLogCustomEventFingerprint.methodOrNull?.returnEarly()
+        BrazeLogCustomEventFingerprint.method.returnEarly()
     }
 }

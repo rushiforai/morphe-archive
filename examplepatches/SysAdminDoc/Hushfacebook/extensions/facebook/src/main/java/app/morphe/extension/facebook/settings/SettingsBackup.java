@@ -40,8 +40,15 @@ import app.morphe.extension.facebook.download.SendLink;
 import app.morphe.extension.facebook.feed.PostSources;
 import app.morphe.extension.facebook.feed.PostWords;
 import app.morphe.extension.facebook.media.PlaybackQuality;
+import app.morphe.extension.facebook.media.SurfaceQuality;
+import app.morphe.extension.facebook.misc.AppLock;
+import app.morphe.extension.facebook.misc.TextSize;
+import app.morphe.extension.facebook.feed.ReactionCeiling;
+import app.morphe.extension.facebook.theme.AccentColor;
 import app.morphe.extension.facebook.navigation.FeedsSubtab;
 import app.morphe.extension.facebook.navigation.StartTab;
+import app.morphe.extension.facebook.feed.SeenPosts;
+import app.morphe.extension.facebook.notifications.QuietHour;
 import app.morphe.extension.shared.settings.BooleanSetting;
 import app.morphe.extension.shared.settings.EnumSetting;
 import app.morphe.extension.shared.settings.Setting;
@@ -56,19 +63,20 @@ import app.morphe.extension.shared.settings.StringSetting;
  * over. This writes them to a JSON file the person chooses and reads one back.
  *
  * <p>Only the switches in {@link #ALLOWLIST} and the settings in {@link #VALUES} (the word
- * filter's two lists, the top folder saves go to, the save folder, the save quality, the video
- * file name, what a tap on Download does, the app links go to, the tab Facebook opens on, the
- * order comments open in and the quality videos play at) go out or come in. Pause, safe mode, the
- * debug settings, the app language and the counters Hushfacebook keeps for itself stay out, and so
- * do the log, the diagnostic data and anything about the person or the phone: a file is a format
- * name, a version number, one true or false per switch, two word lists, one top folder, one folder
- * name, one save quality, one file name template, one download action, one package name or none,
- * one tab, one comment order and one playback quality. The word lists go only into the file the
+ * filter's two lists, the top folder saves go to, the save folder and its video and photo
+ * subfolders, the save quality, the video file name, what a tap on Download does, the app links go
+ * to, the tab Facebook opens on, the order comments open in, the qualities videos, reels and
+ * video stories play at, the hours notification quiet hours start and end, and how long the app lock waits) go out or come in. Pause, safe mode, the debug settings, the app language
+ * and the counters Hushfacebook keeps for itself stay out, and so do the log, the diagnostic data
+ * and anything about the person or the phone: a file is a format name, a version number, one true
+ * or false per switch, two word lists, one top folder, one folder name and two subfolder names,
+ * one save quality, one file name template, one download action, one package name or none, one
+ * tab, one comment order, three playback qualities, two hours and one lock time. The word lists go only into the file the
  * person picks, with the rest. An import applies what it read in one preference commit. A file
  * that is too large, isn't JSON, names something twice, holds a value of the wrong type, a word
  * list that isn't one clean list, word lists past the room they share, a folder or a template
  * that isn't one clean name, an app that isn't a package name, or a top folder, quality, download
- * action, tab or comment order this build doesn't offer, or comes from a newer version changes
+ * action, tab, comment order or lock time this build doesn't offer, or comes from a newer version changes
  * nothing.
  * <p>The release check stays out of the file: it puts the phone online, so it's switched on
  * from the phone's own screen, never by a file.
@@ -77,10 +85,12 @@ import app.morphe.extension.shared.settings.StringSetting;
  */
 public final class SettingsBackup {
     /**
-     * Far more than a settings file needs: one is a few hundred bytes, or about 79 KB at most with
-     * both word lists filling the room they share and the sources list filling its own.
+     * Far more than a settings file needs: one is a few hundred bytes, or about 81 KB at most with
+     * both word lists filling the room they share and the sources list filling its own. The 16 KB
+     * left past the two lists' 72 KB is for every other value, switches included, and leaves room
+     * for switches to come.
      */
-    public static final int MAX_BYTES = 80 * 1024;
+    public static final int MAX_BYTES = 88 * 1024;
     public static final String FORMAT = "hushfacebook-settings";
     /** The file shape this build writes and the newest it reads. A file declaring more is refused. */
     static final int SCHEMA = 1;
@@ -107,6 +117,7 @@ public final class SettingsBackup {
             Settings.HIDE_FRIENDS_LOCATIONS,
             Settings.HIDE_TOP_STORIES_TRAY,
             Settings.HIDE_STORIES_BETWEEN_POSTS,
+            Settings.HIDE_HOME_COMPOSER,
             Settings.HIDE_FEED_REELS,
             Settings.BLOCK_RETURN_REFRESH,
             Settings.RETURN_REFRESH_NO_LIMIT,
@@ -118,26 +129,37 @@ public final class SettingsBackup {
             Settings.HIDE_POSTS_WITH_WORDS,
             Settings.HIDE_POSTS_FROM_SOURCES,
             Settings.POST_WORDS_WHOLE_WORDS,
+            Settings.HIDE_PHOTO_POSTS,
+            Settings.HIDE_VIDEO_POSTS,
+            Settings.HIDE_LINK_POSTS,
+            Settings.HIDE_BACKGROUND_POSTS,
             Settings.HIDE_POST_PROMPTS,
+            Settings.HIDE_SEEN_POSTS,
             Settings.HIDE_META_AI_QUESTIONS,
             Settings.KEEP_POST_DATES,
+            Settings.TURN_OFF_AUTO_TRANSLATION,
             Settings.HIDE_FEEDS_HEADER,
             Settings.HIDE_SPONSORED_STORIES,
             Settings.HIDE_SUGGESTED_STORIES,
             Settings.HIDE_CONTACT_IMPORT_CARD,
             Settings.HIDE_STORY_PROMPTS,
             Settings.BLOCK_STORY_AUTO_ADVANCE,
+            Settings.LOOP_STORIES,
             Settings.VIEW_STORIES_ANONYMOUSLY,
+            Settings.MARK_STORIES_SEEN,
             Settings.HIDE_SPONSORED_REELS,
             Settings.HIDE_SPONSORED_SEARCH_RESULTS,
             Settings.HIDE_SPONSORED_PROFILE_POSTS,
             Settings.HIDE_SPONSORED_MARKETPLACE_LISTINGS,
             Settings.SHOW_SELLER_VIEW_PROFILE,
             Settings.BLOCK_GAME_ADS,
+            Settings.ANSWER_REWARDED_GAME_ADS,
             Settings.HIDE_AFFILIATE_LINKS,
             Settings.HIDE_REEL_CHIPS,
             Settings.HIDE_REEL_FOLLOW_BUTTON,
             Settings.HIDE_REEL_SOCIAL_FOOTER,
+            Settings.HIDE_REEL_THREADS_CARDS,
+            Settings.REEL_CLEAN_MODE,
             Settings.DONT_SEND_REEL_WATCH_HISTORY,
             Settings.HOLD_ANALYTICS_UPLOADS,
             Settings.ALLOW_SCREENSHOTS,
@@ -147,16 +169,26 @@ public final class SettingsBackup {
             Settings.HIDE_CHAT_TYPING,
             Settings.HIDE_COMMENT_TYPING,
             Settings.HIDE_READ_RECEIPTS,
+            Settings.ORIGINAL_CHAT_MEDIA,
             Settings.TURN_OFF_DOUBLE_TAP_LIKE,
             Settings.KEEP_REEL_SPEED,
+            Settings.KEEP_VIDEO_SPEED,
+            Settings.SLOWER_REEL_SPEEDS,
             Settings.HOLD_REEL_FOR_2X,
+            Settings.HOLD_REEL_RIGHT_EDGE,
             Settings.DEFAULT_COMMENT_ORDER,
+            Settings.HIDE_META_AI_SUMMARIES,
+            Settings.LIKE_ONLY,
+            Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS,
+            Settings.OPEN_REPLY_THREADS,
             Settings.TAG_SUGGESTIONS_ONLY_AFTER_AT,
             Settings.TAP_TO_PLAY,
+            Settings.TAP_TO_PLAY_REELS_AFTER_FIRST,
             Settings.RESUME_LONG_VIDEOS,
             Settings.DEFAULT_PLAYBACK_QUALITY,
             Settings.PICTURE_IN_PICTURE,
             Settings.TURN_OFF_HDR_BRIGHTNESS,
+            Settings.KEEP_PROGRESS_BAR,
             Settings.USE_SYSTEM_FONT,
             Settings.USE_SYSTEM_EMOJI,
             Settings.OPEN_LINKS_EXTERNALLY,
@@ -165,15 +197,27 @@ public final class SettingsBackup {
             Settings.DOWNLOAD_STORIES,
             Settings.DOWNLOAD_REELS,
             Settings.DOWNLOAD_VIDEOS,
+            Settings.CLIPBOARD_DOWNLOAD,
             Settings.DOWNLOAD_PHOTOS,
+            Settings.POST_MENU_PHOTO_SAVE,
             Settings.DOWNLOAD_COMPATIBLE,
             Settings.OPEN_ON_CHOSEN_TAB,
+            Settings.FOLLOWING_FEED_HOME,
             Settings.SAVED_SHORTCUT,
+            Settings.APP_LOCK,
             Settings.MARKETPLACE_ONLY,
             Settings.MARKETPLACE_QUIET_NOTIFICATIONS,
             Settings.MARKETPLACE_SKIP_FEED_PREFETCH,
             Settings.HIDE_REELS_TAB,
             Settings.HIDE_REELS_TAB_DOT,
+            Settings.HIDE_HOME_TAB_BADGE,
+            Settings.HIDE_FRIENDS_TAB_BADGE,
+            Settings.HIDE_MARKETPLACE_TAB_BADGE,
+            Settings.HIDE_NOTIFICATIONS_TAB_BADGE,
+            Settings.HIDE_MENU_TAB_BADGE,
+            Settings.HIDE_GROUPS_TAB_BADGE,
+            Settings.HIDE_OTHER_TAB_BADGES,
+            Settings.HIDE_APP_ICON_COUNT,
             Settings.HIDE_FEEDS_TAB,
             Settings.HIDE_FRIENDS_TAB,
             Settings.HIDE_MARKETPLACE_TAB,
@@ -188,12 +232,22 @@ public final class SettingsBackup {
             Settings.HIDE_EXPLORE_TAB,
             Settings.HIDE_JOBS_TAB,
             Settings.BOTTOM_TAB_BAR,
+            Settings.TAB_BAR_SCROLL_AWAY,
             Settings.FORCE_DARK_MODE,
             Settings.HIDE_REEL_PROMPTS,
             Settings.HIDE_GET_MESSENGER_CARD,
+            Settings.HIDE_CHAT_NOTES_TRAY,
+            Settings.HIDE_CHAT_PROMOTIONS,
             Settings.OPEN_MESSENGER_APP,
             Settings.HIDE_MENU_UPGRADES,
             Settings.HIDE_MENU_ALSO_FROM_META,
+            Settings.HIDE_EDITS_UPSELLS,
+            Settings.HIDE_THREADS_CROSS_POSTING,
+            Settings.HIDE_THREADS_SHARE_BUTTON,
+            Settings.HIDE_META_VERIFIED_UPSELLS,
+            Settings.HIDE_AVATAR_UPSELLS,
+            Settings.HIDE_META_AI_IMAGINE,
+            Settings.HIDE_META_AI_POST_BUTTONS,
             Settings.HIDE_META_AI_IN_SEARCH,
             Settings.BLOCK_TRENDING_VIDEO_NOTIFICATIONS,
             Settings.BLOCK_MEMORY_NOTIFICATIONS,
@@ -201,7 +255,12 @@ public final class SettingsBackup {
             Settings.BLOCK_HIGHLIGHT_NOTIFICATIONS,
             Settings.BLOCK_PEOPLE_YOU_MAY_KNOW_NOTIFICATIONS,
             Settings.BLOCK_NEARBY_NOTIFICATIONS,
-            Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS));
+            Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS,
+            Settings.BLOCK_GROUP_ACTIVITY_NOTIFICATIONS,
+            Settings.BLOCK_EVENT_NOTIFICATIONS,
+            Settings.BLOCK_LIVE_VIDEO_NOTIFICATIONS,
+            Settings.BLOCK_REACTION_NOTIFICATIONS,
+            Settings.NOTIFICATION_QUIET_HOURS));
 
     /**
      * The word filter's two lists, held in a file exactly as the settings row stores them: one
@@ -235,6 +294,14 @@ public final class SettingsBackup {
      * the folder taken is the name the saves here will use.
      */
     static final StringSetting FOLDER = Settings.SAVE_FOLDER;
+
+    /**
+     * The folders inside the save folder that video and photo saves go in, held in a file as the
+     * clean name the saves use, or blank for none, and taken back only as one of those
+     * ({@link SaveFolder#isImportableSubfolder}), so a file can't point the saves at a path.
+     */
+    static final StringSetting VIDEO_SUBFOLDER = Settings.VIDEO_SUBFOLDER;
+    static final StringSetting PHOTO_SUBFOLDER = Settings.PHOTO_SUBFOLDER;
 
     /**
      * The quality video saves ask for, held in a file as its {@link DownloadQuality#fileValue}.
@@ -291,10 +358,57 @@ public final class SettingsBackup {
      */
     static final EnumSetting<PlaybackQuality> PLAYBACK = Settings.PLAYBACK_QUALITY;
 
+    /**
+     * The quality reels and video stories play at, each held in a file as its
+     * {@link SurfaceQuality#fileValue}. Anything else refuses the whole file, as a playback quality does.
+     */
+    static final EnumSetting<SurfaceQuality> REELS_QUALITY = Settings.REELS_PLAYBACK_QUALITY;
+    static final EnumSetting<SurfaceQuality> STORIES_QUALITY = Settings.STORIES_PLAYBACK_QUALITY;
+
+    /**
+     * The hours notification quiet hours start and end, each held in a file as its
+     * {@link QuietHour#fileValue}, a 24-hour time on the hour. Anything else refuses the whole file,
+     * as a playback quality does.
+     */
+    static final EnumSetting<QuietHour> QUIET_FROM = Settings.QUIET_HOURS_FROM;
+    static final EnumSetting<QuietHour> QUIET_UNTIL = Settings.QUIET_HOURS_UNTIL;
+
+    /**
+     * How long Facebook may be away before the app lock asks again, held in a file as its
+     * {@link AppLock.After#fileValue}. Anything else refuses the whole file, as a comment order does.
+     */
+    static final EnumSetting<AppLock.After> LOCK_AFTER = Settings.APP_LOCK_AFTER;
+
+    /**
+     * How long a seen post stays hidden, held in a file as its {@link SeenPosts.Keep#fileValue}.
+     * Anything else refuses the whole file, as a lock time does. The list of seen posts itself is
+     * never carried: it stays on the phone.
+     */
+    static final EnumSetting<SeenPosts.Keep> SEEN_KEEP = Settings.SEEN_POSTS_KEEP;
+
+    /**
+     * How large Facebook's text is, held in a file as its {@link TextSize.Scale#fileValue}, the
+     * percentage. Anything else refuses the whole file, as a lock time does.
+     */
+    static final EnumSetting<TextSize.Scale> TEXT_SIZE = Settings.TEXT_SIZE;
+
+    /**
+     * The accent color, held in a file as its {@link AccentColor.Preset#fileValue}. Anything else
+     * refuses the whole file, as a text size does.
+     */
+    static final EnumSetting<AccentColor.Preset> ACCENT = Settings.ACCENT_COLOR;
+
+    /**
+     * The reaction count above which the feed hides a post, held in a file as its
+     * {@link ReactionCeiling#fileValue}. Anything else refuses the whole file, as an accent color does.
+     */
+    static final EnumSetting<ReactionCeiling> CEILING = Settings.HIDE_POSTS_OVER_REACTIONS;
+
     /** The settings a file carries that aren't switches, in the order Settings declares them. */
     static final List<Setting<?>> VALUES = Collections.unmodifiableList(
-            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, TO, FOLDER, QUALITY, FILE_NAME, PHOTO_NAME, ACTION, APP,
-                    START, SUBTAB, ORDER, PLAYBACK));
+            Arrays.<Setting<?>>asList(HIDDEN, KEPT, SOURCES, CEILING, SEEN_KEEP, TO, FOLDER, VIDEO_SUBFOLDER, PHOTO_SUBFOLDER, QUALITY,
+                    FILE_NAME, PHOTO_NAME, ACTION, APP, START, SUBTAB, ORDER, PLAYBACK, REELS_QUALITY, STORIES_QUALITY,
+                    QUIET_FROM, QUIET_UNTIL, LOCK_AFTER, TEXT_SIZE, ACCENT));
 
     /** The longest name or value a file holds that isn't a word list, far past a package name. */
     private static final int MAX_OTHER_CHARS = 1024;
@@ -367,7 +481,8 @@ public final class SettingsBackup {
     /**
      * What a file says: a value for each switch it names, the folder, the quality, the file name,
      * the start tab, the comment order, the playback quality, the download action, the app links go
-     * to, the top folder and the Feeds filter when it names them, and how many other names it holds.
+     * to, the top folder, the Feeds filter, the two subfolders, the reels and video stories
+     * qualities, the quiet hours and the app lock's time when it names them, and how many other names it holds.
      */
     public static final class Snapshot {
         private static final String SWITCHES = "switches";
@@ -386,6 +501,17 @@ public final class SettingsBackup {
         private static final String TO_NAME = "save_to";
         private static final String SUBTAB_NAME = "feeds_subtab";
         private static final String PHOTO_NAME_NAME = "photo_name";
+        private static final String VIDEO_SUBFOLDER_NAME = "video_subfolder";
+        private static final String PHOTO_SUBFOLDER_NAME = "photo_subfolder";
+        private static final String REELS_QUALITY_NAME = "reels_quality";
+        private static final String STORIES_QUALITY_NAME = "stories_quality";
+        private static final String QUIET_FROM_NAME = "quiet_hours_from";
+        private static final String QUIET_UNTIL_NAME = "quiet_hours_until";
+        private static final String LOCK_AFTER_NAME = "app_lock_after";
+        private static final String SEEN_KEEP_NAME = "seen_posts_keep";
+        private static final String TEXT_SIZE_NAME = "text_size";
+        private static final String ACCENT_NAME = "accent_color";
+        private static final String CEILING_NAME = "hide_posts_over_reactions";
 
         /** In {@link #ALLOWLIST} order, and only the switches the file named. */
         final Map<BooleanSetting, Boolean> values;
@@ -431,6 +557,39 @@ public final class SettingsBackup {
         /** The clean photo file name template the file holds, or null when it names none. */
         @Nullable
         final String photoName;
+        /** The clean video subfolder the file holds, blank for none, or null when it names none. */
+        @Nullable
+        final String videoSubfolder;
+        /** The clean photo subfolder the file holds, blank for none, or null when it names none. */
+        @Nullable
+        final String photoSubfolder;
+        /** The quality reels play at that the file holds, or null when it names none. */
+        @Nullable
+        final SurfaceQuality reelsQuality;
+        /** The quality video stories play at that the file holds, or null when it names none. */
+        @Nullable
+        final SurfaceQuality storiesQuality;
+        /** The hour quiet hours start that the file holds, or null when it names none. */
+        @Nullable
+        final QuietHour quietFrom;
+        /** The hour quiet hours end that the file holds, or null when it names none. */
+        @Nullable
+        final QuietHour quietUntil;
+        /** How long the app lock waits that the file holds, or null when it names none. */
+        @Nullable
+        final AppLock.After lockAfter;
+        /** How large the file says Facebook's text is, or null when it names none. */
+        @Nullable
+        final TextSize.Scale textSize;
+        /** The accent the file says to use, or null when it names none. */
+        @Nullable
+        final AccentColor.Preset accent;
+        /** The reaction ceiling the file says to use, or null when it names none. */
+        @Nullable
+        final ReactionCeiling ceiling;
+        /** How long the file says a seen post stays hidden, or null when it names none. Set once, as it's read. */
+        @Nullable
+        SeenPosts.Keep seenKeep;
         /** Names the file holds that aren't settings this build knows. They're left out. */
         final int unknown;
 
@@ -489,6 +648,74 @@ public final class SettingsBackup {
                  @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
                  @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
                  @Nullable FeedsSubtab subtab, @Nullable String sources, @Nullable String photoName, int unknown) {
+            this(values, folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, subtab,
+                    sources, photoName, null, null, null, null, unknown);
+        }
+
+        Snapshot(Map<BooleanSetting, Boolean> values, @Nullable String folder, @Nullable DownloadQuality quality,
+                 @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                 @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
+                 @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
+                 @Nullable FeedsSubtab subtab, @Nullable String sources, @Nullable String photoName,
+                 @Nullable String videoSubfolder, @Nullable String photoSubfolder,
+                 @Nullable SurfaceQuality reelsQuality, @Nullable SurfaceQuality storiesQuality, int unknown) {
+            this(values, folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, subtab,
+                    sources, photoName, videoSubfolder, photoSubfolder, reelsQuality, storiesQuality, null, null, null,
+                    unknown);
+        }
+
+        Snapshot(Map<BooleanSetting, Boolean> values, @Nullable String folder, @Nullable DownloadQuality quality,
+                 @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                 @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
+                 @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
+                 @Nullable FeedsSubtab subtab, @Nullable String sources, @Nullable String photoName,
+                 @Nullable String videoSubfolder, @Nullable String photoSubfolder,
+                 @Nullable SurfaceQuality reelsQuality, @Nullable SurfaceQuality storiesQuality,
+                 @Nullable QuietHour quietFrom, @Nullable QuietHour quietUntil, @Nullable AppLock.After lockAfter,
+                 int unknown) {
+            this(values, folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, subtab,
+                    sources, photoName, videoSubfolder, photoSubfolder, reelsQuality, storiesQuality, quietFrom,
+                    quietUntil, lockAfter, null, unknown);
+        }
+
+        Snapshot(Map<BooleanSetting, Boolean> values, @Nullable String folder, @Nullable DownloadQuality quality,
+                 @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                 @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
+                 @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
+                 @Nullable FeedsSubtab subtab, @Nullable String sources, @Nullable String photoName,
+                 @Nullable String videoSubfolder, @Nullable String photoSubfolder,
+                 @Nullable SurfaceQuality reelsQuality, @Nullable SurfaceQuality storiesQuality,
+                 @Nullable QuietHour quietFrom, @Nullable QuietHour quietUntil, @Nullable AppLock.After lockAfter,
+                 @Nullable TextSize.Scale textSize, int unknown) {
+            this(values, folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, subtab,
+                    sources, photoName, videoSubfolder, photoSubfolder, reelsQuality, storiesQuality, quietFrom,
+                    quietUntil, lockAfter, textSize, null, unknown);
+        }
+
+        Snapshot(Map<BooleanSetting, Boolean> values, @Nullable String folder, @Nullable DownloadQuality quality,
+                 @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                 @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
+                 @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
+                 @Nullable FeedsSubtab subtab, @Nullable String sources, @Nullable String photoName,
+                 @Nullable String videoSubfolder, @Nullable String photoSubfolder,
+                 @Nullable SurfaceQuality reelsQuality, @Nullable SurfaceQuality storiesQuality,
+                 @Nullable QuietHour quietFrom, @Nullable QuietHour quietUntil, @Nullable AppLock.After lockAfter,
+                 @Nullable TextSize.Scale textSize, @Nullable AccentColor.Preset accent, int unknown) {
+            this(values, folder, quality, fileName, start, order, hidden, kept, playback, action, app, to, subtab,
+                    sources, photoName, videoSubfolder, photoSubfolder, reelsQuality, storiesQuality, quietFrom,
+                    quietUntil, lockAfter, textSize, accent, null, unknown);
+        }
+
+        Snapshot(Map<BooleanSetting, Boolean> values, @Nullable String folder, @Nullable DownloadQuality quality,
+                 @Nullable String fileName, @Nullable StartTab start, @Nullable CommentOrder order,
+                 @Nullable String hidden, @Nullable String kept, @Nullable PlaybackQuality playback,
+                 @Nullable SendLink.Action action, @Nullable String app, @Nullable SaveTo to,
+                 @Nullable FeedsSubtab subtab, @Nullable String sources, @Nullable String photoName,
+                 @Nullable String videoSubfolder, @Nullable String photoSubfolder,
+                 @Nullable SurfaceQuality reelsQuality, @Nullable SurfaceQuality storiesQuality,
+                 @Nullable QuietHour quietFrom, @Nullable QuietHour quietUntil, @Nullable AppLock.After lockAfter,
+                 @Nullable TextSize.Scale textSize, @Nullable AccentColor.Preset accent,
+                 @Nullable ReactionCeiling ceiling, int unknown) {
             this.values = Collections.unmodifiableMap(values);
             this.folder = folder;
             this.quality = quality;
@@ -504,6 +731,16 @@ public final class SettingsBackup {
             this.subtab = subtab;
             this.sources = sources;
             this.photoName = photoName;
+            this.videoSubfolder = videoSubfolder;
+            this.photoSubfolder = photoSubfolder;
+            this.reelsQuality = reelsQuality;
+            this.storiesQuality = storiesQuality;
+            this.quietFrom = quietFrom;
+            this.quietUntil = quietUntil;
+            this.lockAfter = lockAfter;
+            this.textSize = textSize;
+            this.accent = accent;
+            this.ceiling = ceiling;
             this.unknown = unknown;
         }
 
@@ -522,6 +759,10 @@ public final class SettingsBackup {
             if (toChange != null) changes.put(TO, toChange);
             String folderChange = folderChange();
             if (folderChange != null) changes.put(FOLDER, folderChange);
+            String videoSubfolderChange = videoSubfolderChange();
+            if (videoSubfolderChange != null) changes.put(VIDEO_SUBFOLDER, videoSubfolderChange);
+            String photoSubfolderChange = photoSubfolderChange();
+            if (photoSubfolderChange != null) changes.put(PHOTO_SUBFOLDER, photoSubfolderChange);
             DownloadQuality qualityChange = qualityChange();
             if (qualityChange != null) changes.put(QUALITY, qualityChange);
             String fileNameChange = fileNameChange();
@@ -542,6 +783,23 @@ public final class SettingsBackup {
             if (sourcesChange != null) changes.put(SOURCES, sourcesChange);
             PlaybackQuality playbackChange = playbackChange();
             if (playbackChange != null) changes.put(PLAYBACK, playbackChange);
+            SurfaceQuality reelsQualityChange = reelsQualityChange();
+            if (reelsQualityChange != null) changes.put(REELS_QUALITY, reelsQualityChange);
+            SurfaceQuality storiesQualityChange = storiesQualityChange();
+            if (storiesQualityChange != null) changes.put(STORIES_QUALITY, storiesQualityChange);
+            QuietHour quietFromChange = quietFromChange();
+            if (quietFromChange != null) changes.put(QUIET_FROM, quietFromChange);
+            QuietHour quietUntilChange = quietUntilChange();
+            if (quietUntilChange != null) changes.put(QUIET_UNTIL, quietUntilChange);
+            AppLock.After lockAfterChange = lockAfterChange();
+            if (lockAfterChange != null) changes.put(LOCK_AFTER, lockAfterChange);
+            TextSize.Scale textSizeChange = textSizeChange();
+            if (textSizeChange != null) changes.put(TEXT_SIZE, textSizeChange);
+            AccentColor.Preset accentChange = accentChange();
+            if (accentChange != null) changes.put(ACCENT, accentChange);
+            ReactionCeiling ceilingChange = ceilingChange();
+            if (ceilingChange != null) changes.put(CEILING, ceilingChange);
+            if (seenKeep != null && seenKeep != SEEN_KEEP.savedValue()) changes.put(SEEN_KEEP, seenKeep);
             SendLink.Action actionChange = actionChange();
             if (actionChange != null) changes.put(ACTION, actionChange);
             String appChange = appChange();
@@ -566,6 +824,27 @@ public final class SettingsBackup {
         String folderChange() {
             if (folder == null) return null;
             return folder.equals(SaveFolder.sanitize(FOLDER.savedValue())) ? null : folder;
+        }
+
+        /**
+         * The subfolder this file moves video saves to, blank for the save folder itself, or null
+         * when it names none or the one video saves already use.
+         */
+        @Nullable
+        String videoSubfolderChange() {
+            return subfolderChange(videoSubfolder, VIDEO_SUBFOLDER);
+        }
+
+        /** The same as {@link #videoSubfolderChange}, for photo saves. */
+        @Nullable
+        String photoSubfolderChange() {
+            return subfolderChange(photoSubfolder, PHOTO_SUBFOLDER);
+        }
+
+        @Nullable
+        private static String subfolderChange(@Nullable String subfolder, StringSetting setting) {
+            if (subfolder == null) return null;
+            return subfolder.equals(SaveFolder.cleanSubfolder(setting.savedValue())) ? null : subfolder;
         }
 
         /** The quality this file sets, or null when it names none or the one saves already use. */
@@ -610,6 +889,54 @@ public final class SettingsBackup {
         @Nullable
         PlaybackQuality playbackChange() {
             return playback == null || playback == PLAYBACK.savedValue() ? null : playback;
+        }
+
+        /** The reels quality this file sets, or null when it names none or the one already set. */
+        @Nullable
+        SurfaceQuality reelsQualityChange() {
+            return reelsQuality == null || reelsQuality == REELS_QUALITY.savedValue() ? null : reelsQuality;
+        }
+
+        /** The video stories quality this file sets, or null when it names none or the one already set. */
+        @Nullable
+        SurfaceQuality storiesQualityChange() {
+            return storiesQuality == null || storiesQuality == STORIES_QUALITY.savedValue() ? null : storiesQuality;
+        }
+
+        /** The hour quiet hours start that this file sets, or null when it names none or the one already set. */
+        @Nullable
+        QuietHour quietFromChange() {
+            return quietFrom == null || quietFrom == QUIET_FROM.savedValue() ? null : quietFrom;
+        }
+
+        /** The hour quiet hours end that this file sets, or null when it names none or the one already set. */
+        @Nullable
+        QuietHour quietUntilChange() {
+            return quietUntil == null || quietUntil == QUIET_UNTIL.savedValue() ? null : quietUntil;
+        }
+
+        /** How long the app lock waits after this file, or null when it names none or the one already set. */
+        @Nullable
+        AppLock.After lockAfterChange() {
+            return lockAfter == null || lockAfter == LOCK_AFTER.savedValue() ? null : lockAfter;
+        }
+
+        /** The text size after this file, or null when it names none or the one already set. */
+        @Nullable
+        TextSize.Scale textSizeChange() {
+            return textSize == null || textSize == TEXT_SIZE.savedValue() ? null : textSize;
+        }
+
+        /** The accent after this file, or null when it names none or the one already set. */
+        @Nullable
+        AccentColor.Preset accentChange() {
+            return accent == null || accent == ACCENT.savedValue() ? null : accent;
+        }
+
+        /** The reaction ceiling after this file, or null when it names none or the one already set. */
+        @Nullable
+        ReactionCeiling ceilingChange() {
+            return ceiling == null || ceiling == CEILING.savedValue() ? null : ceiling;
         }
 
         /** The top folder this file sends saves to, or null when it names none or the one already set. */
@@ -681,6 +1008,17 @@ public final class SettingsBackup {
             if (app != null) state.putString(APP_NAME, app);
             if (to != null) state.putString(TO_NAME, to.fileValue);
             if (subtab != null) state.putString(SUBTAB_NAME, subtab.fileValue);
+            if (videoSubfolder != null) state.putString(VIDEO_SUBFOLDER_NAME, videoSubfolder);
+            if (photoSubfolder != null) state.putString(PHOTO_SUBFOLDER_NAME, photoSubfolder);
+            if (reelsQuality != null) state.putString(REELS_QUALITY_NAME, reelsQuality.fileValue);
+            if (storiesQuality != null) state.putString(STORIES_QUALITY_NAME, storiesQuality.fileValue);
+            if (quietFrom != null) state.putString(QUIET_FROM_NAME, quietFrom.fileValue());
+            if (quietUntil != null) state.putString(QUIET_UNTIL_NAME, quietUntil.fileValue());
+            if (lockAfter != null) state.putString(LOCK_AFTER_NAME, lockAfter.fileValue);
+            if (textSize != null) state.putString(TEXT_SIZE_NAME, textSize.fileValue);
+            if (accent != null) state.putString(ACCENT_NAME, accent.fileValue);
+            if (ceiling != null) state.putString(CEILING_NAME, ceiling.fileValue);
+            if (seenKeep != null) state.putString(SEEN_KEEP_NAME, seenKeep.fileValue);
             state.putInt(UNKNOWN, unknown);
             return state;
         }
@@ -708,7 +1046,9 @@ public final class SettingsBackup {
             Object sources = state.get(SOURCES_NAME);
             Object app = state.get(APP_NAME);
             Object photoName = state.get(PHOTO_NAME_NAME);
-            return new Snapshot(values, folder instanceof String && SaveFolder.isClean((String) folder)
+            Object videoSubfolder = state.get(VIDEO_SUBFOLDER_NAME);
+            Object photoSubfolder = state.get(PHOTO_SUBFOLDER_NAME);
+            Snapshot read = new Snapshot(values, folder instanceof String && SaveFolder.isClean((String) folder)
                     ? (String) folder : null, DownloadQuality.fromFile(state.get(QUALITY_NAME)),
                     fileName instanceof String && FileNameTemplate.isClean((String) fileName) ? (String) fileName : null,
                     StartTab.fromFile(state.get(START_NAME)), CommentOrder.fromFile(state.get(ORDER_NAME)),
@@ -719,7 +1059,20 @@ public final class SettingsBackup {
                     FeedsSubtab.fromFile(state.get(SUBTAB_NAME)),
                     sources instanceof String && PostSources.isClean((String) sources) ? (String) sources : null,
                     photoName instanceof String && FileNameTemplate.isCleanPhoto((String) photoName) ? (String) photoName : null,
+                    videoSubfolder instanceof String && SaveFolder.isCleanSubfolder((String) videoSubfolder)
+                            ? (String) videoSubfolder : null,
+                    photoSubfolder instanceof String && SaveFolder.isCleanSubfolder((String) photoSubfolder)
+                            ? (String) photoSubfolder : null,
+                    SurfaceQuality.fromFile(state.get(REELS_QUALITY_NAME)),
+                    SurfaceQuality.fromFile(state.get(STORIES_QUALITY_NAME)),
+                    QuietHour.fromFile(state.get(QUIET_FROM_NAME)), QuietHour.fromFile(state.get(QUIET_UNTIL_NAME)),
+                    AppLock.After.fromFile(state.get(LOCK_AFTER_NAME)),
+                    TextSize.Scale.fromFile(state.get(TEXT_SIZE_NAME)),
+                    AccentColor.Preset.fromFile(state.get(ACCENT_NAME)),
+                    ReactionCeiling.fromFile(state.get(CEILING_NAME)),
                     unknown);
+            read.seenKeep = SeenPosts.Keep.fromFile(state.get(SEEN_KEEP_NAME));
+            return read;
         }
     }
 
@@ -735,6 +1088,8 @@ public final class SettingsBackup {
         switches.put(TO.key, TO.savedValue().fileValue);
         // The name the saves use, so a file never carries one an import would refuse.
         switches.put(FOLDER.key, SaveFolder.sanitize(FOLDER.savedValue()));
+        switches.put(VIDEO_SUBFOLDER.key, SaveFolder.cleanSubfolder(VIDEO_SUBFOLDER.savedValue()));
+        switches.put(PHOTO_SUBFOLDER.key, SaveFolder.cleanSubfolder(PHOTO_SUBFOLDER.savedValue()));
         switches.put(QUALITY.key, QUALITY.savedValue().fileValue);
         switches.put(FILE_NAME.key, FileNameTemplate.sanitize(FILE_NAME.savedValue()));
         switches.put(PHOTO_NAME.key, FileNameTemplate.sanitizePhoto(PHOTO_NAME.savedValue()));
@@ -742,6 +1097,15 @@ public final class SettingsBackup {
         switches.put(SUBTAB.key, SUBTAB.savedValue().fileValue);
         switches.put(ORDER.key, ORDER.savedValue().fileValue);
         switches.put(PLAYBACK.key, PLAYBACK.savedValue().fileValue);
+        switches.put(REELS_QUALITY.key, REELS_QUALITY.savedValue().fileValue);
+        switches.put(STORIES_QUALITY.key, STORIES_QUALITY.savedValue().fileValue);
+        switches.put(QUIET_FROM.key, QUIET_FROM.savedValue().fileValue());
+        switches.put(QUIET_UNTIL.key, QUIET_UNTIL.savedValue().fileValue());
+        switches.put(LOCK_AFTER.key, LOCK_AFTER.savedValue().fileValue);
+        switches.put(SEEN_KEEP.key, SEEN_KEEP.savedValue().fileValue);
+        switches.put(TEXT_SIZE.key, TEXT_SIZE.savedValue().fileValue);
+        switches.put(ACCENT.key, ACCENT.savedValue().fileValue);
+        switches.put(CEILING.key, CEILING.savedValue().fileValue);
         switches.put(ACTION.key, ACTION.savedValue().fileValue);
         // The app links really go to, so a file never carries a name an import would refuse.
         switches.put(APP.key, SendLink.fileApp(APP.savedValue()));
@@ -848,6 +1212,17 @@ public final class SettingsBackup {
         String app = null;
         SaveTo to = null;
         FeedsSubtab subtab = null;
+        String videoSubfolder = null;
+        String photoSubfolder = null;
+        SurfaceQuality reelsQuality = null;
+        SurfaceQuality storiesQuality = null;
+        QuietHour quietFrom = null;
+        QuietHour quietUntil = null;
+        AppLock.After lockAfter = null;
+        SeenPosts.Keep seenKeep = null;
+        TextSize.Scale textSize = null;
+        AccentColor.Preset accent = null;
+        ReactionCeiling ceiling = null;
         JSONObject values = (JSONObject) settings;
         for (Iterator<String> names = values.keys(); names.hasNext(); ) {
             String name = names.next();
@@ -867,6 +1242,18 @@ public final class SettingsBackup {
                 // A newer phone's name can hold characters this one doesn't know yet, which the
                 // saves here drop, so the folder taken is the one they'll really use.
                 folder = SaveFolder.sanitize((String) value);
+                continue;
+            }
+            if (VIDEO_SUBFOLDER.key.equals(name) || PHOTO_SUBFOLDER.key.equals(name)) {
+                Object value = values.opt(name);
+                // Blank is no subfolder. Anything else is one name the row would keep as typed,
+                // never a path.
+                if (!(value instanceof String) || !SaveFolder.isImportableSubfolder((String) value)) {
+                    throw new Rejected(Reason.VALUE, "Not one clean folder name or blank: " + name);
+                }
+                String subfolder = SaveFolder.cleanSubfolder((String) value);
+                if (VIDEO_SUBFOLDER.key.equals(name)) videoSubfolder = subfolder;
+                else photoSubfolder = subfolder;
                 continue;
             }
             if (QUALITY.key.equals(name)) {
@@ -908,6 +1295,45 @@ public final class SettingsBackup {
             if (PLAYBACK.key.equals(name)) {
                 playback = PlaybackQuality.fromFile(values.opt(name));
                 if (playback == null) throw new Rejected(Reason.VALUE, "Not a playback quality: " + name);
+                continue;
+            }
+            if (REELS_QUALITY.key.equals(name) || STORIES_QUALITY.key.equals(name)) {
+                SurfaceQuality choice = SurfaceQuality.fromFile(values.opt(name));
+                if (choice == null) throw new Rejected(Reason.VALUE, "Not a playback quality: " + name);
+                if (REELS_QUALITY.key.equals(name)) reelsQuality = choice;
+                else storiesQuality = choice;
+                continue;
+            }
+            if (QUIET_FROM.key.equals(name) || QUIET_UNTIL.key.equals(name)) {
+                QuietHour hour = QuietHour.fromFile(values.opt(name));
+                if (hour == null) throw new Rejected(Reason.VALUE, "Not an hour on the hour: " + name);
+                if (QUIET_FROM.key.equals(name)) quietFrom = hour;
+                else quietUntil = hour;
+                continue;
+            }
+            if (SEEN_KEEP.key.equals(name)) {
+                seenKeep = SeenPosts.Keep.fromFile(values.opt(name));
+                if (seenKeep == null) throw new Rejected(Reason.VALUE, "Not a seen posts time: " + name);
+                continue;
+            }
+            if (LOCK_AFTER.key.equals(name)) {
+                lockAfter = AppLock.After.fromFile(values.opt(name));
+                if (lockAfter == null) throw new Rejected(Reason.VALUE, "Not an app lock time: " + name);
+                continue;
+            }
+            if (TEXT_SIZE.key.equals(name)) {
+                textSize = TextSize.Scale.fromFile(values.opt(name));
+                if (textSize == null) throw new Rejected(Reason.VALUE, "Not a text size: " + name);
+                continue;
+            }
+            if (ACCENT.key.equals(name)) {
+                accent = AccentColor.Preset.fromFile(values.opt(name));
+                if (accent == null) throw new Rejected(Reason.VALUE, "Not an accent color: " + name);
+                continue;
+            }
+            if (CEILING.key.equals(name)) {
+                ceiling = ReactionCeiling.fromFile(values.opt(name));
+                if (ceiling == null) throw new Rejected(Reason.VALUE, "Not a reaction ceiling: " + name);
                 continue;
             }
             if (TO.key.equals(name)) {
@@ -976,8 +1402,11 @@ public final class SettingsBackup {
             Boolean value = found.get(setting);
             if (value != null) ordered.put(setting, value);
         }
-        return new Snapshot(ordered, folder, quality, fileName, start, order, hidden, kept, playback, action, app, to,
-                subtab, sources, photoName, unknown);
+        Snapshot read = new Snapshot(ordered, folder, quality, fileName, start, order, hidden, kept, playback, action, app, to,
+                subtab, sources, photoName, videoSubfolder, photoSubfolder, reelsQuality, storiesQuality, quietFrom,
+                quietUntil, lockAfter, textSize, accent, ceiling, unknown);
+        read.seenKeep = seenKeep;
+        return read;
     }
 
     /**

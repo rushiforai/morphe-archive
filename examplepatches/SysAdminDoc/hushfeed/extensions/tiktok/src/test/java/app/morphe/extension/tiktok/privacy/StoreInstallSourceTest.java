@@ -46,12 +46,21 @@ public class StoreInstallSourceTest {
 
     @After public void tearDown() {
         Settings.STORE_IDENTITY.save(Settings.STORE_IDENTITY.defaultValue);
+        Settings.STORE_IDENTITY_INSTALLER.save(Settings.STORE_IDENTITY_INSTALLER.defaultValue);
     }
 
     @Test public void tikToksInstallSourceReadsAsThePlayStore() throws Exception {
         InstallSourceInfo info = StoreInstallSource.sourceFor(pm, ownPackage);
         assertEquals(StoreIdentity.STORE, StoreInstallSource.installingOf(info));
         assertEquals(StoreIdentity.STORE, StoreInstallSource.initiatingOf(info));
+        assertNull(StoreInstallSource.originatingOf(info));
+    }
+
+    @Test public void tikToksInstallSourceReadsAsThePickedStore() throws Exception {
+        Settings.STORE_IDENTITY_INSTALLER.save("com.huawei.appmarket");
+        InstallSourceInfo info = StoreInstallSource.sourceFor(pm, ownPackage);
+        assertEquals("com.huawei.appmarket", StoreInstallSource.installingOf(info));
+        assertEquals("com.huawei.appmarket", StoreInstallSource.initiatingOf(info));
         assertNull(StoreInstallSource.originatingOf(info));
     }
 

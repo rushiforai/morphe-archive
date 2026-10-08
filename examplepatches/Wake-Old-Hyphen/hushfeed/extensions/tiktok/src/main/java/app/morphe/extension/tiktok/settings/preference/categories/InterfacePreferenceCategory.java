@@ -43,6 +43,8 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                 || SettingsStatus.feedTextSizeEnabled
                 || SettingsStatus.hideFeedFollowButtonEnabled
                 || SettingsStatus.hideFeedSaveButtonEnabled
+                || SettingsStatus.exactCountsEnabled
+                || SettingsStatus.avatarRingsEnabled
                 || SettingsStatus.alwaysShowPublishDateEnabled
                 || SettingsStatus.authorRegionEnabled
                 || SettingsStatus.hideFeedLiveButtonEnabled
@@ -85,7 +87,9 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
     private void addRightColumn(Context context) {
         boolean any = SettingsStatus.videoOverlaysEnabled
                 || SettingsStatus.hideFeedFollowButtonEnabled
-                || SettingsStatus.hideFeedSaveButtonEnabled;
+                || SettingsStatus.hideFeedSaveButtonEnabled
+                || SettingsStatus.exactCountsEnabled
+                || SettingsStatus.avatarRingsEnabled;
         if (!any) return;
         addPreference(new SectionHeadingPreference(context, "Right column"));
         if (SettingsStatus.videoOverlaysEnabled) {
@@ -131,6 +135,28 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide the save button on the feed",
                     "Hide the save button in the right column. Ticking Save in the list above hides it too.",
                     Settings.HIDE_FEED_SAVE_BUTTON
+            ));
+        }
+        if (SettingsStatus.exactCountsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Show exact counts",
+                    "Show counts as full numbers, like 1,234,567 instead of 1.2M.",
+                    Settings.SHOW_EXACT_COUNTS
+            ));
+        }
+        if (SettingsStatus.avatarRingsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Remove story rings",
+                    "Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.",
+                    Settings.HIDE_STORY_RINGS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Remove the LIVE ring",
+                    "Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.",
+                    Settings.HIDE_LIVE_RING
             ));
         }
     }
@@ -310,12 +336,6 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.",
                     Settings.HIDE_DETAIL_COMMENT_BAR
             ));
-            addPreference(new TogglePreference(
-                    context,
-                    "Hide the Clear display controls",
-                    "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.",
-                    Settings.HIDE_CLEAR_DISPLAY_CONTROLS
-            ));
         }
         // Feed filter rows that hide things drawn around a video rather than videos.
         // They were the tail of the Feed filter page under "Feed elements", a page about
@@ -412,8 +432,10 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
     }
 
     private void addClearDisplay(Context context) {
-        if (SettingsStatus.automaticClearDisplayEnabled) {
+        if (SettingsStatus.automaticClearDisplayEnabled || SettingsStatus.videoOverlaysEnabled) {
             addPreference(new SectionHeadingPreference(context, "Clear display"));
+        }
+        if (SettingsStatus.automaticClearDisplayEnabled) {
             addPreference(new TogglePreference(context, "Automatic clear display",
                     "Hide controls after each video starts. Tap to restore them.", Settings.AUTOMATIC_CLEAR_DISPLAY));
             NumberInputPreference delay = new NumberInputPreference(context, "Clear display delay",
@@ -421,6 +443,17 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "%1$s millisecond", "%1$s milliseconds");
             delay.zeroMeans("No delay");
             addPreference(delay);
+        }
+        // Beside the automatic switch rather than at the end of Around the video, where the #84
+        // reporter couldn't find it. It belongs to the overlay patch, so it shows without the
+        // automatic one too.
+        if (SettingsStatus.videoOverlaysEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the Clear display controls",
+                    "While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.",
+                    Settings.HIDE_CLEAR_DISPLAY_CONTROLS
+            ));
         }
     }
 

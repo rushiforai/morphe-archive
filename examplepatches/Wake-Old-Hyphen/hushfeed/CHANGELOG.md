@@ -4,15 +4,51 @@ Every Hushfeed release, newest first.
 
 ## Unreleased
 
+* **TikTok:** New Show exact counts switch in Feed screen > Right column. It shows likes, comments, shares and other counts as the full number, like 1,234,567 instead of 1.2M, using your phone's digit grouping.
+
+* **TikTok:** New patch, Custom launcher icon. It gives TikTok's icon a themed layer, so with themed icons on in Android 13 and up the note takes your wallpaper's color. Its Icon style option also swaps in a black background, or a plain white-on-black or black-on-white note, on Android 8 and up.
+
+* **TikTok:** New patch, Lift text length limits. Its switch under Comments > Writing lets a comment, a repost note or your bio run past the length TikTok's app stops typing at, instead of cutting you off at the counter. TikTok's servers still decide how long a text they'll take.
+
+* **TikTok:** New patch, Remove avatar rings. Two switches under Feed screen > Right column take the story ring and the pulsing LIVE ring off profile pictures on the feed and in comments, and the story ring off profiles too. With them on, tapping the picture opens the creator's profile instead of their story or their LIVE.
+
+* **TikTok:** New patch, Play SDR instead of HDR. Turn it on under Playback and videos that also come in HDR play their standard version, so the screen doesn't jump to full brightness when one starts. A video TikTok only offers in HDR still plays. With Playback quality on too, it picks among the standard versions.
+
+* **TikTok:** New patch, Copy bio and IDs. Long-press a profile's bio to copy it. The share sheet a profile's menu opens gets Copy username and Copy user ID buttons, and a video's share sheet gets Copy video ID. Each copy says what it copied in a toast. Switch: Hushfeed settings > App > Copy bio and IDs.
+
+* **TikTok:** New patch, Show follow status. Open a profile that follows you and "Follows you" shows under its @username. If you follow it and it doesn't follow you back, it says that instead. Your follower and following lists mark the accounts you follow that don't follow you back. It uses the follow status TikTok already sends, so nothing extra is fetched. Switch: Hushfeed settings > App > Show follow status.
+
+* **TikTok:** Feed filter has a new Show only mutual friends on the Friends tab switch. With it on, the Friends tab drops posts, reposts and LIVEs from accounts you follow that don't follow you back, and from strangers and suggested accounts. A friend's repost stays even when the video is someone else's, and your own posts and reposts always stay.
+
+* **TikTok:** Hide AI-generated videos catches a lot more now. Besides TikTok's visible AI label, it reads the AI marks TikTok keeps on a post without always showing them: the creator's AI disclosure, TikTok's own moderation verdict, AI sources in the content credentials (C2PA), posts made with TikTok's AI effects like AI Alive, AI remix and AI portrait, and tags like #ai or #aigenerated. The filter report counts each one under AiSignals by the mark that caught it. Feed filter also covers the newer version of the Friends tab feed, so its rules apply there too.
+
 * **TikTok:** Show where a video was posted now works on videos where TikTok hides the post time, which is most of For You unless Always show publish date is on. It also shows on videos you open from search, a creator's profile or a shared link, and it switches to the right country as soon as an opened video starts instead of keeping the one from the feed. A long name gets shortened a little so the country isn't cut off along with it.
 
 * **TikTok:** In Feature Gate Lab, turning overrides on from a gate's own page now unlocks its Forced result switch right away. Before, it stayed greyed out until you left the page and came back.
+
+* **TikTok:** Remove LIVE extras now says in its description that it can take away the red and blue battle score bar and the co-host guests' names in LIVE. It's off unless you pick it, so leave it unticked if you watch battles.
+
+* **TikTok:** Drop the animated image cache works differently now (#100). The old version threw away cached frames, so animated stickers and GIFs stuttered and memory use didn't go down. Now TikTok keeps only the frame on screen for each animation and stops decoding frames ahead of time, and each next frame is drawn from the one before it.
+
+* **TikTok:** Hide the Clear display controls moved to Feed screen > Clear display, right under Automatic clear display, instead of the end of Around the video.
+
+* **TikTok:** Clear display now keeps the bottom tabs (Home, Friends, Inbox, Profile) away on the main feed until it ends. With Automatic clear display on, they could stay over the first video after TikTok was opened fresh. Other pages, like Inbox opened from a notification, keep their tabs.
+
+* **TikTok:** With Automatic clear display on and no delay, the next video stays cleared while you swipe to it, instead of showing its buttons, caption, progress bar and tabs for a moment (#84). Tapping Restore display still brings everything back.
+
+* **TikTok:** In Clear display, the search, place or product link under the caption can't be tapped by accident anymore. TikTok only faded it out, so a tap near the bottom of a video could open a search you couldn't see (#84).
+
+* **TikTok:** Clear display now also takes the Add comment bar off photos and videos you open from search or a profile, and Restore display brings it back (#84). Before, it stayed at the bottom unless Hide the comment bar on opened videos was on.
+
+* **TikTok:** With Hide the Clear display controls on, the progress bar is still there to drag, just invisible, so you can move through a video along the bottom edge without leaving Clear display (#84).
 
 * **TikTok:** Feature Gate Lab has 13 new reviewed presets for features other TikTok mods unlock by flag. There's repost with a comment, the profile banner with the new profile layout, live photo, camera and audio comments, comments saved to Favorites, comment sort and dislike styles, message bubble colors with the Inbox archive and sharing to more chats at once, Manage topics, visual search, AI Self, the long-press menu on every post, TikTok's own hold to speed up, its background play and auto-scroll, and post dates in the feed. Every preset was checked against 47.0.3, 47.1.3 and 47.1.4. Show See translation was 47.1.3 only and now covers all three. The list shows just the presets for the TikTok you have installed. Some of these features also depend on what TikTok's servers allow for your account.
 
 * **TikTok:** Remove ads now also catches creator posts TikTok runs as ads. They don't carry TikTok's ad flag, so they were getting through, but TikTok marks them in the post's commerce details and Hushfeed reads the same mark TikTok does. The filter report counts them under AdSignals. Skip the splash ad also stops the startup tasks that preload TopView takeover ads and ask the server for a real-time splash.
 
 * **TikTok:** Feed filter has a new Hide unpersonalized For You videos switch. It hides the fill-in videos TikTok pads For You with when it hasn't picked anything for you, the ones it sends from its for_you_page_999 pool with no reason attached. If a whole batch is fill-in, the batch stays, so the feed never stalls on it. The filter report counts each For You batch by the pool TikTok says it came from, next to how many the switch took out. Creator exceptions get through it the same way they get through the other preference filters.
+
+* **Docs:** The FAQ explains the pure black Profile and Inbox some people see without AMOLED dark theme. It comes from TikTok 47.1.4's own dark mode, and a build without that patch shows the same colors with Hushfeed paused (#69).
 
 ## 0.68.0 (2026-10-06)
 

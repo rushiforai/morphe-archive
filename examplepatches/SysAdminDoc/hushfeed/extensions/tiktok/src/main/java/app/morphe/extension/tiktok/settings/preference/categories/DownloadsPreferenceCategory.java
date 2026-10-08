@@ -8,6 +8,7 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 
 import android.content.Context;
 import android.preference.PreferenceScreen;
+import android.text.format.Formatter;
 
 import app.morphe.extension.tiktok.offline.CustomOfflineVideosLimitPatch;
 import app.morphe.extension.tiktok.settings.L10n;
@@ -21,6 +22,7 @@ import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 import app.morphe.extension.tiktok.download.DownloadDestination;
+import app.morphe.extension.tiktok.download.DownloadNamePreview;
 import app.morphe.extension.tiktok.download.ExternalDownloader;
 import app.morphe.extension.tiktok.download.SavedVideoArchive;
 
@@ -80,7 +82,7 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Video filename",
                     "Tokens: {creator}, {date}, {video_id}. Start with {creator}/ to give each creator a folder. The file extension is kept automatically.",
                     Settings.DOWNLOAD_VIDEO_FILENAME_TEMPLATE
-            ).withNameKeyboard());
+            ).withNameKeyboard().withPreview(DownloadNamePreview::video));
             addPreference(new InputTextPreference(
                     context,
                     "Photo filename",
@@ -89,14 +91,14 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "TikTok's own button is numbered by the folder instead. The file "
                             + "extension is kept automatically.",
                     Settings.DOWNLOAD_PHOTO_FILENAME_TEMPLATE
-            ).withNameKeyboard());
+            ).withNameKeyboard().withPreview(DownloadNamePreview::photo));
             if (SettingsStatus.downloadEnabled) {
                 addPreference(new InputTextPreference(
                         context,
                         "Comment media filename",
                         "Tokens: {date}, {media_id}. Works for image and video stickers.",
                         Settings.DOWNLOAD_COMMENT_MEDIA_FILENAME_TEMPLATE
-                ).withNameKeyboard());
+                ).withNameKeyboard().withPreview(DownloadNamePreview::commentMedia));
                 addPreference(new TogglePreference(
                         context,
                         "Remove watermark",
@@ -110,20 +112,40 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
             addPreference(new ChoicePreference(context, "Video download quality", Settings.DOWNLOAD_VIDEO_QUALITY,
                     new String[]{"Automatic", "Highest", "Lowest", "1080p", "720p", "540p", "480p", "360p"},
                     new String[]{"auto", "highest", "lowest", "1080", "720", "540", "480", "360"}));
+            addPreference(new TogglePreference(context, "Fall back to the watermarked copy",
+                    "When the video without the watermark can't be fetched, save TikTok's own watermarked copy instead and say so. It's the size TikTok's own save uses, so it may be smaller than the quality you picked.",
+                    Settings.DOWNLOAD_WATERMARK_FALLBACK));
             addPreference(new TogglePreference(context, "Save videos without sound",
                     "Leave the sound out of the saved video. Save the sound as well still writes "
                             + "the .m4a beside it if you want both.", Settings.DOWNLOAD_WITHOUT_SOUND));
             addPreference(new TogglePreference(context, "Save the sound as well",
                     "Write the video's sound beside it as an .m4a. Android 10 and later file audio separately, so it lands in Music under the same folder name as your videos.", Settings.DOWNLOAD_AUDIO_TRACK));
+            addPreference(new TogglePreference(context, "Save the cover as well",
+                    "Save the video's cover picture at the largest size TikTok has, each time you tap Download. It goes to your photo folder, named after the video.",
+                    Settings.DOWNLOAD_COVER));
             addPreference(new TogglePreference(context, "Show download progress",
                     "Show a progress bar while a video saves.", Settings.DOWNLOAD_PROGRESS));
             addPreference(new TogglePreference(context, "Save details beside the video",
                     "Save the caption, creator, link and publication date in a TXT file. On Android 10 and later, the pair uses Download or Documents under the same folder name. Applies to saves handled here.",
                     Settings.DOWNLOAD_DETAILS));
+            addPreference(new TogglePreference(context, "Save details as JSON",
+                    "Write the details file as JSON instead of plain text, for scripts and archive tools.",
+                    Settings.DOWNLOAD_DETAILS_JSON));
+            addPreference(new TogglePreference(context, "Tag saved videos with their details",
+                    "Write the caption, creator, publication date and link into the video file itself, where media players and tools like ffprobe can read them. Applies to saves handled here.",
+                    Settings.DOWNLOAD_TAGS));
             addPreference(new TogglePreference(context, "Check for already-saved videos",
                     L10n.f(context, "Remember up to %1$s video saves made here while this is on. If the file still exists, offer Open or Save again before downloading another copy.",
                             java.text.NumberFormat.getIntegerInstance().format(SavedVideoArchive.LIMIT)),
                     Settings.CHECK_SAVED_VIDEOS));
+            addPreference(new TogglePreference(context, "Mark saved videos",
+                    "Put a ✓ before the view count on profile grids, and before the time on a feed "
+                            + "video's creator row, for videos Hushfeed saved here. The feed's mark shows "
+                            + "wherever Always show publish date shows the time. "
+                            + "It reads the record Check for already-saved videos keeps, so it works only "
+                            + "while that switch is on. Photo posts aren't marked, and a video you've deleted "
+                            + "since keeps its mark until you use Forget saved videos.",
+                    Settings.MARK_SAVED_VIDEOS));
             addPreference(new ForgetSavedVideosPreference(context));
         }
         if (SettingsStatus.advancedDownloadsEnabled || SettingsStatus.downloadEnabled) {
@@ -132,6 +154,14 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
         if (SettingsStatus.advancedDownloadsEnabled) {
             addPreference(new TogglePreference(context, "Download original photos",
                     "Save every photo in the post at full size as a JPEG, not as the screen shows it.", Settings.DOWNLOAD_ORIGINAL_PHOTOS));
+            addPreference(new TogglePreference(context, "Save photo posts as a video",
+                    "Download video on a one-photo post makes the MP4 here, with the post's sound "
+                            + "and no TikTok logo or end card. On a post with several photos, Download "
+                            + "asks whether you want the photos you picked as full-size originals or "
+                            + "as one video.", Settings.DOWNLOAD_PHOTOS_AS_VIDEO));
+            addPreference(new NumberInputPreference(context, "Seconds per photo",
+                    "How long each photo stays on screen in a video made from a photo post.",
+                    Settings.PHOTO_VIDEO_SECONDS, "%1$s second", "%1$s seconds"));
         }
         if (SettingsStatus.downloadEnabled) {
             addPreference(new ChoicePreference(context, "Animated sticker format", Settings.DOWNLOAD_STICKER_FORMAT,
@@ -190,7 +220,12 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                     L10n.f(context, "Choose %1$d to %2$d videos. Values outside this range use the nearest valid limit. Restart TikTok to apply this.",
                             CustomOfflineVideosLimitPatch.MIN_LIMIT, CustomOfflineVideosLimitPatch.MAX_LIMIT),
                     Settings.CUSTOM_OFFLINE_VIDEO_LIMIT
-            ));
+            ) {
+                @Override protected String extraSummaryLine() {
+                    return L10n.f(getContext(), "About %1$s of storage at this limit", Formatter.formatShortFileSize(
+                            getContext(), CustomOfflineVideosLimitPatch.storageBytes(Settings.CUSTOM_OFFLINE_VIDEO_LIMIT.get())));
+                }
+            });
         }
     }
 }

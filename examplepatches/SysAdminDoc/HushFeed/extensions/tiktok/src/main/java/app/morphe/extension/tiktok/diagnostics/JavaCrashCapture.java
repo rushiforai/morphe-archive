@@ -15,6 +15,7 @@ import java.lang.reflect.Proxy;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.diagnostics.DebugCapture;
 import app.morphe.extension.shared.diagnostics.DiagnosticCategory;
 import app.morphe.extension.shared.diagnostics.DiagnosticEvent;
 import app.morphe.extension.shared.diagnostics.DiagnosticRedactor;
@@ -216,7 +217,7 @@ public final class JavaCrashCapture {
                 .append("package: ").append(context.getPackageName()).append('\n')
                 .append("tiktok_version: ").append(Utils.getAppVersionName()).append('\n')
                 .append("morphe_version: ").append(Utils.getPatchesReleaseVersion()).append('\n')
-                .append("diagnostic_logging: ").append(isEnabled(context, DEBUG_KEY)).append('\n')
+                .append("diagnostic_logging: ").append(isEnabled(context, DEBUG_KEY) || DebugCapture.isRunning()).append('\n')
                 .append("java_crash_capture: ").append(isEnabled(context, CAPTURE_KEY)).append('\n')
                 .append("android_api: ").append(Build.VERSION.SDK_INT).append('\n')
                 .append("abis: ").append(String.join(",", Build.SUPPORTED_ABIS)).append('\n')

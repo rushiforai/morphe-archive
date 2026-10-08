@@ -79,7 +79,7 @@ public class SaveProgressTest {
 
     private static void drainPool() throws Exception {
         for (int wait = 0; wait < 500; wait++) {
-            if (MediaJobScheduler.runningJobs() == 0 && MediaJobScheduler.queuedJobs() == 0) return;
+            if (MediaJobScheduler.idle()) return;
             Thread.sleep(10);
         }
         throw new IllegalStateException("the media pool never emptied");

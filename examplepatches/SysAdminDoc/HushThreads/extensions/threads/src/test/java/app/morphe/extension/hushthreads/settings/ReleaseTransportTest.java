@@ -96,7 +96,7 @@ public class ReleaseTransportTest {
             }
             String wire = server.request.get(5, TimeUnit.SECONDS);
             assertTrue(wire.startsWith("GET /latest?value=1 HTTP/1.1\r\n"));
-            assertTrue(wire.contains("User-Agent: HushThreads/0.0.11\r\n"));
+            assertTrue(wire.contains("User-Agent: HushThreads/0.0.12\r\n"));
             assertFalse(wire.toLowerCase().contains("cookie"));
             assertFalse(wire.contains("private"));
             assertSame(handler, CookieHandler.getDefault());
@@ -376,7 +376,7 @@ public class ReleaseTransportTest {
         Map<String, String> headers = new LinkedHashMap<>();
         headers.put("Accept", "application/vnd.github+json");
         headers.put("X-GitHub-Api-Version", "2022-11-28");
-        headers.put("User-Agent", "HushThreads/0.0.11");
+        headers.put("User-Agent", "HushThreads/0.0.12");
         return headers;
     }
 

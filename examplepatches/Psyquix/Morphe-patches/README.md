@@ -8,20 +8,20 @@ Reddit patches for the Morphe patcher, plus automation that tracks upstream Redd
 
 | Patch | What it does | Target |
 | ----- | ------------ | ------ |
-| Profile share actions | On user profile share sheets, adds [Copy username] (copies the bare username) and [Open ghostddit] (opens the profile on ghostddit). Profile-only; [Copy link] stays stock. | <!-- REDDIT-VERSION -->com.reddit.frontpage 2026.40.0 (exp)<!-- /REDDIT-VERSION --> |
+| Share profile as username | When you share a user profile page, it shares just the username instead of the full link. | <!-- REDDIT-VERSION -->com.reddit.frontpage 2026.40.0 (exp)<!-- /REDDIT-VERSION --> |
 
-### Profile share actions
+### Share profile as username
 
-- **ON:** on a profile share sheet (e.g. `https://www.reddit.com/user/rere`), two extra buttons appear: [Copy username] puts just `rere` in the clipboard, [Open ghostddit] opens `https://ghostddit.aeddit.com/user/rere/` in a browser.
-- **OFF:** stock behavior — only the stock share buttons are shown.
-- [Copy link] output is untouched (stock full profile URL, tracking junk included).
-- Anything that is not a user profile (posts, subreddits, comments) shows no new buttons.
+- **ON:** sharing a profile like `https://www.reddit.com/user/rere` puts just `rere` in the share sheet / clipboard.
+- **OFF:** stock behavior — the full profile URL is shared, unmodified.
+- Profile links with tracking junk (e.g. `https://www.reddit.com/user/rere/?utm_source=share`) are still shortened to `rere`.
+- Anything that is not a user profile (posts, subreddits, comments) is never touched.
 
 ## Compatibility
 
 - `com.reddit.frontpage` version <!-- REDDIT-VERSION -->2026.40.0<!-- /REDDIT-VERSION --> (experimental).
 - The pinned version lives in `reddit-target.txt` — it is the single source of truth. The version strings above update automatically (see below); never edit them by hand.
-- Backward-compatible with the experimental Reddits Morphed builds (currently 2026.40.0 / 2026.39.0).
+- Backward-compatible with the stable and experimental Reddits Morphed builds (currently 2026.24.0 / 2026.39.0) — same share-formatter hook as upstream's sanitize patch.
 
 ## How updates work (automatic)
 
@@ -36,6 +36,6 @@ Use this bundle alongside upstream patches, then scope with `|`-separated lists:
 
 ```toml
 patches-source = "'MorpheApp/morphe-patches' 'Psyquix/Morphe-patches'"
-excluded-patches = "Profile share actions | <other-patch>"
-included-patches = "Profile share actions | <other-patch>"
+excluded-patches = "Share profile as username | <other-patch>"
+included-patches = "Share profile as username | <other-patch>"
 ```

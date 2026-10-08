@@ -27,6 +27,8 @@ public class SettingsStatus {
     public static boolean autoAdvanceEnabled;
     public static void enableAutoAdvance() { autoAdvanceEnabled = true; }
     public static void enablePlaybackQuality() { playbackQualityEnabled = true; }
+    public static boolean sdrPlaybackEnabled;
+    public static void enableSdrPlayback() { sdrPlaybackEnabled = true; }
     public static boolean advancedDownloadsEnabled;
     public static void enableAdvancedDownloads() { advancedDownloadsEnabled = true; }
     public static boolean doubleTapEnabled;
@@ -104,7 +106,12 @@ public class SettingsStatus {
     public static boolean disableTelemetryEnabled = false;
     public static boolean hideFeedFollowButtonEnabled = false;
     public static boolean hideFeedSaveButtonEnabled = false;
+    public static boolean exactCountsEnabled = false;
+    public static boolean avatarRingsEnabled = false;
+    public static boolean lengthLimitsEnabled = false;
     public static boolean keepFavoritesTabEnabled = false;
+    public static boolean followStatusEnabled = false;
+    public static boolean copyIdsEnabled = false;
     public static boolean hideFeedLiveButtonEnabled = false;
     public static boolean hideFeedSearchButtonEnabled = false;
     public static boolean showSeekbarEnabled = false;
@@ -357,9 +364,29 @@ public class SettingsStatus {
         hideFeedSaveButtonEnabled = true;
     }
 
+    public static void enableExactCounts() {
+        exactCountsEnabled = true;
+    }
+
+    public static void enableAvatarRings() {
+        avatarRingsEnabled = true;
+    }
+
+    public static void enableLengthLimits() {
+        lengthLimitsEnabled = true;
+    }
+
     public static void enableKeepFavoritesTab() {
         keepFavoritesTabEnabled = true;
         app.morphe.extension.tiktok.favorites.FavoritesTab.installed();
+    }
+
+    public static void enableFollowStatus() {
+        followStatusEnabled = true;
+    }
+
+    public static void enableCopyIds() {
+        copyIdsEnabled = true;
     }
 
     public static void enableHideFeedLiveButton() {

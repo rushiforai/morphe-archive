@@ -1,0 +1,215 @@
+package app.morphe.extension.tiktok.interaction;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import android.app.Activity;
+import android.content.ClipboardManager;
+import android.content.Context;
+import android.os.Looper;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
+import com.ss.android.ugc.aweme.profile.model.User;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.RuntimeEnvironment;
+import org.robolectric.Shadows;
+import org.robolectric.android.controller.ActivityController;
+import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowToast;
+
+import java.util.List;
+
+import app.morphe.extension.shared.Utils;
+import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
+
+@RunWith(RobolectricTestRunner.class)
+@Config(manifest = Config.NONE, sdk = 28, qualifiers = "en")
+public class CopyIdsTest {
+    private ActivityController<Activity> owner;
+    private Activity activity;
+    private boolean previousSetting, previousStatus;
+
+    /** A video's share package, with the members the extension reads by name. */
+    public static class VideoPackage {
+        public String itemType = "aweme";
+        public Video aweme;
+    }
+
+    public static final class Video {
+        public String aid;
+
+        public String getAid() { return aid; }
+    }
+
+    public static class ProfilePackage {
+        public String itemType = "user";
+        public User user;
+    }
+
+    @Before public void setUp() {
+        Utils.setContext(RuntimeEnvironment.getApplication());
+        previousSetting = Settings.COPY_IDS.get();
+        previousStatus = SettingsStatus.copyIdsEnabled;
+        Settings.COPY_IDS.save(true);
+        SettingsStatus.copyIdsEnabled = true;
+        owner = Robolectric.buildActivity(Activity.class).setup();
+        activity = owner.get();
+    }
+
+    @After public void tearDown() {
+        Settings.COPY_IDS.save(previousSetting);
+        SettingsStatus.copyIdsEnabled = previousStatus;
+        CopyIds.onSharePackage(null);
+        if (owner != null) owner.close();
+    }
+
+    @Test public void aProfileSheetCopiesTheUsernameAndUserIdAndAVideoSheetItsId() {
+        List<CopyIds.Target> profile = CopyIds.targetsOf(profile("6812345678901234567", "nasa"));
+        assertEquals(2, profile.size());
+        assertEquals(CopyIds.COPY_USERNAME, profile.get(0).label);
+        assertEquals("nasa", profile.get(0).text);
+        assertEquals(CopyIds.COPY_USER_ID, profile.get(1).label);
+        assertEquals("6812345678901234567", profile.get(1).text);
+
+        List<CopyIds.Target> video = CopyIds.targetsOf(video("7312345678901234567"));
+        assertEquals(1, video.size());
+        assertEquals(CopyIds.COPY_VIDEO_ID, video.get(0).label);
+        assertEquals("7312345678901234567", video.get(0).text);
+
+        assertTrue("a profile without an account", CopyIds.targetsOf(new ProfilePackage()).isEmpty());
+        assertTrue("a sheet for something else", CopyIds.targetsOf(new Object()).isEmpty());
+        assertTrue(CopyIds.targetsOf(null).isEmpty());
+    }
+
+    @Test public void longPressingTheBioCopiesWhatItWasBoundWith() {
+        TextView bio = new TextView(activity);
+        bio.setText("Exploring the universe... more");
+        activity.setContentView(bio);
+
+        CopyIds.onBio(bio, "Exploring the universe and our home planet");
+        assertTrue(bio.performLongClick());
+        assertEquals("Exploring the universe and our home planet", clip());
+        assertEquals("Bio copied", ShadowToast.getTextOfLatestToast());
+
+        Settings.COPY_IDS.save(false);
+        clipboard().setPrimaryClip(android.content.ClipData.newPlainText("before", "before"));
+        assertFalse("the switch is read at the press", bio.performLongClick());
+        assertEquals("before", clip());
+    }
+
+    @Test public void anOffSwitchLeavesTheBioAlone() {
+        Settings.COPY_IDS.save(false);
+        TextView bio = new TextView(activity);
+        CopyIds.onBio(bio, "Hello");
+        assertFalse(bio.isLongClickable());
+    }
+
+    @Test public void theSheetGetsAButtonRowThatMovesTheActionsUpAndGoesAwayAgain() {
+        FrameLayout panel = panel();
+        View actions = panel.getChildAt(0);
+
+        CopyIds.onSharePackage(profile("6812345678901234567", "nasa"));
+        CopyIds.onSharePanel(panel);
+        idle();
+
+        assertEquals(2, panel.getChildCount());
+        LinearLayout row = (LinearLayout) panel.getChildAt(1);
+        assertEquals(CopyIds.ROW_TAG, row.getTag());
+        assertEquals(2, row.getChildCount());
+        assertEquals("Copy username", ((TextView) row.getChildAt(0)).getText().toString());
+        int moved = ((ViewGroup.MarginLayoutParams) actions.getLayoutParams()).bottomMargin;
+        assertTrue("the action list makes room for the row", moved > 0);
+
+        assertTrue(row.getChildAt(1).performClick());
+        assertEquals("6812345678901234567", clip());
+        assertEquals("User ID copied", ShadowToast.getTextOfLatestToast());
+
+        // The same panel attached again for a video reuses the row.
+        CopyIds.onSharePackage(video("7312345678901234567"));
+        CopyIds.onSharePanel(panel);
+        idle();
+        assertEquals(2, panel.getChildCount());
+        assertEquals(1, row.getChildCount());
+        assertEquals("Copy video ID", ((TextView) row.getChildAt(0)).getText().toString());
+        assertTrue(row.getChildAt(0).performClick());
+        assertEquals("7312345678901234567", clip());
+        assertEquals("Video ID copied", ShadowToast.getTextOfLatestToast());
+
+        // A sheet with nothing to copy hides the row and gives the actions their margin back.
+        CopyIds.onSharePackage(new Object());
+        CopyIds.onSharePanel(panel);
+        idle();
+        assertEquals(View.GONE, row.getVisibility());
+        assertEquals(0, ((ViewGroup.MarginLayoutParams) actions.getLayoutParams()).bottomMargin);
+    }
+
+    @Test public void anOffSwitchAddsNoRow() {
+        Settings.COPY_IDS.save(false);
+        FrameLayout panel = panel();
+        CopyIds.onSharePackage(video("7312345678901234567"));
+        CopyIds.onSharePanel(panel);
+        idle();
+        assertEquals(1, panel.getChildCount());
+        assertEquals(0, ((ViewGroup.MarginLayoutParams) panel.getChildAt(0).getLayoutParams()).bottomMargin);
+    }
+
+    @Test public void somethingOtherThanTheFrameIsLeftAlone() {
+        LinearLayout notAPanel = new LinearLayout(activity);
+        CopyIds.onSharePackage(video("7312345678901234567"));
+        CopyIds.onSharePanel(notAPanel);
+        CopyIds.onSharePanel(null);
+        idle();
+        assertEquals(0, notAPanel.getChildCount());
+        assertNull(notAPanel.getTag());
+    }
+
+    private FrameLayout panel() {
+        FrameLayout panel = new FrameLayout(activity);
+        TextView actions = new TextView(activity);
+        actions.setText("Report");
+        panel.addView(actions, new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        activity.setContentView(panel);
+        return panel;
+    }
+
+    private static ProfilePackage profile(String uid, String handle) {
+        ProfilePackage sharePackage = new ProfilePackage();
+        sharePackage.user = new User();
+        sharePackage.user.uid = uid;
+        sharePackage.user.uniqueId = handle;
+        return sharePackage;
+    }
+
+    private static VideoPackage video(String aid) {
+        VideoPackage sharePackage = new VideoPackage();
+        sharePackage.aweme = new Video();
+        sharePackage.aweme.aid = aid;
+        return sharePackage;
+    }
+
+    private ClipboardManager clipboard() {
+        return (ClipboardManager) activity.getSystemService(Context.CLIPBOARD_SERVICE);
+    }
+
+    private String clip() {
+        return clipboard().getPrimaryClip().getItemAt(0).getText().toString();
+    }
+
+    private static void idle() {
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+    }
+}

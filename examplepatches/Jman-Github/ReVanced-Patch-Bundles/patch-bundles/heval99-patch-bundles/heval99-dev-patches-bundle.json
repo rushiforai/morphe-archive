@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-10-06T18:49:28",
-  "description": "## [1.9.0-dev.3](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.9.0-dev.2...v1.9.0-dev.3) (2026-10-06)\n\n### \ud83d\udc1b Bug Fixes\n\n* **aquamail:** return a licensed snapshot from getLicenseData (issue [#16](https://github.com/heval99/Heval-Morphe-Patches/issues/16)) ([be33ed5](https://github.com/heval99/Heval-Morphe-Patches/commit/be33ed5c55f2537b9dcceb2fad1330a6abec812f))\n",
-  "download_url": "https://github.com/heval99/Heval-Morphe-Patches/releases/download/v1.9.0-dev.3/patches-1.9.0-dev.3.mpp",
+  "created_at": "2026-10-07T19:51:53",
+  "description": "## [1.12.0-dev.1](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.11.1-dev.1...v1.12.0-dev.1) (2026-10-07)\n\n### \u2728 New Features\n\n* **brave:** add experimental Disable telemetry, Disable ads and Hide promotional prompts patches ([e12fc36](https://github.com/heval99/Heval-Morphe-Patches/commit/e12fc369543df1a009ecdcc40b4147a7f05df15e))\n",
+  "download_url": "https://github.com/heval99/Heval-Morphe-Patches/releases/download/v1.12.0-dev.1/patches-1.12.0-dev.1.mpp",
   "signature_download_url": "N/A",
-  "version": "v1.9.0-dev.3"
+  "version": "v1.12.0-dev.1"
 }

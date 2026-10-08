@@ -1,3 +1,11 @@
+# ============ HUSHFEED PATCH OPTIONS ============
+# Custom values for Hushfeed patches. Keys are matched safely; if the key name
+# is wrong and the patch has a single option, the value is applied there and
+# the real key is printed in the build log.
+hushfeed_options:
+  - name: "Remove unused language packs"
+    options:
+      Languages to keep : "en"
 # Nai64ExtraPatches_Options.yaml
 # PRIORITY RULE: Hushfeed wins. Any Nai64 patch overlapping a Hushfeed patch
 # is disabled below so Hushfeed owns that surface.

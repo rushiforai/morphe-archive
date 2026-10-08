@@ -2,7 +2,7 @@
 
 Changes in the source build, then released versions.
 
-## Unreleased
+## 0.0.12 (2026-10-07)
 
 * **Threads:** New Trust user-added certificates patch, not selected by default. Threads accepts certificates you've installed on your phone yourself, such as one a work network needs or a debugging proxy's, wherever it relies on Android's own certificate checks. Threads' network code checks Meta's certificates on its own as well and this patch doesn't change that, so a proxy still can't read most of Threads' traffic to Meta. HushThreads settings list it under Set when you patched.
 * **Tooling:** A fixture test decodes the network security config of 450, 449 and 448 and checks that the user entry lands in its base trust anchors and nothing else in the file changes.

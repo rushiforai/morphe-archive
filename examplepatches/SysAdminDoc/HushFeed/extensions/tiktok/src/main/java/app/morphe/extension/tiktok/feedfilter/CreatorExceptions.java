@@ -27,8 +27,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * id, and a post of theirs that only a filter in {@link #SUBJECTIVE} would hide stays in the
  * feed. Every filter in {@link #HARD} still hides it: what the reader blocked by name (a
  * creator, a caption word, a sound, a country), ads and commerce, LIVE and the other
- * interruptions, and videos already watched. An exception never reaches those, so listing
- * an account the block list also names changes nothing, and the settings row says so.
+ * interruptions, and videos already watched or saved for offline. An exception never reaches
+ * those, so listing an account the block list also names changes nothing, and the settings row
+ * says so.
  *
  * <p>Entries are exact. A pattern between slashes is refused by the editor and, should one
  * arrive in a backup, matches nobody; so does anything with a space in it, which is a display
@@ -59,7 +60,7 @@ public final class CreatorExceptions {
     /**
      * The filters no exception reaches. Blocks the reader made by name, ads and everything
      * sold (Shop, paid partnerships, promotional music, paid Series and dramas, the cards
-     * between videos), LIVE and its replays, and videos already watched.
+     * between videos), LIVE and its replays, and videos already watched or saved for offline.
      */
     static final Set<Class<? extends IFilter>> HARD = Set.of(
             AdsFilter.class,
@@ -71,7 +72,9 @@ public final class CreatorExceptions {
             ContentMarkerFilters.DramaFilter.class,
             CardFilters.InsertedCardFilter.class,
             SeenVideoFilter.class,
+            OfflineVideoFilter.class,
             AdvancedFeedRules.KeywordFilter.class,
+            AdvancedFeedRules.StickerTextFilter.class,
             AdvancedFeedRules.CreatorFilter.class,
             AdvancedFeedRules.PromotionalMusicFilter.class,
             AdvancedFeedRules.LiveReplayFilter.class,

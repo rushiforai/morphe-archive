@@ -5,8 +5,13 @@
 package app.morphe.extension.facebook.settings;
 
 import android.app.Activity;
+import android.content.res.ColorStateList;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.SystemClock;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
+import app.morphe.extension.facebook.misc.WindowsAbove;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 /**
@@ -26,9 +32,9 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
  * with, and each of them counts itself in Hook status. On some accounts the Reels tab counts
  * neither, so its buttons come from something else, and nothing in the app's code says what. Each
  * time a Facebook screen pauses, this follows two points at its right edge from the window's root
- * down to the view under each, and keeps each view's class and resource name. Leave Facebook from
- * a reel and the next report says what draws its buttons. No text or description on the screen is
- * read.
+ * down to the view under each, and keeps each view's class, resource name and background. Leave
+ * Facebook from a reel and the next report says what draws its buttons, or from a sheet and it says
+ * which view paints its colour. No text or description on the screen is read.
  *
  * <p>It's read on the way out rather than when the settings open, because the intent that opens
  * them from the launcher makes Facebook build its screen again, and by then the reel is gone.
@@ -48,6 +54,9 @@ final class LastScreen {
 
     /** Walks written for each point: the first, and the ones under a layer that drew nothing there. */
     private static final int MAX_WALKS = 3;
+
+    /** Windows read above the screen's own, a sheet and a dialog over it, say. */
+    private static final int MAX_WINDOWS_ABOVE = 2;
 
     private static final class Reading {
         final String screen;
@@ -71,15 +80,22 @@ final class LastScreen {
 
     private LastScreen() {}
 
-    /** Reads the activity's window as it pauses, on the main thread. Never throws. */
+    /**
+     * Reads the activity's window as it pauses, on the main thread, after the windows it has open
+     * above it, a sheet or a dialog, top one first ({@link WindowsAbove}). Never throws.
+     */
     static void read(Activity activity) {
         long now = SystemClock.elapsedRealtime();
         String screen = activity.getClass().getSimpleName();
-        List<String> paths;
+        List<String> paths = new ArrayList<>();
         try {
-            paths = describe(activity.getWindow().getDecorView());
+            View decor = activity.getWindow().getDecorView();
+            for (View window : WindowsAbove.of(activity, decor, MAX_WINDOWS_ABOVE)) {
+                for (String path : describe(window)) paths.add("window above: " + path);
+            }
+            paths.addAll(describe(decor));
         } catch (Throwable failure) {
-            paths = Collections.singletonList("could not be read: " + failure.getClass().getSimpleName());
+            paths.add("could not be read: " + failure.getClass().getSimpleName());
         }
         last = new Reading(screen, paths, now);
     }
@@ -137,8 +153,9 @@ final class LastScreen {
      * <p>A walk that ends in a group whose children all miss the point found a layer that draws
      * nothing there: 580 lays an empty full-window frame over the whole feed. Then the walk goes
      * back up to the nearest view with another child under the point and down again from it, and
-     * that walk comes next, up to {@link #MAX_WALKS}. A group with no children at all ends a walk
-     * for good, since it draws what's there itself.
+     * that walk comes next, up to {@link #MAX_WALKS}. A group with no children ends a walk for good
+     * when it paints a background. Without one it may draw nothing there, like the empty LithoView
+     * 581 lays over the comment list, so the walk under it comes next as well.
      */
     static List<String> walks(View root, float x, float y) {
         List<String> out = new ArrayList<>();
@@ -158,9 +175,11 @@ final class LastScreen {
             }
             boolean deadEnd = steps.size() < MAX_DEPTH && last.view instanceof ViewGroup
                     && ((ViewGroup) last.view).getChildCount() > 0;
+            boolean bare = steps.size() > 1 && steps.size() < MAX_DEPTH && last.view instanceof ViewGroup
+                    && ((ViewGroup) last.view).getChildCount() == 0 && last.view.getBackground() == null;
             out.add(path(steps) + (deadEnd ? children((ViewGroup) last.view,
                     last.x + last.view.getScrollX(), last.y + last.view.getScrollY()) : ""));
-            if (!deadEnd) break;
+            if (!deadEnd && !bare) break;
             steps.remove(steps.size() - 1);
             while (!steps.isEmpty()) {
                 Step back = steps.get(steps.size() - 1);
@@ -190,9 +209,10 @@ final class LastScreen {
     private static String path(List<Step> steps) {
         StringBuilder text = new StringBuilder();
         for (int i = 0; i < steps.size(); ) {
-            String name = name(steps.get(i).view);
+            String name = name(steps.get(i).view) + background(steps.get(i).view);
             int run = 1;
-            while (i + run < steps.size() && name(steps.get(i + run).view).equals(name)) run++;
+            while (i + run < steps.size()
+                    && (name(steps.get(i + run).view) + background(steps.get(i + run).view)).equals(name)) run++;
             if (text.length() > 0) text.append(" > ");
             text.append(name);
             if (run > 1) text.append(" x").append(run);
@@ -216,10 +236,31 @@ final class LastScreen {
             child.getHitRect(hit);
             String state = child.getVisibility() == View.VISIBLE ? (child.getAlpha() <= 0f ? "clear" : "shown")
                     : child.getVisibility() == View.INVISIBLE ? "invisible" : "gone";
-            text.append(String.format(Locale.ROOT, " %s %s [%d,%d %dx%d]",
-                    name(child), state, hit.left, hit.top, hit.width(), hit.height()));
+            text.append(String.format(Locale.ROOT, " %s%s %s [%d,%d %dx%d]",
+                    name(child), background(child), state, hit.left, hit.top, hit.width(), hit.height()));
         }
         return text.toString();
+    }
+
+    /**
+     * What [view] paints behind itself, after its name: nothing without a background, " {#RRGGBB}"
+     * for a plain colour (#AARRGGBB when it's see-through), and otherwise the drawable's class, a
+     * framework one by its simple name, with a shape's fill colour. That's how a report says which
+     * view paints a colour a theme missed (#37).
+     */
+    static String background(View view) {
+        Drawable background = view.getBackground();
+        if (background == null) return "";
+        if (background instanceof ColorDrawable) return " {" + colour(((ColorDrawable) background).getColor()) + "}";
+        String type = background.getClass().getName();
+        type = type.startsWith("android.graphics.drawable.") ? background.getClass().getSimpleName() : type;
+        ColorStateList fill = background instanceof GradientDrawable ? ((GradientDrawable) background).getColor() : null;
+        return " {" + type + (fill != null ? " " + colour(fill.getDefaultColor()) : "") + "}";
+    }
+
+    private static String colour(int color) {
+        return Color.alpha(color) == 0xFF ? String.format(Locale.ROOT, "#%06X", color & 0xFFFFFF)
+                : String.format(Locale.ROOT, "#%08X", color);
     }
 
     /** A framework class by its simple name, anything else in full; then the resource name, if the id has one. */

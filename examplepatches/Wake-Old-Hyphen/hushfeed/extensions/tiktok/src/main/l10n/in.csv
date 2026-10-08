@@ -562,7 +562,7 @@ Hide stories from the feed.,Sembunyikan Story dari feed.
 Hide this creator on this phone,Sembunyikan kreator ini di ponsel ini
 Hide verified accounts,Sembunyikan akun terverifikasi
 Hide video actions,Sembunyikan aksi video
-Hide videos carrying TikTok's AI-generated label.,Sembunyikan video dengan label buatan AI dari TikTok.
+"Hide videos with TikTok's AI-generated label, AI content credentials, a TikTok AI effect such as AI Alive, or a tag like #ai or #aigenerated.","Sembunyikan video dengan label AI dari TikTok, kredensial konten AI, efek AI TikTok seperti AI Alive, atau tagar seperti #ai atau #aigenerated."
 Hide videos marked as paid partnership or branded content.,Sembunyikan video yang ditandai sebagai kemitraan berbayar atau konten bermerek.
 Hide videos posted as part of a playlist.,Sembunyikan video yang diunggah sebagai bagian dari playlist.
 Hide videos posted by verified accounts.,Sembunyikan video yang diunggah akun terverifikasi.
@@ -1483,7 +1483,7 @@ LIVE followers range,Rentang pengikut LIVE
 Show only LIVEs from creators with this many followers.,Hanya tampilkan LIVE dari kreator dengan jumlah pengikut sebanyak ini.
 Hide the comment bar on opened videos,Sembunyikan bilah komentar di video yang dibuka
 Hide the Clear display controls,Sembunyikan kontrol Tampilan bersih
-"While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. To leave Clear display, press and hold the video and tap Restore display.","Saat Tampilan bersih aktif, sembunyikan juga bilah progres, tombol tutup, serta tombol jeda dan kecepatan di bagian bawah. Untuk keluar dari Tampilan bersih, tekan lama video lalu ketuk Pulihkan tampilan."
+"While Clear display is on, also hide the progress bar, the close button and the pause and speed buttons at the bottom. You can still drag along the bottom edge to move through the video. To leave Clear display, press and hold the video and tap Restore display.","Saat Tampilan bersih aktif, sembunyikan juga bilah progres, tombol tutup, serta tombol jeda dan kecepatan di bagian bawah. Kamu tetap bisa menggeser di sepanjang tepi bawah untuk berpindah di dalam video. Untuk keluar dari Tampilan bersih, tekan lama video lalu ketuk Pulihkan tampilan."
 "Take the Add comment bar off videos you open from a profile, a hashtag, a sound or search, so the video fills the screen down to the bottom. The comment button on the right still opens comments.","Sembunyikan bilah untuk menulis komentar di video yang kamu buka dari profil, hashtag, suara, atau pencarian, agar video memenuhi layar sampai ke bawah. Tombol komentar di kanan tetap membuka komentar."
 Build details,Detail build
 Copy or save patch-time choices and build identity.,Salin atau simpan pilihan saat patch diterapkan dan identitas build.
@@ -1538,3 +1538,29 @@ Long-press menu on every post,Menu tekan lama di setiap postingan
 TikTok's hold to speed up,Tahan untuk mempercepat dari TikTok
 TikTok's background play and auto-scroll,Putar di latar belakang dan gulir otomatis dari TikTok
 Post dates in the feed,Tanggal postingan di feed
+Show exact counts,Tampilkan angka persis
+"Show counts as full numbers, like 1,234,567 instead of 1.2M.","Tampilkan angka secara lengkap, misalnya 1.234.567, bukan 1.2M."
+Play SDR instead of HDR,"Putar SDR, bukan HDR"
+"Play the standard version of videos that also come in HDR, so the screen doesn't jump to full brightness when one starts. Videos TikTok only offers in HDR still play.","Putar versi biasa dari video yang juga tersedia dalam HDR, agar layar tidak melonjak ke kecerahan penuh saat video dimulai. Video yang hanya ditawarkan TikTok dalam HDR tetap diputar."
+Remove story rings,Hapus cincin cerita
+"Take the story ring off profile pictures on the feed, in comments and on profiles. Tapping a picture opens the profile instead of the story.","Hapus cincin cerita dari foto profil di feed, di komentar, dan di profil. Mengetuk foto akan membuka profil, bukan ceritanya."
+Remove the LIVE ring,Hapus cincin LIVE
+Take the pulsing LIVE ring off profile pictures on the feed and in comments. Tapping the picture of a creator who's live opens their profile instead of the LIVE.,"Hapus cincin LIVE yang berdenyut dari foto profil di feed dan di komentar. Mengetuk foto kreator yang sedang live akan membuka profilnya, bukan LIVE-nya."
+Writing,Menulis
+Lift text length limits,Lepas batas panjang teks
+"Let comments, repost notes and your bio run past the length TikTok's app stops at. TikTok's servers can still turn down a long one.","Biarkan komentar, catatan repost, dan bio kamu melewati panjang yang dibatasi aplikasi TikTok. Server TikTok tetap bisa menolak teks yang panjang."
+Show only mutual friends on the Friends tab,Hanya tampilkan teman yang saling mengikuti di tab Teman
+"On the Friends tab, hide posts, reposts and LIVEs from accounts that aren't a mutual follow, suggested accounts included. Your own posts stay.","Di tab Teman, sembunyikan postingan, repost, dan LIVE dari akun yang tidak saling mengikuti dengan Anda, termasuk akun yang disarankan. Postingan Anda sendiri tetap ada."
+Show follow status,Tampilkan status mengikuti
+"Under the @username on a profile, say whether it follows you or doesn't follow you back. Follower and following lists mark the accounts you follow that don't follow you back.","Di bawah @nama pengguna pada profil, tampilkan apakah akun itu mengikuti Anda atau tidak mengikuti balik. Daftar pengikut dan yang diikuti menandai akun yang Anda ikuti tetapi tidak mengikuti balik."
+Follows you,Mengikuti Anda
+Doesn't follow you back,Tidak mengikuti balik
+Copy bio and IDs,Salin bio dan ID
+"Long-press a bio to copy it. A profile's share sheet gets buttons that copy its username and user ID, and a video's share sheet one that copies the video ID.","Tekan lama bio untuk menyalinnya. Lembar bagikan profil mendapat tombol untuk menyalin nama pengguna dan ID penggunanya, dan lembar bagikan video mendapat tombol untuk menyalin ID video."
+Bio copied,Bio disalin
+Username copied,Nama pengguna disalin
+User ID copied,ID pengguna disalin
+Video ID copied,ID video disalin
+Copy username,Salin nama pengguna
+Copy user ID,Salin ID pengguna
+Copy video ID,Salin ID video

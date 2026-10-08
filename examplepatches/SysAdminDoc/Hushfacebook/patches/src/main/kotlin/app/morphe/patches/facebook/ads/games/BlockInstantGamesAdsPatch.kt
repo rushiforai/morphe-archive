@@ -42,7 +42,14 @@ val blockInstantGamesAdsPatch = bytecodePatch(
             "$PATCH: expected ${bridge.type} to reject a promise through one (String, String, String) method calling " +
                 "the call holding \"$REJECT_LOG\" (${rejects.size} found)",
         )
-        mutableClassDefBy(bridge.type).findMutableMethodOf(bridge.methods.single(::isPostMessage)).answerAdsWithNoAd(reject)
+        val resolves = classDefByStrings(RESOLVE_LOG, StringComparisonType.EQUALS)
+            .flatMap { owner -> owner.methods.filter(::isResolvePromise) }
+        val resolve = resolveOn(bridge, resolves).singleOrNull() ?: throw PatchException(
+            "$PATCH: expected ${bridge.type} to resolve a promise through one (String, Object) method calling " +
+                "the call holding \"$RESOLVE_LOG\" (${resolves.size} found)",
+        )
+        mutableClassDefBy(bridge.type).findMutableMethodOf(bridge.methods.single(::isPostMessage))
+            .answerAdsWithNoAd(reject, resolve)
         enableStatus("gameAds")
     }
 }

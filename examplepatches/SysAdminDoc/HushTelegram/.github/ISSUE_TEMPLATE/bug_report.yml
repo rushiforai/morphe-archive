@@ -112,6 +112,14 @@ body:
         - Hide sender names when forwarding
         - Voice messages in the music player
         - Silence people outside your contacts
+        - Disable pull to archive
+        - Start the camera on the rear lens
+        - Hide gallery camera tile
+        - Hide time on stickers
+        - Ignore mentions in muted chats
+        - Hide blocked users in groups
+        - Hide Telegram Features and Invite Friends
+        - Add Repeat to the message menu
         - Strip link tracking
         - HushTelegram settings
     validations:

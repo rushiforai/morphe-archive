@@ -107,6 +107,12 @@ This repository contains high-quality, actively maintained patches for popular A
 <summary>📦 com.tinder&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
+**🎯 Supported versions:**
+
+| 17.34.1 |
+| :---: |
+
+
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Tinder Remove Ads](#tinder-remove-ads) | Remove os anúncios exibidos entre os perfis do deck de swipe. |  |

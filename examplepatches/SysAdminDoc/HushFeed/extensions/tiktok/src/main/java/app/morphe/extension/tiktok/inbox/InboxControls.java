@@ -22,6 +22,16 @@ public final class InboxControls {
         return !Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS.get();
     }
 
+    /** Answers the sticker suggestion banner's enable check in a chat. */
+    public static boolean shouldShowChatStickerBanner() {
+        return !Settings.HIDE_CHAT_STICKER_BANNER.get();
+    }
+
+    /** Answers the enable check of TikTok's suggested reply cells and their intro banner. */
+    public static boolean shouldShowChatAiReplies() {
+        return !Settings.HIDE_CHAT_AI_REPLIES.get();
+    }
+
     public static boolean shouldCollapseActivityList(boolean original) {
         return original && !Settings.EXPAND_ACTIVITY_LIST.get();
     }

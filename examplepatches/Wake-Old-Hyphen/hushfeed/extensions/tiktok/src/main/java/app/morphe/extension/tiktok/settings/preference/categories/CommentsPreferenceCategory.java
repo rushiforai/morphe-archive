@@ -31,7 +31,8 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.hideCommentQuickReactionsEnabled
                 || SettingsStatus.copyCommentsWithoutUsernameEnabled
                 || SettingsStatus.hideCommentEggsEnabled
-                || SettingsStatus.commentSortControlsEnabled;
+                || SettingsStatus.commentSortControlsEnabled
+                || SettingsStatus.lengthLimitsEnabled;
     }
 
     @Override
@@ -196,6 +197,16 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "disliking. The comment dims, an undo banner follows, and a second tap "
                             + "unblocks.",
                     Settings.BLOCK_FROM_COMMENT
+            ));
+        }
+        if (SettingsStatus.lengthLimitsEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Writing"));
+            addPreference(new TogglePreference(
+                    context,
+                    "Lift text length limits",
+                    "Let comments, repost notes and your bio run past the length TikTok's app stops at. "
+                            + "TikTok's servers can still turn down a long one.",
+                    Settings.LIFT_LENGTH_LIMITS
             ));
         }
     }

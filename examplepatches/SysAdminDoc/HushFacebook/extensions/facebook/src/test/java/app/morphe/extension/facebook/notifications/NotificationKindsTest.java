@@ -39,7 +39,8 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * The hook before Facebook posts a push notification: every switch starts off, each one blocks
  * only its own kinds, the kinds people rely on (messages, friend requests, comments, mentions,
  * calls, login alerts) and any kind it doesn't know always post, and so does everything while
- * paused or before the settings are ready.
+ * paused or before the settings are ready. Quiet hours, off to start, holds the picked kinds only
+ * between its two hours.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -47,27 +48,32 @@ public class NotificationKindsTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     /**
-     * Kinds that must never be blocked, by the constant names Facebook gives them on 577 and 580:
-     * messages, friend requests, comments, replies and mentions on your content, calls, events,
-     * payments and every login or security alert, and the kind Facebook falls back to for a type
-     * it doesn't know.
+     * Kinds that must never be blocked, by the constant names Facebook gives them on 577, 580 and
+     * 581: messages, friend requests, comments, replies and mentions on your content, calls,
+     * payments and every login or security alert, and the kind Facebook falls back to for a type it
+     * doesn't know.
      */
     static final List<String> ALWAYS_POST = Arrays.asList(
             "MSG", "ORCA_MESSAGE", "ORCA_FRIEND_MSG", "MESSAGE_REQUEST", "MESSAGING_IN_BLUE_DIRECT_MESSAGE",
             "MESSAGING_IN_BLUE_SUBSEQUENT_MESSAGE", "FRIEND", "FRIEND_CONFIRMED", "FEED_COMMENT",
             "COMMENT_MENTION", "MENTION", "MENTIONS_COMMENT", "GROUP_COMMENT", "GROUP_COMMENT_REPLY",
-            "GROUP_COMMENT_MENTION", "GROUP_POST_MENTION", "PHOTO_COMMENT", "VIDEO_COMMENT", "WALL", "LIKE",
-            "EVENT_INVITE", "P2P_PAYMENT", "VOIP", "WEBRTC_VOIP_CALL", "LOGIN_APPROVALS_PUSH_AUTH",
+            "GROUP_COMMENT_MENTION", "GROUP_POST_MENTION", "PHOTO_COMMENT", "VIDEO_COMMENT", "WALL",
+            "P2P_PAYMENT", "VOIP", "WEBRTC_VOIP_CALL", "LOGIN_APPROVALS_PUSH_AUTH",
             "HOTP_LOGIN_APPROVALS", "PLATFORM_LOGIN_APPROVAL", "LA_PUSH_AUTHENTICATE", "AUTHENTICATION_FAILED",
-            "DEVICE_REQUEST", "GROUP_ACTIVITY", "LIVE_VIDEO_EXPLICIT", "DEFAULT_PUSH_OF_JEWEL_NOTIF", "UNKNOWN");
+            "DEVICE_REQUEST", "DEFAULT_PUSH_OF_JEWEL_NOTIF", "UNKNOWN");
 
-    /** The seven switches, in the order the settings screen shows them. Settings loads with the context, so not static. */
+    /**
+     * The eleven switches that each block kinds, in the order the settings screen shows them.
+     * Settings loads with the context, so not static.
+     */
     private static List<BooleanSetting> switches() {
         return Arrays.asList(
                 Settings.BLOCK_TRENDING_VIDEO_NOTIFICATIONS, Settings.BLOCK_MEMORY_NOTIFICATIONS,
                 Settings.BLOCK_BIRTHDAY_NOTIFICATIONS, Settings.BLOCK_HIGHLIGHT_NOTIFICATIONS,
                 Settings.BLOCK_PEOPLE_YOU_MAY_KNOW_NOTIFICATIONS, Settings.BLOCK_NEARBY_NOTIFICATIONS,
-                Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS);
+                Settings.BLOCK_ACCOUNT_SETUP_NOTIFICATIONS, Settings.BLOCK_GROUP_ACTIVITY_NOTIFICATIONS,
+                Settings.BLOCK_EVENT_NOTIFICATIONS, Settings.BLOCK_LIVE_VIDEO_NOTIFICATIONS,
+                Settings.BLOCK_REACTION_NOTIFICATIONS);
     }
 
     @Before
@@ -84,9 +90,21 @@ public class NotificationKindsTest {
         Settings.MARKETPLACE_ONLY.resetToDefault();
         Settings.MARKETPLACE_QUIET_NOTIFICATIONS.resetToDefault();
         for (BooleanSetting setting : switches()) setting.resetToDefault();
+        Settings.NOTIFICATION_QUIET_HOURS.resetToDefault();
+        Settings.QUIET_HOURS_FROM.resetToDefault();
+        Settings.QUIET_HOURS_UNTIL.resetToDefault();
+        NotificationKinds.hourOfDay = CLOCK;
         NotificationKindsForTests.newProcess();
         FeedFilterCounters.clear();
         HookStatus.clear();
+    }
+
+    /** The phone's clock, put back after a test sets its own hour. */
+    private static final java.util.function.IntSupplier CLOCK = NotificationKinds.hourOfDay;
+
+    /** Every push from here on arrives at [hour] o'clock. */
+    private static void at(int hour) {
+        NotificationKinds.hourOfDay = () -> hour;
     }
 
     private static void allOn() {
@@ -109,13 +127,120 @@ public class NotificationKindsTest {
         }
     }
 
-    /** The family's switches are exactly the ones the kinds map to, and each has kinds of its own. */
+    /**
+     * The family's switches are exactly the ones the kinds map to, each with kinds of its own, and
+     * Quiet hours last.
+     */
     @Test
     public void everySwitchHasItsKindsAndEveryKindItsSwitch() {
         Set<BooleanSetting> reached = new HashSet<>();
         for (String kind : NotificationKinds.KINDS.keySet()) reached.add(NotificationKinds.switchFor(kind));
         assertEquals(new HashSet<>(switches()), reached);
-        assertEquals(switches(), PatchFamily.PROMO_NOTIFICATIONS.switches);
+        List<BooleanSetting> family = new ArrayList<>(switches());
+        family.add(Settings.NOTIFICATION_QUIET_HOURS);
+        assertEquals(family, PatchFamily.PROMO_NOTIFICATIONS.switches);
+        assertFalse("Quiet hours starts on", Settings.NOTIFICATION_QUIET_HOURS.get());
+    }
+
+    /**
+     * Group activity, event invites, live videos and reactions each go by their own switch, read
+     * the way Facebook reads the type, and the comments, replies and mentions beside them still
+     * post.
+     */
+    @Test
+    public void groupActivityEventsLiveVideosAndReactionsGoByTheirOwnSwitches() {
+        String[][] kinds = {
+                {"group_activity", "GROUP_ACTIVITY:123"},
+                {"event_invite", "Event_Invite:9"},
+                {"live_video", "live_video_explicit:42"},
+                {"like", "feedback_reaction_generic:7"}};
+        List<BooleanSetting> added = Arrays.asList(Settings.BLOCK_GROUP_ACTIVITY_NOTIFICATIONS,
+                Settings.BLOCK_EVENT_NOTIFICATIONS, Settings.BLOCK_LIVE_VIDEO_NOTIFICATIONS,
+                Settings.BLOCK_REACTION_NOTIFICATIONS);
+        for (int on = 0; on < added.size(); on++) {
+            for (BooleanSetting setting : switches()) setting.save(setting == added.get(on));
+            for (int kind = 0; kind < kinds.length; kind++) {
+                for (String type : kinds[kind]) {
+                    assertEquals(type + " with only " + added.get(on).key + " on", kind == on, NotificationKinds.block(type));
+                }
+            }
+            for (String kept : Arrays.asList("GROUP_COMMENT", "GROUP_COMMENT_REPLY", "GROUP_POST_MENTION", "FEED_COMMENT",
+                    "MSG", "VOIP")) {
+                assertFalse(kept + " was blocked", NotificationKinds.block(kept));
+            }
+        }
+        allOn();
+        assertTrue(NotificationKindsForTests.blocksGroupActivity());
+        assertTrue(NotificationKindsForTests.blocksEventInvite());
+        assertTrue(NotificationKindsForTests.blocksLiveVideo());
+        assertTrue(NotificationKindsForTests.blocksReaction());
+        assertEquals(NotificationKinds.Group.REACTIONS, NotificationKinds.KINDS.get("LIKE"));
+    }
+
+    /**
+     * Quiet hours off, a switch blocks its kinds all day. On, only from the start of the first hour
+     * up to the start of the second, across midnight when the second comes first, and the same hour
+     * for both is all day. The kinds whose switch is off post at any hour, and so does everything
+     * while paused.
+     */
+    @Test
+    public void quietHoursHoldThePickedKindsOnlyBetweenItsTwoHours() {
+        Settings.BLOCK_BIRTHDAY_NOTIFICATIONS.save(true);
+        for (int hour = 0; hour < 24; hour++) {
+            at(hour);
+            assertTrue("quiet hours off, a birthday at " + hour + " posted", NotificationKinds.block("birthday_reminder"));
+        }
+
+        Settings.NOTIFICATION_QUIET_HOURS.save(true);
+        assertEquals(QuietHour.H22, Settings.QUIET_HOURS_FROM.get());
+        assertEquals(QuietHour.H7, Settings.QUIET_HOURS_UNTIL.get());
+        for (int hour = 0; hour < 24; hour++) {
+            at(hour);
+            boolean night = hour >= 22 || hour < 7;
+            assertEquals("a birthday at " + hour + " with quiet hours 10 PM to 7 AM", night,
+                    NotificationKinds.block("birthday_reminder"));
+            assertFalse("a memory at " + hour + " with its switch off", NotificationKinds.block("onthisday"));
+        }
+
+        Settings.QUIET_HOURS_FROM.save(QuietHour.H9);
+        Settings.QUIET_HOURS_UNTIL.save(QuietHour.H17);
+        for (int hour = 0; hour < 24; hour++) {
+            at(hour);
+            assertEquals("a birthday at " + hour + " with quiet hours 9 AM to 5 PM", hour >= 9 && hour < 17,
+                    NotificationKinds.block("birthday_reminder"));
+        }
+
+        Settings.QUIET_HOURS_UNTIL.save(QuietHour.H9);
+        for (int hour = 0; hour < 24; hour++) {
+            at(hour);
+            assertTrue("the same hour twice is all day, but " + hour + " posted", NotificationKinds.block("birthday_reminder"));
+        }
+
+        at(10);
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        assertFalse("blocked while paused", NotificationKinds.block("birthday_reminder"));
+        PauseForTests.resume();
+        assertTrue(NotificationKinds.block("birthday_reminder"));
+    }
+
+    /** The hours quiet hours can use, as a settings file writes them and as the window reads them. */
+    @Test
+    public void quietHoursAreWholeHoursWrittenAsTwentyFourHourTimes() {
+        assertEquals(24, QuietHour.values().length);
+        for (QuietHour hour : QuietHour.values()) {
+            assertEquals(hour, QuietHour.fromFile(hour.fileValue()));
+            assertEquals(hour.ordinal(), hour.hour());
+        }
+        assertEquals("22:00", QuietHour.H22.fileValue());
+        assertEquals("07:00", QuietHour.H7.fileValue());
+        for (Object refused : new Object[]{"7:00", "H7", "22", "24:00", "", 7, null}) {
+            assertNull(String.valueOf(refused), QuietHour.fromFile(refused));
+        }
+        assertTrue(QuietHour.holds(23, QuietHour.H22, QuietHour.H7));
+        assertTrue(QuietHour.holds(0, QuietHour.H22, QuietHour.H7));
+        assertFalse(QuietHour.holds(7, QuietHour.H22, QuietHour.H7));
+        assertFalse(QuietHour.holds(21, QuietHour.H22, QuietHour.H7));
+        assertTrue(QuietHour.H22.label(java.util.Locale.US).contains("10"));
     }
 
     /** Each switch blocks its own kinds and nothing else. */
@@ -274,7 +399,7 @@ public class NotificationKindsTest {
             if (!kind.equals(NotificationKinds.kindOf(kind))) odd.add(kind);
         }
         assertEquals(new ArrayList<String>(), odd);
-        assertEquals(13, NotificationKinds.KINDS.size());
+        assertEquals(19, NotificationKinds.KINDS.size());
         assertTrue(NotificationKinds.KINDS.keySet().containsAll(NotificationKinds.SERVER_ONLY));
     }
 

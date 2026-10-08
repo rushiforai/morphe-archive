@@ -44,10 +44,11 @@ public final class NuvioRemainingEpisodesPatch {
     @SuppressWarnings({"unchecked", "deprecation"})
     public static BytecodePatch getNuvioRemainingEpisodesPatch() {
         return PatchKt.bytecodePatch(NAME,
-            "Adds a disabled-by-default Continue Watching setting that displays aired, unwatched episode counts for every tracking integration.",
+            "Adds a disabled-by-default setting that displays aired, unwatched episode counts for every tracking integration. Controlled by Layout > Santodan-Patches on beta4.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "NuvioTV", null, ApkFileType.APK,
                     null, null, NuvioLayout.targets(), false));
+                builder.dependsOn(NuvioSettingsMenuPatch.getMenuPatch());
                 builder.extendWith(NuvioRemainingEpisodesPatch::extensionStream);
                 builder.execute(context -> {
                     String version = context.getPackageMetadata().getVersionName();
@@ -58,8 +59,7 @@ public final class NuvioRemainingEpisodesPatch {
                     String state = beta4 ? "Lla/z3;" : "Lza/k3;";
                     hookNextUpModel(context.mutableClassDefBy(beta4 ? "Lla/aa;" : "Lza/s8;"));
                     hookEpisodeSets(context.mutableClassDefBy(beta4 ? "Lla/t5;" : "Lza/z4;"), state);
-                    hookSettings(context.mutableClassDefBy(beta4 ? "Lsa/o3;" : "Lfb/t6;"),
-                        beta4 ? 0x7f1106c1 : 0x7f1106a7);
+                    if (!beta4) hookSettings(context.mutableClassDefBy("Lfb/t6;"), 0x7f1106a7);
                     hookCard(context.mutableClassDefBy(beta4 ? "Lba/e2;" : "Lpa/q0;"),
                         beta4 ? "Lc7/a;" : "Lfb/jk;");
                     return Unit.INSTANCE;

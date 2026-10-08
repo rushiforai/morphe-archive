@@ -29,6 +29,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
@@ -46,7 +47,9 @@ import java.io.File
  * the params' one debug dump reporting isFbShorts, isSponsored and isLiveNow, each a public boolean;
  * and the Reels menu's speed toast, the only method
  * holding its selector's name, which only FbShortsInlinePlaybackSpeedUtil's two pickers call. The
- * gear menu's speed sheet sets its pick with the same setter. Then the patch itself, run on those
+ * gear menu's speed sheet sets its pick with the same setter. The Reels menu's two speed pickers each
+ * list their Float[] of speeds in one place, where the slower speeds go in, and the gear menu's speed
+ * sheet builder reads a speed for each label in one place, where they go in too. Then the patch itself, run on those
  * classes: each hook first in its method, reading the method's own arguments, and each stub calling
  * the method or reading the field it stands for. Reads the fixture bundles from
  * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
@@ -144,8 +147,44 @@ class KeepReelSpeedFixtureTest {
                 val gearClass = gearHolders.single { it.type == gearPick.definingClass }
 
                 val toastClass = toastHolders.single { it.type == toast.definingClass }
-                val context = PatchContexts.of(listOf(owner, toastClass, gearClass, paramsClass,
-                    ExtensionDex.classDef(REEL_SPEED), ExtensionDex.classDef(SETTINGS_STATUS)))
+
+                // The Reels menu's two speed pickers each fill a Float[] and list it in one place (#95).
+                val selectors = toastClass.methods.filter {
+                    AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == ATTRIBUTE_SELECTOR && speedLists(it).isNotEmpty()
+                }
+                assertEquals("$name: speed selectors answering $ATTRIBUTE_SELECTOR in ${toastClass.type}", 1, selectors.size)
+                val dropdownHolders = FixtureDex.classesHolding(bundle, SPEED_DROPDOWN).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+                val dropdowns = dropdownHolders.flatMap { it.methods }.filter { holdsString(it, SPEED_DROPDOWN) && speedLists(it).isNotEmpty() }
+                assertEquals("$name: speed dropdowns holding \"$SPEED_DROPDOWN\" and filling a Float[]", 1, dropdowns.size)
+                val pickers = selectors + dropdowns
+                for (picker in pickers) {
+                    assertEquals("$name: the lists of speeds ${picker.definingClass}->${picker.name} makes", 1, speedLists(picker).size)
+                }
+                val dropdownClass = dropdownHolders.single { it.type == dropdowns.single().definingClass }
+
+                // The gear menu's speed sheet builder makes the gear pick's class, takes its flag for
+                // reading speeds from floats last, and reads a speed for each label in one place (#95).
+                val sheetHolders = FixtureDex.classesHolding(bundle, GEAR_SHEET).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+                val sheets = sheetHolders.flatMap { it.methods }.filter { isGearSheet(it, gearPick.definingClass) }
+                assertEquals("$name: gear speed sheet builders making ${gearPick.definingClass}", 1, sheets.size)
+                val sheet = sheets.single()
+                val meets = gearMeets(sheet)
+                assertEquals("$name: places ${sheet.definingClass}->${sheet.name} reads a speed for each label", 1, meets.size)
+                val meet = meets.single()
+                val sheetClass = sheetHolders.single { it.type == sheet.definingClass }
+
+                // HeroManager's setPlaybackSpeed loads its 0.25x floor once and keeps speeds over it.
+                val rangeHolders = FixtureDex.classesHolding(bundle, SPEED_RANGE_LOG).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+                val ranged = rangeHolders.flatMap { it.methods }.filter { holdsString(it, SPEED_RANGE_LOG) }
+                assertEquals("$name: methods holding \"$SPEED_RANGE_LOG\"", 1, ranged.size)
+                val speedRange = ranged.single()
+                assertEquals("$name: loads of the ${HERO_FLOOR}f floor", 1, speedFloors(speedRange).size)
+                assertTrue("$name: the floor isn't kept with Math.max", callsFloatMax(speedRange))
+                val rangeClass = rangeHolders.single { it.type == speedRange.definingClass }
+
+                fun classes() = listOf(owner, toastClass, gearClass, paramsClass, dropdownClass, sheetClass, rangeClass,
+                    ExtensionDex.classDef(REEL_SPEED), ExtensionDex.classDef(SETTINGS_STATUS)).distinctBy { it.type }
+                val context = PatchContexts.of(classes())
                 keepReelSpeedPatch.execute(context)
 
                 fun patched(type: String, method: Method): List<Instruction> = context.mutableClassDefBy(type).methods.single {
@@ -174,6 +213,34 @@ class KeepReelSpeedFixtureTest {
                     assertEquals("$name: the speed the gear pick's hook gets", gearCode[index - 1].registers().last(),
                         instruction.registers().single())
                 }
+
+                // Each picker's list goes to the extension straight after asList makes it, and the picker
+                // builds its items from the list that comes back, in the same register.
+                for (picker in pickers) {
+                    val (result, list) = speedLists(picker).single()
+                    val code = patched(picker.definingClass, picker)
+                    val what = "${picker.definingClass}->${picker.name}"
+                    assertEquals("$name: $what's list doesn't go to the extension", SPEED_CHOICES, code[result + 1].call.toString())
+                    assertEquals("$name: the register $what hands over", listOf(list), code[result + 1].registers())
+                    assertEquals("$name: $what doesn't take the list back", Opcode.MOVE_RESULT_OBJECT, code[result + 2].opcode)
+                    assertEquals("$name: the register $what takes it back in", list, (code[result + 2] as OneRegisterInstruction).registerA)
+                }
+
+                // The sheet hands its flag over first and takes it back in the same register. Where it walks
+                // its labels it hands over the speeds and then the labels, taking each back in its own register.
+                val sheetCode = patched(sheet.definingClass, sheet)
+                fun assertHook(at: Int, what: String, hook: String, register: Int, result: Opcode) {
+                    assertEquals("$name: the sheet's $what hook", hook, sheetCode[at].call.toString())
+                    assertEquals("$name: the register the sheet hands over as its $what", listOf(register), sheetCode[at].registers())
+                    assertEquals("$name: the sheet doesn't take its $what back", result, sheetCode[at + 1].opcode)
+                    assertEquals("$name: the register the sheet takes its $what back in", register,
+                        (sheetCode[at + 1] as OneRegisterInstruction).registerA)
+                }
+                assertHook(0, "flag", GEAR_VALUES, meet.values, Opcode.MOVE_RESULT)
+                val walk = meet.index + 2
+                assertHook(walk, "speeds", GEAR_SPEEDS, meet.speeds, Opcode.MOVE_RESULT_OBJECT)
+                assertHook(walk + 2, "labels", GEAR_LABELS, meet.labels, Opcode.MOVE_RESULT_OBJECT)
+                assertEquals("$name: the walk doesn't follow the hooks", Opcode.ARRAY_LENGTH, sheetCode[walk + 4].opcode)
 
                 val stubs = context.mutableClassDefBy(REEL_SPEED)
                 val setStub = stubs.methods.single { it.name == SET_SPEED_STUB }.code()
@@ -204,8 +271,7 @@ class KeepReelSpeedFixtureTest {
 
                 // As the patcher runs it, after the release guard it brings: the guard's answer stays
                 // first in the setter, and the hook after it reads the speed the player gets.
-                val guarded = PatchContexts.of(listOf(owner, toastClass, gearClass, paramsClass,
-                    ExtensionDex.classDef(REEL_SPEED), ExtensionDex.classDef(SETTINGS_STATUS)))
+                val guarded = PatchContexts.of(classes())
                 guarded.hookSpeedSetter(setter)
                 keepReelSpeedPatch.execute(guarded)
                 val chain = guarded.mutableClassDefBy(owner.type).methods.single {
@@ -215,6 +281,16 @@ class KeepReelSpeedFixtureTest {
                 assertEquals("$name: the guard's answer isn't taken", Opcode.MOVE_RESULT, chain[1].opcode)
                 assertEquals("$name: the hook after the guard's answer", SPEED_SET, chain[2].call.toString())
                 assertEquals("$name: the registers the hook after the guard hands over", listOf(self, self + 1), chain[2].registers())
+
+                // The floor loads 0.1f into the same register, and nothing else in the method moved.
+                val floorAt = speedFloors(speedRange).single()
+                val lowered = patched(speedRange.definingClass, speedRange)
+                assertEquals("$name: the lowered floor", Opcode.CONST, lowered[floorAt].opcode)
+                assertEquals("$name: the lowered floor's value", SLOWEST.toRawBits(), (lowered[floorAt] as NarrowLiteralInstruction).narrowLiteral)
+                assertEquals("$name: the lowered floor's register", (speedRange.code()[floorAt] as OneRegisterInstruction).registerA,
+                    (lowered[floorAt] as OneRegisterInstruction).registerA)
+                assertEquals("$name: the setter's other instructions", speedRange.code().map { it.opcode }.filterIndexed { i, _ -> i != floorAt },
+                    lowered.map { it.opcode }.filterIndexed { i, _ -> i != floorAt })
                 checked += version
             }
         }

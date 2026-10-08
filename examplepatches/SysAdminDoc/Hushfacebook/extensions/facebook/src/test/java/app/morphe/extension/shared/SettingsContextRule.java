@@ -8,6 +8,7 @@
 package app.morphe.extension.shared;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.Setting;
@@ -50,8 +51,13 @@ public final class SettingsContextRule extends ExternalResource {
         try {
             Field store = SharedPrefCategory.class.getDeclaredField("preferences");
             store.setAccessible(true);
-            store.set(Setting.preferences, RuntimeEnvironment.getApplication()
-                    .getSharedPreferences(Setting.preferences.name, Context.MODE_PRIVATE));
+            SharedPreferences fresh = RuntimeEnvironment.getApplication()
+                    .getSharedPreferences(Setting.preferences.name, Context.MODE_PRIVATE);
+            // A fresh store reads its file on a thread of its own, and that read renames a .bak
+            // over the file. Wait for it, or a test that lays down a settings file and its .bak
+            // races it under load: AppLockTest's side-process read saw its backup vanish.
+            fresh.getAll();
+            store.set(Setting.preferences, fresh);
         } catch (ReflectiveOperationException exception) {
             throw new IllegalStateException("Could not re-point Setting's store", exception);
         }

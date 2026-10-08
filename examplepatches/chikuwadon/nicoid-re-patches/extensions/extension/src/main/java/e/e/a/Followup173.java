@@ -52,6 +52,12 @@ public final class Followup173 {
   Preference old=activity.findPreference("comment_limit_extended");
   if(old!=null){PreferenceGroup group=parent(root,old);if(group!=null){int position=0;for(;position<group.getPreferenceCount();position++)if(group.getPreference(position)==old)break;group.removePreference(old);Preference slider=new Preference(activity);slider.setKey(COMMENT_LIMIT);slider.setTitle(UiStrings.translate("コメント取得数"));slider.setSummary(limitSummary(savedLimit(activity)));slider.setOnPreferenceClickListener(clicked->{showLimit(activity,clicked);return true;});List<Preference> items=new ArrayList<Preference>();for(int i=0;i<group.getPreferenceCount();i++)items.add(group.getPreference(i));items.add(Math.min(position,items.size()),slider);group.removeAll();for(int i=0;i<items.size();i++){items.get(i).setOrder(i);group.addPreference(items.get(i));}}}
   translatePreferences(root);
+  // Framework PreferenceActivity uses a separate list surface on older Android.
+  // Do not leave that surface (or its scrolling cache) to the platform default.
+  ListView list=activity.getListView();
+  if(list!=null){ThemeChoice.background(list);list.setCacheColorHint(android.graphics.Color.TRANSPARENT);}
+  View content=activity.findViewById(android.R.id.content);
+  if(content!=null)ThemeChoice.background(content);
  }
  private static void translatePreferences(PreferenceGroup group){
   for(int i=0;i<group.getPreferenceCount();i++){Preference p=group.getPreference(i);if(p.getTitle()!=null)p.setTitle(UiStrings.translate(p.getTitle().toString()));if(p.getSummary()!=null)p.setSummary(UiStrings.translate(p.getSummary().toString()));if(p instanceof ListPreference){ListPreference l=(ListPreference)p;CharSequence[] entries=l.getEntries();if(entries!=null){CharSequence[] translated=new CharSequence[entries.length];for(int j=0;j<entries.length;j++)translated[j]=UiStrings.translate(entries[j].toString());l.setEntries(translated);}}if(p instanceof PreferenceGroup)translatePreferences((PreferenceGroup)p);}

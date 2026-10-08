@@ -56,6 +56,7 @@ public class SavedVideoArchiveTest {
     private static final String FOLDER = "DCIM/SavedVideoArchiveTest";
     private static final byte[] VIDEO = new byte[]{0, 0, 0, 16, 'f', 't', 'y', 'p', 'i', 's', 'o', 'm', 0, 0, 0, 0};
     private final AtomicInteger requests = new AtomicInteger();
+    private final AtomicInteger coverRequests = new AtomicInteger();
     private Hashtable<String, URLStreamHandler> handlers;
     private URLStreamHandler oldHttps;
     private ActivityController<PageActivity> owner;
@@ -64,6 +65,7 @@ public class SavedVideoArchiveTest {
     private java.util.concurrent.CountDownLatch reachedEnd, releaseCopy;
     private String oldPath, oldTemplate, oldQuality, oldExternal;
     private boolean refuseAudio;
+    private String refusePath;
 
     @Before public void setup() throws Exception {
         oldProgress = Settings.DOWNLOAD_PROGRESS.get(); Settings.DOWNLOAD_PROGRESS.save(false);
@@ -91,8 +93,10 @@ public class SavedVideoArchiveTest {
             @Override protected URLConnection openConnection(URL url, java.net.Proxy proxy) throws java.io.IOException { return openConnection(url); }
             @Override protected URLConnection openConnection(URL url) {
                 requests.incrementAndGet();
+                if (url.getPath().startsWith("/cover")) coverRequests.incrementAndGet();
                 return new FakeHttpsConnection(url) {
                     @Override public int getResponseCode() {
+                        if (url.getPath().equals(refusePath)) return HTTP_NOT_FOUND;
                         return refuseAudio && url.getPath().startsWith("/audio") ? 429 : HTTP_OK;
                     }
                     @Override public String getHeaderField(String name) {
@@ -209,6 +213,32 @@ public class SavedVideoArchiveTest {
         assertArrayEquals(VIDEO, Files.readAllBytes(new File(root, "alice/123_2.mp4").toPath()));
         assertEquals(details, new String(Files.readAllBytes(new File(root, "alice/123_2.txt").toPath()), StandardCharsets.UTF_8));
         assertEquals("123_2.mp4", SavedVideoArchive.find(owner.get(), "123").name);
+    }
+
+    /** A story's save shares this one and never made a cover; a video's Download does, once it's new. */
+    @Test public void aStorysSaveLeavesTheCoverOutAndAVideosTakesIt() throws Exception {
+        boolean advanced = app.morphe.extension.tiktok.settings.SettingsStatus.advancedDownloadsEnabled;
+        boolean oldCover = Settings.DOWNLOAD_COVER.get();
+        app.morphe.extension.tiktok.settings.SettingsStatus.advancedDownloadsEnabled = true;
+        Settings.DOWNLOAD_COVER.save(true);
+        try {
+            CoverPost post = new CoverPost();
+            assertTrue(VideoDownloads.start(post, owner.get(), false));
+            // The cover starts from the main thread once the video's job has checked the record.
+            awaitJobs();
+            awaitJobs();
+            assertTrue(new File(root, "alice/123.mp4").isFile());
+            assertEquals("the story's save fetched a cover", 0, coverRequests.get());
+
+            assertTrue(new File(root, "alice/123.mp4").delete());
+            assertTrue(VideoDownloads.start(post, owner.get()));
+            awaitJobs();
+            awaitJobs();
+            assertEquals("the video's Download left its cover out", 1, coverRequests.get());
+        } finally {
+            app.morphe.extension.tiktok.settings.SettingsStatus.advancedDownloadsEnabled = advanced;
+            Settings.DOWNLOAD_COVER.save(oldCover);
+        }
     }
 
     @Test public void deletingTheRememberedFileAllowsANewSave() throws Exception {
@@ -580,6 +610,60 @@ public class SavedVideoArchiveTest {
         }
     }
 
+    /** The clean file refused: the stamped copy is saved instead, only with the switch on, and the save says so. */
+    @Test public void aCleanVideoThatCantBeFetchedFallsBackToTheStampedCopyWhenAsked() throws Exception {
+        boolean watermark = Settings.REMOVE_DOWNLOAD_WATERMARK.get();
+        refusePath = "/clean.mp4";
+        try {
+            Settings.REMOVE_DOWNLOAD_WATERMARK.save(true);
+            Settings.DOWNLOAD_DETAILS.save(false);
+            assertEquals(List.of("https://8.8.8.8/stamped.mp4"),
+                    VideoDownloads.stampedFallbackUrls(new BothAddresses(), List.of("https://8.8.8.8/clean.mp4")));
+            assertTrue("a save of the stamped copy has nothing to fall back to",
+                    VideoDownloads.stampedFallbackUrls(new BothAddresses(), List.of("https://8.8.8.8/stamped.mp4")).isEmpty());
+
+            assertTrue(VideoDownloads.start(new StampedPost("125"), owner.get()));
+            awaitJobs();
+            assertFalse("the switch is off, so nothing is saved", new File(root, "alice/125.mp4").exists());
+
+            Settings.DOWNLOAD_WATERMARK_FALLBACK.save(true);
+            ShadowToast.reset();
+            assertTrue(VideoDownloads.start(new StampedPost("126"), owner.get()));
+            awaitJobs();
+            assertArrayEquals(VIDEO, Files.readAllBytes(new File(root, "alice/126.mp4").toPath()));
+            assertEquals("126.mp4", SavedVideoArchive.find(owner.get(), "126").name);
+            assertEquals("The video without the watermark couldn't be fetched, so TikTok's watermarked copy was saved to "
+                    + FOLDER + "/alice. Try again later for the clean copy.", ShadowToast.getTextOfLatestToast());
+        } finally {
+            refusePath = null;
+            Settings.REMOVE_DOWNLOAD_WATERMARK.save(watermark);
+            Settings.DOWNLOAD_WATERMARK_FALLBACK.resetToDefault();
+        }
+    }
+
+    /** Without Remove watermark nothing asked for the clean file, so there's nothing to fall back from. */
+    @Test public void theFallbackWaitsForRemoveWatermark() {
+        boolean watermark = Settings.REMOVE_DOWNLOAD_WATERMARK.get();
+        try {
+            Settings.DOWNLOAD_WATERMARK_FALLBACK.save(true);
+            Settings.REMOVE_DOWNLOAD_WATERMARK.save(false);
+            assertFalse(VideoDownloads.stampedFallbackWanted());
+            Settings.REMOVE_DOWNLOAD_WATERMARK.save(true);
+            assertTrue(VideoDownloads.stampedFallbackWanted());
+            Settings.DOWNLOAD_WATERMARK_FALLBACK.save(false);
+            assertFalse(VideoDownloads.stampedFallbackWanted());
+        } finally {
+            Settings.REMOVE_DOWNLOAD_WATERMARK.save(watermark);
+            Settings.DOWNLOAD_WATERMARK_FALLBACK.resetToDefault();
+        }
+    }
+
+    /** A video with TikTok's stamped address beside the clean one. */
+    public static final class StampedPost extends DownloadDetailsTest.Post {
+        StampedPost(String id) { super("alice", id); }
+        public BothAddresses getVideo() { return new BothAddresses(); }
+    }
+
     public static final class BothAddresses {
         public UrlList getDownloadAddr() { return new UrlList("https://8.8.8.8/stamped.mp4"); }
         public UrlList getDownloadNoWatermarkAddr() { return new UrlList("https://8.8.8.8/clean.mp4"); }
@@ -612,6 +696,18 @@ public class SavedVideoArchiveTest {
     }
     public static final class Video {
         public Address getDownloadNoWatermarkAddr() { return new Address(); }
+    }
+    public static final class CoverPost extends DownloadDetailsTest.Post {
+        public final CoverVideo video = new CoverVideo();
+        CoverPost() { super("alice", "123"); desc = "A saved caption"; }
+        public CoverVideo getVideo() { return video; }
+    }
+    public static final class CoverVideo {
+        public Address getDownloadNoWatermarkAddr() { return new Address(); }
+        public Cover getOriginCover() { return new Cover(); }
+    }
+    public static final class Cover {
+        public List<String> getUrlList() { return List.of("https://8.8.8.8/cover.jpg"); }
     }
     public static final class Address {
         public List<String> getUrlList() { return List.of("https://8.8.8.8/video.mp4"); }

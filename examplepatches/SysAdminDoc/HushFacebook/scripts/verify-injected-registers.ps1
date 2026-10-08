@@ -21,7 +21,7 @@
     scripts/injected-mutation-contracts.txt: one feed guard, in addNewEdgeToCollection, each
     story-flag stub calling GraphQLStory's accessor before it returns, the showcase stub calling
     the accessor of the one class answering ShowcaseFeedUnit, one Stories tray count in each of the
-    two tray adapter classes, the reels hook first in the pre-EOF injector, the swap guard once in
+    two tray adapter classes and Home's composer row, the reels hook first in the pre-EOF injector, the swap guard once in
     the runnable that swaps an edge into the feed, and one tab link call in each of the three places
     Facebook looks a link's tab up in its configured tabs, each in the one method its rule's strings
     and shape pick out.
@@ -185,9 +185,14 @@ $cleanBase = Get-BaseApk -Apk $CleanApk -Destination (Join-Path $work 'clean-bas
 # The clean side has to be Meta's own build of the version that was patched, not a patched build
 # or another version: two patched files differ from each other, both halves report differences,
 # and the run would pass while comparing nothing against a clean baseline.
+# Disable Play Store updates gives the patched manifest the highest version code Android takes, so
+# the Play Store never offers Meta's next build over it. That one code stands for the clean build's
+# own; the package and version name still have to match, and DexDiff still holds the clean side to
+# Meta's signed base.apk.
+$raisedVersionCode = [string][int]::MaxValue
 $clean = Get-ApkManifestFacts -Apk $cleanBase -Aapt2 $Aapt2
 if ($clean.package -ne $patched.package -or $clean.versionName -ne $patched.versionName -or
-        $clean.versionCode -ne $patched.versionCode) {
+        ($clean.versionCode -ne $patched.versionCode -and [string]$patched.versionCode -ne $raisedVersionCode)) {
     throw ("The clean APK is $($clean.package) $($clean.versionName) ($($clean.versionCode)) and the " +
         "patched one $($patched.package) $($patched.versionName) ($($patched.versionCode)); they have to be the same build.")
 }

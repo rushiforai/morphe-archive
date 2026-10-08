@@ -147,13 +147,20 @@ public final class CodecProcess implements AutoCloseable {
         return false; // A continuously forking tool must not consume the worker's deadline here.
     }
 
+    /**
+     * How long close gives the launcher to stop after its release. One second wasn't enough for a
+     * JVM launcher to exit on a machine running other builds (2026-10-06), and close only waits as
+     * long as the launcher takes.
+     */
+    static final long CLOSE_GRACE_MS = 5_000;
+
     @Override
     public void close() throws Exception {
         if (closed) return;
         closed = true;
         boolean[] interrupted = {Thread.interrupted()};
         Throwable failure = null;
-        long until = System.nanoTime() + TimeUnit.SECONDS.toNanos(1);
+        long until = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(CLOSE_GRACE_MS);
         try {
             if (launcher != null) {
                 if (job != null) {

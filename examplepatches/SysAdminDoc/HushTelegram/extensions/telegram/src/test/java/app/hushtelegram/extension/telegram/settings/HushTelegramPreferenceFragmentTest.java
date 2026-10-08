@@ -116,6 +116,14 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.FORWARD_HIDE_SENDER, "Hide sender names when forwarding");
         ROW_TITLES.put(PatchFamily.VOICE_MUSIC_PLAYER, "Voice messages in the music player");
         ROW_TITLES.put(PatchFamily.SILENCE_NON_CONTACTS, "Silence people outside your contacts");
+        ROW_TITLES.put(PatchFamily.DISABLE_ARCHIVE_PULL, "Disable pull to archive");
+        ROW_TITLES.put(PatchFamily.REAR_CAMERA_FIRST, "Start the camera on the rear lens");
+        ROW_TITLES.put(PatchFamily.HIDE_GALLERY_CAMERA_TILE, "Hide gallery camera tile");
+        ROW_TITLES.put(PatchFamily.HIDE_STICKER_TIME, "Hide time on stickers");
+        ROW_TITLES.put(PatchFamily.IGNORE_MUTED_MENTIONS, "Ignore mentions in muted chats");
+        ROW_TITLES.put(PatchFamily.HIDE_BLOCKED_IN_GROUPS, "Hide blocked users in groups");
+        ROW_TITLES.put(PatchFamily.HIDE_FEATURES_AND_INVITE, "Hide Telegram Features and Invite Friends");
+        ROW_TITLES.put(PatchFamily.MESSAGE_MENU_REPEAT, "Add Repeat to the message menu");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop usage reports");
         ROW_TITLES.put(PatchFamily.DISABLE_CALL_DEBUG, "Stop call diagnostics");
         ROW_TITLES.put(PatchFamily.DISABLE_DRAFT_PREVIEWS, "No previews before sending");
@@ -256,7 +264,15 @@ public class HushTelegramPreferenceFragmentTest {
                         || build.contains(PatchFamily.HIDE_FOLDER_COUNTERS)
                         || build.contains(PatchFamily.FORWARD_HIDE_SENDER)
                         || build.contains(PatchFamily.VOICE_MUSIC_PLAYER)
-                        || build.contains(PatchFamily.SILENCE_NON_CONTACTS)) expected.add("Chats");
+                        || build.contains(PatchFamily.SILENCE_NON_CONTACTS)
+                        || build.contains(PatchFamily.DISABLE_ARCHIVE_PULL)
+                        || build.contains(PatchFamily.REAR_CAMERA_FIRST)
+                        || build.contains(PatchFamily.HIDE_GALLERY_CAMERA_TILE)
+                        || build.contains(PatchFamily.HIDE_STICKER_TIME)
+                        || build.contains(PatchFamily.IGNORE_MUTED_MENTIONS)
+                        || build.contains(PatchFamily.HIDE_BLOCKED_IN_GROUPS)
+                        || build.contains(PatchFamily.HIDE_FEATURES_AND_INVITE)
+                        || build.contains(PatchFamily.MESSAGE_MENU_REPEAT)) expected.add("Chats");
                 if (build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.DISABLE_CALL_DEBUG)
                         || build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS) || build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP)) expected.add("Privacy");
                 if (build.contains(PatchFamily.REPAIR_FIREBASE_PUSH)) expected.add("Notifications");
@@ -309,6 +325,13 @@ public class HushTelegramPreferenceFragmentTest {
             // Topic pulls keep Telegram's behavior until someone turns their own switch on.
             assertFalse(Settings.DISABLE_TOPIC_PULL.key,
                     ((SwitchPreference) page.findPreference(Settings.DISABLE_TOPIC_PULL.key)).isChecked());
+            assertEquals("Show profile data center", String.valueOf(page.findPreference(Settings.PROFILE_DATA_CENTER.key).getTitle()));
+            assertEquals("A profile's menu also shows which of Telegram's data centers, 1 to 5, holds the profile photo. "
+                            + "A profile without a photo shows none, and no server request is added. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.PROFILE_DATA_CENTER.key).getSummary()));
+            // The data center row stays out of profile menus until its own switch is turned on.
+            assertFalse(Settings.PROFILE_DATA_CENTER.key,
+                    ((SwitchPreference) page.findPreference(Settings.PROFILE_DATA_CENTER.key)).isChecked());
             assertEquals("Repair Firebase push registration", String.valueOf(page.findPreference(Settings.REPAIR_FIREBASE_PUSH.key).getTitle()));
             assertEquals("Uses Telegram's official certificate for Firebase push registration. "
                             + "Notification permission and battery settings still apply.",
@@ -515,6 +538,86 @@ public class HushTelegramPreferenceFragmentTest {
             // A stranger's message rings until the switch is turned on.
             assertFalse(Settings.SILENCE_NON_CONTACTS.key,
                     ((SwitchPreference) page.findPreference(Settings.SILENCE_NON_CONTACTS.key)).isChecked());
+            assertEquals("Disable pull to archive", String.valueOf(page.findPreference(Settings.DISABLE_ARCHIVE_PULL.key).getTitle()));
+            assertEquals("Pulling down the chat list no longer brings up a hidden archive. You can open it from "
+                            + "Archived chats in the chat list's menu, or pin it to keep it in the list. Off by default "
+                            + "in settings.",
+                    String.valueOf(page.findPreference(Settings.DISABLE_ARCHIVE_PULL.key).getSummary()));
+            // A pull brings the hidden archive back until the switch is turned on.
+            assertFalse(Settings.DISABLE_ARCHIVE_PULL.key,
+                    ((SwitchPreference) page.findPreference(Settings.DISABLE_ARCHIVE_PULL.key)).isChecked());
+            assertEquals("Start the camera on the rear lens", String.valueOf(page.findPreference(Settings.REAR_CAMERA_FIRST.key).getTitle()));
+            assertEquals("The camera in the attachment menu starts on the rear lens every time you open it, instead "
+                            + "of the lens you used last. You can still flip it while it's open. Off by default in "
+                            + "settings.",
+                    String.valueOf(page.findPreference(Settings.REAR_CAMERA_FIRST.key).getSummary()));
+            // The camera opens on the last lens until the switch is turned on.
+            assertFalse(Settings.REAR_CAMERA_FIRST.key,
+                    ((SwitchPreference) page.findPreference(Settings.REAR_CAMERA_FIRST.key)).isChecked());
+            assertEquals("Hide gallery camera tile", String.valueOf(page.findPreference(Settings.HIDE_GALLERY_CAMERA_TILE.key).getTitle()));
+            assertEquals("The photo grid in the attachment menu starts with your photos instead of a live camera "
+                            + "tile. A chat picks it up the next time you open it. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_GALLERY_CAMERA_TILE.key).getSummary()));
+            // The gallery shows its camera tile until the switch is turned on.
+            assertFalse(Settings.HIDE_GALLERY_CAMERA_TILE.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_GALLERY_CAMERA_TILE.key)).isChecked());
+            assertEquals("Hide time on stickers", String.valueOf(page.findPreference(Settings.HIDE_STICKER_TIME.key).getTitle()));
+            assertEquals("Stickers and big animated emoji no longer carry the time and read checks in their corner. "
+                            + "Every other message keeps its time. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_STICKER_TIME.key).getSummary()));
+            // A sticker shows its time until the switch is turned on.
+            assertFalse(Settings.HIDE_STICKER_TIME.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_STICKER_TIME.key)).isChecked());
+            assertEquals("Ignore mentions in muted chats", String.valueOf(page.findPreference(Settings.IGNORE_MUTED_MENTIONS.key).getTitle()));
+            assertEquals("Telegram still notifies you when someone mentions you or replies to you in a group or "
+                            + "channel you've muted. With this on, those stay as quiet as the rest of the chat. Chats you "
+                            + "haven't muted notify as before. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.IGNORE_MUTED_MENTIONS.key).getSummary()));
+            // Mentions in a muted chat notify until the switch is turned on.
+            assertFalse(Settings.IGNORE_MUTED_MENTIONS.key,
+                    ((SwitchPreference) page.findPreference(Settings.IGNORE_MUTED_MENTIONS.key)).isChecked());
+            assertEquals("Hide blocked users in groups", String.valueOf(page.findPreference(Settings.HIDE_BLOCKED_IN_GROUPS.key).getTitle()));
+            assertEquals("Messages from people you've blocked are left out of the groups and supergroups you open. "
+                            + "Private chats and channel posts stay as they are. Nothing is deleted, so turning it off "
+                            + "and reopening the chat brings them back. Telegram loads a long blocked list a bit at a "
+                            + "time, so someone it hasn't loaded yet still shows. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_BLOCKED_IN_GROUPS.key).getSummary()));
+            // Blocked people's group messages show until the switch is turned on.
+            assertFalse(Settings.HIDE_BLOCKED_IN_GROUPS.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_BLOCKED_IN_GROUPS.key)).isChecked());
+            assertEquals("Hide Telegram Features and Invite Friends", String.valueOf(page.findPreference(Settings.HIDE_FEATURES_AND_INVITE.key).getTitle()));
+            assertEquals("Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have "
+                            + "no contacts yet, the invite list Contacts shows in their place goes too. Off by default in "
+                            + "settings.",
+                    String.valueOf(page.findPreference(Settings.HIDE_FEATURES_AND_INVITE.key).getSummary()));
+            // Telegram Features and Invite Friends show until the switch is turned on.
+            assertFalse(Settings.HIDE_FEATURES_AND_INVITE.key,
+                    ((SwitchPreference) page.findPreference(Settings.HIDE_FEATURES_AND_INVITE.key)).isChecked());
+            assertEquals("Add Repeat to the message menu", String.valueOf(page.findPreference(Settings.MESSAGE_MENU_REPEAT.key).getTitle()));
+            assertEquals("Puts Repeat under Forward in a message's long-press menu. It sends the message again to "
+                            + "the same chat as a new message from you. It only shows where Telegram offers Forward and "
+                            + "you can write, so it won't appear in protected or secret chats. Off by default in "
+                            + "settings.",
+                    String.valueOf(page.findPreference(Settings.MESSAGE_MENU_REPEAT.key).getSummary()));
+            // The message menu stays as Telegram builds it until the switch is turned on.
+            assertFalse(Settings.MESSAGE_MENU_REPEAT.key,
+                    ((SwitchPreference) page.findPreference(Settings.MESSAGE_MENU_REPEAT.key)).isChecked());
+            assertEquals("Add Copy photo to the message menu", String.valueOf(page.findPreference(Settings.MESSAGE_MENU_COPY_PHOTO.key).getTitle()));
+            assertEquals("Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. "
+                            + "It copies the picture itself, so you can paste it into another app. It won't appear in "
+                            + "protected or secret chats. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.MESSAGE_MENU_COPY_PHOTO.key).getSummary()));
+            // Each of the menu's items stays out until its own switch is turned on.
+            assertFalse(Settings.MESSAGE_MENU_COPY_PHOTO.key,
+                    ((SwitchPreference) page.findPreference(Settings.MESSAGE_MENU_COPY_PHOTO.key)).isChecked());
+            assertEquals("Add Message details to the message menu", String.valueOf(page.findPreference(Settings.MESSAGE_MENU_DETAILS.key).getTitle()));
+            assertEquals("Puts Message details at the end of a message's long-press menu. It shows the message's "
+                            + "IDs, when it was sent and edited, where it was forwarded from and the file's data center "
+                            + "and size, with a Copy button. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.MESSAGE_MENU_DETAILS.key).getSummary()));
+            // Each of the menu's items stays out until its own switch is turned on.
+            assertFalse(Settings.MESSAGE_MENU_DETAILS.key,
+                    ((SwitchPreference) page.findPreference(Settings.MESSAGE_MENU_DETAILS.key)).isChecked());
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
             for (Preference row : rows) {

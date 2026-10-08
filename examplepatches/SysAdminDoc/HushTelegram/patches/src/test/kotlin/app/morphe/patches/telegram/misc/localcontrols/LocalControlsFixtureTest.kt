@@ -250,7 +250,7 @@ class LocalControlsFixtureTest {
         val create = profile.methods.single { it.name == "createView" }.controlBody()
         val icon = create.indexOfFirst { it.controlRef() == "Lorg/telegram/messenger/R\$drawable;->ic_ab_other:I" }
         val boundMenu = create[icon + 5].controlField()!!.type
-        result.putAll(FixtureDex.classes(build, setOf(boundMenu, "Lorg/telegram/messenger/R\$drawable;")))
+        result.putAll(FixtureDex.classes(build, setOf(boundMenu, "Lorg/telegram/messenger/R\$drawable;") + PROFILE_DC_TYPES))
         val rows = result.getValue(boundMenu).methods.filter { it.controlShape(listOf("I", "I", "Ljava/lang/String;"), it.returnType) }
             .map { it.returnType }.filter { it.startsWith("Lorg/telegram/") }.toSet()
         result.putAll(FixtureDex.classes(build, rows))

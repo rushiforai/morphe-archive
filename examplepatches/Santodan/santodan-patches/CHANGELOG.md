@@ -1,3 +1,14 @@
+## [0.8.0](https://github.com/Santodan/santodan-patches/compare/v0.7.0...v0.8.0) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* **nuvio:** restore merged watched badges without delaying startup ([f53abfa](https://github.com/Santodan/santodan-patches/commit/f53abfa9271461759f9bd6d7c80f7ba6a0c51462))
+
+### ✨ New Features
+
+* **nuvio:** add finale dates in library and collections [skip ci] ([66233a7](https://github.com/Santodan/santodan-patches/commit/66233a7b0253662e7c05c7a78b7964b49708b7b4))
+* **nuvio:** group patch settings under Layout menu [skip ci] ([744d480](https://github.com/Santodan/santodan-patches/commit/744d4807083f494a10ebcbbb56cdc1ac6dec7d6e))
+
 ## [0.7.0](https://github.com/Santodan/santodan-patches/compare/v0.6.0...v0.7.0) (2026-10-06)
 
 ### 🐛 Bug Fixes
@@ -43,8 +54,17 @@
 
 ## Unreleased
 
+### Improvements
+
+* **nuviotv:** open Home without waiting for merged tracking refresh; restore per-profile cached progress, watched items, episode history, and catalog aliases in the background, then refresh connected providers every two minutes
+* **nuviotv:** cache reflection lookups, index next-up seeds by show, and reuse a single worker for incremental Watched badge updates; log provider-read and total merge times
+* **nuviotv:** emulator validation reduced fully drawn startup from approximately 17 seconds to 2.725 seconds while merged synchronization completed in the background
+
 ### New Features
 
+* **nuviotv:** group beta.4 runtime patch settings under the expandable Layout > Santodan-Patches menu, including merged progress and its strategy; preserve existing preferences and show only installed patches
+* **nuviotv:** add the independent beta.4 Finale dates in library and collections patch, with separate disabled-by-default switches under Layout > Santodan-Patches
+* **nuviotv:** display the latest known catalog episode date on library and collection series posters as a blue `dd-MMM-yy` badge, including past dates; retain each location during recomposition and skip movies, unknown dates, and unrelated catalog rows
 * **nuviotv:** add an independent beta4 setting to keep airing library series in Upcoming until their latest scheduled episode airs, preserving native labels
 * **nuviotv:** show scheduled finale dates in Poster, Card, and Wide displays using a blue bottom-center badge with white `dd-MMM` text above captions
 * **meo:** add configurable side-by-side installation for MEO Android TV 5.7.0
@@ -58,6 +78,10 @@
 
 ### Bug Fixes
 
+* **nuviotv:** retry beta.4 merged badge metadata after interrupted batches and publish Watched labels incrementally instead of waiting for all shows; preserve ambiguous sibling markers without treating them as title IDs
+* **nuviotv:** publish merged watched-show history and alternate catalog IDs to the shared badge pipeline, fixing library and collection Watched labels depending on the carrier provider until opening show details
+* **nuviotv:** match Nuvio's watched-count coverage rule for remaining episodes when tracking providers and catalogs use different episode numbering, fixing caught-up anime such as Bleach showing hundreds of unwatched episodes; invalidate previous cached counts
+* **nuviotv:** resolve the lazy watch-progress coordinator from the Santodan-Patches menu, fixing merged-progress settings failing before the native tracking settings page is opened
 * **nuviotv:** count beta4 aired episodes instead of provider aliases, preventing remaining counts from changing to `6` after synchronization
 * **meo:** rename the app-owned permission, task affinity, and all provider authorities, including the bare package authority
 * **nuviotv:** preserve merged Continue Watching during startup and refresh providers before publishing updates

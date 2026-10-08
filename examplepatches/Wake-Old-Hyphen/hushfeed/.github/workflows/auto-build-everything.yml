@@ -132,7 +132,7 @@ jobs:
       fail-fast: false
       matrix:
         # Edit this list whenever a new TikTok version is supported
-        version: ['47.0.3', '47.1.3', '47.1.4']
+        version: ['47.1.4']
     steps:
       - uses: actions/checkout@v4
 

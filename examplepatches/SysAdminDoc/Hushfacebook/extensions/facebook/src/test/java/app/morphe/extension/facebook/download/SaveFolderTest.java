@@ -44,6 +44,8 @@ import java.util.Random;
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.L10n;
 import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.shared.settings.HushfacebookPause;
+import app.morphe.extension.shared.settings.PauseForTests;
 import app.morphe.extension.shared.settings.preference.LogBufferManager;
 
 /**
@@ -69,6 +71,8 @@ public class SaveFolderTest {
     public void tearDown() {
         Settings.SAVE_FOLDER.resetToDefault();
         Settings.SAVE_TO.resetToDefault();
+        Settings.VIDEO_SUBFOLDER.resetToDefault();
+        Settings.PHOTO_SUBFOLDER.resetToDefault();
         MediaDownload.policyForTests = null;
         ShadowMediaExtractor.reset();
         LogBufferManager.clearLogBuffer();
@@ -266,6 +270,48 @@ public class SaveFolderTest {
         assertEquals("Pictures/My_Clips", photo.savedLocation());
         video.abandon();
         photo.abandon();
+    }
+
+    /**
+     * With a subfolder of their own, videos and photos each go one folder deeper inside the save
+     * folder, cleaned the way the folder is. Blank, the default, they land in the folder itself.
+     */
+    @Test
+    public void videosAndPhotosGoInTheirOwnSubfolders() throws IOException {
+        assertEquals("", SaveFolder.subfolder(true));
+        assertEquals("", SaveFolder.subfolder(false));
+        assertEquals("Facebook", SaveFolder.path(true));
+        assertEquals("", SaveFolder.cleanSubfolder(" ../ "));
+        assertEquals("a_b", SaveFolder.cleanSubfolder("a/b"));
+
+        SaveProgressTest.Gallery gallery = gallery();
+        writable(gallery.videoUri(1));
+        writable(ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, 2));
+        Settings.SAVE_FOLDER.save("Clips");
+        Settings.VIDEO_SUBFOLDER.save("../Videos");
+        Settings.PHOTO_SUBFOLDER.save("Photos");
+        assertEquals("Videos", SaveFolder.subfolder(true));
+        assertEquals("Clips/Photos", SaveFolder.path(false));
+
+        MediaStoreWriter video = new MediaStoreWriter(context, true);
+        video.open("video/mp4").close();
+        MediaStoreWriter photo = new MediaStoreWriter(context, false);
+        photo.open("image/jpeg").close();
+
+        assertEquals("Movies/Clips/Videos", pathOf(gallery.rows.get(1L)));
+        assertEquals("Movies/Clips/Videos", video.savedLocation());
+        assertEquals("Pictures/Clips/Photos", pathOf(gallery.rows.get(2L)));
+        assertEquals("Pictures/Clips/Photos", photo.savedLocation());
+        video.abandon();
+        photo.abandon();
+
+        // Paused, the stored subfolders aren't read, so saves stay in the save folder.
+        PauseForTests.pause(HushfacebookPause.Reason.SWITCH);
+        try {
+            assertEquals("", SaveFolder.subfolder(true));
+        } finally {
+            PauseForTests.resume();
+        }
     }
 
     /**

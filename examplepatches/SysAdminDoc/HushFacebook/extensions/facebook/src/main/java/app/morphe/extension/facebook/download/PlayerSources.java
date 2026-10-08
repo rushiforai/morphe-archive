@@ -158,6 +158,8 @@ public final class PlayerSources {
                 SOURCES.put(videoId, new Source(videoId, hd, manifest));
             }
             HookStatus.bound(family, "player source");
+            // A video a copied link opened saves once its player is here.
+            ClipboardLink.recorded(videoId);
         } catch (Throwable failure) {
             // This runs inside a constructor of the app. No error can go out of it.
             try {

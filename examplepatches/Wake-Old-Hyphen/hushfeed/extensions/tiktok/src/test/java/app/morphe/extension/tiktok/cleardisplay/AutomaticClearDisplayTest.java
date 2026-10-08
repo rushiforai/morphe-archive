@@ -256,6 +256,120 @@ public class AutomaticClearDisplayTest {
      * itself (S22, 2026-09-23), and the live state has to say so, or the tab strip hide keeps
      * TikTok's top strip away with the feature off. Once shown, later videos ask nothing more.
      */
+    /**
+     * With no delay the next video is cleared as soon as it starts, but TikTok's clear mode
+     * belongs to one video, so between the swipe and that clear the incoming one would show its
+     * controls (#84). The cleared state carries across the swipe until something asks for the
+     * controls back.
+     */
+    @Test public void withNoDelayTheClearCarriesAcrossTheSwipe() {
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        assertTrue("the automatic clear isn't carried", RememberClearDisplayPatch.isCarryingClear());
+
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        assertEquals(List.of(false, true, false), events);
+        assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+        assertTrue("the swipe dropped the carried clear", RememberClearDisplayPatch.isCarryingClear());
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertEquals(List.of(false, true, false, true), events);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+        // Restore display, or any change TikTok makes itself, ends it.
+        RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 1));
+        assertFalse("a manual restore kept the controls away", RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertFalse("the restore didn't stick", RememberClearDisplayPatch.isClearDisplayNow());
+        assertFalse(RememberClearDisplayPatch.isCarryingClear());
+        // The next video is cleared again, as before, and carries again.
+        RememberClearDisplayPatch.firstFrame("three", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isClearDisplayNow());
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+    }
+
+    /** The overlay hider keeps the incoming video's controls away while the clear carries. */
+    @Test public void aCarriedClearHidesTheIncomingVideosControls() {
+        Class<?> hider = app.morphe.extension.tiktok.feed.VideoOverlayHider.class;
+        var name = org.robolectric.util.ReflectionHelpers.ClassParameter.from(String.class, "desc");
+        int cellId = 0x7f0a0c31;
+        int captionId = 0x7f0a0c32;
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(hider, "resolveForTests", name,
+                org.robolectric.util.ReflectionHelpers.ClassParameter.from(int.class, captionId));
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(hider, "resolveForTests",
+                org.robolectric.util.ReflectionHelpers.ClassParameter.from(String.class, "view_rootview"),
+                org.robolectric.util.ReflectionHelpers.ClassParameter.from(int.class, cellId));
+        try (var controller = Robolectric.buildActivity(android.app.Activity.class).setup()) {
+            android.app.Activity activity = controller.get();
+            Utils.setContext(activity);
+            android.widget.FrameLayout root = new android.widget.FrameLayout(activity);
+            android.widget.FrameLayout cell = new android.widget.FrameLayout(activity);
+            cell.setId(cellId);
+            android.view.View caption = new android.view.View(activity);
+            caption.setId(captionId);
+            cell.addView(caption);
+            root.addView(cell);
+            activity.setContentView(root);
+            var apply = org.robolectric.util.ReflectionHelpers.ClassParameter.from(android.app.Activity.class, activity);
+
+            Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+            RememberClearDisplayPatch.firstFrame("one", () -> true, value -> true);
+            Shadows.shadowOf(Looper.getMainLooper()).idle();
+            RememberClearDisplayPatch.firstFrame("two", () -> true, value -> true);
+            assertFalse(RememberClearDisplayPatch.isClearDisplayNow());
+            org.robolectric.util.ReflectionHelpers.callStaticMethod(hider, "applyTo", apply);
+            assertEquals("the incoming video showed its caption", android.view.View.GONE, caption.getVisibility());
+
+            RememberClearDisplayPatch.rememberClearDisplayEvent(new Event(false, 1));
+            org.robolectric.util.ReflectionHelpers.callStaticMethod(hider, "applyTo", apply);
+            assertEquals("Restore display left the caption hidden", android.view.View.VISIBLE, caption.getVisibility());
+        } finally {
+            org.robolectric.util.ReflectionHelpers.callStaticMethod(hider, "resolveForTests",
+                    org.robolectric.util.ReflectionHelpers.ClassParameter.from(String.class, "view_rootview"),
+                    org.robolectric.util.ReflectionHelpers.ClassParameter.from(int.class, 0));
+        }
+    }
+
+    @Test public void theCarriedClearNeedsNoDelayTheSwitchAndNoHold() {
+        org.robolectric.util.ReflectionHelpers.callStaticMethod(app.morphe.extension.tiktok.wellbeing.SessionBudget.class, "awaitWritesForTests");
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        List<Boolean> events = new ArrayList<>();
+        RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+        // A delay means the reader wants a look at the controls first.
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(1000);
+        assertFalse("carried with a delay chosen", RememberClearDisplayPatch.isCarryingClear());
+        Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+
+        // Switched off, the next video shows its controls and nothing carries.
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+        assertFalse("carried with the switch off", RememberClearDisplayPatch.isCarryingClear());
+        RememberClearDisplayPatch.firstFrame("two", () -> true, events::add);
+        Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
+        assertFalse("switching off didn't end the carry", RememberClearDisplayPatch.isCarryingClear());
+
+        RememberClearDisplayPatch.firstFrame("three", () -> true, events::add);
+        Shadows.shadowOf(Looper.getMainLooper()).idle();
+        assertTrue(RememberClearDisplayPatch.isCarryingClear());
+        try {
+            lockTheDay();
+            assertFalse("carried under the daily hold", RememberClearDisplayPatch.isCarryingClear());
+            RememberClearDisplayPatch.leaveForHold();
+            unlockTheDay();
+            assertFalse("the hold didn't end the carry", RememberClearDisplayPatch.isCarryingClear());
+        } finally {
+            unlockTheDay();
+        }
+    }
+
     @Test public void switchingTheAutomaticPathOffShowsTheControlsOnTheNextVideo() {
         List<Boolean> events = new ArrayList<>();
         RememberClearDisplayPatch.firstFrame("one", () -> true, events::add);
@@ -582,5 +696,44 @@ public class AutomaticClearDisplayTest {
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             app.morphe.extension.tiktok.UiCapture.save(activity.getWindow().getDecorView(), "clear-display-settings.png");
         }
+    }
+    @Test public void hidingTheControlsSitsUnderTheAutomaticSwitch() throws Exception {
+        // It sat at the end of Around the video, where the #84 reporter couldn't find it next to
+        // the switch it goes with.
+        boolean overlays = SettingsStatus.videoOverlaysEnabled;
+        try (var owner = Robolectric.buildActivity(
+                app.morphe.extension.tiktok.interaction.GestureActionsTest.TestActivity.class).setup()) {
+            var activity = owner.get();
+            Utils.setContext(activity);
+            SettingsStatus.videoOverlaysEnabled = true;
+            SettingsStatus.automaticClearDisplayEnabled = true;
+            List<String> titles = feedScreenTitles(activity);
+            int heading = titles.indexOf("Clear display");
+            assertTrue(titles.toString(), heading >= 0);
+            assertEquals(List.of("Clear display", "Automatic clear display", "Clear display delay",
+                    "Hide the Clear display controls"), titles.subList(heading, heading + 4));
+            assertEquals(1, titles.stream().filter("Hide the Clear display controls"::equals).count());
+
+            // The row belongs to the overlay patch, so a bundle without the automatic one still
+            // shows it, under its own heading.
+            SettingsStatus.automaticClearDisplayEnabled = false;
+            titles = feedScreenTitles(activity);
+            heading = titles.indexOf("Clear display");
+            assertTrue(titles.toString(), heading >= 0);
+            assertEquals("Hide the Clear display controls", titles.get(heading + 1));
+            assertFalse(titles.contains("Automatic clear display"));
+        } finally {
+            SettingsStatus.videoOverlaysEnabled = overlays;
+        }
+    }
+
+    private static List<String> feedScreenTitles(android.preference.PreferenceActivity activity) {
+        var screen = activity.getPreferenceManager().createPreferenceScreen(activity);
+        var category = new InterfacePreferenceCategory(activity, screen);
+        List<String> titles = new ArrayList<>();
+        for (int i = 0; i < category.getPreferenceCount(); i++) {
+            titles.add(String.valueOf(category.getPreference(i).getTitle()));
+        }
+        return titles;
     }
 }

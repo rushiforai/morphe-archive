@@ -7,7 +7,7 @@ contains only the patches maintained in this repository.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.3.1](https://github.com/giaaaacomo/nifty-patches-selection/releases/tag/v0.3.1)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v0.3.3](https://github.com/giaaaacomo/nifty-patches-selection/releases/tag/v0.3.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
 <details open>
 <summary>📦 Samsung Daily Board&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>

@@ -42,6 +42,7 @@ private const val MIG = "$MATERIAL_YOU->mig(ILjava/lang/Object;)I"
  * A colour resource read as a drawable. Litho resolves a token's theme attribute to its resource and
  * asks for the drawable this way, so the feed's composer row draws SURFACE_BACKGROUND's #252728 from
  * the resource table (issue #37). AMOLED has no stand-in for it: route two already wrote black there.
+ * ComposerRowColourFixtureTest holds the composer row's way to this call on each declared build.
  */
 internal const val CONTEXT_GET_DRAWABLE = "Landroid/content/Context;->getDrawable(I)Landroid/graphics/drawable/Drawable;"
 
@@ -319,6 +320,10 @@ val materialYouThemePatch = bytecodePatch(
     // there: each hook here goes after AMOLED's and gets AMOLED's colour, and AMOLED's black is no
     // dark-theme colour this recolours.
     finalize {
+        // The selected tab's reads are found first: a build without them fails before any hook
+        // below goes in.
+        val recolourSelectedTab = selectedTabColourHook()
+
         // Facebook's own answer for whether its dark mode is on, unless AMOLED has hooked it already.
         hookDarkModeAnswer()
 
@@ -330,6 +335,10 @@ val materialYouThemePatch = bytecodePatch(
         val darkCheck = fdsDarkCheck()
         hookMaterialYouStatusBar(darkCheck)
         hookMaterialYouNavigationBar(darkCheck)
+
+        // The selected tab in Facebook's tab bar, its icon and the line over it, which Facebook's
+        // dark theme draws near white: the palette's accent, as HushMessenger's selected tab (#65).
+        recolourSelectedTab()
 
         // Route four, and the reads of a colour resource, where Facebook's dark palette reaches the
         // Video tab's bottom bar. AMOLED, when it went first, has sent every call to its own

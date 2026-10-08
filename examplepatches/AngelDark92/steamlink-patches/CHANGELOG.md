@@ -1,3 +1,9 @@
+## [1.27.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.26.0...v1.27.0) (2026-10-07)
+
+### ✨ New Features
+
+* predict the controller HAL pose 60 ms ahead by default ([c8609ed](https://github.com/AngelDark92/steamlink-patches/commit/c8609edc2b1e48b9a3d0ee7947f14720b24cd15c))
+
 ## [1.26.0](https://github.com/AngelDark92/steamlink-patches/compare/v1.25.0...v1.26.0) (2026-10-05)
 
 ### ✨ New Features

@@ -2,9 +2,7 @@
 
 Every HushPinterest release, newest first.
 
-## 0.0.5 (2026-10-06)
-
-Unreleased source changes. The published release remains 0.0.4.
+## 0.0.5 (2026-10-07)
 
 * **Pinterest:** New Spoof signature for Google sign-in patch, off by default. It adds Pinterest's original signing certificate to the manifest so Google sign-in can work in the patched app. That only matters with microG-RE in place of Google Play services, or with the XSpoofSignatures LSPosed module and its permission granted. Stock Google Play services ignores it, and email and password sign-in never needed it.
 * **Pinterest:** New optional Hide topic suggestions patch. It hides the "Ideas you might love" row of topic bubbles under a pin, and the space it took closes up too. The switch starts off. Turn it off again, or pause HushPinterest, and the row comes back the next time Pinterest lays it out. Comments and related pins aren't touched.

@@ -15,7 +15,7 @@ val enablePremiumPatch = bytecodePatch(
         // The domain flow is the single source every screen collects, and the only
         // implementation is this manager. Returning a constant flow avoids having to
         // touch the encrypted preference storage or the billing client.
-        PremiumVersionFlowFingerprint.methodOrNull?.addInstructions(
+        PremiumVersionFlowFingerprint.method.addInstructions(
             0,
             """
                 sget-object v0, Ljava/lang/Boolean;->TRUE:Ljava/lang/Boolean;

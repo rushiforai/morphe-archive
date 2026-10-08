@@ -11,6 +11,9 @@ import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.ads.sponsoredsearch.enumConstantFields
+import app.morphe.patches.facebook.media.resume.VIDEO_PLAYER_PARAMS
+import app.morphe.patches.facebook.media.resume.paramsGetters
+import app.morphe.patches.facebook.media.resume.reportedValues
 import app.morphe.util.ControlFlow
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
 import app.morphe.patches.facebook.misc.extension.localRegisterCount
@@ -28,6 +31,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstructio
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -113,9 +117,10 @@ class TapToPlayFixtureTest {
                 val reelCheckSignature = reelChecks.single()
                 val controlsType = reelCheckSignature.substringBefore("->")
 
-                val kept = setOf(trigger, FRAGMENT_ACTIVITY, controlsType) + enumCandidates
+                val kept = setOf(trigger, FRAGMENT_ACTIVITY, controlsType, VIDEO_PLAYER_PARAMS) + enumCandidates
                 val classes = FixtureDex.classes(fixture, kept)
-                assertEquals("$name: classes missing", emptySet<String>(), setOf(trigger, FRAGMENT_ACTIVITY) - classes.keys)
+                assertEquals("$name: classes missing", emptySet<String>(),
+                    setOf(trigger, FRAGMENT_ACTIVITY, VIDEO_PLAYER_PARAMS) - classes.keys)
                 assertTrue("$name: the trigger enum doesn't name ${TRIGGER_NAMES.joinToString()}",
                     isEnumNaming(classes.getValue(trigger), TRIGGER_NAMES))
                 val readers = settingReaders(checker) { type -> classes[type]?.let { isEnumNaming(it, SETTING_NAMES) } == true }
@@ -147,7 +152,8 @@ class TapToPlayFixtureTest {
                 // The patch, on this build's own classes.
                 val context = PatchContexts.of(
                     listOf(groot, legacy, checker, classes.getValue(trigger), setting, classes.getValue(FRAGMENT_ACTIVITY),
-                        classes.getValue(controlsType), ExtensionDex.classDef(SETTINGS_STATUS)) + components + playbackClasses.values,
+                        classes.getValue(controlsType), classes.getValue(VIDEO_PLAYER_PARAMS), ExtensionDex.classDef(TAP_TO_PLAY),
+                        ExtensionDex.classDef(SETTINGS_STATUS)) + components + playbackClasses.values,
                 )
                 tapToPlayPatch.execute(context)
                 fun patched(method: Method) = context.mutableClassDefBy(method.definingClass).methods.single {
@@ -256,6 +262,24 @@ class TapToPlayFixtureTest {
                 assertEquals(listOf(dispatch.localRegisterCount(), dispatch.localRegisterCount() + 1), touch[0].registers())
                 assertTrue("$name: dispatchTouchEvent still hands the event on",
                     touch.drop(1).any { it.call?.name == "dispatchTouchEvent" })
+
+                // The reel check's stubs: the player's params getter, and the field the params report as isFbShorts.
+                val getter = paramsGetters(groot).single()
+                val shorts = classes.getValue(VIDEO_PLAYER_PARAMS).methods.filter { holdsString(it, FB_SHORTS) }
+                    .mapNotNull { reportedValues(it)[FB_SHORTS] }.distinctBy { it.toString() }
+                assertEquals("$name: fields the params report as $FB_SHORTS", 1, shorts.size)
+                val stubs = context.mutableClassDefBy(TAP_TO_PLAY)
+                fun stub(stubName: String) = stubs.methods.single { it.name == stubName }.implementation!!.instructions.toList()
+                val paramsStub = stub(PLAYER_PARAMS_STUB)
+                assertEquals("$name: the params stub's cast", groot.type, ((paramsStub[0] as ReferenceInstruction).reference as TypeReference).type)
+                assertEquals("$name: the params stub's call", "${groot.type}->${getter.name}()$VIDEO_PLAYER_PARAMS",
+                    paramsStub[1].call.toString())
+                assertEquals("$name: the params stub's answer", Opcode.RETURN_OBJECT, paramsStub[3].opcode)
+                val flagStub = stub(FB_SHORTS_STUB)
+                assertEquals("$name: the $FB_SHORTS stub's read", Opcode.IGET_BOOLEAN, flagStub[1].opcode)
+                assertEquals("$name: the $FB_SHORTS stub's field", "$VIDEO_PLAYER_PARAMS->${shorts.single().name}:Z",
+                    ((flagStub[1] as ReferenceInstruction).reference as FieldReference).toString())
+                assertEquals("$name: the $FB_SHORTS stub reads its argument", 0, (flagStub[1] as TwoRegisterInstruction).registerB)
                 checked += version
             }
         }

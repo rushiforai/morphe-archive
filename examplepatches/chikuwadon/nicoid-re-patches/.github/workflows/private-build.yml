@@ -22,7 +22,7 @@ jobs:
         run: |
           javac -d /tmp/nicoid-shorts-tests extensions/extension/src/main/java/e/e/a/ShortsRules.java porting/tests/ShortsRulesTest.java
           java -cp /tmp/nicoid-shorts-tests ShortsRulesTest
-      - name: Check bicycle runner physics
+      - name: Check model regressions
         run: |
           javac -d /tmp/nicoid-bike-tests extensions/extension/src/main/java/e/e/a/BikeRunModel.java porting/tests/BikeRunModelTest.java
           java -cp /tmp/nicoid-bike-tests e.e.a.BikeRunModelTest

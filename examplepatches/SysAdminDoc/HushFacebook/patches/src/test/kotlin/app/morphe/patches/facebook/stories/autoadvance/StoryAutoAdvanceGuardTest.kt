@@ -55,11 +55,17 @@ class StoryAutoAdvanceGuardTest {
         val method = callback(1, facebooksShape)
         assertEquals(0, method.waitForTapRegister(5))
 
-        method.addInstructionsWithLabels(5, waitForTapBlock(0), ExternalLabel("navigate", method.getInstruction(5)))
+        method.addInstructionsWithLabels(
+            5,
+            waitForTapBlock(0, "Lfixture/Controller;"),
+            ExternalLabel("navigate", method.getInstruction(5)),
+        )
         val body = method.implementation!!.instructions.toList()
         assertEquals(Opcode.MOVE_RESULT, body[6].opcode)
         assertEquals(0, (body[6] as OneRegisterInstruction).registerA)
-        assertEquals(Opcode.RETURN_VOID, body[8].opcode)
+        // Held, the callback's class gets the story to start again when Loop stories is on.
+        assertEquals(Opcode.INVOKE_STATIC_RANGE, body[8].opcode)
+        assertEquals(Opcode.RETURN_VOID, body[9].opcode)
     }
 
     /**

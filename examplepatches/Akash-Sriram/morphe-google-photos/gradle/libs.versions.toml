@@ -1,8 +1,8 @@
 [versions]
 # Align with morphe-patches-template (Compatibility / Manager display names).
-morphe-patcher = "1.13.0"
+morphe-patcher = "1.15.1"
 # Tracking https://github.com/google/smali/issues/100.
-smali = "b6365a84f4"
+smali = "d92701d947"
 agp = "8.2.2"
 annotation = "1.9.1"
 androidx-core = "1.16.0"

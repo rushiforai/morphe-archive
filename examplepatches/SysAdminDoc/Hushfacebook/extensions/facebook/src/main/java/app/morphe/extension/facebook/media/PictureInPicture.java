@@ -43,6 +43,16 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * Native view on the main screen can already hold. The extension swaps such an id for a free one,
  * or the viewer opens hidden and the window stays black.
  *
+ * <p>Facebook's full-screen Watch viewer arms the same window for the video on screen, behind a
+ * server flag of its own. With the switch on, the extension answers that flag yes, and Facebook's
+ * own code arms the window; the rest here treats that arming like any other.
+ *
+ * <p>The Video tab arms the same window as you scroll its videos, behind two answers of its own:
+ * the gate the Reels viewer asks, which this copy reads inline, and a server flag for its deep-dive
+ * viewer. With the switch on, both say yes, and Facebook's own code arms the window for the video on
+ * screen. Its checks for ads, live videos and the video's shape stay Facebook's, so those still open
+ * no window.
+ *
  * <p>Off, paused, before the settings are ready, or when anything here fails, the answer is
  * Facebook's own.
  */
@@ -64,6 +74,15 @@ public final class PictureInPicture {
 
     /** Counted each time the window's viewer gets a view id of its own instead of one a view already holds. */
     static final String VIEWER_ID = "viewer id replaced";
+
+    /** Counted each time the full-screen Watch viewer's flag says yes where Facebook's answer was no. */
+    static final String IMMERSIVE = "watch viewer flag opened";
+
+    /** Counted each time the Video tab's copy of the Reels viewer's gate says yes where Facebook's answer was no. */
+    static final String HOME_GATE = "video tab gate opened";
+
+    /** Counted each time the Video tab's flag for its deep-dive viewer says yes where Facebook's answer was no. */
+    static final String HOME_FLAG = "video tab flag opened";
 
     /** How many new view ids the viewer may go through for one nothing on screen holds. */
     private static final int VIEWER_ID_TRIES = 64;
@@ -291,6 +310,59 @@ public final class PictureInPicture {
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "viewer id", failure);
             return id;
+        }
+    }
+
+    /**
+     * The hook, right after the full-screen Watch viewer reads the server flag that lets it arm its
+     * picture-in-picture window, with Facebook's [answer]. A no turns into a yes while the switch is
+     * on; a yes stays one, and everything else is Facebook's own.
+     */
+    public static boolean immersiveAllowed(boolean answer) {
+        try {
+            boolean enabled = on();
+            if (!enabled) return answer;
+            HookStatus.bound(FAMILY, "watch viewer flag");
+            if (answer) return true;
+            HookStatus.counted(FAMILY, IMMERSIVE);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "watch viewer flag", failure);
+            return answer;
+        }
+    }
+
+    /**
+     * The hook, right after the Video tab's arming reads its own copy of the Reels viewer's gate,
+     * with Facebook's [answer]. A no turns into a yes while the switch is on.
+     */
+    public static boolean homeGateAllowed(boolean answer) {
+        return opened(answer, "video tab gate", HOME_GATE);
+    }
+
+    /**
+     * The hook, right after the Video tab's arming reads the server flag that lets its deep-dive
+     * viewer keep the window, with Facebook's [answer]; Facebook's no turns the window off. A no
+     * turns into a yes while the switch is on.
+     */
+    public static boolean homeFlagAllowed(boolean answer) {
+        return opened(answer, "video tab flag", HOME_FLAG);
+    }
+
+    /**
+     * Facebook's [answer] to a question that only decides whether to arm the window: yes while the
+     * switch is on, counting [counted] when it was a no, and Facebook's own otherwise.
+     */
+    private static boolean opened(boolean answer, String hook, String counted) {
+        try {
+            if (!on()) return answer;
+            HookStatus.bound(FAMILY, hook);
+            if (answer) return true;
+            HookStatus.counted(FAMILY, counted);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, hook, failure);
+            return answer;
         }
     }
 

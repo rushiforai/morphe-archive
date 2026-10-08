@@ -20,6 +20,7 @@ import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -40,6 +41,13 @@ class ReturnRefreshFixtureTest {
     private val resetToFeed = "$extension->resetToFeed(Ljava/lang/String;Ljava/lang/String;)V"
     private val keepFeedWhileAway = "$extension->keepFeedWhileAway()Z"
     private val holdAutoScroll = "$extension->holdAutoScroll()Z"
+    private val noteHotStart = "$extension->hotStart()V"
+    private val holdStalePost = "$extension->holdStalePost()Z"
+    private val holdTabAutoRefresh = "$extension->holdTabAutoRefresh()Z"
+    private val holdTabEntryHotLoad = "$extension->holdTabEntryHotLoad()Z"
+
+    /** What the dex files holding the in-app checks' callers load: two kept method names and the pause worker's event. */
+    private val callerTexts = setOf("onSetUserVisibleHint", "refreshForRevisit", "refresh_stale_post_on_pause")
 
     private fun Method.body(): List<Instruction> = implementation!!.instructions.toList()
 
@@ -57,7 +65,8 @@ class ReturnRefreshFixtureTest {
     @Test
     fun `the extension has the entries the patch calls, public and static`() {
         val methods = ExtensionDex.classDef(extension).methods.associateBy(::signature)
-        for (entry in listOf(skip, holdWarmStart, resetToFeed, keepFeedWhileAway, holdAutoScroll)) {
+        for (entry in listOf(skip, holdWarmStart, resetToFeed, keepFeedWhileAway, holdAutoScroll, noteHotStart,
+            holdStalePost, holdTabAutoRefresh, holdTabEntryHotLoad)) {
             val method = methods[entry]
             assertTrue("the extension has no $entry", method != null)
             assertTrue("$entry isn't public static",
@@ -123,7 +132,59 @@ class ReturnRefreshFixtureTest {
         val noneAt = decision.body().indexOfFirst { it.call() == none }
         assertEquals("$name: the NONE answer's return", Opcode.RETURN_OBJECT, decision.body()[noneAt + 1].opcode)
 
-        val owners = (controllers + warmOwners + logOwners + teardownOwners + scrollTypes.values).distinctBy { it.type }
+        // Inside the app: the stale-post executor, the hot-start check and NewsFeedTabDataFetch's
+        // dispatch, each the one method of its shape loading its text.
+        val executorOwners = FixtureDex.classesHolding(bundle, STALE_POST_RE_RANK)
+        val executors = executorOwners.flatMap { it.methods.filter(::isStalePostExecutor) }
+        assertEquals("$name: stale-post executors: ${executors.map(::signature)}", 1, executors.size)
+        val hotOwners = FixtureDex.classesHolding(bundle, HOT_START_CHECK)
+        val hotStarts = hotOwners.flatMap { it.methods.filter(::isHotStartCheck) }
+        assertEquals("$name: hot-start checks: ${hotStarts.map(::signature)}", 1, hotStarts.size)
+        val fetchOwners = FixtureDex.classesHolding(bundle, TAB_DATA_FETCH)
+        val fetches = fetchOwners.flatMap { it.methods.filter(::isTabDataFetch) }
+        assertEquals("$name: tab data fetch dispatches: ${fetches.map(::signature)}", 1, fetches.size)
+        val executor = executors.single()
+        val hotStart = hotStarts.single()
+        val fetch = fetches.single()
+        // Throws on a shape the hook can't go into: see tabAutoRefreshCause.
+        val cause = tabAutoRefreshCause(fetch)
+        val causeRegister = (fetch.body()[cause] as OneRegisterInstruction).registerA
+
+        // On accounts with the friendly feed: NewsFeedFragment's onTabEntered, the one onTabEntered
+        // marking the tab's badge, reloads the friendly feed with HOT_LOAD once Home was left long
+        // enough. The friendly feed's loader is the class holding its first-entry prefetch.
+        val entryOwners = FixtureDex.classesHolding(bundle, TAB_ENTRY_BADGED)
+        val entries = entryOwners.flatMap { it.methods.filter(::isTabEntry) }
+        assertEquals("$name: tab entries: ${entries.map(::signature)}", 1, entries.size)
+        val entry = entries.single()
+        val friendlyOwners = FixtureDex.classesHolding(bundle, FRIENDLY_FEED_PREFETCH)
+        val friendlyLoaders = friendlyOwners.map { it.type }.toSet()
+        val enumTypes = entry.body().filter { it.opcode == Opcode.SGET_OBJECT }
+            .map { (it as ReferenceInstruction).reference as FieldReference }
+            .filter { it.definingClass == it.type }.map { it.type }.toSet()
+        val entryTypes = FixtureDex.classes(bundle, enumTypes)
+        // Throws on a shape the hook can't go into: see tabEntryHotLoad.
+        val hotLoad = tabEntryHotLoad(entry, friendlyLoaders) { entryTypes[it] }
+        val hotLoadRegister = (entry.body()[hotLoad] as OneRegisterInstruction).registerA
+
+        // The tab's visibility change and the worker the feed posts on pause hand the executor their
+        // decision, and the visibility change and the revisit refresh ask the hot-start check.
+        val targets = setOf(signature(executor), signature(hotStart))
+        val callers = FixtureDex.methodsWhere(bundle, { dex -> dex.stringSection.any { it in callerTexts } }) { method ->
+            method.implementation?.instructions?.any { it.call() in targets } == true
+        }
+        fun callersOf(target: Method) = callers.filter { caller -> caller.body().any { it.call() == signature(target) } }
+        assertTrue("$name: no onSetUserVisibleHint hands the executor a decision",
+            callersOf(executor).any { it.name == "onSetUserVisibleHint" })
+        assertTrue("$name: no pause worker hands the executor a decision",
+            callersOf(executor).any { it.name == "run" && holdsString(it, "refresh_stale_post_on_pause") })
+        assertTrue("$name: onSetUserVisibleHint doesn't ask the hot-start check",
+            callersOf(hotStart).any { it.name == "onSetUserVisibleHint" })
+        assertTrue("$name: refreshForRevisit doesn't ask the hot-start check",
+            callersOf(hotStart).any { it.name == "refreshForRevisit" })
+
+        val owners = (controllers + warmOwners + logOwners + teardownOwners + scrollTypes.values + executorOwners +
+            hotOwners + fetchOwners + entryOwners + friendlyOwners + entryTypes.values).distinctBy { it.type }
         val context = PatchContexts.of(owners + ExtensionDex.classDef(SETTINGS_STATUS))
         blockReturnRefreshPatch.execute(context)
         fun patched(method: Method) = context.mutableClassDefBy(method.definingClass).methods.single {
@@ -176,5 +237,50 @@ class ReturnRefreshFixtureTest {
         assertEquals("$name: NONE", none, decisionBody[noneAt + 3].call())
         assertEquals("$name: the rest of the decision", decision.body().map { it.opcode },
             decisionBody.drop(3).map { it.opcode })
+
+        // The executor asks first and, on a yes, does nothing, as Facebook's own answer does.
+        val executorBody = patched(executor).body()
+        val hook = listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID)
+        assertEquals("$name: the executor's first call", holdStalePost, executorBody[0].call())
+        assertEquals("$name: the executor's hook", hook, executorBody.take(hook.size).map { it.opcode })
+        assertEquals("$name: the rest of the executor", executor.body().map { it.opcode },
+            executorBody.drop(hook.size).map { it.opcode })
+
+        // The hot-start check only says it's running, then asks the warm-start check, whose own
+        // question past its empty-feed load holds it: nothing in the hot-start check is skipped.
+        val hotBody = patched(hotStart).body()
+        assertEquals("$name: the hot-start check's first call", noteHotStart, hotBody[0].call())
+        assertEquals("$name: the rest of the hot-start check", hotStart.body().map { it.opcode },
+            hotBody.drop(1).map { it.opcode })
+        assertTrue("$name: the hot-start check doesn't ask the warm-start check",
+            hotBody.any { it.call() == signature(warmStart) })
+
+        // The dispatch asks where it loaded the refresh's cause, in that register, and a yes lands
+        // right after the refresh, on the data fetch's own callback.
+        val fetchBody = patched(fetch).body()
+        assertEquals("$name: the dispatch's hook", listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ),
+            fetchBody.subList(cause, cause + 3).map { it.opcode })
+        assertEquals("$name: the dispatch's question", holdTabAutoRefresh, fetchBody[cause].call())
+        assertEquals("$name: the dispatch's registers", listOf(causeRegister, causeRegister),
+            listOf(fetchBody[cause + 1], fetchBody[cause + 2]).map { (it as OneRegisterInstruction).registerA })
+        assertTrue("$name: a yes doesn't skip the refresh", cause + 5 in ControlFlow.of(patched(fetch)).normal[cause + 2])
+        assertEquals("$name: the refresh", fetch.body()[cause + 1].call(), fetchBody[cause + 4].call())
+        assertEquals("$name: the rest of the dispatch", fetch.body().map { it.opcode },
+            fetchBody.filterIndexed { index, _ -> index !in cause..cause + 2 }.map { it.opcode })
+
+        // The tab entry asks where it loaded HOT_LOAD, with a call that takes no register, answers in
+        // that register, and a yes lands right after the reload, on the rest of the tab entry.
+        val entryBody = patched(entry).body()
+        assertEquals("$name: the tab entry's hook", listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_NEZ),
+            entryBody.subList(hotLoad, hotLoad + 3).map { it.opcode })
+        assertEquals("$name: the tab entry's question", holdTabEntryHotLoad, entryBody[hotLoad].call())
+        assertEquals("$name: the question's registers", 0, (entryBody[hotLoad] as FiveRegisterInstruction).registerCount)
+        assertEquals("$name: the tab entry's registers", listOf(hotLoadRegister, hotLoadRegister),
+            listOf(entryBody[hotLoad + 1], entryBody[hotLoad + 2]).map { (it as OneRegisterInstruction).registerA })
+        assertTrue("$name: a yes doesn't skip the reload", hotLoad + 5 in ControlFlow.of(patched(entry)).normal[hotLoad + 2])
+        assertEquals("$name: the reload", entry.body()[hotLoad + 1].call(), entryBody[hotLoad + 4].call())
+        assertEquals("$name: one tab entry question", 1, entryBody.count { it.call() == holdTabEntryHotLoad })
+        assertEquals("$name: the rest of the tab entry", entry.body().map { it.opcode },
+            entryBody.filterIndexed { index, _ -> index !in hotLoad..hotLoad + 2 }.map { it.opcode })
     }
 }

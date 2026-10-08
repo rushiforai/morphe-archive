@@ -13,7 +13,7 @@ val enablePremiumPatch = bytecodePatch(
 
     execute {
         // Force all RevenueCat entitlements to appear active.
-        EntitlementInfoIsActiveFingerprint.methodOrNull?.returnEarly(value = true)
+        EntitlementInfoIsActiveFingerprint.method.returnEarly(value = true)
 
         // Disable billing flow launch to prevent purchase dialogs.
         BillingLaunchFlowFingerprint.methodOrNull?.returnEarly()

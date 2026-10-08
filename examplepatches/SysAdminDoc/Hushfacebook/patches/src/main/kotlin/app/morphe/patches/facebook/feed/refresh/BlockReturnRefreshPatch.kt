@@ -15,16 +15,20 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.misc.extension.EXTENSION_PACKAGE
 import app.morphe.patches.facebook.misc.extension.enableStatus
+import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.facebook.misc.extension.requireLocals
 import app.morphe.patches.facebook.misc.settings.settingsPatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
+import app.morphe.util.RegisterLiveness
 import app.morphe.util.findMutableMethodOf
 import app.morphe.util.literalReads
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
@@ -63,6 +67,39 @@ internal const val NO_AUTO_SCROLL = "NONE"
 private const val HOLD_AUTO_SCROLL = "$EXTENSION_PACKAGE/feed/ReturnRefresh;->holdAutoScroll()Z"
 
 /**
+ * What the feed's stale-post executor logs as it re-ranks, which no other method of 577, 580 or 581
+ * loads. NewsFeedFragment's onSetUserVisibleHint and the worker it posts on pause hand it their decision.
+ */
+internal const val STALE_POST_RE_RANK = "maybeRefreshStalePost-RE_RANK"
+private const val HOLD_STALE_POST = "$EXTENSION_PACKAGE/feed/ReturnRefresh;->holdStalePost()Z"
+
+/**
+ * What the feed's hot-start check adds to its caller's source before it asks the warm-start check,
+ * which no other method loads. onSetUserVisibleHint and the feed's refreshForRevisit call it.
+ */
+internal const val HOT_START_CHECK = "-maybeRefreshForHotStart"
+private const val PATCH = "Block background-return feed refresh"
+private const val NOTE_HOT_START = "$EXTENSION_PACKAGE/feed/ReturnRefresh;->hotStart()V"
+
+/** The source NewsFeedTabDataFetch hands the forced refresh it runs once the tab's data is stale. */
+internal const val TAB_DATA_FETCH = "NewsFeedTabDataFetchSpec"
+private const val HOLD_TAB_AUTO_REFRESH = "$EXTENSION_PACKAGE/feed/ReturnRefresh;->holdTabAutoRefresh()Z"
+
+/** What NewsFeedFragment's onTabEntered marks about the tab's badge, which no other onTabEntered loads. */
+internal const val TAB_ENTRY_BADGED = "isTabEntryBadged"
+private const val ON_TAB_ENTERED = "onTabEntered"
+
+/**
+ * The friendly feed's prefetch on a first tab entry. Only its loader loads it, the class onTabEntered
+ * tests the feed's loader against before it reloads the friendly feed.
+ */
+internal const val FRIENDLY_FEED_PREFETCH = "friendlyFeedPrefetch"
+
+/** The refresh cause onTabEntered hands the friendly feed's reload as Home comes back. */
+internal const val HOT_LOAD = "HOT_LOAD"
+private const val HOLD_TAB_ENTRY_HOT_LOAD = "$EXTENSION_PACKAGE/feed/ReturnRefresh;->holdTabEntryHotLoad()Z"
+
+/**
  * Stops what Facebook does to the feed when it returns to view: the refresh FeedRefreshTriggerController
  * fires, the feed's warm-start check, which NewsFeedFragment's onResume reaches and which refreshes
  * a feed left alone for a few minutes, and NewsFeedFragment's foreground auto-scroll. Each asks the
@@ -71,12 +108,27 @@ private const val HOLD_AUTO_SCROLL = "$EXTENSION_PACKAGE/feed/ReturnRefresh;->ho
  * posts whatever the checks say. That's why the feed still reset after 6.5, 7 and 11 minutes while
  * the resume callback was held. The runnable asks first too, and does nothing while the switch is
  * on. Facebook's reset to feed only logs what it decided, for a debug log to say whether it ran.
+ *
+ * Inside the app, switching back to Home reaches four more: the feed's hot-start check, its
+ * stale-post executor (a re-rank or a refresh that clears the feed, from the tab's visibility
+ * change and from the worker the feed posts on pause), NewsFeedTabDataFetch's AUTO_REFRESH once
+ * the tab's data is stale and, on accounts with the friendly feed, the HOT_LOAD NewsFeedFragment's
+ * onTabEntered starts once Home has been left longer than Facebook's limit. The executor, the data
+ * fetch and the tab entry ask the extension and skip their refresh while it holds. The hot-start
+ * check only tells the extension it's running: it asks the warm-start check next, and that check's
+ * own question, past its empty-feed load, gets the in-app answer, so a feed that came back empty
+ * still loads. The friendly feed's first load of a launch, which onTabEntered starts on the first
+ * entry, is left alone: it's what fills the feed.
+ *
+ * Every anchor is found and checked before anything changes, so a build that moved one refuses
+ * the whole patch rather than keeping some hooks with its switch row hidden.
  */
 @Suppress("unused")
 val blockReturnRefreshPatch = bytecodePatch(
     name = "Block background-return feed refresh",
     description = "Keeps your feed position when you return to Facebook within ten minutes, or " +
-        "for any time away with No time limit on. Pull to refresh and a fresh launch still work.",
+        "for any time away with No time limit on, and when you switch back to Home. Pull to refresh and a " +
+        "fresh launch still work.",
     default = false,
 ) {
     category("Feed")
@@ -86,19 +138,18 @@ val blockReturnRefreshPatch = bytecodePatch(
     execute {
         val callbacks = classDefByStrings(CONTROLLER, StringComparisonType.EQUALS)
             .flatMap { it.methods.filter(::isReturnRefreshCallback) }
-        val callback = callbacks.singleOrNull() ?: throw PatchException(
+        val callbackFound = callbacks.singleOrNull() ?: throw PatchException(
             "Expected one FeedRefreshTriggerController resume callback holding $ON_REFRESH, found ${callbacks.size}",
         )
-        mutableClassDefBy(callback.definingClass).methods.first {
-            it.name == callback.name && it.parameterTypes == callback.parameterTypes
-        }.skipBriefReturnRefresh()
+        val callback = mutableClassDefBy(callbackFound.definingClass).methods.first {
+            it.name == callbackFound.name && it.parameterTypes == callbackFound.parameterTypes
+        }
 
         val checks = classDefByStrings(WARM_START_CHECK, StringComparisonType.EQUALS)
             .flatMap { it.methods.filter(::isWarmStartCheck) }
         val check = checks.singleOrNull() ?: throw PatchException(
             "Expected one feed warm-start check holding $WARM_START_CHECK and $EMPTY_FEED_LOAD, found ${checks.size}",
         )
-        mutableClassDefBy(check.definingClass).findMutableMethodOf(check).holdWarmStartOfAFeedWithStories()
 
         val logs = classDefByStrings(RESET_TO_FEED_OUTCOME, StringComparisonType.EQUALS)
             .flatMap { it.methods.filter(::isResetToFeedLog) }
@@ -106,22 +157,74 @@ val blockReturnRefreshPatch = bytecodePatch(
             "Expected one static (Context, String, String) reset-to-feed log holding $RESET_TO_FEED_OUTCOME " +
                 "and $RESET_TO_FEED_DESTINATION, found ${logs.size}",
         )
-        mutableClassDefBy(log.definingClass).findMutableMethodOf(log).logResetToFeedFirst()
 
         val teardowns = classDefByStrings(LEFT_APP_TEARDOWN, StringComparisonType.EQUALS)
             .flatMap { it.methods.filter(::isLeftAppTeardown) }
         val teardown = teardowns.singleOrNull() ?: throw PatchException(
             "Expected one feed teardown runnable holding \"$LEFT_APP_TEARDOWN\", found ${teardowns.size}",
         )
-        mutableClassDefBy(teardown.definingClass).findMutableMethodOf(teardown).keepFeedWhileAwayFirst()
 
         val decisions = mutableListOf<Method>()
         classDefForEach { classDef -> decisions += classDef.methods.filter(::isAutoScrollDecision) }
         val decision = decisions.singleOrNull() ?: throw PatchException(
             "Expected one $AUTO_SCROLL_DECISION(long, boolean, long, long), found ${decisions.size}",
         )
-        mutableClassDefBy(decision.definingClass).findMutableMethodOf(decision)
-            .holdAutoScrollFirst(mutableClassDefBy(decision.returnType))
+
+        // Inside the app: the Home tab coming back into view and the feed coming back from another
+        // screen, which reach the stale-post executor, the hot-start check and the tab's data fetch.
+        val executors = classDefByStrings(STALE_POST_RE_RANK, StringComparisonType.EQUALS)
+            .flatMap { it.methods.filter(::isStalePostExecutor) }
+        val executor = executors.singleOrNull() ?: throw PatchException(
+            "Expected one static (owner, int, boolean) stale-post executor holding $STALE_POST_RE_RANK, found ${executors.size}",
+        )
+
+        val hotStarts = classDefByStrings(HOT_START_CHECK, StringComparisonType.EQUALS)
+            .flatMap { it.methods.filter(::isHotStartCheck) }
+        val hotStart = hotStarts.singleOrNull() ?: throw PatchException(
+            "Expected one static (owner, String...) hot-start check holding $HOT_START_CHECK, found ${hotStarts.size}",
+        )
+        if (hotStart.implementation!!.instructions.none { callsMethod(it, check) }) {
+            throw PatchException("The hot-start check ${hotStart.definingClass}->${hotStart.name} doesn't ask the warm-start check")
+        }
+
+        val fetches = classDefByStrings(TAB_DATA_FETCH, StringComparisonType.EQUALS)
+            .flatMap { it.methods.filter(::isTabDataFetch) }
+        val fetch = fetches.singleOrNull() ?: throw PatchException(
+            "Expected one static NewsFeedTabDataFetch dispatch holding $TAB_DATA_FETCH, found ${fetches.size}",
+        )
+
+        val entries = classDefByStrings(TAB_ENTRY_BADGED, StringComparisonType.EQUALS)
+            .flatMap { it.methods.filter(::isTabEntry) }
+        val entry = entries.singleOrNull() ?: throw PatchException(
+            "Expected one $ON_TAB_ENTERED holding $TAB_ENTRY_BADGED, found ${entries.size}",
+        )
+        val friendlyLoaders = classDefByStrings(FRIENDLY_FEED_PREFETCH, StringComparisonType.EQUALS).map { it.type }.toSet()
+        val classDefOf = { type: String -> classDefByOrNull(type) }
+
+        val warmStartCheck = mutableClassDefBy(check.definingClass).findMutableMethodOf(check)
+        val resetLog = mutableClassDefBy(log.definingClass).findMutableMethodOf(log)
+        val teardownRun = mutableClassDefBy(teardown.definingClass).findMutableMethodOf(teardown)
+        val autoScroll = mutableClassDefBy(decision.definingClass).findMutableMethodOf(decision)
+        val noScroll = mutableClassDefBy(decision.returnType)
+        val stalePost = mutableClassDefBy(executor.definingClass).findMutableMethodOf(executor)
+        val hotStartCheck = mutableClassDefBy(hotStart.definingClass).findMutableMethodOf(hotStart)
+        val tabFetch = mutableClassDefBy(fetch.definingClass).findMutableMethodOf(fetch)
+        val tabEntry = mutableClassDefBy(entry.definingClass).findMutableMethodOf(entry)
+        for (method in listOf(callback, teardownRun, autoScroll, stalePost)) method.requireLocals(PATCH, 1)
+        emptyFeedAnswer(warmStartCheck)
+        noAutoScrollAnswer(autoScroll, noScroll)
+        tabAutoRefreshCause(tabFetch)
+        tabEntryHotLoad(tabEntry, friendlyLoaders, classDefOf)
+
+        callback.skipBriefReturnRefresh()
+        warmStartCheck.holdWarmStartOfAFeedWithStories()
+        resetLog.logResetToFeedFirst()
+        teardownRun.keepFeedWhileAwayFirst()
+        autoScroll.holdAutoScrollFirst(noScroll)
+        stalePost.holdFirst(HOLD_STALE_POST)
+        hotStartCheck.noteHotStartFirst()
+        tabFetch.holdTabAutoRefreshBeforeIt()
+        tabEntry.holdTabEntryHotLoadBeforeIt(friendlyLoaders, classDefOf)
         enableStatus("returnRefresh")
     }
 }
@@ -188,7 +291,7 @@ internal fun emptyFeedAnswer(method: Method): Int {
 }
 
 private fun MutableMethod.skipBriefReturnRefresh() {
-    requireLocals("Block background-return feed refresh", 1)
+    requireLocals(PATCH, 1)
     addInstructionsWithLabels(
         0,
         """
@@ -278,7 +381,7 @@ internal fun noAutoScrollAnswer(decision: Method, enum: ClassDef): String {
  * down while the switch is on. The answer goes through v0: at index 0 no local holds anything yet.
  */
 internal fun MutableMethod.keepFeedWhileAwayFirst() {
-    requireLocals("Block background-return feed refresh", 1)
+    requireLocals(PATCH, 1)
     addInstructionsWithLabels(
         0,
         """
@@ -298,7 +401,7 @@ internal fun MutableMethod.keepFeedWhileAwayFirst() {
  */
 internal fun MutableMethod.holdAutoScrollFirst(enum: ClassDef) {
     val none = noAutoScrollAnswer(this, enum)
-    requireLocals("Block background-return feed refresh", 1)
+    requireLocals(PATCH, 1)
     val at = implementation!!.instructions.indexOfFirst {
         it.opcode == Opcode.SGET_OBJECT && (it as ReferenceInstruction).reference.toString() == none
     }
@@ -310,6 +413,193 @@ internal fun MutableMethod.holdAutoScrollFirst(enum: ClassDef) {
             if-nez v0, :none
         """,
         ExternalLabel("none", getInstruction(at)),
+    )
+}
+
+/** Whether [method] is the feed's stale-post executor: a static (its own class, int, boolean) void that logs its re-rank. */
+internal fun isStalePostExecutor(method: Method): Boolean =
+    AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.implementation != null &&
+        method.parameterTypes.map { it.toString() } == listOf(method.definingClass, "I", "Z") &&
+        holdsString(method, STALE_POST_RE_RANK)
+
+/**
+ * Whether [method] is the feed's hot-start check: a static void or boolean taking its own class and
+ * the caller's source first. 580 and 581 take a threshold after the source and answer nothing, 577
+ * takes none and answers whether it refreshed.
+ */
+internal fun isHotStartCheck(method: Method): Boolean {
+    val parameters = method.parameterTypes.map { it.toString() }
+    return AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType in setOf("V", "Z") &&
+        method.implementation != null && parameters.size >= 2 && parameters[0] == method.definingClass &&
+        parameters[1] == STRING && holdsString(method, HOT_START_CHECK)
+}
+
+/** Whether [method] is NewsFeedTabDataFetch's dispatch: a static void, its last parameter a boolean, that loads its source. */
+internal fun isTabDataFetch(method: Method): Boolean =
+    AccessFlags.STATIC.isSet(method.accessFlags) && method.returnType == "V" && method.implementation != null &&
+        method.parameterTypes.lastOrNull()?.toString() == "Z" && holdsString(method, TAB_DATA_FETCH)
+
+/** Whether [instruction] calls [method]. */
+private fun callsMethod(instruction: Instruction, method: Method): Boolean {
+    val target = (instruction as? ReferenceInstruction)?.reference as? MethodReference ?: return false
+    return target.definingClass == method.definingClass && target.name == method.name &&
+        target.returnType == method.returnType &&
+        target.parameterTypes.map { it.toString() } == method.parameterTypes.map { it.toString() }
+}
+
+/**
+ * Tells the extension first thing that the hot-start check is running, so the warm-start check it
+ * asks next gets the in-app answer. It holds nothing itself: an empty feed still reaches Facebook's
+ * load. The call takes no register.
+ */
+internal fun MutableMethod.noteHotStartFirst() {
+    addInstructions(0, "invoke-static { }, $NOTE_HOT_START")
+}
+
+/**
+ * Asks [extension] first thing and, while it holds, answers what Facebook's own method answers when
+ * it does nothing: it returns, or answers false for a method that says whether it refreshed. The
+ * answer goes through v0: at index 0 no local holds anything yet.
+ */
+internal fun MutableMethod.holdFirst(extension: String) {
+    requireLocals(PATCH, 1)
+    val nothing = if (returnType == "Z") "const/4 v0, 0x0\nreturn v0" else "return-void"
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static { }, $extension
+            move-result v0
+            if-eqz v0, :facebook
+            $nothing
+        """,
+        ExternalLabel("facebook", getInstruction(0)),
+    )
+}
+
+/**
+ * The index of the load of the cause NewsFeedTabDataFetch's dispatch hands its forced refresh: the
+ * sget-object right after it loads its source, which only that load reaches, followed by the
+ * virtual (cause, String) void call that takes both. Nothing after the call reads the cause's
+ * register before writing it. Throws naming what differs.
+ */
+internal fun tabAutoRefreshCause(method: Method): Int {
+    val what = "Block background-return feed refresh: ${method.definingClass}->${method.name}"
+    val instructions = method.implementation?.instructions?.toList() ?: throw PatchException("$what has no body")
+    val sources = instructions.indices.filter {
+        ((instructions[it] as? ReferenceInstruction)?.reference as? StringReference)?.string == TAB_DATA_FETCH
+    }
+    val source = sources.singleOrNull() ?: throw PatchException("$what loads $TAB_DATA_FETCH ${sources.size} times")
+    val cause = source + 1
+    val load = instructions.getOrNull(cause)
+    if (load?.opcode != Opcode.SGET_OBJECT) throw PatchException("$what loads no cause after its source")
+    val causeRegister = (load as OneRegisterInstruction).registerA
+    val sourceRegister = (instructions[source] as OneRegisterInstruction).registerA
+    val causeType = ((load as ReferenceInstruction).reference as FieldReference).type
+    val call = instructions.getOrNull(cause + 1)
+    val target = (call as? ReferenceInstruction)?.reference as? MethodReference
+    if (call?.opcode != Opcode.INVOKE_VIRTUAL || target == null || target.returnType != "V" ||
+        target.parameterTypes.map { it.toString() } != listOf(causeType, STRING) ||
+        (call as FiveRegisterInstruction).registerCount != 3 ||
+        call.registerD != causeRegister || call.registerE != sourceRegister
+    ) {
+        throw PatchException("$what doesn't hand its cause and source to a refresh right after loading them")
+    }
+    val flow = ControlFlow.of(method)
+    val arrivals = flow.instructions.indices.filter { cause in flow.normal[it] || cause in flow.exceptional[it] }
+    if (arrivals != listOf(source)) {
+        throw PatchException("$what reaches its cause's load from ${arrivals.joinToString()}, not only its source")
+    }
+    if (causeRegister in RegisterLiveness.of(method).liveInto(cause + 2)) {
+        throw PatchException("$what reads v$causeRegister after its refresh")
+    }
+    return cause
+}
+
+/**
+ * Asks the extension in place of loading the forced refresh's cause and, while it holds, goes on
+ * past the refresh to what follows it, the data fetch's own callback. The question borrows the
+ * cause's register, which the load writes next and nothing after the refresh reads (see
+ * [tabAutoRefreshCause]).
+ */
+internal fun MutableMethod.holdTabAutoRefreshBeforeIt() {
+    val cause = tabAutoRefreshCause(this)
+    val register = getInstruction<OneRegisterInstruction>(cause).registerA
+    addInstructionsWithLabels(
+        cause,
+        """
+            invoke-static { }, $HOLD_TAB_AUTO_REFRESH
+            move-result v$register
+            if-nez v$register, :refreshed
+        """,
+        ExternalLabel("refreshed", getInstruction(cause + 2)),
+    )
+}
+
+/** Whether [method] is NewsFeedFragment's onTabEntered: an instance void of one parameter that marks the tab's badge. */
+internal fun isTabEntry(method: Method): Boolean =
+    !AccessFlags.STATIC.isSet(method.accessFlags) && method.name == ON_TAB_ENTERED && method.returnType == "V" &&
+        method.parameterTypes.size == 1 && method.implementation != null && holdsString(method, TAB_ENTRY_BADGED)
+
+/**
+ * The index of the load of the cause onTabEntered hands the friendly feed's reload: the one
+ * sget-object of an enum's [HOT_LOAD] (its class from [classDefOf]) followed by the fragment's own
+ * virtual (cause) void call, which takes it with this. It comes after the instance-of that finds
+ * the feed's loader is the friendly feed's, one of [friendlyLoaders], only the instruction before
+ * it reaches it, and nothing after the call reads the cause's register before writing it. Throws
+ * naming what differs.
+ */
+internal fun tabEntryHotLoad(method: Method, friendlyLoaders: Set<String>, classDefOf: (String) -> ClassDef?): Int {
+    val what = "Block background-return feed refresh: ${method.definingClass}->${method.name}"
+    val implementation = method.implementation ?: throw PatchException("$what has no body")
+    val instructions = implementation.instructions.toList()
+    val hotLoads = mutableMapOf<String, String?>()
+    fun hotLoadOf(type: String) = hotLoads.getOrPut(type) { classDefOf(type)?.let { enumConstant(it, HOT_LOAD) } }
+    val loads = instructions.indices.filter { at ->
+        val field = (instructions[at] as? ReferenceInstruction)?.reference as? FieldReference
+        val target = (instructions.getOrNull(at + 1) as? ReferenceInstruction)?.reference as? MethodReference
+        instructions[at].opcode == Opcode.SGET_OBJECT && field != null && field.definingClass == field.type &&
+            target != null && instructions[at + 1].opcode == Opcode.INVOKE_VIRTUAL &&
+            target.definingClass == method.definingClass && target.returnType == "V" &&
+            target.parameterTypes.map { it.toString() } == listOf(field.type) && hotLoadOf(field.type) == field.toString()
+    }
+    val load = loads.singleOrNull() ?: throw PatchException("$what hands its own refresh $HOT_LOAD ${loads.size} times")
+    val register = (instructions[load] as OneRegisterInstruction).registerA
+    val call = instructions[load + 1] as FiveRegisterInstruction
+    if (call.registerCount != 2 || call.registerC != method.localRegisterCount() || call.registerD != register) {
+        throw PatchException("$what doesn't hand $HOT_LOAD to its own refresh right after loading it")
+    }
+    val friendly = instructions.subList(0, load).any {
+        it.opcode == Opcode.INSTANCE_OF && (it as ReferenceInstruction).reference.toString() in friendlyLoaders
+    }
+    if (!friendly) throw PatchException("$what doesn't check for the friendly feed's loader before its $HOT_LOAD")
+    val flow = ControlFlow.of(method)
+    val arrivals = flow.instructions.indices.filter { load in flow.normal[it] || load in flow.exceptional[it] }
+    if (arrivals != listOf(load - 1)) {
+        throw PatchException("$what reaches its $HOT_LOAD from ${arrivals.joinToString()}, not only the instruction before it")
+    }
+    if (register in RegisterLiveness.of(method).liveInto(load + 2)) {
+        throw PatchException("$what reads v$register after its $HOT_LOAD")
+    }
+    return load
+}
+
+/**
+ * Asks the extension in place of loading the friendly feed's HOT_LOAD and, while it holds, goes on
+ * past the reload to the rest of the tab entry. The question takes no register and borrows the
+ * cause's for its answer: the load writes it next and nothing after the reload reads it (see
+ * [tabEntryHotLoad]).
+ */
+internal fun MutableMethod.holdTabEntryHotLoadBeforeIt(friendlyLoaders: Set<String>, classDefOf: (String) -> ClassDef?) {
+    val load = tabEntryHotLoad(this, friendlyLoaders, classDefOf)
+    val register = getInstruction<OneRegisterInstruction>(load).registerA
+    addInstructionsWithLabels(
+        load,
+        """
+            invoke-static { }, $HOLD_TAB_ENTRY_HOT_LOAD
+            move-result v$register
+            if-nez v$register, :entered
+        """,
+        ExternalLabel("entered", getInstruction(load + 2)),
     )
 }
 

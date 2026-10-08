@@ -36,13 +36,16 @@ public final class PhotoSave {
     static final String SOURCE = "PhotoSave";
 
     /**
-     * The photo's images, by the hash Facebook's models use for a field name. The viewer's own
-     * save reads {@code imageHigh} (581 {@code LX/9v2;->BXO}); the others are smaller copies of the
-     * same picture. The order is the tiebreak when the sizes aren't there to compare.
+     * The photo's images, by the field name whose hash Facebook's models look them up by. The
+     * viewer's own save reads {@code imageHigh} (581 {@code LX/9v2;->BXO}); the others are smaller
+     * copies of the same picture. The order is the tiebreak when the sizes aren't there to compare.
      */
-    static final int[] IMAGES = {
-        "imageHigh".hashCode(), "image".hashCode(), "imageMedium".hashCode(), "imageLow".hashCode(),
-    };
+    static final String[] IMAGE_NAMES = {"imageHigh", "image", "imageMedium", "imageLow"};
+    static final int[] IMAGES = new int[IMAGE_NAMES.length];
+
+    static {
+        for (int i = 0; i < IMAGE_NAMES.length; i++) IMAGES[i] = IMAGE_NAMES[i].hashCode();
+    }
 
     /** An image's address and size. */
     static final int URI = "uri".hashCode();
@@ -107,6 +110,7 @@ public final class PhotoSave {
         try {
             if (!Utils.settingsReady() || !Settings.DOWNLOAD_PHOTOS.get()) return false;
             HookStatus.invoked(FamilyNames.PHOTO_DOWNLOAD);
+            Logger.diagnosticDebug(DiagnosticCategory.DOWNLOADS, SOURCE, () -> "Save photo images: " + sizes(photo));
             String url = largest(photo);
             if (url == null) {
                 Logger.diagnosticInfo(DiagnosticCategory.DOWNLOADS, SOURCE,
@@ -137,13 +141,40 @@ public final class PhotoSave {
             Object image = PostDetails.tree(photo, field);
             String uri = PostDetails.string(image, URI);
             if (uri == null || uri.isEmpty()) continue;
-            long area = (long) Math.max(0, number(image, WIDTH)) * Math.max(0, number(image, HEIGHT));
+            long area = area(image);
             if (area > bestArea) {
                 best = uri;
                 bestArea = area;
             }
         }
         return best;
+    }
+
+    /**
+     * Each of [photo]'s images by field name and size ("imageHigh 1536x2048, image unsized,
+     * imageMedium none, ..."), for the Debug log. Only those words and numbers, never an address.
+     */
+    static String sizes(Object photo) {
+        StringBuilder line = new StringBuilder();
+        for (int i = 0; i < IMAGES.length; i++) {
+            Object image = PostDetails.tree(photo, IMAGES[i]);
+            String uri = PostDetails.string(image, URI);
+            if (i > 0) line.append(", ");
+            line.append(IMAGE_NAMES[i]).append(' ');
+            if (uri == null || uri.isEmpty()) {
+                line.append("none");
+            } else {
+                line.append(area(image) > 0 ? number(image, WIDTH) + "x" + number(image, HEIGHT) : "unsized");
+            }
+        }
+        return line.toString();
+    }
+
+    /** [image]'s width times height, or 0 when either isn't stated. */
+    private static long area(Object image) {
+        int width = number(image, WIDTH);
+        int height = number(image, HEIGHT);
+        return width > 0 && height > 0 ? (long) width * height : 0;
     }
 
     private static int number(Object model, int field) {

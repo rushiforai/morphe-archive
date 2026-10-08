@@ -813,21 +813,40 @@ public class Mp4JoinTest {
         }
     }
 
-    @Test(timeout = 12_000)
+    /**
+     * The deadline the helper-tool tests give a run. A cold JVM start with JNA took longer than three
+     * seconds on a loaded machine (pre-push gates beside other builds, 2026-10-06), so a tool hadn't
+     * printed that it was ready when its deadline came and the run read as the wrong timeout. These
+     * tests are about what happens at a deadline, not about speed, so the room costs only wall time.
+     */
+    private static final long TOOL_DEADLINE = 10_000;
+    /** Each helper-tool test's own limit: its deadline, the cleanup after it, and a slow start. */
+    private static final long TEST_TIMEOUT = 30_000;
+    /**
+     * The deadline for the tree and orphan tools, which start three JVMs one after another before the
+     * last prints child-ready. Ten seconds didn't cover three cold starts beside other builds
+     * (2026-10-07), and the run read as a timeout with no child-ready in its output.
+     */
+    private static final long CHAIN_DEADLINE = 25_000;
+    /** The tree and orphan tests' own limit: the longer deadline, its cleanup, and the starts. */
+    private static final long CHAIN_TEST_TIMEOUT = 60_000;
+
+    @Test(timeout = TEST_TIMEOUT)
     public void aToolHoldingStdoutOpenStopsAtItsDeadlineAndKeepsDiagnostics() throws Exception {
         File marker = temp.newFile("hang-pids.txt");
         long start = System.nanoTime();
-        AssertionError failure = assertThrows(AssertionError.class, () -> run(3_000, tool("hang", marker)));
+        AssertionError failure = assertThrows(AssertionError.class, () -> run(TOOL_DEADLINE, tool("hang", marker)));
         assertTrue(failure.getMessage(), failure.getMessage().startsWith("timed out:"));
         assertTrue(failure.getMessage(), failure.getMessage().contains("parent-ready"));
-        assertTrue("deadline was ineffective", System.nanoTime() - start < TimeUnit.SECONDS.toNanos(5));
+        assertTrue("deadline was ineffective",
+                System.nanoTime() - start < TimeUnit.MILLISECONDS.toNanos(TOOL_DEADLINE + CodecProcess.CLOSE_GRACE_MS + 2_000));
         dead(marker);
     }
 
-    @Test(timeout = 12_000)
+    @Test(timeout = CHAIN_TEST_TIMEOUT)
     public void aToolAndItsInheritedOutputChildStopAtTheDeadline() throws Exception {
         File marker = temp.newFile("tree-pids.txt");
-        AssertionError failure = assertThrows(AssertionError.class, () -> run(3_000, tool("tree", marker)));
+        AssertionError failure = assertThrows(AssertionError.class, () -> run(CHAIN_DEADLINE, tool("tree", marker)));
         assertTrue(failure.getMessage(), failure.getMessage().startsWith("timed out:"));
         assertTrue(failure.getMessage(), failure.getMessage().contains("parent-ready"));
         assertTrue(failure.getMessage(), failure.getMessage().contains("child-ready"));
@@ -835,37 +854,35 @@ public class Mp4JoinTest {
         dead(marker);
     }
 
-    @Test(timeout = 12_000)
+    @Test(timeout = CHAIN_TEST_TIMEOUT)
     public void anExitedToolCannotLeaveItsOutputChildRunning() throws Exception {
         File marker = temp.newFile("orphan-pids.txt");
-        AssertionError failure = assertThrows(AssertionError.class, () -> run(3_000, tool("orphan", marker)));
+        AssertionError failure = assertThrows(AssertionError.class, () -> run(CHAIN_DEADLINE, tool("orphan", marker)));
         assertTrue(failure.getMessage(), failure.getMessage().startsWith("timed out:"));
         assertTrue(failure.getMessage(), failure.getMessage().contains("child-ready"));
         assertEquals(3, Files.readAllLines(marker.toPath(), StandardCharsets.UTF_8).size());
         dead(marker);
     }
 
-    @Test(timeout = 12_000)
+    @Test(timeout = TEST_TIMEOUT)
     public void nonzeroToolsFailWithTheirPrintedDiagnostic() throws Exception {
         File marker = temp.newFile("fail-pids.txt");
-        // Room for a cold JVM start on a loaded machine: the gate ran beside two other builds on
-        // 2026-10-06 and three seconds read as a timeout. The point is the nonzero exit, not speed.
-        AssertionError failure = assertThrows(AssertionError.class, () -> run(10_000, tool("fail", marker)));
+        AssertionError failure = assertThrows(AssertionError.class, () -> run(TOOL_DEADLINE, tool("fail", marker)));
         assertTrue(failure.getMessage(), failure.getMessage().contains("encoder-error"));
         assertFalse("nonzero exit was misclassified as a timeout", failure.getMessage().startsWith("timed out:"));
         dead(marker);
     }
 
-    @Test(timeout = 12_000)
+    @Test(timeout = TEST_TIMEOUT)
     public void completedToolOutputLargerThanAPipeBufferIsKeptExactly() throws Exception {
         File marker = temp.newFile("success-pids.txt");
-        String printed = run(3_000, tool("success", marker));
+        String printed = run(TOOL_DEADLINE, tool("success", marker));
         assertEquals(1024 * 1024, printed.length());
         for (int i = 0; i < printed.length(); i++) assertEquals((char) ('a' + i % 26), printed.charAt(i));
         dead(marker);
     }
 
-    @Test(timeout = 12_000)
+    @Test(timeout = TEST_TIMEOUT)
     public void startupUsesTheSameDeadlineAndCannotReleaseALateTool() throws Exception {
         File marker = temp.newFile("not-started.txt");
         AssertionError failure = assertThrows(AssertionError.class, () -> run(1, tool("success", marker)));
@@ -873,12 +890,12 @@ public class Mp4JoinTest {
         assertEquals("tool ran after its deadline", 0, marker.length());
     }
 
-    @Test(timeout = 12_000)
+    @Test(timeout = TEST_TIMEOUT)
     public void ownedLauncherPreservesArgumentsWithoutShellQuoting() throws Exception {
         File marker = temp.newFile("arguments with spaces.txt");
         List<String> command = new ArrayList<>(Arrays.asList(tool("arguments", marker)));
         command.addAll(Arrays.asList("left space", "quote\"slash\\", "münchen 😀"));
-        assertEquals("left space\nquote\"slash\\\nmünchen 😀", run(3_000, command.toArray(new String[0])));
+        assertEquals("left space\nquote\"slash\\\nmünchen 😀", run(TOOL_DEADLINE, command.toArray(new String[0])));
         dead(marker);
     }
 
@@ -911,19 +928,19 @@ public class Mp4JoinTest {
         assertFalse(exited.isAlive());
     }
 
-    @Test(timeout = 12_000)
+    @Test(timeout = TEST_TIMEOUT)
     public void aDeadlineCannotKillAProcessOutsideItsOwnershipBoundary() throws Exception {
         File otherMarker = temp.newFile("unrelated.txt");
         Process other = new ProcessBuilder(tool("hang", otherMarker)).redirectErrorStream(true)
                 .redirectOutput(temp.newFile("unrelated.log")).start();
         try {
             File marker = temp.newFile("owned.txt");
-            assertThrows(AssertionError.class, () -> run(3_000, tool("hang", marker)));
+            assertThrows(AssertionError.class, () -> run(TOOL_DEADLINE, tool("hang", marker)));
             dead(marker);
             assertTrue("cleanup terminated an unrelated process", other.isAlive());
         } finally {
             other.destroyForcibly();
-            assertTrue("unrelated probe cleanup failed", other.waitFor(1, TimeUnit.SECONDS));
+            assertTrue("unrelated probe cleanup failed", other.waitFor(10, TimeUnit.SECONDS));
         }
     }
 }

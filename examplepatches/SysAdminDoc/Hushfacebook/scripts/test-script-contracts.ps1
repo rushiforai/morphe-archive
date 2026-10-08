@@ -5449,6 +5449,10 @@ foreach ($script in @(Get-ChildItem -LiteralPath $PSScriptRoot -Filter '*.ps1' -
             continue
         }
         if ($trimmed.StartsWith('#')) { continue }
+        # One reader is meant: the push gate's fixture step patches Facebook with the jar its own
+        # Gradle run has just written there, which is the code being pushed, and publishes nothing.
+        # The desktop CLI loads the plain jar as it is. Every release script still reads build/release.
+        if ($script.Name -eq 'pre-push.ps1' -and $trimmed -like '$bundle = Join-Path $GateRoot "patches/build/libs/*') { continue }
         if ($trimmed -match 'build[\\/]+libs') { $libsReaders.Add("$($script.Name):$number") }
     }
 }

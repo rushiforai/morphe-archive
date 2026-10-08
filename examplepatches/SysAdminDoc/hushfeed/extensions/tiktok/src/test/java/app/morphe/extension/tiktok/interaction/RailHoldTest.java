@@ -214,7 +214,7 @@ public class RailHoldTest {
 
     @Test public void theGreyingMatchesThePressGate() {
         for (String action : new String[]{"default", "nothing", "comments", "original_sound", "copy_link",
-                "copy_sound_link", "youtube_music", "somewhere_new"}) {
+                "copy_sound_link", "youtube_music", "sleep_timer", "save_frame", "save_cover", "somewhere_new"}) {
             Settings.LONG_PRESS_ACTION.save(action);
             assertEquals(action, GestureActions.allowNativeEdgeSpeedup(0), Settings.RAIL_HOLD_COMMENT.isAvailable());
         }

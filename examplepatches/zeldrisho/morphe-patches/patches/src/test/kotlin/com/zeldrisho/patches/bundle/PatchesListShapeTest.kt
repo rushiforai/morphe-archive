@@ -81,7 +81,7 @@ class PatchesListShapeTest {
 
     @Test fun zaloBundleShape() {
         val json = listJson()
-        for (name in listOf("Bypass native startup tamper check", "Disable ads", "Disable sponsored placements", "Enable avatar saving", "Enable profile cover saving", "Filter promo notifications", "Hide Business Box", "Keep expired media accessible", "Remove AD_ID permission", "Change Zalo app name", "Change Zalo package name", "Bypass Zalo Drive Contacts permission gate", "microG Drive support")) {
+        for (name in listOf("Bypass native startup tamper check", "Disable ads", "Disable sponsored placements", "Enable avatar saving", "Enable profile cover saving", "Filter promo notifications", "Hide Business Box", "Hide Media Box", "Hide chat list ads", "Keep expired media accessible", "Remove AD_ID permission", "Change Zalo app name", "Change Zalo package name", "Bypass Zalo Drive Contacts permission gate", "microG Drive support")) {
             assertTrue(json.contains("\"name\": \"$name\""), "missing patch: $name")
         }
         assertTrue(json.contains("com.zing.zalo"), "missing Zalo package group")
@@ -89,11 +89,11 @@ class PatchesListShapeTest {
     }
 
     /**
-     * Verify that exactly 25 patches are present with no leftover template scaffolding.
+     * Verify that exactly 27 patches are present with no leftover template scaffolding.
      */
     @Test fun patchCountMatchesSources() {
         // Exact-name comparison catches both added patches and removed patches.
-        // Exactly 25 patches (5 Threads + 20 Zalo) — template scaffolding was removed,
+        // Exactly 27 patches (5 Threads + 22 Zalo) — template scaffolding was removed,
         // so any extra entry (e.g. a resurrected "Example Patch") fails loudly.
         // Note: "name" also appears on compatiblePackages entries ("Threads", "Zalo"),
         // so only top-level patch names are counted (6-space indent in output).
@@ -116,7 +116,9 @@ class PatchesListShapeTest {
                 "Enable profile cover saving",
                 "Filter promo notifications",
                 "Hide Business Box",
+                "Hide Media Box",
                 "Hide ads",
+                "Hide chat list ads",
                 "Keep expired media accessible",
                 "Open links externally",
                 "Prefer original photo quality",
@@ -128,7 +130,7 @@ class PatchesListShapeTest {
                 "microG Drive support",
             ),
             names.sorted(),
-            "expected exactly 25 patches, found: $names",
+            "expected exactly 27 patches, found: $names",
         )
     }
 

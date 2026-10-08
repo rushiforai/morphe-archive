@@ -60,6 +60,7 @@ public class PauseSwitchPlaybackTest {
     }
 
     @After public void tearDown() throws Exception {
+        SessionPlaybackHold.releaseForLock(false);
         ReflectionHelpers.callStaticMethod(PausePlayback.class, "resetForTests");
         Utils.setActivity(null);
         SessionBudget.awaitWritesForTests();
@@ -404,6 +405,73 @@ public class PauseSwitchPlaybackTest {
 
             park(sheet);
             idleFor(300);
+            assertEquals(1, player.manager.resumes);
+        }
+    }
+
+    // ------------------------------------------------------------------------------- app lock
+
+    @Test public void theAppLockStopsTheVideoUntilItLiftsAndThenPlaysItOn() {
+        NativeController player = playing("first");
+        SessionPlaybackHold.pauseForLock();
+        idle();
+        assertEquals("the lock did not stop the video under it", 1, player.manager.pauses);
+
+        // TikTok plays it again by itself under the prompt.
+        player.manager.nativeResume();
+        player.reportProgress();
+        idle();
+        assertEquals("the video TikTok started again played on under the lock", 2, player.manager.pauses);
+
+        SessionPlaybackHold.releaseForLock(true);
+        idle();
+        assertEquals("unlocking did not give the video back", 1, player.manager.resumes);
+    }
+
+    @Test public void aSwitchLettingGoUnderTheLockLeavesTheVideoStoppedUntilTheUnlock() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            NativeController player = playing("first");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, player.manager.pauses);
+
+            SessionPlaybackHold.pauseForLock();
+            sheet.dismiss();
+            idle();
+            assertEquals("closing the comments started the video under the lock", 0, player.manager.resumes);
+
+            SessionPlaybackHold.releaseForLock(true);
+            idle();
+            assertEquals(1, player.manager.resumes);
+        }
+    }
+
+    @Test public void theReturnCoverKeepsTheVideoStoppedWhenTheLockLifts() {
+        Settings.NO_RESUME_ON_FOREGROUND.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            NativeController player = playing("first");
+            SessionPlaybackHold.pauseForLock();
+            idle();
+            ReflectionHelpers.callStaticMethod(PausePlayback.class, "onBackground");
+            idle();
+            ReflectionHelpers.callStaticMethod(PausePlayback.class, "onForeground",
+                    ClassParameter.from(Activity.class, activity));
+            idle();
+            View catcher = ReflectionHelpers.callStaticMethod(PausePlayback.class, "catcherForTests");
+            assertNotNull(catcher);
+
+            SessionPlaybackHold.releaseForLock(true);
+            idle();
+            assertEquals("the unlock started the video under the tap cover", 0, player.manager.resumes);
+
+            assertTrue(catcher.performClick());
+            idle();
             assertEquals(1, player.manager.resumes);
         }
     }

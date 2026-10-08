@@ -15,7 +15,9 @@ import app.morphe.patcher.patch.ResourcePatchBuilder
 import app.morphe.patcher.patch.ResourcePatchContext
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
+import app.morphe.patcher.patch.InstallerType
 import app.morphe.patcher.patch.Option
+import app.morphe.patcher.patch.PatchAvailability
 import app.morphe.patcher.patch.booleanOption
 import app.morphe.patcher.patch.stringOption
 import app.morphe.util.asSequence
@@ -95,10 +97,17 @@ fun gmsCoreSupportPatch(
     block: BytecodePatchBuilder.() -> Unit = {},
 ) = bytecodePatch(
     name = "GmsCore support",
-    description = "Allows the app to work without root by using a different package name when patched " +
-        "using a GmsCore instead of Google Play Services.",
+    description = "Enables GmsCore / MicroG support and renames package for non-root installs. " +
+        "Leave enabled for standard non-root installs; disable only for rooted system installs using genuine Google Play Services.",
     default = true,
 ) {
+
+    availability { installer, _ ->
+        when (installer) {
+            InstallerType.MOUNT -> PatchAvailability.UNAVAILABLE
+            InstallerType.STANDARD, InstallerType.SHIZUKU -> PatchAvailability.REQUIRED
+        }
+    }
 
     dependsOn(
         gmsCoreSupportResourcePatchFactory(),

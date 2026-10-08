@@ -12,7 +12,7 @@ Morphe Patches for some Android apps that I use.
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.13](https://github.com/rhubarbshoelaces/morphe-patches/releases/tag/v1.0.13)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+> **[v1.0.14](https://github.com/rhubarbshoelaces/morphe-patches/releases/tag/v1.0.14)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
 <details open>
 <summary>📦 Google Maps&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

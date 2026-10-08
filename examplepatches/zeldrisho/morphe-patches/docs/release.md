@@ -106,8 +106,8 @@ per stable release, no dev builds or permanent prerelease headings. Use one
 
 Group bullets under these `###` category headings; omit empty categories:
 
-- `🐛 Bug Fixes` — fixed bugs.
 - `✨ New Features` — entirely new patches or new patch options.
+- `🐛 Bug Fixes` — fixed bugs.
 - `🚀 Updated App Support` — adding/dropping supported app versions. State the
   support level in the bullet: stable targets (`isExperimental: false`) use
   `Add support for <version>`, experimental targets (`isExperimental: true`)
@@ -115,6 +115,30 @@ Group bullets under these `###` category headings; omit empty categories:
 - `🔧 Improvements` — non-bug, non-feature refinements; use only when genuinely needed.
 
 Category names are display text, not parser keys; scoped bullet syntax is unchanged.
+
+### Changelog audits and edits
+
+- Check the released tag's patch metadata and source changes against the previous
+  tag, not just commit subjects or the current patch list. Account for each new
+  patch, default change, compatibility change, and user-visible fix; do not list
+  patches removed before release.
+- Keep distinct patches and fixes separately attributed, even when they share a
+  workflow. In particular, a package-name patch's login or startup fix must not
+  disappear into a microG Drive sign-in bullet. Combine only genuinely duplicate
+  descriptions of the same change, without losing affected patch names or scope.
+- Lead with the user-visible result and verify its scope from the release evidence.
+  Do not narrow a general login fix to Drive sign-in, or broaden a Drive sign-in
+  fix into a claim that all login methods work.
+- Preserve existing formatting during wording cleanup, including backticks around
+  app versions. Formatting normalization is a separate, explicitly requested change;
+  use backticks for app versions in new bullets.
+- Keep testing procedures and routine validation boilerplate out of release notes.
+  Do not add validation disclaimers merely because an audit did not run device tests;
+  keep evidence in validation docs. Preserve opt-in status and meaningful known
+  limitations, and require explicit approval to remove an existing validation caveat.
+- Review the full changelog diff before synchronizing release bodies: check omissions,
+  patch attribution, scope, formatting, and requested caveat changes. Preserve release
+  headings and dates; follow the historical-edit approval and synchronization rules below.
 
 Example:
 

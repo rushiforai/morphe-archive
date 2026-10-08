@@ -26,6 +26,7 @@ public class EnLanguagePack extends BaseLanguagePack {
         titles.put(PREF_KEY_AMOLED, "Pure AMOLED Theme");
         titles.put(PREF_KEY_ZERO_BOTTOM_INSET, "Zero Bottom Inset");
         titles.put(PREF_KEY_BOTTOM_PADDING, "Bottom Padding (px)");
+        titles.put(PREF_KEY_HIDE_IME_NAV_BAR, "Hide IME Navigation Bar");
         titles.put(PREF_KEY_KEY_SHAPE_SELECTION, "Key Border Shapes");
         titles.put(PREF_KEY_EMOJI_SCALE, "Emoji Size Scaling");
         titles.put(PREF_KEY_CAT_TOOLBAR, "Toolbar & Navigation");
@@ -33,6 +34,7 @@ public class EnLanguagePack extends BaseLanguagePack {
         titles.put(PREF_KEY_TOOLBAR_ITEM_COUNT, "Toolbar Item Count");
         titles.put(PREF_KEY_DISMISS_SUGGESTIONS, "Dismiss Suggestions Button");
         titles.put(PREF_KEY_CURSOR_TRACKPAD, "Cursor Trackpad Mode");
+        titles.put(PREF_KEY_HIDE_NUMBER_HINTS, "Hide Number Hints");
         titles.put(PREF_KEY_CAT_CLIPBOARD, "Clipboard");
         titles.put(PREF_KEY_CLIPBOARD_EXTENDED_RETENTION, "Extended History Retention");
         titles.put(PREF_KEY_CLIPBOARD_RETENTION_HOURS, "Retention Time Limit (Hours)");
@@ -63,12 +65,14 @@ public class EnLanguagePack extends BaseLanguagePack {
         summaries.put(PREF_KEY_AMOLED, "Force pure black (#000000) background on dark themes");
         summaries.put(PREF_KEY_ZERO_BOTTOM_INSET, "Eliminate bottom margin chin under keyboard in gesture navigation");
         summaries.put(PREF_KEY_BOTTOM_PADDING, "Forced bottom margin padding in pixels (0 for completely flush, default: 0)");
+        summaries.put(PREF_KEY_HIDE_IME_NAV_BAR, "Hide the system IME navigation bar (keyboard switcher and collapse buttons) on Android 13+ for a flush keyboard. Turn off to keep those buttons");
         summaries.put(PREF_KEY_KEY_SHAPE_SELECTION, "Enable rounded and borderless key styles in themes");
         summaries.put(PREF_KEY_EMOJI_SCALE, "Adjust emoji visual size on the keyboard (50% - 150%)");
         summaries.put(PREF_KEY_ACCESS_POINTS_REDESIGN, "Enable redesigned access points menu bar and panel (Panel V2)");
         summaries.put(PREF_KEY_TOOLBAR_ITEM_COUNT, "Maximum number of access point icons displayed on top toolbar (default: 5)");
         summaries.put(PREF_KEY_DISMISS_SUGGESTIONS, "Show close button (X) on proactive suggestions bar");
         summaries.put(PREF_KEY_CURSOR_TRACKPAD, "2D spacebar trackpad cursor navigation and cursor lock mode");
+        summaries.put(PREF_KEY_HIDE_NUMBER_HINTS, "Hide the small number hints above the letter row. Long-press symbols keep working");
         summaries.put(PREF_KEY_CLIPBOARD_EXTENDED_RETENTION, "Enable custom retention time limit for unpinned clips");
         summaries.put(PREF_KEY_CLIPBOARD_RETENTION_HOURS, "Hours to retain unpinned clips in history before cleanup (default: 24h)");
         summaries.put(PREF_KEY_CLIPBOARD_RAISE_LIMIT, "Enable custom limit for unpinned clipboard history items");

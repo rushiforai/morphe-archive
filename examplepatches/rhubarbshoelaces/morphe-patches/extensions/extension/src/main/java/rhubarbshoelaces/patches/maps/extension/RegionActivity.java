@@ -246,64 +246,67 @@ public final class RegionActivity extends Activity {
 
     public static void addRegionRow(Activity customizationActivity) {
         try {
+            android.content.Intent intent = customizationActivity.getIntent();
+            if (intent != null && intent.hasExtra("org.ungoogled.ui.page")) {
+                return;
+            }
+
             ViewGroup root = (ViewGroup) customizationActivity.findViewById(android.R.id.content);
-            if (root != null && root.getChildCount() > 0) {
-                ViewGroup mainLayout = (ViewGroup) root.getChildAt(0);
+            if (root == null || root.getChildCount() == 0) return;
 
-                for (int i = 0; i < mainLayout.getChildCount(); i++) {
-                    View child = mainLayout.getChildAt(i);
-                    if (child instanceof ScrollView) {
-                        ScrollView sv = (ScrollView) child;
-                        if (sv.getChildCount() > 0 && sv.getChildAt(0) instanceof LinearLayout) {
-                            LinearLayout body = (LinearLayout) sv.getChildAt(0);
+            ViewGroup mainLayout = (ViewGroup) root.getChildAt(0);
+            for (int i = 0; i < mainLayout.getChildCount(); i++) {
+                View child = mainLayout.getChildAt(i);
+                if (child instanceof ScrollView) {
+                    ScrollView sv = (ScrollView) child;
+                    if (sv.getChildCount() > 0 && sv.getChildAt(0) instanceof LinearLayout) {
+                        LinearLayout body = (LinearLayout) sv.getChildAt(0);
 
-                            // Calculate Dark Mode directly
-                            SharedPreferences settingsPrefs = customizationActivity.getSharedPreferences("settings_preference", Context.MODE_PRIVATE);
-                            String darkMode = settingsPrefs.getString("dark_mode", "FOLLOW_SYSTEM");
-                            boolean systemNight = (customizationActivity.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES;
-                            boolean isDark = "ON".equals(darkMode) || (!"OFF".equals(darkMode) && systemNight);
+                        SharedPreferences settingsPrefs = customizationActivity.getSharedPreferences("settings_preference", Context.MODE_PRIVATE);
+                        String darkMode = settingsPrefs.getString("dark_mode", "FOLLOW_SYSTEM");
+                        boolean systemNight = (customizationActivity.getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK) == android.content.res.Configuration.UI_MODE_NIGHT_YES;
+                        boolean isDark = "ON".equals(darkMode) || (!"OFF".equals(darkMode) && systemNight);
 
-                            int titleColor = isDark ? 0xFFE3E3E3 : 0xFF1B1B1F;
-                            int subtitleColor = isDark ? 0xFFC4C7C5 : 0xFF5F6368;
+                        int titleColor = isDark ? 0xFFE3E3E3 : 0xFF1B1B1F;
+                        int subtitleColor = isDark ? 0xFFC4C7C5 : 0xFF5F6368;
 
-                            LinearLayout rowLayout = new LinearLayout(customizationActivity);
-                            rowLayout.setOrientation(LinearLayout.VERTICAL);
-                            rowLayout.setPadding(dp(customizationActivity, 20), dp(customizationActivity, 14), dp(customizationActivity, 20), dp(customizationActivity, 14));
-                            rowLayout.setClickable(true);
-                            rowLayout.setFocusable(true);
+                        LinearLayout rowLayout = new LinearLayout(customizationActivity);
+                        rowLayout.setOrientation(LinearLayout.VERTICAL);
+                        rowLayout.setPadding(dp(customizationActivity, 20), dp(customizationActivity, 14), dp(customizationActivity, 20), dp(customizationActivity, 14));
+                        rowLayout.setClickable(true);
+                        rowLayout.setFocusable(true);
 
-                            TypedValue outValue = new TypedValue();
-                            customizationActivity.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-                            rowLayout.setBackgroundResource(outValue.resourceId);
+                        TypedValue outValue = new TypedValue();
+                        customizationActivity.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+                        rowLayout.setBackgroundResource(outValue.resourceId);
 
-                            TextView title = new TextView(customizationActivity);
-                            title.setText("Cartographic Region");
-                            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-                            title.setTextColor(titleColor);
+                        TextView title = new TextView(customizationActivity);
+                        title.setText("Cartographic Region");
+                        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
+                        title.setTextColor(titleColor);
 
-                            SharedPreferences prefs = customizationActivity.getSharedPreferences("ungoogled_prefs", Context.MODE_PRIVATE);
-                            String currentCode = prefs.getString("forced_region", "OFF");
-                            String subtitleText = "OFF".equalsIgnoreCase(currentCode)
-                                    ? "Off"
-                                    : new Locale("", currentCode).getDisplayCountry() + " (" + currentCode + ")";
+                        SharedPreferences prefs = customizationActivity.getSharedPreferences("ungoogled_prefs", Context.MODE_PRIVATE);
+                        String currentCode = prefs.getString("forced_region", "OFF");
+                        String subtitleText = "OFF".equalsIgnoreCase(currentCode)
+                                ? "Off"
+                                : new java.util.Locale("", currentCode).getDisplayCountry() + " (" + currentCode + ")";
 
-                            TextView subtitle = new TextView(customizationActivity);
-                            subtitle.setText(subtitleText);
-                            subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-                            subtitle.setTextColor(subtitleColor);
-                            subtitle.setPadding(0, dp(customizationActivity, 2), 0, 0);
+                        TextView subtitle = new TextView(customizationActivity);
+                        subtitle.setText(subtitleText);
+                        subtitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+                        subtitle.setTextColor(subtitleColor);
+                        subtitle.setPadding(0, dp(customizationActivity, 2), 0, 0);
 
-                            rowLayout.addView(title);
-                            rowLayout.addView(subtitle);
+                        rowLayout.addView(title);
+                        rowLayout.addView(subtitle);
 
-                            rowLayout.setOnClickListener(v -> {
-                                Intent intent = new Intent(customizationActivity, RegionActivity.class);
-                                customizationActivity.startActivity(intent);
-                            });
+                        rowLayout.setOnClickListener(v -> {
+                            android.content.Intent regionIntent = new android.content.Intent(customizationActivity, RegionActivity.class);
+                            customizationActivity.startActivity(regionIntent);
+                        });
 
-                            body.addView(rowLayout);
-                            break;
-                        }
+                        body.addView(rowLayout);
+                        break;
                     }
                 }
             }

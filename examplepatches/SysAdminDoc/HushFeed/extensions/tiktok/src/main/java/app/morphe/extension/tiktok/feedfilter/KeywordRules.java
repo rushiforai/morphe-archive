@@ -53,11 +53,18 @@ public final class KeywordRules {
         private final String first;
         private final String second;
         private final boolean without;
+        private final String entry;
 
-        private Rule(String first, String second, boolean without) {
+        private Rule(String first, String second, boolean without, String entry) {
             this.first = first;
             this.second = second;
             this.without = without;
+            this.entry = entry;
+        }
+
+        /** The entry as it was typed, for saying which rule matched. */
+        public String entry() {
+            return entry;
         }
 
         /** @param lowerCased the text to test, already lower cased with {@link Locale#ROOT}. */
@@ -165,10 +172,10 @@ public final class KeywordRules {
         if (matcher.matches()) {
             String operator = matcher.group(2);
             return new Rule(lower(matcher.group(1)), lower(matcher.group(3)),
-                    operator.contains("!"));
+                    operator.contains("!"), entry);
         }
         if (looksComposite(entry)) return null;
-        return new Rule(lower(entry), null, false);
+        return new Rule(lower(entry), null, false, entry);
     }
 
     /**
@@ -217,11 +224,19 @@ public final class KeywordRules {
 
     /** Whether any rule in the list matches. The text is lower cased once, here. */
     public static boolean anyMatches(List<Rule> rules, String text) {
-        if (text == null || rules.isEmpty()) return false;
+        return firstMatch(rules, text) != null;
+    }
+
+    /**
+     * The first rule, in list order, that matches, or null. {@link #anyMatches} is this with the
+     * answer thrown away, so the editor's preview and the feed cannot disagree.
+     */
+    public static Rule firstMatch(List<Rule> rules, String text) {
+        if (text == null || rules.isEmpty()) return null;
         String lowerCased = text.toLowerCase(Locale.ROOT);
         for (Rule rule : rules) {
-            if (rule.matches(lowerCased)) return true;
+            if (rule.matches(lowerCased)) return rule;
         }
-        return false;
+        return null;
     }
 }

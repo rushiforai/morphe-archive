@@ -1,3 +1,9 @@
+## [1.43.7](https://github.com/legendsciber/morphe-patches/compare/v1.43.6...v1.43.7) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* **subwaysurf:** update target to 3.70.0, all five patch sites verified ([78c16fa](https://github.com/legendsciber/morphe-patches/commit/78c16fa3d1d2509534658faf8460eb1c8458cebf))
+
 ## [1.43.6](https://github.com/legendsciber/morphe-patches/compare/v1.43.5...v1.43.6) (2026-10-06)
 
 ### 🐛 Bug Fixes

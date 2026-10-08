@@ -67,6 +67,11 @@ public class BaseModelWithTree extends TreeJNI {
         return cachedString(field);
     }
 
+    /** The model's int field, as Facebook's public {@code getCachedInt(int)} answers it; an unset one reads 0. */
+    public final int getCachedInt(int key) {
+        return getIntValue(key);
+    }
+
     public String getTypeName() {
         if (!isValidGraphServicesJNIModel()) readAfterRelease = true;
         return typeName;

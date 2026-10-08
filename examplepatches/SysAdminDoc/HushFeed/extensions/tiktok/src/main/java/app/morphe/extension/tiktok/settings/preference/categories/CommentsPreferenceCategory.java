@@ -31,7 +31,8 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                 || SettingsStatus.hideCommentQuickReactionsEnabled
                 || SettingsStatus.copyCommentsWithoutUsernameEnabled
                 || SettingsStatus.hideCommentEggsEnabled
-                || SettingsStatus.commentSortControlsEnabled;
+                || SettingsStatus.commentSortControlsEnabled
+                || SettingsStatus.lengthLimitsEnabled;
     }
 
     @Override
@@ -81,6 +82,14 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Add a search box that filters comments already loaded on this video by text or username. "
                             + "It doesn't search all of TikTok or remove TikTok's suggested-search banner.",
                     Settings.COMMENT_SEARCH
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Export comments",
+                    "Adds Export CSV and Export JSON under the search box, so it needs Search within comments. "
+                            + "They save the comments and replies this video has loaded to a file you pick. "
+                            + "Open the reply threads you want first, since TikTok only loads them when you do.",
+                    Settings.COMMENT_EXPORT
             ));
             addPreference(new TogglePreference(
                     context,
@@ -183,6 +192,19 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Hide comment surveys",
+                    "Hide the question cards TikTok sometimes puts in a comment list to ask what you think.",
+                    Settings.HIDE_COMMENT_SURVEYS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide comment box buttons",
+                    "Hide the photo, @ and gift buttons in the box where you write a comment. "
+                            + "Emoji and sending work as before.",
+                    Settings.HIDE_COMMENT_BOX_BUTTONS
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Show poll results before voting",
                     "A comment poll shows how many picked each answer before you vote. Tapping an answer still votes.",
                     Settings.SHOW_POLL_RESULTS
@@ -196,6 +218,16 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                             + "disliking. The comment dims, an undo banner follows, and a second tap "
                             + "unblocks.",
                     Settings.BLOCK_FROM_COMMENT
+            ));
+        }
+        if (SettingsStatus.lengthLimitsEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Writing"));
+            addPreference(new TogglePreference(
+                    context,
+                    "Lift text length limits",
+                    "Let comments, repost notes and your bio run past the length TikTok's app stops at. "
+                            + "TikTok's servers can still turn down a long one.",
+                    Settings.LIFT_LENGTH_LIMITS
             ));
         }
     }

@@ -206,4 +206,12 @@ final class MediaJobScheduler {
         return EXECUTOR.getActiveCount();
     }
 
+    /**
+     * Every accepted job is over, its cleanup included. The two counts above alone miss a job
+     * the executor handed to a worker thread that hasn't started yet: it is in neither.
+     */
+    static boolean idle() {
+        return ADMITTED.get() == 0 && EXECUTOR.getActiveCount() == 0 && EXECUTOR.getQueue().isEmpty();
+    }
+
 }

@@ -64,6 +64,6 @@ tasks {
 
 kotlin {
     compilerOptions {
-        freeCompilerArgs = listOf("-Xcontext-receivers", "-Xskip-metadata-version-check")
+        freeCompilerArgs = listOf("-Xskip-metadata-version-check")
     }
 }

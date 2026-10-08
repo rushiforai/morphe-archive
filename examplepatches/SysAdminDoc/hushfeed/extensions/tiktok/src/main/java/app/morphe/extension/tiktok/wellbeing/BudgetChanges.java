@@ -26,8 +26,8 @@ import app.morphe.extension.tiktok.settings.Settings;
  * two taps raise the budget and the evening goes on. With {@link Settings#SESSION_BUDGET_WAIT_TO_LOOSEN}
  * on, a change that loosens the budget is kept aside and applies when the day starts over, at the
  * reset hour, and a change that tightens it applies at once. Loosening is a higher budget or none,
- * a shorter hold, more times to open the feed anyway or no cap on them, the lock or this switch
- * turned off, and any move of the hour the day starts, since a move can start a new day, and a
+ * a shorter hold, more times to open the feed anyway or no cap on them, the lock, the feed lock
+ * or this switch turned off, and any move of the hour the day starts, since a move can start a new day, and a
  * new budget, straight away. A restore, a reset and an undo follow the same rule, and on a locked
  * day a restore leaves every budget setting as it is.
  */
@@ -46,7 +46,7 @@ public final class BudgetChanges {
 
     /** The settings a loosening of waits for the next day, in the order the page lists them. */
     static Setting<?>[] watched() {
-        return new Setting<?>[]{Settings.SESSION_BUDGET_VIDEOS, Settings.SESSION_BUDGET_MINUTES,
+        return new Setting<?>[]{Settings.FEED_LOCK, Settings.SESSION_BUDGET_VIDEOS, Settings.SESSION_BUDGET_MINUTES,
                 Settings.SESSION_BUDGET_LOCK_MINUTES, Settings.SESSION_BUDGET_RESET_HOUR,
                 Settings.SESSION_BUDGET_LOCK, Settings.SESSION_BUDGET_PASSES_PER_DAY,
                 Settings.SESSION_BUDGET_WAIT_TO_LOOSEN};
@@ -72,7 +72,8 @@ public final class BudgetChanges {
             return before != 0 && (after == 0 || after > before);
         }
         if (setting == Settings.SESSION_BUDGET_LOCK_MINUTES) return number(to) < number(from);
-        if (setting == Settings.SESSION_BUDGET_LOCK || setting == Settings.SESSION_BUDGET_WAIT_TO_LOOSEN) {
+        if (setting == Settings.SESSION_BUDGET_LOCK || setting == Settings.SESSION_BUDGET_WAIT_TO_LOOSEN
+                || setting == Settings.FEED_LOCK) {
             return Boolean.TRUE.equals(from) && !Boolean.TRUE.equals(to);
         }
         return setting == Settings.SESSION_BUDGET_RESET_HOUR;

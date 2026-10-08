@@ -39,8 +39,8 @@ import org.junit.Test
  * fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class StoriesTrayAdapterFixtureTest {
-    /** The classic and unified tray adapters of [bundle], as the patch picks them, and their class. */
-    private class TrayAdapters(val classic: Method, val unified: Method, val configuration: ClassDef)
+    /** The classic and unified tray adapters and the composer row getter of [bundle], as the patch picks them, and their class. */
+    private class TrayAdapters(val classic: Method, val unified: Method, val composer: Method, val configuration: ClassDef)
 
     private fun trayAdapters(bundle: File): TrayAdapters {
         val classic = FixtureDex.classesHolding(bundle, ADD_STORIES_ADAPTER).flatMap(::legacyTrayAdapters)
@@ -49,7 +49,9 @@ class StoriesTrayAdapterFixtureTest {
             .getValue(classic.single().definingClass)
         val unified = unifiedTrayAdapters(configuration)
         assertEquals("${bundle.name}: ${unified.map { it.toString() }}", 1, unified.size)
-        return TrayAdapters(classic.single(), unified.single(), configuration)
+        val composer = composerAdapters(configuration)
+        assertEquals("${bundle.name}: ${composer.map { it.toString() }}", 1, composer.size)
+        return TrayAdapters(classic.single(), unified.single(), composer.single(), configuration)
     }
 
     /** Every declared build's bundles, each handed to [check], which says what it checked. */
@@ -128,9 +130,9 @@ class StoriesTrayAdapterFixtureTest {
 
     /**
      * The actual patch blocks run over each fixture's methods without compiling an APK: one feed
-     * guard, the tray adapter methods left as Facebook wrote them, and each tray adapter class, a
-     * final one inheriting a count and notifyDataSetChanged() (the patch checks both), given one
-     * count that asks the extension under its own kind.
+     * guard, the tray adapter methods left as Facebook wrote them, and each tray adapter class and
+     * the composer row's, a final one inheriting a count and notifyDataSetChanged() (the patch checks
+     * both), given one count that asks the extension under its own kind.
      */
     @Test
     fun `every declared build keeps one feed guard and gives each tray adapter a count of its own`() {
@@ -141,8 +143,9 @@ class StoriesTrayAdapterFixtureTest {
                 { dex -> dex.stringSection.any { it == "addNewEdgeToCollection" } },
             ) { admittedAsFeedFunnel(it) }
             assertEquals("${bundle.name}: feed funnels", 1, funnels.size)
-            val trays = mapOf(adapters.classic.returnType to LEGACY_TRAY, adapters.unified.returnType to UNIFIED_TRAY)
-            assertEquals("${bundle.name}: one class for both trays", 2, trays.size)
+            val trays = mapOf(adapters.classic.returnType to LEGACY_TRAY, adapters.unified.returnType to UNIFIED_TRAY,
+                adapters.composer.returnType to HOME_COMPOSER)
+            assertEquals("${bundle.name}: a class of its own for each adapter", 3, trays.size)
             val classes = FixtureDex.classes(bundle, setOf(FEED_UNIT_EDGE, funnels.single().definingClass)).values +
                 FixtureDex.classesHolding(bundle, EDGE_SWAP_DROPPED) + adapters.configuration +
                 withSuperclasses(bundle, trays.keys) + status()
@@ -159,7 +162,7 @@ class StoriesTrayAdapterFixtureTest {
             }
             assertEquals("${bundle.name}: feed guard count", 1, calls(feed, hideEdge))
             val configuration = context.mutableClassDefBy(adapters.configuration.type).methods
-            for (adapter in listOf(adapters.classic, adapters.unified)) {
+            for (adapter in listOf(adapters.classic, adapters.unified, adapters.composer)) {
                 val patched = configuration.single { it.name == adapter.name && it.parameterTypes == adapter.parameterTypes }
                 assertEquals("${bundle.name}: $adapter was changed", adapter.implementation!!.instructions.count(),
                     patched.implementation!!.instructions.count())
@@ -171,7 +174,7 @@ class StoriesTrayAdapterFixtureTest {
                 assertEquals("${bundle.name}: $type kind", listOf(kind.toLong()),
                     counts.single().implementation!!.instructions.mapNotNull { (it as? NarrowLiteralInstruction)?.wideLiteral })
             }
-            "one feed guard, a classic and a unified tray count"
+            "one feed guard, a classic and a unified tray count, and a composer row count"
         }
     }
 
