@@ -117,6 +117,7 @@ Satwik-Miyyapuram/morphe-patches
 Seobject/Seobject-patches
 Sfehhrths/ekispert-morphe-patches
 ShuhaibNC/morphe-patches
+Solvo37/VKlean
 Solvo37/vk-video-morphe-patches
 SouBryan/pinterest-morphed
 Supperelias2/sbs-morphe-patches
@@ -188,6 +189,7 @@ benzophury/oraimo-health-morphe-patches
 bernardo7894/remove-permaban-banner-patch
 bigyank/morphe-patches-samsung
 binarymend/morphe-patches
+bitflippr/cobalt-morphe
 braiNtropy/braintropy-patches
 brosssh/morphe-patches
 browzomje/browzomje-patches

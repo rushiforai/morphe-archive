@@ -2593,6 +2593,30 @@
                 "sortOrder": 348,
                 "createdAt": 1791348300841,
                 "updatedAt": 1791348300841
+            },
+            {
+                "name": "VKlean",
+                "source": "https://raw.githubusercontent.com/Solvo37/VKlean/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 349,
+                "createdAt": 1791434759668,
+                "updatedAt": 1791434759668
+            },
+            {
+                "name": "vk-video-morphe-patches",
+                "source": "https://raw.githubusercontent.com/Solvo37/vk-video-morphe-patches/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 350,
+                "createdAt": 1791434760086,
+                "updatedAt": 1791434760086
+            },
+            {
+                "name": "cobalt-morphe",
+                "source": "https://raw.githubusercontent.com/bitflippr/cobalt-morphe/main/patches-bundle.json",
+                "autoUpdate": true,
+                "sortOrder": 351,
+                "createdAt": 1791434763369,
+                "updatedAt": 1791434763369
             }
         ]
     }
