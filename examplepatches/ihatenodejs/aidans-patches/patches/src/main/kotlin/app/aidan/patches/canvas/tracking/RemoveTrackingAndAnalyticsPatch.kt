@@ -10,6 +10,7 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
     description = "Neutralizes behavioral tracking (Pendo SDK session recordings, guides, and click tracking), student surveillance telemetry (Pandata pageview recording, time-spent counters, and background upload worker), first-party app analytics (ScreenView processors, offline analytics, token logging), crash reporting (Firebase Crashlytics), and in-app rating prompts.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_CANVAS)
     execute {
         // Layer 1: Pendo SDK behavioral tracking, visitor identity, guides, and click analytics.

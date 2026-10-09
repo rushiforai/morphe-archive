@@ -358,8 +358,8 @@ public class FeedOverlaySettingsTest {
         title.setId(0x7f0a2002);
         comments.addView(title, new FrameLayout.LayoutParams(400, 100));
         content.addView(comments, new FrameLayout.LayoutParams(1080, 1200));
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:pvp", comments.getId());
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:wk7", title.getId());
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.1.4:pyf", comments.getId());
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.1.4:wny", title.getId());
         layoutRoot(content);
         content.getViewTreeObserver().dispatchOnGlobalLayout();
 

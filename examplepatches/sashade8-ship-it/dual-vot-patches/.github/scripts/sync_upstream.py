@@ -329,6 +329,13 @@ def merge_dual_yandex_strings(base: str, ours: str, theirs: str) -> str:
         else:
             upstream_lines.append(line)
     missing_replacements = DUAL_OWNED_MORPHE_STRING_NAMES - replaced_names
+    # Morphe 1.47 Dev4 replaced this title with morphe_vot_screen_title.
+    # Retain only this known legacy label for fork-owned callers and older bases.
+    retained_names = missing_replacements & {"morphe_vot_enabled_title"}
+    for name in retained_names:
+        if name not in entries:
+            raise SyncError(f"Missing local Dual-owned string: {name}")
+    missing_replacements -= retained_names
     if missing_replacements:
         raise SyncError(
             "Upstream removed Dual-owned Morphe strings: "
@@ -339,7 +346,7 @@ def merge_dual_yandex_strings(base: str, ours: str, theirs: str) -> str:
     if closing is None:
         raise SyncError("Upstream strings resource has no closing resources element")
 
-    block = "".join(entries[name] for name in entries if name in dual_names)
+    block = "".join(entries[name] for name in entries if name in dual_names | retained_names)
     if block and not block.endswith(("\n", "\r")):
         block += newline
     prefix = merged_upstream[: closing.start()]

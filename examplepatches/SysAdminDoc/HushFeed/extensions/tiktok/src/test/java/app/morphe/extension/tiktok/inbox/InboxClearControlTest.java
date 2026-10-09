@@ -36,9 +36,8 @@ import org.robolectric.shadows.ShadowToast;
 @Config(sdk = 28, qualifiers = "en")
 @LooperMode(LooperMode.Mode.PAUSED)
 public class InboxClearControlTest {
-    private static final String[] RESOURCE_NAMES = {"47.0.3:omr", "47.0.3:l7b", "47.0.3:q3m", "47.0.3:u1n", "47.0.3:fwz",
-            "47.0.3:wqq", "user_name", "47.0.3:uy5", "47.0.3:brb", "47.0.3:w1f", "47.0.3:fg5", "47.0.3:kp1", "47.0.3:l7d",
-            "47.1.3:fyd"};
+    private static final String[] RESOURCE_NAMES = {"47.1.4:opi", "47.1.4:l91", "47.1.4:q6c", "47.1.4:u4x", "47.1.4:fyd",
+            "47.1.4:wuh", "user_name", "47.1.4:v1m", "47.1.4:brl", "47.1.4:w54", "47.1.4:fhi", "47.1.4:kqj", "47.1.4:l93"};
     private ActivityController<Activity> owner;
     private Activity activity;
     private LinearLayout rows;
@@ -85,7 +84,7 @@ public class InboxClearControlTest {
         for (String name : RESOURCE_NAMES) {
             InboxFilter.resolveForTests(packageName, name, id(name));
         }
-        FeedVisibility.resolveForTests(packageName, "47.0.3:omr", id("47.0.3:omr"));
+        FeedVisibility.resolveForTests(packageName, "47.1.4:opi", id("47.1.4:opi"));
         openInbox();
         ShadowToast.reset();
     }
@@ -125,26 +124,6 @@ public class InboxClearControlTest {
         assertTrue("Clear all has no ripple: " + (background == null ? "null"
                         : background.getClass().getSimpleName()),
                 background instanceof android.graphics.drawable.RippleDrawable);
-    }
-
-    /** On 47.1.3 the remove button has that build's name; the run used to look for 47.0.3's alone. */
-    @Test public void aRunFindsTheRemoveButtonUnderTheRunningBuildsName() {
-        InboxFilter.resolveForTests(RuntimeEnvironment.getApplication().getPackageName(), "47.0.3:fwz", 0);
-        LinearLayout row = new LinearLayout(activity);
-        View button = new View(activity);
-        button.setId(id("47.1.3:fyd"));
-        button.setContentDescription(description("A"));
-        button.setOnClickListener(view -> {
-            dismissed.add("A");
-            rows.removeView(row);
-        });
-        row.addView(button, new LinearLayout.LayoutParams(48, 48));
-        rows.addView(row, new LinearLayout.LayoutParams(-1, 48));
-
-        clearControl().performClick();
-        advance(300);
-
-        assertEquals(List.of("A"), dismissed);
     }
 
     @Test public void aRunHoldsTheControlUntilItReportsAndThenHandsItBack() {
@@ -439,18 +418,18 @@ public class InboxClearControlTest {
         LinearLayout root = new LinearLayout(activity);
         root.setOrientation(LinearLayout.VERTICAL);
         View tab = new View(activity);
-        tab.setId(id("47.0.3:omr"));
+        tab.setId(id("47.1.4:opi"));
         tab.setSelected(true);
         root.addView(tab, new LinearLayout.LayoutParams(-1, 48));
         rows = new LinearLayout(activity);
-        rows.setId(id("47.0.3:l7b"));
+        rows.setId(id("47.1.4:l91"));
         rows.setOrientation(LinearLayout.VERTICAL);
         root.addView(rows, new LinearLayout.LayoutParams(-1, -1));
         header = new RecordingHeader(activity);
-        header.setId(id("47.0.3:q3m"));
+        header.setId(id("47.1.4:q6c"));
         header.setOrientation(LinearLayout.HORIZONTAL);
         TextView title = new TextView(activity);
-        title.setId(id("47.0.3:u1n"));
+        title.setId(id("47.1.4:u4x"));
         title.setText("Suggested accounts");
         title.setTextColor(Color.WHITE);
         header.addView(title);
@@ -464,7 +443,7 @@ public class InboxClearControlTest {
     private View addAccount(String account, boolean removeAfterClick) {
         LinearLayout row = new LinearLayout(activity);
         View button = new View(activity);
-        button.setId(id("47.0.3:fwz"));
+        button.setId(id("47.1.4:fyd"));
         button.setContentDescription(description(account));
         button.setOnClickListener(view -> {
             dismissed.add(account);

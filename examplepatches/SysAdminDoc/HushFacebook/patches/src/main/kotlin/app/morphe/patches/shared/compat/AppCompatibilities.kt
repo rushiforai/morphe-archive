@@ -33,12 +33,15 @@ internal object AppCompatibilities {
     /**
      * SHA-256 of Meta's newer signing certificate (CN=Meta Platforms Inc). Builds from 573 on carry
      * an APK Signature Scheme v3.1 rotation: the original key signs for Android 12L and older, this
-     * one for Android 13 and newer, and its lineage is authorized by the original. 577.0.0.50.72's
-     * arm64 build is signed with the original key only.
+     * one for Android 13 and newer, and its lineage is authorized by the original.
      */
     const val META_ROTATED_SIGNER_SHA256 = "911d604446084ca7f4760b775bfc160fa8702441240a7258645d7a72c4312d27"
 
-    /** The newest Facebook build every patch here was applied to and read against. */
+    /**
+     * The one Facebook build every patch here declares, was applied to and read against: the newest
+     * stable release. A newer stable build replaces it in the same release, and the one before
+     * goes.
+     */
     const val FACEBOOK_TARGET_VERSION = "581.0.0.45.58"
 
     /**
@@ -58,18 +61,6 @@ internal object AppCompatibilities {
      */
     const val FACEBOOK_TARGET_ARMV7_VERSION_CODE = 475215364
 
-    /** The build before [FACEBOOK_TARGET_VERSION], still applied to on every change. */
-    const val FACEBOOK_PREVIOUS_VERSION = "580.0.0.51.74"
-
-    /** The version code of the arm64-v8a build of [FACEBOOK_PREVIOUS_VERSION] (240-640dpi, Android 11+). */
-    const val FACEBOOK_PREVIOUS_VERSION_CODE = 475019344
-
-    /** The build Andrew Liang's patches were written against, still applied to on every change. */
-    const val FACEBOOK_ORIGINAL_VERSION = "577.0.0.50.72"
-
-    /** The version code of the arm64-v8a build of [FACEBOOK_ORIGINAL_VERSION] (360-480dpi). */
-    const val FACEBOOK_ORIGINAL_VERSION_CODE = 474426275
-
     /** Facebook's own floor on every declared build, Android 11. */
     const val FACEBOOK_TARGET_MIN_SDK = 30
 
@@ -87,16 +78,6 @@ internal object AppCompatibilities {
                         SupportedAbi.ARM64_V8A to FACEBOOK_TARGET_VERSION_CODE,
                         SupportedAbi.ARMEABI_V7A to FACEBOOK_TARGET_ARMV7_VERSION_CODE,
                     ),
-                    minSdk = FACEBOOK_TARGET_MIN_SDK,
-                ),
-                AppTarget(
-                    version = FACEBOOK_PREVIOUS_VERSION,
-                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to FACEBOOK_PREVIOUS_VERSION_CODE),
-                    minSdk = FACEBOOK_TARGET_MIN_SDK,
-                ),
-                AppTarget(
-                    version = FACEBOOK_ORIGINAL_VERSION,
-                    versionCodes = mapOf(SupportedAbi.ARM64_V8A to FACEBOOK_ORIGINAL_VERSION_CODE),
                     minSdk = FACEBOOK_TARGET_MIN_SDK,
                 ),
             ),

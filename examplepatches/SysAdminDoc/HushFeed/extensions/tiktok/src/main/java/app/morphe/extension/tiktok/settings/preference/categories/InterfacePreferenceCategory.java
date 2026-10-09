@@ -348,6 +348,14 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Hide the question cards TikTok slides over a video near its end.",
                     Settings.HIDE_FEED_SURVEYS
             ));
+            if (SettingsStatus.footnotesEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide Footnotes",
+                        "Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.",
+                        Settings.HIDE_FOOTNOTES
+                ));
+            }
             addPreference(new TogglePreference(
                     context,
                     "Hide Search this image prompts",
@@ -426,6 +434,19 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                     "Stop the bubble TikTok floats at the top of the feed to point you to a LIVE.",
                     Settings.HIDE_LIVE_BUBBLE
             ));
+            // Left out with its hook on a build where the triggers' check wasn't found.
+            if (SettingsStatus.windDownScreensEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide TikTok's wind-down screens",
+                        "Stop the bedtime wind-down, the breathing exercise and the daily limit screen "
+                                + "TikTok puts over the feed. It only works on an account TikTok knows is an "
+                                + "adult's. A teen's account keeps them, and so does one Family Pairing links "
+                                + "to a parent. With Leave when TikTok says time is up on, the daily limit "
+                                + "screen still comes up so that switch can act on it.",
+                        Settings.HIDE_WIND_DOWN_SCREENS
+                ));
+            }
         }
         if (SettingsStatus.sensitiveWarningsEnabled) {
             addPreference(new TogglePreference(
@@ -435,6 +456,16 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
                             + "through first.",
                     Settings.HIDE_SENSITIVE_WARNINGS
             ));
+            // Left out with its hook on a build where the risk model getter wasn't found.
+            if (SettingsStatus.unverifiedNoticesEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide unverified content notices",
+                        "Hide the Check sources banner TikTok puts on videos it marks as unverified, "
+                                + "and the warnings it shows when you share one.",
+                        Settings.HIDE_UNVERIFIED_NOTICES
+                ));
+            }
         }
         if (SettingsStatus.videoOverlaysEnabled) {
             addPreference(new TogglePreference(
@@ -509,9 +540,23 @@ public final class InterfacePreferenceCategory extends ConditionalPreferenceCate
         addPreference(new SectionHeadingPreference(context, "Gestures"));
         if (SettingsStatus.videoOverlaysEnabled) {
             addPreference(new TogglePreference(context, "Swipe for brightness and volume",
-                    "Drag up or down along the left edge of a video to change the screen brightness, or along "
-                            + "the right edge to change the volume. Swiping anywhere else still scrolls the feed.",
+                    "Drag up or down along the left or right edge of a video to change what that edge strip is set "
+                            + "to below. By default that's the screen brightness on the left and the volume on the "
+                            + "right. Swiping anywhere else still scrolls the feed.",
                     Settings.SWIPE_LEVELS));
+            // Speed is the playing video's, so it is only offered where the Playback speed patch
+            // is in the bundle and found the player on screen. Brightness and volume stay where
+            // they were on each side.
+            String[] stripLabels = SettingsStatus.liveSpeedEnabled
+                    ? new String[]{"Brightness", "Volume", "Speed"}
+                    : new String[]{"Brightness", "Volume"};
+            String[] stripValues = SettingsStatus.liveSpeedEnabled
+                    ? new String[]{"brightness", "volume", "speed"}
+                    : new String[]{"brightness", "volume"};
+            addPreference(new ChoicePreference(context, "Left edge strip", Settings.SWIPE_LEVELS_LEFT,
+                    stripLabels, stripValues));
+            addPreference(new ChoicePreference(context, "Right edge strip", Settings.SWIPE_LEVELS_RIGHT,
+                    stripLabels, stripValues));
             addPreference(new NumberInputPreference(context, "Edge strip width",
                     "How wide each edge strip is, as a percent of the screen width.",
                     Settings.SWIPE_LEVELS_STRIP_PERCENT, "%1$s%%"));

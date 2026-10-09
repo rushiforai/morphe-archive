@@ -2,10 +2,19 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "aidans-patches-version-checker",
   "main": "src/index.ts",
-  "compatibility_date": "2025-02-01",
+  "compatibility_date": "2026-08-22",
   "compatibility_flags": ["nodejs_compat"],
+  "observability": {
+    "logs": {
+      "enabled": true
+    }
+  },
+  "vars": {
+    "GITHUB_REPO": "ihatenodejs/aidans-patches",
+    "DISPATCH_EVENT_TYPE": "apk-fixture-refresh"
+  },
   "triggers": {
-    "crons": ["0 6 * * *"]
+    "crons": ["0 */6 * * *"]
   },
   "kv_namespaces": [
     {

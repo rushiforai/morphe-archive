@@ -24,7 +24,7 @@ class BoxBoxSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "5.4.9",
+            version = "5.4.16",
             patchNames = setOf("Enable Premium", "Disable ads", "Disable telemetry"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )
@@ -58,6 +58,27 @@ class BoxBoxSmokeTest {
             .flatMap { cls -> cls.methods.filter { m -> m.name == "logEvent" && m.implementation != null } }
         assertTrue(appsFlyerLogEvent.isNotEmpty(), "no concrete AppsFlyer logEvent methods found")
         appsFlyerLogEvent.forEach { assertReturnsEarlyVoid(it, label = "${it.definingClass}.logEvent") }
+
+        // Firebase Analytics: FirebaseAnalytics.logEvent is inlined away, so every app event
+        // reaches the measurement service logEvent(String, String, Bundle, Z, Z, J). Both the
+        // local AppMeasurementDynamiteService and the R8-renamed Binder proxy must be neutered.
+        val measurementParams = listOf(
+            "Ljava/lang/String;", "Ljava/lang/String;", "Landroid/os/Bundle;", "Z", "Z", "J",
+        )
+        val measurementLogEvent = classes.flatMap { cls ->
+            cls.methods.filter { m ->
+                m.name == "logEvent" && m.implementation != null &&
+                    m.parameterTypes.map(CharSequence::toString) == measurementParams
+            }
+        }
+        assertTrue(
+            measurementLogEvent.any {
+                it.definingClass == "Lcom/google/android/gms/measurement/internal/AppMeasurementDynamiteService;"
+            },
+            "AppMeasurementDynamiteService.logEvent not found; found ${measurementLogEvent.map { it.definingClass }}",
+        )
+        assertTrue(measurementLogEvent.size >= 2, "expected the local service and the Binder proxy, found ${measurementLogEvent.map { it.definingClass }}")
+        measurementLogEvent.forEach { assertReturnsEarlyVoid(it, label = "${it.definingClass}.logEvent (measurement)") }
 
         assertReturnsEarlyVoid(
             klass("Lcom/google/firebase/crashlytics/FirebaseCrashlytics;")

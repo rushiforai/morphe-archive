@@ -1,0 +1,27 @@
+[project]
+name = "apk-lab"
+version = "0.1.0"
+description = "Deterministic APK update lifecycle and compatibility automation toolkit"
+requires-python = ">=3.12"
+dependencies = [
+    "boto3>=1.35.0",
+    "goopdl==1.2.1",
+]
+
+[project.scripts]
+apk-lab = "apk_lab.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["apk_lab"]

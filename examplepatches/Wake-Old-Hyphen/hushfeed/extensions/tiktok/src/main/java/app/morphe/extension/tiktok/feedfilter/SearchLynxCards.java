@@ -97,7 +97,7 @@ public final class SearchLynxCards {
         }
         if (Settings.HIDE_MINI_DRAMAS.get() && isDrama(patch)) {
             collapse(row);
-            if (fresh) FeedFilterCounters.removed(SOURCE, 1, DRAMA_REASON);
+            if (fresh) FeedFilterCounters.removedItems(SOURCE, 1, DRAMA_REASON);
             // TikTok's own bind runs after this and may size the row again, so once it has
             // returned the row is collapsed again, if it still holds this card. The pass runs on
             // the main looper, where nothing may escape either.

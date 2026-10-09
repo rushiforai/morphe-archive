@@ -19,8 +19,6 @@ class KeptBucketTypeFixtureTest {
     // These are the bucket-accessor enum types already pinned by SuggestedStoriesFixtureTest.
     private val types = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to "LX/2OQ;",
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to "LX/2LX;",
-        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to "LX/24X;",
     )
 
     @Test

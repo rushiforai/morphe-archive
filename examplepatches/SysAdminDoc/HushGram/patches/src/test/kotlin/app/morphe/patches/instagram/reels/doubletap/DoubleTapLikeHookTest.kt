@@ -29,6 +29,13 @@ import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethod
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodImplementation
 import com.android.tools.smali.dexlib2.immutable.ImmutableMethodParameter
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11n
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction11x
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction21c
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableInstruction31t
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutablePackedSwitchPayload
+import com.android.tools.smali.dexlib2.immutable.instruction.ImmutableSwitchElement
+import com.android.tools.smali.dexlib2.immutable.reference.ImmutableStringReference
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -48,11 +55,14 @@ class DoubleTapLikeHookTest {
     private val fbCommentRow = "Lfixture/FbCommentRowGestures;"
     private val commentRow = "Lfixture/CommentRowGestures;"
     private val otherRow = "Lfixture/LikeOnlyGestures;"
+    private val messageTap = "Lfixture/MessageDoubleTap;"
+    private val messageTip = "Lfixture/MessageTip;"
+    private val messageId = "Lcom/instagram/model/direct/messageid/MessageIdentifier;"
 
     /** The hooks the patch writes are in the DoubleTapLike the bundle ships, public and static. */
     @Test
     fun theHooksAreInTheExtension() {
-        for (hook in listOf(HOLD_BACK_POST, LIKE_ACTION, HOLD_BACK_COMMENT)) {
+        for (hook in listOf(HOLD_BACK_POST, LIKE_ACTION, HOLD_BACK_COMMENT, HOLD_BACK_MESSAGE)) {
             val declared = ExtensionDex.classDef(hook.substringBefore("->")).methods
                 .filter { AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.STATIC.isSet(it.accessFlags) }
                 .map { "${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
@@ -90,6 +100,75 @@ class DoubleTapLikeHookTest {
             "the setter was touched",
             context.mutableClassDefBy(handler).methods.single { it.name == "setLikeAction" }.code().none { it.referenceText() == LIKE_ACTION },
         )
+        assertGuardFirst("the message double tap", context.mutableClassDefBy(messageTap).methods.single().code(), HOLD_BACK_MESSAGE)
+        assertTrue(
+            "the tip's own read of its count was touched",
+            context.mutableClassDefBy(messageTip).methods.single().code().none { it.referenceText() == HOLD_BACK_MESSAGE },
+        )
+    }
+
+    /** 450's x86 build (385611439) asks a pool of shared strings for like_comment in its comment row (#95). */
+    @Test
+    fun aCommentRowAskingAPoolForItsLikeIsGuarded() {
+        val context = PatchContexts.of(classes(pooledLike = true) + pool())
+
+        context.turnOffDoubleTapLikes()
+
+        for (row in listOf(fbCommentRow, commentRow)) {
+            assertCommentGuardFirst(row, context.mutableClassDefBy(row).methods.single { it.name == "onDoubleTap" }.code())
+        }
+        assertTrue(
+            "a listener that isn't a comment row was touched",
+            context.mutableClassDefBy(otherRow).methods.single().code().none { it.referenceText() == HOLD_BACK_COMMENT },
+        )
+    }
+
+    /** Without the pool there's nothing to read the like's name from, so that row is no comment row. */
+    @Test
+    fun aRowAskingAMissingPoolIsNoCommentRow() {
+        val context = PatchContexts.of(classes(pooledLike = true))
+
+        context.turnOffDoubleTapLikes()
+
+        assertCommentGuardFirst(fbCommentRow, context.mutableClassDefBy(fbCommentRow).methods.single { it.name == "onDoubleTap" }.code())
+        assertTrue(
+            "the row whose like can't be read was touched",
+            context.mutableClassDefBy(commentRow).methods.single().code().none { it.referenceText() == HOLD_BACK_COMMENT },
+        )
+    }
+
+    /** A pool answering another name for the row's number doesn't make it a comment row. */
+    @Test
+    fun aRowAskingAPoolForAnotherNameIsNoCommentRow() {
+        val context = PatchContexts.of(classes(pooledLike = true) + pool(answer = "like_media"))
+
+        context.turnOffDoubleTapLikes()
+
+        assertTrue(
+            "the row asking for another name was touched",
+            context.mutableClassDefBy(commentRow).methods.single().code().none { it.referenceText() == HOLD_BACK_COMMENT },
+        )
+    }
+
+    /**
+     * Every build's three comment rows, two filing fb_comment_double_tap and one filing like_comment
+     * or unlike_comment, are found, wherever Redex left their names: 385611439 asks a pool for
+     * like_comment (#95).
+     */
+    @Test
+    fun eachBuildFindsItsThreeCommentRows() {
+        val versions = AppCompatibilities.instagram().single().targets.mapNotNull { it.version }.toSet()
+        val bundles = versions.flatMap { version -> Fixtures.files { it.extension == "apks" && it.name.contains("-$version-") } } +
+            Fixtures.otherBuilds()
+        for (bundle in bundles) {
+            val label = "${bundle.parentFile.name}/${bundle.name}"
+            val rows = (FixtureDex.classesHolding(bundle, FB_COMMENT_DOUBLE_TAP) + FixtureDex.classesHolding(bundle, UNLIKE_COMMENT))
+                .distinctBy { it.type }
+            val context = PatchContexts.of(FixtureDex.withStringPools(bundle, rows))
+            val taps = rows.filter { it.superclass == "Landroid/view/GestureDetector\$SimpleOnGestureListener;" }.flatMap { it.methods }
+                .filter { it.name == "onDoubleTap" && it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == listOf("Landroid/view/MotionEvent;") }
+            assertEquals("$label: comment rows", 3, taps.count { context.isCommentDoubleTap(it) })
+        }
     }
 
     /** A build the patch can't read fails at patch time, saying what it found, before anything is written. */
@@ -112,6 +191,12 @@ class DoubleTapLikeHookTest {
             classes(reads = 2) to "2 times",
             classes(checkedLater = true) to "doesn't check its like action for null straight after",
             classes(commentRows = false) to "no comment row's double tap",
+            classes(messages = 0) to "\"$MESSAGE_DOUBLE_TAP\", found 0",
+            classes(messages = 2) to "\"$MESSAGE_DOUBLE_TAP\", found 2",
+            classes(messageAnswers = true) to "doesn't return nothing",
+            classes(messageReactions = 0) to "to 0 reactions",
+            classes(messageReactions = 2) to "to 2 reactions",
+            classes(messageLocals = 0) to "has no register of its own",
         )
         for ((classes, expected) in cases) {
             val context = PatchContexts.of(classes)
@@ -119,7 +204,7 @@ class DoubleTapLikeHookTest {
             assertTrue("$expected: ${failure.message}", failure.message!!.contains(expected))
             val written = classes.map { it.type }.distinct().flatMap { type -> context.classDefByOrNull(type)?.methods?.toList().orEmpty() }
                 .filter { method ->
-                    method.code().any { it.referenceText() in listOf(HOLD_BACK_POST, LIKE_ACTION, HOLD_BACK_COMMENT) }
+                    method.code().any { it.referenceText() in listOf(HOLD_BACK_POST, LIKE_ACTION, HOLD_BACK_COMMENT, HOLD_BACK_MESSAGE) }
                 }
             assertTrue("$expected: something was written to $written", written.isEmpty())
         }
@@ -140,23 +225,37 @@ class DoubleTapLikeHookTest {
                 val posts = FixtureDex.classesHolding(bundle, FEED_DOUBLE_TAP)
                 val post = posts.flatMap { it.methods }.single { method -> method.code().any { it.string() == FEED_DOUBLE_TAP } }
                 val like = post.code().mapNotNull { it.likeShapedCall() }.map { it.text() }.distinct().single()
+                val messageHolders = FixtureDex.classesHolding(bundle, MESSAGE_TIP_COUNT)
+                val messageTaps = messageHolders.flatMap { it.methods }.filter { method ->
+                    method.code().mapNotNull { it.string() }.let { MESSAGE_TIP_COUNT in it && MESSAGE_DOUBLE_TAP in it }
+                }.map { it.text() }
+                val messageTap = messageTaps.singleOrNull() ?: throw AssertionError("${bundle.name}: message double taps $messageTaps")
                 val callers = mutableSetOf<String>()
+                val messageCallers = mutableSetOf<String>()
                 val likeClasses = mutableListOf<ClassDef>()
                 FixtureDex.forEach(bundle) { dex ->
-                    // A dex that neither calls nor declares the like has no reference to it.
-                    if (dex.methodSection.none { it.text() == like }) return@forEach
+                    // A dex that neither calls nor declares a method has no reference to it.
+                    val likes = dex.methodSection.any { it.text() == like }
+                    val reacts = dex.methodSection.any { it.text() == messageTap }
+                    if (!likes && !reacts) return@forEach
                     for (classDef in dex.classes) {
+                        if (reacts) {
+                            messageCallers += classDef.methods.filter { method -> method.code().any { it.methodText() == messageTap } }.map { it.text() }
+                        }
+                        if (!likes) continue
                         val calling = classDef.methods.filter { method -> method.code().any { it.methodText() == like } }
                         callers += calling.map { it.text() }
                         if (calling.isNotEmpty() || classDef.type == like.substringBefore("->")) likeClasses += ImmutableClassDef.of(classDef)
                     }
                 }
+                // 450 has two: the helper the chat's gesture listeners share, and the Compose message list's double tap.
+                assertTrue("${bundle.name}: callers of $messageTap: $messageCallers", messageCallers.size >= 2)
                 // 449 has eight: the single photo, the carousel and five more kinds of post, and a lambda.
                 assertTrue("${bundle.name}: callers of $like: $callers", callers.size >= 7)
 
                 val commentRows = FixtureDex.classesHolding(bundle, FB_COMMENT_DOUBLE_TAP) +
                     FixtureDex.classesHolding(bundle, UNLIKE_COMMENT)
-                val holders = (posts + likeClasses + FixtureDex.classesHolding(bundle, handleMarker) + commentRows)
+                val holders = (posts + likeClasses + FixtureDex.classesHolding(bundle, handleMarker) + commentRows + messageHolders)
                     .distinctBy { it.type }
                 val context = PatchContexts.of(holders)
                 val reelType = holders.single { holder -> holder.methods.any { method -> method.code().any { it.string() == handleMarker } } }.type
@@ -180,19 +279,29 @@ class DoubleTapLikeHookTest {
                     .filter { method -> method.code().any { it.referenceText() == HOLD_BACK_COMMENT } }
                 assertEquals("${bundle.name}: comment double taps", 3, comments.size)
                 comments.forEach { assertCommentGuardFirst("${bundle.name}: ${it.definingClass}", it.code()) }
+                // The tip's own reads of its count stay as they were; only the double tap asks.
+                val messages = holders.map { it.type }.distinct().flatMap { context.mutableClassDefBy(it).methods }
+                    .filter { method -> method.code().any { it.referenceText() == HOLD_BACK_MESSAGE } }
+                assertEquals("${bundle.name}: message double taps", listOf(messageTap), messages.map { it.text() })
+                val message = messages.single().code()
+                assertGuardFirst("${bundle.name}: the message double tap", message, HOLD_BACK_MESSAGE)
+                val reactions = message.mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+                    .filter { call -> call.returnType == "V" && call.parameterTypes.any { it.toString() == messageId } }
+                assertEquals("${bundle.name}: the message double tap's reactions", 1, reactions.size)
+                assertTrue("${bundle.name}: ${reactions.single()}", reactions.single().parameterTypes.map(CharSequence::toString).contains("Ljava/util/List;"))
                 checked += version
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
     }
 
-    private fun assertGuardFirst(what: String, code: List<Instruction>) {
+    private fun assertGuardFirst(what: String, code: List<Instruction>, hook: String = HOLD_BACK_POST) {
         assertEquals(
             "$what: the guard's opcodes",
             listOf(Opcode.INVOKE_STATIC, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
             code.take(4).map { it.opcode },
         )
-        assertEquals("$what: the hook called", HOLD_BACK_POST, code[0].referenceText())
+        assertEquals("$what: the hook called", hook, code[0].referenceText())
     }
 
     private fun assertCommentGuardFirst(what: String, code: List<Instruction>) {
@@ -247,6 +356,11 @@ class DoubleTapLikeHookTest {
         reads: Int = 1,
         checkedLater: Boolean = false,
         commentRows: Boolean = true,
+        pooledLike: Boolean = false,
+        messages: Int = 1,
+        messageAnswers: Boolean = false,
+        messageReactions: Int = 1,
+        messageLocals: Int = 2,
     ): List<ClassDef> {
         val invoke = if (likeStatic) "invoke-static { v0, v0, p1, v2 }" else "invoke-virtual { v0, v0, v0, p1, v2 }"
         val likeCall = listOf("like", "likeAgain").take(likeCalls).joinToString("\n") { "$invoke, $liker->$it$likeShape" }
@@ -336,11 +450,50 @@ class DoubleTapLikeHookTest {
             listenerDef(type, method(type, "onDoubleTap", listOf("Landroid/view/MotionEvent;"), "Z", 4,
                 strings.joinToString("\n") { "const-string v1, \"$it\"" } + "\nconst/4 v0, 0x1\nreturn v0"))
         }
+        // With [pooledLike] the second row asks [pool] for like_comment, as 450's 385611439 does.
+        val askedLike = listOf(
+            "const/16 v1, 0x$POOLED",
+            "invoke-static { v1 }, $POOL->A00(I)Ljava/lang/String;",
+            "move-result-object v1",
+            "const-string v1, \"$UNLIKE_COMMENT\"",
+            "const/4 v0, 0x1",
+            "return v0",
+        ).joinToString("\n")
         val rows = if (commentRows) listOf(
             rowOf(fbCommentRow, listOf("comment_row_component", FB_COMMENT_DOUBLE_TAP)),
-            rowOf(commentRow, listOf(LIKE_COMMENT, UNLIKE_COMMENT)),
+            if (pooledLike) listenerDef(commentRow, method(commentRow, "onDoubleTap", listOf("Landroid/view/MotionEvent;"), "Z", 4, askedLike))
+            else rowOf(commentRow, listOf(LIKE_COMMENT, UNLIKE_COMMENT)),
         ) else emptyList()
+        // The chat's double tap on a message loads the tip count and its source, then hands the
+        // message's id to a reaction. The tip's own read of the count loads no source.
+        val react = "invoke-interface { v1, v1, v1 }, Lfixture/Reactions;->react(Ljava/lang/Object;$messageId)V"
+        val messageParameters = listOf("Lfixture/Reactions;", "Ljava/util/List;")
+        val messageFlags = AccessFlags.PUBLIC.value or AccessFlags.STATIC.value or AccessFlags.FINAL.value
+        val messageClass = classDef(
+            messageTap,
+            (0 until messages).map { copy ->
+                method(messageTap, if (copy == 0) "react" else "reactAgain", messageParameters, if (messageAnswers) "Z" else "V",
+                    messageLocals + messageParameters.size, """
+                        const-string v0, "$MESSAGE_TIP_COUNT"
+                        const-string v0, "$MESSAGE_DOUBLE_TAP"
+                        const/4 v1, 0x0
+                        ${List(messageReactions) { react }.joinToString("\n")}
+                        ${if (messageAnswers) "return v1" else "return-void"}
+                    """, messageFlags)
+            },
+        )
+        val tipClass = classDef(
+            messageTip,
+            listOf(method(messageTip, "shouldShowTip", listOf("Ljava/lang/Object;"), "Z", 3, """
+                const-string v0, "$MESSAGE_TIP_COUNT"
+                const/4 v1, 0x0
+                $react
+                return v1
+            """)),
+        )
         return rows + rowOf(otherRow, listOf(LIKE_COMMENT)) + listOfNotNull(
+            messageClass,
+            tipClass,
             feedClass,
             carouselClass,
             videoClass,
@@ -371,6 +524,26 @@ class DoubleTapLikeHookTest {
         return ImmutableMethod.of(mutable)
     }
 
+    /**
+     * A pool of shared strings as 450's Redex writes it: a static (int)String switch answering
+     * [answer] for [POOLED]. p0 is v1.
+     */
+    private fun pool(answer: String = LIKE_COMMENT): ClassDef = ImmutableClassDef(
+        POOL, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;", null, null, null, null,
+        listOf(ImmutableMethod(
+            POOL, "A00", listOf(ImmutableMethodParameter("I", null, null)), "Ljava/lang/String;",
+            AccessFlags.PUBLIC.value or AccessFlags.STATIC.value, null, null,
+            ImmutableMethodImplementation(2, listOf(
+                ImmutableInstruction31t(Opcode.PACKED_SWITCH, 1, 8),
+                ImmutableInstruction11n(Opcode.CONST_4, 0, 0),
+                ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+                ImmutableInstruction21c(Opcode.CONST_STRING, 0, ImmutableStringReference(answer)),
+                ImmutableInstruction11x(Opcode.RETURN_OBJECT, 0),
+                ImmutablePackedSwitchPayload(listOf(ImmutableSwitchElement(POOLED, 5))),
+            ), null, null),
+        )),
+    )
+
     private fun listenerDef(type: String, method: Method): ClassDef = ImmutableClassDef(
         type, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Landroid/view/GestureDetector\$SimpleOnGestureListener;",
         null, null, null, emptyList(), listOf(method),
@@ -396,4 +569,9 @@ class DoubleTapLikeHookTest {
         }
 
     private fun MethodReference.text(): String = "$definingClass->$name(${parameterTypes.joinToString("")})$returnType"
+
+    private companion object {
+        const val POOL = "Lfixture/Strings;"
+        const val POOLED = 7
+    }
 }

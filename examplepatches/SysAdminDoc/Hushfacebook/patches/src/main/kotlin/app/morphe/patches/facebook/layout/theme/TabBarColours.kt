@@ -26,24 +26,24 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * 581, 2026-10-07; the obfuscated names in these comments are for reviewers, the code never writes
  * one down.
  *
- * The tab bar takes its colours from one abstract provider (581 LX/3W1, 580 LX/3Zu, 577 LX/3aF)
- * with two subclasses each. TabBarContainerLayout, a class Redex keeps, is handed the provider with
- * the tab id in a setter (581 FGg(FbUserSession, LX/3W1, J), 577 FAb(LX/3aF, J)), and the first
- * colour it asks the provider for goes straight into the Paint of the line it draws over the
- * selected tab. That's the selected tab's colour (581 LX/3W1;->A04, the TAB_BAR_ACTIVE_ICON,
- * PRIMARY_ICON or ACCENT token by Facebook's own switches). Its only other caller is the tab view's
- * tint method, which colours the selected tab's icon with it and the others with the unselected
- * colour (581 LX/2Bf;->A06, 580 LX/27i;->A06, 577 LX/2BK;->A05). 580 and 581 pass the session, 577
- * passes nothing, so the method is found by the Paint it fills, not by its parameters.
+ * The tab bar takes its colours from one abstract provider (581 LX/3W1) with two subclasses each.
+ * TabBarContainerLayout, a class Redex keeps, is handed the provider with the tab id in a setter
+ * (581 FGg(FbUserSession, LX/3W1, J), 577 FAb(LX/3aF, J)), and the first colour it asks the
+ * provider for goes straight into the Paint of the line it draws over the selected tab. That's the
+ * selected tab's colour (581 LX/3W1;->A04, the TAB_BAR_ACTIVE_ICON, PRIMARY_ICON or ACCENT token by
+ * Facebook's own switches). Its only other caller is the tab view's tint method, which colours the
+ * selected tab's icon with it and the others with the unselected colour (581 LX/2Bf;->A06). 580 and
+ * 581 pass the session, 577 passes nothing, so the method is found by the Paint it fills, not by
+ * its parameters.
  *
  * That setter doesn't paint the line the first time, though. The layout's inflater (a Redex-named
- * switch method, 581 LX/3Ra;->A00, 580 LX/3VS, 577 LX/3VZ) makes the line's Paint and fills it
- * straight from an FDSColors token (A2c on 581 and 580, A3X on 577), a colour the provider never
- * hears about. The setter then finds that Paint, and sets it again, only when the theme changes, so
- * on the phone the line kept the token's near white (#65). The line's Paint is the one field of the
- * layout's own that onDraw hands to Canvas.drawPath. The same three-instruction shape sits in all
- * three builds: an int call and its move-result, an iget-object of that field, and Paint.setColor.
- * The provider's setter has that shape too, with the colour already handed over, so it's left out.
+ * switch method, 581 LX/3Ra;->A00) makes the line's Paint and fills it straight from an FDSColors
+ * token (A2c on 581 and 580, A3X on 577), a colour the provider never hears about. The setter then
+ * finds that Paint, and sets it again, only when the theme changes, so on the phone the line kept
+ * the token's near white (#65). The line's Paint is the one field of the layout's own that onDraw
+ * hands to Canvas.drawPath. The same three-instruction shape sits in all three builds: an int call
+ * and its move-result, an iget-object of that field, and Paint.setColor. The provider's setter has
+ * that shape too, with the colour already handed over, so it's left out.
  */
 
 internal const val TAB_BAR_CONTAINER = "Lcom/facebook/navigation/tabbar/ui/TabBarContainerLayout;"

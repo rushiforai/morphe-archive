@@ -6,17 +6,16 @@ import java.nio.ByteOrder
 import java.util.zip.ZipFile
 
 /**
- * Just enough of a fixture's resources.arsc for the AMOLED tests: the app package's attr,
- * drawable and color names, the colors' default literals, and every style's items.
+ * Just enough of a fixture's resources.arsc for the AMOLED tests: the app package's attr and
+ * color names, the colors' default literals, and every style's items.
  */
-internal class FixtureResourceTable(private val apk: File) {
+internal class FixtureResourceTable(apk: File) {
     private val table: ByteBuffer = ZipFile(apk).use { zip ->
         ByteBuffer.wrap(zip.getInputStream(zip.getEntry("resources.arsc")).use { it.readBytes() })
             .order(ByteOrder.LITTLE_ENDIAN)
     }
     val attrNames = HashMap<Int, String>()
     private val attrIds = HashMap<String, Int>()
-    private val drawableFiles = HashMap<String, String>()
 
     /** Color id to name, and name to its literal in the default configuration (#aarrggbb). */
     val colorNames = HashMap<Int, String>()
@@ -30,7 +29,6 @@ internal class FixtureResourceTable(private val apk: File) {
      * colour literal or ?attr/name.
      */
     private val styleItems = HashMap<Int, MutableList<String>>()
-    private var values: StringPool? = null
 
     class Style(val name: String, val items: List<Item>)
 
@@ -38,12 +36,7 @@ internal class FixtureResourceTable(private val apk: File) {
     class Item(val attr: Int, val type: Int, val data: Int)
 
     init {
-        forEachChunk(u16(2), table.limit()) { chunk, type ->
-            when (type) {
-                STRING_POOL -> if (values == null) values = StringPool(table, chunk)
-                PACKAGE -> readPackage(chunk)
-            }
-        }
+        forEachChunk(u16(2), table.limit()) { chunk, type -> if (type == PACKAGE) readPackage(chunk) }
     }
 
     fun styleValues(attr: String): List<String> = styleItems[attrIds.getValue(attr)].orEmpty()
@@ -52,16 +45,6 @@ internal class FixtureResourceTable(private val apk: File) {
     fun colorReferences(style: Style): List<String> = style.items.sortedBy { it.attr }
         .filter { it.type == TYPE_REFERENCE }
         .mapNotNull { colorNames[it.data] }
-
-    /** Whether the drawable's compiled XML carries a ?attr/[attr] value anywhere. */
-    fun drawableReferencesAttr(drawable: String, attr: String): Boolean {
-        val path = drawableFiles.getValue(drawable)
-        val xml = ZipFile(apk).use { zip -> zip.getInputStream(zip.getEntry(path)).use { it.readBytes() } }
-        // A Res_value of size 8, type TYPE_ATTRIBUTE, holding the attr id.
-        val pattern = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN)
-            .putShort(8).put(0).put(TYPE_ATTRIBUTE.toByte()).putInt(attrIds.getValue(attr)).array()
-        return (0..xml.size - pattern.size).any { at -> pattern.indices.all { xml[at + it] == pattern[it] } }
-    }
 
     private fun readPackage(start: Int) {
         val headerSize = u16(start + 2)
@@ -74,14 +57,13 @@ internal class FixtureResourceTable(private val apk: File) {
         fun typeId(name: String) = (0 until typeNames.count).first { typeNames[it] == name } + 1 + typeIdOffset
         val attrType = typeId("attr")
         val styleType = typeId("style")
-        val drawableType = typeId("drawable")
         val colorType = typeId("color")
         val chunks = ArrayList<Int>()
         forEachChunk(start + headerSize, end) { chunk, type -> if (type == TYPE) chunks += chunk }
         // Names first: a style's items name their attrs, and point at colors, by id.
         for (chunk in chunks) {
             val typeId = u8(chunk + 8)
-            if (typeId != attrType && typeId != drawableType && typeId != colorType) continue
+            if (typeId != attrType && typeId != colorType) continue
             val defaultConfig = isDefaultConfig(chunk)
             forEachEntry(chunk) { index, entry ->
                 val name = keys[keyOf(entry)]
@@ -98,7 +80,6 @@ internal class FixtureResourceTable(private val apk: File) {
                 val value = entry + u16(entry)
                 val type = if (flags and COMPACT != 0) flags ushr 8 else u8(value + 3)
                 val data = table.getInt(if (flags and COMPACT != 0) entry + 4 else value + 4)
-                if (typeId == drawableType && type == TYPE_STRING) drawableFiles.putIfAbsent(name, values!![data])
                 if (typeId == colorType && defaultConfig && type in 0x1c..0x1f) {
                     colorValues[name] = "#" + String.format("%08x", data)
                 }
@@ -199,7 +180,6 @@ internal class FixtureResourceTable(private val apk: File) {
     }
 
     companion object {
-        const val STRING_POOL = 0x0001
         const val PACKAGE = 0x0200
         const val TYPE = 0x0201
         const val SPARSE = 0x01
@@ -208,6 +188,5 @@ internal class FixtureResourceTable(private val apk: File) {
         const val COMPACT = 0x0008
         const val TYPE_REFERENCE = 0x01
         const val TYPE_ATTRIBUTE = 0x02
-        const val TYPE_STRING = 0x03
     }
 }

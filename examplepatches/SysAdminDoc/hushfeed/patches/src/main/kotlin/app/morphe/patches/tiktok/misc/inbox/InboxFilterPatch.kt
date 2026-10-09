@@ -14,6 +14,8 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.declaredVersions
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -26,6 +28,8 @@ private object InboxRowBindingFingerprint : Fingerprint(
 
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/tiktok/inbox/InboxFilter;"
+
+private const val PATCH_NAME = "Hide inbox items"
 
 internal object MainActivityOnCreateFingerprint : Fingerprint(
     definingClass = "Lcom/ss/android/ugc/aweme/main/MainActivity;",
@@ -60,9 +64,11 @@ internal fun MutableMethod.installInboxLayoutFilter() {
 val inboxFilterPatch = bytecodePatch(
     name = "Hide inbox items",
     description = "Adds a switch for each row and header control on the Inbox tab, so " +
-        "message requests, TikTok Tako, TikTok Shop, the stories tray and the rest can be " +
-        "hidden individually, and switches for the call buttons, sticker suggestions and " +
-        "suggested replies inside a chat. Switch: Hushfeed settings > Inbox.",
+        "message requests, TikTok Tako, TikTok Shop, Bulletin board, the stories tray and the " +
+        "rest can be hidden individually, along with the banner that invites you to start a " +
+        "group chat, and switches for the call buttons, sticker suggestions and " +
+        "suggested replies inside a chat and for a message's double tap heart and swipe to " +
+        "reply. Switch: Hushfeed settings > Inbox.",
     default = false,
 ) {
     category("Inbox")
@@ -71,6 +77,19 @@ val inboxFilterPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
+        // Found and checked before anything is written: a patch that fails part way keeps
+        // what it already wrote.
+        val gestures = ChatMessageGestureFingerprint.method
+        val gestureRegister = chatGestureRegister(gestures)
+        // The group chat banner's update is required on a declared build, where
+        // InboxGroupBannerAnchorsTest holds it, and left out with a note on any other.
+        val groupBanner = try {
+            InboxGroupBannerUpdateFingerprint.method.also { it.requireLocals(PATCH_NAME, 1) }
+        } catch (problem: Exception) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out the group chat prompt switch on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
         val binding = InboxRowBindingFingerprint.method
         check(binding.implementation!!.instructions.any { instruction ->
             instruction.getReference<FieldReference>()?.let {
@@ -102,5 +121,16 @@ val inboxFilterPatch = bytecodePatch(
         ChatStickerBannerEnabledFingerprint.method.hideInboxWidget("shouldShowChatStickerBanner")
         ChatSuggestedReplyEnabledFingerprint.method.hideInboxWidget("shouldShowChatAiReplies")
         ChatSmartReplyIntroEnabledFingerprint.method.hideInboxWidget("shouldShowChatAiReplies")
+        gestures.skipChatGestures(gestureRegister)
+
+        // The group chat prompt at the top of the Inbox. Returning before the update leaves the
+        // banner at the INIT state it is built with, which shows nothing.
+        if (groupBanner != null) {
+            groupBanner.hideGroupChatBanner(PATCH_NAME)
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableGroupChatBanner()V",
+            )
+        }
     }
 }

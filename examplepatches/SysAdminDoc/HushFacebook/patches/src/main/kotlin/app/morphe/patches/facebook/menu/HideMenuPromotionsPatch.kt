@@ -5,6 +5,7 @@
 package app.morphe.patches.facebook.menu
 
 import app.morphe.patcher.StringComparisonType
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
@@ -24,17 +25,22 @@ import com.android.tools.smali.dexlib2.iface.Method
 
 internal const val HIDE_SECTION = "$EXTENSION_PACKAGE/menu/MenuSections;->hideSection(Ljava/lang/Object;)Z"
 internal const val HIDE_SERVER_SECTION = "$EXTENSION_PACKAGE/menu/MenuSections;->hideServerSection(Ljava/lang/Object;)Z"
+internal const val MUSE_DISMISSED = "$EXTENSION_PACKAGE/menu/MuseCard;->dismissed(ZLjava/lang/Object;)Z"
 
 /**
  * Both sections of a Menu group ask the extension about the group as soon as they know it, and
  * hand back no children when it says the group goes. See MenuSectionAnchors.kt for how the Menu is
  * built. Every other group, Settings and Help included, builds as Facebook built it.
+ *
+ * The Muse card is a bookmark, not a group: right after its component reads whether the card was
+ * dismissed, the answer and the bookmark go to the extension, which can answer yes instead. See
+ * MuseCardAnchors.kt.
  */
 @Suppress("unused")
 val hideMenuPromotionsPatch = bytecodePatch(
     name = "Hide Menu promotions",
-    description = "Hides the Upgrades and Also from Meta sections of Facebook's Menu. Each has its own switch. " +
-        "Settings, Help and support, your shortcuts and the rest of the Menu stay.",
+    description = "Hides the Upgrades and Also from Meta sections of Facebook's Menu, and its Muse card. " +
+        "Each has its own switch. Settings, Help and support, your shortcuts and the rest of the Menu stay.",
     default = true,
 ) {
     category("Interface")
@@ -63,6 +69,14 @@ val hideMenuPromotionsPatch = bytecodePatch(
             .buildNothingWhenHidden(nativeRead, children(native), HIDE_SECTION)
         mutableClassDefBy(server.definingClass).findMutableMethodOf(server)
             .buildNothingWhenHidden(serverRead, children(server), HIDE_SERVER_SECTION)
+
+        val render = single(NT_DISMISSED_UPDATE, "Menu bookmark render", ::isBookmarkRender)
+        val component = mutableClassDefBy(render.definingClass)
+        val dismissal = dismissalRead(component, render) ?: throw PatchException(
+            "$PATCH: ${render.definingClass}->${render.name} doesn't make one dismissal read before " +
+                "\"$NT_DISMISSED_UPDATE\" and compare its answer at once",
+        )
+        component.findMutableMethodOf(render).askAboutDismissal(dismissal)
         enableStatus("menuPromotions")
     }
 }
@@ -104,3 +118,17 @@ internal fun MutableMethod.buildNothingWhenHidden(read: GroupRead, list: Childre
         ExternalLabel("facebook", getInstruction(index)),
     )
 }
+
+/**
+ * Right after the bookmark component reads whether its card was dismissed, the answer and the
+ * bookmark go to [MUSE_DISMISSED], and what it says replaces Facebook's answer before the render
+ * compares it with the card's state. Both registers fit the non-range call's 4-bit operands, which
+ * [dismissalRead] makes sure of.
+ */
+internal fun MutableMethod.askAboutDismissal(read: DismissalRead) = addInstructions(
+    read.index + 1,
+    """
+        invoke-static { v${read.answer}, v${read.bookmark} }, $MUSE_DISMISSED
+        move-result v${read.answer}
+    """.trimIndent(),
+)

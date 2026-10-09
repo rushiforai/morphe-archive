@@ -1,4 +1,8 @@
-"""Exercise the real patch test task's fixture input set and incremental outcomes.
+"""Exercise the real fixture test task's input set and incremental outcomes.
+
+The patch tests that read the fixtures run in :patches:fixtureTest, which picks the classes whose
+source calls Fixtures or FixtureDex. The probe below calls Fixtures and is written into the copy's
+test sources, so the task takes it the same way, and :patches:test --tests hands the selection on.
 
 Run with the build's JAVA_HOME and registry credentials. All changes stay in a private
 copy; --work-dir retains its project, logs and fixtures for diagnosis.
@@ -38,8 +42,8 @@ def main():
 
     fixtures = work / "fixtures"
     fixtures.mkdir()
-    probe = work / "probe"
-    probe.mkdir()
+    probe = project / "patches/src/test/kotlin/app/morphe"
+    probe.mkdir(parents=True, exist_ok=True)
     (probe / "FixtureInputProbeTest.kt").write_text("""package app.morphe
 
 import org.junit.Assert.assertEquals
@@ -55,9 +59,7 @@ class FixtureInputProbeTest {
     init = work / "fixture-inputs.gradle"
     init.write_text("""gradle.projectsEvaluated {
     def patches = rootProject.project(':patches')
-    patches.extensions.getByName('kotlin').sourceSets.getByName('test').kotlin
-        .srcDir(System.getenv('HUSH_FIXTURE_PROBE'))
-    def task = patches.tasks.named('test').get()
+    def task = patches.tasks.named('fixtureTest').get()
     task.environment('HUSH_FIXTURE_EXPECTED_NAMES', System.getenv('HUSH_FIXTURE_EXPECTED_NAMES'))
     patches.tasks.register('fixtureInputSnapshot') {
         mustRunAfter(task)
@@ -83,7 +85,6 @@ class FixtureInputProbeTest {
             env.pop("HUSHFACEBOOK_FIXTURE_DIR", None)
         else:
             env["HUSHFACEBOOK_FIXTURE_DIR"] = str(configured)
-        env["HUSH_FIXTURE_PROBE"] = str(probe)
         env["HUSH_FIXTURE_EXPECTED_NAMES"] = "|".join(expected)
         log = work / (label + ".log")
         with log.open("wb") as output:
@@ -96,9 +97,9 @@ class FixtureInputProbeTest {
         text = log.read_text(encoding="utf-8", errors="replace")
         marker = "HUSH_FIXTURE_INPUTS="
         actual = next((json.loads(line[len(marker):]) for line in text.splitlines() if line.startswith(marker)), None)
-        task = next((line for line in text.splitlines() if line.startswith("> Task :patches:test ")
-                     or line == "> Task :patches:test"), "not executed")
-        reports = list((project / "patches/build/test-results/test").glob("TEST-*.xml"))
+        task = next((line for line in text.splitlines() if line.startswith("> Task :patches:fixtureTest ")
+                     or line == "> Task :patches:fixtureTest"), "not executed")
+        reports = list((project / "patches/build/test-results/fixtureTest").glob("TEST-*.xml"))
         totals = {key: 0 for key in ["tests", "failures", "errors", "skipped"]}
         for report in reports:
             attributes = ET.parse(report).getroot().attrib
@@ -117,7 +118,7 @@ class FixtureInputProbeTest {
         if outcome == "up-to-date":
             assert task.endswith(" UP-TO-DATE"), f"{label}: task reran instead of reusing its input key"
         else:
-            assert task == "> Task :patches:test", f"{label}: changed input reused a cached task result"
+            assert task == "> Task :patches:fixtureTest", f"{label}: changed input reused a cached task result"
         skipped = configured is None or str(configured).strip() == ""
         assert totals == {"tests": 1, "failures": 0, "errors": 0, "skipped": int(skipped)}, record
 
@@ -182,7 +183,7 @@ class FixtureInputProbeTest {
     run("invalid-folder", invalid, [], "execute", "not a folder")
     run("restored-top-level", fixtures, names, "execute")
     run("restored-unchanged", fixtures, names, "up-to-date")
-    print(f"All {len(records)} actual patch-task input and execution cases passed.", flush=True)
+    print(f"All {len(records)} actual fixture-task input and execution cases passed.", flush=True)
 
 
 if __name__ == "__main__":

@@ -69,7 +69,6 @@
     :goto_8
     iput-boolean p4, p1, Le/e/a/CommentListExtras$Follow;->byNicoru:Z
 
-    :cond_17
     iget-object p1, p0, Le/e/a/CommentListExtras$2;->val$follow:Le/e/a/CommentListExtras$Follow;
 
     invoke-virtual {p1}, Le/e/a/CommentListExtras$Follow;->sort()V

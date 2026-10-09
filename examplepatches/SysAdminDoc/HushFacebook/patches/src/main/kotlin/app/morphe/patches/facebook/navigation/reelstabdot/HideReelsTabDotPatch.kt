@@ -34,12 +34,12 @@ internal const val CLEAR = "$REELS_TAB_DOT->clear(Ljava/lang/Object;)Z"
 
 /**
  * The tab bar's one count hook. Facebook's tab bar asks its jewel controller
- * (FbMainTabActivityJewelController, 581 `LX/1pM;`, 580 `LX/1np;`, 577 `LX/1je;`) for each tab's
- * count through one static method, (FbUserSession, controller, TabTag, int) -> int, which loads
- * [JEWEL_COUNT] for its logging; the tab bar's layout, its count updates and a runnable of its own
- * all call it. The extension goes first in it, handed the tab. Hide the Reels tab dot and Hide tab
- * badges both depend on this, so the method carries one Hushfacebook call whichever of them is in,
- * and each only switches its own rule on.
+ * (FbMainTabActivityJewelController, 581 `LX/1pM;`) for each tab's count through one static method,
+ * (FbUserSession, controller, TabTag, int) -> int, which loads [JEWEL_COUNT] for its logging; the
+ * tab bar's layout, its count updates and a runnable of its own all call it. The extension goes
+ * first in it, handed the tab. Hide the Reels tab dot and Hide tab badges both depend on this, so
+ * the method carries one Hushfacebook call whichever of them is in, and each only switches its own
+ * rule on.
  */
 internal val jewelCountHookPatch = bytecodePatch {
     dependsOn(settingsPatch)

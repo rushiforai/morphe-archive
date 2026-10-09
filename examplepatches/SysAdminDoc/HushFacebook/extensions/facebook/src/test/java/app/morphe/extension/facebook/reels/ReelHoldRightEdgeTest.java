@@ -29,8 +29,8 @@ import app.morphe.extension.shared.settings.PauseForTests;
 
 /**
  * Only on the right edge: with Hold a reel for 2x on, a long press on a reel's right third, measured
- * against the reel's width at the press, goes to the speed-up, and one anywhere else gets Facebook's
- * own answer to its edge check. Off, Hold a reel for 2x counts a press wherever it lands, and with
+ * against the reel's width at the press, goes to the speed-up, and one anywhere else goes to
+ * Facebook's long-press menu, whatever Facebook's own edge check answers. Off, Hold a reel for 2x counts a press wherever it lands, and with
  * Hold off or paused every answer is Facebook's.
  */
 @RunWith(RobolectricTestRunner.class)
@@ -78,11 +78,16 @@ public class ReelHoldRightEdgeTest {
         }
     }
 
-    /** Where Facebook gives the account its own hold, its edge check's yes still speeds the reel up. */
-    @Test public void aPressOffTheRightThirdGetsFacebooksOwnAnswer() {
+    /**
+     * Where Facebook gives the account its own hold, its edge check says yes on the left edge too.
+     * The S22 showed that yes speeding a reel up on the left with the switch on (2026-10-08), which
+     * breaks the switch's promise of the right third only, so a press off it goes to the menu.
+     */
+    @Test public void aPressOffTheRightThirdGoesToTheMenuEvenWithFacebooksOwnHold() {
         ReelHold.longPress(true);
-        assertTrue("Facebook's own hold on its edge", ReelHoldForTests.pressAt(10, true));
+        assertFalse("Facebook's own hold on its left edge", ReelHoldForTests.pressAt(10, true));
         assertFalse("Facebook's own hold off its edge", ReelHoldForTests.pressAt(150, false));
+        assertTrue("the right third", ReelHoldForTests.pressAt(290, true));
         ReelHold.longPress(false);
         assertFalse("no hold of Facebook's own", ReelHoldForTests.pressAt(10, true));
     }

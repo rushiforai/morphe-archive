@@ -1,3 +1,21 @@
+## [1.43.10](https://github.com/legendsciber/morphe-patches/compare/v1.43.9...v1.43.10) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **solarsmash:** suppress all ads via AdvertsDisabled gate ([d320b18](https://github.com/legendsciber/morphe-patches/commit/d320b18352b3f65137148b1372ebbfc70527e3b7))
+
+## [1.43.9](https://github.com/legendsciber/morphe-patches/compare/v1.43.8...v1.43.9) (2026-10-08)
+
+### 🚀 Updated App Support
+
+* **aphelion:** update fingerprints and target for 0.5.8 ([95ec292](https://github.com/legendsciber/morphe-patches/commit/95ec29299301c6d9623fe8be0f218528528efb2f))
+
+## [1.43.8](https://github.com/legendsciber/morphe-patches/compare/v1.43.7...v1.43.8) (2026-10-08)
+
+### 🚀 Updated App Support
+
+* **dantheman:** update target and reachability gate site for 1.14.05 ([9898bfd](https://github.com/legendsciber/morphe-patches/commit/9898bfdf2a41a581f28113fdce7446f39f4626b5))
+
 ## [1.43.7](https://github.com/legendsciber/morphe-patches/compare/v1.43.6...v1.43.7) (2026-10-07)
 
 ### 🐛 Bug Fixes

@@ -198,6 +198,15 @@ public class Settings extends BaseSettings {
     /** How wide each edge strip is, as a percent of the screen width. */
     public static final IntegerSetting SWIPE_LEVELS_STRIP_PERCENT =
             new IntegerSetting("swipe_levels_strip_percent", 15, false, Setting.parent(SWIPE_LEVELS)).withRange(5, 30);
+    /**
+     * What a drag along each edge strip changes: "brightness", "volume" or "speed" (the playing
+     * video's speed, which needs the Playback speed patch). The left strip starts on brightness and
+     * the right on volume, which is what the switch did before the strips could be chosen.
+     */
+    public static final StringSetting SWIPE_LEVELS_LEFT =
+            new StringSetting("swipe_levels_left", "brightness", false, Setting.parent(SWIPE_LEVELS));
+    public static final StringSetting SWIPE_LEVELS_RIGHT =
+            new StringSetting("swipe_levels_right", "volume", false, Setting.parent(SWIPE_LEVELS));
     public static final BooleanSetting FIT_VIDEO_TO_SCREEN =
             new BooleanSetting("fit_video_to_screen", FALSE);
     /** The opposite: crop the video until it covers the window (issue #29). Fit wins when both are on. */
@@ -209,6 +218,12 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting BACKGROUND_PLAY = new BooleanSetting("background_play", FALSE, true);
     public static final BooleanSetting HIDE_LAUNCHER_SHORTCUTS =
             new BooleanSetting("hide_launcher_shortcuts", FALSE);
+    /**
+     * On by default: the setup runs before anyone can reach this switch, so picking the patch is
+     * the choice. Off brings the screens back the next time TikTok runs its setup.
+     */
+    public static final BooleanSetting SKIP_FIRST_LAUNCH_SETUP =
+            new BooleanSetting("skip_first_launch_setup", TRUE);
     /**
      * Whether {@link #HIDE_LAUNCHER_SHORTCUTS} has taken the launcher shortcuts away and not yet
      * put them back. No row of its own: it is how turning that switch back off knows there is
@@ -357,6 +372,13 @@ public class Settings extends BaseSettings {
     );
     /** The red count on Inbox and the dot on Profile, the pull that reopens the app. */
     public static final BooleanSetting HIDE_TAB_BADGES = new BooleanSetting("hide_tab_badges", FALSE, true);
+    /** The names under the bottom tab icons, and a name of the user's own for each; empty keeps TikTok's. Read before each frame. */
+    public static final BooleanSetting HIDE_BOTTOM_TAB_LABELS = new BooleanSetting("hide_bottom_tab_labels", FALSE);
+    public static final StringSetting BOTTOM_TAB_NAME_HOME = new StringSetting("bottom_tab_name_home", "");
+    public static final StringSetting BOTTOM_TAB_NAME_FRIENDS = new StringSetting("bottom_tab_name_friends", "");
+    public static final StringSetting BOTTOM_TAB_NAME_INBOX = new StringSetting("bottom_tab_name_inbox", "");
+    public static final StringSetting BOTTOM_TAB_NAME_PROFILE = new StringSetting("bottom_tab_name_profile", "");
+    public static final StringSetting BOTTOM_TAB_NAME_SHOP = new StringSetting("bottom_tab_name_shop", "");
     public static final BooleanSetting KEEP_FOR_YOU_ON_TAB_TAP = new BooleanSetting("keep_for_you_on_tab_tap", FALSE);
     public static final BooleanSetting KEEP_FOR_YOU_ON_PULL_DOWN = new BooleanSetting("keep_for_you_on_pull_down", FALSE);
     /** A long press on the Home tab opens Hushfeed's settings (#45). TikTok gives that press nothing of its own. */
@@ -402,6 +424,8 @@ public class Settings extends BaseSettings {
             true,
             Setting.parent(CUSTOM_OFFLINE_VIDEOS)
     ).withRange(CustomOfflineVideosLimitPatch.MIN_LIMIT, CustomOfflineVideosLimitPatch.MAX_LIMIT);
+    /** Offline videos stay until you clear them, instead of expiring after TikTok's lifetime (#123). */
+    public static final BooleanSetting KEEP_OFFLINE_VIDEOS = new BooleanSetting("keep_offline_videos", FALSE, true);
     public static final BooleanSetting SHOW_SEEKBAR = new BooleanSetting("show_seekbar", TRUE);
     public static final BooleanSetting SHOW_SEEKBAR_THUMBNAIL = new BooleanSetting(
             "show_seekbar_thumbnail",
@@ -616,6 +640,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_FEED_MUSIC = new BooleanSetting("hide_feed_music", FALSE);
     public static final BooleanSetting HIDE_FEED_ACTION_BAR = new BooleanSetting("hide_feed_action_bar", FALSE);
     public static final BooleanSetting HIDE_FEED_SURVEYS = new BooleanSetting("hide_feed_surveys", FALSE);
+    /** The Footnotes banner TikTok lays over a video that carries a note. */
+    public static final BooleanSetting HIDE_FOOTNOTES = new BooleanSetting("hide_footnotes", FALSE);
     /** The Add comment bar under a video opened from a profile, a hashtag or a sound, and the strip kept for it (#50). */
     public static final BooleanSetting HIDE_DETAIL_COMMENT_BAR = new BooleanSetting("hide_detail_comment_bar", FALSE);
     /** The progress bar, close button and pause/speed pill TikTok draws while Clear display is on (#97). */
@@ -640,6 +666,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_STATUS_BAR_IN_LIVE = new BooleanSetting("hide_status_bar_in_live", FALSE);
     public static final StringSetting TOUCH_TARGET_SCALE = new StringSetting("touch_target_scale", "1");
     public static final BooleanSetting HIDE_SENSITIVE_WARNINGS = new BooleanSetting("hide_sensitive_warnings", FALSE);
+    /** The Check sources banner on a video TikTok flags as unverified, and the share warnings that read it. */
+    public static final BooleanSetting HIDE_UNVERIFIED_NOTICES = new BooleanSetting("hide_unverified_notices", FALSE);
     public static final BooleanSetting SHOW_AUTHOR_REGION = new BooleanSetting("show_author_region", FALSE);
     public static final BooleanSetting SHOW_AUTHOR_HANDLE = new BooleanSetting("show_author_handle", FALSE);
     public static final BooleanSetting SHOW_ENGAGEMENT_RATE = new BooleanSetting("show_engagement_rate", FALSE);
@@ -665,6 +693,8 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_INBOX_ARCHIVE = new BooleanSetting("hide_inbox_archive", FALSE);
     public static final BooleanSetting HIDE_INBOX_TAKO = new BooleanSetting("hide_inbox_tako", FALSE);
     public static final BooleanSetting HIDE_INBOX_SHOP = new BooleanSetting("hide_inbox_shop", FALSE);
+    public static final BooleanSetting HIDE_INBOX_BULLETIN_BOARDS =
+            new BooleanSetting("hide_inbox_bulletin_boards", FALSE);
     public static final BooleanSetting HIDE_INBOX_SUGGESTED_ACCOUNTS =
             new BooleanSetting("hide_inbox_suggested_accounts", FALSE);
     public static final BooleanSetting HIDE_INBOX_MESSAGE_REQUESTS =
@@ -675,6 +705,9 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting HIDE_INBOX_SEARCH = new BooleanSetting("hide_inbox_search", FALSE);
     public static final BooleanSetting HIDE_INBOX_ACTIVITY_STATUS =
             new BooleanSetting("hide_inbox_activity_status", FALSE);
+    /** The banner at the top of the Inbox that invites you to start a group chat. */
+    public static final BooleanSetting HIDE_INBOX_GROUP_CHAT_BANNER =
+            new BooleanSetting("hide_inbox_group_chat_banner", FALSE);
     public static final BooleanSetting EXPAND_ACTIVITY_LIST = new BooleanSetting("expand_activity_list", FALSE);
     /** Chat screen clutter. Each is off by default and read live when a chat opens. */
     public static final BooleanSetting HIDE_CHAT_CALL_BUTTONS =
@@ -683,6 +716,11 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hide_chat_sticker_banner", FALSE);
     public static final BooleanSetting HIDE_CHAT_AI_REPLIES =
             new BooleanSetting("hide_chat_ai_replies", FALSE);
+    /** A message's double tap and sideways swipe in a chat, read at each gesture. */
+    public static final BooleanSetting TURN_OFF_CHAT_DOUBLE_TAP =
+            new BooleanSetting("turn_off_chat_double_tap", FALSE);
+    public static final BooleanSetting TURN_OFF_CHAT_SWIPE_REPLY =
+            new BooleanSetting("turn_off_chat_swipe_reply", FALSE);
     public static final StringSetting HIDE_INBOX_CUSTOM_TITLES =
             new StringSetting("hide_inbox_custom_titles", "");
     // Feed filter additions. The list based ones are read live, so a sound blocked from
@@ -856,10 +894,15 @@ public class Settings extends BaseSettings {
     public static final StringSetting HIDDEN_PROFILE_SHORTCUTS = new StringSetting("hidden_profile_shortcuts", "");
     public static final StringSetting PROFILE_SHORTCUT_PICKS = new StringSetting("profile_shortcut_picks", "");
     public static final StringSetting PROFILE_SHORTCUT_CATALOG = new StringSetting("profile_shortcut_catalog", "");
+    /** The Thoughts bubble above a profile picture (#122). Read when a profile's picture is built. */
+    public static final BooleanSetting HIDE_PROFILE_THOUGHTS = new BooleanSetting("hide_profile_thoughts", FALSE, true);
     // Popup labels (TikTok's own popup layer): the labels ticked in the checklist, and the ones
     // TikTok has tried to show on this phone, which the checklist offers.
     public static final StringSetting POPUP_LABEL_PICKS = new StringSetting("popup_label_picks", "");
     public static final BooleanSetting HIDE_LIVE_BUBBLE = new BooleanSetting("hide_live_bubble", FALSE);
+    // TikTok's bedtime wind-down, breathing exercise and daily-limit screens over the feed, kept
+    // back only on an account TikTok treats as an adult's (WindDownScreens).
+    public static final BooleanSetting HIDE_WIND_DOWN_SCREENS = new BooleanSetting("hide_wind_down_screens", FALSE);
     public static final StringSetting POPUP_LABEL_CATALOG = new StringSetting("popup_label_catalog", "");
     // "Follows you" under the @username on a profile, and a mark on the follow list accounts that don't follow back.
     public static final BooleanSetting SHOW_FOLLOW_STATUS = new BooleanSetting("show_follow_status", TRUE);

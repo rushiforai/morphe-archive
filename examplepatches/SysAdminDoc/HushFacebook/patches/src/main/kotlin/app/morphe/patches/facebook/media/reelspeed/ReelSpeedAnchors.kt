@@ -61,8 +61,7 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  *   one item per speed, labelled by the toast class's (F)String formatter. The attribute selector
  *   is the toast class's static method answering FDSAttributeSelectorHScroll, a kept class (581
  *   LX/JsV;->A00); the dropdown is the method holding "fds_control_playback_speed" (581
- *   LX/TmY;->A08, 580 LX/U1V;->A08, 577 LX/UFS;->A09). Nothing branches to the instruction after
- *   either asList's move-result.
+ *   LX/TmY;->A08). Nothing branches to the instruction after either asList's move-result.
  * - The gear menu's speed sheet (read from 577, 580 and 581, 2026-10-07): its class holds
  *   "PlayerControlsPlaybackSpeedBottomSheet" (581 LX/TkP;, 580 LX/TzE;, 577 LX/UCw;), and its
  *   builder, A01 on all three, takes two booleans last and makes the gear pick's class. It gets

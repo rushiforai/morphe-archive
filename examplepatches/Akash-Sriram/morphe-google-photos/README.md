@@ -7,7 +7,7 @@ Morphe patches for **Google Photos**, derived from [RookieEnough/De-Vanced](http
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.13.4](https://github.com/Akash-Sriram/morphe-google-photos/releases/tag/v1.13.4)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
+> **[v1.14.2](https://github.com/Akash-Sriram/morphe-google-photos/releases/tag/v1.14.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;13 patches total
 <details open>
 <summary>📦 Google Photos&nbsp;&nbsp;•&nbsp;&nbsp;13 patches</summary>
 <br>
@@ -39,11 +39,16 @@ Morphe patches for **Google Photos**, derived from [RookieEnough/De-Vanced](http
 
 ---
 
-## ⚠️ Known Limitations
+## ⚠️ Limitations & Workarounds
 
-- **Local Creation Downloader**:
-  - **Cross-device state**: Bypasses cloud save to enable quota-free backup. The save button is permanently hidden on the patched device once downloaded, but may still appear in Stories on other devices or the web.
-  - **Web badge**: Saved collages back up as standard photos on their original capture date without the server-assigned collage badge on the web.
+Saving auto-generated creations directly from **Memories / Stories** and the **Create tab (Made-For-You)** normally triggers a cloud-side commit on Google's servers, bypassing on-device Pixel XL spoofing and debiting account storage quota.
+
+### Local Creation Downloader Workaround
+- **Quota-Free Routing**: The patch intercepts the "Save" button and streams the high-resolution collage (`.jpg`) or animation (`.mp4`) directly to device storage (`DCIM/Google Photos`). The app then uploads the local file through the unlimited Pixel XL backup pipeline at **0 bytes quota**.
+
+### Side-Effects & Notes
+- **Device-Local "Saved" State**: Because the cloud commit is suppressed, the "Saved" status is tracked on-device. Opening the same creation on unpatched devices or the web (`photos.google.com`) will still show the "Save" button.
+- **Timeline Placement**: Embedded EXIF metadata reflects the original capture timestamp, sorting saved creations in your timeline next to the original photos rather than the day you saved them.
 
 ---
 

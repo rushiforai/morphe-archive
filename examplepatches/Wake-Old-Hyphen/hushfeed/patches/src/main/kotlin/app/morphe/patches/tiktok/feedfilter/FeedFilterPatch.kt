@@ -15,7 +15,9 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
+import app.morphe.patches.tiktok.misc.extension.MainActivityOnCreateFingerprint
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.patches.tiktok.misc.navigation.MainNewIntentFingerprint
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
@@ -53,6 +55,8 @@ private const val CARD_FILTERS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/
 private const val SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/SearchLynxCards;"
 private const val LIVE_FEED_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/LiveFeedFilter;"
 private const val FEED_ITEM_LIST_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;"
+private const val FILTERED_COUNT_PILL_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/FilteredCountPill;"
+private const val LINKED_VIDEO_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/LinkedVideo;"
 
 @Suppress("unused")
 val feedFilterPatch = bytecodePatch(
@@ -61,24 +65,27 @@ val feedFilterPatch = bytecodePatch(
         "creator posts TikTok runs as ads, TikTok " +
         "Shop items, livestreams, LIVE replays, stories, photo posts, paid partnerships, " +
         "AI-generated videos, location-tagged videos, verified accounts, series, mini dramas, playlists, " +
-        "the playlist bar, the floating event badge and inserted cards. Videos can also be " +
+        "the playlist bar, the floating event badge, inserted cards and the offline videos TikTok " +
+        "slips back into For You. Videos can also be " +
         "filtered by your own caption words, creator handles or patterns, sound names, length, " +
         "the country they were posted from, the language of their original caption and their " +
-        "view, like, comment, favorite and share counts. For You can also drop the fill-in " +
+        "view, like, comment, favorite and share counts. Caption words can also match the " +
+        "text stickers typed over a video. For You can also drop the fill-in " +
         "videos TikTok sends without picking them for you, and a batch that's all fill-in " +
         "stays so the feed never runs dry. The Friends tab can show only mutual friends. " +
         "A short list of creator exceptions lets " +
         "chosen accounts through the filters on the kind of post, its labels, age, length and " +
         "counts, and through the fill-in rule. Ads, blocked creators, words, sounds, countries " +
         "and caption languages, paid and " +
-        "Shop content, LIVE and seen videos still apply to them. " +
+        "Shop content, LIVE, seen videos and offline videos still apply to them. " +
         "Sponsored cards are dropped from the profile video viewer, the search grids " +
         "and the Friends tab as well as the feed, and so are the mid-roll ads TikTok splices " +
         "into a video pager after the list has loaded and the ads a creator's video pager asks " +
         "for on its own. The share prompt that appears after a like can be hidden too, and so " +
         "can TikTok Shop's Products block and product cards in search results. The LIVE feed " +
         "you swipe through has its own rules: gaming, shopping, sponsored and verified LIVEs, " +
-        "categories, and viewer and follower ranges. " +
+        "categories, and viewer and follower ranges. A small label on the Home feed can count " +
+        "what the filter has taken out. " +
         "Switch: Hushfeed settings > Feed filter.",
     default = true,
 ) {
@@ -94,6 +101,24 @@ val feedFilterPatch = bytecodePatch(
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableFeedFilter()V",
+        )
+
+        // Show how many were filtered: the label follows the main activity from its creation and
+        // goes up as it resumes, so the switch alone decides whether anything is drawn.
+        MainActivityOnCreateFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p0 .. p0 }, $FILTERED_COUNT_PILL_CLASS_DESCRIPTOR->install(Landroid/app/Activity;)V",
+        )
+
+        // The video a link from outside TikTok opens gets past the rules (#117). A cold start
+        // carries the link in the activity's intent, and the running app gets it in onNewIntent.
+        MainActivityOnCreateFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p0 .. p1 }, $LINKED_VIDEO_CLASS_DESCRIPTOR->onCreate(Landroid/app/Activity;Landroid/os/Bundle;)V",
+        )
+        MainNewIntentFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p1 .. p1 }, $LINKED_VIDEO_CLASS_DESCRIPTOR->onNewIntent(Landroid/content/Intent;)V",
         )
 
         MainFeedResponseFingerprint.method.let { method ->
@@ -476,18 +501,17 @@ val feedFilterPatch = bytecodePatch(
             )
         }
 
-        // The golden cache method, the offline cache method and whatever runs them both. On 47.0.3
-        // the golden method is itself the cold start's orchestrator: it calls the offline method
-        // and makes three of the four stores. 47.1.3 moved the golden hit-cache step into a method
-        // of its own with one store, and the two parse stores into an orchestrator that calls the
-        // golden and the offline method in turn, five stores in all.
+        // The golden cache method, the offline cache method and the orchestrator that runs them
+        // both. The golden hit-cache step is a method of its own with one store, and the two parse
+        // stores sit in an orchestrator that calls the golden and the offline method in turn, five
+        // stores in all. (Up to 47.0.3 the golden method ran the cold start itself.)
         val golden = ColdStartGoldenCacheFingerprint.method
         val offline = ColdStartOfflineCacheFingerprint.method
-        val orchestrators = if (golden.goldenRunsTheColdStart()) emptyList() else findColdStartOrchestrators(golden, offline)
-        if (!golden.goldenRunsTheColdStart() && orchestrators.size != 1) {
+        val orchestrators = findColdStartOrchestrators(golden, offline)
+        if (orchestrators.size != 1) {
             throw PatchException(
-                "The golden cold-start method no longer runs the cold start, and ${orchestrators.size} " +
-                    "methods call it with the offline one where one orchestrator was expected",
+                "${orchestrators.size} methods call the golden and the offline cold-start method " +
+                    "where one orchestrator was expected",
             )
         }
         val coldStartMethods = (listOf(golden, offline) + orchestrators).distinctBy { method ->
@@ -512,11 +536,8 @@ val feedFilterPatch = bytecodePatch(
                 .toList()
         }
         val cacheStoreCount = coldStartStores.sumOf { (_, indices) -> indices.size }
-        val expectedStores = expectedColdStartStores(orchestrators.size)
-            ?: throw PatchException("Expected at most one cold-start orchestrator, found ${orchestrators.size}")
-        check(cacheStoreCount == expectedStores) {
-            "Expected $expectedStores cold-start cached FeedItemList stores with " +
-                "${orchestrators.size} separate orchestrator(s), found $cacheStoreCount"
+        check(cacheStoreCount == COLD_START_STORES) {
+            "Expected $COLD_START_STORES cold-start cached FeedItemList stores, found $cacheStoreCount"
         }
 
         val offlineMarkers = coldStartMethods.flatMap { method ->
@@ -816,6 +837,20 @@ val feedFilterPatch = bytecodePatch(
             """
                 const/4 v0, 0x0
                 return v0
+            """,
+        )
+
+        // An empty list is the app's own "no card to ask for", so the Lemon8 promo is never
+        // requested and never arrives. Remove feed ads also drops it from the list if it came
+        // another way.
+        Lemon8CardRequestFingerprint.method.requireLocals("Feed filter", 1)
+        Lemon8CardRequestFingerprint.method.guardAtEntry(
+            "Feed filter",
+            "invoke-static {}, $CARD_FILTERS_CLASS_DESCRIPTOR->shouldSkipLemon8PromoRequest()Z",
+            """
+                new-instance v0, Ljava/util/ArrayList;
+                invoke-direct {v0}, Ljava/util/ArrayList;-><init>()V
+                return-object v0
             """,
         )
 
@@ -1189,7 +1224,7 @@ private fun MutableMethod.filterProfileDetailAdEvent() {
     )
 }
 
-/** The cold start's orchestrator where it is a method of its own (47.1.3), found by what it calls. */
+/** The cold start's orchestrator, a method of its own, found by what it calls. */
 private fun BytecodePatchContext.findColdStartOrchestrators(golden: Method, offline: Method): List<MutableMethod> {
     val sites = invokeSitesOf(setOf(golden.coldStartCall(), offline.coldStartCall()), static = true)
     val calls = sites.groupBy { it.method.coldStartCall() }.values.associate { group ->

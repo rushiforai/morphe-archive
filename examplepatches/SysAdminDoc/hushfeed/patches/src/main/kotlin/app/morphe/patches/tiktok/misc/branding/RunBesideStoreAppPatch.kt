@@ -278,8 +278,18 @@ val runBesideStoreAppPatch = bytecodePatch(
         }
 
         wallpaperLoad?.let { (method, at) -> method.swapAfterLoad(at, "declared") }
+        // The contains call after each load, on the same three registers, asks the extension
+        // instead: the store package as before, or the copy's own name. Swapping the loaded name
+        // alone would stop a link to the store app counting as TikTok's own, as it does stock.
         ownPackageSites?.forEach { (method, sites) ->
-            sites.asReversed().forEach { at -> method.swapAfterLoad(at, "ownPackage") }
+            sites.forEach { at ->
+                val call = method.getInstruction<FiveRegisterInstruction>(at + 1)
+                method.replaceInstruction(
+                    at + 1,
+                    "invoke-static { v${call.registerC}, v${call.registerD}, v${call.registerE} }, " +
+                        "$EXTENSION->holdsOwnPackage(Ljava/lang/CharSequence;Ljava/lang/CharSequence;Z)Z",
+                )
+            }
         }
     }
 }

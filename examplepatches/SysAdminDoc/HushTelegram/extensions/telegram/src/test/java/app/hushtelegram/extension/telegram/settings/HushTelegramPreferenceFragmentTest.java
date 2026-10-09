@@ -124,6 +124,8 @@ public class HushTelegramPreferenceFragmentTest {
         ROW_TITLES.put(PatchFamily.HIDE_BLOCKED_IN_GROUPS, "Hide blocked users in groups");
         ROW_TITLES.put(PatchFamily.HIDE_FEATURES_AND_INVITE, "Hide Telegram Features and Invite Friends");
         ROW_TITLES.put(PatchFamily.MESSAGE_MENU_REPEAT, "Add Repeat to the message menu");
+        ROW_TITLES.put(PatchFamily.KEEP_DELETED_MESSAGES, "Keep deleted messages");
+        ROW_TITLES.put(PatchFamily.ASK_BEFORE_STICKER, "Ask before sending a sticker");
         ROW_TITLES.put(PatchFamily.DISABLE_ANALYTICS, "Stop usage reports");
         ROW_TITLES.put(PatchFamily.DISABLE_CALL_DEBUG, "Stop call diagnostics");
         ROW_TITLES.put(PatchFamily.DISABLE_DRAFT_PREVIEWS, "No previews before sending");
@@ -272,7 +274,9 @@ public class HushTelegramPreferenceFragmentTest {
                         || build.contains(PatchFamily.IGNORE_MUTED_MENTIONS)
                         || build.contains(PatchFamily.HIDE_BLOCKED_IN_GROUPS)
                         || build.contains(PatchFamily.HIDE_FEATURES_AND_INVITE)
-                        || build.contains(PatchFamily.MESSAGE_MENU_REPEAT)) expected.add("Chats");
+                        || build.contains(PatchFamily.MESSAGE_MENU_REPEAT)
+                        || build.contains(PatchFamily.KEEP_DELETED_MESSAGES)
+                        || build.contains(PatchFamily.ASK_BEFORE_STICKER)) expected.add("Chats");
                 if (build.contains(PatchFamily.DISABLE_ANALYTICS) || build.contains(PatchFamily.DISABLE_CALL_DEBUG)
                         || build.contains(PatchFamily.DISABLE_DRAFT_PREVIEWS) || build.contains(PatchFamily.GALLERY_CAMERA_ON_TAP)) expected.add("Privacy");
                 if (build.contains(PatchFamily.REPAIR_FIREBASE_PUSH)) expected.add("Notifications");
@@ -602,6 +606,39 @@ public class HushTelegramPreferenceFragmentTest {
             // The message menu stays as Telegram builds it until the switch is turned on.
             assertFalse(Settings.MESSAGE_MENU_REPEAT.key,
                     ((SwitchPreference) page.findPreference(Settings.MESSAGE_MENU_REPEAT.key)).isChecked());
+            assertEquals("Keep deleted messages", String.valueOf(page.findPreference(Settings.KEEP_DELETED_MESSAGES.key).getTitle()));
+            assertEquals("Messages other people delete stay in your chats on this phone, marked deleted next to the "
+                            + "time. Your own deletes and anything that disappears or is protected work as usual. Off by "
+                            + "default in settings.",
+                    String.valueOf(page.findPreference(Settings.KEEP_DELETED_MESSAGES.key).getSummary()));
+            // Telegram removes a message another person deletes until the switch is turned on.
+            assertFalse(Settings.KEEP_DELETED_MESSAGES.key,
+                    ((SwitchPreference) page.findPreference(Settings.KEEP_DELETED_MESSAGES.key)).isChecked());
+            assertEquals("Ask before sending a sticker", String.valueOf(page.findPreference(Settings.ASK_BEFORE_STICKER.key).getTitle()));
+            assertEquals("Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it, and a "
+                            + "scheduled sticker goes through as it always did. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.ASK_BEFORE_STICKER.key).getSummary()));
+            // Stickers, GIFs, recordings and calls go out without a question until the switch is turned on.
+            assertFalse(Settings.ASK_BEFORE_STICKER.key,
+                    ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_STICKER.key)).isChecked());
+            assertEquals("Ask before sending a GIF", String.valueOf(page.findPreference(Settings.ASK_BEFORE_GIF.key).getTitle()));
+            assertEquals("Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it, and a "
+                            + "scheduled GIF goes through as it always did. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.ASK_BEFORE_GIF.key).getSummary()));
+            assertFalse(Settings.ASK_BEFORE_GIF.key,
+                    ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_GIF.key)).isChecked());
+            assertEquals("Ask before sending a voice or video message", String.valueOf(page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key).getTitle()));
+            assertEquals("Asks Send or Cancel before a voice or video message you recorded goes into a chat. Cancel "
+                            + "throws the recording away. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key).getSummary()));
+            assertFalse(Settings.ASK_BEFORE_VOICE_VIDEO.key,
+                    ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_VOICE_VIDEO.key)).isChecked());
+            assertEquals("Ask before starting a call", String.valueOf(page.findPreference(Settings.ASK_BEFORE_CALL.key).getTitle()));
+            assertEquals("Asks Call or Cancel before the call button in a chat's header or on a profile starts a "
+                            + "call. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.ASK_BEFORE_CALL.key).getSummary()));
+            assertFalse(Settings.ASK_BEFORE_CALL.key,
+                    ((SwitchPreference) page.findPreference(Settings.ASK_BEFORE_CALL.key)).isChecked());
             assertEquals("Add Copy photo to the message menu", String.valueOf(page.findPreference(Settings.MESSAGE_MENU_COPY_PHOTO.key).getTitle()));
             assertEquals("Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. "
                             + "It copies the picture itself, so you can paste it into another app. It won't appear in "
@@ -618,6 +655,14 @@ public class HushTelegramPreferenceFragmentTest {
             // Each of the menu's items stays out until its own switch is turned on.
             assertFalse(Settings.MESSAGE_MENU_DETAILS.key,
                     ((SwitchPreference) page.findPreference(Settings.MESSAGE_MENU_DETAILS.key)).isChecked());
+            assertEquals("Add Quick forward to the message menu", String.valueOf(page.findPreference(Settings.MESSAGE_MENU_QUICK_FORWARD.key).getTitle()));
+            assertEquals("Puts Quick forward under Forward in a message's long-press menu. It lists Saved Messages "
+                            + "and a few recent chats, and one tap forwards the message there with the sender shown, "
+                            + "unless Hide sender names when forwarding is on. It won't appear in protected or secret "
+                            + "chats. Off by default in settings.",
+                    String.valueOf(page.findPreference(Settings.MESSAGE_MENU_QUICK_FORWARD.key).getSummary()));
+            assertFalse(Settings.MESSAGE_MENU_QUICK_FORWARD.key,
+                    ((SwitchPreference) page.findPreference(Settings.MESSAGE_MENU_QUICK_FORWARD.key)).isChecked());
             List<Preference> rows = new ArrayList<>();
             collect(page.getPreferenceScreen(), rows);
             for (Preference row : rows) {

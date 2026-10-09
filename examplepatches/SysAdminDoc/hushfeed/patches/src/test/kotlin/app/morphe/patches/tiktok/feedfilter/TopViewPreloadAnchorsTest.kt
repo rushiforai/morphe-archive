@@ -27,7 +27,7 @@ class TopViewPreloadAnchorsTest {
     @Test
     fun `every retained fixture has one feed fetch with one TopView preload handoff`() {
         val apks = Fixtures.apks()
-        assertTrue("fixtures: ${apks.map { it.name }}", apks.size >= 2)
+        assertTrue("fixtures: ${apks.map { it.name }}", apks.containsAll(Fixtures.declared()))
         apks.forEach { apk ->
             val app = load(apk)
             val classDef = app[feedApi] ?: error("${apk.name}: no $feedApi")

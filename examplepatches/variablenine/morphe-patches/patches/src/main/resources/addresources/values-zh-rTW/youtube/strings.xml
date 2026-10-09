@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">關於</string>
   <string name="morphe_settings_screen_01_ads_title">廣告</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">替代縮圖</string>
   <string name="morphe_settings_screen_03_feed_title">推薦內容</string>
   <string name="morphe_settings_screen_04_general_title">一般</string>
   <string name="morphe_settings_screen_05_player_title">播放器</string>
@@ -65,6 +64,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_artist_cards_title">隱藏藝人資訊卡</string>
   <string name="morphe_hide_artist_cards_summary">隱藏搜尋結果頂部的藝術家卡片</string>
   <string name="morphe_hide_auto_dubbed_label_title">隱藏「自動配音」標籤</string>
+  <string name="morphe_hide_channel_buttons_title">隱藏頻道按鈕</string>
+  <string name="morphe_hide_channel_buttons_summary">隱藏搜尋結果中頻道個人檔案中的訂閱、查看頻道、社群和 YouTube Music 等按鈕</string>
   <string name="morphe_hide_community_posts_title">隱藏社群貼文</string>
   <string name="morphe_hide_compact_banner_title">隱藏精簡橫幅</string>
   <string name="morphe_hide_compact_banner_summary">隱藏精簡的橫幅和某些元件之間的間距</string>
@@ -76,7 +77,6 @@ Second \"item\" text"</string>
   <string name="morphe_hide_floating_microphone_button_summary">隱藏搜尋建議螢幕右下角的浮動麥克風按鈕</string>
   <string name="morphe_hide_get_premium_button_title">隱藏取得 Premium 按鈕</string>
   <string name="morphe_hide_history_shelf_title">隱藏觀看記錄欄</string>
-  <string name="morphe_hide_history_shelf_summary">在「你」分頁中隱藏觀看記錄欄</string>
   <string name="morphe_hide_horizontal_shelves_title">隱藏橫向區塊</string>
   <string name="morphe_hide_horizontal_shelves_summary">已隱藏橫向專區，例如：• 即時新聞• 你可能喜歡的社群貼文• 繼續觀看• 探索更多頻道• 探索更多主題• 為你推薦• 最新影片• 最相關• 來自創作者社群的貼文• 購物• 再次觀看</string>
   <string name="morphe_hide_hyped_label_title">隱藏熱門標籤</string>
@@ -110,7 +110,8 @@ Second \"item\" text"</string>
   <string name="morphe_hide_show_more_button_title">隱藏「顯示更多」按鈕</string>
   <string name="morphe_hide_show_more_button_summary">隱藏搜尋結果中影片下方的展開按鈕</string>
   <string name="morphe_hide_subscribed_channels_bar_title">隱藏訂閱頻道列</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">隱藏已訂閱頻道列中的頻道名稱</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">隱藏已訂閱頻道名稱</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">隱藏已訂閱頻道列中的頻道名稱</string>
   <string name="morphe_hide_surveys_title">隱藏問卷調查</string>
   <string name="morphe_hide_surveys_summary">隱藏關於資訊流推薦準確度的調查和提示</string>
   <string name="morphe_hide_ticket_shelf_title">隱藏票券架</string>
@@ -159,6 +160,11 @@ Second \"item\" text"</string>
   <string name="morphe_hide_sync_button_title">隱藏「同步到影片」按鈕</string>
   <string name="morphe_hide_timed_reactions_title">隱藏直播即時反應</string>
   <string name="morphe_hide_timed_reactions_summary">隱藏評論區和直播聊天中以表情符號回覆的功能</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">隱藏選單中的「說明 &amp; 意見回饋」</string>
+  <string name="morphe_hide_help_feedback_menu_summary">隱藏應用程式列三點選單中的「說明 &amp; 意見回饋」，例如搜尋結果選單</string>
+  <string name="morphe_hide_handle_title">隱藏頻道代號</string>
+  <string name="morphe_hide_handle_summary">在「You」分頁中隱藏你的頻道代號</string>
   <string name="morphe_hide_video_title_title">隱藏影片標題</string>
   <string name="morphe_hide_video_title_summary">隱藏全螢幕模式下的影片標題</string>
   <string name="morphe_sanitize_video_subtitle_title">清理影片字幕</string>
@@ -681,7 +687,7 @@ Second \"item\" text"</string>
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">隱藏「連線」按鈕</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">隱藏檢舉按鈕</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">隱藏「Remix」按鈕</string>
@@ -1075,10 +1081,7 @@ Second \"item\" text"</string>
   <string name="morphe_playback_in_feeds_entry_off">關閉</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">還原原始標題</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">翻譯</string>
-  <string name="morphe_restore_original_titles_type_entry_original">原始</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">由 DeArrow 翻譯的標題</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">由 DeArrow 提供的原始標題</string>
+  <string name="morphe_restore_original_titles_summary">顯示原始影片標題、影片說明和頻道說明，而非自動翻譯的內容</string>
   <string name="morphe_restore_original_titles_loading">正在載入標題…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">停用動態消息自動重新整理</string>
@@ -1152,39 +1155,42 @@ Second \"item\" text"</string>
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">繞過圖片區域限制</string>
   <string name="morphe_bypass_image_region_restrictions_summary">改用替代伺服器來要求縮圖，以解決受限制國家/地區的影像遺失問題</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">DeArrow 標題</string>
+  <string name="morphe_dearrow_titles_summary">將影片標題改為 DeArrow 上由群眾提交的標題</string>
+  <string name="morphe_dearrow_titles_icon_title">顯示 DeArrow 圖示</string>
+  <string name="morphe_dearrow_titles_icon_summary">在群眾外包的影片標題上顯示 DeArrow 圖示</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">首頁標籤</string>
+  <string name="morphe_dearrow_thumbnail_home_title">首頁標籤</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">訂閱標籤</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">訂閱標籤</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">您標籤</string>
-  <string name="morphe_alt_thumbnail_player_title">播放器</string>
-  <string name="morphe_alt_thumbnail_search_title">顯示連線錯誤警示</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">原版縮圖</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; 原版縮圖</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; 靜止捕獲</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">靜態截圖</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow 為 YouTube 影片提供由社群提供的縮圖。這些縮圖通常比 YouTube 提供的更貼切
+  <string name="morphe_dearrow_thumbnail_library_title">您標籤</string>
+  <string name="morphe_dearrow_thumbnail_player_title">播放器</string>
+  <string name="morphe_dearrow_thumbnail_search_title">顯示連線錯誤警示</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">原版縮圖</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; 原版縮圖</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; 靜止捕獲</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">靜態截圖</string>
+  <string name="morphe_dearrow_about_summary">"DeArrow 為 YouTube 影片提供群眾提交的標題與縮圖。這些通常比 YouTube 提供的更為相關。
 
-若您啟用此功能，影片網址將會傳送至 API 伺服器，不會傳送其他資料。如果影片沒有 DeArrow 縮圖，則會顯示原始縮圖或靜態截圖。
+若啟用，影片網址會傳送至 API 伺服器，且不會傳送其他資料。如果影片沒有 DeArrow 縮圖，則會顯示原始或靜止擷取畫面。
 
-點擊這裡以進一步了解 DeArrow"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">在 DeArrow 伺服器無法使用時顯示通知</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">當 DeArrow 伺服器無法使用時顯示通知</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API 端點</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">DeArrow URL 縮圖快取端點</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">靜態影片擷取</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">靜態擷取是擷取每個影片的開頭/中間/結尾作為縮圖。這些圖像內建於 YouTube 中，不會使用外部 API</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">使用快速靜態擷取</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">從指定時間提取影片畫面</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">開始</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">中間</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">將粗體影片播放器控制項復原為較舊、較細的視覺樣式</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">結束</string>
+輕觸此處以開啟 DeArrow.ajay.app"</string>
+  <string name="morphe_dearrow_connection_toast_title">在 DeArrow 伺服器無法使用時顯示通知</string>
+  <string name="morphe_dearrow_connection_toast_summary">當 DeArrow 伺服器無法使用時顯示通知</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API 端點</string>
+  <string name="morphe_dearrow_api_url_summary">DeArrow URL 縮圖快取端點</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">靜態影片擷取</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">靜態擷取是擷取每個影片的開頭/中間/結尾作為縮圖。這些圖像內建於 YouTube 中，不會使用外部 API</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">開始</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">中間</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">將粗體影片播放器控制項復原為較舊、較細的視覺樣式</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">結束</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow 暫時無法使用（狀態碼：%s）</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow 暫時無法使用</string>
+  <string name="morphe_dearrow_error">DeArrow 暫時無法使用（狀態碼：%s）</string>
+  <string name="morphe_dearrow_error_generic">DeArrow 暫時無法使用</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">還原舊播放器按鈕樣式</string>

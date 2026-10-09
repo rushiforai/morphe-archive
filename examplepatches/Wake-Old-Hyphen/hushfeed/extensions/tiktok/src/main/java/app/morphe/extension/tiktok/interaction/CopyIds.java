@@ -70,16 +70,28 @@ public final class CopyIds {
         return SettingsStatus.copyIdsEnabled && Settings.COPY_IDS.get();
     }
 
-    /** One thing the sheet can copy: the button's text, what goes on the clipboard and the toast. */
+    /**
+     * One button on the sheet: its text, and either what goes on the clipboard with its toast or
+     * what a tap does instead.
+     */
     static final class Target {
         final String label;
-        final String text;
-        final String toast;
+        @Nullable final String text;
+        @Nullable final String toast;
+        @Nullable final Runnable action;
 
         Target(String label, String text, String toast) {
             this.label = label;
             this.text = text;
             this.toast = toast;
+            this.action = null;
+        }
+
+        Target(String label, Runnable action) {
+            this.label = label;
+            this.text = null;
+            this.toast = null;
+            this.action = action;
         }
     }
 
@@ -120,19 +132,29 @@ public final class CopyIds {
         CopyIds.sharePackage = new WeakReference<>(sharePackage);
     }
 
-    /** What the sheet built from {@code sharePackage} can copy, in button order. */
+    /**
+     * The buttons the sheet built from {@code sharePackage} gets, in order: the copy buttons with
+     * Copy bio and IDs on, and a profile's Account facts with that switch on.
+     */
     static List<Target> targetsOf(@Nullable Object sharePackage) {
         if (sharePackage == null) return Collections.emptyList();
-        List<Target> targets = new ArrayList<>(2);
+        boolean copies = enabled();
+        List<Target> targets = new ArrayList<>(3);
         String itemType = Reflect.string(sharePackage, "getItemType", "itemType");
         if ("user".equals(itemType == null ? null : itemType.toLowerCase(Locale.ROOT))) {
             Object user = Reflect.readField(sharePackage, "user");
-            String handle = Reflect.string(user, "getUniqueId", "uniqueId");
-            String uid = Reflect.string(user, "getUid", "uid");
-            if (handle != null) targets.add(new Target(COPY_USERNAME, handle, USERNAME_COPIED));
-            if (uid != null) targets.add(new Target(COPY_USER_ID, uid, USER_ID_COPIED));
+            if (copies) {
+                String handle = Reflect.string(user, "getUniqueId", "uniqueId");
+                String uid = Reflect.string(user, "getUid", "uid");
+                if (handle != null) targets.add(new Target(COPY_USERNAME, handle, USERNAME_COPIED));
+                if (uid != null) targets.add(new Target(COPY_USER_ID, uid, USER_ID_COPIED));
+            }
+            if (user != null && AccountFacts.enabled()) {
+                targets.add(new Target(AccountFacts.SHOW_FACTS, () -> AccountFacts.show(user)));
+            }
             return targets;
         }
+        if (!copies) return targets;
         Object aweme = Reflect.readField(sharePackage, "aweme");
         String aid = Reflect.string(aweme, "getAid", "aid");
         if (aid != null) targets.add(new Target(COPY_VIDEO_ID, aid, VIDEO_ID_COPIED));
@@ -146,7 +168,7 @@ public final class CopyIds {
             FrameLayout frame = (FrameLayout) panel;
             frame.post(() -> {
                 try {
-                    showRow(frame, enabled() ? targetsOf(sharePackage.get()) : Collections.emptyList());
+                    showRow(frame, targetsOf(sharePackage.get()));
                 } catch (Throwable ex) {
                     Logger.printException(() -> "Could not add the copy buttons to the share sheet", ex);
                 }
@@ -228,6 +250,10 @@ public final class CopyIds {
         button.setClickable(true);
         button.setOnClickListener(view -> {
             try {
+                if (target.action != null) {
+                    target.action.run();
+                    return;
+                }
                 copy("TikTok ID", target.text, target.toast);
             } catch (Throwable ex) {
                 Logger.printException(() -> "Could not copy from the share sheet", ex);

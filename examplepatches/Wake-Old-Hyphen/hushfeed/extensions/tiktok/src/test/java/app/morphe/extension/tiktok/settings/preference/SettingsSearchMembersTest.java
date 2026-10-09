@@ -195,11 +195,11 @@ public class SettingsSearchMembersTest {
         assertTrue("the German query needs hits of both kinds", !pageOrder(search, "video").equals(expected));
     }
 
-    @Test public void aQueryThatMatchesNoWholeWordKeepsPageOrder() throws Exception {
+    @Test public void aQueryThatMatchesNoWholeWordRanksTitleHitsFirstThenPageOrder() throws Exception {
         TikTokPreferenceFragment search = attachSearch();
         List<String> shown = shown(search, "coun");
         assertTrue(shown.size() > 1);
-        assertEquals(pageOrder(search, "coun"), shown);
+        assertEquals(rankedOrder(search, "coun"), shown);
     }
 
     @Test public void recreationKeepsAnOpenBoxDialogAndItsUnsavedTicks() throws Exception {
@@ -301,29 +301,41 @@ public class SettingsSearchMembersTest {
 
     /** Every index entry the query is in, in page order, without any ranking. */
     private static List<String> pageOrder(TikTokPreferenceFragment fragment, String query) throws Exception {
-        List<String> whole = new ArrayList<>();
-        List<String> inside = new ArrayList<>();
         List<String> all = new ArrayList<>();
-        sortHits(fragment, query, whole, inside, all);
+        sortHits(fragment, query, new ArrayList<>(), all);
         return all;
     }
 
     /** The same entries with the ones holding the query as whole words first. */
     private static List<String> expectedOrder(TikTokPreferenceFragment fragment, String query) throws Exception {
-        List<String> whole = new ArrayList<>();
-        List<String> inside = new ArrayList<>();
-        sortHits(fragment, query, whole, inside, new ArrayList<>());
-        assertTrue("no whole-word hit for " + query, !whole.isEmpty());
-        whole.addAll(inside);
-        return whole;
+        List<List<String>> groups = new ArrayList<>();
+        sortHits(fragment, query, groups, new ArrayList<>());
+        assertTrue("no whole-word hit for " + query,
+                !groups.get(0).isEmpty() || !groups.get(1).isEmpty());
+        return flatten(groups);
+    }
+
+    /** Whole-word hits first; inside each kind a hit in the title before one only elsewhere. */
+    private static List<String> rankedOrder(TikTokPreferenceFragment fragment, String query) throws Exception {
+        List<List<String>> groups = new ArrayList<>();
+        sortHits(fragment, query, groups, new ArrayList<>());
+        return flatten(groups);
+    }
+
+    private static List<String> flatten(List<List<String>> groups) {
+        List<String> ordered = new ArrayList<>();
+        for (List<String> group : groups) ordered.addAll(group);
+        return ordered;
     }
 
     /**
-     * Reads the index the search is built from and splits its hits, with whole words judged
-     * here by the folded text's own words rather than by the code under test.
+     * Reads the index the search is built from and splits its hits into four groups (whole word
+     * in the title, whole word elsewhere, inside a word in the title, inside a word elsewhere),
+     * judged here by the folded text's own words rather than by the code under test.
      */
-    private static void sortHits(TikTokPreferenceFragment fragment, String query, List<String> whole,
-            List<String> inside, List<String> all) throws Exception {
+    private static void sortHits(TikTokPreferenceFragment fragment, String query,
+            List<List<String>> groups, List<String> all) throws Exception {
+        for (int group = 0; group < 4; group++) groups.add(new ArrayList<>());
         Field index = TikTokPreferenceFragment.class.getDeclaredField("searchIndex");
         index.setAccessible(true);
         String folded = app.morphe.extension.tiktok.settings.SearchText.normalize(query);
@@ -337,7 +349,13 @@ public class SettingsSearchMembersTest {
             all.add(text);
             boolean wholeWords = java.util.Collections.indexOfSubList(
                     java.util.Arrays.asList(normalized.split(" ")), wanted) >= 0;
-            (wholeWords ? whole : inside).add(text);
+            String title = app.morphe.extension.tiktok.settings.SearchText.normalize(
+                    (String) field(entry, "title"));
+            boolean inTitle = wholeWords
+                    ? java.util.Collections.indexOfSubList(
+                            java.util.Arrays.asList(title.split(" ")), wanted) >= 0
+                    : title.contains(folded);
+            groups.get((wholeWords ? 0 : 2) + (inTitle ? 0 : 1)).add(text);
         }
     }
 

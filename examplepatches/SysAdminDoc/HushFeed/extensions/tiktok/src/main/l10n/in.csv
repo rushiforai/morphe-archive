@@ -1628,11 +1628,13 @@ Galaxy Store,Galaxy Store
 AppGallery,AppGallery
 Amazon Appstore,Amazon Appstore
 Swipe for brightness and volume,Geser untuk kecerahan dan volume
-"Drag up or down along the left edge of a video to change the screen brightness, or along the right edge to change the volume. Swiping anywhere else still scrolls the feed.","Geser ke atas atau bawah di tepi kiri video untuk mengubah kecerahan layar, atau di tepi kanan untuk mengubah volume. Di tempat lain, feed tetap bergulir seperti biasa."
+Drag up or down along the left or right edge of a video to change what that edge strip is set to below. By default that's the screen brightness on the left and the volume on the right. Swiping anywhere else still scrolls the feed.,"Geser ke atas atau bawah di tepi kiri atau kanan video untuk mengubah apa yang diatur untuk strip tepi itu di bawah. Secara bawaan, kiri untuk kecerahan layar dan kanan untuk volume. Di tempat lain, feed tetap bergulir seperti biasa."
 Edge strip width,Lebar strip tepi
 "How wide each edge strip is, as a percent of the screen width.","Lebar setiap strip tepi, dalam persen dari lebar layar."
 Brightness,Kecerahan
 Volume,Volume
+Left edge strip,Strip tepi kiri
+Right edge strip,Strip tepi kanan
 Stop search results playing on their own,Hentikan hasil pencarian diputar sendiri
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.,Video di hasil pencarian menampilkan sampulnya dan diputar saat kamu membukanya. Feed dan video yang kamu buka diputar seperti biasa.
 In a chat,Di obrolan
@@ -1824,4 +1826,32 @@ Copy the full link for short links,Salin tautan lengkap untuk tautan pendek
 Full link copied,Tautan lengkap disalin
 Mark saved videos,Tandai video tersimpan
 "Put a ✓ before the view count on profile grids, and before the time on a feed video's creator row, for videos Hushfeed saved here. The feed's mark shows wherever Always show publish date shows the time. It reads the record Check for already-saved videos keeps, so it works only while that switch is on. Photo posts aren't marked, and a video you've deleted since keeps its mark until you use Forget saved videos.","Tambahkan ✓ sebelum jumlah tayangan di kisi profil, dan sebelum waktu di baris kreator video feed, untuk video yang disimpan Hushfeed di sini. Tanda di feed muncul di mana pun Selalu tampilkan tanggal unggah menampilkan waktunya. Ini membaca catatan yang disimpan oleh Periksa video yang sudah disimpan, jadi hanya berfungsi saat sakelar itu aktif. Postingan foto tidak ditandai, dan video yang sudah kamu hapus tetap bertanda sampai kamu memakai Lupakan video tersimpan."
-"Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in sends your real region, apart from a few values TikTok saved as it started, which keep the preset. Your IP address and your account's own rules still apply.","Kirim juga preset sebagai ganti wilayah yang disimpan server TikTok di ponsel ini dan kode negara jaringan, yang ikut terkirim di setiap permintaan. Saat masuk, wilayah asli kamu dikirim, kecuali beberapa nilai yang disimpan TikTok saat dibuka, yang tetap memakai preset. Alamat IP dan aturan akun kamu tetap berlaku."
+"Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.","Kirim juga preset sebagai ganti wilayah yang disimpan server TikTok di ponsel ini dan kode negara jaringan, yang ikut terkirim di setiap permintaan. Saat masuk, wilayah asli kamu tetap dikirim. Alamat IP dan aturan akun kamu tetap berlaku."
+Turn off double tap to react,Matikan ketuk dua kali untuk bereaksi
+A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.,Ketuk dua kali pada pesan tidak lagi menambahkan hati ke pesan itu. Ketuk sekali dan tekan lama tetap berfungsi seperti biasa.
+Turn off swipe to reply,Matikan geser untuk membalas
+Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.,Menggeser pesan ke samping tidak lagi memulai balasan. Ketukan dan tekan lama tetap berfungsi seperti biasa.
+Hide the bottom tab names,Sembunyikan nama tab bawah
+"The words under the bottom tab icons go away. The icons stay, and each tab opens what it always did.","Tulisan di bawah ikon tab bawah hilang. Ikonnya tetap ada, dan setiap tab membuka hal yang sama seperti biasa."
+Home tab name,Nama tab Beranda
+Friends tab name,Nama tab Teman
+Inbox tab name,Nama tab Kotak masuk
+Profile tab name,Nama tab Profil
+Shop tab name,Nama tab Toko
+A name of your own under this tab's icon. Leave it empty to keep TikTok's.,Nama pilihan Anda sendiri di bawah ikon tab ini. Biarkan kosong untuk memakai nama dari TikTok.
+Hide TikTok's wind-down screens,Sembunyikan layar penenang TikTok
+"Stop the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. It only works on an account TikTok knows is an adult's. A teen's account keeps them, and so does one Family Pairing links to a parent. With Leave when TikTok says time is up on, the daily limit screen still comes up so that switch can act on it.","Hentikan layar penenang sebelum tidur, latihan pernapasan, dan layar batas harian yang dipasang TikTok di atas feed. Ini hanya berlaku di akun yang diketahui TikTok milik orang dewasa. Akun remaja tetap menampilkannya, begitu juga akun yang ditautkan Pemasangan Keluarga ke orang tua. Saat Keluar saat TikTok bilang waktunya habis aktif, layar batas harian tetap muncul agar sakelar itu bisa bekerja."
+Hide Footnotes,Sembunyikan Footnotes
+Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.,Sembunyikan banner Footnotes yang TikTok tampilkan pada video yang memiliki catatan. Video dan komentarnya tetap seperti semula.
+Hide Bulletin board,Sembunyikan Bulletin board
+The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.,Baris Bulletin board yang ditambahkan TikTok ke Kotak Masuk hilang dari daftar. Obrolan dan baris lainnya tetap di tempatnya.
+Hide the group chat prompt,Sembunyikan ajakan obrolan grup
+The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.,Banner di bagian atas Kotak Masuk yang mengajak kamu membuat obrolan grup tidak lagi muncul. Grup yang sudah kamu ikuti tidak berubah.
+Skip TikTok's setup screens,Lewati layar penyiapan TikTok
+"Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show.","Lewati pemilih minat, pertanyaan bahasa dan gender, kreator yang disarankan untuk diikuti, tutorial geser ke atas, dan halaman notifikasi TikTok saat TikTok menjalankan penyiapannya. Layar persetujuan, usia, dan masuk tetap ditampilkan."
+Hide unverified content notices,Sembunyikan pemberitahuan konten yang belum diverifikasi
+"Hide the Check sources banner TikTok puts on videos it marks as unverified, and the warnings it shows when you share one.","Sembunyikan spanduk Periksa sumber yang dipasang TikTok pada video yang ditandai belum diverifikasi, dan peringatan yang muncul saat kamu membagikannya."
+Keep offline videos until you delete them,Simpan video offline sampai kamu menghapusnya
+"TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. Delete them there when you want a fresh set. TikTok can still clear ones you've watched when your phone runs low on space.","TikTok membuang video yang disimpannya untuk ditonton offline setelah waktu tertentu, kadang hanya dua hari, sudah ditonton atau belum. Dengan ini aktif, video tetap ada sampai kamu menghapusnya di pengaturan Video offline TikTok. Hapus di sana saat kamu ingin set baru. TikTok masih bisa menghapus video yang sudah kamu tonton saat penyimpanan ponselmu hampir penuh."
+Hide Thoughts on profiles,Sembunyikan Thoughts di profil
+"Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.","Sembunyikan gelembung Thoughts yang TikTok tampilkan di atas foto profil, dan ajakan untuk membagikannya di profilmu sendiri. Mulai ulang TikTok agar berlaku."

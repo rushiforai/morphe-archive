@@ -2,6 +2,7 @@ package app.spicetify.extension.spotify.settings;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Intent;
 import android.database.DataSetObserver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,7 +17,9 @@ import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
+import app.spicetify.extension.spotify.extensions.Extensions;
 import app.spicetify.extension.spotify.theme.ThemeBackground;
 import app.spicetify.extension.spotify.theme.ThemeBackgroundTest;
 import app.spicetify.extension.spotify.theme.ThemePresets;
@@ -57,7 +60,12 @@ import static org.junit.Assert.*;
 public class MarketplaceSettingsTest {
     @Implements(value = InstalledPatches.class, isInAndroidSdk = false)
     public static class Capabilities {
+        /** Theme colors alone unless a test installs the extensions patch too. */
+        static boolean extensions;
+
         @Implementation public static boolean themeColors() { return true; }
+
+        @Implementation public static boolean extensions() { return extensions; }
     }
 
     /** The role table the theme patch injects, cut down to the page background. */
@@ -71,10 +79,18 @@ public class MarketplaceSettingsTest {
             new Marketplace.Repo("ownerA", "repoA", "main", "https://github.com/ownerA/repoA", 100);
     private static final Marketplace.Repo REPO_B =
             new Marketplace.Repo("ownerB", "repoB", "main", "https://github.com/ownerB/repoB", 1);
+    private static final Marketplace.Repo CLI =
+            new Marketplace.Repo("spicetify", "cli", "main", "https://github.com/spicetify/cli", 20000);
+    private static final Marketplace.Repo EXTENSIONS_REPO =
+            new Marketplace.Repo("ownerE", "lyrics", "main", "https://github.com/ownerE/lyrics", 50, "Shows lyrics");
+    private static final Marketplace.Repo BARE_REPO =
+            new Marketplace.Repo("ownerF", "bare", "main", "https://github.com/ownerF/bare", 1);
     private static final String TWO_SCHEMES = "[a]\nmain = 000000\n[b]\nmain = 0b1026\ncard = 1c2340\nbutton = 509bf5\n";
     private static final String ONE_SCHEME = "[dark]\nmain = 121212\n";
     /** Galaxy's own color.ini, in short: one scheme. */
     private static final String GALAXY_COLOR_INI = "[base]\ntext = FFFFFF\nmain = 000000\ncard = 000000\nbutton = F1F1F1\n";
+    /** The cache with the extensions patch; without it, the page keeps v1.1.0's spicetify_marketplace_themes.json. */
+    private static final String LISTING = "spicetify_marketplace_listing.json";
 
     private final Marketplace.Fetcher productionFetcher = MarketplaceSettings.fetcher;
     private final Executor productionLoads = MarketplaceSettings.loads;
@@ -101,7 +117,9 @@ public class MarketplaceSettingsTest {
         new File(application.getCacheDir(), "spicetify_marketplace.json").delete();
         new File(application.getCacheDir(), "spicetify_marketplace_themes.json").delete();
         new File(application.getFilesDir(), "spicetify_background").delete();
+        new File(application.getCacheDir(), LISTING).delete();
         PatchSettings.initialize(application);
+        Capabilities.extensions = false;
         // A load a test left queued would be taken over by the next test's page.
         MarketplaceSettings.running = null;
         MarketplaceSettings.fetcher = url -> {
@@ -128,6 +146,8 @@ public class MarketplaceSettingsTest {
             if (image == null) throw new IOException("HTTP 500 for " + url);
             return image;
         };
+        // The extension topic has no repository unless a test says otherwise.
+        responses.put(Marketplace.EXTENSIONS_SEARCH_URL + "1", "{\"total_count\":0,\"items\":[]}");
     }
 
     @After public void restore() {
@@ -171,6 +191,78 @@ public class MarketplaceSettingsTest {
             View appearance = ShadowDialog.getLatestDialog().getWindow().getDecorView();
             assertNull(row(appearance, "Spicetify Marketplace"));
             assertTrue(hasTextContaining(appearance, "Themes need Android 11 or later."));
+        }
+    }
+
+    @Test public void withoutTheExtensionsPatchThereAreNoTabs_noExtensionSearch_andV110sCache() throws IOException {
+        putTwoThemes();
+        putTwoExtensions();
+        try (var controller = appearance()) {
+            View screen = open(decor()).getWindow().getDecorView();
+            assertFalse(visibleTexts(screen).contains("Extensions"));
+            assertFalse(visibleTexts(screen).contains("Themes"));
+            assertEquals("Search themes", first(screen, EditText.class).getHint().toString());
+            assertEquals(Arrays.asList("Aurora", "Borealis"), titles(first(screen, ListView.class).getAdapter()));
+            for (String url : requested) assertFalse(url, url.startsWith(Marketplace.EXTENSIONS_SEARCH_URL));
+            assertTrue(new File(RuntimeEnvironment.getApplication().getCacheDir(), "spicetify_marketplace_themes.json").exists());
+            assertFalse(new File(RuntimeEnvironment.getApplication().getCacheDir(), LISTING).exists());
+        }
+    }
+
+    @Test public void theExtensionsTabListsExtensionsAsRows_andTheThemesTabOnlyThemes() {
+        Capabilities.extensions = true;
+        putTwoThemes();
+        putTwoExtensions();
+        try (var controller = appearance()) {
+            View screen = open(decor()).getWindow().getDecorView();
+            ListView list = first(screen, ListView.class);
+            assertEquals(Arrays.asList("Aurora", "Borealis"), titles(list.getAdapter()));
+            assertTrue(selectedTab(screen, "Themes"));
+
+            tab(screen, "Extensions").performClick();
+            assertTrue(selectedTab(screen, "Extensions"));
+            assertFalse(selectedTab(screen, "Themes"));
+            assertEquals("Android's own extension first, then GitHub's",
+                    Arrays.asList("Play a random song", "Trash Bin", "lyrics", "bare"), titles(list.getAdapter()));
+            assertFalse("a desktop-only extension's manifest isn't read", requested.contains(Marketplace.manifestUrl(EXTENSIONS_REPO)));
+            assertEquals("Search extensions", first(screen, EditText.class).getHint().toString());
+            // Play a random song, which only Android has, comes first, then Trash Bin, which has an Android
+            // version: each with its own description, and a switch the whole row turns.
+            View random = list.getAdapter().getView(0, null, list);
+            assertEquals(Arrays.asList("Play a random song", Extensions.description(Extensions.RANDOM_SONG)),
+                    visibleTexts(random).subList(0, 2));
+            View trash = list.getAdapter().getView(1, null, list);
+            assertEquals(Arrays.asList("Trash Bin", Extensions.description(Extensions.TRASH_BIN)), visibleTexts(trash).subList(0, 2));
+            trash.performClick();
+            assertTrue(first(trash, Switch.class).isChecked());
+            assertTrue(Extensions.isOn(RuntimeEnvironment.getApplication(), Extensions.TRASH_BIN));
+            Extensions.setOn(RuntimeEnvironment.getApplication(), Extensions.TRASH_BIN, false);
+            // Any other extension is for the desktop.
+            View lyrics = list.getAdapter().getView(2, null, list);
+            assertEquals(Arrays.asList("lyrics", "Desktop only • Shows lyrics"), visibleTexts(lyrics));
+            assertEquals(View.GONE, first(lyrics, Switch.class).getVisibility());
+            assertEquals(Arrays.asList("bare", "Desktop only"), visibleTexts(list.getAdapter().getView(3, null, list)));
+
+            first(screen, EditText.class).setText("lyr");
+            assertEquals(Collections.singletonList("lyrics"), titles(list.getAdapter()));
+            first(screen, EditText.class).setText("nothing like this");
+            assertTrue(visibleTexts(screen).contains("No extensions match"));
+            tab(screen, "Themes").performClick();
+            assertTrue(visibleTexts(screen).contains("No themes match"));
+        }
+    }
+
+    @Test public void aDesktopOnlyExtensionOpensItsGitHubPage() {
+        Capabilities.extensions = true;
+        putTwoExtensions();
+        try (var controller = appearance()) {
+            View screen = open(decor()).getWindow().getDecorView();
+            tab(screen, "Extensions").performClick();
+            ListView list = first(screen, ListView.class);
+            list.getAdapter().getView(2, null, list).performClick();
+            Intent opened = Shadows.shadowOf(controller.get()).getNextStartedActivity();
+            assertEquals(Intent.ACTION_VIEW, opened.getAction());
+            assertEquals(EXTENSIONS_REPO.url, opened.getDataString());
         }
     }
 
@@ -554,8 +646,11 @@ public class MarketplaceSettingsTest {
         }
     }
 
-    @Test public void aCacheLeftByTheForkIsNotRead() throws IOException {
+    @Test public void aCacheLeftByTheForkOrAThemesOnlyVersionIsNotRead() throws IOException {
+        Capabilities.extensions = true;
         putTwoThemes();
+        // Before extensions were listed, a fresh themes-only list would have hidden them for hours.
+        writeCache("spicetify_marketplace_themes.json", System.currentTimeMillis(), "Earlier theme");
         // The fork kept themes and extensions in this file, an extension with a null color.ini.
         File fork = new File(RuntimeEnvironment.getApplication().getCacheDir(), "spicetify_marketplace.json");
         Files.write(fork.toPath(), ("{\"savedAt\":" + System.currentTimeMillis() + ",\"themes\":["
@@ -1143,6 +1238,35 @@ public class MarketplaceSettingsTest {
         Shadows.shadowOf(Looper.getMainLooper()).idle();
     }
 
+    /**
+     * The extension topic: spicetify/cli with Trash Bin, which has a port, then two repositories with
+     * none, one without a description. Only spicetify/cli's manifest is read.
+     */
+    private void putTwoExtensions() {
+        responses.put(Marketplace.EXTENSIONS_SEARCH_URL + "1", search(CLI, EXTENSIONS_REPO, BARE_REPO));
+        responses.put(Marketplace.manifestUrl(CLI), "[{\"name\":\"Trash Bin\",\"description\":\"Throw songs/artists to trash\","
+                + "\"main\":\"Extensions/trashbin.js\"}]");
+    }
+
+    private static View tab(View screen, String label) {
+        for (TextView text : texts(screen)) if (label.contentEquals(text.getText()) && text.isClickable()) return text;
+        throw new AssertionError("Missing tab: " + label);
+    }
+
+    private static boolean selectedTab(View screen, String label) {
+        return tab(screen, label).isSelected();
+    }
+
+    private static List<TextView> texts(View view) {
+        List<TextView> found = new ArrayList<>();
+        if (view instanceof TextView) found.add((TextView) view);
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) found.addAll(texts(group.getChildAt(i)));
+        }
+        return found;
+    }
+
     /** A search page with repoA (100 stars), then repoB (1 star), and one theme with one scheme in each. */
     private void putTwoThemes() {
         responses.put(Marketplace.SEARCH_URL + "1", search(REPO_A, REPO_B));
@@ -1167,7 +1291,8 @@ public class MarketplaceSettingsTest {
             if (items.length() > 0) items.append(',');
             items.append("{\"full_name\":\"").append(repo.owner).append('/').append(repo.name)
                     .append("\",\"default_branch\":\"main\",\"html_url\":\"").append(repo.url)
-                    .append("\",\"stargazers_count\":").append(repo.stars).append('}');
+                    .append("\",\"stargazers_count\":").append(repo.stars)
+                    .append(",\"description\":\"").append(repo.description).append("\"}");
         }
         return "{\"total_count\":" + total + ",\"items\":[" + items + "]}";
     }

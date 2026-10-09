@@ -1,3 +1,21 @@
+## [1.2.0](https://github.com/spicetify/morphe-patches/compare/v1.1.0...v1.2.0) (2026-10-08)
+
+### ✨ New Features
+
+* add a Random pill to Home's filter row ([8de9300](https://github.com/spicetify/morphe-patches/commit/8de9300795776309ef9c295e9a60409d77c376fd))
+* add Hide podcasts ([51a6bba](https://github.com/spicetify/morphe-patches/commit/51a6bba200e7a5db94a67ed83d3f9f7fa453c4c2))
+* add Play a random song ([a612526](https://github.com/spicetify/morphe-patches/commit/a612526e5229da8f84c4197dce56ad6ac2e09a6e))
+* add Show only my pins to Home shortcuts ([c8c1131](https://github.com/spicetify/morphe-patches/commit/c8c11317b7bc32e84581d9b135c17cd80c4f8c04))
+* add Shuffle+ ([2557b3e](https://github.com/spicetify/morphe-patches/commit/2557b3e1c25a5dcf809cb2afcf02191f72abd63a))
+* add Shuffle+ to the playlist menu ([9cd3e74](https://github.com/spicetify/morphe-patches/commit/9cd3e744aa4cfdcf9464c285f102bb76c4bf5270))
+* add Trash Bin ([d6a2842](https://github.com/spicetify/morphe-patches/commit/d6a284234a96667d6d95059df8df0a21693bc0b7))
+* connect extensions to Spotify's player core ([915e585](https://github.com/spicetify/morphe-patches/commit/915e5853d7e6a6301ed46cb905c8c1f2cfea44e0))
+* keep Home pins in the order they were picked ([c0174a9](https://github.com/spicetify/morphe-patches/commit/c0174a9ff97d6db6af480bc91ea81e5599847830))
+* list every saved playlist in the Home shortcuts picker ([9be6ddf](https://github.com/spicetify/morphe-patches/commit/9be6ddf3b6ed31deeb3e157ec1cdb1b9426908e2))
+* long-press Now Playing's shuffle button for Shuffle+ ([3dc2a81](https://github.com/spicetify/morphe-patches/commit/3dc2a81969cf7e22d64bc2bb31197d54b303cca2))
+* show pinned playlists on Home even when Spotify leaves them out ([465e5ed](https://github.com/spicetify/morphe-patches/commit/465e5ede38f2bfa4e4978ffd7d7ca9f3d1e2ec6b))
+* turn Marketplace extensions on in Spotify ([09d2ee6](https://github.com/spicetify/morphe-patches/commit/09d2ee61f41d386496b345bb0f044c42f9573f92))
+
 ## [1.1.0](https://github.com/spicetify/morphe-patches/compare/v1.0.1...v1.1.0) (2026-10-03)
 
 Spicetify Android patches 1.1.0 targets **Spotify 9.1.80.2221, ARM64**. Other Spotify versions are not supported. Themes require Android 11 or later.

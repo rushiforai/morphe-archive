@@ -43,6 +43,7 @@ public final class Followup173 {
  }
  public static void settings(PreferenceActivity activity){
   PreferenceScreen root=activity.getPreferenceScreen();Preference startup=activity.findPreference("startup_screen");
+  DetailSettings.install(activity);
   Preference size=activity.findPreference("comment_size_percent");
   if(size!=null&&activity.findPreference("comment_bold")==null){CheckBoxPreference bold=new CheckBoxPreference(activity);bold.setKey("comment_bold");bold.setTitle(UiStrings.translate("コメントを太字にする"));bold.setSummary(UiStrings.translate("次の再生から反映されます"));bold.setDefaultValue(Boolean.FALSE);PreferenceGroup group=parent(root,size);if(group!=null)insertAfter(group,size,bold);}
   if(startup!=null&&activity.findPreference(SUGGESTIONS)==null){CheckBoxPreference toggle=new CheckBoxPreference(activity);toggle.setKey(SUGGESTIONS);toggle.setTitle(UiStrings.translate("検索サジェスト"));toggle.setSummary(UiStrings.translate("検索入力時に候補を表示します"));toggle.setDefaultValue(Boolean.TRUE);toggle.setChecked(suggestionsEnabled(activity));PreferenceGroup group=parent(root,startup);if(group!=null)insertAfter(group,startup,toggle);}

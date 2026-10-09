@@ -5,61 +5,49 @@ import dev.jz6.flexboard.patches.shared.Constants.COMPATIBILITY_GBOARD
 import dev.jz6.flexboard.patches.shared.basePatch
 
 /**
- * Swipe up on a key to put back the word an autocorrect replaced.
+ * Swipe up on the keyboard to undo the last autocorrection.
  *
- * Gboard already has this on backspace, behind **Undo autocorrect with backspace**. That path arms
- * itself when an autocorrection lands and, on the next backspace, dispatches an event carrying
- * keycode `-10045` instead of deleting. This patch dispatches the same event from an upward flick.
+ * Built in stages from the diagnostic that measured the gesture, because the previous attempt —
+ * which went straight to taking the gesture over and sending an undo — crashed the keyboard on a
+ * swipe up, while the diagnostic it was built beside never did. One capability per release, so a
+ * failure names its own cause:
  *
- * It does not go through Gboard's arming, so it works whether or not that preference is on — no
- * consumer of `-10045` reads it. Firing with nothing to revert is a no-op: both handlers null-check
- * their tracked state and return.
+ *  1. detect, and type a single "6" — confirmed on a device;
+ *  2. take the gesture over, so the swiped key is not typed — "6" if the takeover took, "x" if it
+ *     was refused;
+ *  3. **revert the last autocorrection** — confirmed on a device in 2.5.2-dev.0, with Gboard's
+ *     "Undo autocorrect with backspace" setting off. Stages 3 and 4 of the original plan ("send an
+ *     undo", then "only when an autocorrection is armed") collapsed into one: the swipe asks Gboard's
+ *     decoder for its own autocorrect revert, and the decoder is the armed check.
  *
- * ## Where it attaches, and why not somewhere more obvious
+ * Like Gboard's own backspace revert, it reaches only the word just corrected: typing anything
+ * after it clears the decoder's revert. Keeping a separate history to go further back was
+ * considered and declined in favour of the native behaviour.
  *
- * Gboard already detects the flick. `Lpvi;->h` turns a pointer delta into SLIDE_UP/DOWN/LEFT/RIGHT
- * against a per-key threshold and already returns SLIDE_UP on Latin keys; what is missing is
- * anything to do with it, because no Latin layout binds a SLIDE_UP action. So the emission sits at
- * the `ActionDef` lookup that comes back null, and nothing here detects a gesture.
+ * Two emissions: SwipeUpEmitter.kt takes the gesture over and sends the request, and
+ * RevertEmitter.kt teaches `LatinIme->q` to hand it to the decoder. See SwipeUp.java and
+ * docs/undo-autocorrect-plan.md.
  *
- * The attachment point is `Lpvf;->t`, which Gboard's own trace section names
- * `TouchActionBundle.handleActionUp` — a pointer *release*, so the gesture is measured once, at the
- * end, rather than part-way through.
- *
- * Four routes that looked better and are not, each recorded in `docs/undo-autocorrect.md`: binding
- * a SLIDE_UP action declaratively (no Latin layout binds any slide action, and doing so would switch
- * off flick-for-symbols on that key); hooking `LatinGestureMotionEventHandler` (gated on
- * `enable_gesture_input`, which Swipe to Delete turns off); writing our own direction detection
- * (unnecessary); and `BasicMotionEventHandler->g`, which this patch was actually written against
- * first. `LatinMotionEventHandler` overrides it, it is ungated, and it is first in the handler list
- * — all true, and it still dispatches only on `ACTION_HOVER_*`, so it never sees a finger. That
- * version would have compiled, applied, and silently never fired.
- *
- * ## The scrub gesture
- *
- * Swipe to Delete widens the scrub corridor to the full keyboard height, so an upward swipe no
- * longer cancels a scrub and the two share one pointer stream. The corridor test is what separates
- * them, and it is a ratio rather than a distance on purpose: `ScrubTuningPatch` rescales the scrub's
- * own distance table, so anything derived from that would be wrong for a tuned build.
- *
- * The separation has to be spatial because it can no longer be temporal — `ScrubTuningPatch` lowered
- * the hold delay so a scrub registers on a flick, which is the same shape as this gesture.
+ * Replaces "Swipe up diagnostic (temporary)", whose measuring code this now is. The crash recorder
+ * this patch used to install while it was being tested is the opt-in "Crash reporter (debug)" now.
  */
 @Suppress("unused")
 val undoAutocorrectPatch = bytecodePatch(
     name = "Swipe up to undo autocorrect",
-    description = "Swipe up on the keyboard to put back the word an autocorrect replaced. Gboard " +
-        "has the same undo on backspace, behind a setting; this adds a gesture for it and works " +
-        "whether or not that setting is on. A swipe with nothing to undo does nothing. Cannot be " +
-        "used alongside \"Swipe up diagnostic (temporary)\", which attaches to the same " +
-        "instruction. Off by default until it has been confirmed on a device.",
-    default = false,
+    description = "Swipe up on the keyboard to undo the last autocorrection: the word you typed " +
+        "comes back, as with Gboard's own undo autocorrect on backspace. It works right after the " +
+        "correction, before you type anything else; otherwise the swipe does nothing. The key you " +
+        "swiped on is not typed.",
+    default = true,
 ) {
     compatibleWith(COMPATIBILITY_GBOARD)
 
     dependsOn(basePatch)
 
     execute {
-        emitUndoAutocorrectOnUpFlick()
+        // The receiving end first: if it cannot apply, nothing has been changed yet. A request with
+        // no receiver would be harmless anyway, since no stock code acts on -10076 as an event.
+        routeRevertsToTheDecoder()
+        emitSwipeUp()
     }
 }

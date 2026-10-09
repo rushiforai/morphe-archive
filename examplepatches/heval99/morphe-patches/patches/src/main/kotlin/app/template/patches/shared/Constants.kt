@@ -98,6 +98,12 @@ object Constants {
         apkFileType = ApkFileType.APK,
         appIconColor = 0x00985F,
         targets = listOf(
+            // Verified 2026-10-07 against 238.17666.20260928 (versionCode 17666, APKMirror
+            // phone build): all patches apply unchanged; FotMobSmokeTest passes.
+            AppTarget(
+                version = "238.17666.20260928",
+                versionCode = 17666
+            ),
             AppTarget(
                 version = "237.17536.20260911",
                 versionCode = 17536
@@ -121,6 +127,8 @@ object Constants {
     // for every feature state deserialized from the server.
     // Re-verified 2026-09-28 against 26.38.0 (versionCode 51448) from APKPure: the same
     // companion parsers still match and the patched output returns Entitled/PremiumPlus.
+    // Verified 2026-10-07 against 26.39.0 (versionCode 51509, APKPure base split): all
+    // patches apply unchanged; MyFitnessPalSmokeTest passes.
     val COMPATIBILITY_MYFITNESSPAL = Compatibility(
         name = "MyFitnessPal",
         packageName = "com.myfitnesspal.android",
@@ -128,7 +136,8 @@ object Constants {
         appIconColor = 0x0072BC,
         targets = listOf(
             AppTarget(version = "26.37.0", versionCode = 51401),
-            AppTarget(version = "26.38.0", versionCode = 51448)
+            AppTarget(version = "26.38.0", versionCode = 51448),
+            AppTarget(version = "26.39.0", versionCode = 51509)
         )
     )
 
@@ -138,25 +147,27 @@ object Constants {
     // AppsFlyer declaration (patcher NPE) and the overridden showAd overload, leaving the
     // terminal showAd(String, String, Activity) alive. Both now patch every concrete match
     // by class scan; bytecode-verified in BoxBoxSmokeTest.
+    // Verified 2026-10-07 against 5.4.16 (versionCode 260, APKPure XAPK merged, arm64 only).
+    // A decompile check found two silent no-ops, present since 5.4.9: Enable Premium's
+    // "block launchBillingFlow" step matched nothing (no method returns BillingResult in
+    // either build) and was removed - EntitlementInfo.isActive() alone is the gate; and
+    // FirebaseAnalytics has no logEvent left (R8 inlines it into the app's call sites), so
+    // Disable telemetry now neuters the measurement service's
+    // logEvent(String, String, Bundle, Z, Z, J) on both AppMeasurementDynamiteService and the
+    // R8-renamed Binder proxy (mandatory anchor on the service). The ads patch, the AppsFlyer
+    // and Crashlytics branches apply unchanged; BoxBoxSmokeTest passes on 5.4.9 and 5.4.16.
+    // Runtime check 2026-10-08 (emulator, 5.4.16): app runs without crashes, but "Get Pro"
+    // upsells still show and RevenueCat logs "Entitlement missing; keeping existing plan" -
+    // Enable Premium is NOT confirmed working at runtime (bytecode change only).
     val COMPATIBILITY_BOXBOX = Compatibility(
         name = "BoxBox",
         packageName = "club.boxbox.android",
-        apkFileType = ApkFileType.APK,
+        apkFileType = ApkFileType.APKM, // bundle-only on APKMirror and APKPure (checked 2026-10-07)
         appIconColor = 0xFF0000,
-        targets = listOf(AppTarget(version = "5.4.9", versionCode = 251))
-    )
-
-    val COMPATIBILITY_SAPHELINK = Compatibility(
-        name = "Saphe Link",
-        packageName = "my.saphelink",
-        apkFileType = ApkFileType.APK,
-        appIconColor = 0x000000,
-        // Verified 2026-09-18 against 6.6.0 (versionCode 212620) from APKPure. The old
-        // secondary SubscriptionManager.isPremium fingerprint does not exist in this build
-        // and was removed; the primary FeatureToggleRouterImpl.userHasFeature gate is
-        // mandatory now (no methodOrNull), so a future rename fails loudly and is
-        // bytecode-verified in SapheLinkSmokeTest.
-        targets = listOf(AppTarget(version = "6.6.0", versionCode = 212620))
+        targets = listOf(
+            AppTarget(version = "5.4.9", versionCode = 251),
+            AppTarget(version = "5.4.16", versionCode = 260)
+        )
     )
 
     // Verified 2026-08-19 against 365scores.apkm v14.8.8 (universal, Android 7.0+).
@@ -168,6 +179,8 @@ object Constants {
     // Re-verified 2026-09-17 on 14.9.4 with morphe-cli -f: Disable ads still applies.
     // Re-verified 2026-09-28 on 14.9.5 (versionCode 1495, APKPure): both initialize
     // overloads are empty in the decompiled output.
+    // Verified 2026-10-07 against 14.9.6 (versionCode 1496, APKPure XAPK merged): Disable
+    // ads applies unchanged; Scores365SmokeTest passes.
     val COMPATIBILITY_365SCORES = Compatibility(
         name = "365Scores",
         packageName = "com.scores365",
@@ -175,7 +188,8 @@ object Constants {
         appIconColor = 0xFFC107,
         targets = listOf(
             AppTarget(version = "14.9.4", versionCode = 1494),
-            AppTarget(version = "14.9.5", versionCode = 1495)
+            AppTarget(version = "14.9.5", versionCode = 1495),
+            AppTarget(version = "14.9.6", versionCode = 1496)
         )
     )
 
@@ -185,12 +199,17 @@ object Constants {
     // CoverageSponsorshipSettings and AnnouncementBannerUseCase. Class and method
     // are un-obfuscated in com.livescore.ads.config.
     // Re-verified 2026-09-17 on 10.1 with morphe-cli -f: Disable ads still applies.
+    // Verified 2026-10-07 against 10.2.1 (versionCode 2188, APKPure): Disable ads applies
+    // unchanged; LivescoreSmokeTest passes.
     val COMPATIBILITY_LIVESCORE = Compatibility(
         name = "Livescore",
         packageName = "com.livescore",
         apkFileType = ApkFileType.APK,
         appIconColor = 0xC8102E,
-        targets = listOf(AppTarget(version = "10.1", versionCode = 2144))
+        targets = listOf(
+            AppTarget(version = "10.1", versionCode = 2144),
+            AppTarget(version = "10.2.1", versionCode = 2188)
+        )
     )
 
     // Verified 2026-08-20 against FishBuddy v11.0.84 (universal, Android 7.0+).
@@ -199,12 +218,17 @@ object Constants {
     // Subscription managed via RevenueCat (no ad SDKs). Class + method names
     // un-obfuscated.
     // Re-verified 2026-09-17 on 11.0.101 with morphe-cli -f: Enable Premium still applies.
+    // Verified 2026-10-07 against 11.0.125 (versionCode 110125, APKPure): Enable Premium
+    // applies unchanged; FishBuddySmokeTest passes.
     val COMPATIBILITY_FISHBUDDY = Compatibility(
         name = "FishBuddy",
         packageName = "no.fishbuddy_playground.app",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x0288D1,
-        targets = listOf(AppTarget(version = "11.0.101", versionCode = 110101))
+        targets = listOf(
+            AppTarget(version = "11.0.101", versionCode = 110101),
+            AppTarget(version = "11.0.125", versionCode = 110125)
+        )
     )
 
     // Verified 2026-08-20 against ru.iptvremote.android.iptv apkm v9.1.25
@@ -252,7 +276,52 @@ object Constants {
         packageName = "com.brave.browser",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFF4500,
-        targets = listOf(AppTarget(version = "1.95.104"))
+        targets = listOf(
+            AppTarget(version = "1.95.104"),
+            // Verified 2026-10-07 against com.brave.browser 1.96.61 (versionCode 429606104,
+            // APKMirror bundle merged with APKEditor). Two Origin log messages were reworded
+            // ("getIsSubscriptionActive prefs are unavailable", "requestCredentialSummary
+            // profile is null or destroyed"), which broke the full-string anchors; both now
+            // match by prefix. All other anchors (pref keys, policy strings, Origin
+            // preferences shape) were unchanged. BraveSmokeTest passes on 1.95.104 and 1.96.61.
+            // Also 2026-10-07: the Origin "Privacy preserving analytics" and "Statistics
+            // reporting" switches only wrote a SharedPreferences key nothing read (P3A and the
+            // usage ping are native). The listener now also writes brave.p3a.enabled /
+            // brave.stats.reporting_enabled through LocalStatePrefs + PrefService (real class
+            // names, shape-matched methods). CLI-applied and decompile-checked on 1.95.104 and
+            // 1.96.61; runtime-checked on 1.96.61 (switch flips the native pref).
+            AppTarget(version = "1.96.61"),
+            // Verified 2026-10-07 against 1.97.56 (versionCode 429705604, GitHub release
+            // Bravearm64Universal.apk): all patches apply unchanged; BraveSmokeTest passes.
+            AppTarget(version = "1.97.56"),
+        )
+    )
+
+    // Same app, used only by the experimental Brave patches (Disable telemetry, Disable ads,
+    // Hide promotional prompts), so Morphe Manager flags them as experimental. Researched
+    // 2026-10-07 against 1.96.61 (versionCode 429606104): smoke-tested, CLI-applied and
+    // decompile-checked, and runtime-checked on the emulator with the x86_64 1.96.61 build
+    // (no crashes; P3A/usage ping off, crash consent false, no promoCode, normal NTP). Anchors
+    // are unobfuscated (JNI/manifest-kept) class names, pref keys and method shape. Not yet
+    // field-tested by users.
+    val COMPATIBILITY_BRAVE_EXPERIMENTAL = Compatibility(
+        name = "Brave Browser",
+        packageName = "com.brave.browser",
+        apkFileType = ApkFileType.APKM,
+        appIconColor = 0xFF4500,
+        targets = listOf(
+            AppTarget(
+                version = "1.96.61",
+                isExperimental = true,
+            ),
+            // Verified 2026-10-07 against 1.97.56 (versionCode 429705604, GitHub release
+            // Bravearm64Universal.apk): the experimental patches apply unchanged; BraveSmokeTest
+            // passes. Not runtime-tested on this version.
+            AppTarget(
+                version = "1.97.56",
+                isExperimental = true,
+            ),
+        )
     )
 
     // Verified 2026-08-27 against librepods_1.0.0-rc1-play-63 .apkm from APKMirror
@@ -314,6 +383,12 @@ object Constants {
             AppTarget(
                 version = "1.3.61.0907",
                 versionCode = 10567
+            ),
+            // Verified 2026-10-07 against 1.3.63.0921 (versionCode 10569, APKPure XAPK
+            // merged): both patches apply unchanged; EasyNotesSmokeTest passes.
+            AppTarget(
+                version = "1.3.63.0921",
+                versionCode = 10569
             )
         )
     )
@@ -326,12 +401,17 @@ object Constants {
     // AccountManager and Google only issues them to packages signed with the certificates
     // registered for the OAuth client (the Play/GitHub builds). For Gmail accounts use an app
     // password instead (Gmail requires 2FA for that); non-Google accounts are unaffected.
+    // Verified 2026-10-07 against 1.2338 (versionCode 2338, APKPure): all patches apply
+    // unchanged; FairEmailSmokeTest passes.
     val COMPATIBILITY_FAIREMAIL = Compatibility(
         name = "FairEmail",
         packageName = "eu.faircode.email",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x2196F3,
-        targets = listOf(AppTarget(version = "1.2337", versionCode = 2337))
+        targets = listOf(
+            AppTarget(version = "1.2337", versionCode = 2337),
+            AppTarget(version = "1.2338", versionCode = 2338)
+        )
     )
 
     // Verified 2026-09-17 against net.dinglisch.android.taskerm 6.6.18 (versionCode 5443)
@@ -398,12 +478,25 @@ object Constants {
     // The manager delegates to an encrypted "premiumKey" preference; the patch returns a
     // constant flow of true instead, so all screens see premium without touching the
     // encrypted storage or the billing client.
+    // Re-anchored 2026-10-07 for 13.1.149 (versionCode 33215): this release is fully
+    // R8-obfuscated - BillingDomainManager and every kotlinx.coroutines.flow name are gone, so
+    // the flowOf(TRUE) replacement no longer applies. The patch now forces the value inside
+    // the premium pipeline instead, anchored only on Timber log prefixes + method shape:
+    // (1) the salted "premiumKey" verifier's downstream emit (log "Startup: Encryption:
+    // Premium is ") is fed Boolean.TRUE - this is the final stage in 13.1.79; (2) in 13.1.149
+    // the use case (strings "premiumKey" + "versionOverride") combines that with a Google Play
+    // version override that wins when set, so the combine lambda (log "Startup: Encryption:
+    // Google Play premium override") returns TRUE; step 2 is mandatory whenever that use case
+    // exists. BluecoinsSmokeTest passes on both 13.1.79 and 13.1.149.
     val COMPATIBILITY_BLUECOINS = Compatibility(
         name = "Bluecoins",
         packageName = "com.rammigsoftware.bluecoins",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x2979FF,
-        targets = listOf(AppTarget(version = "13.1.79", versionCode = 33145))
+        targets = listOf(
+            AppTarget(version = "13.1.79", versionCode = 33145),
+            AppTarget(version = "13.1.149", versionCode = 33215),
+        )
     )
 
     // Verified 2026-09-18 against Flashscore 26.9.2 (versionCode 517) supplied from
@@ -425,12 +518,17 @@ object Constants {
     // (com.google.android.gms.ads), so the "Disable ads" patch hooks that stable library
     // surface (initialize, every load/loadAd and the app-open preloader). No premium tier
     // was found in the readable code - the patch targets ads only.
+    // Verified 2026-10-07 against 15.145.0 (versionCode 1044999406, APKMirror): Disable ads
+    // applies unchanged; OneFootballSmokeTest passes.
     val COMPATIBILITY_ONEFOOTBALL = Compatibility(
         name = "OneFootball",
         packageName = "de.motain.iliga",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x00C853,
-        targets = listOf(AppTarget(version = "15.142.0", versionCode = 1044958885))
+        targets = listOf(
+            AppTarget(version = "15.142.0", versionCode = 1044958885),
+            AppTarget(version = "15.145.0", versionCode = 1044999406)
+        )
     )
 
     // Verified 2026-09-18 against net.osmand 5.4.5 (versionCode 5405) from APKMirror.
@@ -438,12 +536,17 @@ object Constants {
     // InAppPurchaseHelperImpl answers the cached local entitlement getters. applyPurchases()
     // derives the OSMAND_PRO_PURCHASED / OSMAND_MAPS_PURCHASED / LIVE_UPDATES_PURCHASED
     // settings from those same getters, so forcing them also stops the writer resetting them.
+    // Verified 2026-10-07 against 5.4.9 (versionCode 5409, APKPure XAPK merged): all patches
+    // apply unchanged; OsmAndSmokeTest passes.
     val COMPATIBILITY_OSMAND = Compatibility(
         name = "OsmAnd",
         packageName = "net.osmand",
-        apkFileType = ApkFileType.APK,
+        apkFileType = ApkFileType.APKM, // bundle-only on APKMirror and APKPure (checked 2026-10-07)
         appIconColor = 0x7CB342,
-        targets = listOf(AppTarget(version = "5.4.5", versionCode = 5405))
+        targets = listOf(
+            AppTarget(version = "5.4.5", versionCode = 5405),
+            AppTarget(version = "5.4.9", versionCode = 5409)
+        )
     )
 
     // Verified 2026-09-19 against com.textra 4.85 (versionCode 48561) from APKMirror.
@@ -454,12 +557,17 @@ object Constants {
     // it structurally (no obfuscated names) and forces l() -> true (licensed) and
     // k() -> false (state 1). Every gate reads those: ad placement, settings visibility
     // and upgrade prompts.
+    // Verified 2026-10-07 against 4.87 (versionCode 48761, APKPure XAPK merged): all patches
+    // apply unchanged; TextraSmokeTest passes.
     val COMPATIBILITY_TEXTRA = Compatibility(
         name = "Textra",
         packageName = "com.textra",
-        apkFileType = ApkFileType.APK,
+        apkFileType = ApkFileType.APKM, // bundle-only on APKMirror and APKPure (checked 2026-10-07)
         appIconColor = 0x5C6BC0,
-        targets = listOf(AppTarget(version = "4.85", versionCode = 48561))
+        targets = listOf(
+            AppTarget(version = "4.85", versionCode = 48561),
+            AppTarget(version = "4.87", versionCode = 48761)
+        )
     )
 
     // Verified 2026-09-19 against com.jetappfactory.jetaudio 13.1.2 (versionCode 261320)
@@ -499,12 +607,17 @@ object Constants {
     // stable library surface (initialize, every load/loadAd and the app-open
     // preloader). Futbin+ premium is account-linked (Play purchase is linked to the
     // Futbin account server-side), so premium is out of reach - ads only.
+    // Verified 2026-10-07 against 27.5 (versionCode 7005, Aptoide, md5 verified): Disable
+    // ads applies unchanged; FutbinSmokeTest passes.
     val COMPATIBILITY_FUTBIN = Compatibility(
         name = "Futbin",
         packageName = "com.futbin",
         apkFileType = ApkFileType.APK,
         appIconColor = 0x26A69A,
-        targets = listOf(AppTarget(version = "27.02", versionCode = 7002))
+        targets = listOf(
+            AppTarget(version = "27.02", versionCode = 7002),
+            AppTarget(version = "27.5", versionCode = 7005)
+        )
     )
 
     // Verified 2026-09-27 against com.pocketcolorwheel.PCW 3.26 (versionCode 57,
@@ -529,12 +642,21 @@ object Constants {
     // and falls back to the "com.camerasideas.trimmer.vip" purchase flag. It gates the
     // export/watermark flow, template unlocks, the ads manager and the paywall, so
     // forcing it true unlocks Pro everywhere including watermark-free export.
+    // Re-anchored 2026-10-07 for 1.721.1224 (versionCode 1224): R8 moved the check to
+    // `store/billing/d.d(Context)` (BillingPreferences), which broke the old class+name pin.
+    // The fingerprint now matches by shape only - public static (Context)Z holding both the
+    // "SubscribePro" and "com.camerasideas.trimmer.vip" keys - which resolves to exactly one
+    // method in both 1.716.1222 and 1.721.1224 (smali checked). 1.721 adds fup/redeem and
+    // Huawei checks to the body, but any hit still returns true, so returnEarly(true) holds.
     val COMPATIBILITY_YOUCUT = Compatibility(
         name = "YouCut",
         packageName = "com.camerasideas.trimmer",
         apkFileType = ApkFileType.APKM,
         appIconColor = 0xFF5722,
-        targets = listOf(AppTarget(version = "1.716.1222", versionCode = 1222))
+        targets = listOf(
+            AppTarget(version = "1.716.1222", versionCode = 1222),
+            AppTarget(version = "1.721.1224", versionCode = 1224),
+        )
     )
 
     // Verified 2026-10-06 against com.flyersoft.moonreader 10.7 (versionCode 1007000,

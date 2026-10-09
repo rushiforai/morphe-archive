@@ -23,7 +23,7 @@ class Scores365SmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "14.9.4",
+            version = "14.9.6",
             patchNames = setOf("Disable ads"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

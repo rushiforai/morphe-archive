@@ -1,0 +1,108 @@
+name: APK Compatibility & Fixture Automation
+
+on:
+  repository_dispatch:
+    types: ["apk-fixture-refresh"]
+  workflow_dispatch:
+    inputs:
+      package_name:
+        description: "Package name to test or 'all'"
+        required: false
+        default: "all"
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  matrix-setup:
+    name: Determine Target Packages
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.set-matrix.outputs.packages }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          python-version: "3.12"
+
+      - name: Compute package list
+        id: set-matrix
+        run: |
+          uv run --project tools/apk-lab python -m apk_lab.compatibility_ci matrix --output-file "$GITHUB_OUTPUT"
+        env:
+          DISPATCH_PACKAGE_NAME: ${{ github.event.client_payload.packageName }}
+          INPUT_PACKAGE_NAME: ${{ inputs.package_name }}
+
+  reconcile-and-test:
+    name: Check ${{ matrix.package }}
+    needs: matrix-setup
+    runs-on: ubuntu-latest
+    concurrency:
+      group: apk-fixture-${{ matrix.package }}
+      cancel-in-progress: false
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.matrix-setup.outputs.packages) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Verify Android SDK Build Tools
+        run: |
+          echo "ANDROID_HOME=${ANDROID_HOME:-/usr/local/lib/android/sdk}" >> "$GITHUB_ENV"
+          test -d "${ANDROID_HOME:-/usr/local/lib/android/sdk}/build-tools/36.0.0" || {
+            yes | "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager" --licenses >/dev/null || true
+            "${ANDROID_HOME:-/usr/local/lib/android/sdk}/cmdline-tools/latest/bin/sdkmanager" "build-tools;36.0.0"
+          }
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Sync apk-lab and tools
+        run: |
+          uv sync --locked --project tools/apk-lab
+          uv run --project tools/apk-lab apk-lab setup --profile ci
+          uv run --project tools/apk-lab apk-lab doctor --ci
+        env:
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          APKEEP_EMAIL: ${{ secrets.APKEEP_EMAIL }}
+          APKEEP_AAS_TOKEN: ${{ secrets.APKEEP_AAS_TOKEN }}
+          COMPATIBILITY_STATUS_SECRET: ${{ secrets.COMPATIBILITY_STATUS_SECRET }}
+
+      - name: Build Patch Bundle (.mpp)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./gradlew :patches:buildAndroid --no-daemon
+      - name: Reconcile and Test Fixtures
+        run: |
+          uv run --project tools/apk-lab python -m apk_lab.compatibility_ci run --package "${{ matrix.package }}"
+        env:
+          DISPATCH_REQUEST_ID: ${{ github.event.client_payload.requestId }}
+          DISPATCH_EXPECTED_ROLES: ${{ join(github.event.client_payload.expectedRoles, ',') }}
+          DISPATCH_PLAY_VERSION: ${{ github.event.client_payload.observedPlayVersion }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          APKEEP_EMAIL: ${{ secrets.APKEEP_EMAIL }}
+          APKEEP_AAS_TOKEN: ${{ secrets.APKEEP_AAS_TOKEN }}
+          COMPATIBILITY_STATUS_SECRET: ${{ secrets.COMPATIBILITY_STATUS_SECRET }}

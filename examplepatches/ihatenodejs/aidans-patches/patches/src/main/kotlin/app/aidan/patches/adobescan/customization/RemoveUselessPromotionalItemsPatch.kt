@@ -37,6 +37,7 @@ val removeUselessPromotionalItemsPatch = bytecodePatch(
     description = "Removes promotional, feedback, and support items from Settings and file menus.",
     default = false
 ) {
+    category("Interface")
     compatibleWith(COMPATIBILITY_ADOBE_SCAN)
 
     val removeAbout = booleanOption(

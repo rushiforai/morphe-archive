@@ -31,6 +31,7 @@ import com.ss.android.ugc.aweme.main.MainActivity;
 
 import java.lang.reflect.Method;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -96,6 +97,7 @@ public class AuthorRegionTest {
     }
 
     private Context context;
+    private boolean regionPatched;
 
     @Before
     public void setUp() {
@@ -103,6 +105,14 @@ public class AuthorRegionTest {
         Utils.setContext(context);
         AuthorRegion.setViewIds(NAME_ID, POST_TIME_ID);
         AuthorRegion.restore();
+        // The country and handle switches only count in a build with Show author region.
+        regionPatched = SettingsStatus.authorRegionEnabled;
+        SettingsStatus.authorRegionEnabled = true;
+    }
+
+    @After
+    public void tearDown() {
+        SettingsStatus.authorRegionEnabled = regionPatched;
     }
 
     /** name + post time in one row, the shape the feed uses. */
@@ -287,6 +297,23 @@ public class AuthorRegionTest {
         // A handle with no country still gives the handle.
         assertArrayEquals(new String[]{"someone", null},
                 AuthorRegion.decoration(playing("three", "someone", "Some One", null)));
+    }
+
+    /**
+     * The engagement rate patch installs the same row. Without Show author region in the build,
+     * a country or handle switch saved earlier must not start showing through it.
+     */
+    @Test
+    public void theRegionSwitchesNeedTheirOwnPatch() {
+        SettingsStatus.authorRegionEnabled = false;
+        try {
+            Settings.SHOW_AUTHOR_HANDLE.save(true);
+            Settings.SHOW_AUTHOR_REGION.save(true);
+            assertNull(AuthorRegion.decoration(playing("four", "samsmith", "Sam Smith", "GB")));
+        } finally {
+            Settings.SHOW_AUTHOR_HANDLE.resetToDefault();
+            Settings.SHOW_AUTHOR_REGION.resetToDefault();
+        }
     }
 
     @Test

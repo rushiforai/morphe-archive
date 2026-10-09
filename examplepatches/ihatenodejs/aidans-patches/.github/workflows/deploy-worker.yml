@@ -1,0 +1,46 @@
+name: Deploy Worker
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'worker/**'
+      - 'patches-list.json'
+      - '.github/workflows/deploy-worker.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-deploy:
+    name: Build & Deploy Worker
+    runs-on: ubuntu-latest
+    env:
+      DEPLOY_ENABLED: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install Worker Dependencies
+        working-directory: worker
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck Worker
+        working-directory: worker
+        run: bun run check
+
+      - name: Deploy Cloudflare Worker (Version Freshness Cron)
+        if: env.DEPLOY_ENABLED == 'true'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: worker
+          command: deploy

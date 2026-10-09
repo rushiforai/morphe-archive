@@ -34,6 +34,12 @@ def main():
     javac = args.java_home / 'bin' / ('javac.exe' if os.name == 'nt' else 'javac')
     jar = args.java_home / 'bin' / ('jar.exe' if os.name == 'nt' else 'jar')
     run(java, '-jar', args.apktool.absolute(), 'd', apk, '-o', decoded)
+    for name in ['i2$a.smali', 'i2$a$a.smali']:
+        source = next(decoded.glob('smali*/e/e/a/' + name))
+        target = decoded / 'smali/e/e/a' / name
+        if source != target:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(source, target)
     shutil.copytree(decoded / 'smali', work / 'original-smali')
     for patch in ['original-to-mod.patch', 'fixes.patch', 'pull-refresh.patch', 'shorts.patch', 'manual-login.patch']:
         run('git', '-C', decoded, 'apply', '--check', ROOT / patch)
@@ -43,6 +49,8 @@ def main():
     run('python3', ROOT / 'player-ui.py', decoded)
     run('python3', ROOT / 'comment-bold.py', decoded)
     run('python3', ROOT / 'background-playback.py', decoded)
+    run('python3', ROOT / 'playback-return.py', decoded)
+    run('python3', ROOT / 'account-ui.py', decoded)
     helper_classes, helper_dex = work / 'helper-classes', work / 'helper-dex'
     helper_classes.mkdir(); helper_dex.mkdir()
     sources = sorted((ROOT.parent / 'extensions/extension/src/main/java/e/e/a').glob('*.java'))

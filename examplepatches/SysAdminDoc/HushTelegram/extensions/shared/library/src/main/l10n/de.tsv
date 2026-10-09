@@ -287,6 +287,31 @@ Hide Telegram Features and Invite Friends	Telegram-Funktionen und Freunde einlad
 Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	In den Einstellungen fällt die Zeile Telegram-Funktionen weg und in den Kontakten Freunde einladen. Hast du noch keine Kontakte, verschwindet auch die Einladungsliste, die die Kontakte dann zeigen. In den Einstellungen standardmäßig ausgeschaltet.
 Add Repeat to the message menu	Wiederholen zum Nachrichtenmenü hinzufügen
 Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Setzt Wiederholen unter Weiterleiten in das Menü, das du mit langem Drücken auf eine Nachricht öffnest. Es sendet die Nachricht noch einmal in denselben Chat, als neue Nachricht von dir. Es erscheint nur, wo Telegram Weiterleiten anbietet und du schreiben darfst, also nie in geschützten oder geheimen Chats. In den Einstellungen standardmäßig ausgeschaltet.
+Keep deleted messages	Gelöschte Nachrichten behalten
+Messages other people delete stay in your chats on this phone, marked deleted next to the time. Your own deletes and anything that disappears or is protected work as usual. Off by default in settings.	Nachrichten, die andere löschen, bleiben auf diesem Handy in deinen Chats und sind neben der Uhrzeit als gelöscht markiert. Deine eigenen Löschungen und alles, was verschwindet oder geschützt ist, funktionieren wie gewohnt. In den Einstellungen standardmäßig ausgeschaltet.
+Ask before sending a sticker	Vor dem Senden eines Stickers nachfragen
+Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it, and a scheduled sticker goes through as it always did. Off by default in settings.	Fragt mit Senden oder Abbrechen nach, bevor ein Sticker, auf den du tippst, in einen Chat geht. Abbrechen verwirft ihn, und ein geplanter Sticker geht wie immer durch. In den Einstellungen standardmäßig ausgeschaltet.
+Ask before sending a GIF	Vor dem Senden eines GIFs nachfragen
+Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it, and a scheduled GIF goes through as it always did. Off by default in settings.	Fragt mit Senden oder Abbrechen nach, bevor ein GIF, auf das du tippst, in einen Chat geht. Abbrechen verwirft es, und ein geplantes GIF geht wie immer durch. In den Einstellungen standardmäßig ausgeschaltet.
+Ask before sending a voice or video message	Vor dem Senden einer Sprach- oder Videonachricht nachfragen
+Asks Send or Cancel before a voice or video message you recorded goes into a chat. Cancel throws the recording away. Off by default in settings.	Fragt mit Senden oder Abbrechen nach, bevor eine Sprach- oder Videonachricht, die du aufgenommen hast, in einen Chat geht. Abbrechen wirft die Aufnahme weg. In den Einstellungen standardmäßig ausgeschaltet.
+Ask before starting a call	Vor dem Starten eines Anrufs nachfragen
+Asks Call or Cancel before the call button in a chat's header or on a profile starts a call. Off by default in settings.	Fragt mit Anrufen oder Abbrechen nach, bevor die Anruftaste in der Kopfzeile eines Chats oder auf einem Profil einen Anruf startet. In den Einstellungen standardmäßig ausgeschaltet.
+Send sticker	Sticker senden
+Send this sticker to this chat?	Diesen Sticker in diesen Chat senden?
+Send GIF	GIF senden
+Send this GIF to this chat?	Dieses GIF in diesen Chat senden?
+Send voice message	Sprachnachricht senden
+Send this voice message to this chat?	Diese Sprachnachricht in diesen Chat senden?
+Send video message	Videonachricht senden
+Send this video message to this chat?	Diese Videonachricht in diesen Chat senden?
+Send	Senden
+Start a call	Anruf starten
+Start a voice call?	Sprachanruf starten?
+Start a video call?	Videoanruf starten?
+Call	Anrufen
+# context: the label before the time of a message someone else deleted that this phone kept
+deleted	gelöscht
 Add Copy photo to the message menu	Foto kopieren zum Nachrichtenmenü hinzufügen
 Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Setzt Foto kopieren unter Weiterleiten in das Menü, das du mit langem Drücken auf ein Foto öffnest, sobald es heruntergeladen ist. Es kopiert das Bild selbst, damit du es in eine andere App einfügen kannst. In geschützten oder geheimen Chats erscheint es nicht. In den Einstellungen standardmäßig ausgeschaltet.
 Add Message details to the message menu	Nachrichtendetails zum Nachrichtenmenü hinzufügen
@@ -307,6 +332,13 @@ File data center: %1$s	Rechenzentrum der Datei: %1$s
 File size: %1$s	Dateigröße: %1$s
 Copy	Kopieren
 Message details copied	Nachrichtendetails kopiert
+Add Quick forward to the message menu	Schnell weiterleiten zum Nachrichtenmenü hinzufügen
+Puts Quick forward under Forward in a message's long-press menu. It lists Saved Messages and a few recent chats, and one tap forwards the message there with the sender shown, unless Hide sender names when forwarding is on. It won't appear in protected or secret chats. Off by default in settings.	Setzt Schnell weiterleiten unter Weiterleiten in das Menü, das du mit langem Drücken auf eine Nachricht öffnest. Es listet Gespeicherte Nachrichten und ein paar letzte Chats auf, und ein Tippen leitet die Nachricht dorthin weiter, mit angezeigtem Absender, außer Absendernamen beim Weiterleiten verbergen ist an. In geschützten oder geheimen Chats erscheint es nicht. In den Einstellungen standardmäßig ausgeschaltet.
+Quick forward	Schnell weiterleiten
+Forward to	Weiterleiten an
+Forwarding to %1$s	Wird weitergeleitet an %1$s
+Can't forward there	Dorthin kann nicht weitergeleitet werden
+No chat to forward to	Kein Chat zum Weiterleiten
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Benachrichtigungen
@@ -324,6 +356,11 @@ Notification permission: %1$s	Benachrichtigungsberechtigung: %1$s
 Push token saved: %1$s	Push-Token gespeichert: %1$s
 Signed-in accounts: %1$s	Angemeldete Konten: %1$s
 Accounts confirmed for push: %1$s	Für Push bestätigte Konten: %1$s
+Telegram's push answer: %1$s	Antwort von Telegram zur Push-Anmeldung: %1$s
+None since Telegram started	Keine seit dem Start von Telegram
+Accepted	Angenommen
+Refused	Abgelehnt
+Refused (%1$s)	Abgelehnt (%1$s)
 Read-only local state. This doesn't confirm notification delivery.	Lokaler Status, nur lesend. Die Zustellung von Benachrichtigungen wird dadurch nicht bestätigt.
 Unknown	Unbekannt
 Allowed	Erlaubt

@@ -29,8 +29,26 @@ public class AdsFilter implements IFilter {
                 || item.getAwemeRawAd() != null
                 || item.isWithPromotionalMusic()
                 || isPseudoAd(item)
+                || isLemon8PromoCard(item)
                 || hasCreatorCommissionDisclosure(item)
                 || ContentMarkerFilters.hasPaidPartnershipMarker(item);
+    }
+
+    /** The CardInsertInfo card type of the Lemon8 install promo card TikTok slots into For You. */
+    static final int LEMON8_CARD_TYPE = 9;
+
+    /**
+     * The full-screen "Find fresh ideas on Lemon8" card. It is an inserted card, not a video, and
+     * none of TikTok's ad flags are set on it. Its handler asks for card type 9 and the server's
+     * answer carries the same number, so the card is the item whose CardInsertInfo says 9.
+     */
+    static boolean isLemon8PromoCard(Aweme item) {
+        Object insert = Reflect.property(item, "getCardInsertInfo", "cardInsertInfo");
+        if (insert == null) return false;
+        Object type = Reflect.property(insert, "getCardType", "cardType");
+        boolean lemon = type instanceof Number && ((Number) type).intValue() == LEMON8_CARD_TYPE;
+        if (lemon) FeedFilterCounters.sawKind(AD_SIGNALS_SOURCE, "lemon8 promo card");
+        return lemon;
     }
 
     /**

@@ -16,6 +16,7 @@ val removeFeedbackPatch = bytecodePatch(
     description = "Removes prompting for feedback on shipments.",
     default = true
 ) {
+    category("Interface")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     dependsOn(bypassSignatureCheckResourcePatch)
 

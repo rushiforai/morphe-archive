@@ -1,8 +1,17 @@
 # Swipe up to undo autocorrect — replanning after two broken releases
 
 > Written after `2.5.0-dev.0` and `dev.1` both shipped a keyboard that would not open. This
-> supersedes the design in [`undo-autocorrect.md`](undo-autocorrect.md), which is kept because its
-> research is still correct — only its *architecture* is wrong.
+> supersedes the design in [`undo-autocorrect.md`](undo-autocorrect.md), which is kept as historical
+> research. Some of its conclusions (null SLIDE_UP action, revert-only -10045, hover path) were wrong.
+>
+> **Done: confirmed on a device in 2.5.2-dev.0, and now on by default.** After the takeover,
+> `SwipeUpEmitter.kt` sends a REVERT_AUTO_CORRECTION (-10076) event, and `RevertEmitter.kt` makes
+> `LatinIme->q` hand it to the decoder exactly as physical-keyboard delete-word does, minus the
+> delete-word fallback. See [Stage 3](#stage-3-the-decoders-own-revert). It reaches only the word just
+> corrected, as Gboard's backspace does; going further back was declined. dev.9's crash was an
+> illegal-access owner read-back; the patch widens Lozi and its manager field. The 0.6 slide ratio
+> does not control this gesture; Suggested Settings no longer seeds it. The sections below preserve
+> the reasoning and intermediate attempts, including plans since superseded.
 
 ## The goal, stated properly
 
@@ -18,7 +27,7 @@ keyboard recognises as its own thing.
 Point 2 is the one every attempt so far has failed, and it is the one that decides the
 architecture.
 
-## Why the current approach cannot deliver that
+## Why the old key-up approach could not deliver that (historical)
 
 The emission hooks `Lpvf;->t` — `TouchActionBundle.handleActionUp` — at the point where the
 `ActionDef` lookup comes back null. That is **after Gboard has already decided this pointer is a
@@ -357,7 +366,367 @@ Also unverified: whether `G` is reached on any path other than `handleActionUp`.
 geometric, so a call with no movement cannot fire it, but "cannot fire" is reasoning and not a
 measurement.
 
-## The thing that has to be fixed first
+## Confirmed on a device: the pointer can be claimed
+
+`2.5.1-dev.1`, diagnostic patch alone, upward flick on a letter key:
+
+> **the 6 appears alone**
+
+That is goal 2, met for the first time. Returning true from `Lpvi;->G` does suppress the keypress —
+the commit at pc 116 is skipped, Gboard's own `move-object v3, v13` runs, and no character is
+inserted. The architecture question this document was written to answer is settled: **option B
+works, and option A is not needed.**
+
+It took one more mistake to get there. `2.5.1-dev.0` could never fire, because it read the gesture
+direction from `Lpvi;->i()` — which returns the direction of the *already-resolved* `ActionDef` from
+a field written at pc 250, two hundred instructions after `G` runs. It returns null there, always.
+The device symptom was "nothing at all", which looks exactly like the gesture not being detected and
+was in fact our code never executing. The real classifier is `Lpvi;->h(FFLpmy;)Lpmy;`, and the fix
+was to call it the way `handleActionUp` does.
+
+Worth naming the error rather than just the fix: the call sites of `i()` were checked, the register
+count was checked, the branch target was checked, the skip label was checked against stock pc 0 —
+and the three-line body of the one method whose meaning was taken from its name was not read.
+
+### What remains: goal 3, and it is a dial rather than a design
+
+The `6` arrives **intermittently**, which is the same reliability problem round two found and now
+has an exact cause. Inside `h()`:
+
+```
+ 99-121: v0 = Lpvf;->e|f|g|h|i : I        # base distance, chosen by Lppr;->ordinal()
+    123: v2 = abs(dy)      127: v3 = abs(dx)
+    131: cmpl-float v2, v2, v3            # more vertical than horizontal?
+    143: v5 = -(float) threshold
+    145: cmpg-float v5, v6, v5            # dy vs -threshold
+    147: if-gez -> 168                    # not far enough: no direction at all
+    149: return SLIDE_UP
+```
+
+and those fields come from a preference, in `Lpvf;->o()V`:
+
+```
+  7: getString(0x7f140ad3)          -> "keyboard_slide_sensitivity_ratio"
+ 11: const/high16 v2, #0x3f800000   -> default 1.0f
+ 13: Lqhy;->A(String, F)F
+ 17-39: this.e|f|g|h = (int)(this.u|v|w|x * ratio)
+ 41-44: this.i = (int) this.y       # not scaled by the ratio
+```
+
+So the threshold is a base distance times a user-settable ratio whose default is **1.0**. (An
+earlier draft of this document said 0.6. That was wrong and is corrected here.)
+
+`0.5f` is `0x3f000000`, high-16 representable, so halving the default is a same-width
+`const/high16` rewrite — one instruction, no insertion, no registers, the same shape as the Rambler
+and haptics patches.
+
+It should ship as **its own patch, default off**, not folded into the gesture. It lowers every slide
+threshold, not just upward ones, so it changes the scrub and flick-for-symbols too. Fusing it with
+the gesture would make one install answer two questions again.
+
+### Remaining order
+
+1. ~~claim the pointer~~ — done, confirmed.
+2. sensitivity, as a separate default-off patch.
+3. the revert itself: already written, ships behind the same anchor, untested only because the
+   gesture was not reliable enough to test it with.
+4. retire the `Lpvf;->t` emitter and the diagnostic.
+
+## Why it fires intermittently, and it is not the threshold
+
+`2.5.1-dev.2` halved `keyboard_slide_sensitivity_ratio`. The marker still arrives on some flicks and
+not others. The device report that explains it:
+
+> swipe left, right and down all work 100% of the time
+
+That asymmetry is the finding. Those gestures are not a better-tuned version of this one — they run
+on entirely different machinery.
+
+### Two mechanisms, not one
+
+**The scrub** (`ScrubMotionEventHandler->g(MotionEvent)V`) is a motion event handler. It receives
+*every* event: on DOWN it records the start, and on each MOVE it re-evaluates and claims the pointer
+the moment the drag qualifies. Where the finger is at release never enters into it.
+
+**The slide direction** (`Lpvi;->h`) runs once, on ACTION_UP, over start→end displacement. Three
+things follow, and together they are the whole problem:
+
+ - **It measures the release point, not the journey.** An upward flick decelerates, and a finger
+   commonly drifts back down as it lifts. Peak `dy` can clear the threshold comfortably while the
+   `dy` that `h()` actually sees does not.
+ - **One comparison, one chance.** The scrub has dozens of move events in which to succeed.
+ - **The arc is invisible.** Curvature, a pause, speed — none of it exists in two points.
+
+Halving the ratio made that single comparison easier to pass. It did not stop it being a single
+comparison taken at the worst possible instant, which is why the result is "more often" rather than
+"reliably".
+
+### The scrub engine cannot simply be reused
+
+Worth recording, because it looked like configuration and is not. `g(MotionEvent)V` is horizontal by
+construction:
+
+```
+ 104-112: starts only if the touched key's keycode == Lpvs;->a:I
+ 162-166: records getX(...) only — no Y is stored
+ 176-186: threshold from Lpvr;->d:F or ->e:F, chosen by Lpvs;->j:I
+```
+
+Teaching it about Y means changing what it stores and what it compares, for every subclass that
+shares the engine — delete, space-move and inline suggestion. That is a much larger and riskier
+change than the gesture is worth.
+
+### The tractable fix: measure the journey ourselves
+
+Keep `Lpvi;->G` for the claim. That part is proven and goal 2 is met. Replace only the *detection*.
+
+`Lpvf;->h(Landroid/view/MotionEvent;)V` is the move path: it iterates every tracked pointer and
+writes `Lpvi;->e:F` from `getY` at pc 63, once per motion event. Hook there, hand the coordinates to
+the extension, and keep the peak upward displacement per pointer. Then at `G`, ask *did this gesture
+ever travel far enough upward* rather than *is the release point high enough*.
+
+The extension is the right home and is already proven on exactly this path — `GestureProbe.fired()`
+is called from `G` today and types its marker, so the plumbing works. This adds two floats of state
+and one earlier call site.
+
+That gives the gesture the same property that makes the scrub reliable — continuous observation
+instead of a single endpoint sample — without modifying Gboard's scrub engine at all.
+
+Open, for whoever picks this up:
+
+ - where to key the per-pointer state. `Lpvf;->h` has the `Lpvi;` in hand; passing its identity hash
+   or the pointer id is probably enough, and it must be reset on DOWN or the peak leaks between
+   gestures.
+ - whether `Lpvf;->h` is reached for every pointer on every move, or only for pointers the delegate
+   already owns. Read it before relying on it.
+ - whether the corridor test should also move to peak-relative rather than release-relative.
+
+## The first handler-layer build crashed; rebuilding in stages
+
+`2.5.1-dev.7` — takeover plus undo in one step — crashed the keyboard on a swipe up. It opened fine,
+so ART accepted the class and the failure was a runtime exception on the takeover path. What was
+ruled out before anything else was changed:
+
+- the emission, read out of the dev.7 APK, was exactly what was intended, every branch landing right;
+- `verify` was clean;
+- the undo event was byte-for-byte what Gboard's own backspace revert builds;
+- the undo patch changed exactly one method, so no leftover code from the old design was involved.
+
+What was *not* settled is which of the three runtime steps throws — the takeover, building the
+event, or sending it from inside the touch dispatch rather than from the input pipeline as Gboard
+does. No logcat was available.
+
+So the real patch was rebuilt from the diagnostic, which never crashed, and the diagnostic patch was
+removed: one patch, one capability added per release.
+
+1. **Detect, and type a single 6** — the diagnostic's measuring code, acting mid-swipe. No Gboard
+   calls. *Confirmed on 2.5.1-dev.8: a 6 on every swipe up, before the finger lifts.*
+2. Take the gesture over: 6 if the takeover took, x if refused, no letter. Built as dev.7's
+   takeover path instruction for instruction, with the undo replaced by the report, so it splits
+   dev.7's crash. **Result on 2.5.1-dev.9: it crashed on a swipe up.** So the dev.7 crash is in the
+   takeover, or in how the rest of the gesture is skipped afterwards. It is *not* in building or
+   sending the undo, which stage 2 never does; stage 3 is cleared as the cause.
+
+   Checked statically and found safe: the scrub's teardown (`s(Z)` is a null-checked `setPressed`),
+   and the four methods the key pipeline's reset calls per pointer (null-guarded). That left no
+   suspect worth a release, and there is no logcat, so the recorder below was built instead of a
+   fifth guess.
+
+   **It crashes from every row, not only the top one.** A top-row swipe up leaves the keyboard and
+   detaches the finger from its key, which is the one case the takeover had never run on, so it
+   was the natural suspect. It is ruled out: a middle-row swipe takes over at 24dp while the finger
+   is still on its key (retargeting needs 0.8 of a key height) and crashes all the same. Stage 1
+   (2.5.1-dev.8) detected and typed from every row without crashing, so the difference that
+   crashes is what stage 2 added and runs every time: the takeover call and the resets it sets off
+   in the other handlers, the scrub's own takeover, and skipping the rest of the gesture.
+
+   **Nothing was typed before the crash.** So it happened before the report, and the only
+   instructions between the takeover call and the report are the owner read-back: `instance-of`
+   and `check-cast` on `Lozi;`, then `iget Lozi;->b`.
+
+   **The cause: an illegal access.** `Lozi;` is package-private, in the unnamed package, and so is
+   its field `b`. The read-back is code of `ScrubMotionEventHandler`, in
+   `com.google...scrubmove`. ART does not refuse the class for that, because an access failure is a
+   soft verification failure. So the keyboard opened, and the `instance-of` threw
+   `IllegalAccessError` the first time it ran: on every swipe up, from every row, one instruction
+   before the report. dev.7 had the same read-back. The takeover call itself was fine:
+   `invoke-interface` on the public `Lpvo;`, the same call the scrub makes.
+
+   **Nothing could see it.** `verify.py` checked type merges and extension references; nothing
+   checked what a patched class is allowed to reach. It does now, using ART's rules, and on the dev.9
+   build it flags exactly those three instructions and nothing else. It is unit-tested, and
+   mutation-tested over nine ways of getting the rules wrong.
+
+   **The fix keeps the read-back.** The patch widens `Lozi;` and `Lozi;->b` to public before
+   emitting. The emission is byte-identical to dev.9's, and the 6/x report stays, which the later
+   stages need so they do not undo while some other handler owns the swipe. Applied to Gboard with a
+   hybrid bundle (dev.9's, with today's compiled patches): both are public in the swipe-up build,
+   untouched in the default build, and `verify` passes the access check on both. That is static
+   verification; whether a swipe up now types a 6 is the next install.
+3. ~~Send the undo in place of the 6.~~
+4. ~~Undo only when an autocorrection is armed.~~ This stage was planned on the reading that Gboard's
+   backspace revert checks the edit tracker's `d` flag before sending -10045. That reading was
+   incomplete: `d` belongs to GenAI post-corrections only. Stages 3 and 4 became one stage, below.
+
+## Stage 3: the decoder's own revert
+
+Re-derived from the 18.0.3 dex before writing any emission. Gboard has three things that look like
+"undo autocorrect", and only one is backspace's:
+
+| Mechanism | What it is | Fit |
+|---|---|---|
+| -10045 `UNDO` | UndoExtension (post-IME) steps its undo stack back one chunk: typing, a deletion or an autocorrection, whichever was last | General undo; with no autocorrection pending it undoes something else |
+| `EditTrackingImeWrapper->q` | On keycode 67 with `d` set, sends -10045 and consumes the backspace. `d` is armed only by `Lfyh;->g` for a POST_CORRECTION (reason 3) edit with the setting on, and the wrapper is installed only behind `writing_helper_enable_by_word_revert` | GenAI post-corrections only |
+| The Delight5 decoder | Backspace reaches it as key 8 (`LatinIme->M` → `Lful;->c` → `Lfsf;->k`); the native decoder decides between reverting the last autocorrection and deleting. The setting reaches it through `Lyfq;->O` | **This is backspace's revert.** No Java field mirrors its "revert pending" state |
+
+Gboard already asks the decoder for that revert explicitly, in one place: `LatinIme->q`'s
+physical-keyboard delete-word branch (pc ~1498–1570). It guards on `Lftq;->o`, builds a request with
+`Lful;->d(event, -10076, m, p, o, n, ap)`, calls `Lfsf;->k`, and on a result calls `E(true, j, false)`;
+only when the decoder returns nothing does it fall back to deleting a word. -10076 is
+`REVERT_AUTO_CORRECTION` in Gboard's key-code name table, appears nowhere else in the dex, and is
+never dispatched as an event.
+
+So the swipe sends a -10076 event, and `LatinIme->q` learns to treat it as that branch without the
+fallback. Two insertions:
+
+- **Route** (before the `D()` sub-handler query that closes the handled-key list): stock drops any
+  key code not in that list, -10076 included. `if-eq` sends it to the shared handled-key path that
+  delete-word takes, so it passes the same input-state checks (`V()`, the "Cannot handle invalid
+  input state" guard, `Lftq;->u()`) on the way. Neither key-code switch on that path (cases
+  -10063…-10061 and -10054…-10050) can catch it.
+- **Revert** (before the delete-word `const/16 #-10133`): `if-ne` returns every other key to the
+  stock comparison; -10076 runs a copy of the stock block and leaves by the stock block's own
+  continuation (latency metric, then `return true`), whether or not anything was reverted.
+
+The event is built as Gboard's own revert code builds its undo event,
+`Lnur.d(new Lpnu(code, null, null, 0x7fffffff))`, which makes it synthetic (source 1): the input
+dispatcher does not rewrite its meta state or run shift logic, and EditTrackingImeWrapper does not
+treat it as real input. Its time is stamped from the MotionEvent, like the scrub's own events. It is
+sent synchronously through `Lpvo;->n`, the route the scrub's own deletes use, which reaches
+`Loup;->au` and then `LatinIme->q`. The swipe-right undo patch also inserts into `q`, in the
+scrub-delete finish handler. Its anchors are untouched, and both patches verify together.
+
+**Checked:** preflight pins the block's shape, both seams, and liveness over `q`'s real control-flow
+graph (`live_free` now takes decoded switch and try-handler edges). The seams' constant registers
+are dead, and the continuation reads none of the copy's temporaries. Applied with a hybrid bundle
+(dev.11's extension with today's compiled patches), `verify` passes all 19 changed methods, and the
+emitted branches land on the intended instructions.
+
+**Not knowable from the dex, so left to the device:** what the native decoder does with a -10076
+request built from a source-1 event (`Lful;->d` sets the request's `u` flag where a physical event
+sets `v`), and whether it applies the "Undo auto-correct on backspace" setting to -10076.
+
+**Result on 2.5.2-dev.0, on a device:** a swipe up right after an autocorrection brings the typed
+word back. This was with "Undo auto-correct on backspace" **off**, so -10076 does not depend on that
+setting. The revert reaches only the word just corrected: once anything else is typed, even a
+letter, the decoder no longer offers it and the swipe does nothing. Gboard's backspace revert has the
+same limit, which fits both being one native state.
+
+**Going further back was considered and declined.** It would mean Flexboard keeping its own history
+of corrections and replacing text itself. Gboard reports each autocorrection in one place
+(`Lopg;->o`, "IC.commitAutoCorrection"), but the `CorrectionInfo` it builds there has an empty
+original text, so the typed word would have to be captured separately. A plain text replacement
+would also bypass whatever the decoder learns from a revert. The native behaviour is the product, so
+the patch went default-on as it is. The crash recorder that rode along during testing moved to its
+own opt-in patch, "Crash reporter (debug)".
+
+## Reading a crash without logcat
+
+`CrashRecorder` (extension, installed at app start by the opt-in "Crash reporter (debug)" patch;
+until swipe up went default-on, by the swipe-up patch only) saves an uncaught
+exception with a synchronous `commit()` — `apply()` writes on a background thread and the process is
+about to be killed — hands it on to Android's own handler so crash handling is unchanged, and on the
+next start copies it to the clipboard and forgets it. A report that cannot be delivered because the
+clipboard is unreachable is kept, not lost.
+
+In the event, the stage 2 crash was found statically before the recorder ever shipped (see stage 2
+above). It ships anyway, as a net: the next crash in this feature names itself.
+
+It is opt-in so only people debugging get it, and overwrites the clipboard after a crash, which the
+patch description and README say. Everything in it catches `Throwable`: a
+crash reporter that can crash the keyboard, or swallow a crash so the process is never killed and the
+keyboard freezes instead of restarting, is worse than none. Both of those are tested, and
+mutation-tested.
+
+## The dev.7 handler-layer attempt (historical; superseded by the staged rebuild above)
+
+The diagnostic answered the question the design depended on. On a device, most real flicks came back
+`6m`: the 24dp threshold and the 2:1 corridor were met *during* the swipe. The occasional `3m` was a
+genuinely diagonal swipe, correctly rejected, so neither value needed tuning.
+
+That matters because on release the key handler types the letter before the scrub handler sees the
+event. The only way to stop the letter is to take the swipe over while it is still moving, and `6m`
+says that is possible.
+
+The real patch now lives in the scrub engine's `g(MotionEvent)`, next to swipe left and right:
+
+- `SwipeUpUndo` (extension) decides per event: pass, claim, or swallow. It holds no obfuscated Gboard
+  type, so a Gboard update that renames them becomes a refused patch, not a crash on load.
+- The emission does the Gboard side: `Lpvo;->m()` (the call the scrub uses for its own swipes) to take
+  the gesture over, a read-back of `Lozj;->k` to confirm the takeover took, then Gboard's UNDO through
+  `Lpvo;->n`. Skipped events jump to the end of `g`, so the scrub's own reset and trace section still
+  run.
+
+Read out of the dex before any of it was written:
+
+- **The takeover makes the key pipeline drop the letter.** `Lozi;->m()` records the handler as owner
+  only if the gesture has none, and calls `l()` on every other handler; the key pipeline's `l()`
+  resets its pointers without committing them.
+- **A takeover cannot outlive its gesture.** The dispatcher runs `Lozj;->o` after every event, and it
+  clears the owner on UP and CANCEL whatever the handler did. Without that, a stuck takeover would
+  send every later tap to the scrub handler and the keyboard would stop typing. Preflight pins it,
+  and removing any part of it fails the pin.
+- **A failed takeover sends nothing.** `m()` returns nothing and does nothing when the gesture already
+  has an owner, so the emission compares the owner with itself before sending the undo.
+
+Known limit: a key that binds its own swipe-up action is not spared. No Latin layout does — letter
+keys bind none, and flick-for-symbols binds swipe *down* — but a layout that did would lose it.
+
+## Why up is the hard direction — found by review, confirmed on a device
+
+An independent review traced it through the dex, and a device test confirmed the prediction:
+**a flick from the top row produced nothing at all; the same flick from the bottom row produced a
+number.**
+
+Gboard decides, direction by direction, whether a slide stays on its key. It does if the key
+*declares* an action in that direction (`Lpvi;->ae()`):
+
+- **Down** works because keys declare SLIDE_DOWN (flick-for-symbols), so a downward slide stays on
+  the key and is classified and committed there.
+- **Left and right** work because they are not in the key pipeline at all. They run in the
+  motion-event-handler layer, which sees every event whether or not the finger is on a key.
+- **Up** fails because letter keys declare no SLIDE_UP. Gboard treats upward motion as moving onto
+  another key: past 0.8 of a key height it retargets, past about 0.3 inch beyond the edge it detaches
+  the finger from every key, and above the top row there is no key to move onto.
+
+A detached finger fails the `M()` checks that guard `handleActionUp`, so `Lpvi;->G` is never
+reached — and the move path stops writing the pointer's position at the same moment. Everything
+built on `G` inherits that blind spot: the old probe could not see the flicks most likely to
+succeed, and what it did report skewed short. None of the threshold, origin or corridor changes
+could help, because the check never ran for the common case.
+
+### Two further findings from the same review
+
+- **The real patch has never been able to fire.** It skips keys where `Lpvi;->j(SLIDE_UP)` is
+  non-null, meaning to spare keys with their own swipe-up symbol. But the lookup behind `j` falls
+  back to the key's PRESS action when there is no exact match, so on every letter key it is
+  non-null and the skip is always taken. The old `Lpvf;->t` emitter had the same guard. Every
+  success seen on a device was the diagnostic, which switched that guard off. The right question is
+  `SoftKeyDef.n(Lpmy;)`, which is what `ae()` uses.
+- **-10045 is Gboard's general UNDO**, the keycode Ctrl+Z sends. With no autocorrection to revert,
+  a swipe may undo the last edit instead of doing nothing. That is a product decision, not a bug.
+  **Decided 2026-09-30: accepted.** Swipe up is "undo". The rebuild does not need to consult the
+  edit tracker's armed state, which removes one piece of work from it.
+
+### Where detection moves
+
+The diagnostic now observes from the scrub engine's `g(MotionEvent)`: it measures from touchdown,
+reads the positions Android batches into each move event, tracks each pointer separately, and
+reports on every release. The real patch should follow once the diagnostic answers one question:
+on UP the key handler commits the letter before the scrub handler sees the event, so a claim has to
+happen mid-gesture. Does a real flick cross the threshold before the finger lifts?
+
+## The tooling gap that had to be fixed first (now fixed)
 
 **Nothing here reads what the patcher produced.** `preflight.py` takes the *stock* dex tree and the
 *stock* APK. `tools/gate` compiles the patches and pins Gboard. No lane has ever looked at a patched
@@ -413,7 +782,7 @@ taste instead of behaviour:
 The last one is not a joke. It is the one two releases failed, and it should be checked first every
 time.
 
-## Blast radius while this is in progress
+## Blast radius, recorded during the old fall-through build (historical)
 
 - The patch stays **default off** until it has been watched working, per `AGENTS.md`. Two releases
   reached only people who ticked it, which was luck rather than design.
@@ -421,7 +790,7 @@ time.
 - The currently shipped fall-through version works and types the key. That is a known, documented
   limitation and is a better state than broken — it stays until the replacement is confirmed.
 
-## Phases
+## Earlier phases, superseded by the staged rebuild above
 
 Each is a release on its own, smallest first, so a failure names itself.
 
@@ -454,7 +823,7 @@ gesture probe; fold the findings into `undo-autocorrect.md`.
 Phases 1 and 3 are the ones that can fail cheaply and informatively. Phase 0 is the one that makes
 all the others debuggable.
 
-## Open questions
+## Open questions as they stood in the earlier plan (some now answered above)
 
 - ~~Does Gboard instantiate handlers by reflection from the class name?~~ **Answered: no.** A
   44-entry compile-time map from name to provider, and a switch that constructs. See above. The

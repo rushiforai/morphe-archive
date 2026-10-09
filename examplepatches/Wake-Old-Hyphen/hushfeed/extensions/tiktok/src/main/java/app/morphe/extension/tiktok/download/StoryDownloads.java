@@ -158,7 +158,7 @@ public final class StoryDownloads {
      * own objects. Two at the shallowest level naming different stories is an answer nobody can
      * trust, so it is none.
      */
-    static Object boundParams(Object monitor) {
+    public static Object boundParams(Object monitor) {
         Set<Object> seen = Collections.newSetFromMap(new java.util.IdentityHashMap<>());
         seen.add(monitor);
         List<Object> level = Collections.singletonList(monitor);
@@ -274,7 +274,7 @@ public final class StoryDownloads {
         // then the story is fetched from whatever address it carries.
         // The same hand-off the save button gets, so one setting covers both.
         if (ExternalDownloader.handOff(aweme, context)) return true;
-        if (VideoDownloads.start(aweme, context)) return true;
+        if (VideoDownloads.start(aweme, context, false)) return true;
 
         List<List<String>> photos = OriginalPhotos.sources(aweme);
         List<String> video = photos.isEmpty()

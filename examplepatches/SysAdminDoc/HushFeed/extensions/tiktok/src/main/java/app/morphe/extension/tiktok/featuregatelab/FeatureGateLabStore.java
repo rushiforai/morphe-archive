@@ -53,8 +53,8 @@ public final class FeatureGateLabStore {
      * one generated from it. The version is unreadable only before the extension has a context,
      * when nothing is stored or shown; the newest catalog build stands in for it then.
      *
-     * <p>This was a constant, 47.0.3, carried on to 47.1.3 when that build was declared: the
-     * Lab called 47.1.3 by the older name, and every rule saved on one moved to the other
+     * <p>This was once a constant carried on to the next build when that one was declared: the
+     * Lab called the new build by the older name, and every rule saved on one moved to the other
      * unchecked.
      */
     public static String targetVersion() {
@@ -328,8 +328,9 @@ public final class FeatureGateLabStore {
      * Decode the entire backup before any setting or rule is changed.
      *
      * <p>Rules saved on another TikTok build come back as they are only where both builds'
-     * catalogs carry the gate unchanged; the rest come back turned off, marked so that storing
-     * them raises the Lab's notice. A backup, an undo copy or a journal entry can each be older
+     * catalogs carry the gate unchanged, or, from a build the catalog no longer has, where the
+     * running build's catalog carries it (FeatureGateCatalog.compatibleRuleIds); the rest come
+     * back turned off, marked so that storing them raises the Lab's notice. A backup, an undo copy or a journal entry can each be older
      * than the build now running, and none of them may put another build's rule back on.
      */
     public static List<Rule> parseSettings(JSONObject root) throws JSONException {
@@ -363,9 +364,10 @@ public final class FeatureGateLabStore {
     }
 
     /**
-     * [rules], saved on [build], as they may stand on the running build: each one whose gate the
-     * two builds' catalogs don't hold identically is turned off and marked. The same answer for
-     * the same input, so a journal's expected state and the store it is compared with agree.
+     * [rules], saved on [build], as they may stand on the running build: each one
+     * FeatureGateCatalog.compatibleRuleIds doesn't carry over is turned off and marked. The same
+     * answer for the same input, so a journal's expected state and the store it is compared with
+     * agree.
      */
     static List<Rule> forRunningBuild(String build, List<Rule> rules) {
         String running = targetVersion();
@@ -378,7 +380,7 @@ public final class FeatureGateLabStore {
         return result;
     }
 
-    /** The rules whose gates [from] and [to] both carry, identically, or none when either can't be read. */
+    /** The rules that carry from [from] to [to] as they are, or none when a catalog can't be read. */
     private static java.util.Set<String> compatibleRuleIds(String from, String to, List<Rule> rules) {
         try {
             return FeatureGateCatalog.compatibleRuleIds(from, to, rules);
@@ -826,11 +828,14 @@ public final class FeatureGateLabStore {
      *
      * <p>A rule stays as it was only where the catalogs of the build it was saved on and of this
      * one carry its gate identically: the same manager, key and type, the same default and
-     * provenance, and for a SettingsManager read the same model class and default. Every other
-     * enabled rule is turned off and counted for the Lab's notice, including all of them when
-     * either build has no catalog to compare. The master switch stays as it was, so what did
-     * carry over keeps working. Until 2026-09-27 this turned everything off on any change of
-     * build, and the Lab called both declared builds 47.0.3, so it never ran on 47.1.3 at all.
+     * provenance, and for a SettingsManager read the same model class and default. The bundle
+     * declares only the newest build, so the one a user moves from is usually no longer in the
+     * catalog: then a rule stays where this build's catalog carries its gate under the same
+     * manager, key and type, unless it is a SettingsManager read through a model class R8
+     * renamed. Every other enabled rule is turned off and counted for the Lab's notice,
+     * including all of them when this build has no catalog. The master switch stays as it was,
+     * so what did carry over keeps working. Until 2026-09-27 this turned everything off on any
+     * change of build, and the Lab called two declared builds by one name.
      */
     private static synchronized void ensureTargetVersion(SharedPreferences prefs) {
         String storedVersion = prefs.getString(STORED_TARGET_VERSION_KEY, "");

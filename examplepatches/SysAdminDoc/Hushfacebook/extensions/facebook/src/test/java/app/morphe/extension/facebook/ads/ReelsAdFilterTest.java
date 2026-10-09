@@ -120,6 +120,37 @@ public class ReelsAdFilterTest {
         assertSame(page, ReelsAdFilter.withoutAds(page, AD));
     }
 
+    /**
+     * 581's client-side Reels loader puts a reel in on its own (#47). The patch hands that item over
+     * as a one-item page and skips the insert when the answer is empty, so an ad comes back empty and
+     * a reel comes back as the same list.
+     */
+    @Test
+    public void aOneItemInsertOfAnAdComesBackEmptyAndOfAReelUntouched() {
+        assertTrue(ReelsAdFilter.withoutAds(Collections.singletonList(new VideoAd()), AD).isEmpty());
+
+        List<Object> reel = Collections.singletonList(new Reel());
+        assertSame(reel, ReelsAdFilter.withoutAds(reel, AD));
+    }
+
+    /**
+     * The listener walk after an insert is handed the page as Facebook passed it in, so it sees an ad
+     * the insert already dropped. It still takes the ad out, but counts on its own route, and the
+     * pages route counts the page once.
+     */
+    @Test
+    public void theListenerWalkCountsApartFromTheInsert() {
+        List<Object> page = Arrays.asList(new Reel(), new VideoAd());
+
+        assertEquals(1, ReelsAdFilter.withoutAds(page, AD).size());
+        assertEquals(1, ReelsAdFilter.withoutAnnouncedAds(page, AD).size());
+
+        assertEquals(ReelsAdFilter.PAGES_ROUTE + ": 1 lists, 2 items, 1 removed. Last reason: ad item. "
+                + "Removed: ad item 1. Kinds: ad item 1, not a reel item 1", counterLine(ReelsAdFilter.PAGES_ROUTE));
+        assertEquals(ReelsAdFilter.ANNOUNCED_ROUTE + ": 1 lists, 2 items, 1 removed. Last reason: ad item. "
+                + "Removed: ad item 1. Kinds: ad item 1, not a reel item 1", counterLine(ReelsAdFilter.ANNOUNCED_ROUTE));
+    }
+
     @Test
     public void aSectionLosesItsAdsAndAnEmptiedSectionGoes() {
         Reel reel = new Reel();

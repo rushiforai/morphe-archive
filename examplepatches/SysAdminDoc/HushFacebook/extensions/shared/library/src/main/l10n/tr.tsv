@@ -156,9 +156,9 @@ Pause Hushfacebook	Hushfacebook'u duraklat
 Posts Facebook files as promotions rather than as ads.	Facebook'un reklam yerine tanıtım olarak saydığı gönderiler.
 Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.	Takip etmediğin kişi ve sayfalardan ve katılmadığın gruplardan Facebook'un akışına kattığı gönderiler.
 Posts that Facebook's own detection marks as made with AI. A post that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real feed yet.	Facebook'un kendi tespitinin yapay zekâ ile üretildiğini işaretlediği gönderiler. Yalnızca oluşturan kişinin yapay zekâ olarak etiketlediği bir gönderi kalır. Bu anahtar henüz gerçek bir akışta test edilmediği için varsayılan olarak kapalıdır.
-Profiles and some Settings pages open again on this re-signed build.	Profiller ve bazı Ayarlar sayfaları bu yeniden imzalanmış sürümde tekrar açılır.
-Profiles and some Settings pages won't open	Profiller ve bazı Ayarlar sayfaları açılmayacak
-Patch again with %1$s selected. Re-signed builds need it for profiles and some Facebook Settings pages.	%1$s seçiliyken yeniden yamala. Yeniden imzalanmış sürümler profiller ve bazı Facebook Ayarları sayfaları için buna ihtiyaç duyar.
+Profiles, photos, posts and some Settings pages open again on this re-signed build.	Profiller, fotoğraflar, gönderiler ve bazı Ayarlar sayfaları bu yeniden imzalanmış sürümde tekrar açılır.
+Profiles, photos and posts won't open	Profiller, fotoğraflar ve gönderiler açılmayacak
+Patch again with %1$s selected. Re-signed builds need it to open profiles, photos, posts and some Facebook Settings pages.	%1$s seçiliyken yeniden yamala. Yeniden imzalanmış sürümler profilleri, fotoğrafları, gönderileri ve bazı Facebook Ayarları sayfalarını açmak için buna ihtiyaç duyar.
 Re-signed build fix	Yeniden imzalanmış sürüm düzeltmesi
 Reading the settings file	Ayar dosyası okunuyor
 Reels and Watch	Reels ve Watch
@@ -355,7 +355,7 @@ Facebook will open on %1$s.	Facebook %1$s sekmesinde açılacak.
 # context: switch title under Opening Facebook; Following is Facebook's feed of the friends, Pages and groups you follow, and Home is the tab
 Following feed on Home	Ana Sayfa'da Takip Edilenler akışı
 # context: summary of that switch; the ranked feed is the one Facebook orders for you, and the Feeds tab has its own filters
-Home loads Facebook's Following feed instead of the ranked one. The Feeds tab's filters stay as they are.	Ana Sayfa, sıralanmış akış yerine Facebook'un Takip Edilenler akışını yükler. Akışlar sekmesinin filtreleri olduğu gibi kalır.
+Home loads the newest posts from the friends, groups and Pages you follow, like the Feeds tab's All. The Feeds tab's filters stay as they are.	Ana Sayfa, takip ettiğin arkadaşların, grupların ve Sayfaların en yeni gönderilerini Akışlar sekmesindeki Tümü gibi yükler. Akışlar sekmesinin filtreleri olduğu gibi kalır.
 Jump to a section	Bir bölüme git
 Go straight to one group of settings. Back returns to where you were.	Doğrudan bir ayar grubuna git. Geri, bulunduğun yere döndürür.
 # context: switch title under Downloads; on, every video save keeps to formats other apps accept
@@ -395,6 +395,8 @@ Hide Upgrades	“Yükseltmeler” bölümünü gizle
 The Upgrades section and its offers leave Facebook's Menu. Settings, Help and support and the rest of the Menu stay.	“Yükseltmeler” bölümü ve teklifleri Facebook menüsünden kalkar. Ayarlar, Yardım ve destek ve menünün geri kalanı yerinde kalır.
 # context: switch title under Menu; Also from Meta is the name of a section in Facebook's own Menu
 Hide Also from Meta	“Meta'dan diğerleri” bölümünü gizle
+Hide the Muse card	Muse kartını gizle
+The Muse card, Meta's ad for its AI agent app, leaves the top of Facebook's Menu.	Muse kartı, Meta'nın yapay zekâ asistanı uygulamasının reklamı, Facebook menüsünün üstünden kalkar.
 # context: summary of that switch; the section links to Meta's other apps and shows ads for its devices
 The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps and its ads for Meta's devices. Your own shortcuts stay.	“Meta'dan diğerleri” bölümü, Meta'nın diğer uygulamalarına giden bağlantıları ve Meta cihazlarının reklamlarıyla birlikte Facebook menüsünden kalkar. Kendi kısayolların yerinde kalır.
 # context: section title for the search settings, named like Facebook's own search
@@ -425,6 +427,8 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 Open every reply thread	Tüm yanıt dizilerini aç
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
 Comments show their replies right away, so there's no View replies to tap.	Yorumlar yanıtlarını hemen gösterir, Yanıtları gör'e dokunman gerekmez.
+Hide related groups	İlgili grupları gizle
+A group post's comments end without the Related groups list and its Join buttons.	Bir grup gönderisinin yorumları, İlgili gruplar listesi ve Katıl düğmeleri olmadan biter.
 # context: row title under Comments that opens Facebook's own settings; reaction counts are the numbers next to the reactions on a post
 Hide reaction counts	Tepki sayılarını gizle
 # context: summary of that row; Preferences and Reaction preferences are the names Facebook's own settings use
@@ -713,7 +717,7 @@ Holding a reel plays it at double speed until you let go, in place of Facebook's
 # context: label of a switch under Hold a reel for 2x that keeps the hold to the reel's right edge
 Only on the right edge	Yalnızca sağ kenarda
 # context: summary of that switch; the right third is the right-hand third of the reel's width, the long-press menu is Facebook's menu on a long press
-With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook does what it always does, usually its long-press menu.	Yukarıdaki anahtar açıkken bir reel yalnızca sağdaki üçte birine basılı tutarsan iki kat hızda oynar. Başka bir yere basılı tutarsan Facebook her zamanki gibi davranır, genellikle uzun basma menüsünü açar.
+With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook's long-press menu opens.	Yukarıdaki anahtar açıkken bir reel yalnızca sağdaki üçte birine basılı tutarsan iki kat hızda oynar. Başka bir yere basılı tutarsan Facebook'un uzun basma menüsü açılır.
 Default playback quality	Varsayılan oynatma kalitesi
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Videoları, Reels'i ve hikayeleri aşağıdaki kalitede oynatın. Bir videonun kendi menüsünde seçilen kalite yine önceliklidir.
 Playback quality	Oynatma kalitesi

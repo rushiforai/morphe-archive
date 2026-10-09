@@ -3,10 +3,11 @@
     "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
     "types": ["@cloudflare/workers-types"],
     "strict": true,
     "skipLibCheck": true,
     "noEmit": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "worker-configuration.d.ts", "../patches-list.json"]
 }

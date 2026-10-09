@@ -15,7 +15,6 @@ import app.hushmessenger.patches.controls.PROFILE_346213494
 import app.hushmessenger.patches.controls.controlProfileFor
 import app.hushmessenger.patches.controls.hookId
 import app.hushmessenger.patches.controls.resolveShortcutsPath
-import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
@@ -27,8 +26,18 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
+import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.PayloadInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.SwitchPayload
+import com.android.tools.smali.dexlib2.iface.instruction.ThreeRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -38,6 +47,10 @@ internal const val CLONE_DEFAULT_PACKAGE = "com.facebook.orca.hush"
 internal const val CLONE_DEFAULT_LABEL = "Messenger Clone"
 private const val ORIGINAL = MessengerTarget.PACKAGE
 private const val GET_PACKAGE_NAME = "Landroid/content/Context;->getPackageName()Ljava/lang/String;"
+private const val SET_PACKAGE = "Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;"
+/** The story link button's check that a package is installed, and its store page intent for one. */
+private const val INSTALLED_CHECK = "(Landroid/content/pm/PackageManager;Ljava/lang/String;)Z"
+private const val STORE_PAGE = "(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Landroid/content/Intent;"
 /** Messenger picks its encrypted-backup preferences by its own package name and throws on any other. */
 internal const val BACKUP_PREFS = "autobackupprefs"
 internal const val FACEBOOK_BACKUP_PREFS = "fbautobackupprefs"
@@ -193,22 +206,112 @@ internal fun Method.isAttachmentCheck() = AccessFlags.STATIC.isSet(accessFlags) 
     parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;") &&
     literals().let { it.count { s -> s == TAM_AUTHORITY } == 1 && TAM_SUFFIX in it && FACEBOOK_TAM_AUTHORITY in it }
 
-internal fun findCloneSites(classes: Iterable<ClassDef>): Set<String> = classes.flatMap { it.methods }
-    .filter { it.isBackupLookup() || it.isAttachmentCheck() }.map { it.hookId() }.toSet()
+private fun Instruction.ownName() = (opcode == Opcode.CONST_STRING || opcode == Opcode.CONST_STRING_JUMBO) &&
+    ((this as ReferenceInstruction).reference as StringReference).string == ORIGINAL
 
-/** Each build family's backup lookup and attachment check. The native test checks them on all 37 builds. */
+private fun Instruction.registers(): List<Int> = when (this) {
+    is FiveRegisterInstruction -> listOf(registerC, registerD, registerE, registerF, registerG).take(registerCount)
+    is RegisterRangeInstruction -> (startRegister until startRegister + registerCount).toList()
+    else -> emptyList()
+}
+
+private fun Instruction.writes(register: Int): Boolean {
+    if (!opcode.setsRegister()) return false
+    val written = (this as OneRegisterInstruction).registerA
+    return written == register || opcode.setsWideRegister() && written + 1 == register
+}
+
+private val WIDE = Regex("wide|long|double")
+
+/** Wide operands are counted as pairs, so a long or double next to the register reads as a use and stops the patch. */
+private fun Instruction.reads(register: Int): Boolean {
+    val operands = registers().toMutableList()
+    if (this is OneRegisterInstruction && (!opcode.setsRegister() || opcode == Opcode.CHECK_CAST || opcode.name.endsWith("/2addr"))) operands += registerA
+    if (this is TwoRegisterInstruction) operands += registerB
+    if (this is ThreeRegisterInstruction) operands += registerC
+    val wide = WIDE.containsMatchIn(opcode.name)
+    return operands.any { it == register || wide && it + 1 == register }
+}
+
+/** Redex's string pools: static methods that switch on an int straight to a constant. The keys that give Messenger's name. */
+internal fun ownNamePoolKeys(classes: Iterable<ClassDef>): Set<String> = classes.flatMap { it.methods }.flatMap { method ->
+    if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.returnType != "Ljava/lang/String;" ||
+        method.parameterTypes.map { it.toString() } != listOf("I")) return@flatMap emptyList()
+    val code = method.implementation?.instructions?.toList().orEmpty()
+    val switch = code.firstOrNull()?.takeIf { it.opcode == Opcode.PACKED_SWITCH || it.opcode == Opcode.SPARSE_SWITCH } as? OffsetInstruction
+        ?: return@flatMap emptyList()
+    val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+    val indexAt = code.indices.associateBy { addresses[it] }
+    val payload = indexAt[switch.codeOffset]?.let(code::get) as? SwitchPayload ?: return@flatMap emptyList()
+    payload.switchElements.filter { case ->
+        val at = indexAt[case.offset] ?: return@filter false
+        code[at].ownName() && code.getOrNull(at + 1)?.let {
+            it.opcode == Opcode.RETURN_OBJECT && (it as OneRegisterInstruction).registerA == (code[at] as OneRegisterInstruction).registerA
+        } == true
+    }.map { "${method.hookId()}#${it.key}" }
+}.toSet()
+
+/**
+ * Where the setPackage call at [call] last loaded its package name, if that's Messenger's own: a constant, or the result
+ * of a string pool lookup by a constant key. Null for any other call or name.
+ */
+private fun List<Instruction>.ownNameLoad(call: Int, pools: Set<String>): Int? {
+    val invoke = getOrNull(call) ?: return null
+    val target = (invoke as? ReferenceInstruction)?.reference as? MethodReference
+    if (invoke.opcode != Opcode.INVOKE_VIRTUAL || target?.name != "setPackage" || target.toString() != SET_PACKAGE) return null
+    val register = invoke.registers()[1]
+    val load = (call - 1 downTo 0).firstOrNull { this[it].writes(register) } ?: return null
+    if (this[load].ownName()) return load
+    if (this[load].opcode != Opcode.MOVE_RESULT_OBJECT || load == 0) return null
+    val lookup = this[load - 1]
+    val pool = (lookup as? ReferenceInstruction)?.reference as? MethodReference ?: return null
+    if (lookup.opcode != Opcode.INVOKE_STATIC || lookup.registers().size != 1) return null
+    val key = (load - 2 downTo 0).firstOrNull { this[it].writes(lookup.registers()[0]) }?.let(::get)
+        ?.takeIf { it.opcode in setOf(Opcode.CONST_4, Opcode.CONST_16, Opcode.CONST, Opcode.CONST_HIGH16) } as? NarrowLiteralInstruction
+    return load.takeIf { key != null && "$pool#${key.narrowLiteral}" in pools }
+}
+
+/** Every setPackage call in [this] that gets Messenger's own name, by instruction index. */
+private fun Method.selfIntentCalls(pools: Set<String>): List<Int> {
+    val code = implementation?.instructions?.toList() ?: return emptyList()
+    return code.indices.filter { code.ownNameLoad(it, pools) != null }
+}
+
+/** The backup lookup and attachment check by method, and each setPackage call that sends Messenger to itself by method and index. */
+internal fun findCloneSites(classes: Iterable<ClassDef>, pools: Set<String> = ownNamePoolKeys(classes)): Set<String> =
+    classes.flatMap { it.methods }.flatMap { method ->
+        val calls = method.selfIntentCalls(pools)
+        val pinned = method.isBackupLookup() || method.isAttachmentCheck()
+        if (calls.isEmpty() && !pinned) emptyList() else (if (pinned) listOf(method.hookId()) else emptyList()) + calls.map { "${method.hookId()}@$it" }
+    }.toSet()
+
+private const val ATTACHMENT_CHECK = "->A00(Ljava/lang/String;)Z"
+private const val BROADCAST = "->A00(Landroid/content/Intent;Landroid/content/Context;)V"
+private const val NOTIFICATION = "->A04(Landroid/os/Bundle;)"
+private const val CLICK = "->onClick(Landroid/view/View;)V"
+
+/**
+ * Each build family's backup lookup and attachment check, then every setPackage call that sends Messenger to itself:
+ * the in-app broadcast sender, the push notification's click and link intents, the bulk delete link in the inbox and
+ * the story link button. The native test checks them on all 37 builds.
+ */
 internal fun expectedCloneSitesFor(versionCode: String): Set<String> {
     validateVersionCode(versionCode)
-    val (lookup, check) = when (controlProfileFor(versionCode)) {
-        BASE_PROFILE -> "LX/E6y;" to "LX/4M6;"
-        PROFILE_346013370 -> "LX/VLY;" to "LX/4MB;"
-        PROFILE_346013423 -> "LX/JJK;" to "LX/4PA;"
-        PROFILE_346013357 -> "LX/E6T;" to "LX/4M0;"
-        PROFILE_346013374 -> "LX/VFG;" to "LX/4Ny;"
-        PROFILE_346213494 -> "LX/E9W;" to "LX/4Di;"
+    return when (controlProfileFor(versionCode)) {
+        BASE_PROFILE -> setOf("LX/E6y;-><init>()V", "LX/4M6;$ATTACHMENT_CHECK", "LX/38C;$BROADCAST@1", "LX/6dH;${NOTIFICATION}LX/9KW;@229",
+            "LX/6dH;${NOTIFICATION}LX/9KW;@325", "LX/BCT;$CLICK@82", "LX/JgF;$CLICK@164")
+        PROFILE_346013370 -> setOf("LX/VLY;-><init>()V", "LX/4MB;$ATTACHMENT_CHECK", "LX/38E;$BROADCAST@1", "LX/6bn;${NOTIFICATION}LX/9Iv;@229",
+            "LX/6bn;${NOTIFICATION}LX/9Iv;@325", "LX/BAG;$CLICK@82", "LX/PZK;$CLICK@67")
+        PROFILE_346013423 -> setOf("LX/JJK;-><init>()V", "LX/4PA;$ATTACHMENT_CHECK", "LX/39i;$BROADCAST@1", "LX/6dK;${NOTIFICATION}LX/9LJ;@229",
+            "LX/6dK;${NOTIFICATION}LX/9LJ;@327", "LX/BE9;$CLICK@82", "LX/ED8;$CLICK@166")
+        PROFILE_346013357 -> setOf("LX/E6T;-><init>()V", "LX/4M0;$ATTACHMENT_CHECK", "LX/38E;$BROADCAST@1", "LX/6cr;${NOTIFICATION}LX/9K6;@229",
+            "LX/6cr;${NOTIFICATION}LX/9K6;@325", "LX/BC3;$CLICK@82", "LX/Jfb;$CLICK@164")
+        PROFILE_346013374 -> setOf("LX/VFG;-><init>()V", "LX/4Ny;$ATTACHMENT_CHECK", "LX/38F;$BROADCAST@1", "LX/6do;${NOTIFICATION}LX/9L0;@229",
+            "LX/6do;${NOTIFICATION}LX/9L0;@327", "LX/BCM;$CLICK@82", "LX/PLK;$CLICK@63")
+        PROFILE_346213494 -> setOf("LX/E9W;-><init>()V", "LX/4Di;$ATTACHMENT_CHECK", "LX/38G;$BROADCAST@1", "LX/8fw;${NOTIFICATION}LX/9Op;@228",
+            "LX/8fw;${NOTIFICATION}LX/9Op;@324", "LX/BCY;$CLICK@81", "LX/JTZ;$CLICK@168")
         else -> fail("version code $versionCode has no checked clone sites")
     }
-    return setOf("$lookup-><init>()V", "$check->A00(Ljava/lang/String;)Z")
 }
 
 private fun Method.register(index: Int, what: String): Int {
@@ -238,16 +341,97 @@ internal fun Method.attachmentSite(): Pair<Int, Int> {
 }
 
 /**
- * Ported from the auto-restore crash fix: the lookup sees Messenger's name and keeps Messenger's backup preferences,
- * and the attachment check accepts the clone's own provider in place of Messenger's.
+ * Every instruction that can read what [register] holds right after [load], following branches, switch cases and catch
+ * handlers until something overwrites it.
  */
-internal fun applyCloneSites(lookup: MutableMethod, check: MutableMethod, newPackage: String) {
+internal fun Method.readersOf(load: Int, register: Int): List<Int> {
+    val implementation = implementation!!
+    val code = implementation.instructions.toList()
+    val addresses = code.runningFold(0) { address, instruction -> address + instruction.codeUnits }
+    val indexAt = code.indices.associateBy { addresses[it] }
+    fun at(address: Int) = indexAt[address] ?: fail("${hookId()} jumps into the middle of an instruction")
+    val readers = sortedSetOf<Int>()
+    val seen = mutableSetOf<Int>()
+    val pending = ArrayDeque(listOf(load + 1))
+    while (pending.isNotEmpty()) {
+        val index = pending.removeFirst()
+        if (index >= code.size || !seen.add(index)) continue
+        val instruction = code[index]
+        if (instruction is PayloadInstruction) continue
+        // A throwing instruction leaves the register as it was for its catch handler, even one that would overwrite it.
+        if (instruction.opcode.canThrow()) implementation.tryBlocks
+            .filter { addresses[index] >= it.startCodeAddress && addresses[index] < it.startCodeAddress + it.codeUnitCount }
+            .forEach { block -> block.exceptionHandlers.forEach { pending.add(at(it.handlerCodeAddress)) } }
+        if (instruction.reads(register)) readers += index
+        if (instruction.writes(register)) continue
+        if (instruction is OffsetInstruction && instruction.opcode != Opcode.FILL_ARRAY_DATA) {
+            val landing = at(addresses[index] + instruction.codeOffset)
+            if (instruction.opcode == Opcode.PACKED_SWITCH || instruction.opcode == Opcode.SPARSE_SWITCH) {
+                // Case offsets count from the switch instruction, not from its payload.
+                (code[landing] as? SwitchPayload ?: fail("${hookId()} has a switch without its table"))
+                    .switchElements.forEach { pending.add(at(addresses[index] + it.offset)) }
+            } else pending.add(landing)
+        }
+        if (instruction.opcode.canContinue()) pending.add(index + 1)
+    }
+    return readers.toList()
+}
+
+/** What an instruction does with Messenger's name: sends an intent to it, checks it's installed, or opens its store page. */
+private fun Instruction.ownNameUse(register: Int): String? {
+    val method = (this as? ReferenceInstruction)?.reference as? MethodReference ?: return null
+    if (registers().indexOf(register) != 1 || registers().count { it == register } != 1) return null
+    val prototype = method.parameterTypes.joinToString("", "(", ")") + method.returnType
+    return when {
+        opcode == Opcode.INVOKE_VIRTUAL && method.toString() == SET_PACKAGE -> "setPackage"
+        opcode == Opcode.INVOKE_STATIC && prototype == INSTALLED_CHECK -> "installed"
+        (opcode == Opcode.INVOKE_VIRTUAL || opcode == Opcode.INVOKE_VIRTUAL_RANGE) && prototype == STORE_PAGE -> "store"
+        else -> null
+    }
+}
+
+/**
+ * Where the setPackage call at [call] loads Messenger's name, and the register it lands in. Nothing else may read that
+ * name, except the story link button's check that the app is installed and its store page fallback. Those ask about the
+ * running app too, so they follow the clone with it.
+ */
+internal fun Method.selfIntentSite(call: Int, pools: Set<String>): Pair<Int, Int> {
+    val code = implementation?.instructions?.toList() ?: fail("${hookId()} has no code")
+    val load = code.ownNameLoad(call, pools) ?: fail("${hookId()}@$call no longer sends to Messenger's own package")
+    val register = register(load, "its package name")
+    val readers = readersOf(load, register)
+    val uses = readers.map { code[it].ownNameUse(register) }
+    if (readers.lastOrNull() != call || uses != listOf("setPackage") && uses != listOf("installed", "store", "setPackage")) {
+        fail("${hookId()} uses Messenger's name for more than the intent at $call")
+    }
+    return load to register
+}
+
+/**
+ * Ported from the auto-restore crash fix: the lookup sees Messenger's name and keeps Messenger's backup preferences,
+ * and the attachment check accepts the clone's own provider in place of Messenger's. Each setPackage call that sends
+ * Messenger to itself sends to the clone instead, so the clone's own receivers and screens get its broadcasts and links.
+ */
+internal fun applyCloneSites(
+    lookup: MutableMethod,
+    check: MutableMethod,
+    newPackage: String,
+    selfIntents: List<Pair<MutableMethod, Int>> = emptyList(),
+    pools: Set<String> = emptySet(),
+) {
     if (!isClonePackage(newPackage)) fail("$newPackage can't be used as a package name")
-    // Both sites pass before either changes.
+    if (selfIntents.map { (method, call) -> method.hookId() to call }.toSet().size != selfIntents.size) fail("an intent site is listed twice")
+    // Every site passes before any changes.
     val (lookupAt, lookupRegister) = lookup.backupLookupSite()
     val (checkAt, checkRegister) = check.attachmentSite()
+    val loads = selfIntents.map { (method, call) -> method to method.selfIntentSite(call, pools) }
     lookup.addInstruction(lookupAt, "const-string/jumbo v$lookupRegister, \"$ORIGINAL\"")
     check.replaceInstruction(checkAt, "const-string/jumbo v$checkRegister, \"$newPackage$TAM_SUFFIX\"")
+    // In place of the constant, or of the pool lookup's result, so labels stay put. Last first, as a longer instruction
+    // can move the padding before a switch table.
+    for ((method, site) in loads.sortedByDescending { it.second.first }) {
+        method.replaceInstruction(site.first, "const-string/jumbo v${site.second}, \"$newPackage\"")
+    }
 }
 
 private class CloneRequest(val packageName: String, val label: String)
@@ -309,11 +493,17 @@ val cloneInstallPatch = bytecodePatch(
         val target = packageName?.takeIf(::isClonePackage) ?: fail("$packageName can't be used as a package name")
         val label = appLabel?.takeIf(::isCloneLabel) ?: fail("\"$appLabel\" can't be used as an app name")
         val expected = expectedCloneSitesFor(packageMetadata.versionCode)
-        val candidates = listOf(FACEBOOK_BACKUP_PREFS, TAM_AUTHORITY)
-            .flatMap { classDefByStrings(it, StringComparisonType.EQUALS) }.distinctBy { it.type }
-        if (findCloneSites(candidates) != expected) fail("the backup lookup or attachment check differs from the tested build")
-        val methods = expected.map { id -> mutableClassDefBy(id.substringBefore("->")).methods.single { it.hookId() == id } }
-        applyCloneSites(methods.single { it.name == "<init>" }, methods.single { it.name != "<init>" }, target)
+        // The story link button gets Messenger's name from a string pool in some builds, so every class is read.
+        val classes = mutableListOf<ClassDef>().apply { classDefForEach { add(it) } }
+        val pools = ownNamePoolKeys(classes)
+        if (findCloneSites(classes, pools) != expected) {
+            fail("the backup lookup, attachment check or Messenger's intents to itself differ from the tested build")
+        }
+        val methods = expected.map { it.substringBefore('@') }.distinct()
+            .associateWith { id -> mutableClassDefBy(id.substringBefore("->")).methods.single { it.hookId() == id } }
+        val (calls, checks) = expected.partition { '@' in it }
+        applyCloneSites(methods.getValue(checks.single { it.endsWith("-><init>()V") }), methods.getValue(checks.single { it.endsWith(ATTACHMENT_CHECK) }),
+            target, calls.map { methods.getValue(it.substringBefore('@')) to it.substringAfter('@').toInt() }, pools)
         requestClone(target, label)
     }
 }

@@ -44,8 +44,6 @@ class MenuSectionsFixtureTest {
      */
     private val headerLabel = mapOf(
         "581.0.0.45.58" to 0x7f14044e,
-        "580.0.0.51.74" to 0x7f140436,
-        "577.0.0.50.72" to 0x7f14042d,
     )
 
     private val testKeys = listOf(UPGRADES_TEST_KEY, ALSO_FROM_META_TEST_KEY)

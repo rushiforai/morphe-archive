@@ -64,6 +64,8 @@ public final class FamilyNames {
     public static final String HIDE_BLOCKED_IN_GROUPS = "Hide blocked users in groups";
     public static final String HIDE_FEATURES_AND_INVITE = "Hide Telegram Features and Invite Friends";
     public static final String MESSAGE_MENU_REPEAT = "Add Repeat to the message menu";
+    public static final String KEEP_DELETED_MESSAGES = "Keep deleted messages";
+    public static final String ASK_BEFORE_STICKER = "Ask before sending a sticker";
     public static final String DISABLE_ANALYTICS = "Disable analytics";
     public static final String DISABLE_CALL_DEBUG = "Disable call debug upload";
     public static final String DISABLE_DRAFT_PREVIEWS = "Disable draft link previews";

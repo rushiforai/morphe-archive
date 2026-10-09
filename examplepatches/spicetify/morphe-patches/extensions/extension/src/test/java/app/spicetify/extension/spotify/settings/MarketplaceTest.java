@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.json.JSONException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
@@ -49,6 +50,42 @@ public class MarketplaceTest {
         assertEquals("spicetify-galaxy", repo.name);
         assertEquals("main", repo.branch);
         assertEquals(612, repo.stars);
+    }
+
+    @Test
+    public void readsEachRepositorysDescriptionFromTheSearch() throws Exception {
+        Marketplace.Page page = Marketplace.parseSearch("{\"total_count\":2,\"items\":["
+                + "{\"full_name\":\"o/lyrics\",\"default_branch\":\"main\",\"html_url\":\"https://github.com/o/lyrics\","
+                + "\"stargazers_count\":5,\"description\":\" Shows lyrics \"},"
+                + "{\"full_name\":\"o/bare\",\"default_branch\":\"main\",\"html_url\":\"https://github.com/o/bare\","
+                + "\"stargazers_count\":1,\"description\":null}]}");
+        assertEquals("Shows lyrics", page.repos.get(0).description);
+        assertEquals("", page.repos.get(1).description);
+    }
+
+    @Test
+    public void anExtensionWithoutAnAndroidVersionComesFromItsSearchResult() {
+        Marketplace.Repo repo = new Marketplace.Repo("o", "lyrics", "main", "https://github.com/o/lyrics", 5, "Shows lyrics");
+        Marketplace.Theme lyrics = Marketplace.desktopOnly(repo, 3);
+        assertEquals("lyrics", lyrics.title);
+        assertEquals("Shows lyrics", lyrics.description);
+        assertEquals("o", lyrics.author);
+        assertEquals(5, lyrics.stars);
+        assertEquals(3000, lyrics.order);
+        assertEquals("https://github.com/o/lyrics", lyrics.repoUrl);
+        assertEquals(Collections.singletonList("o"), lyrics.keywords);
+        assertEquals("o/lyrics", lyrics.extension);
+        assertNull(lyrics.schemesUrl);
+        assertNull(lyrics.previewUrl);
+    }
+
+    @Test
+    public void putsExtensionsWithAnAndroidVersionFirst() {
+        Marketplace.Theme lyrics = Marketplace.desktopOnly(
+                new Marketplace.Repo("o", "lyrics", "main", "https://github.com/o/lyrics", 900, "Shows lyrics"), 0);
+        Marketplace.Theme trash = new Marketplace.Theme("Trash Bin", "d", "spicetify", null, null, "https://github.com/spicetify/cli",
+                5, 1000, Collections.emptyList(), null, null, Collections.emptyList(), "spicetify/cli/Extensions/trashbin.js");
+        assertEquals(Arrays.asList(trash, lyrics), Marketplace.sorted(Arrays.asList(lyrics, trash)));
     }
 
     @Test
@@ -85,12 +122,37 @@ public class MarketplaceTest {
                 + "{\"name\":\"No schemes\",\"description\":\"b\",\"usercss\":\"b.css\"},"
                 + "{\"name\":\"Extension\",\"description\":\"c\",\"main\":\"c.js\"},"
                 + "{\"name\":\"B\",\"description\":\"b\",\"usercss\":\"b.css\",\"schemes\":\"themes/B/color.ini\",\"branch\":\"dev\"}]", GALAXY, 3);
-        assertEquals(2, many.size());
+        assertEquals(3, many.size());
         assertEquals("https://example.com/a.ini", many.get(0).schemesUrl);
         assertNull(many.get(0).previewUrl);
         assertEquals("harbassan", many.get(0).author);
-        assertEquals("https://raw.githubusercontent.com/harbassan/spicetify-galaxy/dev/themes/B/color.ini", many.get(1).schemesUrl);
+        assertNull(many.get(0).extension);
+        assertEquals("Extension", many.get(1).title);
+        assertNull(many.get(1).schemesUrl);
+        assertEquals("harbassan/spicetify-galaxy/c.js", many.get(1).extension);
+        assertEquals("https://raw.githubusercontent.com/harbassan/spicetify-galaxy/dev/themes/B/color.ini", many.get(2).schemesUrl);
         assertTrue(many.get(0).order < many.get(1).order);
+        assertTrue(many.get(1).order < many.get(2).order);
+    }
+
+    @Test
+    public void readsExtensionItems_andAnItemThatIsBothBecomesTwo() throws Exception {
+        Marketplace.Repo cli = new Marketplace.Repo("spicetify", "cli", "main", "https://github.com/spicetify/cli", 20000);
+        List<Marketplace.Theme> items = Marketplace.parseManifest("[{\"name\":\"Trash Bin\",\"description\":\"Throw songs\","
+                + "\"preview\":\"https://i.imgur.com/t.png\",\"main\":\"./Extensions/trashbin.js\"},"
+                + "{\"name\":\"Both\",\"description\":\"d\",\"usercss\":\"u.css\",\"schemes\":\"c.ini\",\"main\":\"both.js\"},"
+                + "{\"name\":\"No main\",\"description\":\"d\",\"main\":\"\"}]", cli, 1);
+        assertEquals(3, items.size());
+        Marketplace.Theme trash = items.get(0);
+        assertEquals("spicetify/cli/Extensions/trashbin.js", trash.extension); // without the leading ./
+        assertEquals("https://i.imgur.com/t.png", trash.previewUrl);
+        assertEquals("https://github.com/spicetify/cli", trash.repoUrl);
+        assertEquals(20000, trash.stars);
+        assertEquals("Both", items.get(1).title);
+        assertNull(items.get(1).extension);
+        assertEquals("Both", items.get(2).title);
+        assertEquals("spicetify/cli/both.js", items.get(2).extension);
+        assertEquals(items.get(1).order, items.get(2).order);
     }
 
     @Test
@@ -190,11 +252,11 @@ public class MarketplaceTest {
 
     @Test
     public void sortsByMostStarsThenGitHubAndManifestOrder() {
-        Marketplace.Theme first = new Marketplace.Theme("a", "d", "o", null, "s", "r", 9, 0, Collections.emptyList(), null, "u", Collections.emptyList());
-        Marketplace.Theme second = new Marketplace.Theme("b", "d", "o", null, "s", "r", 9, 1, Collections.emptyList(), null, "u", Collections.emptyList());
-        Marketplace.Theme third = new Marketplace.Theme("c", "d", "o", null, "s", "r", 5, 1000, Collections.emptyList(), null, "u", Collections.emptyList());
+        Marketplace.Theme first = new Marketplace.Theme("a", "d", "o", null, "s", "r", 9, 0, Collections.emptyList(), null, "u", Collections.emptyList(), null);
+        Marketplace.Theme second = new Marketplace.Theme("b", "d", "o", null, "s", "r", 9, 1, Collections.emptyList(), null, "u", Collections.emptyList(), null);
+        Marketplace.Theme third = new Marketplace.Theme("c", "d", "o", null, "s", "r", 5, 1000, Collections.emptyList(), null, "u", Collections.emptyList(), null);
         // Stars changed between two search pages, so GitHub listed this one later with more stars.
-        Marketplace.Theme moved = new Marketplace.Theme("m", "d", "o", null, "s", "r", 12, 2000, Collections.emptyList(), null, "u", Collections.emptyList());
+        Marketplace.Theme moved = new Marketplace.Theme("m", "d", "o", null, "s", "r", 12, 2000, Collections.emptyList(), null, "u", Collections.emptyList(), null);
         assertEquals(Arrays.asList(moved, first, second, third),
                 Marketplace.sorted(Arrays.asList(third, first, moved, second)));
     }
@@ -296,16 +358,27 @@ public class MarketplaceTest {
     @Test
     public void roundTripsTheCache() throws Exception {
         List<Marketplace.Theme> themes = Marketplace.parseManifest("{\"name\":\"Galaxy\",\"description\":\"d\","
-                + "\"usercss\":\"u.css\",\"schemes\":\"c.ini\",\"include\":\"theme.js\"}", GALAXY, 2);
+                + "\"usercss\":\"u.css\",\"schemes\":\"c.ini\",\"include\":\"theme.js\",\"main\":\"g.js\"}", GALAXY, 2);
         Marketplace.Cached cached = Marketplace.fromJson(Marketplace.toJson(themes, 1234L));
         assertEquals(1234L, cached.savedAt);
         Marketplace.Theme theme = cached.themes.get(0);
         assertEquals("Galaxy", theme.title);
         assertEquals(themes.get(0).schemesUrl, theme.schemesUrl);
         assertNull(theme.previewUrl);
+        assertNull(theme.extension);
         assertEquals(themes.get(0).order, theme.order);
         assertEquals(themes.get(0).usercssUrl, theme.usercssUrl);
         assertEquals(themes.get(0).includeUrls, theme.includeUrls);
+        Marketplace.Theme extension = cached.themes.get(1);
+        assertNull(extension.schemesUrl);
+        assertNull(extension.usercssUrl);
+        assertEquals("harbassan/spicetify-galaxy/g.js", extension.extension);
+    }
+
+    @Test(expected = JSONException.class)
+    public void aCacheEntryThatIsNeitherAThemeNorAnExtensionIsRefused() throws Exception {
+        Marketplace.fromJson("{\"savedAt\":1,\"themes\":[{\"title\":\"t\",\"description\":\"d\",\"author\":\"a\","
+                + "\"preview\":null,\"schemes\":null,\"repo\":\"r\",\"stars\":1,\"order\":0,\"keywords\":[]}]}");
     }
 
     private static String repeat(char c, int count) {

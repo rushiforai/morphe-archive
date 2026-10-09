@@ -31,6 +31,7 @@ val replaceAiDiscoverWithProductsPatch = rawResourcePatch(
     description = "Replaces the AI Discover navigation tab with Sezzle's original non-AI Products tab and removes the Sezzle AI callout in search. Includes an option to remove the Products tab completely.",
     default = true
 ) {
+    category("Interface")
     compatibleWith(COMPATIBILITY_SEZZLE)
 
     val removeProductsTab = booleanOption(

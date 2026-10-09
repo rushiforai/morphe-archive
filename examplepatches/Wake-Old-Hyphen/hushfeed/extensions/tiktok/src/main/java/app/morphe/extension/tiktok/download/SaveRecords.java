@@ -77,7 +77,7 @@ final class SaveRecords {
     /** The labels savers give the queue. Anything else is kept as {@link #OTHER}, never as given. */
     private static final Set<String> KINDS = new HashSet<>(Arrays.asList(
             "video", "original photos", "story", "sound", "original-sound", "profile picture",
-            "sticker", "comment live photo"));
+            "sticker", "comment live photo", "photo video", "video frame"));
     static final String OTHER = "other";
 
     private static final Object LOCK = new Object();

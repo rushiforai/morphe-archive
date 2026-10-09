@@ -13,18 +13,26 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.shared.guardAtEntry
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.findInstructionIndicesReversedOrThrow
+import app.morphe.util.findMutableMethodOf
 import app.morphe.util.getReference
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
 
+private const val PATCH = "Use system font"
 private const val EXTENSION_CLASS_DESCRIPTOR =
     "Lapp/morphe/extension/tiktok/font/SystemFont;"
+private const val EMOJI_EXTENSION_CLASS_DESCRIPTOR =
+    "Lapp/morphe/extension/tiktok/font/SystemEmoji;"
 private const val TYPEFACE = "Landroid/graphics/Typeface;"
+private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
+private const val PAINT = "Landroid/graphics/Paint;"
 
 /** The variable-font build: `([FontVariationAxis, weight, italic) -> Typeface`. */
 private const val VARIATION_SHAPE = "[Landroid/graphics/fonts/FontVariationAxis;IZ"
@@ -39,8 +47,9 @@ private const val ENGINE_MARKER = "font/TikTokSans-VF.otf"
 val systemFontPatch = bytecodePatch(
     name = "Use system font",
     description = "Draws TikTok's text in your device's font instead of TikTok Sans. The icons, " +
-        "the gift animations and the @ and # glyphs keep their own fonts. Off by default. " +
-        "Restart after changing. Switch: Hushfeed settings > App.",
+        "the gift animations and the @ and # glyphs keep their own fonts. A second switch draws " +
+        "every emoji with your device's emoji font instead of filling in the newest ones with " +
+        "Google's. Both are off by default. Restart after changing. Switches: Hushfeed settings > App.",
     default = false,
 ) {
     category("Performance")
@@ -61,9 +70,16 @@ val systemFontPatch = bytecodePatch(
         // variable font. Both implementations (the modern and the pre-26 fallback) match, which
         // is what we want: the running build uses one of them. The icon, gift and mention fonts
         // load elsewhere and never reach this engine.
+        //
+        // The same pass finds the emoji switch's anchor (see isEmojiGlyphCheck), so the app's
+        // classes are walked once for both.
         val engines = mutableListOf<ClassDef>()
+        val glyphChecks = mutableListOf<Method>()
         classDefForEach { classDef ->
             if (isFontEngine(classDef)) engines += classDef
+            if (!classDef.type.startsWith(EXTENSION_ROOT)) {
+                classDef.methods.filterTo(glyphChecks, ::isEmojiGlyphCheck)
+            }
         }
         if (engines.isEmpty()) {
             throw PatchException(
@@ -82,7 +98,59 @@ val systemFontPatch = bytecodePatch(
                         .systemizeReturns()
                 }
         }
+
+        // Use system emoji. TikTok's fonts carry no emoji, so an emoji already falls through to
+        // the device's emoji font, except where androidx EmojiCompat steps in: TikTok starts it
+        // at boot with the downloadable font (Google's Noto Color Emoji on most phones), and it
+        // wraps any emoji the device's font can't draw in a span drawn with that font. Whether
+        // the device can draw one is the glyph check's answer, and the processor wraps an emoji
+        // only on false. The extension answers true first while the switch is on, so nothing is
+        // wrapped. Anything else runs the check as TikTok wrote it.
+        val glyphCheck = glyphChecks.singleOrNull() ?: throw PatchException(
+            "$PATCH: expected one emoji glyph check (a method answering a boolean from a " +
+                "CharSequence, a start, an end and the emoji, that calls $PAINT_HAS_GLYPH), " +
+                "found ${glyphChecks.size}",
+        )
+        mutableClassDefBy(glyphCheck.definingClass).findMutableMethodOf(glyphCheck).guardAtEntry(
+            PATCH,
+            "invoke-static {}, $EMOJI_EXTENSION_CLASS_DESCRIPTOR->leaveToDevice()Z",
+            """
+                const/4 v0, 0x1
+                return v0
+            """,
+        )
     }
+}
+
+private const val EXTENSION_ROOT = "Lapp/morphe/extension/"
+private const val PAINT_HAS_GLYPH = "$PAINT->hasGlyph(Ljava/lang/String;)Z"
+
+/**
+ * Whether [method] is androidx EmojiCompat's glyph check: it answers a boolean from a
+ * CharSequence, a start and an end and one more value (the emoji's metadata, or the version it
+ * was added in), and it calls `Paint.hasGlyph(String)`.
+ *
+ * On 47.0.3, 47.1.3 and 47.1.4 R8 folded emoji2 1.3.0's default glyph checker into its processor,
+ * so this is the processor's `hasGlyph(CharSequence, int, int, TypefaceEmojiRasterizer)`, the only
+ * method in the app that calls `Paint.hasGlyph`. Were the checker left on its own, its
+ * `hasGlyph(CharSequence, int, int, int)` would match instead, and answering true there means the
+ * same thing. Shared with the fixture test, so the test holds the patch's own rule to each build.
+ */
+internal fun isEmojiGlyphCheck(method: Method): Boolean {
+    if (method.returnType != "Z") return false
+    val parameters = method.parameterTypes
+    if (parameters.size != 4 || parameters[0].toString() != CHAR_SEQUENCE ||
+        parameters[1].toString() != "I" || parameters[2].toString() != "I"
+    ) {
+        return false
+    }
+    return method.implementation?.instructions?.any { instruction ->
+        instruction.getReference<MethodReference>()?.let { reference ->
+            reference.definingClass == PAINT && reference.name == "hasGlyph" &&
+                reference.returnType == "Z" &&
+                reference.parameterTypes.map { it.toString() } == listOf("Ljava/lang/String;")
+        } == true
+    } == true
 }
 
 /**
@@ -90,7 +158,7 @@ val systemFontPatch = bytecodePatch(
  * variable font. Shared with the fixture test, so the test holds the patch's own rule to each build.
  */
 internal fun isFontEngine(classDef: ClassDef): Boolean {
-    if (classDef.type.startsWith("Lapp/morphe/extension/")) return false
+    if (classDef.type.startsWith(EXTENSION_ROOT)) return false
     val hasVariation = classDef.methods.any { it.engineShape() == VARIATION_SHAPE }
     val hasAsset = classDef.methods.any { it.engineShape() == ASSET_SHAPE }
     if (!hasVariation || !hasAsset) return false

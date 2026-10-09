@@ -15,6 +15,7 @@ val skipToNextLevelPatch = bytecodePatch(
     description = "Allows tapping the next level indicator on the top bar to show a confirmation dialog and skip to the next level. REQUIRES Add Custom Chip Store to be enabled.",
     default = true
 ) {
+    category("Features")
     compatibleWith(COMPATIBILITY_BLACKJACK)
     dependsOn(addCustomChipStorePatch)
     extendWith("extensions/extension.mpe")

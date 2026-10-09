@@ -453,10 +453,10 @@
     invoke-static {p0}, Le/e/a/CommentHistory;->extend(Ljava/lang/Object;)V
 
     return-void
-    :try_end_1a2
-    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_1a2} :catch_1a2
+    :try_end_1a5
+    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_1a5} :catch_1a5
 
-    :catch_1a2
+    :catch_1a5
     move-exception v0
 
     invoke-virtual {v0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;

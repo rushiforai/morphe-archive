@@ -778,7 +778,7 @@
 
     monitor-exit v4
     :try_end_2d
-    .catchall {:try_start_16 .. :try_end_2d} :catchall_366
+    .catchall {:try_start_16 .. :try_end_2d} :catchall_371
 
     iget-object v0, v6, Le/e/a/CommentVisuals$State;->paint:Landroid/graphics/Paint;
 
@@ -786,18 +786,17 @@
 
     move-result v0
 
-    if-eqz v0, :bold_ready
+    if-eqz v0, :cond_38
 
     const/4 v0, -0x1
 
     iput v0, v6, Le/e/a/CommentVisuals$State;->size:I
 
-    :bold_ready
-
     .line 23
+    :cond_38
     const/16 v4, 0xff
 
-    :try_start_2f
+    :try_start_3a
     invoke-virtual/range {p0 .. p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
     move-result-object v0
@@ -816,31 +815,31 @@
 
     move-result v7
 
-    if-eqz v7, :cond_46
+    if-eqz v7, :cond_51
 
     const-string v7, "W"
 
-    goto :goto_48
+    goto :goto_53
 
-    :cond_46
+    :cond_51
     const-string v7, "a0"
 
-    :goto_48
+    :goto_53
     invoke-virtual {v0, v7}, Ljava/lang/Class;->getField(Ljava/lang/String;)Ljava/lang/reflect/Field;
 
     move-result-object v0
 
     invoke-virtual {v0, v1, v4}, Ljava/lang/reflect/Field;->setInt(Ljava/lang/Object;I)V
-    :try_end_4f
-    .catch Ljava/lang/Exception; {:try_start_2f .. :try_end_4f} :catch_50
+    :try_end_5a
+    .catch Ljava/lang/Exception; {:try_start_3a .. :try_end_5a} :catch_5b
 
-    goto :goto_51
+    goto :goto_5c
 
-    :catch_50
+    :catch_5b
     move-exception v0
 
     .line 24
-    :goto_51
+    :goto_5c
     const-string v0, "comment_rows"
 
     const/16 v7, 0xa
@@ -895,7 +894,7 @@
 
     cmpg-float v15, v11, v15
 
-    if-ltz v15, :cond_a2
+    if-ltz v15, :cond_ad
 
     iget v15, v6, Le/e/a/CommentVisuals$State;->last:F
 
@@ -909,31 +908,31 @@
 
     cmpl-float v15, v15, v16
 
-    if-gtz v15, :cond_a2
+    if-gtz v15, :cond_ad
 
     iget v15, v6, Le/e/a/CommentVisuals$State;->rows:I
 
-    if-ne v7, v15, :cond_a2
+    if-ne v7, v15, :cond_ad
 
     iget v15, v6, Le/e/a/CommentVisuals$State;->size:I
 
-    if-ne v0, v15, :cond_a2
+    if-ne v0, v15, :cond_ad
 
     iget v15, v6, Le/e/a/CommentVisuals$State;->width:I
 
-    if-ne v8, v15, :cond_a2
+    if-ne v8, v15, :cond_ad
 
     iget v15, v6, Le/e/a/CommentVisuals$State;->height:I
 
-    if-eq v10, v15, :cond_a7
+    if-eq v10, v15, :cond_b2
 
-    :cond_a2
+    :cond_ad
     iget-object v15, v6, Le/e/a/CommentVisuals$State;->active:Ljava/util/IdentityHashMap;
 
     invoke-virtual {v15}, Ljava/util/IdentityHashMap;->clear()V
 
     .line 27
-    :cond_a7
+    :cond_b2
     iput v11, v6, Le/e/a/CommentVisuals$State;->last:F
 
     iput v7, v6, Le/e/a/CommentVisuals$State;->rows:I
@@ -953,18 +952,18 @@
 
     move-result v15
 
-    if-eqz v15, :cond_c1
+    if-eqz v15, :cond_cc
 
     invoke-static {v8, v10}, Ljava/lang/Math;->min(II)I
 
     move-result v15
 
-    goto :goto_c2
+    goto :goto_cd
 
-    :cond_c1
+    :cond_cc
     move v15, v10
 
-    :goto_c2
+    :goto_cd
     int-to-float v15, v15
 
     const/high16 v16, 0x41600000    # 14.0f
@@ -1019,12 +1018,12 @@
 
     move-result-object v0
 
-    :goto_f2
+    :goto_fd
     invoke-interface {v0}, Ljava/util/Iterator;->hasNext()Z
 
     move-result v17
 
-    if-eqz v17, :cond_11b
+    if-eqz v17, :cond_126
 
     invoke-interface {v0}, Ljava/util/Iterator;->next()Ljava/lang/Object;
 
@@ -1052,11 +1051,11 @@
 
     cmpl-float v2, v5, v2
 
-    if-lez v2, :cond_114
+    if-lez v2, :cond_11f
 
     invoke-interface {v0}, Ljava/util/Iterator;->remove()V
 
-    :cond_114
+    :cond_11f
     move-object/from16 v2, p1
 
     move/from16 v4, v18
@@ -1065,23 +1064,23 @@
 
     const/4 v9, 0x2
 
-    goto :goto_f2
+    goto :goto_fd
 
     .line 31
-    :cond_11b
+    :cond_126
     move/from16 v18, v4
 
     invoke-virtual/range {p2 .. p2}, Ljava/util/ArrayList;->iterator()Ljava/util/Iterator;
 
     move-result-object v2
 
-    :cond_121
-    :goto_121
+    :cond_12c
+    :goto_12c
     invoke-interface {v2}, Ljava/util/Iterator;->hasNext()Z
 
     move-result v0
 
-    if-eqz v0, :cond_363
+    if-eqz v0, :cond_36e
 
     invoke-interface {v2}, Ljava/util/Iterator;->next()Ljava/lang/Object;
 
@@ -1092,16 +1091,16 @@
 
     move-result v4
 
-    if-nez v4, :cond_137
+    if-nez v4, :cond_142
 
     iget-object v4, v6, Le/e/a/CommentVisuals$State;->fixed:Ljava/util/ArrayList;
 
     invoke-virtual {v4, v0}, Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z
 
-    goto :goto_121
+    goto :goto_12c
 
     .line 33
-    :cond_137
+    :cond_142
     const-string v4, "d"
 
     const/4 v5, 0x0
@@ -1116,7 +1115,7 @@
 
     move-result v9
 
-    if-gtz v9, :cond_161
+    if-gtz v9, :cond_16c
 
     invoke-virtual/range {p0 .. p0}, Ljava/lang/Object;->getClass()Ljava/lang/Class;
 
@@ -1132,23 +1131,23 @@
 
     move-result v5
 
-    if-eqz v5, :cond_159
+    if-eqz v5, :cond_164
 
     const-string v5, "R"
 
-    goto :goto_15b
+    goto :goto_166
 
-    :cond_159
+    :cond_164
     const-string v5, "S"
 
-    :goto_15b
+    :goto_166
     const/16 v9, 0x190
 
     invoke-static {v1, v5, v9}, Le/e/a/CommentVisuals;->number(Ljava/lang/Object;Ljava/lang/String;I)I
 
     move-result v9
 
-    :cond_161
+    :cond_16c
     const/16 v5, 0x64
 
     invoke-static {v5, v9}, Ljava/lang/Math;->max(II)I
@@ -1160,7 +1159,7 @@
 
     cmpl-float v9, v4, v12
 
-    if-gtz v9, :cond_351
+    if-gtz v9, :cond_35c
 
     sub-float v9, v12, v4
 
@@ -1170,7 +1169,7 @@
 
     cmpl-float v9, v9, v19
 
-    if-lez v9, :cond_17d
+    if-lez v9, :cond_188
 
     iget-object v9, v6, Le/e/a/CommentVisuals$State;->active:Ljava/util/IdentityHashMap;
 
@@ -1178,21 +1177,21 @@
 
     move-result v9
 
-    if-eqz v9, :cond_121
+    if-eqz v9, :cond_12c
 
-    :cond_17d
+    :cond_188
     const-string v9, "o"
 
     invoke-static {v0, v9}, Le/e/a/CommentVisuals;->flag(Ljava/lang/Object;Ljava/lang/String;)Z
 
     move-result v9
 
-    if-eqz v9, :cond_186
+    if-eqz v9, :cond_191
 
-    goto :goto_121
+    goto :goto_12c
 
     .line 35
-    :cond_186
+    :cond_191
     invoke-static {v1, v0, v4}, Le/e/a/CommentMotion;->start(Ljava/lang/Object;Ljava/lang/Object;F)F
 
     move-result v4
@@ -1204,18 +1203,18 @@
 
     cmpg-float v19, v9, v1
 
-    if-ltz v19, :cond_33f
+    if-ltz v19, :cond_34a
 
     cmpl-float v9, v9, v5
 
-    if-ltz v9, :cond_198
+    if-ltz v9, :cond_1a3
 
     move-object/from16 v1, p0
 
-    goto :goto_121
+    goto :goto_12c
 
     .line 37
-    :cond_198
+    :cond_1a3
     iget-object v9, v6, Le/e/a/CommentVisuals$State;->active:Ljava/util/IdentityHashMap;
 
     invoke-virtual {v9, v0}, Ljava/util/IdentityHashMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
@@ -1224,7 +1223,7 @@
 
     check-cast v9, Le/e/a/CommentVisuals$Entry;
 
-    if-nez v9, :cond_246
+    if-nez v9, :cond_251
 
     .line 38
     new-instance v9, Le/e/a/CommentVisuals$Entry;
@@ -1247,15 +1246,15 @@
 
     const/4 v1, 0x1
 
-    if-ne v4, v1, :cond_1bb
+    if-ne v4, v1, :cond_1c6
 
     const v1, 0x3f2b851f    # 0.67f
 
     const/4 v4, 0x2
 
-    goto :goto_1cb
+    goto :goto_1d6
 
-    :cond_1bb
+    :cond_1c6
     const-string v1, "i"
 
     const/4 v4, 0x0
@@ -1266,22 +1265,22 @@
 
     const/4 v4, 0x2
 
-    if-ne v1, v4, :cond_1c9
+    if-ne v1, v4, :cond_1d4
 
     const v1, 0x3fb5c28f    # 1.42f
 
-    goto :goto_1cb
+    goto :goto_1d6
 
-    :cond_1c9
+    :cond_1d4
     const/high16 v1, 0x3f800000    # 1.0f
 
-    :goto_1cb
+    :goto_1d6
     mul-float v1, v1, v15
 
     iput v1, v9, Le/e/a/CommentVisuals$Entry;->height:F
 
     .line 39
-    :try_start_1cf
+    :try_start_1da
     const-string v1, "a"
 
     invoke-static {v0, v1}, Le/e/a/CommentVisuals;->field(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
@@ -1293,8 +1292,8 @@
     move-result-object v1
 
     iput-object v1, v9, Le/e/a/CommentVisuals$Entry;->text:Ljava/lang/String;
-    :try_end_1db
-    .catch Ljava/lang/Exception; {:try_start_1cf .. :try_end_1db} :catch_239
+    :try_end_1e6
+    .catch Ljava/lang/Exception; {:try_start_1da .. :try_end_1e6} :catch_244
 
     .line 40
     iget-object v1, v6, Le/e/a/CommentVisuals$State;->paint:Landroid/graphics/Paint;
@@ -1323,8 +1322,8 @@
 
     const/4 v12, 0x0
 
-    :goto_1f2
-    if-ge v12, v2, :cond_20b
+    :goto_1fd
+    if-ge v12, v2, :cond_216
 
     move/from16 v22, v2
 
@@ -1348,9 +1347,9 @@
 
     move-object/from16 v1, v23
 
-    goto :goto_1f2
+    goto :goto_1fd
 
-    :cond_20b
+    :cond_216
     iput v4, v9, Le/e/a/CommentVisuals$Entry;->width:F
 
     int-to-float v1, v8
@@ -1374,12 +1373,12 @@
     .line 41
     iget v1, v9, Le/e/a/CommentVisuals$Entry;->color:I
 
-    if-nez v1, :cond_221
+    if-nez v1, :cond_22c
 
     iput v2, v9, Le/e/a/CommentVisuals$Entry;->color:I
 
     .line 42
-    :cond_221
+    :cond_22c
     invoke-static {v6, v9, v11, v8, v7}, Le/e/a/CommentVisuals;->lane(Le/e/a/CommentVisuals$State;Le/e/a/CommentVisuals$Entry;FII)I
 
     move-result v1
@@ -1388,7 +1387,7 @@
 
     iget v1, v9, Le/e/a/CommentVisuals$Entry;->row:I
 
-    if-gez v1, :cond_233
+    if-gez v1, :cond_23e
 
     move-object/from16 v1, p0
 
@@ -1396,17 +1395,17 @@
 
     move/from16 v12, v21
 
-    goto/16 :goto_121
+    goto/16 :goto_12c
 
-    :cond_233
+    :cond_23e
     iget-object v1, v6, Le/e/a/CommentVisuals$State;->active:Ljava/util/IdentityHashMap;
 
     invoke-virtual {v1, v0, v9}, Ljava/util/IdentityHashMap;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
-    goto :goto_24a
+    goto :goto_255
 
     .line 39
-    :catch_239
+    :catch_244
     move-exception v0
 
     move-object/from16 v20, v2
@@ -1419,16 +1418,16 @@
 
     move/from16 v12, v21
 
-    goto/16 :goto_121
+    goto/16 :goto_12c
 
     .line 37
-    :cond_246
+    :cond_251
     move-object/from16 v20, v2
 
     move/from16 v21, v12
 
     .line 44
-    :goto_24a
+    :goto_255
     int-to-float v0, v8
 
     iget v1, v9, Le/e/a/CommentVisuals$Entry;->start:F
@@ -1494,13 +1493,13 @@
 
     const/4 v4, 0x1
 
-    if-ne v2, v4, :cond_29b
+    if-ne v2, v4, :cond_2a6
 
     const/4 v4, 0x0
 
     cmpl-float v22, v18, v4
 
-    if-lez v22, :cond_29b
+    if-lez v22, :cond_2a6
 
     move/from16 v22, v1
 
@@ -1512,9 +1511,9 @@
 
     invoke-virtual {v1, v3, v4, v4, v12}, Landroid/graphics/Paint;->setShadowLayer(FFFI)V
 
-    goto :goto_2a6
+    goto :goto_2b1
 
-    :cond_29b
+    :cond_2a6
     move/from16 v22, v1
 
     move-object/from16 v23, v3
@@ -1526,7 +1525,7 @@
     invoke-virtual {v1}, Landroid/graphics/Paint;->clearShadowLayer()V
 
     .line 48
-    :goto_2a6
+    :goto_2b1
     iget-object v1, v9, Le/e/a/CommentVisuals$Entry;->text:Ljava/lang/String;
 
     const-string v4, "\n"
@@ -1545,20 +1544,20 @@
 
     const/4 v7, 0x0
 
-    :goto_2b5
-    if-ge v7, v4, :cond_32d
+    :goto_2c0
+    if-ge v7, v4, :cond_338
 
     move/from16 v22, v4
 
     aget-object v4, v1, v7
 
-    if-nez v2, :cond_30b
+    if-nez v2, :cond_316
 
     const/16 v24, 0x0
 
     cmpl-float v25, v3, v24
 
-    if-lez v25, :cond_304
+    if-lez v25, :cond_30f
 
     move-object/from16 p2, v1
 
@@ -1616,18 +1615,18 @@
 
     invoke-virtual {v1, v3}, Landroid/graphics/Paint;->setStyle(Landroid/graphics/Paint$Style;)V
 
-    goto :goto_315
+    goto :goto_320
 
-    :cond_304
+    :cond_30f
     move-object/from16 p2, v1
 
     move/from16 v25, v2
 
     move/from16 v26, v3
 
-    goto :goto_313
+    goto :goto_31e
 
-    :cond_30b
+    :cond_316
     move-object/from16 p2, v1
 
     move/from16 v25, v2
@@ -1636,10 +1635,10 @@
 
     const/16 v24, 0x0
 
-    :goto_313
+    :goto_31e
     move-object/from16 v2, p1
 
-    :goto_315
+    :goto_320
     iget-object v1, v6, Le/e/a/CommentVisuals$State;->paint:Landroid/graphics/Paint;
 
     invoke-virtual {v2, v4, v0, v12, v1}, Landroid/graphics/Canvas;->drawText(Ljava/lang/String;FFLandroid/graphics/Paint;)V
@@ -1662,10 +1661,10 @@
 
     move/from16 v3, v26
 
-    goto :goto_2b5
+    goto :goto_2c0
 
     .line 49
-    :cond_32d
+    :cond_338
     move-object/from16 v2, p1
 
     move/from16 v26, v3
@@ -1682,10 +1681,10 @@
 
     move/from16 v18, v26
 
-    goto/16 :goto_121
+    goto/16 :goto_12c
 
     .line 36
-    :cond_33f
+    :cond_34a
     move-object/from16 v20, v2
 
     move-object/from16 v23, v3
@@ -1702,10 +1701,10 @@
 
     move-object/from16 v2, v20
 
-    goto/16 :goto_121
+    goto/16 :goto_12c
 
     .line 34
-    :cond_351
+    :cond_35c
     move-object/from16 v20, v2
 
     move-object/from16 v23, v3
@@ -1722,22 +1721,22 @@
 
     move-object/from16 v2, v20
 
-    goto/16 :goto_121
+    goto/16 :goto_12c
 
     .line 50
-    :cond_363
+    :cond_36e
     iget-object v0, v6, Le/e/a/CommentVisuals$State;->fixed:Ljava/util/ArrayList;
 
     return-object v0
 
     .line 22
-    :catchall_366
+    :catchall_371
     move-exception v0
 
-    :try_start_367
+    :try_start_372
     monitor-exit v4
-    :try_end_368
-    .catchall {:try_start_367 .. :try_end_368} :catchall_366
+    :try_end_373
+    .catchall {:try_start_372 .. :try_end_373} :catchall_371
 
     throw v0
 .end method

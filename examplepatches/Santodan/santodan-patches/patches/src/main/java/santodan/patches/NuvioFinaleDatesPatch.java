@@ -47,17 +47,18 @@ public final class NuvioFinaleDatesPatch {
             "Adds separate disabled-by-default settings to show the latest scheduled episode date in library and collection posters.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "NuvioTV", null, ApkFileType.APK,
-                    null, null, List.of(new AppTarget(VERSION, false, null)), false));
+                    null, null, NuvioLayout.modernTargets(), false));
                 builder.dependsOn(NuvioSettingsMenuPatch.getMenuPatch());
                 builder.extendWith(NuvioFinaleDatesPatch::extensionStream);
                 builder.execute(context -> {
                     String version = context.getPackageMetadata().getVersionName();
-                    if (!PACKAGE.equals(context.getPackageMetadata().getPackageName()) || !VERSION.equals(version))
+                NuvioLayout.use(version);
+                    if (!PACKAGE.equals(context.getPackageMetadata().getPackageName()) || (!NuvioLayout.BETA4.equals(version) && !NuvioLayout.BETA5.equals(version)))
                         throw unsupported("Expected " + PACKAGE + " " + VERSION);
-                    hookItems(context.mutableClassDefBy("Lba/i1;"));
-                    hookCard(context.mutableClassDefBy("Lba/n3;"));
+                    hookItems(context.mutableClassDefBy(NuvioLayout.current("Lba/i1;")));
+                    hookCard(context.mutableClassDefBy(NuvioLayout.current("Lba/n3;")));
                     hookCard(context.mutableClassDefBy("Lba/q1;"));
-                    for (String type : List.of("Lba/n3;", "Lba/q1;", "Lba/o3;", "Lba/s1;"))
+                    for (String type : List.of(NuvioLayout.current("Lba/n3;"), "Lba/q1;", NuvioLayout.current("Lba/o3;"), "Lba/s1;"))
                         hookContext(context.mutableClassDefBy(type));
                     return Unit.INSTANCE;
                 });
@@ -66,7 +67,7 @@ public final class NuvioFinaleDatesPatch {
     }
 
     static void hookSettings(MutableClass owner, int showUnairedSub) {
-        boolean beta4 = "Lsa/o3;".equals(owner.getType());
+        boolean beta4 = NuvioLayout.current("Lsa/o3;").equals(owner.getType());
         MutableMethod match = null;
         int insert = -1;
         int composer = -1;
@@ -80,7 +81,7 @@ public final class NuvioFinaleDatesPatch {
                 for (int j = i + 1; j < Math.min(ins.size(), i + 45); j++) {
                     if (calls(ins.get(j), beta4 ? "Lc7/a;" : "Lt6/g;", beta4 ? "P" : "I") && ins.get(j) instanceof FiveRegisterInstruction)
                         localComposer = ((FiveRegisterInstruction) ins.get(j)).getRegisterD();
-                    if (calls(ins.get(j), beta4 ? "Lsa/eb;" : "Lfb/h3;", beta4 ? "m" : "t")) { localInsert = j + 1; break; }
+                    if (calls(ins.get(j), beta4 ? NuvioLayout.current("Lsa/eb;") : "Lfb/h3;", beta4 ? "m" : "t")) { localInsert = j + 1; break; }
                 }
                 if (localComposer >= 0 && localComposer <= 15 && localInsert >= 0) {
                     if (match != null) throw unsupported("Multiple Continue Watching settings anchors found");
@@ -94,28 +95,32 @@ public final class NuvioFinaleDatesPatch {
                 method(EXTENSION, "renderSettings", Collections.singletonList("Ljava/lang/Object;"), "V")));
     }
 
-    static void hookItems(MutableClass owner) {
+    static void hookItems(MutableClass owner) { hookItems(owner, EXTENSION); }
+
+    static void hookItems(MutableClass owner, String extension) {
         MutableMethod target = unique(owner, "invoke", 4);
         List<Instruction> ins = instructions(target);
         int matches = 0;
         for (int i = ins.size() - 1; i >= 0; i--) {
-            String hook = calls(ins.get(i), "Lba/s3;", "p") ? "libraryItem"
-                : calls(ins.get(i), "Lba/a2;", "a") ? "collectionItem" : null;
+            String hook = calls(ins.get(i), NuvioLayout.current("Lba/s3;"), "p") ? "libraryItem"
+                : calls(ins.get(i), NuvioLayout.current("Lba/a2;"), "a") ? "collectionItem" : null;
             if (hook == null) continue;
             if (!(ins.get(i) instanceof RegisterRangeInstruction)) throw unsupported("Item card invocation changed");
             int item = ((RegisterRangeInstruction) ins.get(i)).getStartRegister();
             target.getImplementation().addInstruction(i + 1, new BuilderInstruction35c(Opcode.INVOKE_STATIC,
-                0, 0, 0, 0, 0, 0, method(EXTENSION, "exitContext", List.of(), "V")));
+                0, 0, 0, 0, 0, 0, method(extension, "exitContext", List.of(), "V")));
             target.getImplementation().addInstruction(i, new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE,
-                item, 1, method(EXTENSION, hook, List.of("Ljava/lang/Object;"), "V")));
+                item, 1, method(extension, hook, List.of("Ljava/lang/Object;"), "V")));
             matches++;
         }
         if (matches != 2) throw unsupported("Library/collection card anchors changed");
     }
 
-    static void hookContext(MutableClass owner) {
+    static void hookContext(MutableClass owner) { hookContext(owner, EXTENSION); }
+
+    static void hookContext(MutableClass owner, String extension) {
         int constructors = 0;
-        boolean restart = "Lba/o3;".equals(owner.getType()) || "Lba/s1;".equals(owner.getType());
+        boolean restart = NuvioLayout.current("Lba/o3;").equals(owner.getType()) || "Lba/s1;".equals(owner.getType());
         for (MutableMethod target : owner.getMethods()) {
             if (target.getImplementation() == null) continue;
             boolean constructor = "<init>".equals(target.getName());
@@ -129,21 +134,23 @@ public final class NuvioFinaleDatesPatch {
                 returns++;
                 target.getImplementation().addInstruction(i, constructor
                     ? new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, instance, 1,
-                        method(EXTENSION, "captureContext", List.of("Ljava/lang/Object;"), "V"))
+                        method(extension, "captureContext", List.of("Ljava/lang/Object;"), "V"))
                     : new BuilderInstruction35c(Opcode.INVOKE_STATIC, 0, 0, 0, 0, 0, 0,
-                        method(EXTENSION, "exitContext", List.of(), "V")));
+                        method(extension, "exitContext", List.of(), "V")));
             }
             if (returns != 1) throw unsupported("Context lambda return layout changed");
             if (constructor) constructors++;
             else target.getImplementation().addInstruction(0,
                 new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, instance, 1,
-                    method(EXTENSION, "enterContext", List.of("Ljava/lang/Object;"), "V")));
+                    method(extension, "enterContext", List.of("Ljava/lang/Object;"), "V")));
         }
         if (constructors != 1) throw unsupported("Context lambda constructor changed");
     }
 
-    static void hookCard(MutableClass owner) {
-        boolean library = "Lba/n3;".equals(owner.getType());
+    static void hookCard(MutableClass owner) { hookCard(owner, EXTENSION); }
+
+    static void hookCard(MutableClass owner, String extension) {
+        boolean library = NuvioLayout.current("Lba/n3;").equals(owner.getType());
         MutableMethod target = unique(owner, "invoke", 3);
         if (target.getImplementation().getRegisterCount() != (library ? 34 : 58))
             throw unsupported("Finale card register layout changed");
@@ -158,10 +165,10 @@ public final class NuvioFinaleDatesPatch {
             int composer = ((RegisterRangeInstruction) ins.get(index)).getStartRegister() + 11;
             target.getImplementation().addInstruction(index + 1,
                 new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, parameterStart(target), 1,
-                    method(EXTENSION, "prepareBadge", List.of("Ljava/lang/Object;"), "V")));
+                    method(extension, "prepareBadge", List.of("Ljava/lang/Object;"), "V")));
             target.getImplementation().addInstruction(index + 2,
                 new BuilderInstruction3rc(Opcode.INVOKE_STATIC_RANGE, composer, 1,
-                    method(EXTENSION, "renderPreparedBadge", List.of("Ljava/lang/Object;"), "V")));
+                    method(extension, "renderPreparedBadge", List.of("Ljava/lang/Object;"), "V")));
         }
     }
 
@@ -172,7 +179,7 @@ public final class NuvioFinaleDatesPatch {
                 && method.getImplementation() != null) {
                 // Beta4 has a 27-argument default-mask overload as well as the real
                 // model constructor. Register only fully initialized model instances.
-                if ("Lla/aa;".equals(owner.getType()) && "<init>".equals(name)
+                if (NuvioLayout.current("Lla/aa;").equals(owner.getType()) && "<init>".equals(name)
                     && !"Lcom/nuvio/tv/domain/model/MDBListRatings;".contentEquals(
                         method.getParameterTypes().get(parameters - 1))) continue;
                 if (result != null) throw unsupported("Multiple " + owner.getType() + "->" + name + " matches");
@@ -211,7 +218,7 @@ public final class NuvioFinaleDatesPatch {
 
     static IllegalStateException unsupported(String reason) {
         return new IllegalStateException("Unsupported NuvioTV bytecode: " + reason
-            + ". No fallback was applied. Use an original NuvioTV 1.1.0-beta.4 APK.");
+            + ". No fallback was applied. Use an original supported NuvioTV APK.");
     }
 
     static InputStream extensionStream() {

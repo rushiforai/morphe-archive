@@ -10,6 +10,7 @@ val removeWebTrackingAndTelemetryPatch = rawResourcePatch(
     description = "Removes Sentry error/performance reporting, CSP telemetry endpoints, and Gainsight web bootstrap scripts from the embedded Cordova web bundle.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_NAVIGATE360)
 
     execute {

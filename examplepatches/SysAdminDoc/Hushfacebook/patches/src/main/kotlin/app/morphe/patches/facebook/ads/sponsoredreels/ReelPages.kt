@@ -8,12 +8,17 @@
 package app.morphe.patches.facebook.ads.sponsoredreels
 
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
+import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.BytecodePatchContext
+import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.GRAPHQL_STORY
 import app.morphe.patches.facebook.misc.extension.freeLocalsAt
 import app.morphe.patches.facebook.misc.extension.parameterRegister
 import app.morphe.util.singleOrPatchException
+import com.android.tools.smali.dexlib2.AccessFlags
 
 internal const val SPONSORED_REELS_PATCH = "Hide sponsored reels"
 
@@ -26,6 +31,10 @@ internal const val AD_FILTER = "Lapp/morphe/extension/facebook/ads/ReelsAdFilter
 internal const val AD_SECTION_FILTER = "Lapp/morphe/extension/facebook/ads/ReelsAdFilter;->" +
     "withoutAdSections(Ljava/util/List;Ljava/lang/String;)Ljava/util/List;"
 
+/** The ad filter on the collection's listener walk, counted apart from the inserts. */
+internal const val ANNOUNCED_AD_FILTER = "Lapp/morphe/extension/facebook/ads/ReelsAdFilter;->" +
+    "withoutAnnouncedAds(Ljava/util/Collection;Ljava/lang/String;)Ljava/util/Collection;"
+
 /**
  * Where a fetched page enters the Reels and Watch item collection, and the ad item base class.
  *
@@ -34,8 +43,9 @@ internal const val AD_SECTION_FILTER = "Lapp/morphe/extension/facebook/ads/Reels
  * beside the organic reels -- the server inlines it. So the page arriving at the collection is the
  * only place left to drop it, the same way the news feed patch rejects an edge rather than trying
  * to prevent its insertion. Every filter of a page, the ad filter and the GenAI one, goes on these
- * three methods, each prepended with a call that hands the page to the extension and goes on with
- * what comes back.
+ * methods, each prepended with a call that hands the page to the extension and goes on with what
+ * comes back. The one-item insert hands its item over as a one-item page and is skipped when the
+ * answer is empty.
  *
  * Nothing obfuscated is named. The task that inserts an SFD ad carries a trace literal, and its
  * constructor is handed both the collection and the ad item -- so one string anchor yields both
@@ -50,7 +60,14 @@ internal class ReelPages(
     val announcePage: MutableMethod,
     /** The controller's method taking a page of fetched sections: (List)Z. */
     val addPage: MutableMethod,
-)
+    /** The collection's one-item insert: (item, int)V. */
+    val insertItem: MutableMethod,
+    /** The collection's static append of a page at the end: (collection, Collection)Z. 577 has none. */
+    val appendPage: MutableMethod?,
+) {
+    /** The methods that put a page or an item into the collection's backing list. */
+    val pageInserts get() = listOfNotNull(insertPage, appendPage)
+}
 
 /** The reel page methods, resolved for [patch], whose name goes in any refusal. */
 internal fun BytecodePatchContext.reelPages(patch: String): ReelPages {
@@ -93,6 +110,25 @@ internal fun BytecodePatchContext.reelPages(patch: String): ReelPages {
             it.parameterTypes.map(CharSequence::toString) == listOf(collection, COLLECTION)
     }.singleOrPatchException("$patch: the item collection's page announcement, (collection, Collection)V, on $collection")
 
+    // The walk is not where an item goes in, though. A report from a 581 phone on 0.7.2 (#47) had
+    // the walk drop a one-item page with an ad on the Reels tab's client-side loader thread, and a
+    // reel ad on screen 8 seconds later. That loader (VideoFeedUnitFeedCSRDataLoaderAdapter) adds a
+    // reel with the one-item insert, or a page with the static append, and each puts it in the
+    // backing list before it calls the walk. Both get a filter of their own.
+    val insertItem = collectionClass.methods.filter {
+        val parameters = it.parameterTypes.map(CharSequence::toString)
+        it.returnType == "V" && parameters.size == 2 && parameters[1] == "I" &&
+            parameters[0].startsWith("L") && !parameters[0].startsWith("Ljava/")
+    }.singleOrPatchException("$patch: the item collection's one-item insert, (item, int)V, on $collection")
+
+    // 580 and 581 append a page through a static helper the loader calls directly. 577 appends
+    // through the positioned insert, which is already filtered.
+    val appendPage = collectionClass.methods.filter {
+        AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "Z" &&
+            it.parameterTypes.map(CharSequence::toString) == listOf(collection, COLLECTION)
+    }.also { check(it.size <= 1) { "$patch: more than one static page append on $collection: $it" } }
+        .singleOrNull()
+
     // The filter on the collection is not enough. A device round on 2026-09-19 showed why. It
     // caught an ad in a page and logged the drop. The app then showed that ad as the third
     // reel. One step earlier, the controller adds a section wrapper. The wrapper holds its own
@@ -109,7 +145,37 @@ internal fun BytecodePatchContext.reelPages(patch: String): ReelPages {
         it.returnType == "Z" && it.parameterTypes.map(CharSequence::toString) == listOf(LIST)
     }.singleOrPatchException("$patch: the Reels controller's (List)Z method that takes a page of sections")
 
-    return ReelPages(adBase, insertPage, announcePage, addPage)
+    return ReelPages(adBase, insertPage, announcePage, addPage, insertItem, appendPage)
+}
+
+/**
+ * Hands the one item this insert receives to the page [filter] as a one-item list, with [className]
+ * beside it, and returns before the insert when the filter hands back an empty list. An item the
+ * filter keeps goes in as Facebook sent it. The insert answers nothing, so returning early only
+ * leaves the item out: the backing list clamps a later insert's position to its size.
+ *
+ * The item is the insert's first declared parameter. Its two locals come from [freeLocalsAt] the way
+ * [filterParameterFirst] takes them, so a second filter put in front borrows the same two.
+ */
+internal fun MutableMethod.dropItemFirst(className: String, filter: String = AD_FILTER, patch: String = SPONSORED_REELS_PATCH) {
+    if (returnType != "V") throw PatchException("$patch: $definingClass->$name answers $returnType, not void")
+    val (copy, label) = freeLocalsAt(patch, 0, 2)
+    addInstructionsWithLabels(
+        0,
+        """
+            move-object/from16 v$copy, ${parameterRegister(0)}
+            invoke-static { v$copy }, Ljava/util/Collections;->singletonList(Ljava/lang/Object;)Ljava/util/List;
+            move-result-object v$copy
+            const-string v$label, "$className"
+            invoke-static { v$copy, v$label }, $filter
+            move-result-object v$copy
+            invoke-interface { v$copy }, $COLLECTION->isEmpty()Z
+            move-result v$copy
+            if-eqz v$copy, :facebook
+            return-void
+        """,
+        ExternalLabel("facebook", getInstruction(0)),
+    )
 }
 
 /**

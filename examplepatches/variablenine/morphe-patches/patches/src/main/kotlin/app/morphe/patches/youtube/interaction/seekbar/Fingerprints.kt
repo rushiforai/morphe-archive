@@ -19,9 +19,9 @@ import app.morphe.patcher.literal
 import app.morphe.patcher.methodCall
 import app.morphe.patcher.newInstance
 import app.morphe.patcher.opcode
-import app.morphe.patcher.string
 import app.morphe.patcher.resource.ResourceType
 import app.morphe.patcher.resourceLiteral
+import app.morphe.patcher.string
 import app.morphe.patches.shared.FormatStreamModelToStringFingerprint
 import app.morphe.patches.youtube.shared.SeekbarFingerprint
 import app.morphe.patches.youtube.shared.VideoStreamingDataToStringFingerprint
@@ -54,7 +54,7 @@ internal object AllowSwipingUpGestureFingerprint : Fingerprint(
 )
 
 internal object DisableFastForwardGestureFingerprint : Fingerprint(
-    definingClass = "/NextGenWatchLayout;",
+    definingClass = "Lcom/google/android/apps/youtube/app/watch/nextgenwatch/ui/NextGenWatchLayout;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Z",
     parameters = listOf(),
@@ -124,11 +124,12 @@ internal object SlideToSeekFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/view/View;", "F"),
     filters = listOf(
-        opcode(Opcode.INVOKE_VIRTUAL),
+        methodCall(
+            returnType = "Z",
+            parameters = listOf(),
+            location = MatchAfterWithin(10) // Match close to start of method.
+        ),
         opcode(Opcode.MOVE_RESULT, location = MatchAfterImmediately()),
-        opcode(Opcode.IF_EQZ, location = MatchAfterImmediately()),
-        opcode(Opcode.GOTO_16, location = MatchAfterImmediately()),
-
         literal(67108864)
     )
 )

@@ -67,6 +67,8 @@ public class WalmartRouteMyList {
     private static Object cachedListFragment;
     private static final Map<String, String> MAP_ITEM_TO_LIST_ITEM = new ConcurrentHashMap<>();
     private static final Map<String, String> LIST_ITEM_TO_MAP_ITEM = new ConcurrentHashMap<>();
+    /** Requested quantity per map item id, from the list item (ListDetailItem.requestedQuantity). */
+    private static final Map<String, Integer> ITEM_QUANTITY = new ConcurrentHashMap<>();
     private static final Set<String> ALREADY_CHECKED_ITEM_IDS = Collections.synchronizedSet(new HashSet<>());
     private static String currentListId = "";
     private static Object cachedMapFragment;
@@ -1258,6 +1260,11 @@ public class WalmartRouteMyList {
         removeNavBar();
     }
 
+    private static int quantityFor(String itemId) {
+        Integer quantity = ITEM_QUANTITY.get(itemId);
+        return quantity == null ? 1 : quantity.intValue();
+    }
+
     /** Builds (or rebuilds) the list of pins/items for the current list, sorted by aisle code. */
     private static List<Object> computeSortedPinItems(Object fragment) throws Exception {
         List<Object> products = findProducts(fragment);
@@ -1328,7 +1335,7 @@ public class WalmartRouteMyList {
             Object itemDetails = itemDetailsCtor.newInstance(
                     thumbnailUrl, itemId, name, preciseLocation, null, null,
                     null, null, null, null, null, null, null, null, null, null,
-                    locations, 1);
+                    locations, quantityFor(itemId));
             pinItems.add(pinItemCtor.newInstance(pinOptions, itemDetails));
         }
 
@@ -1854,6 +1861,7 @@ public class WalmartRouteMyList {
 
         MAP_ITEM_TO_LIST_ITEM.clear();
         LIST_ITEM_TO_MAP_ITEM.clear();
+        ITEM_QUANTITY.clear();
 
         for (Object item : items) {
             Object product = tryCallAny(item, "getProduct", "A");
@@ -1863,6 +1871,12 @@ public class WalmartRouteMyList {
                 String itemId = (String) tryCallAny(product, "getUsItemId", "D3");
                 if (isEmpty(itemId)) {
                     itemId = (String) tryCallAny(product, "getId", "d");
+                }
+
+                Object requestedQuantity = tryCallAny(item, "getRequestedQuantity", "F", "e");
+                if (itemId != null && requestedQuantity instanceof Integer
+                        && ((Integer) requestedQuantity).intValue() > 0) {
+                    ITEM_QUANTITY.put(itemId, (Integer) requestedQuantity);
                 }
 
                 Object listItemId = tryCallAny(item, "getListItemId", "w", "getId");

@@ -15,7 +15,37 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.0.0](https://github.com/PyFlat-JR/Morphe-Patches/releases/tag/v1.0.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v1.1.0](https://github.com/PyFlat-JR/Morphe-Patches/releases/tag/v1.1.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;4 patches total
+<details open>
+<summary>📦 ARD Mediathek&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 12.4.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Hold to speed up](#hold-to-speed-up) | Adds a YouTube-like gesture: hold the video to temporarily play it faster. | • Speed<br>• Hold delay |
+
+</details>
+
+<details open>
+<summary>📦 Disney+&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 26.18.0+rc5-2026.10.05 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Hold to speed up](#hold-to-speed-up) | Adds a YouTube-like gesture: hold the video to temporarily play it faster. | • Speed<br>• Hold delay |
+
+</details>
+
 <details open>
 <summary>📦 com.netbiscuits.kicker&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>

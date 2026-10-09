@@ -37,7 +37,9 @@ import java.io.File
  * one method that builds the UFI dock and logs its name. Then each hook: the button's name from
  * the table with the check's own number as a range, the extension asked, a yes answering no; and
  * the picker asking first and returning on a yes. A no lands on Facebook's first instruction, and
- * nothing of Facebook's code moves. The comment section is found by its name, its reply flag
+ * nothing of Facebook's code moves. The socket under a post's comments is found by its own name and
+ * the Related groups plugin, its check is another one than the button check, and it's hooked the
+ * same way with its own extension method (#101). The comment section is found by its name, its reply flag
  * through the expandReplySection update, and the flag goes through the extension, as a range
  * call, just before the initial state returns. Reads the fixture bundles from
  * HUSHFACEBOOK_FIXTURE_DIR and skips without it.
@@ -97,6 +99,44 @@ class CommentSheetOptionsFixtureTest {
         assertEquals("$where: with the name it was handed", listOf(1, register), listOf(ask.registerCount, ask.registerC))
         assertEquals("$where: its answer is kept", Opcode.MOVE_RESULT, patched[3].opcode)
         assertEquals("$where: a no goes on to Facebook", Opcode.IF_EQZ, patched[4].opcode)
+        assertEquals("$where: a yes answers no", listOf(Opcode.CONST_4, Opcode.RETURN), patched.subList(5, 7).map { it.opcode })
+        assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(7).map { it.opcode })
+        assertEquals("$where: a no lands on Facebook's first instruction", setOf(5, 7), ControlFlow.of(method).normal[4].toSet())
+    }
+
+    private fun bottom(bundle: File) {
+        val name = bundle.name
+        val sockets = holders(bundle, BOTTOM_SOCKET).flatMap { methodsHolding(it, BOTTOM_SOCKET) }
+        assertTrue("$name: nothing names \"$BOTTOM_SOCKET\"", sockets.isNotEmpty())
+        val found = bottomSocket(holders(bundle, RELATED_GROUPS), sockets) { types -> FixtureDex.classes(bundle, types) }
+        val buttons = buttonSocket(
+            holders(bundle, GIF_BUTTON),
+            holders(bundle, BUTTON_SOCKET).flatMap { methodsHolding(it, BUTTON_SOCKET) },
+        ) { types -> FixtureDex.classes(bundle, types) }
+        val table = found.table
+        val check = found.check
+        val where = "$name: ${check.descriptor()}"
+        assertNotEquals("$where is the comment box's button check", buttons.check.descriptor(), check.descriptor())
+        assertNotEquals("$where: the name table is the comment box's", buttons.table.descriptor(), table.descriptor())
+        assertTrue("$where isn't static", AccessFlags.STATIC.isSet(check.accessFlags))
+        assertEquals("$where: the plugin's number isn't last", "I", check.parameterTypes.last().toString())
+        assertTrue("$where: the table has only Related groups", switchKeys(table).single().size >= 2)
+
+        val owner = FixtureDex.classes(bundle, setOf(check.definingClass)).values.single()
+        val context = PatchContexts.of(listOf(owner))
+        val method = context.mutableClassDefBy(owner.type).methods.single { it.descriptor() == check.descriptor() }
+        val original = method.implementation!!.instructions.toList()
+        val number = method.implementation!!.registerCount - 1
+        method.holdButtons(table, HOLDS_BOTTOM_CONTENT)
+        val patched = method.implementation!!.instructions.toList()
+        assertEquals("$where gains seven instructions", original.size + 7, patched.size)
+        assertEquals("$where: the plugin's name comes from the table", table.descriptor(), patched[0].reference())
+        val range = patched[0] as RegisterRangeInstruction
+        assertEquals("$where: with the check's own number, its last register", listOf(number, 1),
+            listOf(range.startRegister, range.registerCount))
+        val register = (patched[1] as OneRegisterInstruction).registerA
+        assertTrue("$where: the hook writes v$register, which isn't a local", register < method.localRegisterCount())
+        assertEquals("$where: its own extension method is asked", HOLDS_BOTTOM_CONTENT, patched[2].reference())
         assertEquals("$where: a yes answers no", listOf(Opcode.CONST_4, Opcode.RETURN), patched.subList(5, 7).map { it.opcode })
         assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(7).map { it.opcode })
         assertEquals("$where: a no lands on Facebook's first instruction", setOf(5, 7), ControlFlow.of(method).normal[4].toSet())
@@ -186,6 +226,11 @@ class CommentSheetOptionsFixtureTest {
     @Test
     fun `each declared build opens every reply thread through the comment section's first state`() = bundles { bundle ->
         replies(bundle)
+    }
+
+    @Test
+    fun `each declared build keeps Related groups out from under a post's comments`() = bundles { bundle ->
+        bottom(bundle)
     }
 
     @Test

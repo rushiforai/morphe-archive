@@ -281,37 +281,47 @@
 
     move-result-object v0
 
-    # The loader stores resolved watch metadata in m; l is the launch/cache input.
     const-string v1, "m"
-    invoke-static {v0, v1}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
-    move-result-object v1
-    instance-of v1, v1, Landroid/os/Bundle;
-    if-eqz v1, :launch_info
-    const-string v1, "m"
-    invoke-static {v0, v1}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
-    move-result-object v0
-    goto :resolved_info
-    :launch_info
-    const-string v1, "l"
-    invoke-static {v0, v1}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
-    move-result-object v0
-    :resolved_info
 
+    invoke-static {v0, v1}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v1
+
+    instance-of v1, v1, Landroid/os/Bundle;
+
+    if-eqz v1, :cond_17
+
+    const-string v1, "m"
+
+    invoke-static {v0, v1}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    goto :goto_1d
+
+    :cond_17
+    const-string v1, "l"
+
+    invoke-static {v0, v1}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    :goto_1d
     instance-of v1, v0, Landroid/os/Bundle;
 
-    if-eqz v1, :cond_14
+    if-eqz v1, :cond_25
 
     check-cast v0, Landroid/os/Bundle;
-    :try_end_12
-    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_12} :catch_13
+    :try_end_23
+    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_23} :catch_24
 
     return-object v0
 
-    :catch_13
+    :catch_24
     move-exception v0
 
-    :cond_14
-    :try_start_14
+    :cond_25
+    :try_start_25
     const-string v0, "s0"
 
     invoke-static {p0, v0}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
@@ -320,18 +330,18 @@
 
     instance-of v0, p0, Landroid/os/Bundle;
 
-    if-eqz v0, :cond_22
+    if-eqz v0, :cond_33
 
     check-cast p0, Landroid/os/Bundle;
-    :try_end_20
-    .catch Ljava/lang/Exception; {:try_start_14 .. :try_end_20} :catch_21
+    :try_end_31
+    .catch Ljava/lang/Exception; {:try_start_25 .. :try_end_31} :catch_32
 
     return-object p0
 
-    :catch_21
+    :catch_32
     move-exception p0
 
-    :cond_22
+    :cond_33
     const/4 p0, 0x0
 
     return-object p0

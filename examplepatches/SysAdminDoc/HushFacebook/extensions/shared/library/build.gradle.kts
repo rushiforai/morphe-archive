@@ -7,7 +7,7 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        // Facebook 577 and 580 declare minSdk 30, and this library only ever runs inside them.
+        // Facebook 581 declares minSdk 30, and this library only ever runs inside it.
         minSdk = 30
     }
 

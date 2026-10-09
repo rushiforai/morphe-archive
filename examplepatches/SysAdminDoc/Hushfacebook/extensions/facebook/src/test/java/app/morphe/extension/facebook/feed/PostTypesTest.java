@@ -125,6 +125,9 @@ public class PostTypesTest {
         assertNull(PostTypes.firstStyle(null));
         assertEquals(PostTypes.PHOTO, PostTypes.kind("ALBUM"));
         assertEquals(PostTypes.VIDEO, PostTypes.kind("VIDEO_AUTOPLAY"));
+        assertEquals("a Page's video with a button under it", PostTypes.VIDEO,
+                PostTypes.kind("VIDEO_DIRECT_RESPONSE_AUTOPLAY"));
+        assertEquals(PostTypes.VIDEO, PostTypes.kind("VIDEO_DIRECT_RESPONSE"));
         assertEquals(PostTypes.LINK, PostTypes.kind("SHARE"));
         assertEquals("FALLBACK", PostTypes.kind("FALLBACK"));
     }

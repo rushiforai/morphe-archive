@@ -1,3 +1,32 @@
+## [1.12.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.11.0...v1.12.0) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **brave:** support Brave 1.96.61 ([5403b28](https://github.com/heval99/Heval-Morphe-Patches/commit/5403b28b0903429e93268622a545b635c5b346c9))
+* support latest app versions, re-anchor YouCut, Bluecoins and BoxBox, remove Saphe Link ([1bc82ef](https://github.com/heval99/Heval-Morphe-Patches/commit/1bc82ef890513b742b0f5238535f2fcca256dd52))
+
+### ✨ New Features
+
+* **brave:** add experimental Disable telemetry, Disable ads and Hide promotional prompts patches ([e12fc36](https://github.com/heval99/Heval-Morphe-Patches/commit/e12fc369543df1a009ecdcc40b4147a7f05df15e))
+
+## [1.12.0-dev.2](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.12.0-dev.1...v1.12.0-dev.2) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* support latest app versions, re-anchor YouCut, Bluecoins and BoxBox, remove Saphe Link ([1bc82ef](https://github.com/heval99/Heval-Morphe-Patches/commit/1bc82ef890513b742b0f5238535f2fcca256dd52))
+
+## [1.12.0-dev.1](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.11.1-dev.1...v1.12.0-dev.1) (2026-10-07)
+
+### ✨ New Features
+
+* **brave:** add experimental Disable telemetry, Disable ads and Hide promotional prompts patches ([e12fc36](https://github.com/heval99/Heval-Morphe-Patches/commit/e12fc369543df1a009ecdcc40b4147a7f05df15e))
+
+## [1.11.1-dev.1](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.11.0...v1.11.1-dev.1) (2026-10-07)
+
+### 🐛 Bug Fixes
+
+* **brave:** support Brave 1.96.61 ([5403b28](https://github.com/heval99/Heval-Morphe-Patches/commit/5403b28b0903429e93268622a545b635c5b346c9))
+
 ## [1.11.0](https://github.com/heval99/Heval-Morphe-Patches/compare/v1.10.0...v1.11.0) (2026-10-07)
 
 ### ✨ New Features

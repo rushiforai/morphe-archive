@@ -8,7 +8,7 @@ set -e
 PROJECT_DIR="/mnt/WindowsDrive/Users/akash/Downloads/Project/Morphe"
 FAST_CACHE_DIR="$HOME/.cache/morphe-fast-build"
 CLI_JAR="$PROJECT_DIR/morphe-desktop-1.15.1-dev.7-all.jar"
-STOCK_APK="$PROJECT_DIR/com.google.android.apps.photos_7.95.0.989626323-52483863_minAPI24(arm64-v8a,armeabi-v7a,x86,x86_64)(nodpi)_apkmirror.com.apk"
+STOCK_APK="$PROJECT_DIR/google.photos_7.96.0.apk"
 if [ ! -f "$STOCK_APK" ] && [ -f "$PROJECT_DIR/com.google.android.apps.photos_7.95.0.apk" ]; then
     STOCK_APK="$PROJECT_DIR/com.google.android.apps.photos_7.95.0.apk"
 elif [ ! -f "$STOCK_APK" ] && [ -f "$PROJECT_DIR/com.google.android.apps.photos_7.94.0.apk" ]; then

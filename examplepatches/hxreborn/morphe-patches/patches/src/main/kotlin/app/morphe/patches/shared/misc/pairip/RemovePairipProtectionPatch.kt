@@ -12,6 +12,7 @@ import app.morphe.util.returnEarly
 val removePairipProtectionPatch = bytecodePatch {
     compatibleWith(
         AppCompatibilities.ANYTRACKER,
+        AppCompatibilities.AUDIOLAB,
         AppCompatibilities.BLURWALL,
         AppCompatibilities.CATZY,
         AppCompatibilities.ECHO_EQUALIZER,
@@ -22,6 +23,7 @@ val removePairipProtectionPatch = bytecodePatch {
         AppCompatibilities.MYMOVESET,
         AppCompatibilities.QURANIFY,
         AppCompatibilities.RATEGLANCE,
+        AppCompatibilities.RUBBER_BANDS,
         AppCompatibilities.VLLO,
     )
 

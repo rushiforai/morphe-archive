@@ -126,10 +126,25 @@ final class RouteMyListGeometry {
             ArrayDeque<RouteOrderPlanner.Point> centers = pinsByLocation.get(key(item.zone, item.aisle, item.section));
             if (centers == null || centers.isEmpty()) return null;
             RouteOrderPlanner.Point point = centers.size() > 1 ? centers.removeFirst() : centers.peekFirst();
-            stops.add(new RouteOrderPlanner.Stop(item.originalIndex, point));
+            stops.add(new RouteOrderPlanner.Stop(item.originalIndex, point,
+                    storeArea(item.zone, item.aisle)));
         }
         RouteOrderPlanner.Result result = RouteOrderPlanner.optimize(entrances, stops);
         return result == null ? null : result.orderedOriginalIndexes;
+    }
+
+    /**
+     * Store area used to keep a route inside one part of the store (produce, frozen, ...): the
+     * zone when Walmart supplies one, otherwise the letters that start the aisle code
+     * ("AP-3" -> "AP"). Empty when neither is known, which disables grouping for that item.
+     */
+    static String storeArea(String zone, String aisle) {
+        String trimmedZone = safe(zone).trim();
+        if (!trimmedZone.isEmpty()) return trimmedZone.toUpperCase(Locale.US);
+        String code = safe(aisle).trim();
+        int end = 0;
+        while (end < code.length() && Character.isLetter(code.charAt(end))) end++;
+        return code.substring(0, end).toUpperCase(Locale.US);
     }
 
     /** Applies a complete, validated permutation or returns null without changing the input list. */

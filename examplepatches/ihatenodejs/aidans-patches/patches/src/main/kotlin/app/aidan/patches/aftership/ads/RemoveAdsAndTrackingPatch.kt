@@ -12,6 +12,7 @@ val removeAdsAndTrackingPatch = bytecodePatch(
     description = "Neutralizes in-app advertisements (Disco Network SDK shopping/cashback ads and list placements), removes the 'Leave us a 5-star review' in-app rating prompt dialogs, zeros the Google Play Advertising ID (AAID), disables first-party behavioral and impression analytics (StatisticsCenter, AbsListImpEventHelper, AutoUploadManager), and blocks diagnostic telemetry (Firebase Analytics, Crashlytics, Logan logging).",
     default = true
 ) {
+    category("Ads")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     dependsOn(bypassSignatureCheckResourcePatch)
 

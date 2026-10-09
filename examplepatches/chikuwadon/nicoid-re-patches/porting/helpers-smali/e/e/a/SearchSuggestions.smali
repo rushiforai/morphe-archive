@@ -76,29 +76,38 @@
     .line 5
     instance-of v0, p0, Landroid/widget/AutoCompleteTextView;
 
-    if-eqz v0, :cond_1e
+    if-eqz v0, :cond_30
 
     move-object v0, p0
 
     check-cast v0, Landroid/widget/AutoCompleteTextView;
-    invoke-virtual {v0}, Landroid/view/View;->getContext()Landroid/content/Context;
-    move-result-object v1
-    invoke-static {v1}, Le/e/a/Followup173;->suggestionsEnabled(Landroid/content/Context;)Z
-    move-result v1
-    if-nez v1, :suggestions_enabled
-    const/4 v1, 0x0
-    invoke-virtual {v0, v1}, Landroid/widget/AutoCompleteTextView;->setAdapter(Landroid/widget/ListAdapter;)V
-    invoke-virtual {v0}, Landroid/widget/AutoCompleteTextView;->dismissDropDown()V
-    goto :cond_1e
-    :suggestions_enabled
 
+    invoke-virtual {v0}, Landroid/view/View;->getContext()Landroid/content/Context;
+
+    move-result-object v1
+
+    invoke-static {v1}, Le/e/a/Followup173;->suggestionsEnabled(Landroid/content/Context;)Z
+
+    move-result v1
+
+    if-nez v1, :cond_19
+
+    const/4 v1, 0x0
+
+    invoke-virtual {v0, v1}, Landroid/widget/AutoCompleteTextView;->setAdapter(Landroid/widget/ListAdapter;)V
+
+    invoke-virtual {v0}, Landroid/widget/AutoCompleteTextView;->dismissDropDown()V
+
+    goto :goto_30
+
+    :cond_19
     sget-object v1, Le/e/a/SearchSuggestions;->attached:Ljava/util/WeakHashMap;
 
     invoke-virtual {v1, v0}, Ljava/util/WeakHashMap;->containsKey(Ljava/lang/Object;)Z
 
     move-result v1
 
-    if-nez v1, :cond_1e
+    if-nez v1, :cond_30
 
     sget-object v1, Le/e/a/SearchSuggestions;->attached:Ljava/util/WeakHashMap;
 
@@ -114,21 +123,22 @@
 
     invoke-direct {v1, v0}, Le/e/a/SearchSuggestions$Candidates;-><init>(Landroid/widget/AutoCompleteTextView;)V
 
-    :cond_1e
+    :cond_30
+    :goto_30
     instance-of v0, p0, Landroid/view/ViewGroup;
 
-    if-eqz v0, :cond_35
+    if-eqz v0, :cond_47
 
     check-cast p0, Landroid/view/ViewGroup;
 
     const/4 v0, 0x0
 
-    :goto_25
+    :goto_37
     invoke-virtual {p0}, Landroid/view/ViewGroup;->getChildCount()I
 
     move-result v1
 
-    if-ge v0, v1, :cond_35
+    if-ge v0, v1, :cond_47
 
     invoke-virtual {p0, v0}, Landroid/view/ViewGroup;->getChildAt(I)Landroid/view/View;
 
@@ -138,9 +148,9 @@
 
     add-int/lit8 v0, v0, 0x1
 
-    goto :goto_25
+    goto :goto_37
 
-    :cond_35
+    :cond_47
     return-void
 .end method
 

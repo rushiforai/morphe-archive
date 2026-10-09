@@ -225,6 +225,8 @@ Hide About this reel	Ocultar Sobre este reel
 A reel's more menu opens without the summary at the top, its Sources or the Ask Meta AI box, in Reels and in your feed. In your feed, the audio row under the summary goes too. The menu's other options stay.	O menu de mais opções de um reel abre sem o resumo no topo, as fontes e a caixa Pergunte à Meta AI, nos Reels e no seu feed. No seu feed, a linha de áudio abaixo do resumo também some. As outras opções do menu continuam.
 Hide Ask Meta AI in About this reel	Ocultar Pergunte à Meta AI em Sobre este reel
 About this reel keeps its summary and Sources without the Ask Meta AI box under them.	Sobre este reel mantém o resumo e as fontes, sem a caixa Pergunte à Meta AI embaixo.
+Hide Meta AI in the share sheet	Ocultar a Meta AI no menu de compartilhamento
+Takes Meta AI's target out of the row at the bottom of the share sheet. Some accounts see it as Muse.	Tira o destino da Meta AI da fileira na parte de baixo do menu de compartilhamento. Algumas contas o veem como Muse.
 Explore	Explorar
 Hide the Explore grid	Ocultar a grade do Explorar
 The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.	Os posts e reels embaixo da barra da aba Pesquisar. A pesquisa, suas pesquisas recentes e os resultados continuam.
@@ -352,6 +354,8 @@ Whitehat settings are unavailable on this screen. Open HushGram settings from Ho
 Comments	Comentários
 Copy comment	Copiar comentário
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Adiciona Copiar ao menu de um comentário selecionado. Copia o texto original, incluindo quebras de linha.
+Copy the commenter's username	Copiar o nome de usuário de quem comentou
+Adds Copy username to a selected comment's menu, for the account that wrote it.	Adiciona Copiar nome de usuário ao menu de um comentário selecionado, para a conta que o escreveu.
 Comment copied	Comentário copiado
 Couldn't copy comment	Não foi possível copiar o comentário
 Save comment photo	Salvar foto do comentário
@@ -523,11 +527,15 @@ Hide story rewinds	Ocultar rewinds de stories
 Nothing in the row of stories at the top of Home loads, your own story included, which saves data. A story ring on a profile or in a chat still opens its stories.	Nada na fileira de stories no topo do Início carrega, nem o seu próprio story, o que economiza dados. Um anel de story em um perfil ou em uma conversa ainda abre os stories.
 Open categories as pages	Abrir categorias como páginas
 Settings shows a list of its categories, and a tap opens one on its own page. Search still looks through all of them.	As configurações mostram uma lista das categorias, e um toque abre uma em sua própria página. A pesquisa ainda procura em todas.
+Hide the HushGram row in Instagram's menu	Ocultar a linha do HushGram no menu do Instagram
+While a tab long press opens HushGram, Instagram's Settings and activity screen leaves out the HushGram row. Turn the long press off and the row comes back.	Enquanto manter uma aba pressionada abrir o HushGram, a tela Configurações e atividade do Instagram não mostra a linha do HushGram. Desative o toque longo e a linha volta.
 Stop loading stories	Não carregar stories
 Takes the Comment button and the comment count off the posts in your feed.	Tira o botão Comentar e a contagem de comentários dos posts do seu feed.
 Takes the memories, recaps, follow anniversaries and birthday cards Instagram makes out of the row of stories at the top of Home. Stories people post stay.	Tira da fileira de stories no topo do Início as lembranças, retrospectivas, aniversários de seguir e cartões de aniversário que o Instagram cria. Os stories que as pessoas postam ficam.
 Takes the rewind cards, which bring back old highlights, out of the row of stories at the top of Home.	Tira da fileira de stories no topo do Início os cartões de rewind, que trazem de volta destaques antigos.
 A double tap on a comment doesn't like it. Starts off, so comments keep double tap to like until you turn this on.	Tocar duas vezes em um comentário não curte ele. Começa desativada, então os comentários mantêm o toque duplo para curtir até você ativar esta chave.
+On messages	Nas mensagens
+A double tap on a message in a chat doesn't react to it. Starts off. A long press still shows the reactions.	Tocar duas vezes em uma mensagem em uma conversa não reage a ela. Começa desativado. Tocar e segurar ainda mostra as reações.
 Hide the Share button	Ocultar o botão Compartilhar
 On comments	Nos comentários
 Takes the Share button and its count off the posts in your feed and off reels.	Tira o botão Compartilhar e a contagem dele dos posts do seu feed e dos reels.
@@ -625,3 +633,18 @@ Mentioned in this story	Mencionados neste story
 See who a story mentions	Ver quem um story menciona
 Every emoji draws in Google's style, from the emoji font Instagram gets through Google Play services, instead of your phone's own style. Restart Instagram after changing it.	Todo emoji aparece no estilo do Google, da fonte de emojis que o Instagram recebe pelos serviços do Google Play, em vez do estilo do seu celular. Reinicie o Instagram depois de mudar.
 Google's emoji everywhere	Emojis do Google em todo lugar
+# context: Downloads switch under Download feed videos; it adds Download cover to a feed video post's menu
+Download video covers	Baixar capas de vídeos
+Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. It saves the still picture shown before the video plays, at its largest size.	Adiciona Baixar capa ao menu de um post do feed com vídeo e de um carrossel mostrando um. Salva a imagem estática exibida antes de o vídeo começar, no maior tamanho.
+Import flag names	Importar nomes de opções
+Pick a list of MetaConfig names, such as an id_name_mapping.json file, and MetaConfig shows those names in place of numbers. Searching by number still works.	Escolha uma lista de nomes do MetaConfig, como um arquivo id_name_mapping.json, e o MetaConfig mostra esses nomes no lugar dos números. A busca por número continua funcionando.
+Remove flag names	Remover nomes de opções
+Forget the imported names, so MetaConfig shows Instagram's own labels again.	Esquece os nomes importados, para o MetaConfig voltar a mostrar os rótulos do próprio Instagram.
+Couldn't read flag names from that file. Nothing changed.	Não foi possível ler nomes de opções desse arquivo. Nada mudou.
+Flag names removed. Open MetaConfig again to see Instagram's own labels.	Nomes de opções removidos. Abra o MetaConfig de novo para ver os rótulos do próprio Instagram.
+There are no imported flag names to remove.	Não há nomes de opções importados para remover.
+Flag names imported: %1$d. Open MetaConfig again to see them.	Nomes de opções importados: %1$d. Abra o MetaConfig de novo para vê-los.
+Entries left out because they repeat or don't fit: %1$d.	Entradas deixadas de fora porque se repetem ou não se encaixam: %1$d.
+That file has no flag names in it. Nothing changed.	Esse arquivo não tem nomes de opções. Nada mudou.
+Couldn't remove the flag names. Try again.	Não foi possível remover os nomes de opções. Tente de novo.
+Couldn't save the flag names. Nothing changed.	Não foi possível salvar os nomes de opções. Nada mudou.

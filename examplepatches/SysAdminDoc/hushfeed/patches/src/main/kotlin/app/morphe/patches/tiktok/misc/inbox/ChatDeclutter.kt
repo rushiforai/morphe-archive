@@ -7,11 +7,16 @@
 package app.morphe.patches.tiktok.misc.inbox
 
 import app.morphe.patcher.Fingerprint
+import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
+import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.util.addInstruction
+import app.morphe.util.addInstructionsWithLabels
 import app.morphe.util.getReference
+import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 
@@ -55,6 +60,58 @@ internal object ChatSmartReplyIntroEnabledFingerprint : Fingerprint(
     returnType = "Z",
     parameters = emptyList(),
 )
+
+private const val CHAT_GESTURES_EXTENSION = "Lapp/morphe/extension/tiktok/inbox/ChatGestures;"
+
+/**
+ * The message cell's gesture dispatcher: an instance method of the chat's skeleton layout that
+ * takes the gesture as its last argument, an enum of SINGLE_TAP, DOUBLE_TAP, LONG_PRESS and
+ * SWIPE, and switches on its ordinal. DOUBLE_TAP adds the pending heart reaction (logged as
+ * "double_click") and SWIPE starts a reply (and stores "key_has_swipe_for_reply").
+ * ChatDeclutterAnchorsTest maps each name to its branch on every declared build.
+ */
+internal object ChatMessageGestureFingerprint : Fingerprint(
+    definingClass = "/SkeletonLayoutAssembler;",
+    returnType = "V",
+    strings = listOf("double_click", "key_has_swipe_for_reply"),
+)
+
+/**
+ * The dispatcher's gesture register (its last parameter), or a reason it can't be hooked: the
+ * method has to be an instance method on three arguments with the gesture object last, a local
+ * below the parameters for the extension's answer, and the gesture has to fit a four-bit call.
+ */
+internal fun chatGestureRegister(method: Method): Int {
+    val code = method.implementation
+        ?: throw PatchException("Hide inbox items: the chat gesture dispatcher has no code.")
+    val parameters = method.parameterTypes.map(CharSequence::toString)
+    if (AccessFlags.STATIC.isSet(method.accessFlags) || parameters.size != 3 || !parameters.last().startsWith("L")) {
+        throw PatchException("Hide inbox items: ${method.definingClass}->${method.name} no longer takes the gesture last on an instance.")
+    }
+    val parameterRegisters = 1 + parameters.sumOf { if (it == "J" || it == "D") 2 else 1 }
+    val gesture = code.registerCount - 1
+    if (gesture > 15 || code.registerCount <= parameterRegisters) {
+        throw PatchException("Hide inbox items: the chat gesture dispatcher's registers don't fit the check.")
+    }
+    return gesture
+}
+
+/**
+ * Returns from the dispatcher before it acts on a gesture the extension says to skip. v0 is a
+ * local, written here before the original code ever reads it.
+ */
+internal fun MutableMethod.skipChatGestures(gesture: Int) {
+    addInstructionsWithLabels(
+        0,
+        """
+            invoke-static { v$gesture }, $CHAT_GESTURES_EXTENSION->skip(Ljava/lang/Enum;)Z
+            move-result v0
+            if-eqz v0, :dispatch
+            return-void
+        """,
+        ExternalLabel("dispatch", getInstruction(0)),
+    )
+}
 
 /**
  * Where a call button is stored: the `iput-object` of a TuxIconView into a field of the

@@ -9,14 +9,14 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.43.7](https://github.com/legendsciber/morphe-patches/releases/tag/v1.43.7)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
+> **[v1.43.10](https://github.com/legendsciber/morphe-patches/releases/tag/v1.43.10)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;23 patches total
 <details open>
 <summary>📦 Aphelion&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 0.4.9 |
+| 0.5.8 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -48,7 +48,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 
 **🎯 Supported versions:**
 
-| 1.14.04 |
+| 1.14.05 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
@@ -181,7 +181,7 @@ This is a collection of [Morphe](https://github.com/MorpheApp) patches maintaine
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Solar Smash All Packages Purchased](#solar-smash-all-packages-purchased) | Every in-app purchase package reports as purchased: the all weapons pack, all planets pack, remove ads and unlock levels and achievements stay permanently owned and unlocked, without contacting Google Play. |  |
+| [Solar Smash All Packages Purchased](#solar-smash-all-packages-purchased) | Every in-app purchase package reports as purchased: the all weapons pack, all planets pack, remove ads and unlock levels and achievements stay permanently owned and unlocked, without contacting Google Play. Banner, interstitial and rewarded ads are suppressed via the Remove Ads entitlement. |  |
 
 </details>
 

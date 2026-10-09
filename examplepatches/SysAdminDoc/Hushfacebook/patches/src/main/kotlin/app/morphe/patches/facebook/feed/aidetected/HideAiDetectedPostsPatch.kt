@@ -8,6 +8,7 @@ import app.morphe.patcher.StringComparisonType
 import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
+import app.morphe.patches.facebook.ads.sponsoredreels.dropItemFirst
 import app.morphe.patches.facebook.ads.sponsoredreels.filterPageFirst
 import app.morphe.patches.facebook.ads.sponsoredreels.filterSectionsFirst
 import app.morphe.patches.facebook.ads.sponsoredreels.reelPages
@@ -35,6 +36,7 @@ internal const val GEN_AI_REEL_FILTER = "$EXTENSION_PACKAGE/feed/GenAiReelFilter
 internal const val ATTRIBUTION_STUB = "transparencyAttribution"
 private const val REEL_FILTER = "$GEN_AI_REEL_FILTER->withoutAiReels(Ljava/util/Collection;Ljava/lang/String;)Ljava/util/Collection;"
 private const val REEL_SECTION_FILTER = "$GEN_AI_REEL_FILTER->withoutAiSections(Ljava/util/List;Ljava/lang/String;)Ljava/util/List;"
+private const val ANNOUNCED_REEL_FILTER = "$GEN_AI_REEL_FILTER->withoutAnnouncedAiReels(Ljava/util/Collection;Ljava/lang/String;)Ljava/util/Collection;"
 
 private const val PATCH = "Hide AI-detected posts"
 
@@ -214,6 +216,8 @@ private fun BytecodePatchContext.hideReels() {
     // the extension knows which of an item's fields holds the model.
     val pages = reelPages(PATCH)
     val model = modelType.toBinaryName()
-    listOf(pages.insertPage, pages.announcePage).forEach { it.filterPageFirst(model, REEL_FILTER, PATCH) }
+    pages.pageInserts.forEach { it.filterPageFirst(model, REEL_FILTER, PATCH) }
+    pages.announcePage.filterPageFirst(model, ANNOUNCED_REEL_FILTER, PATCH)
+    pages.insertItem.dropItemFirst(model, REEL_FILTER, PATCH)
     pages.addPage.filterSectionsFirst(model, REEL_SECTION_FILTER, PATCH)
 }

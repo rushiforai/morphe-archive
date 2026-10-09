@@ -16,6 +16,7 @@ val hideSezzleMobilePatch = rawResourcePatch(
     description = "Hides Sezzle Mobile offers and account entry points.",
     default = false
 ) {
+    category("Interface")
     compatibleWith(COMPATIBILITY_SEZZLE)
 
     execute {

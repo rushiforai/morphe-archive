@@ -579,7 +579,9 @@ public final class MediaDownload {
             file = java.io.File.createTempFile(kind.name().toLowerCase(Locale.US), ".part", folder);
             Downloader.Result fetched = DashSave.fetchWork(url, kind, file, policyFor(application), cap(), progress);
             if (!fetched.ok()) return fetched;
-            Downloader.Result published = Downloader.publish(file, fetched.mime, writer, progress);
+            // A photo the CDN sent as AVIF goes to the gallery as a JPEG, like Facebook's own saves.
+            String mime = kind == Downloader.Kind.IMAGE ? PhotoFormat.jpegFromAvif(file, fetched.mime) : fetched.mime;
+            Downloader.Result published = Downloader.publish(file, mime, writer, progress);
             boolean lower = false;
             boolean refused = false;
             if (published.ok() && kind == Downloader.Kind.VIDEO) {

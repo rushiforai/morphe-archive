@@ -20,24 +20,16 @@ internal object AppCompatibilities {
      */
     const val TIKTOK_SIGNER_SHA256 = "9041803e91bcb814b4b4399fb5c85a91640b755e5e8ba76813814bf4cf2ab5ba"
 
-    /** TikTok 47.0.3's version code. APKMirror lists three variants of the release, all with this one. */
-    const val TIKTOK_4703_VERSION_CODE = 2024700030
-
-    /**
-     * TikTok 47.1.3's version code. APKMirror stops at 47.0.16; APKCombo and Uptodown carry the
-     * universal arm64 and armeabi build, signed with TikTok's own certificate.
-     */
-    const val TIKTOK_4713_VERSION_CODE = 2024701030
-
     /** TikTok 47.1.4's version code. APKMirror carries its universal APK and a split bundle. */
     const val TIKTOK_4714_VERSION_CODE = 2024701040
 
     /** The version codes of every declared build, for the patches that read one off the manifest. */
-    val TIKTOK_VERSION_CODES = setOf(TIKTOK_4703_VERSION_CODE, TIKTOK_4713_VERSION_CODE, TIKTOK_4714_VERSION_CODE)
+    val TIKTOK_VERSION_CODES = setOf(TIKTOK_4714_VERSION_CODE)
 
     /**
-     * Targets: the TikTok global package, 47.0.3, 47.1.3 and 47.1.4. Every patch is read against
-     * each build's fixture and declares all three.
+     * Targets: the TikTok global package, 47.1.4 only. Only the newest stable build is declared:
+     * when a newer one is supported, the one before it is dropped in the same release, so every
+     * patch is read against one fixture.
      */
     fun tiktok(): Array<Compatibility> = arrayOf(
         Compatibility(
@@ -46,8 +38,6 @@ internal object AppCompatibilities {
             appIconColor = TIKTOK_COLOR,
             signatures = setOf(TIKTOK_SIGNER_SHA256),
             targets = listOf(
-                AppTarget(version = "47.0.3", versionCode = TIKTOK_4703_VERSION_CODE),
-                AppTarget(version = "47.1.3", versionCode = TIKTOK_4713_VERSION_CODE),
                 AppTarget(version = "47.1.4", versionCode = TIKTOK_4714_VERSION_CODE),
             ),
         ),

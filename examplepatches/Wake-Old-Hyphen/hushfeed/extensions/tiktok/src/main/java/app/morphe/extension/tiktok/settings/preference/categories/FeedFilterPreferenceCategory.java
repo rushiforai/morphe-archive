@@ -20,6 +20,7 @@ import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.AdoptSeenVideoHistoryPreference;
 import app.morphe.extension.tiktok.settings.preference.ClearSeenVideoHistoryPreference;
 import app.morphe.extension.tiktok.settings.preference.ImportSeenVideoHistoryPreference;
+import app.morphe.extension.tiktok.settings.preference.SeenHistoryFilePreference;
 import app.morphe.extension.tiktok.settings.preference.NumberInputPreference;
 import app.morphe.extension.tiktok.settings.preference.CreatorListPreference;
 import app.morphe.extension.tiktok.settings.preference.CalmFeedPresetPreference;
@@ -248,7 +249,13 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new InputTextPreference(context, "Blocked caption words",
                 "Comma separated words or phrases. Videos whose caption matches are hidden. Case doesn't matter. Two phrases in quotes can be joined: \"a\" & \"b\" needs both, \"a\" !& \"b\" needs the first without the second.",
                 Settings.BLOCKED_CAPTION_WORDS)
-                .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem));
+                .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem)
+                .withSamplePreview(app.morphe.extension.tiktok.settings.L10n.t("Sample caption to test"),
+                        app.morphe.extension.tiktok.feedfilter.KeywordRulePreview.MAX_SAMPLE_CHARS,
+                        app.morphe.extension.tiktok.feedfilter.KeywordRulePreview::result));
+        addPreference(new TogglePreference(context, "Match text stickers too",
+                "Also hide videos whose text stickers match a blocked caption word. Text stickers are the words a creator types over the video in TikTok's editor. Text that's part of the picture itself can't be read.",
+                Settings.BLOCKED_WORDS_IN_STICKERS));
         addPreference(new InputTextPreference(context, "Only from these countries",
                 "Comma separated country codes, like GB, IE. Videos posted from anywhere else are hidden. Leave empty for all countries.",
                 Settings.REGION_ONLY_FROM)
@@ -293,7 +300,10 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 "Comma separated words, like music, chat. A LIVE is hidden when its category, topic "
                         + "tags or game name contains one. Case doesn't matter.",
                 Settings.LIVE_HIDDEN_CATEGORIES)
-                .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem));
+                .withCheck(app.morphe.extension.tiktok.feedfilter.KeywordRules::problem)
+                .withSamplePreview(app.morphe.extension.tiktok.settings.L10n.t("Sample category to test"),
+                        app.morphe.extension.tiktok.feedfilter.KeywordRulePreview.MAX_SAMPLE_CHARS,
+                        app.morphe.extension.tiktok.feedfilter.KeywordRulePreview::result));
         addPreference(new RangeValuePreference(context, "LIVE viewers range",
                 "Show only LIVEs with this many people watching.",
                 Settings.LIVE_MIN_MAX_VIEWERS));
@@ -325,6 +335,8 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
                 Settings.SEEN_VIDEO_MARK_PERCENT, "%1$s%%"
         ).zeroMeans("A few seconds"));
         addPreference(new ImportSeenVideoHistoryPreference(context));
+        addPreference(SeenHistoryFilePreference.save(context));
+        addPreference(SeenHistoryFilePreference.restore(context));
         addPreference(new ClearSeenVideoHistoryPreference(context));
         int unowned = SeenVideoHistory.unownedCount();
         if (unowned > 0) addPreference(new AdoptSeenVideoHistoryPreference(context, unowned));
@@ -334,9 +346,22 @@ public class FeedFilterPreferenceCategory extends ConditionalPreferenceCategory 
         addPreference(new SectionHeadingPreference(context, "Advanced"));
         addPreference(new TogglePreference(
                 context,
+                "Keep offline videos out of the feed",
+                "TikTok slips the videos it saved for offline viewing back into For You when it can't load "
+                        + "enough new ones. This takes them all out. Your offline list stays as it is.",
+                Settings.HIDE_OFFLINE_VIDEOS
+        ));
+        addPreference(new TogglePreference(
+                context,
                 "Filter TikTok's offline videos",
                 "Also apply these filters to downloaded videos TikTok uses when the feed can't load enough new items.",
                 Settings.FILTER_OFFLINE_FALLBACK_VIDEOS
+        ));
+        addPreference(new TogglePreference(
+                context,
+                "Show how many were filtered",
+                "A small label under TikTok's top tabs counts what the feed filter has taken out since TikTok started. It shows only on the feed, and a tap on it reaches the video under it.",
+                Settings.FILTERED_COUNT_PILL
         ));
     }
 }

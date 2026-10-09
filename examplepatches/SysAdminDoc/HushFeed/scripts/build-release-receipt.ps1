@@ -18,13 +18,16 @@
     in the receipt a user's Manager run corresponds to.
 
     The patched APKs are working files and are deleted on the way out, including after a failure.
+    With -AppliedDir, a fixture the pre-push gate already patched with the same bundle, APK, patch
+    list and CLI is read from the gate's kept run, the same report and patched APK, and checked the
+    same way. Those files stay where the gate left them.
 
 .EXAMPLE
     One -Fixture taking a comma separated list, not the switch repeated: PowerShell binds a
     parameter once and refuses the second.
 
     scripts/build-release-receipt.ps1 -WorkDir C:\scratch `
-        -Fixture C:\fixtures\tiktok-46.2.3.apk,C:\fixtures\tiktok-46.7.3.apk
+        -Fixture C:\fixtures\tiktok-47.1.4.apk,C:\fixtures\tiktok-47.1.4-merged.apk
 #>
 [CmdletBinding()]
 param(
@@ -36,7 +39,12 @@ param(
     [string]$DesktopJar,
     [string]$Java,
     [string]$Aapt2,
-    [string]$OutputPath
+    [string]$OutputPath,
+    # The pre-push gate's kept runs, one folder per version (patches/build/fixture-apply). A
+    # fixture whose stamp names this bundle, this APK, this patch list and this CLI is read from
+    # there, the same report and patched APK this script's own run would produce, instead of
+    # being patched a second time. Anything else is patched here as before.
+    [string]$AppliedDir
 )
 
 $ErrorActionPreference = 'Stop'
@@ -205,7 +213,6 @@ $targets = New-Object System.Collections.Generic.List[object]
 foreach ($apk in $Fixture) {
     if (-not (Test-Path -LiteralPath $apk -PathType Leaf)) { throw "Fixture not found: $apk" }
     $label = Split-Path -Leaf $apk
-    Write-Host "[receipt] patching $label with $($patchNames.Count) patches"
 
     $stock = Get-ApkManifestFacts -Apk $apk -Aapt2 $Aapt2
     if ($stock.package -ne $expectedTarget.PackageName) {
@@ -225,22 +232,48 @@ foreach ($apk in $Fixture) {
         # says so rather than letting a forced run read like a declared-compatible one.
         $forced = $stock.versionName -cnotin @($expectedTarget.PackageVersions)
 
-        $enable = @()
-        foreach ($name in $patchNames) { $enable += '-e'; $enable += $name }
-        $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
-            '-o', $out, '-t', $temp, '-r', $resultPath)
-        if ($forced) { $arguments += '-f' }
-        $arguments = $arguments + $enable + @($apk)
-        # Kept, not dropped: the 0.60.0 run stopped on 46.2.3 with no result report and no word
-        # on why, and the same step applied all 94 patches the next morning.
-        # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
-        $preference = $ErrorActionPreference
-        $ErrorActionPreference = 'Continue'
-        try {
-            $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
-            $cliExitCode = $LASTEXITCODE
-        } finally {
-            $ErrorActionPreference = $preference
+        $keptRun = $null
+        if ($AppliedDir) {
+            $keptDir = Join-Path $AppliedDir $stock.versionName
+            $stampPath = Join-Path $keptDir 'stamp.json'
+            if (Test-Path -LiteralPath $stampPath -PathType Leaf) {
+                $stamp = Get-Content -LiteralPath $stampPath -Raw | ConvertFrom-Json
+                if ($stamp.bundleSha256 -eq $bundleHash -and $stamp.apkSha256 -eq (Get-Sha256Hex -Path $apk) -and
+                    $stamp.patchListSha256 -eq (Get-Sha256Hex -Path $PatchList) -and
+                    $stamp.desktopJarSha256 -eq (Get-Sha256Hex -Path $DesktopJar) -and [bool]$stamp.forced -eq $forced -and
+                    (Test-Path -LiteralPath (Join-Path $keptDir 'result.json') -PathType Leaf) -and
+                    (Test-Path -LiteralPath (Join-Path $keptDir 'patched.apk') -PathType Leaf)) {
+                    $keptRun = $keptDir
+                } else {
+                    Write-Host "[receipt] the gate's run of $label was made with another bundle, APK, patch list or CLI, so patching it here"
+                }
+            }
+        }
+        if ($keptRun) {
+            Write-Host "[receipt] reading the gate's run of ${label}: same bundle, APK, patch list and CLI"
+            $out = Join-Path $keptRun 'patched.apk'
+            $resultPath = Join-Path $keptRun 'result.json'
+            $cliOutput = @()
+            $cliExitCode = 0
+        } else {
+            Write-Host "[receipt] patching $label with $($patchNames.Count) patches"
+            $enable = @()
+            foreach ($name in $patchNames) { $enable += '-e'; $enable += $name }
+            $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
+                '-o', $out, '-t', $temp, '-r', $resultPath)
+            if ($forced) { $arguments += '-f' }
+            $arguments = $arguments + $enable + @($apk)
+            # Kept, not dropped: the 0.60.0 run stopped on 46.2.3 with no result report and no word
+            # on why, and the same step applied all 94 patches the next morning.
+            # Relaxed for the call: Windows PowerShell 5.1 throws on a native command's stderr under Stop, even redirected.
+            $preference = $ErrorActionPreference
+            $ErrorActionPreference = 'Continue'
+            try {
+                $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
+                $cliExitCode = $LASTEXITCODE
+            } finally {
+                $ErrorActionPreference = $preference
+            }
         }
 
         if (-not (Test-Path -LiteralPath $resultPath -PathType Leaf)) {

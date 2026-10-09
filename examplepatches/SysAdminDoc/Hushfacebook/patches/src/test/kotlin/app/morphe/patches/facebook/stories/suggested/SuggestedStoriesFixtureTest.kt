@@ -40,22 +40,16 @@ class SuggestedStoriesFixtureTest {
     /** The tray data constructor's registers and the register of its bucket list, per build. */
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to (7 to 4),
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to (7 to 4),
-        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to (7 to 4),
     )
 
     /** The bucket interface's type accessor and the enum it answers, per build. */
     private val expectedType = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to ("CB0" to "LX/2OQ;"),
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to ("C9d" to "LX/2LX;"),
-        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to ("CAm" to "LX/24X;"),
     )
 
     /** The query builders that set skip_srtt_item_list, per build (issue #21). */
     private val expectedSkips = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to setOf("LX/24x;->A03", "LX/24x;->A07"),
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to setOf("LX/1y6;->A03", "LX/1y6;->A07"),
-        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to setOf("LX/1sa;->A03", "LX/1sa;->A08"),
     )
 
     private fun reference(instruction: Instruction): String {

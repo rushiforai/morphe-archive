@@ -10,8 +10,3 @@ object EntitlementInfoIsActiveFingerprint : Fingerprint(
                 method.parameters.isEmpty()
     }
 )
-
-object BillingLaunchFlowFingerprint : Fingerprint(
-    strings = listOf("launchBillingFlow"),
-    returnType = "Lcom/android/billingclient/api/BillingResult;"
-)

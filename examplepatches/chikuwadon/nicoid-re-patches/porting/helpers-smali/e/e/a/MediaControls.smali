@@ -103,13 +103,13 @@
     :try_start_3
     sget-object v1, Le/e/a/MediaControls;->active:Le/e/a/MediaControls$State;
 
-    if-eqz v1, :cond_f
+    if-eqz v1, :cond_1b
 
     sget-object v1, Le/e/a/MediaControls;->active:Le/e/a/MediaControls$State;
 
     iget-object v1, v1, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;
 
-    if-ne v1, p0, :cond_f
+    if-ne v1, p0, :cond_1b
 
     sget-object v1, Le/e/a/MediaControls;->active:Le/e/a/MediaControls$State;
 
@@ -121,19 +121,18 @@
 
     move-result v1
 
-    if-eqz v1, :cond_f
-
-    :try_end_b
-    .catch Ljava/lang/Exception; {:try_start_3 .. :try_end_b} :catch_ed
-    .catchall {:try_start_3 .. :try_end_b} :catchall_eb
+    if-eqz v1, :cond_1b
+    :try_end_19
+    .catch Ljava/lang/Exception; {:try_start_3 .. :try_end_19} :catch_f9
+    .catchall {:try_start_3 .. :try_end_19} :catchall_f7
 
     monitor-exit v0
 
     return-void
 
     .line 23
-    :cond_f
-    :try_start_f
+    :cond_1b
+    :try_start_1b
     invoke-static {}, Le/e/a/MediaControls;->clear()V
 
     new-instance v1, Le/e/a/MediaControls$State;
@@ -146,15 +145,15 @@
 
     iput-boolean p1, v1, Le/e/a/MediaControls$State;->popup:Z
 
-    if-eqz p1, :cond_22
+    if-eqz p1, :cond_2e
 
     move-object v2, p0
 
     check-cast v2, Landroid/content/Context;
 
-    goto :goto_2a
+    goto :goto_36
 
-    :cond_22
+    :cond_2e
     const-string v2, "A1"
 
     invoke-static {p0, v2}, Le/e/a/PlaybackSession;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
@@ -163,7 +162,7 @@
 
     check-cast v2, Landroid/content/Context;
 
-    :goto_2a
+    :goto_36
     invoke-virtual {v2}, Landroid/content/Context;->getApplicationContext()Landroid/content/Context;
 
     move-result-object v2
@@ -171,32 +170,32 @@
     iput-object v2, v1, Le/e/a/MediaControls$State;->context:Landroid/content/Context;
 
     .line 24
-    if-eqz p1, :cond_35
+    if-eqz p1, :cond_41
 
     const-string v2, "e"
 
-    goto :goto_37
+    goto :goto_43
 
-    :cond_35
+    :cond_41
     const-string v2, "a0"
 
-    :goto_37
+    :goto_43
     invoke-static {p0, v2}, Le/e/a/PlaybackSession;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v2
 
     iput-object v2, v1, Le/e/a/MediaControls$State;->player:Ljava/lang/Object;
 
-    if-eqz p1, :cond_42
+    if-eqz p1, :cond_4e
 
     const-string v2, "f"
 
-    goto :goto_44
+    goto :goto_50
 
-    :cond_42
+    :cond_4e
     const-string v2, "b0"
 
-    :goto_44
+    :goto_50
     invoke-static {p0, v2}, Le/e/a/PlaybackSession;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v2
@@ -216,7 +215,7 @@
     iput-object v2, v1, Le/e/a/MediaControls$State;->title:Ljava/lang/String;
 
     .line 25
-    if-eqz p1, :cond_65
+    if-eqz p1, :cond_71
 
     const-string v2, "c0"
 
@@ -230,12 +229,12 @@
 
     move-result v2
 
-    goto :goto_68
+    goto :goto_74
 
-    :cond_65
+    :cond_71
     const v2, 0xa067
 
-    :goto_68
+    :goto_74
     iput v2, v1, Le/e/a/MediaControls$State;->notificationId:I
 
     .line 26
@@ -278,7 +277,7 @@
 
     const/16 v3, 0x21
 
-    if-lt v2, v3, :cond_a4
+    if-lt v2, v3, :cond_b0
 
     iget-object v2, v1, Le/e/a/MediaControls$State;->context:Landroid/content/Context;
 
@@ -294,9 +293,9 @@
 
     invoke-virtual {v2, v3, v4, v5}, Landroid/content/Context;->registerReceiver(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;I)Landroid/content/Intent;
 
-    goto :goto_b2
+    goto :goto_be
 
-    :cond_a4
+    :cond_b0
     iget-object v2, v1, Le/e/a/MediaControls$State;->context:Landroid/content/Context;
 
     iget-object v3, v1, Le/e/a/MediaControls$State;->receiver:Landroid/content/BroadcastReceiver;
@@ -308,15 +307,15 @@
     invoke-direct {v4, v5}, Landroid/content/IntentFilter;-><init>(Ljava/lang/String;)V
 
     invoke-virtual {v2, v3, v4}, Landroid/content/Context;->registerReceiver(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)Landroid/content/Intent;
-    :try_end_b2
-    .catch Ljava/lang/Exception; {:try_start_f .. :try_end_b2} :catch_ed
-    .catchall {:try_start_f .. :try_end_b2} :catchall_eb
+    :try_end_be
+    .catch Ljava/lang/Exception; {:try_start_1b .. :try_end_be} :catch_f9
+    .catchall {:try_start_1b .. :try_end_be} :catchall_f7
 
     .line 36
-    :goto_b2
-    if-eqz p1, :cond_cd
+    :goto_be
+    if-eqz p1, :cond_d9
 
-    :try_start_b4
+    :try_start_c0
     const-string p1, "W"
 
     invoke-static {p0, p1}, Le/e/a/PlaybackSession;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
@@ -325,7 +324,7 @@
 
     check-cast p0, Landroid/media/RemoteControlClient;
 
-    if-eqz p0, :cond_cd
+    if-eqz p0, :cond_d9
 
     iget-object p1, v1, Le/e/a/MediaControls$State;->context:Landroid/content/Context;
 
@@ -338,19 +337,19 @@
     check-cast p1, Landroid/media/AudioManager;
 
     invoke-virtual {p1, p0}, Landroid/media/AudioManager;->unregisterRemoteControlClient(Landroid/media/RemoteControlClient;)V
-    :try_end_cb
-    .catch Ljava/lang/Exception; {:try_start_b4 .. :try_end_cb} :catch_cc
-    .catchall {:try_start_b4 .. :try_end_cb} :catchall_eb
+    :try_end_d7
+    .catch Ljava/lang/Exception; {:try_start_c0 .. :try_end_d7} :catch_d8
+    .catchall {:try_start_c0 .. :try_end_d7} :catchall_f7
 
-    goto :goto_cd
+    goto :goto_d9
 
-    :catch_cc
+    :catch_d8
     move-exception p0
 
     .line 37
-    :cond_cd
-    :goto_cd
-    :try_start_cd
+    :cond_d9
+    :goto_d9
+    :try_start_d9
     iget-object p0, v1, Le/e/a/MediaControls$State;->session:Landroid/media/session/MediaSession;
 
     invoke-static {v1}, Le/e/a/MediaControls;->open(Le/e/a/MediaControls$State;)Landroid/app/PendingIntent;
@@ -377,30 +376,30 @@
     iget-object p0, v1, Le/e/a/MediaControls$State;->tick:Ljava/lang/Runnable;
 
     invoke-interface {p0}, Ljava/lang/Runnable;->run()V
-    :try_end_ea
-    .catch Ljava/lang/Exception; {:try_start_cd .. :try_end_ea} :catch_ed
-    .catchall {:try_start_cd .. :try_end_ea} :catchall_eb
+    :try_end_f6
+    .catch Ljava/lang/Exception; {:try_start_d9 .. :try_end_f6} :catch_f9
+    .catchall {:try_start_d9 .. :try_end_f6} :catchall_f7
 
-    goto :goto_f4
+    goto :goto_100
 
     .line 21
-    :catchall_eb
+    :catchall_f7
     move-exception p0
 
-    goto :goto_f7
+    goto :goto_103
 
     .line 39
-    :catch_ed
+    :catch_f9
     move-exception p0
 
-    :try_start_ee
+    :try_start_fa
     invoke-static {p0}, Le/e/a/PlaybackSession;->log(Ljava/lang/Exception;)V
 
     invoke-static {}, Le/e/a/MediaControls;->clear()V
-    :try_end_f4
-    .catchall {:try_start_ee .. :try_end_f4} :catchall_eb
+    :try_end_100
+    .catchall {:try_start_fa .. :try_end_100} :catchall_f7
 
-    :goto_f4
+    :goto_100
     nop
 
     .line 40
@@ -409,7 +408,7 @@
     return-void
 
     .line 21
-    :goto_f7
+    :goto_103
     monitor-exit v0
 
     throw p0
@@ -897,33 +896,54 @@
 .end method
 
 .method static title(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/String;
-    .locals 2
+    .registers 4
+
     invoke-static {p0}, Le/e/a/FeedbackMedia;->bundle(Ljava/lang/Object;)Landroid/os/Bundle;
+
     move-result-object v0
+
     invoke-static {v0}, Le/e/a/FeedbackFixes;->bundleTitle(Landroid/os/Bundle;)Ljava/lang/String;
+
     move-result-object v0
-    if-eqz v0, :fragment_title
+
+    if-eqz v0, :cond_11
+
     invoke-virtual {v0}, Ljava/lang/String;->isEmpty()Z
+
     move-result v1
-    if-nez v1, :fragment_title
+
+    if-nez v1, :cond_11
+
     return-object v0
-    :fragment_title
-    :try_start_title
+
+    :cond_11
+    :try_start_11
     const-string v0, "c0"
+
     invoke-static {p0, v0}, Le/e/a/FeedbackFixes;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
+
     move-result-object v0
+
     instance-of v1, v0, Ljava/lang/String;
-    if-eqz v1, :fallback
+
+    if-eqz v1, :cond_25
+
     check-cast v0, Ljava/lang/String;
+
     invoke-virtual {v0}, Ljava/lang/String;->isEmpty()Z
+
     move-result v1
-    if-nez v1, :fallback
+
+    if-nez v1, :cond_25
+
     return-object v0
-    :try_end_title
-    .catch Ljava/lang/Exception; {:try_start_title .. :try_end_title} :title_error
-    :title_error
+    :try_end_24
+    .catch Ljava/lang/Exception; {:try_start_11 .. :try_end_24} :catch_24
+
+    :catch_24
     move-exception v0
-    :fallback
+
+    :cond_25
     return-object p1
 .end method
 
@@ -974,31 +994,38 @@
 
     move-result-wide v5
 
-    # Refresh even if metadata arrives after attach without a duration/play-state change.
     iget-object v3, v0, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;
+
     invoke-static {v3}, Le/e/a/FeedbackMedia;->bundle(Ljava/lang/Object;)Landroid/os/Bundle;
+
     move-result-object v3
+
     iget-object v7, v0, Le/e/a/MediaControls$State;->lastInfo:Landroid/os/Bundle;
-    if-eq v3, v7, :info_unchanged
+
+    if-eq v3, v7, :cond_39
+
     iput-object v3, v0, Le/e/a/MediaControls$State;->lastInfo:Landroid/os/Bundle;
+
     const-wide/16 v7, -0x1
+
     iput-wide v7, v0, Le/e/a/MediaControls$State;->lastDuration:J
-    :info_unchanged
+
     .line 55
+    :cond_39
     iget-object v3, v0, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;
 
     iget-boolean v7, v0, Le/e/a/MediaControls$State;->popup:Z
 
-    if-eqz v7, :cond_32
+    if-eqz v7, :cond_42
 
     const-string v7, "f"
 
-    goto :goto_34
+    goto :goto_44
 
-    :cond_32
+    :cond_42
     const-string v7, "b0"
 
-    :goto_34
+    :goto_44
     invoke-static {v3, v7}, Le/e/a/PlaybackSession;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v3
@@ -1019,7 +1046,7 @@
 
     move-result v8
 
-    if-eqz v8, :cond_52
+    if-eqz v8, :cond_62
 
     iget-object v8, v0, Le/e/a/MediaControls$State;->title:Ljava/lang/String;
 
@@ -1027,9 +1054,9 @@
 
     move-result v8
 
-    if-nez v8, :cond_5a
+    if-nez v8, :cond_6a
 
-    :cond_52
+    :cond_62
     iput-object v3, v0, Le/e/a/MediaControls$State;->video:Ljava/lang/String;
 
     iput-object v7, v0, Le/e/a/MediaControls$State;->title:Ljava/lang/String;
@@ -1039,7 +1066,7 @@
     iput-wide v7, v0, Le/e/a/MediaControls$State;->lastDuration:J
 
     .line 56
-    :cond_5a
+    :cond_6a
     iget-object v3, v0, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;
 
     .line 57
@@ -1088,34 +1115,34 @@
 
     const/4 v8, 0x2
 
-    if-eqz v2, :cond_8b
+    if-eqz v2, :cond_9b
 
     const/4 v9, 0x3
 
     const/4 v12, 0x3
 
-    goto :goto_8c
+    goto :goto_9c
 
-    :cond_8b
+    :cond_9b
     const/4 v12, 0x2
 
-    :goto_8c
+    :goto_9c
     invoke-static/range {p0 .. p0}, Le/e/a/MediaControls;->position(Le/e/a/MediaControls$State;)J
 
     move-result-wide v13
 
-    if-eqz v2, :cond_94
+    if-eqz v2, :cond_a4
 
     move v15, v3
 
-    goto :goto_96
+    goto :goto_a6
 
-    :cond_94
+    :cond_a4
     const/4 v3, 0x0
 
     const/4 v15, 0x0
 
-    :goto_96
+    :goto_a6
     invoke-static {}, Landroid/os/SystemClock;->elapsedRealtime()J
 
     move-result-wide v16
@@ -1135,14 +1162,14 @@
 
     cmp-long v3, v5, v9
 
-    if-nez v3, :cond_af
+    if-nez v3, :cond_bf
 
     iget-boolean v3, v0, Le/e/a/MediaControls$State;->lastPlaying:Z
 
-    if-eq v2, v3, :cond_1af
+    if-eq v2, v3, :cond_1bf
 
     .line 62
-    :cond_af
+    :cond_bf
     iget-object v3, v0, Le/e/a/MediaControls$State;->session:Landroid/media/session/MediaSession;
 
     new-instance v7, Landroid/media/MediaMetadata$Builder;
@@ -1201,7 +1228,7 @@
 
     const/16 v10, 0x1a
 
-    if-lt v9, v10, :cond_101
+    if-lt v9, v10, :cond_111
 
     new-instance v9, Landroid/app/NotificationChannel;
 
@@ -1224,10 +1251,10 @@
     invoke-virtual {v3, v9}, Landroid/app/NotificationManager;->createNotificationChannel(Landroid/app/NotificationChannel;)V
 
     .line 65
-    :cond_101
+    :cond_111
     sget v9, Landroid/os/Build$VERSION;->SDK_INT:I
 
-    if-lt v9, v10, :cond_10d
+    if-lt v9, v10, :cond_11d
 
     new-instance v9, Landroid/app/Notification$Builder;
 
@@ -1235,9 +1262,9 @@
 
     invoke-direct {v9, v10, v7}, Landroid/app/Notification$Builder;-><init>(Landroid/content/Context;Ljava/lang/String;)V
 
-    goto :goto_114
+    goto :goto_124
 
-    :cond_10d
+    :cond_11d
     new-instance v9, Landroid/app/Notification$Builder;
 
     iget-object v7, v0, Le/e/a/MediaControls$State;->context:Landroid/content/Context;
@@ -1245,7 +1272,7 @@
     invoke-direct {v9, v7}, Landroid/app/Notification$Builder;-><init>(Landroid/content/Context;)V
 
     .line 66
-    :goto_114
+    :goto_124
     iget-object v7, v0, Le/e/a/MediaControls$State;->context:Landroid/content/Context;
 
     invoke-virtual {v7}, Landroid/content/Context;->getApplicationInfo()Landroid/content/pm/ApplicationInfo;
@@ -1292,23 +1319,23 @@
     move-result-object v1
 
     .line 68
-    if-eqz v2, :cond_145
+    if-eqz v2, :cond_155
 
     const v10, 0x1080023
 
-    goto :goto_148
+    goto :goto_158
 
-    :cond_145
+    :cond_155
     const v10, 0x1080024
 
-    :goto_148
-    if-eqz v2, :cond_14d
+    :goto_158
+    if-eqz v2, :cond_15d
 
     const-string v11, "\u4e00\u6642\u505c\u6b62"
 
-    goto :goto_157
+    goto :goto_167
 
-    :cond_14d
+    :cond_15d
     const-string v11, "\u518d\u751f\u3059\u308b"
 
     invoke-static/range {v11 .. v11}, Le/e/a/UiStrings;->translate(Ljava/lang/String;)Ljava/lang/String;
@@ -1319,7 +1346,7 @@
 
     move-result-object v11
 
-    :goto_157
+    :goto_167
     invoke-static {v11}, Le/e/a/UiStrings;->translate(Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object v11
@@ -1387,7 +1414,7 @@
 
     iget-boolean v4, v0, Le/e/a/MediaControls$State;->popup:Z
 
-    if-eqz v4, :cond_1a6
+    if-eqz v4, :cond_1b6
 
     iget-object v3, v0, Le/e/a/MediaControls$State;->owner:Ljava/lang/Object;
 
@@ -1397,30 +1424,30 @@
 
     invoke-virtual {v3, v4, v1}, Landroid/app/Service;->startForeground(ILandroid/app/Notification;)V
 
-    goto :goto_1ab
+    goto :goto_1bb
 
-    :cond_1a6
+    :cond_1b6
     iget v4, v0, Le/e/a/MediaControls$State;->notificationId:I
 
     invoke-virtual {v3, v4, v1}, Landroid/app/NotificationManager;->notify(ILandroid/app/Notification;)V
 
     .line 72
-    :goto_1ab
+    :goto_1bb
     iput-wide v5, v0, Le/e/a/MediaControls$State;->lastDuration:J
 
     iput-boolean v2, v0, Le/e/a/MediaControls$State;->lastPlaying:Z
-    :try_end_1af
-    .catch Ljava/lang/Exception; {:try_start_4 .. :try_end_1af} :catch_1b0
+    :try_end_1bf
+    .catch Ljava/lang/Exception; {:try_start_4 .. :try_end_1bf} :catch_1c0
 
     .line 74
-    :cond_1af
-    goto :goto_1b4
+    :cond_1bf
+    goto :goto_1c4
 
-    :catch_1b0
+    :catch_1c0
     move-exception v0
 
     invoke-static {v0}, Le/e/a/PlaybackSession;->log(Ljava/lang/Exception;)V
 
-    :goto_1b4
+    :goto_1c4
     return-void
 .end method

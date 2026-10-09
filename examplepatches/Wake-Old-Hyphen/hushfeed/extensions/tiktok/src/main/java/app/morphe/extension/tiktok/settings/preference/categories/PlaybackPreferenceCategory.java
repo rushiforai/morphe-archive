@@ -29,10 +29,12 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
         return SettingsStatus.playbackQualityEnabled || SettingsStatus.sdrPlaybackEnabled
-                || SettingsStatus.playbackSpeedEnabled
+                || SettingsStatus.h264PlaybackEnabled || SettingsStatus.playbackSpeedEnabled
                 || SettingsStatus.autoAdvanceEnabled || SettingsStatus.videoFitEnabled
-                || SettingsStatus.fullScreenHoldEnabled || SettingsStatus.feedMuteEnabled
-                || SettingsStatus.backgroundPlayEnabled
+                || SettingsStatus.fullScreenHoldEnabled || SettingsStatus.storyControlsEnabled
+                || SettingsStatus.liveControlsEnabled
+                || SettingsStatus.feedMuteEnabled || SettingsStatus.keepPulledSoundsEnabled
+                || SettingsStatus.backgroundPlayEnabled || SettingsStatus.pictureInPictureEnabled
                 || SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
                 || SettingsStatus.stopVideoLoopingEnabled || SettingsStatus.resumeVideoAfterScrollEnabled
                 // The comment sheet switch is a playback switch, and on a bundle with the
@@ -61,11 +63,16 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     "Takes TikTok's own Auto scroll action out of the video panel. "
                             + "Auto-advance keeps working.",
                     Settings.AUTO_ADVANCE_HIDE_PANEL_ACTION));
+            addPreference(new TogglePreference(context, "Auto-advance in search results",
+                    "Also turns on TikTok's own auto scroll for videos opened from search. "
+                            + "Restart TikTok to apply this.",
+                    Settings.AUTO_ADVANCE_SEARCH));
         }
         // None of these is auto-advance, and under its heading they read as parts of it: each keeps
         // you on the video you're on, paused behind the comments, held or stopped at its end, or
         // picked up where you left it.
         if (SettingsStatus.commentToolsEnabled || SettingsStatus.fullScreenHoldEnabled
+                || SettingsStatus.storyControlsEnabled || SettingsStatus.liveControlsEnabled
                 || SettingsStatus.stopVideoLoopingEnabled || SettingsStatus.resumeVideoAfterScrollEnabled) {
             addPreference(new SectionHeadingPreference(context, "Staying on a video"));
         }
@@ -80,6 +87,26 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     "When a video ends in full screen, stay on it instead of moving to the next "
                             + "one. Swiping still moves on.",
                     Settings.FULL_SCREEN_HOLD));
+        }
+        if (SettingsStatus.storyControlsEnabled) {
+            addPreference(new TogglePreference(context, "Loop a story",
+                    "Replay a story from the start when it ends instead of moving to the next one. "
+                            + "Tap or swipe to move on.",
+                    Settings.STORY_LOOP));
+            addPreference(new TogglePreference(context, "Hold a photo story",
+                    "Keep a photo story on screen until you tap or swipe, instead of moving on "
+                            + "after a few seconds.",
+                    Settings.STORY_PHOTO_HOLD));
+        }
+        if (SettingsStatus.liveControlsEnabled) {
+            addPreference(new TogglePreference(context, "Stop LIVE previews opening by themselves",
+                    "A LIVE in the feed can count down and take you into the room on its own. "
+                            + "This keeps you in the feed until you tap it.",
+                    Settings.STOP_LIVE_AUTO_ENTER));
+            addPreference(new TogglePreference(context, "Show exact LIVE viewer counts",
+                    "A LIVE room shows how many people are watching as a rounded number like 1.2K. "
+                            + "This shows the exact count instead.",
+                    Settings.SHOW_EXACT_LIVE_VIEWERS));
         }
         if (SettingsStatus.stopVideoLoopingEnabled) {
             addPreference(new TogglePreference(
@@ -101,7 +128,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
         // leave. The bar rows were on App and the frame rows under Quality, which they aren't.
         if (SettingsStatus.showSeekbarEnabled || SettingsStatus.seekbarThumbnailEnabled
                 || SettingsStatus.videoFitEnabled || SettingsStatus.feedMuteEnabled
-                || SettingsStatus.backgroundPlayEnabled) {
+                || SettingsStatus.keepPulledSoundsEnabled || SettingsStatus.backgroundPlayEnabled
+                || SettingsStatus.pictureInPictureEnabled) {
             addPreference(new SectionHeadingPreference(context, "Player"));
         }
         if (SettingsStatus.showSeekbarEnabled) {
@@ -157,6 +185,13 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "keep their sound.",
                     Settings.FEED_MUTED));
         }
+        if (SettingsStatus.keepPulledSoundsEnabled) {
+            addPreference(new TogglePreference(context, "Play sounds TikTok pulled",
+                    "Play the audio on videos TikTok silenced because their sound was pulled for "
+                            + "copyright or in your region. TikTok may still say the sound isn't "
+                            + "available.",
+                    Settings.KEEP_PULLED_SOUNDS));
+        }
         if (SettingsStatus.backgroundPlayEnabled) {
             addPreference(new TogglePreference(context, "Keep playing in the background",
                     "The video you're watching keeps playing to its end after you leave "
@@ -164,6 +199,14 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "to pause it. TikTok's background play switch stays on while this is "
                             + "on. Restart TikTok to apply this.",
                     Settings.BACKGROUND_PLAY));
+        }
+        if (SettingsStatus.pictureInPictureEnabled) {
+            addPreference(new TogglePreference(context, "Keep watching in a small window",
+                    "When you leave TikTok while a video plays, it keeps playing in a small window "
+                            + "over your other apps, with a button to pause it. Works in the feed and "
+                            + "on videos you open from a profile, search or a sound. Needs Android 8 "
+                            + "or later.",
+                    Settings.PICTURE_IN_PICTURE));
         }
 
         if (SettingsStatus.playbackSpeedEnabled) {
@@ -203,7 +246,8 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                     new String[]{"1.25x", "1.5x", "1.75x", "2x", "2.5x", "3x"},
                     new String[]{"1.25", "1.5", "1.75", "2", "2.5", "3"}));
         }
-        if (SettingsStatus.playbackQualityEnabled || SettingsStatus.sdrPlaybackEnabled) {
+        if (SettingsStatus.playbackQualityEnabled || SettingsStatus.sdrPlaybackEnabled
+                || SettingsStatus.h264PlaybackEnabled) {
             addPreference(new SectionHeadingPreference(context, "Quality"));
         }
         if (SettingsStatus.playbackQualityEnabled) {
@@ -220,6 +264,13 @@ public final class PlaybackPreferenceCategory extends ConditionalPreferenceCateg
                             + "doesn't jump to full brightness when one starts. Videos TikTok only "
                             + "offers in HDR still play.",
                     Settings.PLAY_SDR));
+        }
+        if (SettingsStatus.h264PlaybackEnabled) {
+            addPreference(new TogglePreference(context, "Prefer H.264 video",
+                    "Play the H.264 version of videos TikTok also offers in HEVC or ByteVC2. "
+                            + "It's easier on phones that stutter or run hot playing those. Videos "
+                            + "without an H.264 version still play.",
+                    Settings.PREFER_H264));
         }
     }
 }

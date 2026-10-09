@@ -30,7 +30,11 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * FeedFullscreenVideoControlsPlugin extends) set a timer to fade out each time they show or you
  * touch them. The patch asks {@link #keepsControls} first in the method that sets that timer, and
  * a yes sets none, so the controls and their progress bar stay until you tap the video, which
- * hides them as before.
+ * hides them as before. The newer Litho player hides its controls from its video controls
+ * extension, 3 seconds after they show or are touched, and the player that Enter fullscreen
+ * landscape mode opens runs on the Reels controls component, whose controller posts a runnable that
+ * hides them about 3 seconds after a tap. The patch asks {@link #keepsControls} first in that
+ * extension's timer and in that runnable, and a yes hides nothing. A tap still hides them.
  *
  * <p>Off, paused, before the settings are ready, or when anything here fails, both answer no and
  * Facebook carries on with its own code.
@@ -58,8 +62,9 @@ public final class ProgressBar {
     }
 
     /**
-     * The hook, first thing in the method that sets a full-screen video's fade timer. True sets no
-     * timer, so the controls stay; false lets Facebook set it.
+     * The hook, first thing in the methods that set a full-screen video's fade timer, in the older
+     * player and the newer one, and in the landscape player's hide runnable. True sets no timer or
+     * runs no hide, so the controls stay; false lets Facebook's code run.
      */
     public static boolean keepsControls() {
         return keeps("video controls", CONTROLS_KEPT);

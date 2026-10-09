@@ -275,6 +275,30 @@ public class Settings extends BaseSettings {
     public static final BooleanSetting MESSAGE_MENU_REPEAT =
             new BooleanSetting("hushtelegram_message_menu_repeat", FALSE);
 
+    /**
+     * A message someone else deletes stays on this phone, marked deleted next to its time.
+     */
+    public static final BooleanSetting KEEP_DELETED_MESSAGES =
+            new BooleanSetting("hushtelegram_keep_deleted_messages", FALSE);
+
+    /**
+     * A sticker you tap asks Send or Cancel before it goes into the chat.
+     */
+    public static final BooleanSetting ASK_BEFORE_STICKER =
+            new BooleanSetting("hushtelegram_ask_before_sticker", FALSE);
+
+    /** A GIF you tap asks Send or Cancel before it goes into the chat. */
+    public static final BooleanSetting ASK_BEFORE_GIF =
+            new BooleanSetting("hushtelegram_ask_before_gif", FALSE);
+
+    /** A voice or video message you recorded asks Send or Cancel before it goes into the chat. */
+    public static final BooleanSetting ASK_BEFORE_VOICE_VIDEO =
+            new BooleanSetting("hushtelegram_ask_before_voice_video", FALSE);
+
+    /** The call button in a chat's header or on a profile asks Call or Cancel before it starts a call. */
+    public static final BooleanSetting ASK_BEFORE_CALL =
+            new BooleanSetting("hushtelegram_ask_before_call", FALSE);
+
     /** A photo's long-press menu gets Copy photo, which puts the downloaded picture on the clipboard. */
     public static final BooleanSetting MESSAGE_MENU_COPY_PHOTO =
             new BooleanSetting("hushtelegram_message_menu_copy_photo", FALSE);
@@ -282,6 +306,10 @@ public class Settings extends BaseSettings {
     /** A message's long-press menu gets Message details, a dialog of its IDs, times and file facts. */
     public static final BooleanSetting MESSAGE_MENU_DETAILS =
             new BooleanSetting("hushtelegram_message_menu_details", FALSE);
+
+    /** A message's long-press menu gets Quick forward, which forwards it to Saved Messages or a recent chat in one tap. */
+    public static final BooleanSetting MESSAGE_MENU_QUICK_FORWARD =
+            new BooleanSetting("hushtelegram_message_menu_quick_forward", FALSE);
 
     /**
      * The device statistics report the server can ask for (a storage-type boolean, sent as a

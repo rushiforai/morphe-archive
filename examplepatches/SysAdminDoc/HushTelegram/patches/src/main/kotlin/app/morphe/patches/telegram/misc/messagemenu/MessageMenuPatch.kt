@@ -67,6 +67,11 @@ private const val CHAT_OBJECT = "Lorg/telegram/messenger/ChatObject;"
 private const val USER_OBJECT = "Lorg/telegram/messenger/UserObject;"
 private const val DIALOG_OBJECT = "Lorg/telegram/messenger/DialogObject;"
 private const val ACCOUNT_CONFIG = "Lorg/telegram/messenger/UserConfig;"
+private const val SEND_HELPER = "Lorg/telegram/messenger/SendMessagesHelper;"
+private const val TL_DIALOG = "Lorg/telegram/tgnet/TLRPC\$Dialog;"
+private const val LOCALE = "Lorg/telegram/messenger/LocaleController;"
+private const val STRINGS = "Lorg/telegram/messenger/R\$string;"
+private const val STRING = "Ljava/lang/String;"
 private const val DRAWABLES = "Lorg/telegram/messenger/R\$drawable;"
 private const val ADD_TO_LIST = "Ljava/util/ArrayList;->add(Ljava/lang/Object;)Z"
 private const val LIST = "Ljava/util/ArrayList;"
@@ -79,15 +84,15 @@ private const val FILE_LOADER = "Lorg/telegram/messenger/FileLoader;"
 internal const val APPLICATION_ID = "Lorg/telegram/messenger/ApplicationLoader;->getApplicationId()Ljava/lang/String;"
 private const val NAME = "Add Repeat to the message menu"
 
-/** The extension's option numbers, Repeat, Message details and Copy photo, which Telegram's own may never use. */
-internal val MENU_OPTIONS = listOf(0x48544d01, 0x48544d02, 0x48544d03)
+/** The extension's option numbers, Repeat, Message details, Copy photo and Quick forward, which Telegram's own may never use. */
+internal val MENU_OPTIONS = listOf(0x48544d01, 0x48544d02, 0x48544d03, 0x48544d04)
 private val COMPARES = setOf(Opcode.IF_EQ, Opcode.IF_NE)
 private val MOVES = setOf(Opcode.MOVE, Opcode.MOVE_FROM16, Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_WIDE, Opcode.MOVE_WIDE_FROM16)
 
 @Suppress("unused")
 val messageMenuPatch = bytecodePatch(
     name = NAME,
-    description = "Adds switches, off by default, for a message's long-press menu. Repeat sends the message again to the same chat as a new message from you. Copy photo puts a downloaded photo on the clipboard, and Message details shows the message's IDs and times, plus the file's data center and size.",
+    description = "Adds switches, off by default, for a message's long-press menu. Repeat sends the message again to the same chat as a new message from you. Copy photo puts a downloaded photo on the clipboard, and Message details shows the message's IDs and times, plus the file's data center and size. Quick forward lists a few recent chats to forward to in one tap.",
     default = true,
 ) {
     category("Chats")
@@ -144,7 +149,15 @@ internal fun BytecodePatchContext.resolveMessageMenu(): MessageMenuSite {
     controlHook(MESSAGE_MENU, "grouped", listOf(OBJECT), LIST)
     controlHook(MESSAGE_MENU, "send", listOf(OBJECT, LIST), "V")
     controlHook(MESSAGE_MENU, "activity", listOf(OBJECT), ACTIVITY)
-    for (name in listOf("forwardOption", "article", "repeatIcon", "copyIcon", "detailsIcon")) controlHook(MESSAGE_MENU, name, listOf(), "I")
+    for (name in listOf("forwardOption", "article", "quickIcon", "repeatIcon", "copyIcon", "detailsIcon")) controlHook(MESSAGE_MENU, name, listOf(), "I")
+    controlHook(MESSAGE_MENU, "account", listOf(OBJECT), "I")
+    controlHook(MESSAGE_MENU, "selfId", listOf("I"), "J")
+    controlHook(MESSAGE_MENU, "dialogs", listOf("I"), LIST)
+    controlHook(MESSAGE_MENU, "dialogId", listOf(OBJECT), "J")
+    controlHook(MESSAGE_MENU, "secret", listOf("J"), "Z")
+    controlHook(MESSAGE_MENU, "reachable", listOf("I", "J"), "Z")
+    controlHook(MESSAGE_MENU, "title", listOf("I", "J"), STRING)
+    controlHook(MESSAGE_MENU, "forwardTo", listOf("I", LIST, "J", "Z"), "I")
     for (name in listOf("canSend", "blocked", "premium", "forwarded", "photo")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "Z")
     for (name in listOf("type", "id", "date", "edited", "forwardDate", "fileDc", "photoSize")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "I")
     for (name in listOf("dialog", "sender", "forwardFrom", "documentSize")) controlHook(MESSAGE_MENU, name, listOf(OBJECT), "J")
@@ -310,12 +323,17 @@ private fun BytecodePatchContext.requireHostMembers() {
     members(DOCUMENT, "dc_id:I", "size:J")
     members(PAID_MEDIA)
     members(ACTION_EMPTY)
-    members(CONTROLLER, "static getInstance(I)$CONTROLLER", "getChat(Ljava/lang/Long;)$TL_CHAT", "getUser(Ljava/lang/Long;)$TL_USER")
-    members(CHAT_OBJECT, "static isNotInChat($TL_CHAT)Z", "static canSendMessages($TL_CHAT)Z")
-    members(USER_OBJECT, "static isDeleted($TL_USER)Z", "static isReplyUser(J)Z", "static isService(J)Z")
+    members(CONTROLLER, "static getInstance(I)$CONTROLLER", "getChat(Ljava/lang/Long;)$TL_CHAT", "getUser(Ljava/lang/Long;)$TL_USER", "getAllDialogs()$LIST")
+    members(CHAT_OBJECT, "static isNotInChat($TL_CHAT)Z", "static canSendMessages($TL_CHAT)Z", "static isForum($TL_CHAT)Z", "static isMonoForum($TL_CHAT)Z")
+    members(USER_OBJECT, "static isDeleted($TL_USER)Z", "static isReplyUser(J)Z", "static isService(J)Z", "static getUserName($TL_USER)$STRING")
+    members(TL_CHAT, "title:$STRING")
+    members(TL_DIALOG, "id:J")
+    members(SEND_HELPER, "static getInstance(I)$SEND_HELPER", "sendMessage(${LIST}JZZZIJ)I")
+    members(LOCALE, "static getString(I)$STRING")
+    members(STRINGS, "static SavedMessages:I")
     members(DIALOG_OBJECT, "static isEncryptedDialog(J)Z")
-    members(ACCOUNT_CONFIG, "static getInstance(I)$ACCOUNT_CONFIG", "isPremium()Z")
-    members(DRAWABLES, "static msg_retry:I", "static msg_copy:I", "static msg_info:I")
+    members(ACCOUNT_CONFIG, "static getInstance(I)$ACCOUNT_CONFIG", "isPremium()Z", "getClientUserId()J")
+    members(DRAWABLES, "static msg_retry:I", "static msg_copy:I", "static msg_info:I", "static msg_forward:I")
 }
 
 /** The stubs' bodies, from the members [site] found. */
@@ -358,6 +376,7 @@ internal fun BytecodePatchContext.writeMessageMenuStubs(site: MessageMenuSite) {
     """)
     writeStub(MESSAGE_MENU, "forwardOption", 1, "const v0, ${site.forwardOption}\nreturn v0")
     writeStub(MESSAGE_MENU, "article", 1, "const v0, ${site.article}\nreturn v0")
+    writeStub(MESSAGE_MENU, "quickIcon", 1, "sget v0, $DRAWABLES->msg_forward:I\nreturn v0")
     writeStub(MESSAGE_MENU, "repeatIcon", 1, "sget v0, $DRAWABLES->msg_retry:I\nreturn v0")
     writeStub(MESSAGE_MENU, "copyIcon", 1, "sget v0, $DRAWABLES->msg_copy:I\nreturn v0")
     writeStub(MESSAGE_MENU, "detailsIcon", 1, "sget v0, $DRAWABLES->msg_info:I\nreturn v0")
@@ -451,6 +470,7 @@ internal fun BytecodePatchContext.writeMessageMenuStubs(site: MessageMenuSite) {
         const/4 v1, 0x0
         return v1
     """)
+    writeQuickForwardStubs()
     writeStub(MESSAGE_MENU, "blocked", 2, """
         check-cast p0, $MESSAGE
         invoke-virtual {p0}, $MESSAGE->getId()I
@@ -593,6 +613,136 @@ internal fun BytecodePatchContext.writeMessageMenuStubs(site: MessageMenuSite) {
     writeStub(MESSAGE_MENU, "photoSize", 2, """
         check-cast p0, $PHOTO_SIZE
         iget v0, p0, $PHOTO_SIZE->size:I
+        return v0
+    """)
+}
+
+/**
+ * What Quick forward reads and does through Telegram: the message's account, your own user ID,
+ * the account's chat list, a chat's ID, name and send rights, and the forward itself. A chat is
+ * reachable the way Repeat's check has it, minus forums, which need a topic picked first.
+ */
+private fun BytecodePatchContext.writeQuickForwardStubs() {
+    writeStub(MESSAGE_MENU, "account", 2, "check-cast p0, $MESSAGE\niget v0, p0, $MESSAGE->currentAccount:I\nreturn v0")
+    writeStub(MESSAGE_MENU, "selfId", 3, """
+        invoke-static {p0}, $ACCOUNT_CONFIG->getInstance(I)$ACCOUNT_CONFIG
+        move-result-object v0
+        invoke-virtual {v0}, $ACCOUNT_CONFIG->getClientUserId()J
+        move-result-wide v0
+        return-wide v0
+    """)
+    writeStub(MESSAGE_MENU, "dialogs", 2, """
+        invoke-static {p0}, $CONTROLLER->getInstance(I)$CONTROLLER
+        move-result-object v0
+        invoke-virtual {v0}, $CONTROLLER->getAllDialogs()$LIST
+        move-result-object v0
+        return-object v0
+    """)
+    writeStub(MESSAGE_MENU, "dialogId", 3, "check-cast p0, $TL_DIALOG\niget-wide v0, p0, $TL_DIALOG->id:J\nreturn-wide v0")
+    writeStub(MESSAGE_MENU, "secret", 3, """
+        invoke-static {p0, p1}, $DIALOG_OBJECT->isEncryptedDialog(J)Z
+        move-result v0
+        return v0
+    """)
+    writeStub(MESSAGE_MENU, "reachable", 8, """
+        invoke-static {p0}, $CONTROLLER->getInstance(I)$CONTROLLER
+        move-result-object v0
+        const-wide/16 v1, 0x0
+        cmp-long v3, p1, v1
+        if-gtz v3, :hush_user
+        if-eqz v3, :hush_no
+        neg-long v1, p1
+        invoke-static {v1, v2}, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+        move-result-object v1
+        invoke-virtual {v0, v1}, $CONTROLLER->getChat(Ljava/lang/Long;)$TL_CHAT
+        move-result-object v0
+        if-eqz v0, :hush_no
+        invoke-static {v0}, $CHAT_OBJECT->isNotInChat($TL_CHAT)Z
+        move-result v1
+        if-nez v1, :hush_no
+        invoke-static {v0}, $CHAT_OBJECT->isForum($TL_CHAT)Z
+        move-result v1
+        if-nez v1, :hush_no
+        invoke-static {v0}, $CHAT_OBJECT->isMonoForum($TL_CHAT)Z
+        move-result v1
+        if-nez v1, :hush_no
+        invoke-static {v0}, $CHAT_OBJECT->canSendMessages($TL_CHAT)Z
+        move-result v1
+        return v1
+        :hush_user
+        invoke-static {p1, p2}, $USER_OBJECT->isReplyUser(J)Z
+        move-result v3
+        if-nez v3, :hush_no
+        invoke-static {p1, p2}, $USER_OBJECT->isService(J)Z
+        move-result v3
+        if-nez v3, :hush_no
+        invoke-static {p1, p2}, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+        move-result-object v1
+        invoke-virtual {v0, v1}, $CONTROLLER->getUser(Ljava/lang/Long;)$TL_USER
+        move-result-object v0
+        if-eqz v0, :hush_no
+        invoke-static {v0}, $USER_OBJECT->isDeleted($TL_USER)Z
+        move-result v1
+        if-nez v1, :hush_no
+        const/4 v1, 0x1
+        return v1
+        :hush_no
+        const/4 v1, 0x0
+        return v1
+    """)
+    // Your own chat is Saved Messages, named the way Telegram names it; a user by their name, a chat by its title.
+    writeStub(MESSAGE_MENU, "title", 7, """
+        invoke-static {p0}, $ACCOUNT_CONFIG->getInstance(I)$ACCOUNT_CONFIG
+        move-result-object v0
+        invoke-virtual {v0}, $ACCOUNT_CONFIG->getClientUserId()J
+        move-result-wide v1
+        cmp-long v3, v1, p1
+        if-nez v3, :hush_other
+        sget v0, $STRINGS->SavedMessages:I
+        invoke-static {v0}, $LOCALE->getString(I)$STRING
+        move-result-object v0
+        return-object v0
+        :hush_other
+        invoke-static {p0}, $CONTROLLER->getInstance(I)$CONTROLLER
+        move-result-object v0
+        const-wide/16 v1, 0x0
+        cmp-long v3, p1, v1
+        if-lez v3, :hush_chat
+        invoke-static {p1, p2}, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+        move-result-object v1
+        invoke-virtual {v0, v1}, $CONTROLLER->getUser(Ljava/lang/Long;)$TL_USER
+        move-result-object v0
+        if-eqz v0, :hush_none
+        invoke-static {v0}, $USER_OBJECT->getUserName($TL_USER)$STRING
+        move-result-object v0
+        return-object v0
+        :hush_chat
+        neg-long v1, p1
+        invoke-static {v1, v2}, Ljava/lang/Long;->valueOf(J)Ljava/lang/Long;
+        move-result-object v1
+        invoke-virtual {v0, v1}, $CONTROLLER->getChat(Ljava/lang/Long;)$TL_CHAT
+        move-result-object v0
+        if-eqz v0, :hush_none
+        iget-object v0, v0, $TL_CHAT->title:$STRING
+        return-object v0
+        :hush_none
+        const/4 v0, 0x0
+        return-object v0
+    """)
+    // Sound on, now, no stars agreed yet: a chat that charges gets Telegram's own confirmation. The
+    // sender stays shown unless the caller says to hide it.
+    writeStub(MESSAGE_MENU, "forwardTo", 15, """
+        invoke-static {p0}, $SEND_HELPER->getInstance(I)$SEND_HELPER
+        move-result-object v0
+        move-object v1, p1
+        move-wide v2, p2
+        move v4, p4
+        const/4 v5, 0x0
+        const/4 v6, 0x1
+        const/4 v7, 0x0
+        const-wide/16 v8, 0x0
+        invoke-virtual/range {v0 .. v9}, $SEND_HELPER->sendMessage(${LIST}JZZZIJ)I
+        move-result v0
         return v0
     """)
 }

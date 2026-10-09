@@ -42,42 +42,42 @@ import java.util.WeakHashMap;
  * content, which keeps recycled views correct: a hidden row that gets reused for
  * something else is shown again on the next pass.
  *
- * Resource ids are TikTok 47.0.3's, the declared target, read off its live Inbox and its
- * precompiled row inflaters. No older build's name is kept as a fallback: TikTok hands the
- * same short names out again on every build, and on 47.0.3 each 46.x name here is some
- * other view.
+ * Resource ids are TikTok 47.1.4's, the declared target, the same views 47.0.3's live Inbox and
+ * precompiled row inflaters were read off. No older build's name is kept as a fallback: TikTok
+ * hands the same short names out again on every build, and an older build's name is some
+ * other view on this one.
  * <pre>
- *   omr        bottom navigation, the Inbox tab (looked up by FeedVisibility)
- *   l7b        the Inbox RecyclerView
- *   uy5        a system notice row, with its title in brb
- *   w1f        the root of a chat row: a single chat, a group chat or the message requests row
+ *   opi        bottom navigation, the Inbox tab (looked up by FeedVisibility)
+ *   l91        the Inbox RecyclerView
+ *   v1m        a system notice row, with its title in brl
+ *   w54        the root of a chat row: a single chat, a group chat or the message requests row
  *   tv_request_unread_count  the request count, which only the message requests row has
- *   olv        the root of a "Say hi to" row, an account suggested with Follow and a wave
+ *   oom        the root of a "Say hi to" row, an account suggested with Follow and a wave
  *   user_name  the title of a chat row or a "Say hi to" row
- *   wqq        a title inside the horizontal stories tray
- *   q3m        the suggested accounts section header, holding u1n
- *   u1n        the suggested accounts section title
- *   fwz        remove an account from suggested accounts
- *   fg5        header, add people
- *   kp1        header, search
- *   l7d        header, activity status
+ *   wuh        a title inside the horizontal stories tray
+ *   q6c        the suggested accounts section header, holding u4x
+ *   u4x        the suggested accounts section title
+ *   fyd        remove an account from suggested accounts
+ *   fhi        header, add people
+ *   kqj        header, search
+ *   l93        header, activity status
  * </pre>
  */
 public final class InboxFilter {
-    private static final String[] LIST_IDS = {"47.0.3:l7b", "47.1.3:l91", "47.1.4:l91"};
-    private static final String[] SYSTEM_ROW_IDS = {"47.0.3:uy5", "47.1.3:v1m", "47.1.4:v1m"};
-    private static final String[] CHAT_ROW_IDS = {"47.0.3:w1f", "47.1.3:w54", "47.1.4:w54"};
+    private static final String[] LIST_IDS = {"47.1.4:l91"};
+    private static final String[] SYSTEM_ROW_IDS = {"47.1.4:v1m"};
+    private static final String[] CHAT_ROW_IDS = {"47.1.4:w54"};
     private static final String[] MESSAGE_REQUESTS_IDS = {"tv_request_unread_count"};
-    private static final String[] SAY_HI_ROW_IDS = {"47.0.3:olv", "47.1.3:oom", "47.1.4:oom"};
-    private static final String[] SYSTEM_ROW_TITLE_IDS = {"47.0.3:brb", "47.1.3:brl", "47.1.4:brl"};
+    private static final String[] SAY_HI_ROW_IDS = {"47.1.4:oom"};
+    private static final String[] SYSTEM_ROW_TITLE_IDS = {"47.1.4:brl"};
     private static final String[] USER_ROW_TITLE_IDS = {"user_name"};
-    private static final String[] STORIES_TITLE_IDS = {"47.0.3:wqq", "47.1.3:wuh", "47.1.4:wuh"};
-    private static final String[] SUGGESTED_HEADER_IDS = {"47.0.3:q3m", "47.1.3:q6c", "47.1.4:q6c"};
-    private static final String[] SUGGESTED_TITLE_IDS = {"47.0.3:u1n", "47.1.3:u4x", "47.1.4:u4x"};
-    private static final String[] SUGGESTED_REMOVE_IDS = {"47.0.3:fwz", "47.1.3:fyd", "47.1.4:fyd"};
-    private static final String[] HEADER_ADD_PEOPLE_IDS = {"47.0.3:fg5", "47.1.3:fhi", "47.1.4:fhi"};
-    private static final String[] HEADER_SEARCH_IDS = {"47.0.3:kp1", "47.1.3:kqj", "47.1.4:kqj"};
-    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"47.0.3:l7d", "47.1.3:l93", "47.1.4:l93"};
+    private static final String[] STORIES_TITLE_IDS = {"47.1.4:wuh"};
+    private static final String[] SUGGESTED_HEADER_IDS = {"47.1.4:q6c"};
+    private static final String[] SUGGESTED_TITLE_IDS = {"47.1.4:u4x"};
+    private static final String[] SUGGESTED_REMOVE_IDS = {"47.1.4:fyd"};
+    private static final String[] HEADER_ADD_PEOPLE_IDS = {"47.1.4:fhi"};
+    private static final String[] HEADER_SEARCH_IDS = {"47.1.4:kqj"};
+    private static final String[] HEADER_ACTIVITY_STATUS_IDS = {"47.1.4:l93"};
 
     /** One dismissal at a time, so bulk clearing does not hammer TikTok's API. */
     private static final long DISMISS_INTERVAL_MS = 300L;
@@ -283,7 +283,11 @@ public final class InboxFilter {
         }
 
         if (hasId(activity, row, CHAT_ROW_IDS)) {
-            return Settings.HIDE_INBOX_CONVERSATIONS.get()
+            // A pod the model named (Bulletin board, say) can be drawn on a chat's root. Its own
+            // switch hides it as well, and the conversations switch still does what it always did.
+            BooleanSetting named = SYSTEM_ROWS.get(row);
+            return (named != null && named.get())
+                    || Settings.HIDE_INBOX_CONVERSATIONS.get()
                     || matchesCustomList(textOf(findWithin(activity, row, USER_ROW_TITLE_IDS)));
         }
 

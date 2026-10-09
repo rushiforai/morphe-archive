@@ -40,7 +40,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import dexlib
-import dis as ddis
+import dalvik_dis as ddis
+import verify  # switch and try-handler edges, for liveness in methods that have them
 from dexlib import uleb
 
 # --------------------------------------------------------------------------- what to expect
@@ -78,15 +79,10 @@ BINDINGS = {
     'undo_slot': 'Lqyc;',
     'committable': 'Lojt;',
     'sigcheck': 'Lrpv;',
+    'sigcheck_runner': 'Lmm;',
     'toolbar_module': 'Lmln;',
     'bar_controller': 'Lmlh;',
     'toolbar_module_base': 'Lnvd;',
-    # Not a cached signature verdict, despite the company it keeps here. Lrox;->b:Z is the global
-    # test-environment flag (Build.FINGERPRINT.equals("robolectric")), permanently false on a
-    # device and read in ~40 unrelated places. The signature check reads it once, as the value to
-    # return when the caller's digest cannot be computed -- an input, never an output. It is
-    # tracked only because reading it is part of what identifies the check.
-    'test_environment': 'Lrox;',
     # The factory every boolean Phenotype flag is built through. Hidden Features finds each
     # flag's holder class by carrying the flag's name string rather than naming the class, so the
     # holders need no bindings -- Ljpf; had one and no longer does. Names move every build; the
@@ -99,13 +95,9 @@ BINDINGS = {
     # any of them.
     'start_key_holder': 'Lpnu;',          # holds the start keycode the scrub engine compares
     'key_selector': 'Lpmy;',              # the sget-object the start-key read goes through
-    'pointer_tracker': 'Lpvi;',           # per-pointer state; holds a gesture's start and current x/y
     'key_data': 'Lpnu;',                  # key data; the scrub engine calls the same class start_key_holder
     'key_data_arg': 'Lpnt;',              # its second ctor argument, passed null here
     'ime_event': 'Lnur;',                 # the IME event wrapper a key-data becomes
-    'pointer_delegate_iface': 'Lpvj;',    # how the tracker declares its owner
-    'event_sink': 'Lpvo;',                # the interface anything down here raises an IME event through
-    'pointer_delegate': 'Lpvf;',          # owns the pointer trackers; where the flick preference lands
     'flag_box': 'Lnxp;',                  # boxed phenotype flag read by the scrub gate
     'access_point_map': 'Lays;',          # the map the toolbar register call writes into
     'immutable_set': 'Lvxe;',             # the allowed-set the order helper stores
@@ -136,10 +128,6 @@ EXPECTED = {
     # warning here otherwise.
     'hidden_feature_flags': [
         'enable_grammar_checker',
-        'enable_emoji_kitchen_browse',
-        'enable_custom_sticker_tab',
-        'offline_translate',
-        'enable_settings_search',
     ],
     # Flags whose default is hoisted: Gboard loads one zero and feeds it to several flags in the
     # same <clinit>, so no constant belongs to this flag alone. Hidden Features handles these with
@@ -148,9 +136,6 @@ EXPECTED = {
     'hidden_feature_flags_shared': [
         ('enable_close_proactive_suggestions_access_point', 'enable_auto_fill_pk_fallback_ui'),
     ],
-    'undo_ac_register_count': 16,
-    'undo_ac_slide_up_field': 'c',
-    'undo_ac_scratch': [3, 5, 6, 7, 8],
     'toolbar_capacity_flag': 'config_max_access_points',
     'toolbar_stock_flag_default': -1,
     'toolbar_stock_ceiling': 8,
@@ -170,6 +155,8 @@ EXPECTED = {
         (0x7f140a1f, 'enable_scrub_delete'),
         (0x7f140a05, 'enable_gesture_input'),
         (0x7f140a01, 'pref_enable_flick_symbols'),
+        # Used once to clean up the obsolete "0.6" value left by older Flexboard builds.
+        (0x7f140ad3, 'keyboard_slide_sensitivity_ratio'),
         (0x7f140a21, 'enable_secondary_digits'),
         (0x7f1409c0, 'block_offensive_words'),
         (0x7f140b6f, 'show_suggestions'),
@@ -177,30 +164,10 @@ EXPECTED = {
         (0x7f140a07, 'pref_key_enable_grammar_checker'),
         (0x7f140a28, 'enable_smart_reply'),
     ],
-    'sigcheck_registers': 8,
-    'sigcheck_returns': [6, 4, 3],
+    'sigcheck_runner_registers': 18,
     'undo_scratch': [2, 3],
     'clamp_scratch': [5, 7, 9],
-    'distance_scratch': [7, 8, 9],
     'stock_start_keycode': 67,
-    'toolbar_scratch': [2, 5],
-    'toolbar_ctor_registers': 9,
-    'toolbar_ctor_ins': 3,
-    # Gboard's own log line for the order-update callback. The anchor for the *count*, as opposed to
-    # the capacity the constructor writes -- and unusually good for one, because it does not merely
-    # locate a method, it says in Google's own words what the value returned there is.
-    'toolbar_count_log': 'oldVisibleCountOnBar %d, currentVisibleCountOnBar %d, definedCountOnBar %d',
-    # Gboard's own name for the device class an open fold reports. The enum's <clinit> hands it to
-    # each constant's constructor as a literal, and R8 rewrites the field but never the string, so
-    # this is what tells the foldable constant apart from DEVICE_TABLET sitting next to it.
-    'toolbar_foldable_name': 'DEVICE_FOLDABLE',
-    'toolbar_count_registers': 5,
-    'toolbar_count_ins': 2,
-    'toolbar_count_scratch': [0, 1, 2],
-    # Gboard's own stock icon count, the default of the getInt in the bar's constructor. Not used by
-    # the patch -- it reads the preference with whatever Gboard computed -- but it is the number the
-    # settings slider displays while unset, so it has to stay true.
-    'toolbar_stock_count': 5,
     # ---- the native-registration path in ToolbarButtonsPatch
     #
     # The bar-controller's constructor is the hook site, so its register count is pinned. A bump
@@ -362,44 +329,62 @@ def flag_layout(ins, flag):
                 if n_.startswith('const-string') and f"'{flag}'" in (a_ or '')), None)
     if idx is None:
         return None
-    call = next((j for j in range(idx + 1, min(idx + 9, len(ins)))
-                 if re.search(r'->\w\(Ljava/lang/String;Z\)', ins[j][2] or '')), None)
+    factory = f"{BINDINGS['flag_store']}->a(Ljava/lang/String;Z)Lnxp;"
+    name_register = regs(ins[idx][2])[:1]
+    call = next((j for j in range(idx + 1, min(idx + 6, len(ins)))
+                 if ins[j][1].startswith('invoke-static') and
+                 (ins[j][2] or '').endswith(factory) and
+                 invoke_regs(ins[j][2])[:1] == name_register and
+                 not any(ins[k][1].startswith('const-string') for k in range(idx + 1, j))), None)
     if call is None:
         return None
     reg = invoke_regs(ins[call][2])[1]
 
-    own = [j for j in range(idx + 1, call)
-           if ins[j][1].startswith('const') and regs(ins[j][2] or '')[:1] == [reg]]
-    src = own[-1] if own else next(
-        (j for j in range(idx - 1, -1, -1)
-         if ins[j][1].startswith('const') and regs(ins[j][2] or '')[:1] == [reg]), None)
+    def writes(j):
+        n, a = ins[j][1:]
+        operands = regs(a)
+        _extra_sources, wide_dest = wide_pairs(n, operands)
+        return (not n.startswith(READS_FIRST_OPERAND) and operands[:1] == [reg]) or reg in wide_dest
 
-    nxt = next((j for j in range(call + 1, len(ins))
-                if ins[j][1].startswith('const') and regs(ins[j][2] or '')[:1] == [reg]), len(ins))
-    later = [j for j in range(call + 1, nxt) if reg in invoke_regs(ins[j][2] or '')]
+    own = [j for j in range(idx + 1, call) if writes(j)]
+    src = own[-1] if own else next((j for j in range(idx - 1, -1, -1) if writes(j)), None)
+
+    nxt = next((j for j in range(call + 1, len(ins)) if writes(j)), len(ins))
+    later = [j for j in range(call + 1, nxt)
+             if reg in (invoke_regs(ins[j][2] or '') if ins[j][1].startswith('invoke')
+                        else regs(ins[j][2] or '') if ins[j][1].startswith(READS_FIRST_OPERAND)
+                        else regs(ins[j][2] or '')[1:])]
 
     return {
         'own': bool(own),
-        'effective': literal_of(ins[src][2]) if src is not None else None,
-        'shared': bool(later) or not own,
+        'effective': (literal_of(ins[src][2]) if src is not None and
+                      ins[src][1].startswith('const') and
+                      not ins[src][1].startswith('const-wide') else None),
+        'shared': bool(later),
         'isolate': bool(later) or not own,
         'register': reg,
     }
 
 
+def declared_flag_calls(source):
+    """Each forced/isolation set in the source, one per forceFlagsOn call."""
+    source = re.sub(r'//[^\n]*', '', source)
+    out = []
+    for call in re.finditer(r'forceFlagsOn\((.*?)\n\s*\)\n', source, re.S):
+        positional, _, isolating = call.group(1).partition('isolating')
+        out.append((set(re.findall(r'"([a-z0-9_]+)"', positional)),
+                    set(re.findall(r'"([a-z0-9_]+)"', isolating))))
+    return out
+
+
 def declared_flag_sets(source):
-    """The flags a patch forces and the subset it isolates, read out of its Kotlin source.
+    """The flags a one-call patch forces and the subset it isolates, read from source.
 
     Parsed rather than restated, so the pin compares the patch against the APK instead of comparing
     two copies of the same assumption.
     """
-    call = re.search(r'forceFlagsOn\((.*?)\n\s*\)\n', source, re.S)
-    if not call:
-        return None, None
-    positional, _, isolating = call.group(1).partition('isolating')
-    forced = set(re.findall(r'"([a-z0-9_]+)"', re.sub(r'//[^\n]*', '', positional)))
-    isolated = set(re.findall(r'"([a-z0-9_]+)"', re.sub(r'//[^\n]*', '', isolating)))
-    return forced, isolated
+    calls = declared_flag_calls(source)
+    return calls[0] if len(calls) == 1 else (None, None)
 
 
 def find_string_holder(dl, needle):
@@ -481,6 +466,28 @@ def class_fields(d, cd):
             af, o = uleb(b, o)
             idx += diff
             yield d.field(idx), static
+
+
+def field_access_flags(dl, descriptor):
+    """The encoded_field access bits for a concrete descriptor (not just its existence)."""
+    owner = descriptor.split('->')[0]
+    d, _sup, cd = find_class(dl, owner)
+    if d is None or not cd:
+        return None
+    b = d.b
+    sf, o = uleb(b, cd)
+    inf, o = uleb(b, o)
+    _dm, o = uleb(b, o)
+    _vm, o = uleb(b, o)
+    for count in (sf, inf):
+        idx = 0
+        for _ in range(count):
+            diff, o = uleb(b, o)
+            flags, o = uleb(b, o)
+            idx += diff
+            if d.field(idx) == descriptor:
+                return flags
+    return None
 
 
 def superclass_chain(dl, name, limit=16):
@@ -687,27 +694,33 @@ def writes_before(ins, reg, after_pc, before_pc):
             and regs(a)[:1] == [reg]]
 
 
-def live_free(ins, register_count, at_pc):
+def live_free(ins, register_count, at_pc, switch_targets=None, exception_targets=None):
     """Registers that are dead at `at_pc`, by backward liveness over the real control flow.
 
     A forward "is the next touch a write?" scan is not sound here and gets a real answer wrong:
     in `r()` it reports v3 free because the table walk writes it, but the `if-gt` guarding that
     walk branches straight past the write to a path that reads v3. Borrowing it would corrupt the
     extrapolated word count on long swipes, silently. So this does the fixpoint properly.
+
+    `switch_targets` and `exception_targets` are `verify.switch_case_targets` and
+    `verify.catch_targets` for the same method: instruction index -> target indices, decoded from
+    the dex. Without them a switch is refused, and every instruction is edged to every handler.
     """
     n = len(ins)
     pcs = [i[0] for i in ins]
     index = {p: k for k, p in enumerate(pcs)}
 
-    # A switch's case targets live in a payload this function does not read, so its edges would be
-    # missing entirely and every register the cases read would look dead. Refuse rather than answer:
-    # no call site analyses a switch today, and a wrong answer here is not visible on a device.
-    if any(mnemonic.startswith(('packed-switch', 'sparse-switch')) for _pc, mnemonic, _a in ins):
-        raise ValueError('live_free cannot model a method containing a switch')
+    # A switch's case targets live in a payload the instruction stream does not carry, so without
+    # decoded targets its edges would be missing and every register the cases read would look dead.
+    # Refuse rather than answer: a wrong answer here is not visible until it is on a device.
+    if switch_targets is None and any(
+            mnemonic.startswith(('packed-switch', 'sparse-switch')) for _pc, mnemonic, _a in ins):
+        raise ValueError('live_free cannot model a switch without its decoded case targets')
 
-    # Every handler entry is a `move-exception`, and an exception can be raised anywhere inside the
-    # try. Edging every instruction to every handler over-approximates -- some of those instructions
-    # are outside any try -- which keeps registers live that might not be, the safe direction.
+    # Without the try table: every handler entry is a `move-exception`, and an exception can be
+    # raised anywhere inside the try. Edging every instruction to every handler over-approximates --
+    # some of those instructions are outside any try -- which keeps registers live that might not
+    # be, the safe direction. With it, only instructions that can throw inside a range are edged.
     handlers = [k for k, (_pc, mnemonic, _a) in enumerate(ins)
                 if mnemonic.startswith('move-exception')]
 
@@ -724,6 +737,10 @@ def live_free(ins, register_count, at_pc):
             out = []
         else:
             out = target + ([k + 1] if k + 1 < n else [])
+        if mnemonic in ('packed-switch', 'sparse-switch'):
+            out = out + list(switch_targets[k])
+        if exception_targets is not None:
+            return out + list(exception_targets.get(k, ()))
         return out + handlers
 
     live = [set() for _ in range(n + 1)]
@@ -762,13 +779,13 @@ def live_free(ins, register_count, at_pc):
 
 # The floor for the check count. Not the exact number: adding a pin should not require editing
 # two places. It exists to catch a *collapse*, which is what an empty dex-derived list causes.
-MINIMUM_CHECKS = 314
+MINIMUM_CHECKS = 291  # 31 orphaned pins removed and six current-shape guards added.
 
 # And the floor when an APK is supplied too, which is how the gate runs it. Two numbers because the
 # resource pins only exist in that mode: a single floor either has to sit below the dex-only count,
 # which leaves twenty-odd resource pins free to vanish unnoticed, or above it, which breaks the
 # dex-only run. The whole point of a floor is that it sits just under the real number.
-MINIMUM_CHECKS_WITH_APK = 334
+MINIMUM_CHECKS_WITH_APK = 311  # Leave room for new pins without allowing a collapsed check set.
 
 
 class Report:
@@ -1039,10 +1056,14 @@ def run(dl, apk=None):
                      f'found {len(cfgs)}')
         if ok_k and ok_c:
             check('scrubdelete: keycode precedes the config ctor', keys[0] < cfgs[0])
-            # The patch also asserts the call consumes the constant's own register: order alone
-            # stops proving feeding as soon as a build has a second `const/16 …, 67`.
+            # Only argument slot 1 is the start key; another matching register in the call is
+            # unrelated. Check intervening writes, not just register-list membership.
+            key_reg = regs(ins[keys[0]][2])[0]
+            args = invoke_regs(ins[cfgs[0]][2])
             check('scrubdelete: the config ctor consumes the keycode register',
-                  regs(ins[keys[0]][2])[0] in invoke_regs(ins[cfgs[0]][2]))
+                  keys[0] < cfgs[0] and len(args) == 9 and args[1] == key_reg and
+                  not writes_before(ins, key_reg, ins[keys[0]][0], ins[cfgs[0]][0]),
+                  f'arg1={args[1:2]} constant=v{key_reg}')
 
     c, ins = body(dl, f'{SCRUB}->g(Landroid/view/MotionEvent;)V')
     if check('scrubdelete: g() exists', ins is not None):
@@ -1108,9 +1129,12 @@ def run(dl, apk=None):
         # insertion point. This is the argument the patch cannot make for itself — it derives each
         # register from the instruction that loads it and then trusts it across a gap — so it is
         # made here instead, against the real method body.
-        if rect_regs and width:
-            bottom_pc = [pc for pc, n, a in ins
-                         if n == 'iput' and 'Landroid/graphics/Rect;->bottom:I' in a][0]
+        bottom_writes = [pc for pc, n, a in ins
+                         if n == 'iput' and 'Landroid/graphics/Rect;->bottom:I' in a]
+        if check('scrubdelete: register-survival inputs are present',
+                 bool(rect_regs) and bool(width) and bool(reads) and
+                 'bottom' in rect_regs and len(bottom_writes) == 1):
+            bottom_pc = bottom_writes[0]
             loads = {
                 'config': (regs(ins[reads[0]][2])[1], f':{config}'),
                 'keyboard view': (regs(ins[width[0]][2])[0], f'{SCRUB}->d:'),
@@ -1118,11 +1142,12 @@ def run(dl, apk=None):
             }
             for what, (reg, marker) in loads.items():
                 src = [pc for pc, n, a in ins
-                       if n == 'iget-object' and marker in a and regs(a)[:1] == [reg]]
+                       if n == 'iget-object' and marker in a and regs(a)[:1] == [reg]
+                       and pc < bottom_pc]
                 if not check(f'scrubdelete: the {what} register is loaded in g()', bool(src),
                              f'v{reg} {marker}'):
                     continue
-                clobbered = writes_before(ins, reg, src[-1], bottom_pc)
+                clobbered = writes_before(ins, reg, max(src), bottom_pc)
                 check(f'scrubdelete: the {what} register survives to the insertion point',
                       not clobbered, f'v{reg} rewritten at {clobbered}')
 
@@ -1175,28 +1200,6 @@ def run(dl, apk=None):
         check('startkey: one Lpnu; field read in g()', len(kc) == 1, f'found {len(kc)}')
 
     c, ins = body(dl, f'{SCRUB}->r(Landroid/view/MotionEvent;Z)V')
-    if ins:
-        absi = [i for i, (pc, n, a) in enumerate(ins) if 'Ljava/lang/Math;->abs(F)F' in a]
-        if check('distance: Math.abs(F)F is unique in r()', len(absi) == 1, f'found {len(absi)}'):
-            delta = regs(ins[absi[0]][2])[0]
-            sub = [i for i in range(absi[0] - 1, -1, -1)
-                   if regs(ins[i][2])[:1] == [delta] and not ins[i][1].startswith('if-')]
-            if check('distance: the delta is written before it', bool(sub)):
-                # binop2addrc7 is sub-float/2addr (0xc7).
-                check('distance: it comes from a sub-float/2addr',
-                      ins[sub[0]][1] == 'binop2addrc7', ins[sub[0]][1])
-                # The scratch set, checked by real backward liveness rather than a forward scan --
-                # a forward scan wrongly reports v3 free, because the if-gt guarding the table walk
-                # branches past the write that makes it look dead.
-                site = sub[0] + 1
-                free = live_free(ins, c['registers'], ins[site][0])
-                want = E['distance_scratch']
-                check('distance: the scratch registers are dead at the insertion point',
-                      all(r in free for r in want), f'free={free} want={want}')
-                check('distance: v3 is correctly NOT among them', 3 not in free,
-                      'v3 looks free but is read on the extrapolation path')
-
-    c, ins = body(dl, f'{SCRUB}->r(Landroid/view/MotionEvent;Z)V')
     if check('tuning: r() exists', ins is not None):
         check('tuning: r() register count', c['registers'] == E['scrub_r_registers'],
               f'got {c["registers"]}')
@@ -1227,178 +1230,6 @@ def run(dl, apk=None):
                     check(f'tuning: scratch is dead at the insertion point after pc {ins[site][0]}',
                           set(scratch) <= free,
                           f'scratch={scratch} still live={sorted(set(scratch) - free)}')
-
-    # ---- toolbar icon count
-    #
-    # The bar's own class name survives R8 (a layout addresses it as a string), and the anchor for
-    # the ceiling is a *string literal*, which R8 never rewrites. So unlike everything above, only
-    # the register numbers here can move between builds.
-    _, clinit = body(dl, f'{ACCESS_POINTS_BAR}-><clinit>()V')
-    check('toolbar: the bar declares config_max_access_points',
-          clinit is not None and any('config_max_access_points' in a for pc, n, a in clinit),
-          'the flag naming this class as the toolbar cap is gone')
-
-    ctor = f'{ACCESS_POINTS_BAR}-><init>({CONTEXT}Landroid/util/AttributeSet;)V'
-    c, ins = body(dl, ctor)
-    if check('toolbar: the bar constructor exists', ins is not None, ctor):
-        check('toolbar: its register count',
-              c['registers'] == E['toolbar_ctor_registers'], f'got {c["registers"]}')
-        check('toolbar: its parameter words',
-              c['ins'] == E['toolbar_ctor_ins'], f'got {c["ins"]}')
-
-        # Gboard's own starting count, read off the getInt the flag falls back to.
-        #
-        # This used to assert that the settings slider showed the same number, because it did: the
-        # patch had no default and an untouched slider left the count wherever Gboard put it. The
-        # first-run seed ended that relationship — Flexboard writes its own number now — so what is
-        # left is a fact about Gboard worth noticing if it moves, and the docs quote it.
-        gi = [i for i, (pc, n, a) in enumerate(ins)
-              if 'Landroid/content/res/TypedArray;->getInt(II)I' in a]
-        if check('toolbar: one getInt on the styled attributes', len(gi) == 1, f'found {len(gi)}'):
-            default_reg = regs(ins[gi[0]][2])[2]
-            src = [i for i in range(gi[0] - 1, -1, -1)
-                   if ins[i][1].startswith('const') and regs(ins[i][2])[:1] == [default_reg]]
-            # Hex too: dis.py renders `const` and `const/high16` that way, and a decimal-only
-            # pattern matches the leading 0 of `#0x5` and calls the literal zero.
-            literal = re.search(r'#(-?0x[0-9a-fA-F]+|-?\d+)', ins[src[0]][2]) if src else None
-            check("toolbar: Gboard's own starting count is unchanged",
-                  literal is not None and int(literal.group(1), 0) == E['toolbar_stock_count'],
-                  f'got {literal and literal.group(1)}, '
-                  f'expected {E["toolbar_stock_count"]}')
-
-        flag = [i for i, (pc, n, a) in enumerate(ins) if f"{B['flag_box']}->g()Ljava/lang/Object;" in a]
-        if check('toolbar: one flag read in the constructor', len(flag) == 1, f'found {len(flag)}'):
-            # By field *type*, not by opcode: `iput` (0x59) covers int and float alike, and the two
-            # dimensions read out of the same TypedArray follow just below. Restricting to after the
-            # flag read is what excludes `->y:I`, written near the top.
-            puts = [i for i, (pc, n, a) in enumerate(ins)
-                    if i > flag[0] and n == 'iput' and a.rstrip().endswith(':I')]
-            if check('toolbar: one int field written after it', len(puts) == 1,
-                     f'found {len(puts)}'):
-                site = ins[puts[0]][0]
-                ceiling = regs(ins[puts[0]][2])[0]
-                free = live_free(ins, c['registers'], site)
-                want = E['toolbar_scratch']
-                check('toolbar: the scratch registers are dead at the insertion point',
-                      all(r in free for r in want), f'free={free} want={want}')
-                # The standing guard. Everything else at this point is live: the TypedArray, the two
-                # constants the dimension reads still need, and the Context the store is handed.
-                held = [r for r in (0, 1, 3, 7) if r in free]
-                check('toolbar: v0, v1, v3 and v7 are correctly NOT among them', not held,
-                      f'{held} look free but are read after the ceiling is written')
-                check('toolbar: the capacity register is not borrowed as scratch',
-                      ceiling not in want, f'v{ceiling} is in {want}')
-
-    # The capacity checked above is not the icon count, and mistaking one for the other is what
-    # shipped this patch broken once. The count is `definedCountOnBar`, which Gboard names for us in
-    # a log line and which sits after both gates that can override the capacity. These checks guard
-    # the derivation that finds it, since it is an obfuscated letter that is never written down.
-    log_hits = []
-    for dex in dl:
-        for _cls_name, _af, cls_data in dex.classes():
-            if not cls_data:
-                continue
-            for m_name, _maf, m_off in dex.class_methods(cls_data):
-                if not m_off:
-                    continue
-                try:
-                    mc = dex.code(m_off)
-                except Exception:
-                    continue
-                if any(mn == 'const-string' and txt and E['toolbar_count_log'] in txt
-                       for _pc, _op, mn, txt in dex.walk(mc)):
-                    log_hits.append(m_name)
-    if check('toolbar: exactly one method logs definedCountOnBar', len(log_hits) == 1,
-             str(log_hits)):
-        _c, ins = body(dl, log_hits[0])
-
-        def called(a):
-            return a.split('}, ')[-1]
-
-        counts = sorted({called(a) for _pc, mn, a in ins
-                         if mn.startswith('invoke') and called(a).endswith('(I)I')})
-        # One, not "at least one". The patch takes the sole (I)I call as the count; a second would
-        # be picked between silently, and the log line says nothing about which is which.
-        if check('toolbar: one (I)I call in it', len(counts) == 1, str(counts)):
-            c, ins = body(dl, counts[0])
-            if check('toolbar: the count method has a body', ins is not None, counts[0]):
-                check('toolbar: its register count',
-                      c['registers'] == E['toolbar_count_registers'], f'got {c["registers"]}')
-                check('toolbar: its parameter words',
-                      c['ins'] == E['toolbar_count_ins'], f'got {c["ins"]}')
-                # The insertion is at method entry, so the proof that the scratch registers are
-                # free is arithmetic rather than a liveness fixpoint: locals below the parameters
-                # hold nothing before the first instruction runs.
-                locals_ = c['registers'] - c['ins']
-                check('toolbar: the scratch registers are locals at entry',
-                      locals_ == len(E['toolbar_count_scratch']),
-                      f'{locals_} locals, insertion needs {len(E["toolbar_count_scratch"])}')
-                this_reg = c['registers'] - c['ins']
-                capacity_reg = c['registers'] - 1
-                # The device-class branch the unfolded override rides on. Gboard picks its own
-                # preference key from device class, and a fold changes class when it opens, so this
-                # is what makes the inner and outer screens separately configurable.
-                sgets = [a for _pc, mn, a in ins if mn == 'sget-object']
-                if check('toolbar: one enum constant chooses the preference key',
-                         len(sgets) == 1, f'found {len(sgets)}'):
-                    mode_type = sgets[0].rsplit(':', 1)[-1].strip()
-                    constant = sgets[0].split(', ')[-1].strip()
-                    # Resolved by name out of the enum's <clinit>, never by its letter: R8 rewrites
-                    # the field and leaves the string. A letter that moved onto DEVICE_TABLET would
-                    # put the override on the wrong screens and nothing else would notice.
-                    _cc, cins = body(dl, f'{mode_type}-><clinit>()V')
-                    named = next((i for i, (_pc, _mn, a) in enumerate(cins or [])
-                                  if E['toolbar_foldable_name'] in a), None)
-                    if check(f'toolbar: {mode_type} names {E["toolbar_foldable_name"]}',
-                             named is not None):
-                        stored = next((a for _pc, mn, a in cins[named:]
-                                       if mn == 'sput-object' and a.rstrip().endswith(mode_type)),
-                                      None)
-                        check('toolbar: the key branch tests the foldable constant',
-                              stored is not None and stored.split(', ')[-1].strip() == constant,
-                              f'branch tests {constant}, foldable is {stored}')
-                    modes = [a for _pc, mn, a in ins
-                             if mn == 'iget-object' and a.rstrip().endswith(f':{mode_type}')]
-                    if check('toolbar: one device-mode field read', len(modes) == 1,
-                             f'found {len(modes)}'):
-                        check('toolbar: the device mode is read off the receiver',
-                              regs(modes[0])[1] == this_reg,
-                              f'read off v{regs(modes[0])[1]}, receiver is v{this_reg}')
-                # What makes this the method that *finishes* the calculation rather than a step
-                # inside it. Insert before the gate and the value goes back where Gboard's own
-                # count preference and its reduced mode can each override it.
-                #
-                # Signature alone is not enough to find it -- the store's own id-keyed getInt is
-                # (II)I as well, and this check failed on that before it was narrowed. The gate is
-                # the (II)I call the *capacity parameter* flows into; the store read is a call that
-                # has nothing to do with it.
-                gates = [i for i, (_pc, mn, a) in enumerate(ins)
-                         if mn.startswith('invoke') and called(a).endswith('(II)I')
-                         and capacity_reg in regs(a.split('}, ')[0])]
-                if check('toolbar: it still applies the count gate', len(gates) == 1,
-                         f'found {len(gates)}'):
-                    # The other half, and the half that stops the check above from passing on a
-                    # coincidence: the gate's result must be what the method hands back. Input and
-                    # output together say the body is `return gate(..., capacity)`, which is the
-                    # property the patch actually depends on -- overriding at entry outranks the
-                    # gate only if the gate is the last word on the value.
-                    i = gates[0]
-                    flows = (i + 2 < len(ins)
-                             and ins[i + 1][1] == 'move-result'
-                             and ins[i + 2][1] == 'return'
-                             and regs(ins[i + 1][2]) == regs(ins[i + 2][2]))
-                    check('toolbar: the gate result is what it returns', flows,
-                          f'{[n for _pc, n, _a in ins[i:i + 3]]}')
-                stores = [a for _pc, mn, a in ins
-                          if mn == 'iget-object' and a.rstrip().endswith(f':{B["store"]}')]
-                # The preference store is read out of this method rather than named, so exactly one
-                # such field must be touched -- and off the receiver, or `iget-object ... p0` in the
-                # emitted code reads the wrong object.
-                if check('toolbar: one preference-store field read in it', len(stores) == 1,
-                         f'found {len(stores)}'):
-                    check('toolbar: it is read off the receiver',
-                          regs(stores[0])[1] == this_reg,
-                          f'read off v{regs(stores[0])[1]}, receiver is v{this_reg}')
 
     # ---- text editing buttons
     #
@@ -1475,14 +1306,12 @@ def run(dl, apk=None):
             return a.rsplit(', ', 1)[-1].strip()
 
         builder = access_point = None
-        for _pc, mn, a in ins:
-            if mn.startswith('invoke') and '()' in called(a) and not called(a).endswith(')V'):
-                builder = called(a).split(')')[-1]
-                # The type declaring the factory is also what the build method returns, which is
-                # what the patch derives it as.
-                access_point = called(a).split('->')[0]
-                break
-        if check('buttons: the seed opens a builder', builder is not None):
+        opening = ins[0] if ins else None
+        if (opening and opening[1] == 'invoke-static' and
+                '()' in called(opening[2]) and not called(opening[2]).endswith(')V')):
+            builder = called(opening[2]).split(')')[-1]
+            access_point = called(opening[2]).split('->')[0]
+        if check('buttons: the seed opens with a static builder factory', builder is not None):
             setters = [called(a) for _pc, mn, a in ins
                        if mn.startswith('invoke') and called(a).startswith(f'{builder}->')
                        and called(a).endswith('(I)V')]
@@ -1684,6 +1513,7 @@ def run(dl, apk=None):
                 # checks that, and it is the one fact standing between a hotkey and a crash loop.
                 get_string = 'Landroid/content/Context;->getString(I)Ljava/lang/String;'
                 unguarded = []
+                examined = 0
                 for field, methods in int_reads.items():
                     if not field.startswith(f'{access_point}->'):
                         continue
@@ -1699,12 +1529,14 @@ def run(dl, apk=None):
                                          and into in regs(t.split('}')[0])), None)
                             if uses is None:
                                 continue
+                            examined += 1
                             guarded = any(n.startswith('if-eqz') and regs(t)[:1] == [into]
                                           for _p, n, t in ahead[:uses])
                             if not guarded:
                                 unguarded.append(f'{m} @{_pc} ({field})')
                 check('buttons: every resource id read off the access point is zero-guarded',
-                      not unguarded, f'{sorted(unguarded)} would call getString(0)')
+                      examined >= 4 and not unguarded,
+                      f'{examined} examined; {sorted(unguarded)} would call getString(0)')
 
     # The label id is the one fact this feature rests on that has NO anchor in the dex: unlike the
     # icon, 0x7f140576 has zero const sites, because nothing in stock Gboard loads it the way the
@@ -1911,8 +1743,16 @@ def run(dl, apk=None):
         check('native: toolbar start-input register count',
               c['registers'] == E['toolbar_refresh_registers'],
               f'got {c["registers"]}')
-        check('native: toolbar start-input ends in a return',
-              ins and ins[-1][1].startswith('return'), ins[-1][1] if ins else '')
+        returns = [row for row in ins if row[1].startswith('return')]
+        check('native: toolbar start-input has one terminal return',
+              len(returns) == 1 and ins[-1] == returns[0],
+              f'returns={len(returns)} tail={ins[-1][1] if ins else "none"}')
+        tail_pc = ins[-1][0]
+        targeted = [(pc, n) for pc, n, a in ins if n.startswith(('goto', 'if-'))
+                    and (a or '').endswith(f'-> {tail_pc}')]
+        switches = [pc for pc, n, _a in ins if n.endswith('-switch') or n == 'payload']
+        check('native: start-input return has no incoming branch that skips the refresh',
+              not targeted and not switches, f'branches={targeted}, switches={switches}')
         # The refresh emission owns v0/v1/v2/v4 at the tail. Insertion sits ahead of the final
         # return, so the return's *operand* must be a parameter slot: a future build that leaves
         # the value in v0..v4 would have it clobbered by our blocks, with every other pin green.
@@ -1923,7 +1763,6 @@ def run(dl, apk=None):
                   and all(r >= c['registers'] - c['ins'] for r in tail_regs),
                   f'tail reads v{tail_regs}; the refresh emission owns v0/v1/v2/v4')
     module_cls = B['toolbar_module']
-    fdesc = f"{module_cls}->s:{B['bar_controller']}"
     field_hits = []
     modules_with_field = []
     fn_sig = '(Loru;Landroid/view/inputmethod/EditorInfo;ZLjava/util/Map;Lnve;)Z'
@@ -1932,14 +1771,15 @@ def run(dl, apk=None):
             if not cls_data:
                 continue
             if typename == module_cls:
-                field_hits.extend(fd for fd, _static in class_fields(dex, cls_data) if fd == fdesc)
+                field_hits.extend(fd for fd, _static in class_fields(dex, cls_data)
+                                  if fd.endswith(f':{B["bar_controller"]}'))
             declares_fn = any(mn.endswith(f'->fn{fn_sig}')
                               for mn, _maf, _co in dex.class_methods(cls_data))
             if declares_fn and any(fd.endswith(f':{B["bar_controller"]}')
                                    for fd, _st in class_fields(dex, cls_data)):
                 modules_with_field.append(typename)
     check('native: module carries its bar-controller field', len(field_hits) == 1,
-          f'found {len(field_hits)} matching {fdesc}')
+          f'found {len(field_hits)}: {field_hits}')
     # The patch resolves the toolbar module by "declares fn(...)Z AND has a bar-controller
     # field" * because the bare signature is the module-wide base API (75 modules on 18.0.3).
     check('native: the fn+controller-field selector uniquely resolves to the toolbar module',
@@ -1966,9 +1806,13 @@ def run(dl, apk=None):
             free = live_free(ins, c['registers'], 0)
             check('buttons: v0 is dead at onCreate entry', 0 in free, f'free={free}')
 
-    # ---- forced preferences, flick symbols and the first-run seed share this hook
-    c, _ = body(dl, f'{LATIN_APP}->d({store})V')
+    # ---- forced preferences, suggested defaults and the crash recorder share this hook
+    preference_hook = f'{LATIN_APP}->d({store})V'
+    c, _ = body(dl, preference_hook)
     check('prefs: applyPreferenceValues exists', c is not None)
+    maf = method_access_flags(dl, preference_hook)
+    check('prefs: p0 is the Application, not a static method argument',
+          maf is not None and not maf & 0x8, f'access={maf}')
     check('prefs: its register count', c is not None
           and c['registers'] == E['apply_preferences_registers'],
           f'got {c and c["registers"]}')
@@ -1985,7 +1829,7 @@ def run(dl, apk=None):
               receiver < PACKED_INVOKE_REGISTER_LIMIT,
               f'p0 is v{receiver}; the seed would need move-object/from16 first')
 
-    # The three Gboard preferences the extension writes, by the id it resolves each key from.
+    # All Gboard preference ids the extension still reads, including the old ratio for migration.
     if apk is None:
         check.skip('prefs: the preference ids still name the right settings',
                    'no APK given; pass one as the second argument to check resource ids')
@@ -2029,7 +1873,7 @@ def run(dl, apk=None):
               f'access={ctors and hex(ctors[0])}')
         ab = [ (af, co) for m, af, co in methods if m == f'{host}->aB()I']
         check('settings: aB()I exists, public and concrete',
-              bool(ab) and ab[0][0] & 0x1 == 1 and ab[0][0] & 0x400 == 0 and ab[0][1] != 0,
+              bool(ab) and ab[0][0] & 0x1 == 1 and ab[0][0] & 0x410 == 0 and ab[0][1] != 0,
               f'access={ab and hex(ab[0][0])}')
 
     slider = E['native_settings_slider']
@@ -2075,7 +1919,7 @@ def run(dl, apk=None):
         a_a = [(m, af, co) for m, af, co in d_tl.class_methods(cd_tl)
                if m == f'{tree_listener}->aA({pref})Z']
         check('settings: aA(Preference)Z on the tree listener, public and concrete',
-              bool(a_a) and a_a[0][1] & 0x1 == 1 and a_a[0][1] & 0x400 == 0
+              bool(a_a) and a_a[0][1] & 0x1 == 1 and a_a[0][1] & 0x410 == 0
               and a_a[0][2] != 0,
               f'access={a_a and hex(a_a[0][1])}')
 
@@ -2109,8 +1953,8 @@ def run(dl, apk=None):
             if m == f'{tree_listener}->d(Ljava/lang/CharSequence;){pref}'] \
         if cd_tl else []
     check('settings: d(CharSequence)Preference on the tree listener, public',
-          bool(d_fp) and d_fp[0][1] & 0x1 == 1 and d_fp[0][1] & 0x400 == 0
-          and d_fp[0][2] != 0,
+           bool(d_fp) and d_fp[0][1] & 0x1 == 1 and d_fp[0][1] & 0x400 == 0
+           and d_fp[0][1] & 0x10 == 0x10 and d_fp[0][2] != 0,
           f'access={d_fp and hex(d_fp[0][1])}')
     c, ins = body(dl, f'{tree_listener}->d(Ljava/lang/CharSequence;){pref}')
     if check('settings: d(CharSequence)Preference has a body', ins is not None):
@@ -2198,34 +2042,50 @@ def run(dl, apk=None):
                  if mn.startswith('iget') and a.rsplit(', ', 1)[-1] == f'{dlg}->f:I']
         check('settings: exactly one reader of the layout id', len(reads) == 1, str(reads))
 
-    # ---- bypass signature
-    sig_cls = B['sigcheck']
-    c, ins = body(dl, f'{sig_cls}->a({CONTEXT}Ljava/lang/String;)Z')
-    if check('bypass: signature check exists', ins is not None):
-        check('bypass: register count', c['registers'] == E['sigcheck_registers'],
+    # ---- bypass only the self-check call; the exported debug provider must keep using the
+    # original verifier. Pin the bytecode seam, not the returns inside Lrpv; (no longer edited).
+    sig_call = f'{B["sigcheck"]}->a({CONTEXT}Ljava/lang/String;)Z'
+    c, ins = body(dl, f'{B["sigcheck_runner"]}->run()V')
+    if check('bypass: own-startup runner exists', ins is not None):
+        check('bypass: runner frame', c['registers'] == E['sigcheck_runner_registers'],
               f'got {c["registers"]}')
-        returns = [regs(a)[0] for pc, n, a in ins if n == 'return']
-        check('bypass: return registers', returns == E['sigcheck_returns'], str(returns))
-        seen = {a.split(', ')[-1] for pc, n, a in ins if n.startswith(('sget', 'iget'))}
-        for fd in (f'{sig_cls}->e:[B', f'{sig_cls}->d:[B', f'{sig_cls}->c:[B',
-                   f'{B["test_environment"]}->b:Z'):
-            check(f'bypass: reads {fd}', fd in seen)
-        c2, _ = body(dl, f'{sig_cls}->c({CONTEXT}Ljava/lang/String;)[B')
-        check('bypass: digest method exists', c2 is not None)
-
-    # The grammar flag had a bespoke section here, pinning Ljpf; by name and asserting its
-    # triple by hand. It is one entry in hidden_feature_flags now, checked by the same four rules
-    # as the rest -- including "loads its own default", which the hand-written version never
-    # checked and which is the assertion that makes the flip safe at all.
+        sites = [i for i, (_pc, n, a) in enumerate(ins)
+                 if n == 'invoke-static' and a.endswith(sig_call)]
+        if check('bypass: exactly one call in the self-check runner', len(sites) == 1,
+                 str(sites)):
+            i = sites[0]
+            check('bypass: it checks its own package', i >= 2 and
+                  ins[i - 2][2].endswith(f'{CONTEXT}->getPackageName()Ljava/lang/String;'))
+            result = ins[i + 1] if i + 1 < len(ins) else (-1, '', '')
+            branch = ins[i + 2] if i + 2 < len(ins) else (-1, '', '')
+            check('bypass: the branch reads the boolean result',
+                  result[1] == 'move-result' and branch[1] == 'if-nez' and
+                  regs(result[2])[:1] == regs(branch[2])[:1],
+                  f'result={result}, branch={branch}')
+            check('bypass: startup failure message still identifies the seam',
+                  any(n == 'const-string' and 'APK is signed by unrecognized certificates: ' in a
+                      for _pc, n, a in ins))
 
     # ---- hidden features
     #
-    # Each flag is a const-string + const/4 + factory triple in some class's <clinit>. The patch
-    # flips the zero, and the only thing making that safe is that the constant belongs to this
-    # flag alone: the boolean register is reused down the method (six flags in one <clinit> share
-    # v1), so a default loaded before the flag's own name is read by all of them and flipping it
-    # would turn on features nobody asked for. These pins assert the triple, per flag.
+    # A flag may own its zero and still share it forward with later flags. Pin the patch's
+    # `isolating` decision, not just the const-string/const/4/factory triple.
     flag_factory = f"{B['flag_store']}->a(Ljava/lang/String;Z)Lnxp;"
+    hidden_src = os.path.join(os.path.dirname(__file__), '..', '..', 'patches', 'src', 'main',
+                              'kotlin', 'dev', 'jz6', 'flexboard', 'patches', 'features',
+                              'hiddenfeatures', 'HiddenFeaturesPatch.kt')
+    if os.path.exists(hidden_src):
+        with open(hidden_src, encoding='utf-8') as source:
+            hidden_calls = declared_flag_calls(source.read())
+    else:
+        hidden_calls = []
+    check('flags: the Hidden Features declaration is parsed', len(hidden_calls) == 1,
+          f'{len(hidden_calls)} forceFlagsOn calls')
+    hidden_forced = set().union(*(forced for forced, _isolated in hidden_calls))
+    hidden_isolated = set().union(*(isolated for _forced, isolated in hidden_calls))
+    check('flags: the pinned names match the patch declaration',
+          hidden_forced == set(E['hidden_feature_flags']) |
+          {flag for flag, _sharer in E['hidden_feature_flags_shared']})
     for flag in E['hidden_feature_flags']:
         sites = []
         for d_ in dl:
@@ -2261,6 +2121,10 @@ def run(dl, apk=None):
                     check(f'flags: {flag} still ships off',
                           lit is not None and int(lit.group(1), 0) == 0,
                           (ins_[own[-1]][2] or '').strip())
+                layout = flag_layout(ins_, flag)
+                check(f'flags: {flag} isolation matches the patch',
+                      layout is not None and layout['isolate'] == (flag in hidden_isolated),
+                      f'layout={layout}, declared isolated={sorted(hidden_isolated)}')
 
     # The hoisted-default flags. The assertions are deliberately the mirror of the block above:
     # there must be NO constant of the flag's own between its name and its call, because that
@@ -2298,6 +2162,10 @@ def run(dl, apk=None):
                        and re.match(rf"\s*v{breg},", ins_[j][2] or '')]
                 check(f'flags: {flag} default is still hoisted', not own,
                       'it has its own constant now -- drop it from isolating')
+                layout = flag_layout(ins_, flag)
+                check(f'flags: {flag} isolation matches the patch',
+                      layout is not None and layout['isolate'] == (flag in hidden_isolated),
+                      f'layout={layout}, declared isolated={sorted(hidden_isolated)}')
                 # The register the flag reads must be written somewhere earlier, and hold zero.
                 pre = [j for j in range(0, i_)
                        if ins_[j][1].startswith('const')
@@ -2324,98 +2192,91 @@ def run(dl, apk=None):
 
     # ---- swipe up to undo autocorrect
     #
-    # The patch inserts a guard before the ActionDef test on the pointer-release path and, on an
-    # upward flick over a key that claims none, dispatches Gboard's own revert-autocorrect event.
-    #
-    # The release path, not the touch handler: BasicMotionEventHandler->g dispatches only on
-    # actions 7, 9 and 10 -- ACTION_HOVER_* -- so an emission there would never see a finger. It
-    # also carries two of these lookups where the release path carries one. Both facts are pinned,
-    # because "patched the plausible-looking method" is the failure this cost a rewrite to find.
-    DISPATCH_EVENT = f"{B['event_sink']}->n({B['ime_event']})V"
-    release = f"{B['pointer_delegate']}->t({B['pointer_tracker']}Landroid/view/MotionEvent;I)V"
-    lookup = (f"{B['pointer_tracker']}->j({B['key_selector']})"
-              'Lcom/google/android/libraries/inputmethod/metadata/ActionDef;')
+    # The patch runs inside the scrub engine's g(MotionEvent): it asks the extension whether this
+    # event completes a swipe up, takes the gesture over with the call the scrub uses for its own
+    # swipes, confirms the takeover took, and sends a REVERT_AUTO_CORRECTION request through the
+    # handler's route. These pin what that rests on -- above all that a takeover cannot outlive its
+    # gesture. The `revert:` checks below pin the receiving end in LatinIme->q.
+    S_ = ('Lcom/google/android/libraries/inputmethod/motioneventhandler/scrubmove/'
+          'ScrubMotionEventHandler;')
+    c_, ins_ = body(dl, f'{S_}->g(Landroid/view/MotionEvent;)V')
+    if check('undo-ac: the scrub engine entry point exists', ins_ is not None):
+        check('undo-ac: its frame is the one the emission was measured against',
+              (c_['registers'], c_['ins']) == (13, 2), f"{c_['registers']}/{c_['ins']}")
+        begins = [i for i, (_pc, n_, a_) in enumerate(ins_)
+                  if n_.startswith('invoke') and 'Trace;->beginSection' in (a_ or '')]
+        ends = [i for i, (_pc, n_, a_) in enumerate(ins_)
+                if n_.startswith('invoke') and f'{S_}->t(Landroid/view/MotionEvent;)Z' in (a_ or '')]
+        check('undo-ac: it opens its trace section first, where the emission goes',
+              begins[:1] == [1], str(begins))
+        if check('undo-ac: it asks the end-of-pointer test exactly once, where skipped events go',
+                 len(ends) == 1, str(len(ends))):
+            # v0-v5 are written by the emission, which then continues into stock code at both
+            # points. Dead there means nothing stock reads can see them.
+            for label, at in (('insertion point', ins_[begins[0] + 1][0] if begins else None),
+                              ('jump target', ins_[ends[0]][0])):
+                free = set(live_free(ins_, c_['registers'], at)) if at is not None else set()
+                check(f'undo-ac: v0-v5 are dead at the {label}', set(range(6)) <= free,
+                      str(sorted(set(range(6)) - free)))
 
-    c_, ins_ = body(dl, release)
-    if check('undo-ac: the pointer release path exists', ins_ is not None):
-        # R8 renames `t`; it does not rename strings. Gboard's own trace section names this method
-        # in plain text, which makes it the one anchor here that a re-obfuscation cannot move. It is
-        # also the evidence that this is the release path and not something that merely looks like
-        # it -- the reason the first version of this patch went to the wrong method.
-        traced = [a for _pc, n_, a in ins_
-                  if n_.startswith('const-string') and 'handleActionUp' in (a or '')]
-        check('undo-ac: the release path still identifies itself as handleActionUp',
-              len(traced) == 1, str(len(traced)))
-        check('undo-ac: its frame is the one the scratch registers were measured against',
-              c_['registers'] == E['undo_ac_register_count'], str(c_['registers']))
-        hits = [i for i, (_pc, _n, a) in enumerate(ins_) if lookup in (a or '')]
-        if check('undo-ac: one action lookup to anchor on', len(hits) == 1, str(len(hits))):
-            i_ = hits[0]
-            check('undo-ac: the lookup result is moved',
-                  ins_[i_ + 1][1] == 'move-result-object', ins_[i_ + 1][1])
-            adr = re.match(r'\s*v(\d+)', ins_[i_ + 1][2] or '')
-            tests = [(j, ins_[j][0]) for j in range(i_ + 2, min(i_ + 10, len(ins_)))
-                     if ins_[j][1] == 'if-eqz' and adr
-                     and (ins_[j][2] or '').strip().startswith(f'v{adr.group(1)},')]
-            # Two const/4s sit between the move-result and this test. Assuming adjacency is what
-            # pointed the first version of the emitter at the wrong instruction.
-            if check('undo-ac: the ActionDef is tested with if-eqz nearby', len(tests) == 1,
-                     str(len(tests))):
-                at = tests[0][1]
-                free = set(live_free(ins_, c_['registers'], at))
-                want = set(E['undo_ac_scratch'])
-                check('undo-ac: the scratch registers are dead at the insertion point',
-                      want <= free, str(sorted(want - free)))
+    # The takeover route. `p` is typed as the interface and is only ever the manager's own
+    # implementation, whose fields say who owns the gesture -- how the emission confirms it took.
+    route = find_instance_field(dl, S_, 'p')
+    check('undo-ac: the handler carries its route to the manager, typed as the interface',
+          route is not None and route.endswith(':Lpvo;'), str(route))
+    check('undo-ac: the manager\'s route implements that interface',
+          'Lpvo;' in (class_interfaces(dl, 'Lozi;') or []), str(class_interfaces(dl, 'Lozi;')))
+    check('undo-ac: the route knows its manager', find_instance_field(dl, 'Lozi;', 'b') == 'Lozi;->b:Lozj;',
+          str(find_instance_field(dl, 'Lozi;', 'b')))
+    # The patch widens Lozi and b to public, but adding PUBLIC to an already-private/protected
+    # member would make invalid DEX. The owning manager and its owner field stay stock and must
+    # already be public for the scrub handler to read them across packages.
+    route_flags = class_access_flags(dl, 'Lozi;')
+    field_flags = field_access_flags(dl, 'Lozi;->b:Lozj;')
+    check('undo-ac: route can safely be widened', route_flags is not None and
+          not route_flags & 0x6, f'flags={route_flags}')
+    check('undo-ac: route field can safely be widened', field_flags is not None and
+          not field_flags & 0x6, f'flags={field_flags}')
+    check('undo-ac: the manager records the gesture owner',
+          find_instance_field(dl, 'Lozj;', 'k') == 'Lozj;->k:Lpvn;', str(find_instance_field(dl, 'Lozj;', 'k')))
+    manager_flags = class_access_flags(dl, 'Lozj;')
+    owner_flags = field_access_flags(dl, 'Lozj;->k:Lpvn;')
+    check('undo-ac: the gesture manager is public', manager_flags is not None and
+          bool(manager_flags & 0x1), f'flags={manager_flags}')
+    check('undo-ac: its owner field is public', owner_flags is not None and
+          bool(owner_flags & 0x1), f'flags={owner_flags}')
+    for desc in ('Lpvo;->m()V', 'Lpvo;->n(Lnur;)V'):
+        maf = method_access_flags(dl, desc)
+        check(f'undo-ac: {desc} is a non-static interface method, as invoke-interface requires',
+              maf is not None and not (maf & 0x8), f'flags={maf}')
 
-    # The emission's own "have I already run here" signal. Both swipe-up patches attach to this
-    # method, and the second one distinguishes "already patched" from "Gboard moved" by counting
-    # dispatches. That only works while stock carries none.
-    c_, ins_ = body(dl, release)
-    if ins_ is not None:
-        sinks = [i for i, (_pc, _n, a) in enumerate(ins_) if DISPATCH_EVENT in (a or '')]
-        check('undo-ac: stock dispatches no IME event from the release path',
-              len(sinks) == 0, f'found {len(sinks)}')
+    # Taking over only an unowned gesture is why the emission reads the owner back: a takeover that
+    # silently did nothing must not be followed by an undo.
+    c_, ins_ = body(dl, 'Lozi;->m()V')
+    if check('undo-ac: the takeover exists', ins_ is not None):
+        reads = [a for _pc, n_, a in ins_ if n_.startswith('iget-object') and 'Lozj;->k:' in (a or '')]
+        writes = [a for _pc, n_, a in ins_ if n_.startswith('iput-object') and 'Lozj;->k:' in (a or '')]
+        check('undo-ac: it checks for an existing owner before recording itself',
+              len(reads) >= 1 and len(writes) == 1, f'reads={len(reads)} writes={len(writes)}')
 
-    # The hover handler, pinned as the thing this is deliberately *not*. If a build ever moves the
-    # finger path into it, this fails and the choice gets revisited rather than silently inherited.
-    c_, ins_ = body(dl, 'Lcom/google/android/libraries/inputmethod/motioneventhandler/'
-                        'BasicMotionEventHandler;->g(Landroid/view/MotionEvent;)V')
-    if check('undo-ac: the hover handler still exists', ins_ is not None):
-        hover = [i for i, (_pc, _n, a) in enumerate(ins_) if lookup in (a or '')]
-        check('undo-ac: it is still the two-lookup hover path, not the release path',
-              len(hover) == 2, str(len(hover)))
+    # The property the whole design rests on. A takeover that outlived its gesture would route every
+    # later tap to the scrub handler and the keyboard would stop typing. The dispatcher prevents it:
+    # after every event it calls o(), which clears the owner on UP and CANCEL, whatever the handler
+    # did with the event. If a Gboard update moves that, this must fail before anything ships.
+    c_, ins_ = body(dl, 'Lozj;->o(Landroid/view/MotionEvent;)V')
+    if check('undo-ac: the owner-release step exists', ins_ is not None):
+        consts = {literal_of(a) for _pc, n_, a in ins_ if n_.startswith('const/4')}
+        nulls = [i for i, (_pc, n_, a) in enumerate(ins_)
+                 if n_.startswith('iput-object') and 'Lozj;->k:' in (a or '')]
+        check('undo-ac: it clears the owner', len(nulls) == 1, str(len(nulls)))
+        check('undo-ac: on UP (1) and CANCEL (3)', {1, 3} <= consts, str(sorted(c for c in consts if c is not None)))
+    c_, ins_ = body(dl, 'Lozj;->a(Landroid/view/MotionEvent;)V')
+    if check('undo-ac: the dispatcher exists', ins_ is not None):
+        calls = [a for _pc, n_, a in ins_ if n_.startswith('invoke') and 'Lozj;->o(Landroid/view/MotionEvent;)V' in (a or '')]
+        check('undo-ac: the dispatcher runs the owner-release step', len(calls) == 1, str(len(calls)))
 
-    # SLIDE_UP by name, not by letter. A build that reordered the enum would otherwise leave the
-    # patch comparing against SLIDE_DOWN in silence.
-    c_, ins_ = body(dl, f"{B['key_selector']}-><clinit>()V")
-    if check('undo-ac: the action enum clinit exists', ins_ is not None):
-        named, pending = {}, None
-        for _pc, n_, a_ in ins_:
-            if n_.startswith('const-string'):
-                m_ = re.search(r"'(.*)'", a_ or '')
-                if m_:
-                    pending = m_.group(1)
-            elif n_.startswith('sput-object') and pending and '->' in (a_ or ''):
-                named[a_.split('->')[1].split(':')[0]] = pending
-                pending = None
-        check('undo-ac: SLIDE_UP is still the field the patch spells',
-              named.get(E['undo_ac_slide_up_field']) == 'SLIDE_UP',
-              str(named.get(E['undo_ac_slide_up_field'])))
-
-    # By type, not only by name. In R8 output "some instance field is called d" is close to a
-    # certainty, so a name-only check is nearly vacuous -- and the type is the whole reason these
-    # two fields are the ones the emission walks.
-    sink = find_instance_field(dl, B['pointer_delegate'], 'd')
-    check('undo-ac: the delegate declares its event sink, typed as the interface',
-          sink is not None and sink.endswith(f":{B['event_sink']}"), str(sink))
-    back = find_instance_field(dl, B['pointer_tracker'], 'r')
-    check('undo-ac: the tracker declares its delegate back-reference, typed as the interface',
-          back is not None and back.endswith(f":{B['pointer_delegate_iface']}"), str(back))
-
-    # The emitter hardcodes an invoke kind per call. Existence is not the property it depends on:
-    # invoke-static against a method that stopped being static, or invoke-interface against a
-    # class, both assemble and both fail verification on a device this project cannot read a log
-    # from. ACC_STATIC is 0x8, ACC_INTERFACE 0x200.
+    # The event the request builds. Existence is not the property the emission depends on: an invoke
+    # of the wrong kind assembles and fails verification on a device. ACC_STATIC is 0x8.
     for desc, want_static in ((f"{B['key_data']}-><init>(IL{B['key_data_arg'][1:]}"
                                'Ljava/lang/Object;I)V', False),
                               (f"{B['ime_event']}->d({B['key_data']}){B['ime_event']}", True)):
@@ -2424,27 +2285,120 @@ def run(dl, apk=None):
             check(f'undo-ac: {desc.split("->")[1][:28]} staticness is what the invoke assumes',
                   bool(maf & 0x8) == want_static, f'static={bool(maf & 0x8)}')
 
-    caf = class_access_flags(dl, B['event_sink'])
-    check('undo-ac: the event sink is an interface, as invoke-interface requires',
-          caf is not None and bool(caf & 0x200), f'flags={caf}')
-    maf = method_access_flags(dl, DISPATCH_EVENT)
-    check('undo-ac: the dispatch method is a non-static interface method',
-          maf is not None and not (maf & 0x8), f'flags={maf}')
+    # The request is stamped with the swipe's time, the way the scrub stamps its own events.
+    check('undo-ac: the event timestamp is a public long',
+          bool((field_access_flags(dl, f"{B['ime_event']}->j:J") or 0) & 0x1),
+          f"flags={field_access_flags(dl, B['ime_event'] + '->j:J')}")
 
-    # The check-cast the dispatch route depends on.
-    ifaces = class_interfaces(dl, B['pointer_delegate'])
-    check('undo-ac: the delegate still implements the interface the tracker field is typed as',
-          ifaces is not None and B['pointer_delegate_iface'] in ifaces,
-          str(ifaces))
+    # ---- the receiving end: LatinIme->q hands -10076 to the decoder
+    #
+    # -10045 would be a generic undo-stack step. Backspace's autocorrect revert is the decoder's,
+    # and Gboard reaches it explicitly in one place: physical-keyboard delete-word builds a decoder
+    # request with REVERT_AUTO_CORRECTION (-10076) and only deletes a word when that returns
+    # nothing. RevertEmitter routes -10076 down delete-word's path and runs that block without the
+    # fallback. These pin the block, the two seams, and the registers the copy may clobber.
+    ime = 'Lcom/google/android/apps/inputmethod/libs/latin5/LatinIme;'
+    qd, qc, _qf = ddis.find(f'{ime}->q(Lnur;)Z', dl)
+    if check('revert: the IME dispatcher exists', qc is not None):
+        check('revert: its frame is the one the emission was derived against',
+              (qc['registers'], qc['ins']) == (34, 2), f"{qc['registers']}/{qc['ins']}")
+        qi = ddis.disasm(qd, qc)
+        q_switches = verify.switch_case_targets(qd, qc, qi)
+        q_handlers = verify.catch_targets(qd, qc, qi)
 
-    # Pinned on Gboard's own producer rather than on our copy of it. If the stock path stops
-    # dispatching this code, the consumers that make an unarmed swipe a no-op are what changed.
-    c_, ins_ = body(dl, 'Lcom/google/android/apps/inputmethod/libs/edittracker/'
-                        'EditTrackingImeWrapper;->q(Lnur;)Z')
-    if check('undo-ac: the stock backspace revert exists', ins_ is not None):
-        codes = [i for i, (_pc, n_, a_) in enumerate(ins_)
-                 if n_.startswith('const') and re.search(r'#-10045\b', a_ or '')]
-        check('undo-ac: it still dispatches the revert code', len(codes) == 1, str(len(codes)))
+        def q_live(pc):
+            return set(range(qc['registers'])) - set(
+                live_free(qi, qc['registers'], pc, q_switches, q_handlers))
+
+        def q_target(i):
+            m = re.search(r'-> (\d+)$', qi[i][2] or '')
+            return next((k for k, row in enumerate(qi) if m and row[0] == int(m.group(1))), None)
+
+        def const16(i, value):
+            return qi[i][1] == 'const/16' and re.search(rf'#{value}$', qi[i][2] or '') is not None
+
+        targeted = {qi[t][0] for t in (q_target(i) for i, row in enumerate(qi)
+                                       if row[1].startswith(('goto', 'if-'))) if t is not None}
+        check('revert: no switch in q has a case for -10076', -10076 not in switch_keys(qd, qc))
+        codes = [i for i in range(len(qi)) if const16(i, -10076)]
+        if check('revert: -10076 is loaded once, by the physical-keyboard revert', len(codes) == 1,
+                 str([qi[i][0] for i in codes])):
+            i = codes[0]
+            args = [f'{ime}->m:Z', f'{ime}->p:J', f'{ime}->o:I', f'{ime}->n:Z', f'{ime}->ap:Lppa;']
+            shape = (i >= 8 and i + 16 < len(qi)
+                     and qi[i - 8][2].endswith(f'{ime}->x:Lftq;')
+                     and qi[i - 7][2].endswith('Lftq;->o:Z') and qi[i - 6][1] == 'if-nez'
+                     and all(qi[i - 5 + k][2].endswith(f) for k, f in enumerate(args))
+                     and qi[i + 1][1] == 'move-object/from16'
+                     and qi[i + 2][1] == 'invoke-static/range'
+                     and qi[i + 2][2].endswith('Lful;->d(Lnur;IZJIZLppa;)Lyhg;')
+                     and qi[i + 5][2].endswith(f'{ime}->B()Lfsf;')
+                     and qi[i + 7][2].endswith(f'{ime}->z()J')
+                     and qi[i + 10][2].endswith('Lfsf;->k(JLyhg;Z)Lyct;')
+                     and qi[i + 13][2].endswith(f"{B['ime_event']}->j:J")
+                     and qi[i + 15][2].endswith(f'{ime}->E(ZJZ)V')
+                     and qi[i + 16][1].startswith('goto'))
+            if check('revert: the block guards, builds, decodes and applies as the emission copies it',
+                     shape):
+                e = invoke_regs(qi[i + 2][2])[0]
+                self_reg = regs(qi[i + 1][2])[0]
+                check('revert: the key code is the builder\'s second argument',
+                      regs(qi[i][2])[:1] == [e + 1], qi[i][2])
+                check('revert: the decoder and the update run on the `this` copy',
+                      invoke_regs(qi[i + 5][2])[:1] == [self_reg]
+                      and invoke_regs(qi[i + 15][2])[:1] == [self_reg])
+                cont = q_target(i + 16)
+                if check('revert: its continuation is an instruction', cont is not None):
+                    live = q_live(qi[cont][0])
+                    check('revert: the continuation reads none of the copy\'s temporaries',
+                          not live & set(range(e, e + 8)), f'live={sorted(live)}')
+                    check('revert: the continuation reads the `this` copy the copy sets',
+                          self_reg in live and self_reg not in range(e, e + 8),
+                          f'live={sorted(live)} self=v{self_reg}')
+
+                # The delete-word test in front of it, where the revert test is inserted.
+                compares = [k for k in range(max(1, i - 24), i) if const16(k, -10133)]
+                if check('revert: one delete-word comparison leads into the block', len(compares) == 1,
+                         str(len(compares))):
+                    k = compares[0]
+                    key = regs(qi[k - 1][2])[:1]
+                    const_reg = regs(qi[k][2])[0]
+                    check('revert: the comparison tests the key code it just read',
+                          qi[k - 1][1] == 'iget' and qi[k - 1][2].endswith(f"{B['key_data']}->c:I")
+                          and qi[k + 1][1] == 'if-ne' and regs(qi[k + 1][2])[:2] == key + [const_reg])
+                    check('revert: then asks whether the event it builds from is physical',
+                          qi[k + 2][2].endswith(f"{B['ime_event']}->k()Z")
+                          and invoke_regs(qi[k + 2][2])[:1] == [e])
+                    check('revert: nothing overwrites the event between the test and the block',
+                          not writes_before(qi, e, qi[k][0] - 1, qi[i + 2][0] - 1))
+                    check('revert: the comparison\'s constant register is dead there',
+                          const_reg not in q_live(qi[k][0]), f'v{const_reg}')
+                    check('revert: nothing branches to the comparison', qi[k][0] not in targeted)
+
+        # The route: -10076 joins the handled-key list where delete-word leaves it.
+        claims = [k for k, row in enumerate(qi) if row[2].endswith('Lrqp;->h(I)Z')]
+        if check('revert: the handled-key list ends at one sub-handler query', len(claims) == 1,
+                 str(len(claims))):
+            s = claims[0] - 2
+            ok = (s >= 1 and qi[s][2].endswith(f'{ime}->D()Lrqp;')
+                  and qi[s + 1][1] == 'move-result-object' and qi[s - 1][1] == 'if-eq')
+            if check('revert: a key-code test, the sub-handler fetch, then the query', ok):
+                scratch = regs(qi[s + 1][2])[0]
+                key = invoke_regs(qi[claims[0]][2])[1]
+                handled = q_target(s - 1)
+                check('revert: the last listed key is compared in the route\'s registers',
+                      regs(qi[s - 1][2])[:2] == [key, scratch])
+                lists = [k for k in range(s) if const16(k, -10133)]
+                tests = [k for k in range(lists[0] + 1, s) if qi[k][1] == 'if-eq'
+                         and regs(qi[k][2])[:2] == [key, regs(qi[lists[0]][2])[0]]] if lists else []
+                check('revert: delete-word takes the same handled-key path the route joins',
+                      len(lists) == 1 and len(tests) == 1 and q_target(tests[0]) == handled,
+                      f'lists={len(lists)} tests={len(tests)}')
+                check('revert: the route\'s scratch register is dead at the query',
+                      scratch not in q_live(qi[s][0]), f'v{scratch}')
+                check('revert: and dead where it jumps',
+                      handled is not None and scratch not in q_live(qi[handled][0]), f'v{scratch}')
+                check('revert: nothing branches to the sub-handler query', qi[s][0] not in targeted)
 
     # ---- long-flag holders: the shape that broke dev.6
     #
@@ -2480,10 +2434,12 @@ def run(dl, apk=None):
     ramble_src = os.path.join(
         repo, 'patches/src/main/kotlin/dev/jz6/flexboard/patches/features/rambler',
         'RamblerPatch.kt')
-    forced, isolated = (declared_flag_sets(open(ramble_src).read())
-                        if os.path.exists(ramble_src) else (None, None))
+    if os.path.exists(ramble_src):
+        with open(ramble_src, encoding='utf-8') as source:
+            forced, isolated = declared_flag_sets(source.read())
+    else:
+        forced, isolated = None, None
     if check('rambler: the patch declares its flag sets readably', forced is not None):
-        c_, ins_ = body(dl, 'Lmqh;-><clinit>()V')
         holders = {}
         for flag in sorted(forced):
             owner = find_string_holder(dl, flag)

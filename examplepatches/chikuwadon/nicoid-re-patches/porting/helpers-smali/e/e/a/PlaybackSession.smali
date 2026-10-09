@@ -874,13 +874,13 @@
 
     move-result v8
 
-    if-eqz v8, :continue_leave
+    if-eqz v8, :cond_8
 
     const/4 v0, 0x0
 
     return v0
 
-    :continue_leave
+    :cond_8
     move v9, p1
 
     .line 186
@@ -892,7 +892,7 @@
 
     const/4 v3, 0x0
 
-    :try_start_8
+    :try_start_10
     move-object v4, p0
 
     check-cast v4, Landroid/app/Activity;
@@ -903,18 +903,18 @@
 
     move-result-object p0
 
-    if-eqz p0, :cond_c4
+    if-eqz p0, :cond_cc
 
     invoke-virtual {v4}, Landroid/app/Activity;->isFinishing()Z
 
     move-result v5
 
-    if-eqz v5, :cond_1b
+    if-eqz v5, :cond_23
 
-    goto/16 :goto_c4
+    goto/16 :goto_cc
 
     .line 187
-    :cond_1b
+    :cond_23
     sget-object v5, Le/e/a/PlaybackSession;->SESSIONS:Ljava/util/WeakHashMap;
 
     invoke-virtual {v5, p0}, Ljava/util/WeakHashMap;->get(Ljava/lang/Object;)Ljava/lang/Object;
@@ -923,30 +923,30 @@
 
     check-cast v5, Le/e/a/PlaybackSession$Session;
 
-    if-eqz v5, :cond_c3
+    if-eqz v5, :cond_cb
 
     iget-boolean v6, v5, Le/e/a/PlaybackSession$Session;->switching:Z
 
-    if-eqz v6, :cond_2b
+    if-eqz v6, :cond_33
 
-    goto/16 :goto_c3
+    goto/16 :goto_cb
 
     .line 188
-    :cond_2b
+    :cond_33
     invoke-static {v4}, Le/e/a/PlaybackSession;->prefs(Landroid/content/Context;)Landroid/content/SharedPreferences;
 
     move-result-object v6
 
-    if-eqz p1, :cond_34
+    if-eqz p1, :cond_3c
 
     const-string p1, "back_playback"
 
-    goto :goto_36
+    goto :goto_3e
 
-    :cond_34
+    :cond_3c
     const-string p1, "app_switch_playback"
 
-    :goto_36
+    :goto_3e
     invoke-interface {v6, p1, v2}, Landroid/content/SharedPreferences;->getString(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 
     move-result-object p1
@@ -967,7 +967,7 @@
 
     move-result v2
 
-    if-nez v2, :cond_c2
+    if-nez v2, :cond_ca
 
     const-string v2, "a0"
 
@@ -991,29 +991,29 @@
 
     move-result v2
 
-    if-nez v2, :cond_65
+    if-nez v2, :cond_6d
 
-    goto :goto_c2
+    goto :goto_ca
 
     .line 190
-    :cond_65
+    :cond_6d
     invoke-virtual {v1, p1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
     move-result v2
 
-    if-eqz v2, :cond_8d
+    if-eqz v2, :cond_95
 
     sget v2, Landroid/os/Build$VERSION;->SDK_INT:I
 
     const/16 v6, 0x17
 
-    if-lt v2, v6, :cond_8d
+    if-lt v2, v6, :cond_95
 
     invoke-static {v4}, Le/e/a/NoMini;->canDrawOverlays(Landroid/content/Context;)Z
 
     move-result v2
 
-    if-nez v2, :cond_8d
+    if-nez v2, :cond_95
 
     .line 191
     const-string p0, "\u30dd\u30c3\u30d7\u30a2\u30c3\u30d7\u518d\u751f\u306b\u306f\u4ed6\u306e\u30a2\u30d7\u30ea\u306e\u4e0a\u306b\u8868\u793a\u3059\u308b\u6a29\u9650\u304c\u5fc5\u8981\u3067\u3059"
@@ -1039,12 +1039,12 @@
     return v3
 
     .line 193
-    :cond_8d
+    :cond_95
     invoke-static {p0, v0}, Le/e/a/PlaybackSession;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
 
     move-result-object v2
 
-    if-eqz v2, :cond_c1
+    if-eqz v2, :cond_c9
 
     invoke-static {p0, v0}, Le/e/a/PlaybackSession;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
 
@@ -1056,46 +1056,46 @@
 
     move-result-object v0
 
-    if-nez v0, :cond_a0
+    if-nez v0, :cond_a8
 
-    goto :goto_c1
+    goto :goto_c9
 
     .line 194
-    :cond_a0
+    :cond_a8
     invoke-static {p0, v3}, Le/e/a/PlaybackSession;->save(Ljava/lang/Object;Z)V
 
     const/4 v0, 0x1
 
     iput-boolean v0, v5, Le/e/a/PlaybackSession$Session;->switching:Z
-    :try_end_a6
-    .catch Ljava/lang/Exception; {:try_start_8 .. :try_end_a6} :catch_c5
+    :try_end_ae
+    .catch Ljava/lang/Exception; {:try_start_10 .. :try_end_ae} :catch_cd
 
     .line 195
-    :try_start_a6
+    :try_start_ae
     invoke-virtual {v1, p1}, Ljava/lang/String;->equals(Ljava/lang/Object;)Z
 
     move-result p1
 
-    if-eqz p1, :cond_af
+    if-eqz p1, :cond_b7
 
     const-string p1, "n"
 
-    goto :goto_b1
+    goto :goto_b9
 
-    :cond_af
+    :cond_b7
     const-string p1, "p"
 
-    :goto_b1
+    :goto_b9
     new-array v0, v3, [Ljava/lang/Class;
 
     new-array v1, v3, [Ljava/lang/Object;
 
     invoke-static {p0, p1, v0, v1}, Le/e/a/PlaybackSession;->call(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Class;[Ljava/lang/Object;)Ljava/lang/Object;
-    :try_end_b8
-    .catch Ljava/lang/Exception; {:try_start_a6 .. :try_end_b8} :catch_bd
+    :try_end_c0
+    .catch Ljava/lang/Exception; {:try_start_ae .. :try_end_c0} :catch_c5
 
     .line 196
-    :try_start_b8
+    :try_start_c0
     invoke-virtual {v4}, Landroid/app/Activity;->isFinishing()Z
 
     move-result p0
@@ -1103,37 +1103,37 @@
     return p0
 
     .line 195
-    :catch_bd
+    :catch_c5
     move-exception p0
 
     iput-boolean v3, v5, Le/e/a/PlaybackSession$Session;->switching:Z
 
     throw p0
-    :try_end_c1
-    .catch Ljava/lang/Exception; {:try_start_b8 .. :try_end_c1} :catch_c5
+    :try_end_c9
+    .catch Ljava/lang/Exception; {:try_start_c0 .. :try_end_c9} :catch_cd
 
     .line 193
-    :cond_c1
-    :goto_c1
+    :cond_c9
+    :goto_c9
     return v3
 
     .line 189
-    :cond_c2
-    :goto_c2
+    :cond_ca
+    :goto_ca
     return v3
 
     .line 187
-    :cond_c3
-    :goto_c3
+    :cond_cb
+    :goto_cb
     return v3
 
     .line 186
-    :cond_c4
-    :goto_c4
+    :cond_cc
+    :goto_cc
     return v3
 
     .line 197
-    :catch_c5
+    :catch_cd
     move-exception p0
 
     invoke-static {p0}, Le/e/a/PlaybackSession;->log(Ljava/lang/Exception;)V

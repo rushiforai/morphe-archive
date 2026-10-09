@@ -226,6 +226,17 @@ public class DownloadsPreferenceCategory extends ConditionalPreferenceCategory {
                             getContext(), CustomOfflineVideosLimitPatch.storageBytes(Settings.CUSTOM_OFFLINE_VIDEO_LIMIT.get())));
                 }
             });
+            if (SettingsStatus.keepOfflineVideosEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Keep offline videos until you delete them",
+                        "TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, "
+                                + "watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. "
+                                + "Delete them there when you want a fresh set. TikTok can still clear ones you've watched when your "
+                                + "phone runs low on space.",
+                        Settings.KEEP_OFFLINE_VIDEOS
+                ));
+            }
         }
     }
 }

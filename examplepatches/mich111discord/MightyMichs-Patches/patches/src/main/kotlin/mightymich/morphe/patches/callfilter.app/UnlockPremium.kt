@@ -13,7 +13,7 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 @Suppress("unused")
 val unlockPremiumPatch = bytecodePatch(
     name = "Unlock Premium (Experimental)",
-    description = "Unlocks Callfilter.app premium by forcing the 'isSubscribed' check to return true. WARNING: May cause crashes or unexpected behavior.",
+    description = "Unlocks Callfilter.app premium by forcing the 'isSubscribed' check to return true. WARNING: May cause crashes or unexpected behavior. ",
     default = false
 ) {
     compatibleWith(CallFilterCompatibility.CALL_FILTER)

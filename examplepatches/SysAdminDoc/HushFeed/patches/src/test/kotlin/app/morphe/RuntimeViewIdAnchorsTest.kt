@@ -42,10 +42,9 @@ import org.junit.Test
  * layouts, and the survey card's id has to be one of the ids those layouts set.
  *
  * <p>The table has to list exactly the lookups the code makes, so it can't fall behind the code.
- * Older fixtures only report what they cover, since the bundle doesn't claim them. 47.1.3 handed
- * 42 of the groups new names (g6r's like button is g85 there), each found by the owner and tell
- * that hold 47.0.3's, and the other 13 kept theirs. 47.1.4 kept every one of 47.1.3's names: its
- * resource table is 47.1.3's, name for name and id for id.
+ * Older fixtures only report what they cover, since the bundle doesn't claim them. Each group
+ * carries the declared build's name alone: when the bundle moves to a newer TikTok, the owner and
+ * tell that held the old name find the new one, and the old build's name goes with the old build.
  */
 class RuntimeViewIdAnchorsTest {
     @Test
@@ -72,8 +71,8 @@ class RuntimeViewIdAnchorsTest {
      * A group names one view, with one name on each declared build. Its second name used to be the
      * 46.x name of the same view, tried when the current one found nothing, and on 47.0.3 each of
      * those names some other view, which the fallback then hid or read. A name written for one
-     * build is skipped on every other, so 47.0.3's and 47.1.3's names for a view sit side by side
-     * without that risk. A group may try more than one name on a build only with a reason in
+     * build is skipped on every other, so a build the bundle doesn't declare never resolves it to
+     * the wrong view. A group may try more than one name on a build only with a reason in
      * [MORE_THAN_ONE_NAME], and that list only shrinks: a group that drops its extra names fails
      * here until its entry goes too.
      */
@@ -196,13 +195,11 @@ class RuntimeViewIdAnchorsTest {
     /** Each group handed another group's id on each declared build, by that build's name for it. */
     @Test
     fun `semantic owners reject an unrelated id for every group that needs one`() {
-        val actions = "share/ShareSheetTools.java|ACTIONS_LIST_IDS|47.0.3:a5t,47.1.3:a5u,47.1.4:a5u"
-        val dislike = "comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.0.3:k0k,47.1.3:k2_,47.1.4:k2_"
-        val dislikeIcon = "comment/CommentTools.java|DISLIKE_ICON_IDS|47.0.3:mmt,47.1.3:mpe,47.1.4:mpe"
-        val captionText = "captions/CaptionStyle.java|TEXT_IDS|47.0.3:dlr,47.1.3:dmb,47.1.4:dmb"
+        val actions = "share/ShareSheetTools.java|ACTIONS_LIST_IDS|47.1.4:a5u"
+        val dislike = "comment/CommentTools.java|DISLIKE_BUTTON_IDS|47.1.4:k2_"
+        val dislikeIcon = "comment/CommentTools.java|DISLIKE_ICON_IDS|47.1.4:mpe"
+        val captionText = "captions/CaptionStyle.java|TEXT_IDS|47.1.4:dmb"
         val wrongNames = mapOf(
-            "47.0.3" to mapOf(actions to "k0k", dislike to "a5t", dislikeIcon to "a5t", captionText to "k0k"),
-            "47.1.3" to mapOf(actions to "k2_", dislike to "a5u", dislikeIcon to "a5u", captionText to "k2_"),
             "47.1.4" to mapOf(actions to "k2_", dislike to "a5u", dislikeIcon to "a5u", captionText to "k2_"),
         )
         assertEquals(Fixtures.declaredVersions().toSet(), wrongNames.keys)
@@ -257,7 +254,7 @@ class RuntimeViewIdAnchorsTest {
     ) {
         /**
          * The names the code resolves on [version], in its order: that build's own, written
-         * `47.0.3:g6r`, and the real names with no build in front. BuildNames in the shared
+         * `47.1.4:g85`, and the real names with no build in front. BuildNames in the shared
          * extension skips every other build's.
          */
         fun namesOn(version: String): List<String> = names.mapNotNull { name ->

@@ -31,6 +31,7 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
         return SettingsStatus.inboxFilterEnabled
                 || SettingsStatus.hideSuggestedAccountsEnabled
                 || SettingsStatus.hideInboxStoriesEnabled
+                || SettingsStatus.chatDeclutterEnabled
                 || SettingsStatus.expandActivityListEnabled
                 || SettingsStatus.notificationControlsEnabled
                 || SettingsStatus.suggestedVideoPushBlockEnabled
@@ -78,6 +79,12 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Hide Bulletin board",
+                    "The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.",
+                    Settings.HIDE_INBOX_BULLETIN_BOARDS
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Hide message requests",
                     "The Message requests row leaves the Inbox. Requests keep arriving and wait there until you turn this off.",
                     Settings.HIDE_INBOX_MESSAGE_REQUESTS
@@ -107,6 +114,14 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                     "The activity status control leaves the Inbox header. Whether others see you as active is unchanged.",
                     Settings.HIDE_INBOX_ACTIVITY_STATUS
             ));
+            if (SettingsStatus.groupChatBannerEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the group chat prompt",
+                        "The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.",
+                        Settings.HIDE_INBOX_GROUP_CHAT_BANNER
+                ));
+            }
             addPreference(new InputTextPreference(
                     context,
                     "Hide rows by title",
@@ -131,6 +146,44 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                 Settings.HIDE_INBOX_SUGGESTED_ACCOUNTS
         ));
         }
+        if (SettingsStatus.chatDeclutterEnabled) {
+            addPreference(new SectionHeadingPreference(context, "In a chat"));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide call buttons",
+                    "The voice and video call buttons leave the top of a chat. Calls still ring, "
+                            + "and the chat details button stays.",
+                    Settings.HIDE_CHAT_CALL_BUTTONS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide sticker suggestions",
+                    "The sticker suggestion banner stops showing in a chat. Your own stickers "
+                            + "are still in the sticker picker.",
+                    Settings.HIDE_CHAT_STICKER_BANNER
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide suggested replies",
+                    "TikTok's suggested reply cells and their intro banner stop showing in a "
+                            + "chat. Messages you type or receive are untouched.",
+                    Settings.HIDE_CHAT_AI_REPLIES
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Turn off double tap to react",
+                    "A double tap on a message no longer adds a heart to it. A single tap and "
+                            + "a long press work as before.",
+                    Settings.TURN_OFF_CHAT_DOUBLE_TAP
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Turn off swipe to reply",
+                    "Swiping a message sideways no longer starts a reply to it. Taps and long "
+                            + "presses work as before.",
+                    Settings.TURN_OFF_CHAT_SWIPE_REPLY
+            ));
+        }
         if (SettingsStatus.notificationControlsEnabled || SettingsStatus.expandActivityListEnabled
                 || SettingsStatus.suggestedVideoPushBlockEnabled) {
             addPreference(new SectionHeadingPreference(context, "Controls"));
@@ -153,6 +206,15 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                             + "the drawer. Every other notification is left alone, and the "
                             + "follower still appears in the Inbox.",
                     Settings.HIDE_FOLLOWER_NOTIFICATIONS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Turn off push notifications",
+                    "TikTok's push service stays off and nothing it sends reaches the drawer. "
+                            + "It can't keep your phone awake either. You won't hear about new "
+                            + "messages until you open TikTok, and a notification hidden while "
+                            + "this is on doesn't come back. Ongoing ones like media controls stay.",
+                    Settings.TURN_OFF_PUSH_NOTIFICATIONS
             ));
             addPreference(new TogglePreference(
                     context,

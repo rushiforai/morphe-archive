@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Mengenai</string>
   <string name="morphe_settings_screen_01_ads_title">Iklan</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Lakaran kecil alternatif</string>
   <string name="morphe_settings_screen_03_feed_title">Suapan</string>
   <string name="morphe_settings_screen_04_general_title">Umum</string>
   <string name="morphe_settings_screen_05_player_title">Pemain</string>
@@ -103,6 +102,7 @@ Perubahan termasuk:
   <!-- 'Pull up for precise seeking', 'Release to cancel' and '2x' should be translated using the same localized wording YouTube displays for the hints.
           These hints appear in the video player while dragging the seekbar or holding to speed up playback. -->
   <string name="morphe_hide_sync_button_title">Sorokkan butang \'Segerakkan ke video\'</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
   <!-- 'Community' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Join' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Store' should be translated using the same localized wording YouTube displays for the button. -->
@@ -182,7 +182,7 @@ Perubahan termasuk:
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Sorokkan butang \'Sambung\'</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Download' should be translated using the same localized wording YouTube displays for the button. -->
   <!-- 'Hype' should be translated using the same localized wording YouTube displays for the button.
@@ -325,7 +325,8 @@ Automotive layout
   <!-- Translations should match the language used in 'morphe_custom_branding_icon_entry_7'. -->
   <string name="morphe_header_logo_entry_5">Tersuai</string>
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->

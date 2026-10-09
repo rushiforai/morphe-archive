@@ -228,8 +228,11 @@ public final class PostDetails {
         return false;
     }
 
-    /** A tree whose native side is still there. A read from a released one goes to nothing. */
-    static boolean isLiveTree(Object value) {
+    /**
+     * A tree whose native side is still there. A read from a released one goes to nothing. Public
+     * for the Menu's Muse card, which reads a bookmark's name the same way.
+     */
+    public static boolean isLiveTree(Object value) {
         if (!isTree(value)) return false;
         try {
             return Boolean.TRUE.equals(value.getClass().getMethod(VALID).invoke(value));
@@ -256,7 +259,8 @@ public final class PostDetails {
         return value instanceof List ? (List<?>) value : null;
     }
 
-    static String string(Object model, int field) {
+    /** The string field [field] of [model], or null when it holds none or the read fails. */
+    public static String string(Object model, int field) {
         Object value = call(model, "getString", field);
         return value instanceof String ? (String) value : null;
     }

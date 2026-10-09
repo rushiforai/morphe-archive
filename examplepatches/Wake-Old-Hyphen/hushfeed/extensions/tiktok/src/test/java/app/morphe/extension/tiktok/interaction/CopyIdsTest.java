@@ -2,10 +2,12 @@ package app.morphe.extension.tiktok.interaction;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.os.Looper;
@@ -27,6 +29,7 @@ import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowAlertDialog;
 import org.robolectric.shadows.ShadowToast;
 
 import java.util.List;
@@ -72,6 +75,7 @@ public class CopyIdsTest {
     @After public void tearDown() {
         Settings.COPY_IDS.save(previousSetting);
         SettingsStatus.copyIdsEnabled = previousStatus;
+        Settings.ACCOUNT_FACTS.resetToDefault();
         CopyIds.onSharePackage(null);
         if (owner != null) owner.close();
     }
@@ -164,6 +168,58 @@ public class CopyIdsTest {
         idle();
         assertEquals(1, panel.getChildCount());
         assertEquals(0, ((ViewGroup.MarginLayoutParams) panel.getChildAt(0).getLayoutParams()).bottomMargin);
+    }
+
+    @Test public void accountFactsAddsItsOwnButtonToProfileSheetsOnly() {
+        Settings.ACCOUNT_FACTS.save(true);
+        List<CopyIds.Target> profile = CopyIds.targetsOf(profile("6812345678901234567", "nasa"));
+        assertEquals(3, profile.size());
+        assertEquals(AccountFacts.SHOW_FACTS, profile.get(2).label);
+        assertNotNull(profile.get(2).action);
+        assertTrue("a video sheet has no account facts",
+                CopyIds.targetsOf(video("7312345678901234567")).size() == 1);
+
+        Settings.COPY_IDS.save(false);
+        profile = CopyIds.targetsOf(profile("6812345678901234567", "nasa"));
+        assertEquals("the facts stand without the copy buttons", 1, profile.size());
+        assertEquals(AccountFacts.SHOW_FACTS, profile.get(0).label);
+        assertTrue(CopyIds.targetsOf(video("7312345678901234567")).isEmpty());
+
+        Settings.ACCOUNT_FACTS.save(false);
+        assertTrue(CopyIds.targetsOf(profile("6812345678901234567", "nasa")).isEmpty());
+    }
+
+    @Test public void theFactsButtonOpensTheSheetAndCopyTakesItAll() {
+        Settings.ACCOUNT_FACTS.save(true);
+        Utils.setActivity(activity);
+        ProfilePackage nasa = profile("6812345678901234567", "nasa");
+        nasa.user.region = "US";
+        nasa.user.secret = true;
+        FrameLayout panel = panel();
+        CopyIds.onSharePackage(nasa);
+        CopyIds.onSharePanel(panel);
+        idle();
+
+        LinearLayout row = (LinearLayout) panel.getChildAt(1);
+        assertEquals(3, row.getChildCount());
+        TextView facts = (TextView) row.getChildAt(2);
+        assertEquals("Account facts", facts.getText().toString());
+        clipboard().setPrimaryClip(android.content.ClipData.newPlainText("before", "before"));
+        assertTrue(facts.performClick());
+        assertEquals("the button opens the sheet rather than copying", "before", clip());
+
+        AlertDialog dialog = ShadowAlertDialog.getLatestAlertDialog();
+        assertNotNull(dialog);
+        assertTrue(dialog.isShowing());
+        assertEquals("@nasa", Shadows.shadowOf(dialog).getTitle().toString());
+        String message = Shadows.shadowOf(dialog).getMessage().toString();
+        assertTrue(message, message.contains("Region: United States (US)"));
+        assertTrue(message, message.contains("Private account: Yes"));
+
+        assertTrue(dialog.getButton(AlertDialog.BUTTON_NEUTRAL).performClick());
+        idle();
+        assertEquals(message, clip());
+        assertEquals("Account facts copied", ShadowToast.getTextOfLatestToast());
     }
 
     @Test public void somethingOtherThanTheFrameIsLeftAlone() {

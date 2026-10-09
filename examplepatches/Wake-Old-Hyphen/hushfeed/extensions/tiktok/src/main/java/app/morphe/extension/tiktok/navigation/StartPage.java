@@ -12,6 +12,7 @@ import android.os.SystemClock;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.wellbeing.FeedLock;
 
 /**
  * Picks the tab TikTok opens on when it starts from its icon.
@@ -84,10 +85,24 @@ public final class StartPage {
             HookStatus.bound(FAMILY, "cold start");
             startTopTab = null;
             if (savedState != null) return tag;
+            Intent intent = activity == null ? null : activity.getIntent();
+            // A link to one video: the feed lock lets that video through, and Open shared videos
+            // alone plays it by itself. It never reaches the start tab below, since a link keeps
+            // the tab it asked for.
+            if (FeedLock.isVideoLink(intent)) FeedLock.noteLinkEntry();
             String choice = Settings.START_PAGE.get();
-            if (TIKTOK.equals(choice)) return tag;
-            if (!isLauncherStart(activity == null ? null : activity.getIntent())) return tag;
-            String target = tagFor(choice);
+            boolean locking = FeedLock.isOn();
+            if (TIKTOK.equals(choice) && !(locking && HOME_TAG.equals(tag))) return tag;
+            if (!isLauncherStart(intent)) return tag;
+            String target = TIKTOK.equals(choice) ? null : tagFor(choice);
+            // With the feed lock on, a start that would land on a feed, or on a tab this phone
+            // can't show, lands on Inbox, or on Profile for a phone with no Inbox to open, so the
+            // app doesn't open on a blank feed.
+            if (locking && (target == null || landsOnFeed(target))) {
+                choice = tagFor(INBOX) != null ? INBOX : PROFILE;
+                target = tagFor(choice);
+                HookStatus.bound(FAMILY, "feed lock start");
+            }
             if (target == null) return tag;
             String top = topTagFor(choice);
             if (top != null) {
@@ -158,7 +173,7 @@ public final class StartPage {
      * it and none of the extras TikTok's own push check reads. Some of TikTok's notifications open
      * the app with the launcher's intent and mark it only with those.
      */
-    static boolean isLauncherStart(Intent intent) {
+    public static boolean isLauncherStart(Intent intent) {
         if (intent == null
                 || !Intent.ACTION_MAIN.equals(intent.getAction())
                 || !intent.hasCategory(Intent.CATEGORY_LAUNCHER)
@@ -230,6 +245,11 @@ public final class StartPage {
         if (FOR_YOU.equals(choice)) return FOR_YOU_TOP_TAG;
         if (FOLLOWING.equals(choice)) return FOLLOWING_TOP_TAG;
         return null;
+    }
+
+    /** Whether a tab's tag is one of the feeds the feed lock covers. */
+    private static boolean landsOnFeed(String target) {
+        return HOME_TAG.equals(target) || FRIENDS_TAB_TAG.equals(target) || FRIENDS_FEED_TAG.equals(target);
     }
 
     private static boolean bottomTabShown(String key) {

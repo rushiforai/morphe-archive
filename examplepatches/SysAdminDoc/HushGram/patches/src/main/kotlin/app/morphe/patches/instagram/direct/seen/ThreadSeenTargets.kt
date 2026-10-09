@@ -9,6 +9,7 @@ import app.morphe.patcher.patch.BytecodePatchContext
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.patches.instagram.misc.extension.EXTENSION_PACKAGE
+import app.morphe.patches.instagram.misc.extension.classesCallingInto
 import app.morphe.patches.instagram.misc.extension.classesHolding
 import app.morphe.patches.instagram.misc.extension.jumpTargets
 import app.morphe.patches.instagram.misc.extension.localRegisterCount
@@ -104,7 +105,15 @@ internal fun BytecodePatchContext.findThreadSeen(): ThreadSeenTargets {
             it.parameterTypes.size == 2 && it.parameterTypes[0].startsWith("L") && it.parameterTypes[1] == JAVA_STRING
     }.one("native mutation completion method")
     // The interface's own helper finishes a task with no error and no message, as the hook does.
-    if (callback.methods.none { it.static() && completesWithTwoNulls(it, complete) }) {
+    // R8 moves that static helper off the interface in some builds (450's 385611395 and 385611400
+    // keep it on another class), where it takes an Object and casts it to the interface first (#77).
+    // 450's x86_64 build (385611440) keeps no such helper at all, so the queue's other handlers,
+    // which finish their own tasks the same way, count too (#95).
+    if (callback.methods.none { it.static() && completesWithTwoNulls(it, complete) } &&
+        classesCallingInto(callback.type).none { owner ->
+            owner.methods.any { it.completesCallbackWithTwoNulls(callback.type, complete) || it.isOtherHandlerFinishing(handler, complete) }
+        }
+    ) {
         refuse("the callback interface never completes a task with two nulls")
     }
 
@@ -177,6 +186,25 @@ private fun completesWithTwoNulls(method: Method, complete: Method): Boolean {
             jumps.none { it in zero + 1..at }
     }
 }
+
+/**
+ * [this] is the callback interface's completion helper moved to another class: a static (Object)V
+ * whose first act is to cast its argument to [callback], and which [completesWithTwoNulls].
+ */
+private fun Method.completesCallbackWithTwoNulls(callback: String, complete: Method): Boolean {
+    if (!static() || returnType != "V" || parameterTypes.map(Any::toString) != listOf(JAVA_OBJECT)) return false
+    val first = visualCode().firstOrNull() ?: return false
+    return first.opcode == Opcode.CHECK_CAST && first.type() == callback &&
+        (first as OneRegisterInstruction).registerA == localRegisterCount() && completesWithTwoNulls(this, complete)
+}
+
+/**
+ * [this] is another of the queue's handlers, an instance method of another class with the receipt
+ * handler's name and signature, and it finishes its own task with two nulls ([completesWithTwoNulls]).
+ */
+private fun Method.isOtherHandlerFinishing(handler: Method, complete: Method): Boolean =
+    !static() && definingClass != handler.definingClass && name == handler.name && returnType == handler.returnType &&
+        parameterTypes.map(Any::toString) == handler.parameterTypes.map(Any::toString) && completesWithTwoNulls(this, complete)
 
 private fun Instruction.writes(register: Int): Boolean {
     val destination = (this as? OneRegisterInstruction)?.registerA ?: return false

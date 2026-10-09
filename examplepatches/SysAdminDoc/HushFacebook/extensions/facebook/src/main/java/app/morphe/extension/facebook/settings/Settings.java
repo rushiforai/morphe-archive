@@ -560,6 +560,14 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_open_reply_threads", FALSE);
 
     /**
+     * A group post's comments end without the Related groups list and its Join buttons
+     * ({@link app.morphe.extension.facebook.comments.CommentSheetOptions}, #101). Off by default. A
+     * change shows on the next comments opened.
+     */
+    public static final BooleanSetting HIDE_RELATED_GROUPS_UNDER_COMMENTS =
+            new BooleanSetting("hushfacebook_hide_related_groups_under_comments", FALSE);
+
+    /**
      * Facebook's text boxes (posts, comments, captions, a story's text) look people up to tag only
      * for a word that starts with @. Off, they also look them up for a plain word Facebook takes for
      * a name, what its code calls an implicit mention
@@ -707,6 +715,13 @@ public class Settings extends BaseSettings {
      */
     public static final BooleanSetting HIDE_MENU_ALSO_FROM_META =
             new BooleanSetting("hushfacebook_hide_menu_also_from_meta", TRUE);
+
+    /**
+     * The Muse card in Facebook's Menu, Meta's ad for its AI agent app, which reads as dismissed
+     * the way Facebook's own Dismiss leaves it.
+     */
+    public static final BooleanSetting HIDE_MENU_MUSE =
+            new BooleanSetting("hushfacebook_hide_menu_muse", TRUE);
 
     /**
      * Edits outside the Menu: the button and badge in the Reels composer's header, and the Edits
@@ -900,7 +915,7 @@ public class Settings extends BaseSettings {
             new BooleanSetting("hushfacebook_open_on_chosen_tab", FALSE);
 
     /**
-     * Home asks Facebook for its Following feed where it would ask for the ranked one
+     * Home asks Facebook for its most recent feed where it would ask for the ranked one
      * ({@link app.morphe.extension.facebook.feed.FollowingHome}). Off by default. The Feeds tab's
      * filters keep their own feeds, and a change shows the next time Home loads its feed.
      */

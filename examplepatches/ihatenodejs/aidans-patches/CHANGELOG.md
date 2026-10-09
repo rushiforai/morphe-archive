@@ -1,3 +1,121 @@
+## [1.5.1](https://github.com/ihatenodejs/aidans-patches/compare/v1.5.0...v1.5.1) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **ci:** set User-Agent in compatibility submission and reuse acquired artifact for target check if version matches ([1901351](https://github.com/ihatenodejs/aidans-patches/commit/1901351bfddb604a4674695a86d9826f6a0a0caf))
+
+## [1.5.0](https://github.com/ihatenodejs/aidans-patches/compare/v1.4.0...v1.5.0) (2026-10-09)
+
+### 🐛 Bug Fixes
+
+* **site:** clean up status page, worker, and apk lab ([#16](https://github.com/ihatenodejs/aidans-patches/issues/16)) ([a666f02](https://github.com/ihatenodejs/aidans-patches/commit/a666f02c74b7c2a5f2d716df0a94f38ec127624c))
+
+### ✨ New Features
+
+* **sezzle:** Added subscription removal patch and shortcut toggle ([47801e6](https://github.com/ihatenodejs/aidans-patches/commit/47801e691eca3274ceb00d21ac43932a48ca5545))
+
+## [1.5.0-dev.1](https://github.com/ihatenodejs/aidans-patches/compare/v1.4.0...v1.5.0-dev.1) (2026-10-09)
+
+### ✨ New Features
+
+* **sezzle:** Added subscription removal patch and shortcut toggle ([47801e6](https://github.com/ihatenodejs/aidans-patches/commit/47801e691eca3274ceb00d21ac43932a48ca5545))
+
+## [1.4.0](https://github.com/ihatenodejs/aidans-patches/compare/v1.3.1...v1.4.0) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **apk-lab:** address review feedback on asm, native extraction, il2cpp layouts, and unity cli ([9e1addc](https://github.com/ihatenodejs/aidans-patches/commit/9e1addccd11969151c735345d231718afc730e21))
+* **apk-lab:** Allowed overriding default kwargs in tool runner ([76801f6](https://github.com/ihatenodejs/aidans-patches/commit/76801f612922c52a52bb264a01eb9d78f0a1e53d))
+* **apk-lab:** detect conflicting duplicate native library entries within an APK ([d85bc28](https://github.com/ihatenodejs/aidans-patches/commit/d85bc28f716251f3e0952a93e8bb5798aaf4693e))
+* **apk-lab:** Included AndroidManifest in patchable member check ([af7fcd6](https://github.com/ihatenodejs/aidans-patches/commit/af7fcd6d19ec5d22d9f8494ac774a7ed3fa26124))
+* **apk-lab:** Included resources.arsc in patch artifact detection ([845d8f1](https://github.com/ihatenodejs/aidans-patches/commit/845d8f1623fa68063ccf17ee9e5e62df1c746cb4))
+* **blackjack:** update to 2.22.09 ([34eca78](https://github.com/ihatenodejs/aidans-patches/commit/34eca782360220175556fc587f37a8c5e011c9e0))
+* **build:** Selected newest patch artifact ([185b8bc](https://github.com/ihatenodejs/aidans-patches/commit/185b8bce6097df0a9c9d435a482d1fd898115b43))
+* **sezzle:** Corrected rewards dispatch and CodePush method matching ([0b60e45](https://github.com/ihatenodejs/aidans-patches/commit/0b60e450f3fbae774b4ec7888458bb8152f62e10))
+* **sezzle:** Preserved Sezzle Send navigation in rewards patch ([9245a74](https://github.com/ihatenodejs/aidans-patches/commit/9245a74c3d49b921938e435bd31edf1114217147))
+* **sezzle:** Stubbed CodePush bundle resolution in update patch ([c1cac39](https://github.com/ihatenodejs/aidans-patches/commit/c1cac396717618c97eae379f4328677b74975ca2))
+
+### ✨ New Features
+
+* **apk-lab:** add deterministic ARM64 instruction encoder and CLI ([58324dc](https://github.com/ihatenodejs/aidans-patches/commit/58324dc430cc9ed8659e29ced02be7776e257289))
+* **apk-lab:** add IL2CPP metadata extractor and symbol search command ([13d41bd](https://github.com/ihatenodejs/aidans-patches/commit/13d41bdc0d492fdf705e48f8d497cf3ede376235))
+* **apk-lab:** add Unity serialized asset inspector and GameObject locator ([4cdb737](https://github.com/ihatenodejs/aidans-patches/commit/4cdb7378b6f5d4ccf3204ff55eb34da95f524a80))
+* **apk-lab:** added apk compatibility testing and status tracking ([c077d5a](https://github.com/ihatenodejs/aidans-patches/commit/c077d5a2b72447f455c9e80268f95c59a7bd7395))
+* **apk-lab:** extract native libraries across splits during analyze ([55e7aa1](https://github.com/ihatenodejs/aidans-patches/commit/55e7aa13a782c5096b7ea564f2f1e43eb446c837))
+* **fizz:** Added feed advertisement removal patch ([6c10066](https://github.com/ihatenodejs/aidans-patches/commit/6c100662f9516b125cf4ce3fe60808fb3c9e1678))
+* **sezzle:** Added configurable shortcut filtering ([5716677](https://github.com/ihatenodejs/aidans-patches/commit/57166774f3ce51eed55606f7c9d783750397183f))
+* **sidelineswap:** Added AMOLED theme patch ([619e112](https://github.com/ihatenodejs/aidans-patches/commit/619e112c7304eb0a0a03d677fb0d65f47448b99c))
+* **sidelineswap:** Added cart item and CardView theming ([9603003](https://github.com/ihatenodejs/aidans-patches/commit/9603003d69265ffafd4ce4fbe5a39dfe27ea4469))
+* **sidelineswap:** Added dark WebView support and expanded AMOLED theme ([d0de58a](https://github.com/ihatenodejs/aidans-patches/commit/d0de58a456ec9d9bd8a2f421cf216ef6f8420f75))
+* **sidelineswap:** Added payment sheet theming and address list fix ([4290b27](https://github.com/ihatenodejs/aidans-patches/commit/4290b270af2c009b4ef1c1c52c483a0b5c9a0b57))
+* **sidelineswap:** Added shipping badge and avatar stroke theming ([cdfed1e](https://github.com/ihatenodejs/aidans-patches/commit/cdfed1e4bbba03c8d94d789ca57824c5964a5498))
+
+## [1.4.0-dev.7](https://github.com/ihatenodejs/aidans-patches/compare/v1.4.0-dev.6...v1.4.0-dev.7) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **apk-lab:** Included AndroidManifest in patchable member check ([af7fcd6](https://github.com/ihatenodejs/aidans-patches/commit/af7fcd6d19ec5d22d9f8494ac774a7ed3fa26124))
+
+### ✨ New Features
+
+* **sidelineswap:** Added AMOLED theme patch ([619e112](https://github.com/ihatenodejs/aidans-patches/commit/619e112c7304eb0a0a03d677fb0d65f47448b99c))
+* **sidelineswap:** Added cart item and CardView theming ([9603003](https://github.com/ihatenodejs/aidans-patches/commit/9603003d69265ffafd4ce4fbe5a39dfe27ea4469))
+* **sidelineswap:** Added dark WebView support and expanded AMOLED theme ([d0de58a](https://github.com/ihatenodejs/aidans-patches/commit/d0de58a456ec9d9bd8a2f421cf216ef6f8420f75))
+* **sidelineswap:** Added payment sheet theming and address list fix ([4290b27](https://github.com/ihatenodejs/aidans-patches/commit/4290b270af2c009b4ef1c1c52c483a0b5c9a0b57))
+* **sidelineswap:** Added shipping badge and avatar stroke theming ([cdfed1e](https://github.com/ihatenodejs/aidans-patches/commit/cdfed1e4bbba03c8d94d789ca57824c5964a5498))
+
+## [1.4.0-dev.6](https://github.com/ihatenodejs/aidans-patches/compare/v1.4.0-dev.5...v1.4.0-dev.6) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **apk-lab:** Allowed overriding default kwargs in tool runner ([76801f6](https://github.com/ihatenodejs/aidans-patches/commit/76801f612922c52a52bb264a01eb9d78f0a1e53d))
+* **apk-lab:** Included resources.arsc in patch artifact detection ([845d8f1](https://github.com/ihatenodejs/aidans-patches/commit/845d8f1623fa68063ccf17ee9e5e62df1c746cb4))
+* **sezzle:** Corrected rewards dispatch and CodePush method matching ([0b60e45](https://github.com/ihatenodejs/aidans-patches/commit/0b60e450f3fbae774b4ec7888458bb8152f62e10))
+* **sezzle:** Preserved Sezzle Send navigation in rewards patch ([9245a74](https://github.com/ihatenodejs/aidans-patches/commit/9245a74c3d49b921938e435bd31edf1114217147))
+* **sezzle:** Stubbed CodePush bundle resolution in update patch ([c1cac39](https://github.com/ihatenodejs/aidans-patches/commit/c1cac396717618c97eae379f4328677b74975ca2))
+
+## [1.4.0-dev.5](https://github.com/ihatenodejs/aidans-patches/compare/v1.4.0-dev.4...v1.4.0-dev.5) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **apk-lab:** address review feedback on asm, native extraction, il2cpp layouts, and unity cli ([9e1addc](https://github.com/ihatenodejs/aidans-patches/commit/9e1addccd11969151c735345d231718afc730e21))
+* **apk-lab:** detect conflicting duplicate native library entries within an APK ([d85bc28](https://github.com/ihatenodejs/aidans-patches/commit/d85bc28f716251f3e0952a93e8bb5798aaf4693e))
+
+### ✨ New Features
+
+* **apk-lab:** add deterministic ARM64 instruction encoder and CLI ([58324dc](https://github.com/ihatenodejs/aidans-patches/commit/58324dc430cc9ed8659e29ced02be7776e257289))
+* **apk-lab:** add IL2CPP metadata extractor and symbol search command ([13d41bd](https://github.com/ihatenodejs/aidans-patches/commit/13d41bdc0d492fdf705e48f8d497cf3ede376235))
+* **apk-lab:** add Unity serialized asset inspector and GameObject locator ([4cdb737](https://github.com/ihatenodejs/aidans-patches/commit/4cdb7378b6f5d4ccf3204ff55eb34da95f524a80))
+* **apk-lab:** extract native libraries across splits during analyze ([55e7aa1](https://github.com/ihatenodejs/aidans-patches/commit/55e7aa13a782c5096b7ea564f2f1e43eb446c837))
+
+## [1.4.0-dev.4](https://github.com/ihatenodejs/aidans-patches/compare/v1.4.0-dev.3...v1.4.0-dev.4) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **blackjack:** update to 2.22.09 ([34eca78](https://github.com/ihatenodejs/aidans-patches/commit/34eca782360220175556fc587f37a8c5e011c9e0))
+
+## [1.4.0-dev.3](https://github.com/ihatenodejs/aidans-patches/compare/v1.4.0-dev.2...v1.4.0-dev.3) (2026-10-07)
+
+### ✨ New Features
+
+* **sezzle:** Added configurable shortcut filtering ([5716677](https://github.com/ihatenodejs/aidans-patches/commit/57166774f3ce51eed55606f7c9d783750397183f))
+
+## [1.4.0-dev.2](https://github.com/ihatenodejs/aidans-patches/compare/v1.4.0-dev.1...v1.4.0-dev.2) (2026-10-07)
+
+### ✨ New Features
+
+* **apk-lab:** added apk compatibility testing and status tracking ([c077d5a](https://github.com/ihatenodejs/aidans-patches/commit/c077d5a2b72447f455c9e80268f95c59a7bd7395))
+
+## [1.4.0-dev.1](https://github.com/ihatenodejs/aidans-patches/compare/v1.3.1...v1.4.0-dev.1) (2026-10-06)
+
+### 🐛 Bug Fixes
+
+* **build:** Selected newest patch artifact ([185b8bc](https://github.com/ihatenodejs/aidans-patches/commit/185b8bce6097df0a9c9d435a482d1fd898115b43))
+
+### ✨ New Features
+
+* **fizz:** Added feed advertisement removal patch ([6c10066](https://github.com/ihatenodejs/aidans-patches/commit/6c100662f9516b125cf4ce3fe60808fb3c9e1678))
+
 ## [1.3.1](https://github.com/ihatenodejs/aidans-patches/compare/v1.3.0...v1.3.1) (2026-10-06)
 
 ### 🐛 Bug Fixes

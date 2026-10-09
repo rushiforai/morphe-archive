@@ -4,6 +4,7 @@
  */
 package app.morphe.extension.facebook.theme;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -13,11 +14,15 @@ import static org.robolectric.Shadows.shadowOf;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.content.res.TypedArray;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Looper;
+import android.util.AttributeSet;
 import android.view.View;
 import android.view.Window;
 import android.widget.FrameLayout;
@@ -845,6 +850,104 @@ public class MaterialYouThemeTest {
         root.getViewTreeObserver().dispatchOnGlobalLayout();
         assertEquals("light mode", 0xFF252728, ((ColorDrawable) inLightMode.getBackground()).getColor());
         sheet.dismiss();
+    }
+
+    /**
+     * The comment sheet's bar (#37) is 581's sutro_top_border: a DIVIDER #65686C shape under a
+     * SURFACE_BACKGROUND #252728 one inset at the top, both read from the theme by the framework.
+     * Each flat fill takes the palette's neutral at its lightness, on a copy of the state the
+     * resource's other drawables share. A gradient, a fill that changes when pressed and light mode
+     * keep Facebook's colours.
+     */
+    @Test
+    public void aSheetsShapeFillsTakeThePalette() {
+        Activity activity = Robolectric.buildActivity(Activity.class).setup().get();
+        DarkMode.answer(true);
+        LayerDrawable bar = new LayerDrawable(new Drawable[] {filled(0xFF65686C), filled(0xFF252728)});
+        bar.setLayerInsetTop(1, 3);
+        Drawable sameResource = bar.getConstantState().newDrawable();
+        GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[] {0xFF252728, 0xFF101011});
+        GradientDrawable pressable = new GradientDrawable();
+        ColorStateList pressed = new ColorStateList(new int[][] {{android.R.attr.state_pressed}, {}},
+                new int[] {0xFF3B3C3E, 0xFF252728});
+        pressable.setColor(pressed);
+        Dialog sheet = new Dialog(activity);
+        FrameLayout content = new FrameLayout(activity);
+        View barView = shaped(activity, bar);
+        View card = shaped(activity, filled(0xFF333334));
+        content.addView(barView);
+        content.addView(card);
+        content.addView(shaped(activity, gradient));
+        content.addView(shaped(activity, pressable));
+        sheet.setContentView(content);
+        sheet.show();
+        View root = sheet.getWindow().getDecorView();
+        root.measure(View.MeasureSpec.makeMeasureSpec(1000, View.MeasureSpec.EXACTLY),
+                View.MeasureSpec.makeMeasureSpec(2000, View.MeasureSpec.EXACTLY));
+        root.layout(0, 0, 1000, 2000);
+
+        MaterialYouTheme.watchWindowsAbove(activity, activity.getWindow().getDecorView());
+
+        LayerDrawable drawn = (LayerDrawable) barView.getBackground();
+        assertEquals("the bar's border", palette.sameLightness(TonePalette.NEUTRAL, 0xFF65686C), fill(drawn.getDrawable(0)));
+        assertEquals("the bar", palette.sameLightness(TonePalette.NEUTRAL, 0xFF252728), fill(drawn.getDrawable(1)));
+        assertEquals("a card's shape", palette.sameLightness(TonePalette.NEUTRAL, 0xFF333334), fill(card.getBackground()));
+        LayerDrawable shared = (LayerDrawable) sameResource;
+        assertEquals("the resource's other drawables", 0xFF65686C, fill(shared.getDrawable(0)));
+        assertEquals("the resource's other drawables", 0xFF252728, fill(shared.getDrawable(1)));
+        assertArrayEquals("a gradient", new int[] {0xFF252728, 0xFF101011}, gradient.getColors());
+        assertEquals("a fill that changes when pressed", pressed, pressable.getColor());
+
+        DarkMode.answer(false);
+        View inLightMode = shaped(activity, filled(0xFF252728));
+        content.addView(inLightMode);
+        root.getViewTreeObserver().dispatchOnGlobalLayout();
+        assertEquals("light mode", 0xFF252728, fill(inLightMode.getBackground()));
+        sheet.dismiss();
+    }
+
+    /**
+     * Litho reads a token's colour from the theme with TypedArray.getColor (581 LX/1Mx;->A04), and
+     * SURFACE_BACKGROUND's night style item keeps #252728, so the comment list's rows drew it (#37).
+     * In dark mode a dark surface read that way takes the palette; light mode and other colours keep
+     * Facebook's.
+     */
+    @Test
+    public void aThemeAttributesDarkSurfaceTakesThePalette() {
+        Context context = RuntimeEnvironment.getApplication();
+        DarkMode.answer(true);
+        TypedArray surface = attribute(context, "#FF252728");
+        assertEquals("dark mode", palette.sameLightness(TonePalette.NEUTRAL, 0xFF252728),
+                MaterialYouTheme.getColor(surface, 0, 0, false));
+        TypedArray light = attribute(context, "#FFC9CCD1");
+        assertEquals("no dark surface", 0xFFC9CCD1, MaterialYouTheme.getColor(light, 0, 0, false));
+
+        DarkMode.answer(false);
+        assertEquals("light mode", 0xFF252728, MaterialYouTheme.getColor(surface, 0, 0, false));
+        surface.recycle();
+        light.recycle();
+    }
+
+    private static TypedArray attribute(Context context, String colour) {
+        AttributeSet set = Robolectric.buildAttributeSet().addAttribute(android.R.attr.textColor, colour).build();
+        return context.obtainStyledAttributes(set, new int[] {android.R.attr.textColor});
+    }
+
+    private static GradientDrawable filled(int color) {
+        GradientDrawable shape = new GradientDrawable();
+        shape.setColor(color);
+        return shape;
+    }
+
+    private static View shaped(Context context, Drawable background) {
+        View view = new View(context);
+        view.setBackground(background);
+        return view;
+    }
+
+    private static int fill(Drawable shape) {
+        return ((GradientDrawable) shape).getColor().getDefaultColor();
     }
 
     private static View plain(Context context, int color) {

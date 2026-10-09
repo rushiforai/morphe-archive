@@ -47,11 +47,14 @@ private const val MIG = "$MATERIAL_YOU->mig(ILjava/lang/Object;)I"
 internal const val CONTEXT_GET_DRAWABLE = "Landroid/content/Context;->getDrawable(I)Landroid/graphics/drawable/Drawable;"
 
 /**
- * Where Material You sends each framework colour call, route four's `Color.parseColor` and the reads
- * of a colour resource, and each of AMOLED's stand-ins for them when AMOLED went first.
+ * Where Material You sends each framework colour call, route four's `Color.parseColor`, the reads
+ * of a colour resource and a theme attribute's `TypedArray.getColor`, and each of AMOLED's stand-ins
+ * for them when AMOLED went first. Litho reads a token's attribute that last way (581
+ * `LX/1Mx;->A04`), and SURFACE_BACKGROUND's night item keeps #252728 since some code reads it as a
+ * plain colour, so the comment list's rows drew it (issue #37).
  */
 internal val YOU_COLOUR_CALLS: Map<String, String> =
-    listOf(PARSE_COLOR, CONTEXT_GET_COLOR, RESOURCES_GET_COLOR, RESOURCES_GET_THEMED_COLOR).flatMap { framework ->
+    listOf(PARSE_COLOR, CONTEXT_GET_COLOR, RESOURCES_GET_COLOR, RESOURCES_GET_THEMED_COLOR, TYPED_ARRAY_GET_COLOR).flatMap { framework ->
         listOf(framework, AMOLED_COLOUR_CALLS.getValue(framework)).map { it to standIn(MATERIAL_YOU, framework) }
     }.toMap() + (CONTEXT_GET_DRAWABLE to standIn(MATERIAL_YOU, CONTEXT_GET_DRAWABLE))
 
@@ -353,6 +356,9 @@ val materialYouThemePatch = bytecodePatch(
         }
         check(rerouted.getValue(CONTEXT_GET_DRAWABLE) > 0) {
             "No call to Context.getDrawable found, so the feed's composer row would stay grey"
+        }
+        check(rerouted.getValue(TYPED_ARRAY_GET_COLOR) + rerouted.getValue(AMOLED_COLOUR_CALLS.getValue(TYPED_ARRAY_GET_COLOR)) > 0) {
+            "No call to TypedArray.getColor found, so the comment list's rows would stay grey"
         }
 
         // Route three. AMOLED, when it went first, has blackened all but one of these, which is why

@@ -345,6 +345,23 @@ try {
             Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = & { Invoke-DexDiff }' } }
         @{ Name = 'the DexDiff function run through ForEach-Object'; Check = $runsDexDiff; Expect = $true
             Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) '$diff = @(1) | ForEach-Object { Invoke-DexDiff }' } }
+        # common.ps1's Invoke-HeavyJob runs its -ScriptBlock once, in a slot of the build queue or
+        # straight away, and nothing else it's handed: a block given to another command, or to
+        # Invoke-HeavyJob under another parameter, is still a value.
+        @{ Name = 'the DexDiff function run through Invoke-HeavyJob -ScriptBlock'; Check = $runsDexDiff; Expect = $true
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text) "Invoke-HeavyJob -Label 'diff' -ScriptBlock { $Text }" } }
+        @{ Name = 'the DexDiff function in a block handed to another command'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text)
+                "Register-HeavyJob -Label 'diff' -ScriptBlock { $Text }`n`$diff = [pscustomobject]@{ ExitCode = 0; Output = @() }" } }
+        @{ Name = 'the DexDiff function in a block handed to Invoke-HeavyJob as its -Label'; Check = $runsDexDiff
+            Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text)
+                "Invoke-HeavyJob -Label { $Text } -ScriptBlock { }`n`$diff = [pscustomobject]@{ ExitCode = 0; Output = @() }" } }
+        @{ Name = 'the contracts helper dot-sourced inside Invoke-HeavyJob -ScriptBlock { }'; Check = $dotSourcesContracts
+            Text = Edit-ScriptNode $verifierText $contractsDotSource { param($Text) "Invoke-HeavyJob -Label 'load' -ScriptBlock { $Text }" } }
+        @{ Name = 'the verify run handed to another command than Invoke-HeavyJob'; Check = $verifiesPatched
+            Text = Edit-ScriptNode $allPatchesText { param($Node)
+                $Node -is [System.Management.Automation.Language.CommandAst] -and $Node.GetCommandName() -eq 'Invoke-HeavyJob'
+            } { param($Text) $Text.Replace('Invoke-HeavyJob', 'Register-HeavyJob') } }
         @{ Name = 'the DexDiff call after a function that ends in one that exits'; Check = $runsDexDiff
             Text = Edit-ScriptNode $verifierText $dexDiffRun { param($Text)
                 "function Stop-Early { Stop-Now }`nfunction Stop-Now { exit 0 }`n`$stopped = Stop-Early`n$Text" } }

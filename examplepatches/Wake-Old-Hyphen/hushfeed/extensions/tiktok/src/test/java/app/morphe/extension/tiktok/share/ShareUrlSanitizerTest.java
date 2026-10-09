@@ -23,8 +23,10 @@ public class ShareUrlSanitizerTest {
 
     @After
     public void reset() {
-        Settings.CUSTOM_SHARE_DOMAIN.save("");
-        BaseSettings.SANITIZE_SHARING_LINKS.save(false);
+        // Back to the defaults, not to off: a saved value stays for the whole test JVM, and the
+        // short-link tests after this one take the link's tracking off with the default.
+        Settings.CUSTOM_SHARE_DOMAIN.resetToDefault();
+        BaseSettings.SANITIZE_SHARING_LINKS.resetToDefault();
     }
 
     @Test

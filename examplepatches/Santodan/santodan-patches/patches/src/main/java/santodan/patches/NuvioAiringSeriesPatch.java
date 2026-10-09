@@ -47,17 +47,18 @@ public final class NuvioAiringSeriesPatch {
             "Adds a disabled-by-default setting that keeps currently-airing library series in Upcoming until the scheduled finale.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "NuvioTV", null, ApkFileType.APK,
-                    null, null, List.of(new AppTarget(VERSION, false, null)), false));
+                    null, null, NuvioLayout.modernTargets(), false));
                 builder.dependsOn(NuvioSettingsMenuPatch.getMenuPatch());
                 builder.extendWith(NuvioAiringSeriesPatch::extensionStream);
                 builder.execute(context -> {
                     String version = context.getPackageMetadata().getVersionName();
-                    if (!PACKAGE.equals(context.getPackageMetadata().getPackageName()) || !VERSION.equals(version))
+                NuvioLayout.use(version);
+                    if (!PACKAGE.equals(context.getPackageMetadata().getPackageName()) || (!NuvioLayout.BETA4.equals(version) && !NuvioLayout.BETA5.equals(version)))
                         throw unsupported("Expected " + PACKAGE + " " + VERSION);
-                    hookNextUpModel(context.mutableClassDefBy("Lla/aa;"));
-                    hookUpcomingSplit(context.mutableClassDefBy("Lla/t5;"));
-                    hookCard(context.mutableClassDefBy("Lba/e2;"), "Lc7/a;");
-                    hookWide(context.mutableClassDefBy("Lba/d3;"));
+                    hookNextUpModel(context.mutableClassDefBy(NuvioLayout.current("Lla/aa;")));
+                    hookUpcomingSplit(context.mutableClassDefBy(NuvioLayout.current("Lla/t5;")));
+                    hookCard(context.mutableClassDefBy(NuvioLayout.current("Lba/e2;")), "Lc7/a;");
+                    hookWide(context.mutableClassDefBy(NuvioLayout.current("Lba/d3;")));
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;
@@ -74,7 +75,7 @@ public final class NuvioAiringSeriesPatch {
             Object reference = ((ReferenceInstruction) instruction).getReference();
             if (!(reference instanceof FieldReference)) continue;
             FieldReference field = (FieldReference) reference;
-            if (!"Lla/aa;".equals(field.getDefiningClass()) || !"n".equals(field.getName()) || !"Z".equals(field.getType())) continue;
+            if (!NuvioLayout.current("Lla/aa;").equals(field.getDefiningClass()) || !"n".equals(field.getName()) || !"Z".equals(field.getType())) continue;
             if (match >= 0) throw unsupported("Multiple Upcoming split predicates found");
             match = i; value = ((TwoRegisterInstruction) instruction).getRegisterA();
             model = ((TwoRegisterInstruction) instruction).getRegisterB();
@@ -103,7 +104,7 @@ public final class NuvioAiringSeriesPatch {
     }
 
     static void hookSettings(MutableClass owner, int showUnairedSub) {
-        boolean beta4 = "Lsa/o3;".equals(owner.getType());
+        boolean beta4 = NuvioLayout.current("Lsa/o3;").equals(owner.getType());
         MutableMethod match = null;
         int insert = -1;
         int composer = -1;
@@ -117,7 +118,7 @@ public final class NuvioAiringSeriesPatch {
                 for (int j = i + 1; j < Math.min(ins.size(), i + 45); j++) {
                     if (calls(ins.get(j), beta4 ? "Lc7/a;" : "Lt6/g;", beta4 ? "P" : "I") && ins.get(j) instanceof FiveRegisterInstruction)
                         localComposer = ((FiveRegisterInstruction) ins.get(j)).getRegisterD();
-                    if (calls(ins.get(j), beta4 ? "Lsa/eb;" : "Lfb/h3;", beta4 ? "m" : "t")) { localInsert = j + 1; break; }
+                    if (calls(ins.get(j), beta4 ? NuvioLayout.current("Lsa/eb;") : "Lfb/h3;", beta4 ? "m" : "t")) { localInsert = j + 1; break; }
                 }
                 if (localComposer >= 0 && localComposer <= 15 && localInsert >= 0) {
                     if (match != null) throw unsupported("Multiple Continue Watching settings anchors found");
@@ -132,7 +133,7 @@ public final class NuvioAiringSeriesPatch {
     }
 
     static void hookCard(MutableClass owner, String imageOwner) {
-        boolean beta4 = "Lba/e2;".equals(owner.getType());
+        boolean beta4 = NuvioLayout.current("Lba/e2;").equals(owner.getType());
         MutableMethod target = unique(owner, "invoke", 3);
         List<Instruction> ins = instructions(target);
         int imageCall = -1;
@@ -186,7 +187,7 @@ public final class NuvioAiringSeriesPatch {
                 && method.getImplementation() != null) {
                 // Beta4 has a 27-argument default-mask overload as well as the real
                 // model constructor. Register only fully initialized model instances.
-                if ("Lla/aa;".equals(owner.getType()) && "<init>".equals(name)
+                if (NuvioLayout.current("Lla/aa;").equals(owner.getType()) && "<init>".equals(name)
                     && !"Lcom/nuvio/tv/domain/model/MDBListRatings;".contentEquals(
                         method.getParameterTypes().get(parameters - 1))) continue;
                 if (result != null) throw unsupported("Multiple " + owner.getType() + "->" + name + " matches");
@@ -225,7 +226,7 @@ public final class NuvioAiringSeriesPatch {
 
     static IllegalStateException unsupported(String reason) {
         return new IllegalStateException("Unsupported NuvioTV bytecode: " + reason
-            + ". No fallback was applied. Use an original NuvioTV 1.1.0-beta.4 APK.");
+            + ". No fallback was applied. Use an original supported NuvioTV APK.");
     }
 
     static InputStream extensionStream() {

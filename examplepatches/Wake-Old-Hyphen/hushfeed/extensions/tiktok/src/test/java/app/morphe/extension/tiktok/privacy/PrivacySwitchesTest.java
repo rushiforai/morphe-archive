@@ -28,6 +28,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.NetworkCapabilities;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract;
@@ -71,13 +72,16 @@ public class PrivacySwitchesTest {
     @After public void tearDown() {
         for (var setting : new app.morphe.extension.shared.settings.BooleanSetting[]{
                 Settings.BLOCK_CONTACT_LIST, Settings.BLOCK_INSTALLED_APPS, Settings.BLOCK_LOCATION,
-                Settings.BLOCK_CLIPBOARD_READS, Settings.BLOCK_MOTION_SENSORS, Settings.STOP_BENCHMARK_RUNS,
-                Settings.BLOCK_WEBVIEW_JS_INTERFACES, Settings.CAMERA_MIC_INDICATOR, Settings.STOP_SEARCH_HISTORY}) {
+                Settings.BLOCK_CLIPBOARD_READS, Settings.HIDE_VPN, Settings.BLOCK_ADVERTISING_ID,
+                Settings.BLOCK_MOTION_SENSORS, Settings.STOP_BENCHMARK_RUNS,
+                Settings.BLOCK_WEBVIEW_JS_INTERFACES, Settings.CAMERA_MIC_INDICATOR, Settings.STOP_SEARCH_HISTORY,
+                Settings.STOP_WATCH_HISTORY}) {
             setting.save(setting.defaultValue);
         }
         CameraMicIndicator.resetForTests();
         SettingsStatus.contactListBlockerEnabled = false;
         SettingsStatus.searchHistoryEnabled = false;
+        SettingsStatus.watchHistoryEnabled = false;
         SettingsStatus.installedAppsBlockerEnabled = false;
         SettingsStatus.locationGovernorEnabled = false;
         SettingsStatus.devicePrivacyGuardEnabled = false;
@@ -191,6 +195,131 @@ public class PrivacySwitchesTest {
         assertTrue(DevicePrivacyGuard.interceptHasPrimaryClip(clipboard));
     }
 
+    @Test public void onlyTheVpnTransportIsHiddenAndOnlyWhileTheSwitchIsOn() {
+        NetworkCapabilities capabilities = org.robolectric.shadows.ShadowNetworkCapabilities.newInstance();
+        Shadows.shadowOf(capabilities).addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+        Shadows.shadowOf(capabilities).addTransportType(NetworkCapabilities.TRANSPORT_VPN);
+
+        Settings.HIDE_VPN.save(true);
+        assertFalse("a VPN transport reads as absent while the switch is on",
+                DevicePrivacyGuard.interceptHasTransport(capabilities, NetworkCapabilities.TRANSPORT_VPN));
+        assertTrue("every other transport is answered as it really is",
+                DevicePrivacyGuard.interceptHasTransport(capabilities, NetworkCapabilities.TRANSPORT_WIFI));
+
+        Settings.HIDE_VPN.save(false);
+        assertTrue("with the switch off the real VPN transport comes through",
+                DevicePrivacyGuard.interceptHasTransport(capabilities, NetworkCapabilities.TRANSPORT_VPN));
+    }
+
+    @Test public void vpnTunnelInterfaceNamesAreTheOnesHidden() {
+        assertTrue(DevicePrivacyGuard.isVpnInterfaceName("tun0"));
+        assertTrue(DevicePrivacyGuard.isVpnInterfaceName("ppp0"));
+        assertTrue(DevicePrivacyGuard.isVpnInterfaceName("ipsec1"));
+        assertTrue(DevicePrivacyGuard.isVpnInterfaceName("wg0"));
+        assertFalse(DevicePrivacyGuard.isVpnInterfaceName("wlan0"));
+        assertFalse(DevicePrivacyGuard.isVpnInterfaceName("eth0"));
+        assertFalse(DevicePrivacyGuard.isVpnInterfaceName("rmnet0"));
+        assertFalse(DevicePrivacyGuard.isVpnInterfaceName("lo"));
+        assertFalse(DevicePrivacyGuard.isVpnInterfaceName(null));
+        assertFalse(DevicePrivacyGuard.isVpnInterfaceName(""));
+
+        try {
+            Settings.HIDE_VPN.save(true);
+            assertNotNull("the filtered interface list is still a list, never null for a thrown read",
+                    DevicePrivacyGuard.interceptNetworkInterfaces());
+            Settings.HIDE_VPN.save(false);
+            assertNotNull(DevicePrivacyGuard.interceptNetworkInterfaces());
+        } catch (java.net.SocketException ignored) {
+            // The test host may refuse to enumerate interfaces; the name predicate above is the check.
+        }
+    }
+
+    /** A stand-in for Play Services' AdvertisingIdClient.Info, read by reflection like the real one. */
+    public static final class FakeAdInfo {
+        public String getId() {
+            return "a1b2c3d4-0000-1111-2222-aabbccddeeff";
+        }
+    }
+
+    @Test public void theAdvertisingIdIsBlankOnlyWhileTheSwitchIsOn() {
+        FakeAdInfo info = new FakeAdInfo();
+
+        Settings.BLOCK_ADVERTISING_ID.save(true);
+        assertEquals("00000000-0000-0000-0000-000000000000",
+                DevicePrivacyGuard.interceptAdvertisingId(info));
+
+        Settings.BLOCK_ADVERTISING_ID.save(false);
+        assertEquals("a1b2c3d4-0000-1111-2222-aabbccddeeff",
+                DevicePrivacyGuard.interceptAdvertisingId(info));
+        assertNull("a null Info with the switch off is answered with no id, not a crash",
+                DevicePrivacyGuard.interceptAdvertisingId(null));
+    }
+
+    private static final String REAL_AD_ID = "a1b2c3d4-0000-1111-2222-aabbccddeeff";
+    private static final String BLANK_AD_ID = "00000000-0000-0000-0000-000000000000";
+
+    /**
+     * The reads that skip Info.getId: two SDKs ask Google's service for the id (a String) and the
+     * limit flag (an int, nonzero for limited) themselves, and TikTok reads Info's limit field
+     * where isLimitAdTrackingEnabled was inlined. On, they answer as Android does once the id is
+     * deleted: blank and limited.
+     */
+    @Test public void directAdvertisingIdReadsAreBlankAndLimitedOnlyWhileTheSwitchIsOn() {
+        Settings.BLOCK_ADVERTISING_ID.save(true);
+        assertEquals(BLANK_AD_ID, DevicePrivacyGuard.interceptAdvertisingIdRead(REAL_AD_ID));
+        assertEquals("a missing id still reads as the blank one", BLANK_AD_ID,
+                DevicePrivacyGuard.interceptAdvertisingIdRead(null));
+        assertEquals("the service's reply reads as limited", 1, DevicePrivacyGuard.interceptLimitAdTrackingReply(0));
+        assertTrue("Info's flag reads as limited", DevicePrivacyGuard.interceptLimitAdTracking(false));
+        assertTrue(DevicePrivacyGuard.interceptLimitAdTracking(true));
+
+        Settings.BLOCK_ADVERTISING_ID.save(false);
+        assertEquals("off, the id the read produced comes through", REAL_AD_ID,
+                DevicePrivacyGuard.interceptAdvertisingIdRead(REAL_AD_ID));
+        assertNull(DevicePrivacyGuard.interceptAdvertisingIdRead(null));
+        assertEquals(0, DevicePrivacyGuard.interceptLimitAdTrackingReply(0));
+        assertEquals("a limited reply stays as the service sent it", 5,
+                DevicePrivacyGuard.interceptLimitAdTrackingReply(5));
+        assertFalse(DevicePrivacyGuard.interceptLimitAdTracking(false));
+        assertTrue(DevicePrivacyGuard.interceptLimitAdTracking(true));
+    }
+
+    @Test public void pauseHandsTheRealAdvertisingIdAndLimitFlagBack() {
+        Settings.BLOCK_ADVERTISING_ID.save(true);
+        PausedProcess.set(true);
+        try {
+            assertEquals(REAL_AD_ID, DevicePrivacyGuard.interceptAdvertisingId(new FakeAdInfo()));
+            assertEquals(REAL_AD_ID, DevicePrivacyGuard.interceptAdvertisingIdRead(REAL_AD_ID));
+            assertEquals(0, DevicePrivacyGuard.interceptLimitAdTrackingReply(0));
+            assertFalse(DevicePrivacyGuard.interceptLimitAdTracking(false));
+            assertEquals("the saved choice is kept for after the pause",
+                    Boolean.TRUE, Settings.BLOCK_ADVERTISING_ID.savedValue());
+        } finally {
+            PausedProcess.set(false);
+        }
+        assertEquals("the next read after the pause is blank again", BLANK_AD_ID,
+                DevicePrivacyGuard.interceptAdvertisingIdRead(REAL_AD_ID));
+        assertTrue(DevicePrivacyGuard.interceptLimitAdTracking(false));
+    }
+
+    /** TikTok checks its connection early in startup, before Hushfeed has a context to read settings with. */
+    @Test public void beforeTheExtensionHasAContextTheRealVpnStateAndIdComeThrough() {
+        NetworkCapabilities capabilities = org.robolectric.shadows.ShadowNetworkCapabilities.newInstance();
+        Shadows.shadowOf(capabilities).addTransportType(NetworkCapabilities.TRANSPORT_VPN);
+        Settings.HIDE_VPN.save(true);
+        Settings.BLOCK_ADVERTISING_ID.save(true);
+        Utils.setContext(null);
+        try {
+            assertTrue(DevicePrivacyGuard.interceptHasTransport(capabilities, NetworkCapabilities.TRANSPORT_VPN));
+            assertEquals(REAL_AD_ID, DevicePrivacyGuard.interceptAdvertisingId(new FakeAdInfo()));
+            assertEquals(REAL_AD_ID, DevicePrivacyGuard.interceptAdvertisingIdRead(REAL_AD_ID));
+            assertEquals(0, DevicePrivacyGuard.interceptLimitAdTrackingReply(0));
+            assertFalse(DevicePrivacyGuard.interceptLimitAdTracking(false));
+        } finally {
+            Utils.setContext(context);
+        }
+    }
+
     @Test public void motionSensorsAreRefusedAndTheRestRegistered() {
         SensorManager manager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         Sensor accelerometer = ShadowSensor.newInstance(Sensor.TYPE_ACCELEROMETER);
@@ -279,6 +408,43 @@ public class PrivacySwitchesTest {
             PausedProcess.set(false);
         }
         assertTrue("the next search after the pause is skipped again", SearchHistoryRecording.shouldSkip());
+    }
+
+    @Test public void viewReportsAreHeldBackOnlyWhileTheSwitchIsOnAndHushfeedRuns() {
+        assertEquals("picking the patch isn't enough, since people use Watch history",
+                Boolean.FALSE, Settings.STOP_WATCH_HISTORY.defaultValue);
+        SettingsStatus.watchHistoryEnabled = true;
+        assertFalse("off by default: TikTok reports the view", WatchHistoryRecording.shouldSkip());
+
+        Settings.STOP_WATCH_HISTORY.save(true);
+        assertTrue("on: both senders leave before building a report", WatchHistoryRecording.shouldSkip());
+        SettingsStatus.watchHistoryEnabled = false;
+        assertFalse("a switch saved on by a build with the patch does nothing without it",
+                WatchHistoryRecording.shouldSkip());
+
+        SettingsStatus.watchHistoryEnabled = true;
+        PausedProcess.set(true);
+        try {
+            assertFalse("paused: TikTok reports as it ships", WatchHistoryRecording.shouldSkip());
+            assertEquals("the saved choice is kept for after the pause",
+                    Boolean.TRUE, Settings.STOP_WATCH_HISTORY.savedValue());
+        } finally {
+            PausedProcess.set(false);
+        }
+        assertTrue("the next video after the pause is held back again", WatchHistoryRecording.shouldSkip());
+    }
+
+    @Test public void theWatchHistorySwitchAloneOpensThePrivacyPageUnderTracking() {
+        SettingsStatus.watchHistoryEnabled = true;
+        assertTrue(app.morphe.extension.tiktok.settings.preference.categories.PrivacyPreferenceCategory.isAvailable());
+        try (var owner = Robolectric.buildActivity(Activity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setContext(activity);
+            List<String> keys = keysOn(open(activity, "PRIVACY"));
+            assertEquals(List.of(Settings.STOP_WATCH_HISTORY.key), keys.stream()
+                    .filter(key -> key.startsWith("block_") || key.startsWith("stop_") || key.equals(Settings.GHOST_MODE.key))
+                    .toList());
+        }
     }
 
     @Test public void theSearchHistorySwitchAloneOpensThePrivacyPageUnderTracking() {
@@ -476,8 +642,8 @@ public class PrivacySwitchesTest {
             List<String> keys = keysOn(privacy);
             List<String> expected = List.of(Settings.DISABLE_ANALYTICS.key, Settings.GHOST_MODE.key,
                     Settings.STOP_SEARCH_HISTORY.key, Settings.BLOCK_CONTACT_LIST.key, Settings.BLOCK_INSTALLED_APPS.key,
-                    Settings.BLOCK_LOCATION.key, Settings.BLOCK_CLIPBOARD_READS.key,
-                    Settings.BLOCK_MOTION_SENSORS.key, Settings.STOP_BENCHMARK_RUNS.key,
+                    Settings.BLOCK_LOCATION.key, Settings.BLOCK_CLIPBOARD_READS.key, Settings.HIDE_VPN.key,
+                    Settings.BLOCK_ADVERTISING_ID.key, Settings.BLOCK_MOTION_SENSORS.key, Settings.STOP_BENCHMARK_RUNS.key,
                     Settings.CAMERA_MIC_INDICATOR.key, Settings.BLOCK_WEBVIEW_JS_INTERFACES.key);
             assertEquals("the Privacy page lists tracking, then device access, then links",
                     expected, keys.stream().filter(expected::contains).toList());

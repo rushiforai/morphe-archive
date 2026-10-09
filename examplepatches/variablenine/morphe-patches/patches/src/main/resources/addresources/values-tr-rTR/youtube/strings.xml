@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">Hakkında</string>
   <string name="morphe_settings_screen_01_ads_title">Reklamlar</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">Alternatif kapak resimleri</string>
   <string name="morphe_settings_screen_03_feed_title">Akış</string>
   <string name="morphe_settings_screen_04_general_title">Genel</string>
   <string name="morphe_settings_screen_05_player_title">Oynatıcı</string>
@@ -65,6 +64,8 @@ Değişiklikler şunları içerir:
   <string name="morphe_hide_artist_cards_title">Sanatçı kartlarını gizle</string>
   <string name="morphe_hide_artist_cards_summary">Arama sonuçlarının en üstündeki sanatçı kartını gizler</string>
   <string name="morphe_hide_auto_dubbed_label_title">\'Dublajlı\' etiketini gizle</string>
+  <string name="morphe_hide_channel_buttons_title">Kanal düğmelerini gizle</string>
+  <string name="morphe_hide_channel_buttons_summary">Arama sonuçlarında kanal profillerindeki Abone Ol, Kanalı Görüntüle, Topluluk ve YouTube Music gibi düğmeleri gizler</string>
   <string name="morphe_hide_community_posts_title">Topluluk gönderilerini gizle</string>
   <string name="morphe_hide_compact_banner_title">Kompakt afişleri gizle</string>
   <string name="morphe_hide_compact_banner_summary">Kompakt afişleri ve bazı bileşenler arasındaki boşluğu gizler</string>
@@ -76,7 +77,6 @@ Değişiklikler şunları içerir:
   <string name="morphe_hide_floating_microphone_button_summary">Arama önerileri ekranının sağ alt köşesindeki yüzen mikrofon düğmesini gizler</string>
   <string name="morphe_hide_get_premium_button_title">\'Get Premium\' düğmesini gizle</string>
   <string name="morphe_hide_history_shelf_title">Geçmiş rafını gizle</string>
-  <string name="morphe_hide_history_shelf_summary">Sen sekmesindeki Geçmiş rafını gizler</string>
   <string name="morphe_hide_horizontal_shelves_title">Yatay rafları gizle</string>
   <string name="morphe_hide_horizontal_shelves_summary">Son dakika haberleri, Beğenebileceğiniz topluluk gönderileri, İzlemeye devam et, Daha fazla kanal keşfet, Daha fazla konu keşfet, Senin için, En yeni videolar, En alakalı, İçerik Üreticisi Topluluğu\'ndan gönderiler, Alışveriş ve Tekrar izle gibi yatay rafları gizler</string>
   <string name="morphe_hide_hyped_label_title">Hyped etiketini gizle</string>
@@ -110,7 +110,8 @@ Değişiklikler şunları içerir:
   <string name="morphe_hide_show_more_button_title">\'Daha fazla göster\' düğmesini gizle</string>
   <string name="morphe_hide_show_more_button_summary">Arama sonuçlarında videoların altındaki genişlet düğmesini gizler</string>
   <string name="morphe_hide_subscribed_channels_bar_title">Abone olunmuş kanallar çubuğunu gizle</string>
-  <string name="morphe_hide_subscribed_channels_bar_names_title">Abone olunan kanallar çubuğunda kanal adlarını gizle</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_title">Abone olunan kanal adlarını gizle</string>
+  <string name="morphe_hide_subscribed_channels_bar_names_summary">Abone olunan kanallar çubuğundaki kanal adlarını gizler</string>
   <string name="morphe_hide_surveys_title">Anketleri gizle</string>
   <string name="morphe_hide_surveys_summary">Akış öneri doğruluğuyla ilgili anketleri ve hatırlatmaları gizler</string>
   <string name="morphe_hide_ticket_shelf_title">Bilet rafını gizle</string>
@@ -159,6 +160,11 @@ Değişiklikler şunları içerir:
   <string name="morphe_hide_sync_button_title">\'Videoyla senkronize et\' düğmesini gizle</string>
   <string name="morphe_hide_timed_reactions_title">Süreli tepkileri gizle</string>
   <string name="morphe_hide_timed_reactions_summary">Kullanıcıların yorum bölümünde ve canlı sohbette emojilerle tepki vermesini sağlayan özelliği gizler</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
+  <string name="morphe_hide_help_feedback_menu_title">Menülerde \'Yardım &amp; geri bildirim\' seçeneğini gizle</string>
+  <string name="morphe_hide_help_feedback_menu_summary">Arama sonuçları menüsü gibi uygulama çubuğundaki üç nokta menülerinde “Yardım &amp; geri bildirim” seçeneğini gizler</string>
+  <string name="morphe_hide_handle_title">Kullanıcı adını gizle</string>
+  <string name="morphe_hide_handle_summary">Kanal kullanıcı adınızı \'Sen\' sekmesinde gizler</string>
   <string name="morphe_hide_video_title_title">Video başlığını gizle</string>
   <string name="morphe_hide_video_title_summary">Tam ekran modunda video başlığını gizler</string>
   <string name="morphe_sanitize_video_subtitle_title">Video altyazısını temizle</string>
@@ -681,7 +687,7 @@ Bunu düzeltmek için 'Video akışlarını taklit et' seçeneğini etkinleştir
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">Bağlan düğmesini gizle</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">Bildir düğmesini gizle</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">Remix düğmesini gizle</string>
@@ -1075,10 +1081,7 @@ Sınırlamalar: 'Eski video eylem çubuğunu geri yükle' kapatılırsa, 'Daha f
   <string name="morphe_playback_in_feeds_entry_off">Kapalı</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
   <string name="morphe_restore_original_titles_title">Orijinal başlıkları geri yükle</string>
-  <string name="morphe_restore_original_titles_type_entry_translated">Çevrildi</string>
-  <string name="morphe_restore_original_titles_type_entry_original">Orijinal</string>
-  <string name="morphe_restore_original_titles_type_entry_translated_dearrow">DeArrow ile çevrildi</string>
-  <string name="morphe_restore_original_titles_type_entry_original_dearrow">DeArrow ile orijinal</string>
+  <string name="morphe_restore_original_titles_summary">Orijinal video başlıklarını, video açıklamalarını ve kanal açıklamalarını otomatik çevrilenlerin yerine gösterir</string>
   <string name="morphe_restore_original_titles_loading">Başlık yükleniyor…</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <string name="morphe_disable_auto_feed_refresh_title">Otomatik akış yenilemeyi devre dışı bırak</string>
@@ -1152,39 +1155,42 @@ Sınırlamalar: 'Eski video eylem çubuğunu geri yükle' kapatılırsa, 'Daha f
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">Resim bölge kısıtlamalarını atla</string>
   <string name="morphe_bypass_image_region_restrictions_summary">Kısıtlı ülkelerdeki eksik resimleri düzeltmek için istekleri alternatif bir sunucuya yönlendirir</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
+  <string name="morphe_dearrow_titles_title">DeArrow başlıkları</string>
+  <string name="morphe_dearrow_titles_summary">Video başlıklarını, DeArrow\'a gönderilen ve topluluk tarafından sağlanan başlıklarla değiştirir</string>
+  <string name="morphe_dearrow_titles_icon_title">DeArrow simgesini göster</string>
+  <string name="morphe_dearrow_titles_icon_summary">Kitle kaynaklı video başlıklarında DeArrow simgesini gösterir</string>
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">Ana Sayfa sekmesi için</string>
+  <string name="morphe_dearrow_thumbnail_home_title">Ana Sayfa sekmesi için</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">Abonelikler sekmesi için</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">Abonelikler sekmesi için</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">Siz sekmesi için</string>
-  <string name="morphe_alt_thumbnail_player_title">Oynatma listeleri &amp; öneriler için</string>
-  <string name="morphe_alt_thumbnail_search_title">Arama sonuçları için</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">Orijinal kapak resimleri</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow &amp; Orijinal kapak resimleri</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow &amp; Hareketsiz yakalamalar</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">Hareketsiz yakalamalar</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow, YouTube videoları için topluluk kaynaklı küçük resimler sağlar. Bu küçük resimler genellikle YouTube tarafından sağlananlardan daha alakalıdır
+  <string name="morphe_dearrow_thumbnail_library_title">Siz sekmesi için</string>
+  <string name="morphe_dearrow_thumbnail_player_title">Oynatma listeleri &amp; öneriler için</string>
+  <string name="morphe_dearrow_thumbnail_search_title">Arama sonuçları için</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">Orijinal kapak resimleri</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow &amp; Orijinal kapak resimleri</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow &amp; Hareketsiz yakalamalar</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">Hareketsiz yakalamalar</string>
+  <string name="morphe_dearrow_about_summary">"DeArrow, YouTube videoları için topluluk tarafından oluşturulan başlıklar ve küçük resimler sunar. Bunlar genellikle YouTube'un sağladıklarından daha ilgi çekicidir.
 
-Etkinleştirilirse, video URL'leri API sunucusuna gönderilir ve başka hiçbir veri gönderilmez. Bir videoda DeArrow küçük resmi yoksa, orijinal veya hareketsiz yakalamalar gösterilir
+Özellik etkinleştirildiğinde, yalnızca video URL'leri API sunucusuna gönderilir; başka hiçbir veri iletilmez. Bir videonun DeArrow küçük resmi bulunmuyorsa, orijinal küçük resim veya videodan alınan kareler gösterilir.
 
-DeArrow hakkında daha fazla bilgi edinmek için buraya dokunun"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">Bağlantı hatası uyarılarını göster</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">DeArrow sunucusu kullanılamadığında bir bildirim gösterir</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">DeArrow API uç noktası</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">DeArrow kapak resim önbelleğinin URL\'si</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">Hareketsiz video yakalamaları</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">Her videonun başından / ortasından / sonundan hareketsiz yakalamalar alınır. Bu resimler YouTube\'da yerleşiktir ve harici bir API kullanılmaz</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">Hızlı hareketsiz yakalamaları kullan</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">Orta kalitede görseller kullanarak yükleme hızlarını artırır. Canlı yayınlar, yayınlanmamış ve eski videolar boş kapak resimler gösterebilir</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">Videodan kare çıkar</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">Başlangıç</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">Orta</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">Bitiş</string>
+DeArrow.ajay.app adresini açmak için buraya dokunun."</string>
+  <string name="morphe_dearrow_connection_toast_title">Bağlantı hatası uyarılarını göster</string>
+  <string name="morphe_dearrow_connection_toast_summary">DeArrow sunucusu kullanılamadığında bir bildirim gösterir</string>
+  <string name="morphe_dearrow_api_url_title">DeArrow API uç noktası</string>
+  <string name="morphe_dearrow_api_url_summary">DeArrow kapak resim önbelleğinin URL\'si</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">Hareketsiz video yakalamaları</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">Her videonun başından / ortasından / sonundan hareketsiz yakalamalar alınır. Bu resimler YouTube\'da yerleşiktir ve harici bir API kullanılmaz</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">Videodan kare çıkar</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">Başlangıç</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">Orta</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">Bitiş</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow geçici olarak kullanılamıyor (durum kodu: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow geçici olarak kullanılamıyor</string>
+  <string name="morphe_dearrow_error">DeArrow geçici olarak kullanılamıyor (durum kodu: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow geçici olarak kullanılamıyor</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">Eski oynatıcı düğmesi stilini geri getir</string>

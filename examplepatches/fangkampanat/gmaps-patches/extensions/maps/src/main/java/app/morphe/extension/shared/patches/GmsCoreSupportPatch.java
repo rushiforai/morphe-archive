@@ -281,7 +281,7 @@ public class GmsCoreSupportPatch {
     }
 
     private static String getGmsCoreDownload() {
-        return "https://github.com/fangkampanat/MicroG-RE-BYD/releases";
+        return "https://github.com/MorpheApp/MicroG-RE/releases/tag/7.2.1";
     }
 
     private static String getGmsCoreVendorGroupId() {

@@ -126,8 +126,8 @@ private const val HELPER = "hushfacebookDownloadButton"
 @Suppress("unused")
 val downloadReelPatch = bytecodePatch(
     name = "Download any reel",
-    description = "Adds a Download button beside every reel. Videos save at the Download quality " +
-        "you set, best by default.",
+    description = "Adds a Download button beside every reel, and a Download row to its More sheet. " +
+        "Videos save at the Download quality you set, best by default.",
     default = true,
 ) {
     category("Downloads")
@@ -506,6 +506,27 @@ val downloadReelPatch = bytecodePatch(
             // injected block is resolved against the block's own addresses.
             ExternalLabel("facebooks_own", sidebar.getInstruction(injectAt)),
         )
+
+        // ---- the More sheet -----------------------------------------------------------------------
+        //
+        // Reels drawn without the UDD sidebar, like the ones some accounts get in a list inside the
+        // main screen, show no button above (#18). Every reel's More sheet comes from one builder,
+        // so a Download row goes there too. The fixture tests hold it on every declared build; on
+        // another one the sidebar button is still worth having, so a miss here is a warning.
+        try {
+            addDownloadRow(
+                patch = PATCH,
+                sheet = moreSheet(PATCH),
+                scopedType = scopedType,
+                contextField = contextField.name,
+                storyType = storyType,
+                hdField = hdField,
+                sdField = sdField,
+                manifestField = manifestField,
+            )
+        } catch (exception: PatchException) {
+            patchLog.warning("${exception.message}, so reels get no Download row in their More sheet.")
+        }
 
         enableStatus("reelDownload")
     }

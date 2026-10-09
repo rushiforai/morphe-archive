@@ -26,6 +26,10 @@ public final class OriginalPhotos {
     public static boolean start(Object aweme, Context context) {
         // Handing the link to another app replaces the save, so it comes before all of it.
         if (ExternalDownloader.handOff(aweme, context)) return true;
+        // Its own small save, beside whichever save the video gets. A photo post has none. With
+        // the already-saved check on, the video's save makes it once it knows the video is new
+        // or the choice says Save again, so Open doesn't leave a second cover behind.
+        if (!VideoDownloads.savesTheCover()) CoverSaver.beside(context, aweme);
         if (VideoDownloads.start(aweme, context)) return true;
         // Nothing here is handling the video, so the sound has to fetch its own bytes. When
         // the quality download above took it, it saved the sound from what it already had.
@@ -50,6 +54,8 @@ public final class OriginalPhotos {
      */
     public static boolean startPhotos(Object aweme, Set<?> indices, boolean video) {
         if (video && anyChosenIsLive(aweme, indices)) return false;
+        // With Save photo posts as a video on, a post with several photos asks first.
+        if (SlideshowVideo.offer(aweme, indices)) return true;
         return savePhotos(aweme, Utils.getContext(), indices);
     }
 
@@ -58,15 +64,28 @@ public final class OriginalPhotos {
      * MP4. This runs before TikTok starts that job. Its callback expects a video path and opens
      * video sharing, so the image job never calls it, including on failure or cancellation.
      * Live Photo video choices stay native. This entry carries no selected-photo indices.
+     *
+     * <p>With Save photo posts as a video on, Hushfeed makes that video itself, without the
+     * logo and end card TikTok's render adds. Otherwise Download original photos saves the image.
      */
     public static boolean startImageAsVideo(Object aweme) {
-        if (!Settings.DOWNLOAD_ORIGINAL_PHOTOS.get()) return false;
+        boolean asVideo = SlideshowVideo.enabled();
+        if (!asVideo && !Settings.DOWNLOAD_ORIGINAL_PHOTOS.get()) return false;
         Object info = Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo");
         // Keep the null-info video path outside this Photo Mode conversion hook.
         if (info == null) return false;
         Object raw = Reflect.property(info, "getImageList", "imageList");
         if (raw instanceof List<?> && anyChosenIsLive(aweme, null)) return false;
+        if (asVideo) return SlideshowVideo.start(aweme, null);
         return savePhotos(aweme, Utils.getContext(), null, true);
+    }
+
+    /**
+     * "Save photos" in the photos-or-video question. The question already took the save from
+     * TikTok, so the picked photos go out as originals whatever Download original photos says.
+     */
+    static void savePicked(Object aweme, Set<?> indices) {
+        savePhotos(aweme, Utils.getContext(), indices, false, true);
     }
 
     /**
@@ -106,27 +125,39 @@ public final class OriginalPhotos {
     }
 
     private static boolean savePhotos(Object aweme, Context context, Set<?> indices, boolean conversion) {
-        if (!Settings.DOWNLOAD_ORIGINAL_PHOTOS.get()) return false;
-        if (context == null) return failedConversion(conversion);
-        if (Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo") == null) return false;
+        return savePhotos(aweme, context, indices, conversion, false);
+    }
+
+    /**
+     * {@code asked} is a save the photos-or-video question already took from TikTok: it runs
+     * whatever the switch says, and a failure says so, since there's no native save behind it.
+     */
+    private static boolean savePhotos(Object aweme, Context context, Set<?> indices, boolean conversion,
+            boolean asked) {
+        if (!asked && !Settings.DOWNLOAD_ORIGINAL_PHOTOS.get()) return false;
+        boolean owned = conversion || asked;
+        if (context == null) return failedConversion(owned);
+        if (Reflect.property(aweme, "getPhotoModeImageInfo", "photoModeImageInfo") == null) return failedConversion(asked);
         if (android.os.Build.VERSION.SDK_INT < 29
                 && context.checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != android.content.pm.PackageManager.PERMISSION_GRANTED) return failedConversion(conversion);
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) return failedConversion(owned);
         List<List<String>> photos = sources(aweme);
         if (photos.isEmpty()) {
             if (conversion) {
                 Utils.showToastShort(L10n.t("The original photos aren't available. No video was saved."));
+            } else if (asked) {
+                Utils.showToastLong(L10n.t("None of the photos could be saved. Try again."));
             } else {
                 Utils.showToastShort(L10n.t(
                         "The original photos aren't available, so TikTok's own save runs instead"));
             }
-            return conversion;
+            return owned;
         }
         List<Integer> chosen = positions(indices, photos.size());
         // Asked for photos this post doesn't have: TikTok's own save says what it makes of that.
-        if (chosen.isEmpty()) return failedConversion(conversion);
+        if (chosen.isEmpty()) return failedConversion(owned);
         String id = Reflect.string(aweme, "getAid", "aid");
-        if (id == null) return failedConversion(conversion);
+        if (id == null) return failedConversion(owned);
         List<List<String>> photoSnapshot = snapshot(photos);
         String path = DownloadFilenameFormatter.destinationPath(aweme, true);
         List<String> names = new ArrayList<>();
@@ -175,7 +206,7 @@ public final class OriginalPhotos {
         }, () -> ACTIVE.remove(id));
         // The scheduler already reports a refusal. A requested image save must not become a
         // native converted video merely because the image queue is full.
-        if (job == null) return conversion;
+        if (job == null) return owned;
         String saying = L10n.quantity(app, chosen.size(), "Saving one original photo", "Saving %1$s original photos");
         progress.acknowledge(saying, saying);
         return true;

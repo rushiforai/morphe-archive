@@ -16,7 +16,7 @@ val aphelionAdFreeHintUnlock = bytecodePatch(
         EmitHintRewardFingerprint.method.addInstructions(
             EmitHintRewardFingerprint.instructionMatches[0].index + 1,
             """
-                invoke-virtual {p2}, Lvc2;->invoke()Ljava/lang/Object;
+                invoke-virtual {v2}, Lhs1;->invoke()Ljava/lang/Object;
                 move-result-object v0
                 return-object v0
             """.trimIndent(),
@@ -28,7 +28,7 @@ val aphelionAdFreeHintUnlock = bytecodePatch(
         )
         ShareGateTouchFingerprint.method.addInstructions(
             ShareGateTouchFingerprint.instructionMatches[0].index + 1,
-            "const/4 v5, 0x1",
+            "const/4 v4, 0x1",
         )
 
         ShareGateDrawFingerprint.method.addInstructions(

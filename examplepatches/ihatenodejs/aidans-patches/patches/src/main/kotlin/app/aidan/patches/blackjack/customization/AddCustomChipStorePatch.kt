@@ -28,7 +28,7 @@ private val OPEN_SHOP_HOOK = byteArrayOf(
     0xe1.toByte(), 0x03, 0x1f, 0xaa.toByte(), // mov x1, xzr
     0xe2.toByte(), 0x03, 0x1f, 0xaa.toByte(), // mov x2, xzr
     0xe3.toByte(), 0x03, 0x1f, 0xaa.toByte(), // mov x3, xzr
-    0x1f, 0x6a, 0x72, 0x94.toByte(),         // bl MNAndroidNative.showDialog (0x3c59a44)
+    0x7f, 0x25, 0x73, 0x94.toByte(),         // bl MNAndroidNative.showDialog (0x3c98ce4)
     0xfe.toByte(), 0x07, 0x41, 0xf8.toByte(), // ldr x30, [sp], #0x10
     0xc0.toByte(), 0x03, 0x5f, 0xd6.toByte()  // ret
 )
@@ -51,7 +51,7 @@ internal val UNIFIED_APP_HOOK = byteArrayOf(
     0xf3.toByte(), 0x03, 0x00, 0xaa.toByte(),                 // mov x19, x0
     0xe0.toByte(), 0x03, 0x01, 0xaa.toByte(),                 // mov x0, x1
     0xe1.toByte(), 0x43.toByte(), 0x00, 0x91.toByte(),         // add x1, sp, #0x10
-    0x61.toByte(), 0x9e.toByte(), 0x56, 0x94.toByte(),         // bl System.Int64.TryParse (0x3567cc4)
+    0x3f, 0x57, 0x57, 0x94.toByte(),         // bl System.Int64.TryParse (0x35a655c)
     0xa0.toByte(), 0x02, 0x00, 0x34.toByte(),                 // cbz w0, 0x68 (_skip_level)
     0x62.toByte(), 0x1e.toByte(), 0x40, 0xf9.toByte(),         // ldr x2, [x19, #0x38]
     0xe2.toByte(), 0x04, 0x00, 0xb4.toByte(),                 // cbz x2, 0xb8 (_success)
@@ -64,21 +64,21 @@ internal val UNIFIED_APP_HOOK = byteArrayOf(
     0xec.toByte(), 0x00, 0x00, 0x54.toByte(),                 // b.gt 0x54 (add_mode)
     0xe1.toByte(), 0x0b.toByte(), 0x40, 0xf9.toByte(),         // ldr x1, [sp, #0x10]
     0x60.toByte(), 0x1e.toByte(), 0x40, 0xf9.toByte(),         // ldr x0, [x19, #0x38]
-    0x52.toByte(), 0xe8.toByte(), 0xff.toByte(), 0x97.toByte(), // bl PlayerProfile.SetDebugCredit (0x1fba4bc)
+    0x49, 0xe8.toByte(), 0xff.toByte(), 0x97.toByte(), // bl PlayerProfile.SetDebugCredit (0x1fca9b8)
     0xe1.toByte(), 0x03, 0x1f, 0xaa.toByte(),                 // mov x1, xzr
     0xe3.toByte(), 0x03, 0x1f, 0x2a.toByte(),                 // mov w3, wzr
     0x02.toByte(), 0x00, 0x00, 0x14.toByte(),                 // b 0x58 (call_addchips)
     0x23.toByte(), 0x00, 0x80.toByte(), 0x52.toByte(),         // mov w3, #1 (visualize = true)
     0x02.toByte(), 0x00, 0x80.toByte(), 0x52.toByte(),         // mov w2, #0 (RewardOption.None)
     0xe0.toByte(), 0x03, 0x13, 0xaa.toByte(),                 // mov x0, x19
-    0x24.toByte(), 0xfd.toByte(), 0xff.toByte(), 0x97.toByte(), // bl BlackjackApplication.AddChips (0x1fbf820)
+    0x24.toByte(), 0xfd.toByte(), 0xff.toByte(), 0x97.toByte(), // bl BlackjackApplication.AddChips (0x1fcfd40)
     0x15.toByte(), 0x00, 0x00, 0x14.toByte(),                 // b 0xb8 (_success)
     // _skip_level (0x68):
     0x60.toByte(), 0x1e.toByte(), 0x40, 0xf9.toByte(),         // ldr x0, [x19, #0x38]
     0x20.toByte(), 0x02, 0x00, 0xb4.toByte(),                 // cbz x0, 0xb0 (_fail)
     0xf4.toByte(), 0x57.toByte(), 0xbf.toByte(), 0xa9.toByte(), // stp x20, x21, [sp, #-0x10]!
     0xf4.toByte(), 0x03, 0x00, 0xaa.toByte(),                 // mov x20, x0
-    0x48.toByte(), 0xe4.toByte(), 0xff.toByte(), 0x97.toByte(), // bl PlayerProfile.get_LevelData (0x1fb94c8)
+    0x3f, 0xe4.toByte(), 0xff.toByte(), 0x97.toByte(), // bl PlayerProfile.get_LevelData (0x1fc99c4)
     0x80.toByte(), 0x01, 0x00, 0xb4.toByte(),                 // cbz x0, 0xac (to ldp)
     0x01.toByte(), 0x10.toByte(), 0x40, 0xf9.toByte(),         // ldr x1, [x0, #0x20] (XPPerLevel)
     0x88.toByte(), 0x0a.toByte(), 0x40, 0xf9.toByte(),         // ldr x8, [x20, #0x10] (PlayerData)
@@ -86,9 +86,9 @@ internal val UNIFIED_APP_HOOK = byteArrayOf(
     0x01.toByte(), 0x11.toByte(), 0x00, 0xf9.toByte(),         // str x1, [x8, #0x20] (data->XP = XPPerLevel)
     0xe0.toByte(), 0x03, 0x14.toByte(), 0xaa.toByte(),         // mov x0, x20 (PlayerProfile*)
     0x21.toByte(), 0x00, 0x80.toByte(), 0xd2.toByte(),         // mov x1, #1 (bet = 1)
-    0xf5.toByte(), 0xe5.toByte(), 0xff.toByte(), 0x97.toByte(), // bl PlayerProfile.EarnXp (0x1fb9b9c)
+    0xec.toByte(), 0xe5.toByte(), 0xff.toByte(), 0x97.toByte(), // bl PlayerProfile.EarnXp (0x1fca098)
     0xe0.toByte(), 0x03, 0x13, 0xaa.toByte(),                 // mov x0, x19 (BlackjackApplication*)
-    0x7e.toByte(), 0xfd.toByte(), 0xff.toByte(), 0x97.toByte(), // bl BlackjackApplication.GoToLastPlayedTable (0x1fbf9c8)
+    0x7e.toByte(), 0xfd.toByte(), 0xff.toByte(), 0x97.toByte(), // bl BlackjackApplication.GoToLastPlayedTable (0x1fcfee8)
     0xf4.toByte(), 0x57.toByte(), 0xc1.toByte(), 0xa8.toByte(), // ldp x20, x21, [sp], #0x10
     0x04.toByte(), 0x00, 0x00, 0x14.toByte(),                 // b 0xb8 (_success)
     0xf4.toByte(), 0x57.toByte(), 0xc1.toByte(), 0xa8.toByte(), // ldp x20, x21, [sp], #0x10
@@ -101,8 +101,8 @@ internal val UNIFIED_APP_HOOK = byteArrayOf(
     0xf3.toByte(), 0x7b.toByte(), 0xc2.toByte(), 0xa8.toByte(), // ldp x19, x30, [sp], #0x20
     0xc0.toByte(), 0x03, 0x5f, 0xd6.toByte()                  // ret
 )
-private const val OPEN_SHOP_OFFSET = 0x1fbb1b4
-private const val CHECK_UPDATE_OFFSET = 0x1fbc330
+private const val OPEN_SHOP_OFFSET = 0x1fcf6d4
+private const val CHECK_UPDATE_OFFSET = 0x1fd0850
 private const val NATIVE_POPUPS_MANAGER = "Lcom/mnp/popups/NativePopupsManager;"
 
 @Suppress("unused")
@@ -111,6 +111,7 @@ val patchChipStoreResourcePatch = rawResourcePatch(
     description = "Hooks BlackjackApplication.OpenShop and CheckUpdateToVersion in libil2cpp.so to bridge the custom chip store.",
     default = true
 ) {
+    category("Features")
     compatibleWith(COMPATIBILITY_BLACKJACK)
 
     execute {
@@ -155,6 +156,7 @@ val addCustomChipStorePatch = bytecodePatch(
     description = "Replaces the unavailable store with a dialog to view and set your exact chip balance.",
     default = true
 ) {
+    category("Features")
     compatibleWith(COMPATIBILITY_BLACKJACK)
     dependsOn(patchChipStoreResourcePatch)
     extendWith("extensions/extension.mpe")

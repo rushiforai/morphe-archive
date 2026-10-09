@@ -6,12 +6,12 @@ YAML sections:
   hushfeed_options:  list of {name, options:{key: value}} applied to Hushfeed patches
   patches:           Nai64 allowlist (enabled + options)
 
-Option keys are matched exactly, then normalized. If no requested key matches and
-the target patch has exactly one option, the value is applied to that option and
-the real key is printed to the log. List-typed options auto-wrap scalars
-(e.g. "en" -> ["en"]).
+Env overrides (used by the variant-test workflow):
+  FORCE_DISABLE_HUSHFEED: comma-separated Hushfeed patch names to disable
+  FORCE_DISABLE_NAI64:    comma-separated Nai64 patch names to disable
 """
 import json
+import os
 import re
 import yaml
 
@@ -21,7 +21,6 @@ def norm(s):
 
 
 def apply_value(options_dict, key, new):
-    """Set an option value, adapting to the existing value's shape."""
     cur = options_dict[key]
     if isinstance(cur, dict) and "value" in cur:
         inner = cur["value"]
@@ -41,9 +40,16 @@ requested_nai64 = {p["name"].lower(): p for p in cfg.get("patches", [])}
 disabled_hushfeed = {norm(x) for x in cfg.get("hushfeed_disabled", [])}
 hushfeed_options = {norm(x.get("name", "")): x for x in cfg.get("hushfeed_options", [])}
 
+extra_hushfeed_disabled = {norm(x) for x in os.environ.get("FORCE_DISABLE_HUSHFEED", "").split(",") if x.strip()}
+extra_nai64_disabled = {norm(x) for x in os.environ.get("FORCE_DISABLE_NAI64", "").split(",") if x.strip()}
+disabled_hushfeed |= extra_hushfeed_disabled
+if extra_hushfeed_disabled:
+    print(f"   Env-forced Hushfeed disables: {sorted(extra_hushfeed_disabled)}")
+if extra_nai64_disabled:
+    print(f"   Env-forced Nai64 disables: {sorted(extra_nai64_disabled)}")
+
 
 def apply_requested_options(patch_name, data, requested):
-    """Apply option values from the YAML to one patch, with safe key matching."""
     existing = data.get("options") or {}
     for k, v in (requested.get("options") or {}).items():
         if k in existing:
@@ -69,12 +75,11 @@ for i, bundle in enumerate(options):
     pd = bundle.get("patches", {})
 
     if i == 0:
-        # Hushfeed: enable all except disabled list; apply hushfeed_options
         for name, data in pd.items():
             nn = norm(name)
             if nn in disabled_hushfeed:
                 data["enabled"] = False
-                print(f"   -> Hushfeed disabled per YAML: {name}")
+                print(f"   -> Hushfeed disabled: {name}")
             else:
                 data["enabled"] = True
             req = hushfeed_options.get(nn)
@@ -82,9 +87,11 @@ for i, bundle in enumerate(options):
                 apply_requested_options(name, data, req)
 
     elif i == 1:
-        # Nai64: disable all, enable exactly what the YAML lists
         for name, data in pd.items():
             data["enabled"] = False
+            if norm(name) in extra_nai64_disabled:
+                print(f"   -> Nai64 disabled (env-forced): {name}")
+                continue
             req = requested_nai64.get(name.lower())
             if not (req and req.get("enabled", False)):
                 continue
@@ -98,4 +105,4 @@ for i, bundle in enumerate(options):
 
 with open("build/options.json", "w") as f:
     json.dump(options, f, indent=2)
-print("Options configured via Nai64ExtraPatches_Options.yaml")
+print("Options configured via Nai64ExtraPatches_Options.yaml (+ env overrides)")

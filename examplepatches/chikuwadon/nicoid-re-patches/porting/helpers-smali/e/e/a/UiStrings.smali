@@ -7932,6 +7932,62 @@
     invoke-interface {v0, v2, v1}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
     .line 558
+    sget-object v0, Le/e/a/UiStrings;->TEXT:Ljava/util/Map;
+
+    const-string v1, "\u8d77\u52d5\u6642\u306e\u753b\u9762"
+
+    const-string v2, "Startup screen"
+
+    const-string v3, "\u555f\u52d5\u756b\u9762"
+
+    filled-new-array {v2, v3}, [Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    sget-object v0, Le/e/a/UiStrings;->TEXT:Ljava/util/Map;
+
+    const-string v1, "\u30cb\u30b3\u30ec\u30dd"
+
+    const-string v2, "Nico Reports"
+
+    const-string v3, "Nico \u52d5\u614b"
+
+    filled-new-array {v2, v3}, [Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    sget-object v0, Le/e/a/UiStrings;->TEXT:Ljava/util/Map;
+
+    const-string v1, "\u6295\u7a3f\u8005\u306e\u30d5\u30a9\u30ed\u30fc\u30dc\u30bf\u30f3\u3092\u8868\u793a"
+
+    const-string v2, "Show creator follow button"
+
+    const-string v3, "\u986f\u793a\u6295\u7a3f\u8005\u8ffd\u8e64\u6309\u9215"
+
+    filled-new-array {v2, v3}, [Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
+    sget-object v0, Le/e/a/UiStrings;->TEXT:Ljava/util/Map;
+
+    const-string v1, "\u52d5\u753b\u60c5\u5831\u306b\u30d5\u30a9\u30ed\u30fc\u30dc\u30bf\u30f3\u3092\u8868\u793a\u3057\u307e\u3059"
+
+    const-string v2, "Show a follow button in video details"
+
+    const-string v3, "\u5728\u5f71\u7247\u8cc7\u8a0a\u986f\u793a\u8ffd\u8e64\u6309\u9215"
+
+    filled-new-array {v2, v3}, [Ljava/lang/String;
+
+    move-result-object v2
+
+    invoke-interface {v0, v1, v2}, Ljava/util/Map;->put(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
+
     invoke-static {}, Le/e/a/UiStrings;->buildJapaneseLookup()V
 
     .line 559

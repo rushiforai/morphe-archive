@@ -287,6 +287,31 @@ Hide Telegram Features and Invite Friends	Telegram Özellikleri ve Arkadaşları
 Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	Ayarlar'da Telegram Özellikleri satırı, Kişiler'de ise Arkadaşlarını Davet Et satırı görünmez. Henüz hiç kişiniz yoksa Kişiler'in onların yerine gösterdiği davet listesi de kaldırılır. Ayarlarda varsayılan olarak kapalıdır.
 Add Repeat to the message menu	Mesaj menüsüne Tekrarla ekle
 Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Bir mesaja uzun bastığınızda açılan menüde İlet'in altına Tekrarla koyar. Mesajı aynı sohbete sizden yeni bir mesaj olarak yeniden gönderir. Yalnızca Telegram'ın İlet seçeneği sunduğu ve yazabildiğiniz yerlerde görünür, yani korumalı veya gizli sohbetlerde asla görünmez. Ayarlarda varsayılan olarak kapalıdır.
+Keep deleted messages	Silinen mesajları sakla
+Messages other people delete stay in your chats on this phone, marked deleted next to the time. Your own deletes and anything that disappears or is protected work as usual. Off by default in settings.	Başkalarının sildiği mesajlar bu telefonda sohbetlerinizde kalır ve saatin yanında silindi olarak işaretlenir. Kendi sildikleriniz ile kendiliğinden kaybolan ya da korumalı her şey her zamanki gibi çalışır. Ayarlarda varsayılan olarak kapalıdır.
+Ask before sending a sticker	Çıkartma göndermeden önce sor
+Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it, and a scheduled sticker goes through as it always did. Off by default in settings.	Dokunduğunuz bir çıkartma sohbete gitmeden önce Gönder veya İptal diye sorar. İptal onu bırakır, zamanlanmış çıkartma ise her zamanki gibi gider. Ayarlarda varsayılan olarak kapalıdır.
+Ask before sending a GIF	GIF göndermeden önce sor
+Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it, and a scheduled GIF goes through as it always did. Off by default in settings.	Dokunduğunuz bir GIF sohbete gitmeden önce Gönder veya İptal diye sorar. İptal onu bırakır, zamanlanmış GIF ise her zamanki gibi gider. Ayarlarda varsayılan olarak kapalıdır.
+Ask before sending a voice or video message	Sesli veya görüntülü mesaj göndermeden önce sor
+Asks Send or Cancel before a voice or video message you recorded goes into a chat. Cancel throws the recording away. Off by default in settings.	Kaydettiğiniz bir sesli veya görüntülü mesaj sohbete gitmeden önce Gönder veya İptal diye sorar. İptal kaydı atar. Ayarlarda varsayılan olarak kapalıdır.
+Ask before starting a call	Arama başlatmadan önce sor
+Asks Call or Cancel before the call button in a chat's header or on a profile starts a call. Off by default in settings.	Bir sohbetin üst çubuğundaki veya bir profildeki arama düğmesi arama başlatmadan önce Ara veya İptal diye sorar. Ayarlarda varsayılan olarak kapalıdır.
+Send sticker	Çıkartma gönder
+Send this sticker to this chat?	Bu çıkartma bu sohbete gönderilsin mi?
+Send GIF	GIF gönder
+Send this GIF to this chat?	Bu GIF bu sohbete gönderilsin mi?
+Send voice message	Sesli mesaj gönder
+Send this voice message to this chat?	Bu sesli mesaj bu sohbete gönderilsin mi?
+Send video message	Görüntülü mesaj gönder
+Send this video message to this chat?	Bu görüntülü mesaj bu sohbete gönderilsin mi?
+Send	Gönder
+Start a call	Arama başlat
+Start a voice call?	Sesli arama başlatılsın mı?
+Start a video call?	Görüntülü arama başlatılsın mı?
+Call	Ara
+# context: the label before the time of a message someone else deleted that this phone kept
+deleted	silindi
 Add Copy photo to the message menu	Mesaj menüsüne Fotoğrafı kopyala ekle
 Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Bir fotoğrafa uzun bastığınızda açılan menüde, fotoğraf indirildikten sonra İlet'in altına Fotoğrafı kopyala koyar. Resmin kendisini kopyalar, böylece başka bir uygulamaya yapıştırabilirsiniz. Korumalı veya gizli sohbetlerde görünmez. Ayarlarda varsayılan olarak kapalıdır.
 Add Message details to the message menu	Mesaj menüsüne Mesaj ayrıntıları ekle
@@ -307,6 +332,13 @@ File data center: %1$s	Dosyanın veri merkezi: %1$s
 File size: %1$s	Dosya boyutu: %1$s
 Copy	Kopyala
 Message details copied	Mesaj ayrıntıları kopyalandı
+Add Quick forward to the message menu	Mesaj menüsüne Hızlı ilet ekle
+Puts Quick forward under Forward in a message's long-press menu. It lists Saved Messages and a few recent chats, and one tap forwards the message there with the sender shown, unless Hide sender names when forwarding is on. It won't appear in protected or secret chats. Off by default in settings.	Bir mesaja uzun bastığınızda açılan menüde İlet'in altına Hızlı ilet koyar. Kayıtlı Mesajlar'ı ve son birkaç sohbeti listeler, bir dokunuşla mesaj gönderen görünür halde oraya iletilir, İletirken gönderen adlarını gizle açık değilse. Korumalı veya gizli sohbetlerde görünmez. Ayarlarda varsayılan olarak kapalıdır.
+Quick forward	Hızlı ilet
+Forward to	İlet
+Forwarding to %1$s	%1$s sohbetine iletiliyor
+Can't forward there	Oraya iletilemiyor
+No chat to forward to	İletilecek sohbet yok
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Bildirimler
@@ -324,6 +356,11 @@ Notification permission: %1$s	Bildirim izni: %1$s
 Push token saved: %1$s	Push belirteci kayıtlı: %1$s
 Signed-in accounts: %1$s	Oturum açmış hesaplar: %1$s
 Accounts confirmed for push: %1$s	Push kaydı onaylanan hesaplar: %1$s
+Telegram's push answer: %1$s	Telegram'ın push kaydı yanıtı: %1$s
+None since Telegram started	Telegram açıldığından beri yok
+Accepted	Kabul edildi
+Refused	Reddedildi
+Refused (%1$s)	Reddedildi (%1$s)
 Read-only local state. This doesn't confirm notification delivery.	Yalnızca yerel durum okunur. Bu, bildirimlerin teslim edildiğini doğrulamaz.
 Unknown	Bilinmiyor
 Allowed	İzin verildi

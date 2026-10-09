@@ -301,6 +301,32 @@ class OwnFontFixtureTest {
     }
 
     /**
+     * Each declared build makes its text layouts through Android's layout builder, choosing the
+     * font padding on it, and its one-line text through BoringLayout.make, and every one of those
+     * calls goes to the extension's stand-in (#96), with none of Android's left behind.
+     */
+    @Test
+    fun `each declared build's text layout calls go to the extension`() = bundles { bundle ->
+        val makers = FixtureDex.methodsWhere(bundle, { true }) { method ->
+            method.implementation?.instructions?.any { layoutCall(it) != null } == true
+        }
+        val calls = makers.flatMap { method -> method.implementation!!.instructions.mapNotNull(::layoutCall) }
+        assertTrue("${bundle.name}: ${calls.count { it == OBTAIN_LAYOUT }} layouts obtained", calls.count { it == OBTAIN_LAYOUT } >= 30)
+        assertTrue("${bundle.name}: ${calls.count { it == SET_INCLUDE_PAD }} padding choices", calls.count { it == SET_INCLUDE_PAD } >= 15)
+        assertEquals("${bundle.name}: both one-line forms", 4, LAYOUT_CALLS.keys.count { it in calls })
+
+        val owners = FixtureDex.classes(bundle, makers.map { it.definingClass }.toSet())
+        val context = PatchContexts.of(owners.values)
+        assertEquals("${bundle.name}: calls sent", calls.sorted(), context.hookTextLayouts().sorted())
+        for (type in owners.keys) {
+            for (method in context.mutableClassDefBy(type).methods) {
+                assertEquals("${bundle.name}: $type->${method.name} keeps a call of Android's", emptyList<String>(),
+                    method.implementation?.instructions?.mapNotNull(::layoutCall).orEmpty())
+            }
+        }
+    }
+
+    /**
      * Each declared build builds Android's text views, by `new` and as the super call of views of
      * its own, and its layout inflaters make views from a layout's tag through createView. The hook
      * runs over every class doing either, and each site gets the extension's call right after it,

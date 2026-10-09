@@ -182,25 +182,33 @@ public final class FeatureGateCatalog {
     }
 
     /**
-     * The rules a build change can leave as they are: those whose gate both builds' catalogs
-     * carry under the same manager, key and type with an identical row, so the same default,
-     * provenance and (for a SettingsManager read) model class and default. None when either
-     * build has no catalog, since then nothing says the gate is the same gate. Reads only the
+     * The rules a build change can leave as they are. When both builds have a catalog, those
+     * whose gate both catalogs carry under the same manager, key and type with an identical row,
+     * so the same default, provenance and (for a SettingsManager read) model class and default.
+     *
+     * <p>The bundle declares only the newest TikTok build, so the build a user moves from has
+     * usually just been dropped from the catalog. Its rules are then held to the new build's
+     * catalog alone: one stays when that catalog carries its gate under the same manager, key
+     * and type. A SettingsManager read whose model class R8 renamed is the exception and is
+     * turned off, since its field names are that build's own and nothing says the old build's
+     * names meant the same fields. None stay when the new build has no catalog. Reads only the
      * tables the rules' managers live in, off the caller's thread or not: it runs once per
      * change of build, when the Lab store is first opened on the new one.
      */
     static java.util.Set<String> compatibleRuleIds(String from, String to,
             java.util.Collection<FeatureGateLabStore.Rule> rules) throws Exception {
         java.util.Set<String> result = new HashSet<>();
-        if (rules.isEmpty() || !hasCatalogFor(from) || !hasCatalogFor(to)) return result;
+        if (rules.isEmpty() || !hasCatalogFor(to)) return result;
+        boolean compared = hasCatalogFor(from);
         Set<String> identities = new HashSet<>();
         for (FeatureGateLabStore.Rule rule : rules) identities.add(rule.manager + "\n" + rule.key);
-        Map<String, String> before = catalogRows(from, identities);
-        Map<String, String> after = from.equals(to) ? before : catalogRows(to, identities);
+        Map<String, String> after = catalogRows(to, identities);
+        Map<String, String> before = !compared ? null : from.equals(to) ? after : catalogRows(from, identities);
         for (FeatureGateLabStore.Rule rule : rules) {
             String identity = rule.manager + "\n" + rule.key;
             String row = after.get(identity);
-            if (row == null || !row.equals(before.get(identity))) continue;
+            if (row == null) continue;
+            if (compared ? !row.equals(before.get(identity)) : !carriesWithoutCatalog(rule.manager, row)) continue;
             if (!FeatureGateLabStore.supportsOverride(rule.manager, rule.type)) continue;
             String type = FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(rule.manager)
                     ? "OBJECT" : row.split("\\t", -1)[2];
@@ -209,6 +217,25 @@ public final class FeatureGateCatalog {
             }
         }
         return result;
+    }
+
+    /**
+     * Whether a rule from a build with no catalog can stand on [row], the new build's: always for
+     * a scalar gate, which is its key and type, and for a SettingsManager read only when its model
+     * class keeps its real name (the row's second field), and with it its fields'.
+     */
+    private static boolean carriesWithoutCatalog(String manager, String row) {
+        if (!FeatureGateLabStore.MANAGER_SETTINGS_MANAGER.equals(manager)) return true;
+        String[] fields = row.split("\\t", -1);
+        return fields.length > 1 && !isR8Named(fields[1]);
+    }
+
+    /** A class name R8 gave, X.0RSc, or an array of one; TikTok's renamed classes all sit in X. */
+    static boolean isR8Named(String className) {
+        int start = 0;
+        while (start < className.length() && className.charAt(start) == '[') start++;
+        if (start > 0 && start < className.length() && className.charAt(start) == 'L') start++;
+        return className.startsWith("X.", start);
     }
 
     /** [build]'s catalog row for each of [identities] (manager, newline, key) it carries. */

@@ -2,9 +2,11 @@
 
 Every HushTelegram release, newest first.
 
-## Unreleased
+## 0.0.11 (2026-10-08)
 
-Working version 0.0.11.
+The fifth release, with 55 patches for telegram.org's Telegram 12.10.6 and the official Telegram beta 12.10.7.
+
+* **Telegram:** Local notification status has a new line for Telegram's answer to its latest push registration. It reads Accepted, Refused, or Refused with the error name Telegram's server sent back, and the diagnostic report carries the same line. Telegram throws a refusal away without saying anything, so until now a phone with a saved push token and no confirmed accounts had no way to show why. Telegram only asks again when an account isn't registered yet or its push token changes, so "None since Telegram started" is normal on a phone that's already set up.
 
 * **Telegram:** A new Hide contacts on Telegram switch, off by default, takes the Your contacts on Telegram list off a short chat list, along with its heading and the loading rows shown while contacts sync. Chats, folders, contact sync and search don't change. With no chats at all, you get the welcome screen Telegram shows when none of your contacts use it. Turning it off or pausing HushTelegram brings the same rows back. A change shows up the next time Telegram rebuilds the chat list, and a restart always does.
 
@@ -60,7 +62,11 @@ Working version 0.0.11.
 
 * **Telegram:** A new Hide Telegram Features and Invite Friends switch, off by default, takes the Telegram Features row out of Settings and Invite Friends out of Contacts. If you have no contacts yet, the invite list Contacts shows in their place goes too.
 
-* **Telegram:** A new Add Repeat to the message menu switch, off by default, puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you, through Telegram's own forward, so slow mode and paid messages work as they always do. It doesn't show in protected or secret chats, or for polls and paid media. Two more switches go with it. Add Copy photo to the message menu copies a downloaded photo to the clipboard so you can paste it into another app, and it isn't offered in protected or secret chats either. Add Message details to the message menu adds an item that shows the message's IDs, when it was sent and edited to the second, where it was forwarded from and the file's data center and size, with a Copy button.
+* **Telegram:** A new Add Repeat to the message menu switch, off by default, puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you, through Telegram's own forward, so slow mode and paid messages work as they always do. It doesn't show in protected or secret chats, or for polls and paid media. Three more switches go with it. Add Copy photo to the message menu copies a downloaded photo to the clipboard so you can paste it into another app, and it isn't offered in protected or secret chats either. Add Message details to the message menu adds an item that shows the message's IDs, when it was sent and edited to the second, where it was forwarded from and the file's data center and size, with a Copy button. Add Quick forward to the message menu adds a Quick forward item that lists Saved Messages and a few recent chats, and one tap forwards the message there through Telegram's own forward. The sender stays shown unless Hide sender names when forwarding is on, and protected or secret chats never get it.
+
+* **Telegram:** A new Keep deleted messages switch, off by default, keeps a message on your phone when the person who sent it deletes it, and shows a deleted label next to its time. Your own deletes, messages that disappear on their own, view-once media and protected chats work as usual, and their notifications clear the way Telegram clears them. Turning the switch off doesn't remove what's already kept, and a message from someone else that you delete on another device of yours stays too.
+
+* **Telegram:** A new Ask before sending a sticker switch, off by default, asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it. Three more switches go with it. Ask before sending a GIF does the same for a GIF, Ask before sending a voice or video message asks before a recording goes out and throws it away on Cancel, and Ask before starting a call asks before the call button in a chat's header or on a profile starts a call. Scheduled sends and paid messages go through as they always did.
 
 * **Telegram:** Show user and chat IDs has a second switch, Show profile data center, off by default. It adds a row to a profile's menu with the data center, 1 to 5, that holds the profile's photo, read from the copy Telegram already has. A profile without a photo shows no row. Either switch works without the other.
 

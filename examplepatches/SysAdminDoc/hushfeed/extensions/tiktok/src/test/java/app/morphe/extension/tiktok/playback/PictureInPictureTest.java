@@ -164,6 +164,29 @@ public class PictureInPictureTest {
         assertEquals(View.VISIBLE, tabs.getVisibility());
     }
 
+    /**
+     * TikTok shows the cell's controls again after the window opens (S22, 47.1.4, 2026-10-08).
+     * The next frame sets them aside again, and once the window closes frames leave them alone.
+     */
+    @Test public void whatTikTokShowsAgainInTheWindowIsSetAsideOnTheNextFrame() {
+        PictureInPicture.keepAsideWhileUp(decor);
+        assertEquals(View.INVISIBLE, caption.getVisibility());
+        caption.setVisibility(View.VISIBLE);
+        alreadyGone.setVisibility(View.VISIBLE);
+        decor.getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals("shown again, set aside again", View.INVISIBLE, caption.getVisibility());
+        assertEquals("one TikTok shows later too", View.INVISIBLE, alreadyGone.getVisibility());
+        assertEquals(View.VISIBLE, video.getVisibility());
+
+        PictureInPicture.bringBack();
+        assertEquals(View.VISIBLE, caption.getVisibility());
+        assertEquals(View.VISIBLE, alreadyGone.getVisibility());
+        tabs.setVisibility(View.VISIBLE);
+        decor.getViewTreeObserver().dispatchOnPreDraw();
+        assertEquals("the window closed, so frames leave TikTok's views alone",
+                View.VISIBLE, caption.getVisibility());
+    }
+
     @Test public void nothingIsSetAsideWithoutAVideo() {
         video.setVisibility(View.GONE);
         thumbnail.setVisibility(View.GONE);

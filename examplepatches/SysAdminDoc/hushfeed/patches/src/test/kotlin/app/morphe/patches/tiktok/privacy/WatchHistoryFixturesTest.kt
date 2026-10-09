@@ -25,8 +25,6 @@ class WatchHistoryFixturesTest {
     @Test
     fun `each declared host has exactly one view report and one batch send`() {
         val items = mapOf(
-            "47.0.3" to "LX/09gd;",
-            "47.1.3" to "LX/09bJ;",
             "47.1.4" to "LX/09bN;",
         )
         assertEquals(Fixtures.declaredVersions().toSet(), items.keys)

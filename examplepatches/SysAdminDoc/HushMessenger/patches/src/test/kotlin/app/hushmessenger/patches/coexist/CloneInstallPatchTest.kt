@@ -158,7 +158,98 @@ private val CHECK_BODY = """
     return v1
 """.trimIndent()
 
+private const val SET_PACKAGE = "Landroid/content/Intent;->setPackage(Ljava/lang/String;)Landroid/content/Intent;"
+private const val SENDER = "LX/38C;->A00(Landroid/content/Intent;Landroid/content/Context;)V"
+private const val STORY_LINK = "LX/JgF;->onClick(Landroid/view/View;)V"
+private const val POOL = "LX/000;->A00(I)Ljava/lang/String;"
+
+/** 346013440's in-app broadcast sender: Messenger's name, as Redex inlined it, then the send. */
+private fun broadcastSender(body: String = SENDER_BODY) = fixtureMethod(SENDER, body, 4)
+
+private val SENDER_BODY = """
+    const-string v0, "com.facebook.orca"
+    invoke-virtual {p1, v0}, $SET_PACKAGE
+    invoke-static {}, LX/08Z;->A00()LX/08Z;
+    move-result-object v0
+    invoke-virtual {v0}, LX/0ev;->A06()LX/08g;
+    move-result-object v0
+    invoke-virtual {v0, p2, p1}, LX/0KF;->A0H(Landroid/content/Context;Landroid/content/Intent;)V
+    return-void
+""".trimIndent()
+
+/** A string pool cut down to two keys, 0x51 giving Messenger's name. */
+private fun stringPool() = fixtureMethod(POOL, """
+    packed-switch p0, :keys
+    const-string v0, ""
+    return-object v0
+    :lite
+    const-string v0, "com.facebook.lite"
+    return-object v0
+    :orca
+    const-string v0, "com.facebook.orca"
+    return-object v0
+    :keys
+    .packed-switch 0x50
+        :lite
+        :orca
+    .end packed-switch
+""".trimIndent(), 1, AccessFlags.PUBLIC.value or AccessFlags.STATIC.value)
+
+/**
+ * 346013440's story link button cut down: Messenger's name from the pool, checked as installed, a store page when it
+ * isn't, and otherwise the link sent to it.
+ */
+private fun storyLink(body: String = STORY_BODY) = fixtureMethod(STORY_LINK, body, 16)
+
+private val STORY_BODY = """
+    iget-object v5, p0, LX/JgF;->A02:Landroid/content/Context;
+    iget-object v3, p0, LX/JgF;->A05:Ljava/lang/String;
+    const/16 v2, 0x51
+    invoke-static {v2}, $POOL
+    move-result-object v7
+    invoke-virtual {v5}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
+    move-result-object v2
+    invoke-static {v2, v7}, LX/0Gb;->A05(Landroid/content/pm/PackageManager;Ljava/lang/String;)Z
+    move-result v2
+    if-nez v2, :installed
+    iget-object v6, p0, LX/JgF;->A03:LX/7Q3;
+    const/4 v8, 0x0
+    move-object v9, v8
+    move-object v10, v8
+    move-object v11, v8
+    const/4 v12, 0x0
+    invoke-virtual/range {v6 .. v12}, LX/7Q3;->A04(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Z)Landroid/content/Intent;
+    move-result-object v2
+    invoke-static {v5, v2}, LX/0gQ;->A0A(Landroid/content/Context;Landroid/content/Intent;)Z
+    return-void
+    :installed
+    invoke-static {v3}, LX/08r;->A04(Ljava/lang/String;)Landroid/net/Uri;
+    move-result-object v2
+    invoke-static {v2}, LX/CW6;->A06(Landroid/net/Uri;)Landroid/content/Intent;
+    move-result-object v2
+    invoke-virtual {v2, v7}, $SET_PACKAGE
+    move-result-object v2
+    invoke-static {v5, v2}, LX/0gQ;->A06(Landroid/content/Context;Landroid/content/Intent;)Z
+    return-void
+""".trimIndent()
+
+/** Messenger opening Facebook, and a screen sending to whatever package is running: neither is a clone site. */
+private fun otherIntents() = fixtureMethod("LX/A5j;->BkS(Landroid/content/Context;Landroid/content/Intent;)V", """
+    const-string v0, "com.facebook.katana"
+    invoke-virtual {p2, v0}, $SET_PACKAGE
+    invoke-virtual {p1}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+    move-result-object v0
+    invoke-virtual {p2, v0}, $SET_PACKAGE
+    const/16 v1, 0x50
+    invoke-static {v1}, $POOL
+    move-result-object v0
+    invoke-virtual {p2, v0}, $SET_PACKAGE
+    return-void
+""".trimIndent(), 5)
+
 private fun MutableMethod.code() = implementation!!.instructions.toList()
+
+private fun MutableMethod.calls() = code().indices.filter { (code()[it] as? ReferenceInstruction)?.reference?.toString() == SET_PACKAGE }
 
 private fun MutableMethod.loads(index: Int): Pair<Int, String> = code()[index].let {
     (it as OneRegisterInstruction).registerA to ((it as ReferenceInstruction).reference as StringReference).string
@@ -320,10 +411,62 @@ class CloneInstallPatchTest {
         assertFailsWith<PatchException> { applyCloneSites(backupLookup(), attachmentCheck(), "com.facebook.orca") }
     }
 
+    @Test fun messengersIntentsToItselfGoToTheClone() {
+        val pool = fixtureClass("LX/000;", listOf(stringPool()))
+        val pools = ownNamePoolKeys(listOf(pool))
+        assertEquals(setOf("$POOL#81"), pools)
+        val sender = broadcastSender()
+        val story = storyLink()
+        val call = story.calls().single()
+        // Facebook's package, the running package and the pool's other key stay out.
+        assertEquals(setOf("$SENDER@1", "$STORY_LINK@$call"), findCloneSites(listOf(pool, fixtureClass("LX/38C;", listOf(sender)),
+            fixtureClass("LX/JgF;", listOf(story)), fixtureClass("LX/A5j;", listOf(otherIntents())))))
+        val senderBefore = sender.code()
+        val storyBefore = story.code()
+        val load = storyBefore.indexOfFirst { it.opcode == Opcode.MOVE_RESULT_OBJECT && (it as OneRegisterInstruction).registerA == 7 }
+        assertEquals(3, story.readersOf(load, 7).size)
+        applyCloneSites(backupLookup(), attachmentCheck(), COPY, listOf(sender to 1, story to call), pools)
+
+        // The broadcast now goes to the clone's own receivers.
+        assertEquals(Opcode.CONST_STRING_JUMBO, sender.code()[0].opcode)
+        assertEquals(0 to COPY, sender.loads(0))
+        assertEquals(senderBefore.drop(1), sender.code().drop(1))
+        // The story link's install check, store page and link all name the clone. The pool call stays, its result unread.
+        assertEquals(7 to COPY, story.loads(load))
+        assertEquals(storyBefore.size, story.code().size)
+        assertEquals(storyBefore.filterIndexed { i, _ -> i != load }, story.code().filterIndexed { i, _ -> i != load })
+    }
+
+    @Test fun aChangedIntentSiteStopsThePatchBeforeAnythingChanges() {
+        val pools = setOf("$POOL#81")
+        val logs = "invoke-static {v0}, LX/0q1;->A0F(Ljava/lang/String;)V\n"
+        for ((sites, keys) in listOf(
+            // The name also goes to a log after the send.
+            listOf(broadcastSender(SENDER_BODY.replace("invoke-static {}, LX/08Z;", "${logs}invoke-static {}, LX/08Z;")) to 1) to pools,
+            listOf(broadcastSender() to 2) to pools,
+            listOf(broadcastSender(SENDER_BODY.replace("com.facebook.orca", "com.facebook.katana")) to 1) to pools,
+            // The pool key no longer gives Messenger's name, or the name also goes somewhere new.
+            listOf(broadcastSender() to 1, storyLink().let { it to it.calls().single() }) to emptySet(),
+            listOf(broadcastSender() to 1, storyLink(STORY_BODY.replace("move-result-object v7\n", "move-result-object v7\n${logs.replace("v0", "v7")}"))
+                .let { it to it.calls().single() }) to pools,
+            listOf(broadcastSender() to 1, broadcastSender() to 1) to pools,
+        )) {
+            val lookup = backupLookup()
+            val check = attachmentCheck()
+            val before = (listOf(lookup, check) + sites.map { it.first }).map { it.code() }
+            assertFailsWith<PatchException> { applyCloneSites(lookup, check, COPY, sites, keys) }
+            assertEquals(before, (listOf(lookup, check) + sites.map { it.first }).map { it.code() })
+        }
+    }
+
     @Test fun eachBuildFamilyHasItsOwnPinnedSites() {
         val families = MessengerTarget.VERSION_CODES.map { expectedCloneSitesFor(it.toString()) }.toSet()
         assertEquals(6, families.size)
-        assertEquals(setOf("LX/E9W;-><init>()V", "LX/4Di;->A00(Ljava/lang/String;)Z"), expectedCloneSitesFor("346213585"))
+        assertTrue(families.all { it.size == 7 && it.count { id -> '@' in id } == 5 })
+        assertEquals(setOf("LX/E9W;-><init>()V", "LX/4Di;->A00(Ljava/lang/String;)Z",
+            "LX/38G;->A00(Landroid/content/Intent;Landroid/content/Context;)V@1",
+            "LX/8fw;->A04(Landroid/os/Bundle;)LX/9Op;@228", "LX/8fw;->A04(Landroid/os/Bundle;)LX/9Op;@324",
+            "LX/BCY;->onClick(Landroid/view/View;)V@81", "LX/JTZ;->onClick(Landroid/view/View;)V@168"), expectedCloneSitesFor("346213585"))
         assertFailsWith<PatchException> { expectedCloneSitesFor("346013999") }
     }
 
@@ -382,30 +525,49 @@ class CloneInstallPatchTest {
         }
     }
 
-    @Test fun everyStockBuildHasOneBackupLookupAndOneAttachmentCheck() {
+    @Test fun everyStockBuildHasItsBackupLookupAttachmentCheckAndIntentsToItself() {
         val apks = stockApks()
         val families = mutableSetOf<Set<String>>()
+        // The longer method can widen a goto or drop the padding before a switch table, so compare what each
+        // instruction does, not which object holds it.
+        fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>.shape() =
+            filter { it.opcode != Opcode.NOP }.map { it.opcode.name.substringBefore('/') }
         for (apk in apks) {
             val code = apk.fileName.toString().substringBeforeLast(".apk").substringAfterLast('-')
             val dex = DexFileFactory.loadDexContainer(apk.toFile(), Opcodes.forApi(35))
             val classes: List<ClassDef> = dex.dexEntryNames.flatMap { dex.getEntry(it)!!.dexFile.classes }
             val expected = expectedCloneSitesFor(code)
-            assertEquals(expected, findCloneSites(classes), code)
+            val pools = ownNamePoolKeys(classes)
+            assertEquals(1, pools.size, code)
+            assertEquals(expected, findCloneSites(classes, pools), code)
             families += expected
-            val methods = expected.map { id -> MutableMethod(classes.single { it.type == id.substringBefore("->") }.methods.single { it.hookId() == id }) }
-            val lookup = methods.single { it.name == "<init>" }
-            val check = methods.single { it.name != "<init>" }
+            val methods = expected.map { it.substringBefore('@') }.distinct().associateWith { id ->
+                MutableMethod(classes.single { it.type == id.substringBefore("->") }.methods.single { it.hookId() == id })
+            }
+            val (calls, checks) = expected.partition { '@' in it }
+            val lookup = methods.getValue(checks.single { it.endsWith("-><init>()V") })
+            val check = methods.getValue(checks.single { !it.endsWith("-><init>()V") })
+            val sites = calls.map { methods.getValue(it.substringBefore('@')) to it.substringAfter('@').toInt() }
+            val loads = sites.map { (method, call) -> method.selfIntentSite(call, pools) }
+            // Four calls only send the name. The story link button also checks it's installed and opens its store page.
+            assertEquals(listOf(1, 1, 1, 1, 3), sites.zip(loads).map { (site, load) -> site.first.readersOf(load.first, load.second).size }.sorted(), code)
             val (at, register) = lookup.backupLookupSite()
             val before = lookup.code()
-            applyCloneSites(lookup, check, CLONE_DEFAULT_PACKAGE)
+            val sitesBefore = sites.map { it.first }.distinct().associateWith { it.code() }
+            applyCloneSites(lookup, check, CLONE_DEFAULT_PACKAGE, sites, pools)
             assertEquals(register to "com.facebook.orca", lookup.loads(at), code)
-            // The longer method can widen a goto or drop the padding before a switch table, so compare what each
-            // instruction does, not which object holds it.
-            fun List<com.android.tools.smali.dexlib2.iface.instruction.Instruction>.shape() =
-                filter { it.opcode != Opcode.NOP }.map { it.opcode.name.substringBefore('/') }
             assertEquals(before.shape(), lookup.code().filterIndexed { i, _ -> i != at }.shape(), code)
             assertEquals(1, check.code().count { (it as? ReferenceInstruction)?.reference.let { r -> r is StringReference && r.string == "$CLONE_DEFAULT_PACKAGE$TAM_SUFFIX" } }, code)
             assertTrue(check.code().none { (it as? ReferenceInstruction)?.reference.let { r -> r is StringReference && r.string == TAM_AUTHORITY } }, code)
+            for ((site, load) in sites.zip(loads)) {
+                assertEquals(load.second to CLONE_DEFAULT_PACKAGE, site.first.loads(load.first), "$code ${site.first.hookId()}@${site.second}")
+            }
+            for ((method, old) in sitesBefore) {
+                val changed = sites.zip(loads).filter { it.first.first === method }.map { it.second.first }.toSet()
+                assertEquals(old.filterIndexed { i, _ -> i !in changed }.shape(), method.code().filterIndexed { i, _ -> i !in changed }.shape(), code)
+                // No setPackage call there sends to Messenger any more.
+                assertTrue(findCloneSites(listOf(fixtureClass(method.definingClass, listOf(method))), pools).isEmpty(), code)
+            }
         }
         assertEquals(6, families.size)
     }

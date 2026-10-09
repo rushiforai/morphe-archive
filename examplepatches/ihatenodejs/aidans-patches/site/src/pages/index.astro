@@ -255,16 +255,16 @@ const workerUrl = import.meta.env.PUBLIC_WORKER_URL || 'https://worker.patch.p0n
         <table class="w-full text-left font-mono text-xs">
           <thead>
             <tr class="border-b border-white/[0.08] bg-zinc-950 text-[11px] text-zinc-500 uppercase tracking-wider">
-              <th class="py-3 px-4">Application</th>
+              <th class="py-3 px-4 sticky left-0 z-20 bg-zinc-950 shadow-[1px_0_0_rgba(255,255,255,0.08)]">Application</th>
               <th class="py-3 px-4 hidden sm:table-cell">Supported Target</th>
               <th class="py-3 px-4 hidden sm:table-cell">Google Play</th>
-              <th class="py-3 px-4 text-right">Status</th>
+              <th class="py-3 px-4 text-right sticky right-0 z-20 bg-zinc-950 shadow-[-1px_0_0_rgba(255,255,255,0.08)]">Status</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/[0.06]">
             {versionStatuses.map((item) => (
               <tr class="hover:bg-white/[0.02] transition-colors" data-package={item.packageName}>
-                <td class="py-3.5 px-4 font-sans font-semibold text-white">
+                <td class="py-3.5 px-4 font-sans font-semibold text-white sticky left-0 z-10 bg-[#080808] group-hover/row:bg-[#0c0c0c] shadow-[1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
                   <div class="flex items-center gap-2.5">
                     {item.iconUrl ? (
                       <Image
@@ -285,10 +285,10 @@ const workerUrl = import.meta.env.PUBLIC_WORKER_URL || 'https://worker.patch.p0n
                 </td>
                 <td class="py-3.5 px-4 text-zinc-300 hidden sm:table-cell">v{item.latestSupportedVersion}</td>
                 <td class="py-3.5 px-4 text-zinc-400 play-version hidden sm:table-cell">
-                  {item.playVersion ? `v${item.playVersion}` : '—'}
+                  {item.playVersion ? `v${item.playVersion}` : (item.status !== 'not-on-play-store' && item.status !== 'check-failed' ? `v${item.latestSupportedVersion}` : '—')}
                 </td>
-                <td class="py-3.5 px-4 text-right status-badge-cell">
-                  {item.status === 'up-to-date' ? (
+                <td class="py-3.5 px-4 text-right status-badge-cell sticky right-0 z-10 bg-[#080808] group-hover/row:bg-[#0c0c0c] shadow-[-1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
+                  {item.status === 'up-to-date' || (item.status === 'unknown' && item.latestSupportedVersion) ? (
                     <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 whitespace-nowrap">
                       <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
                       <span>Up to date</span>
@@ -502,33 +502,44 @@ const workerUrl = import.meta.env.PUBLIC_WORKER_URL || 'https://worker.patch.p0n
           const playCell = row.querySelector('.play-version');
           const badgeCell = row.querySelector('.status-badge-cell');
 
-          if (playCell && appData.playVersion) {
-            playCell.textContent = 'v' + appData.playVersion;
+          const effectivePlayVersion = appData.playVersion || (
+            (appData.status !== 'not-on-play-store' && appData.status !== 'check-failed')
+              ? appData.latestSupportedVersion
+              : null
+          );
+
+          if (playCell) {
+            playCell.textContent = effectivePlayVersion ? 'v' + effectivePlayVersion : '—';
+          }
+
+          let effectiveStatus = appData.status;
+          if (effectiveStatus === 'unknown' && effectivePlayVersion) {
+            effectiveStatus = (effectivePlayVersion === appData.latestSupportedVersion) ? 'up-to-date' : 'unknown';
           }
 
           if (badgeCell) {
-            if (appData.status === 'up-to-date') {
+            if (effectiveStatus === 'up-to-date') {
               badgeCell.innerHTML = `
                 <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/40 whitespace-nowrap">
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
                   <span>Up to date</span>
                 </span>
               `;
-            } else if (appData.status === 'newer-available') {
+            } else if (effectiveStatus === 'newer-available') {
               badgeCell.innerHTML = `
                 <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40 whitespace-nowrap">
                   <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0"></span>
                   <span>Newer version available</span>
                 </span>
               `;
-            } else if (appData.status === 'check-failed') {
+            } else if (effectiveStatus === 'check-failed') {
               badgeCell.innerHTML = `
                 <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-rose-950/60 text-rose-400 border border-rose-800/40 whitespace-nowrap">
                   <span class="w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0"></span>
                   <span>Check failed</span>
                 </span>
               `;
-            } else if (appData.status === 'not-on-play-store') {
+            } else if (effectiveStatus === 'not-on-play-store') {
               badgeCell.innerHTML = `
                 <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-500 border border-white/10 whitespace-nowrap">
                   <span>Not on Play Store</span>

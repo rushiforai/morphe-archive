@@ -11,6 +11,7 @@ val blockTrackingAndTelemetryPatch = bytecodePatch(
     description = "Neutralizes first-party analytics (SidelineSwap backend), behavioral tracking (Amplitude, Firebase Analytics, Facebook App Events, Iterable), diagnostic telemetry (Firebase Crashlytics, Timber logging tree), payment gateway telemetry (Braintree FPTI), and zeros the Google Play Advertising ID (AAID).",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_SIDELINESWAP)
 
     execute {

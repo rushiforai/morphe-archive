@@ -1,3 +1,17 @@
+## [0.5.0](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.3.3...v0.5.0) (2026-10-08)
+
+Daily Board now has a minimal phone compatibility base and five independent optional patches.
+
+- **Enable phone support** keeps device/launcher support, responsive onboarding, safe activation switching, and photo/calendar crash fixes.
+- Select **Use Open-Meteo weather**, **Enable media controls**, **Use phone charging as dock**, **Customize orientation**, and **Customize screen saver** individually in Morphe. Each includes the base automatically.
+- Rotation lock bypass, screen saver angle filtering and diagnostics are available through their respective optional patches.
+
+When updating from 0.3.3, select the weather, media and charging patches to retain those features. Base-only keeps Samsung's integrations, which may be unavailable without Samsung privileges.
+
+Validated with Daily Board 15.1.01.3: seven CLI selections and bytecode isolation checks; base onboarding and activation switching, combined installation/settings/diagnostics and Android dream startup on Samsung SM-G998B (Android 14) through Morphe Manager.
+
+See [Daily Board setup and permissions](https://github.com/giaaaacomo/nifty-patches-selection/blob/main/docs/DAILY_BOARD.md). This release distributes only the patch bundle; obtain and patch the APK locally.
+
 ## [0.3.3](https://github.com/giaaaacomo/nifty-patches-selection/compare/v0.3.2...v0.3.3) (2026-10-07)
 
 ### 🐛 Bug Fixes

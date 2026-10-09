@@ -1,5 +1,5 @@
 {
-    "version": "v1.4.0-dev.3",
+    "version": "v1.5.0-dev.2",
     "patches": [
         {
             "category": "Features",
@@ -44,11 +44,11 @@
                         {
                             "isExperimental": false,
                             "minSdk": 25,
-                            "version": "2.22.08"
+                            "version": "2.22.09"
                         }
                     ],
                     "versions": [
-                        "2.22.08"
+                        "2.22.09"
                     ]
                 }
             ],
@@ -58,6 +58,66 @@
             ],
             "description": "Replaces the unavailable store with a dialog to view and set your exact chip balance.",
             "name": "Add Custom Chip Store",
+            "options": []
+        },
+        {
+            "category": "Customization",
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#02C874",
+                    "name": "SidelineSwap",
+                    "packageName": "com.sidelineswap.android",
+                    "signatures": [
+                        "e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "version": "1.52.0"
+                        }
+                    ],
+                    "versions": [
+                        "1.52.0"
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "AMOLED Theme Resources"
+            ],
+            "description": "Forces SidelineSwap into a pure-black AMOLED theme with dark system bars, black app surfaces, readable light text and icons, and force dark mode on embedded WebViews.",
+            "name": "AMOLED Theme",
+            "options": []
+        },
+        {
+            "category": "Customization",
+            "compatiblePackages": [
+                {
+                    "apkFileType": "XAPK",
+                    "appIconColor": "#02C874",
+                    "name": "SidelineSwap",
+                    "packageName": "com.sidelineswap.android",
+                    "signatures": [
+                        "e434334ea79d8702a5d023ce7bfae4da9fa5539796cb9e0ba515cb471528697f"
+                    ],
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 28,
+                            "version": "1.52.0"
+                        }
+                    ],
+                    "versions": [
+                        "1.52.0"
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Resource modifications for AMOLED theme.",
+            "name": "AMOLED Theme Resources",
             "options": []
         },
         {
@@ -277,6 +337,15 @@
                     "title": "Hide Amazon Deals",
                     "type": "kotlin.Boolean",
                     "values": null
+                },
+                {
+                    "default": true,
+                    "description": "Hides the Pay Later Anywhere shortcut from the Your Shortcuts carousel.",
+                    "key": "hidePayLaterAnywhere",
+                    "required": false,
+                    "title": "Hide Pay Later Anywhere",
+                    "type": "kotlin.Boolean",
+                    "values": null
                 }
             ]
         },
@@ -295,11 +364,11 @@
                         {
                             "isExperimental": false,
                             "minSdk": 25,
-                            "version": "2.22.08"
+                            "version": "2.22.09"
                         }
                     ],
                     "versions": [
-                        "2.22.08"
+                        "2.22.09"
                     ]
                 }
             ],
@@ -575,11 +644,11 @@
                         {
                             "isExperimental": false,
                             "minSdk": 25,
-                            "version": "2.22.08"
+                            "version": "2.22.09"
                         }
                     ],
                     "versions": [
-                        "2.22.08"
+                        "2.22.09"
                     ]
                 }
             ],
@@ -820,11 +889,11 @@
                         {
                             "isExperimental": false,
                             "minSdk": 25,
-                            "version": "2.22.08"
+                            "version": "2.22.09"
                         }
                     ],
                     "versions": [
-                        "2.22.08"
+                        "2.22.09"
                     ]
                 }
             ],
@@ -962,11 +1031,11 @@
                         {
                             "isExperimental": false,
                             "minSdk": 25,
-                            "version": "2.22.08"
+                            "version": "2.22.09"
                         }
                     ],
                     "versions": [
-                        "2.22.08"
+                        "2.22.09"
                     ]
                 }
             ],
@@ -1093,6 +1162,32 @@
             "options": []
         },
         {
+            "category": "Interface",
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APKM",
+                    "appIconColor": "#5C2C94",
+                    "name": "Sezzle",
+                    "packageName": "com.sezzle.sezzlemobile",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "minSdk": 24,
+                            "version": "5.3.9"
+                        }
+                    ],
+                    "versions": [
+                        "5.3.9"
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [],
+            "description": "Removes references to Sezzle Anywhere and Sezzle Premium subscriptions in Account benefits, Wallet, and Orders help.",
+            "name": "Remove Sezzle Subscriptions",
+            "options": []
+        },
+        {
             "category": "Privacy",
             "compatiblePackages": [
                 {
@@ -1135,11 +1230,11 @@
                         {
                             "isExperimental": false,
                             "minSdk": 25,
-                            "version": "2.22.08"
+                            "version": "2.22.09"
                         }
                     ],
                     "versions": [
-                        "2.22.08"
+                        "2.22.09"
                     ]
                 }
             ],
@@ -1514,11 +1609,11 @@
                         {
                             "isExperimental": false,
                             "minSdk": 25,
-                            "version": "2.22.08"
+                            "version": "2.22.09"
                         }
                     ],
                     "versions": [
-                        "2.22.08"
+                        "2.22.09"
                     ]
                 }
             ],

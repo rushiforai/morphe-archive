@@ -389,10 +389,10 @@ public class PatchFamilyTest {
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.VIDEO_DOWNLOAD), false).get(0));
         Settings.DOWNLOAD_VIDEOS.resetToDefault();
         Settings.CLIPBOARD_DOWNLOAD.resetToDefault();
-        // The Menu's two groups have a switch each, and the report names both.
+        // The Menu's two groups and its Muse card have a switch each, and the report names all three.
         Settings.HIDE_MENU_ALSO_FROM_META.save(false);
         assertEquals("Hide Menu promotions: on (hushfacebook_hide_menu_upgrades=on, "
-                        + "hushfacebook_hide_menu_also_from_meta=off)",
+                        + "hushfacebook_hide_menu_also_from_meta=off, hushfacebook_hide_menu_muse=on)",
                 PatchFamily.reportLines(EnumSet.of(PatchFamily.MENU_PROMOTIONS), false).get(0));
         // Every notification switch starts off, so the patch reads off until one of them is turned on.
         assertEquals("Block promotional notifications: disabled by its switch ("

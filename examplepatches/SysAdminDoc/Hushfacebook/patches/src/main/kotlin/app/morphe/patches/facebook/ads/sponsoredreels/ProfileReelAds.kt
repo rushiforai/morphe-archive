@@ -21,10 +21,10 @@ import com.android.tools.smali.dexlib2.iface.Method
 
 /**
  * The query a profile's or Page's Reels tab sends for the ads it puts between that profile's reels.
- * It goes out from one method (581 `LX/B5t;->A03`, 580 `LX/ArQ;->A03`, 577 `LX/B5Y;->A03`, read
- * 2026-10-06), a void instance method taking the session, two Integers and a boolean, which
- * returns early on its own when the ads it already holds fill the tab's slots. It doesn't draw
- * from the Reels and Watch ad pool [POOL_NO_AD] holds, so the pool's hold doesn't reach it.
+ * It goes out from one method (581 `LX/B5t;->A03`, read 2026-10-06), a void instance method taking
+ * the session, two Integers and a boolean, which returns early on its own when the ads it already
+ * holds fill the tab's slots. It doesn't draw from the Reels and Watch ad pool [POOL_NO_AD] holds,
+ * so the pool's hold doesn't reach it.
  */
 internal const val PROFILE_REELS_ADS = "ProfileReelsAsyncAdsQuery"
 

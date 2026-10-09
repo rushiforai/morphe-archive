@@ -15,6 +15,7 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
     description = "Neutralizes first-party client event tracking, Mixpanel analytics, Airbridge and Adjust attribution SDKs, Google Advertising ID (AAID) collection, and bypasses PairIP Play Integrity verification, with options for silent DM screenshots and Sentry telemetry removal.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_FIZZ)
 
     val silentScreenshots = booleanOption(
@@ -36,33 +37,29 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
         patchVoidMethod("Lcom/pairip/licensecheck/LicenseClient;", "checkLicense", listOf("Landroid/content/Context;"))
 
         // Layer 2: First-Party Analytics Event Logger & Batch Dispatcher
-        patchVoidMethod("Lra/da;", "a", listOf("Lra/n9;", "Z"))
-        patchVoidMethod("Lra/da;", "e", emptyList())
-        patchVoidMethod("Lra/da;", "f", emptyList())
-        val flushMethods = matchingMethods("Lra/da;", "d", listOf("Z", "Lol/c;"), "Ljava/lang/Object;")
-        flushMethods.forEach { it.addInstructions(0, "sget-object v0, Lil/z;->a:Lil/z;\nreturn-object v0") }
-        val batchMethods = matchingMethods("Lra/da;", "g", listOf("Lfb/c;", "Lol/c;"), "Ljava/lang/Object;")
-        batchMethods.forEach { it.addInstructions(0, "sget-object v0, Lil/z;->a:Lil/z;\nreturn-object v0") }
+        patchVoidMethod("Lra/ga;", "a", listOf("Lra/q9;", "Z"))
+        patchVoidMethod("Lra/ga;", "e", emptyList())
+        patchVoidMethod("Lra/ga;", "f", emptyList())
+        val flushMethods = matchingMethods("Lra/ga;", "d", listOf("Z", "Lql/c;"), "Ljava/lang/Object;")
+        flushMethods.forEach { it.addInstructions(0, "sget-object v0, Lkl/z;->a:Lkl/z;\nreturn-object v0") }
+        val batchMethods = matchingMethods("Lra/ga;", "g", listOf("Lfb/c;", "Lql/c;"), "Ljava/lang/Object;")
+        batchMethods.forEach { it.addInstructions(0, "sget-object v0, Lkl/z;->a:Lkl/z;\nreturn-object v0") }
 
-        patchNullObjectMethod("Ljc/i0;", "a", listOf("Ljava/util/List;", "Lol/c;"))
-        patchAllVoidMethods("Lec/j;", "a", "b", "c", "d", "e")
+        patchNullObjectMethod("Ljc/k0;", "a", listOf("Ljava/util/List;", "Lql/c;"))
+        patchAllVoidMethods("Lec/j;", "a")
 
         // Layer 3: Mixpanel Analytics SDK
-        patchAllVoidMethods("Ldk/u;", "d", "l")
-        patchVoidMethod("Ldk/u;", "i", listOf("Ljava/lang/String;", "Z"))
-        patchVoidMethod("Ldk/u;", "k", listOf("Lorg/json/JSONObject;"))
-        patchVoidMethod("Ldk/u;", "m", listOf("Lorg/json/JSONObject;", "Ljava/lang/String;", "Z"))
-        patchNullObjectMethod("Ldk/u;", "b", listOf("Ljava/lang/String;", "Lorg/json/JSONObject;", "Ljava/lang/Long;"))
-        patchBooleanMethod("Ldk/u;", "h", emptyList(), true)
-        patchVoidMethod("Lra/va;", "c", emptyList())
+        patchAllVoidMethods("Lfk/u;", "d", "l")
+        patchVoidMethod("Lfk/u;", "i", listOf("Ljava/lang/String;", "Z"))
+        patchVoidMethod("Lfk/u;", "k", listOf("Lorg/json/JSONObject;"))
+        patchVoidMethod("Lfk/u;", "m", listOf("Lorg/json/JSONObject;", "Ljava/lang/String;", "Z"))
+        patchNullObjectMethod("Lfk/u;", "b", listOf("Ljava/lang/String;", "Lorg/json/JSONObject;", "Ljava/lang/Long;"))
+        patchBooleanMethod("Lfk/u;", "h", emptyList(), true)
+        patchVoidMethod("Lra/ya;", "c", emptyList())
 
         // Layer 4: Airbridge Attribution & Mobile Measurement SDK
-        patchVoidMethod("Lsa/n;", "f", listOf("Landroid/app/Application;", "Lqa/a0;"))
-        patchVoidMethod("Lsa/n;", "b", listOf("Ljava/lang/String;"))
-        patchVoidMethod("Lsa/n;", "c", listOf("Lsa/d0;"))
-        patchVoidMethod("Lsa/n;", "d", emptyList())
-        patchVoidMethod("Lsa/n;", "e", listOf("Ljava/lang/String;"))
-        patchBooleanMethod("Lsa/n;", "a", listOf("Landroid/content/Intent;", "Lge/e;"), false)
+        patchBooleanMethod("Lsa/l0;", "f", listOf("Landroid/content/Intent;", "Lhe/d;"), false)
+        patchAllVoidMethods("Lsa/l0;", "a", "b", "c", "d", "e")
 
         patchAllVoidMethods(
             "Lco/ab180/airbridge/Airbridge;",
@@ -100,13 +97,9 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
         patchBooleanMethod("Lco/ab180/airbridge/Airbridge;", "isSDKEnabled", emptyList(), false)
 
         // Layer 5: Adjust Attribution & Tracking SDK
-        patchBooleanMethod("Lsa/b;", "f", listOf("Landroid/content/Context;"), false)
-        patchVoidMethod("Lsa/b;", "b", listOf("Ljava/lang/String;"))
-        patchVoidMethod("Lsa/b;", "c", listOf("Lsa/d0;"))
-        patchVoidMethod("Lsa/b;", "d", emptyList())
-        patchVoidMethod("Lsa/b;", "e", listOf("Ljava/lang/String;"))
-        patchBooleanMethod("Lsa/b;", "a", listOf("Landroid/content/Intent;", "Lge/e;"), false)
-
+        patchBooleanMethod("Lsa/b;", "g", listOf("Landroid/content/Context;"), false)
+        patchBooleanMethod("Lsa/b;", "f", listOf("Landroid/content/Intent;", "Lhe/d;"), false)
+        patchAllVoidMethods("Lsa/b;", "a", "b", "c", "d", "e")
         patchAllVoidMethods(
             "Lcom/adjust/sdk/Adjust;",
             "initSdk",
@@ -148,31 +141,31 @@ val removeTrackingAndAnalyticsPatch = bytecodePatch(
         patchConstStringMethod("Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;", "getId", ZEROED_ADVERTISING_ID)
         patchBooleanMethod("Lcom/google/android/gms/ads/identifier/AdvertisingIdClient${'$'}Info;", "isLimitAdTrackingEnabled", emptyList(), true)
 
-        val aaidRegistrarMethods = matchingMethods("Lsa/k;", "a", listOf("Lol/c;"), "Ljava/lang/Object;")
+        val aaidRegistrarMethods = matchingMethods("Lsa/n0;", "invokeSuspend", listOf("Ljava/lang/Object;"), "Ljava/lang/Object;")
         aaidRegistrarMethods.forEach {
-            it.addInstructions(0, "sget-object v0, Lil/z;->a:Lil/z;\nreturn-object v0")
+            it.addInstructions(0, "sget-object v0, Lkl/z;->a:Lkl/z;\nreturn-object v0")
         }
 
         // Layer 7: Sentry Error Reporting & Telemetry (Guarded by disableCrashReporting)
         if (disableCrashReporting.value != false) {
-            patchVoidMethod("Lec/b1;", "b", listOf("Lcom/fizzsocial/fizz/FizzApplication;"))
-            patchBooleanMethod("Lec/b1;", "isEnabled", emptyList(), false)
-            patchVoidMethod("Lio/sentry/android/core/q1;", "b", listOf("Landroid/content/Context;", "Lio/sentry/android/core/y;", "Lio/sentry/k4;"))
+            patchVoidMethod("Lec/p1;", "b", listOf("Lcom/fizzsocial/fizz/FizzApplication;"))
+            patchBooleanMethod("Lec/p1;", "isEnabled", emptyList(), false)
+            patchVoidMethod("Lio/sentry/android/core/s1;", "b", listOf("Landroid/content/Context;", "Lio/sentry/android/core/y;", "Lio/sentry/k4;"))
         }
 
         // Layer 8: Silent DM Screenshots (Guarded by silentScreenshots)
         if (silentScreenshots.value != false) {
-            val screenshotWorkerMethods = matchingMethods("Lrd/b2;", "invokeSuspend", listOf("Ljava/lang/Object;"), "Ljava/lang/Object;")
+            val screenshotWorkerMethods = matchingMethods("Lsd/a2;", "invokeSuspend", listOf("Ljava/lang/Object;"), "Ljava/lang/Object;")
             screenshotWorkerMethods.forEach {
-                it.addInstructions(0, "sget-object v0, Lil/z;->a:Lil/z;\nreturn-object v0")
+                it.addInstructions(0, "sget-object v0, Lkl/z;->a:Lkl/z;\nreturn-object v0")
             }
 
-            val chatRepoScreenshotMethods = matchingMethods("Ljc/l2;", "q", listOf("Ljava/lang/String;", "Lol/c;"), "Ljava/lang/Object;")
+            val chatRepoScreenshotMethods = matchingMethods("Ljc/n2;", "q", listOf("Ljava/lang/String;", "Lql/c;"), "Ljava/lang/Object;")
             chatRepoScreenshotMethods.forEach {
                 it.addInstructions(
                     0,
                     """
-                    sget-object v0, Lil/z;->a:Lil/z;
+                    const/4 v0, 0x0
                     new-instance v1, Lcb/l;
                     invoke-direct {v1, v0}, Lcb/l;-><init>(Ljava/lang/Object;)V
                     return-object v1

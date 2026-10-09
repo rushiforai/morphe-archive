@@ -60,6 +60,7 @@ public class PauseSwitchPlaybackTest {
     }
 
     @After public void tearDown() throws Exception {
+        SessionPlaybackHold.releaseForLock(false);
         ReflectionHelpers.callStaticMethod(PausePlayback.class, "resetForTests");
         Utils.setActivity(null);
         SessionBudget.awaitWritesForTests();
@@ -71,8 +72,8 @@ public class PauseSwitchPlaybackTest {
         ReflectionHelpers.callStaticMethod(CurrentVideoAuthor.class, "resetForTests");
         SessionPlaybackHold.nativeForTests = null;
         String pkg = RuntimeEnvironment.getApplication().getPackageName();
-        FeedVisibility.resolveForTests(pkg, "47.0.3:pvp", 0);
-        FeedVisibility.resolveForTests(pkg, "47.0.3:wk7", 0);
+        FeedVisibility.resolveForTests(pkg, "47.1.4:pyf", 0);
+        FeedVisibility.resolveForTests(pkg, "47.1.4:wny", 0);
     }
 
     private static void resetSettings() {
@@ -408,6 +409,73 @@ public class PauseSwitchPlaybackTest {
         }
     }
 
+    // ------------------------------------------------------------------------------- app lock
+
+    @Test public void theAppLockStopsTheVideoUntilItLiftsAndThenPlaysItOn() {
+        NativeController player = playing("first");
+        SessionPlaybackHold.pauseForLock();
+        idle();
+        assertEquals("the lock did not stop the video under it", 1, player.manager.pauses);
+
+        // TikTok plays it again by itself under the prompt.
+        player.manager.nativeResume();
+        player.reportProgress();
+        idle();
+        assertEquals("the video TikTok started again played on under the lock", 2, player.manager.pauses);
+
+        SessionPlaybackHold.releaseForLock(true);
+        idle();
+        assertEquals("unlocking did not give the video back", 1, player.manager.resumes);
+    }
+
+    @Test public void aSwitchLettingGoUnderTheLockLeavesTheVideoStoppedUntilTheUnlock() {
+        Settings.PAUSE_ON_COMMENTS.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            NativeController player = playing("first");
+            Dialog sheet = openSheet(activity);
+            PausePlayback.onCommentCellBound(cellIn(sheet));
+            idle();
+            assertEquals(1, player.manager.pauses);
+
+            SessionPlaybackHold.pauseForLock();
+            sheet.dismiss();
+            idle();
+            assertEquals("closing the comments started the video under the lock", 0, player.manager.resumes);
+
+            SessionPlaybackHold.releaseForLock(true);
+            idle();
+            assertEquals(1, player.manager.resumes);
+        }
+    }
+
+    @Test public void theReturnCoverKeepsTheVideoStoppedWhenTheLockLifts() {
+        Settings.NO_RESUME_ON_FOREGROUND.save(true);
+        try (var owner = Robolectric.buildActivity(HostActivity.class).setup().visible()) {
+            Activity activity = owner.get();
+            Utils.setActivity(activity);
+            NativeController player = playing("first");
+            SessionPlaybackHold.pauseForLock();
+            idle();
+            ReflectionHelpers.callStaticMethod(PausePlayback.class, "onBackground");
+            idle();
+            ReflectionHelpers.callStaticMethod(PausePlayback.class, "onForeground",
+                    ClassParameter.from(Activity.class, activity));
+            idle();
+            View catcher = ReflectionHelpers.callStaticMethod(PausePlayback.class, "catcherForTests");
+            assertNotNull(catcher);
+
+            SessionPlaybackHold.releaseForLock(true);
+            idle();
+            assertEquals("the unlock started the video under the tap cover", 0, player.manager.resumes);
+
+            assertTrue(catcher.performClick());
+            idle();
+            assertEquals(1, player.manager.resumes);
+        }
+    }
+
     // ------------------------------------------------------------------------------- fixture
 
     /**
@@ -423,8 +491,8 @@ public class PauseSwitchPlaybackTest {
         sheet.addView(title, new FrameLayout.LayoutParams(200, 80));
         sheet.addView(new View(activity), new FrameLayout.LayoutParams(200, 80));
         content.addView(sheet, new FrameLayout.LayoutParams(500, 700));
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:pvp", sheet.getId());
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:wk7", title.getId());
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.1.4:pyf", sheet.getId());
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.1.4:wny", title.getId());
         idle();
         if (!up) park(sheet);
         return sheet;

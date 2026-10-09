@@ -1,0 +1,71 @@
+name: Sync prerelease metadata
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    if: github.event.release.prerelease == true && startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout dev
+        uses: actions/checkout@v5
+        with:
+          ref: dev
+          fetch-depth: 0
+
+      - name: Sync prerelease metadata
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          PUBLISHED_AT: ${{ github.event.release.published_at }}
+          REPO: ${{ github.repository }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          VERSION="${TAG#v}"
+          python3 - <<'PY'
+          import json
+          import os
+
+          version = os.environ['TAG'].removeprefix('v')
+          tag = os.environ['TAG']
+          published_at = os.environ['PUBLISHED_AT']
+          repo = os.environ['REPO']
+          body = os.environ.get('RELEASE_BODY', '').strip()
+
+          bundle = {
+              'created_at': published_at.rstrip('Z'),
+              'description': body or f'# [{version}] Prerelease',
+              'download_url': f'https://github.com/{repo}/releases/download/{tag}/patches-{version}.mpp',
+              'signature_download_url': '',
+              'version': version,
+          }
+
+          with open('patches-bundle.json', 'w', encoding='utf-8') as f:
+              json.dump(bundle, f, indent=2)
+              f.write('\n')
+          PY
+
+          curl -fsSL "https://raw.githubusercontent.com/${REPO}/${TAG}/patches-list.json" -o patches-list.json
+          awk -F '=' -v v="${VERSION}" '
+            $1 ~ /^[[:space:]]*version[[:space:]]*$/ { print "version = " v; found=1; next }
+            { print }
+            END { if (!found) print "version = " v }
+          ' gradle.properties > gradle.properties.tmp
+          mv gradle.properties.tmp gradle.properties
+
+      - name: Commit prerelease metadata
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add patches-bundle.json patches-list.json gradle.properties
+          if git diff --cached --quiet; then
+            echo 'No prerelease metadata changes.'
+            exit 0
+          fi
+          git commit -m "chore: sync prerelease metadata for ${{ github.event.release.tag_name }}"
+          git push origin HEAD:dev

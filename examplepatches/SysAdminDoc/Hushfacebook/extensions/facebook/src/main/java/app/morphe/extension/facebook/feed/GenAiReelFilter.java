@@ -91,6 +91,12 @@ public final class GenAiReelFilter {
     static final String PAGES_ROUTE = "GenAI reel pages";
     static final String SECTIONS_ROUTE = "GenAI reel sections";
     static final String ITEMS_ROUTE = "GenAI reel flag";
+    /**
+     * The collection's listener walk after each insert. It is handed the page as Facebook passed it
+     * in, before the insert's own filter, so it counts apart and its items aren't counted again on
+     * {@link #ITEMS_ROUTE}. See {@code ReelsAdFilter} for why the inserts carry the filter.
+     */
+    static final String ANNOUNCED_ROUTE = "GenAI reel announcements";
 
     /** What reading one item found. Only the two flagged kinds hide. */
     static final String FLAGGED = "flag true";
@@ -145,6 +151,8 @@ public final class GenAiReelFilter {
     /**
      * Injection point, before a page of reels enters the item collection: the same items without
      * the ones Facebook's detection flagged, or the very same collection when none was. Never throws.
+     * The patch also hands it a one-item list from the collection's one-item insert, and skips the
+     * insert when the answer comes back empty.
      *
      * @param page           the page about to be added to the Reels collection.
      * @param modelClassName binary name of the reel model's class, as the patch resolved it.
@@ -153,27 +161,42 @@ public final class GenAiReelFilter {
         return withoutAiReels(page, modelClassName, PATCHED, GenAiLabel.PATCHED);
     }
 
+    /**
+     * Injection point, before the collection's listener walk after an insert: {@link #withoutAiReels},
+     * counted on {@link #ANNOUNCED_ROUTE}. Never throws.
+     */
+    public static Collection<?> withoutAnnouncedAiReels(Collection<?> page, String modelClassName) {
+        return withoutAiReels(page, modelClassName, PATCHED, GenAiLabel.PATCHED, ANNOUNCED_ROUTE);
+    }
+
     /** The page filter with the finder and the story accessor passed in, so a test can stand in for the stubs. */
     static Collection<?> withoutAiReels(Collection<?> page, String modelClassName, Finder finder,
             StoryFlag.Accessor storyAccessor) {
+        return withoutAiReels(page, modelClassName, finder, storyAccessor, PAGES_ROUTE);
+    }
+
+    static Collection<?> withoutAiReels(Collection<?> page, String modelClassName, Finder finder,
+            StoryFlag.Accessor storyAccessor, String route) {
         try {
             HookStatus.invoked(FamilyNames.AI_DETECTED_REELS);
-            FeedFilterCounters.sawList(PAGES_ROUTE, page == null ? 0 : page.size());
+            FeedFilterCounters.sawList(route, page == null ? 0 : page.size());
             if (page == null || page.isEmpty() || !switchedOn()) return page;
 
+            boolean countItems = PAGES_ROUTE.equals(route);
             Readers readers = readers(modelClassName);
             ArrayList<Object> kept = new ArrayList<>(page.size());
             int dropped = 0;
             for (Object item : page) {
-                if (hides(item, readers, finder, storyAccessor)) dropped++;
+                if (countItems ? hides(item, readers, finder, storyAccessor) : flagged(read(item, readers, finder, storyAccessor))) dropped++;
                 else kept.add(item);
             }
             if (dropped == 0) return page;
 
-            FeedFilterCounters.removed(PAGES_ROUTE, dropped, DETECTED_FLAG);
+            FeedFilterCounters.removed(route, dropped, DETECTED_FLAG);
             final int droppedItems = dropped;
+            final String where = countItems ? "dropped " : "announcement dropped ";
             Logger.diagnosticDebug(DiagnosticCategory.FEED_AND_NAVIGATION, SOURCE,
-                    () -> "dropped " + droppedItems + " of " + page.size());
+                    () -> where + droppedItems + " of " + page.size());
             return kept;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.AI_DETECTED_REELS, "reel page filter", failure);
@@ -239,10 +262,15 @@ public final class GenAiReelFilter {
         String why = read(item, readers, finder, storyAccessor);
         FeedFilterCounters.sawList(ITEMS_ROUTE, 1);
         FeedFilterCounters.sawKind(ITEMS_ROUTE, why);
-        if (!FLAGGED.equals(why) && !STORY_FLAGGED.equals(why) && !TREE_FLAGGED.equals(why)) return false;
+        if (!flagged(why)) return false;
         FeedFilterCounters.removed(ITEMS_ROUTE, 1, why);
         Logger.printDebug(() -> "GenAI reels: hid a reel (" + why + ")");
         return true;
+    }
+
+    /** Whether a read's kind is one of the three that hide. */
+    private static boolean flagged(String why) {
+        return FLAGGED.equals(why) || STORY_FLAGGED.equals(why) || TREE_FLAGGED.equals(why);
     }
 
     /** What the rule makes of one item, as a kind for the report. Never throws. */

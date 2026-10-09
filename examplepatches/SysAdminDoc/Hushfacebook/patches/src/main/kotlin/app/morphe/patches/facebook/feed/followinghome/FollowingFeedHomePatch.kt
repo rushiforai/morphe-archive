@@ -6,7 +6,8 @@
  * Modified for Hushfacebook (Facebook), 2026: only the Following feed swap of its
  * fix/following-feed-home branch is taken. The builder is found by a literal it keeps instead of
  * 573's obfuscated names, the feed types by the names they keep, and the swap is the extension's,
- * behind a switch.
+ * behind a switch. Home is swapped to the most recent feed instead of the Following feed, whose
+ * style Facebook's servers no longer honour for every account.
  */
 package app.morphe.patches.facebook.feed.followinghome
 
@@ -41,28 +42,34 @@ internal const val HOME_FEED_TYPE_CLASS = "Lcom/facebook/api/feedtype/FeedType;"
 /** The name Home's ranked feed type keeps, the one the extension swaps. */
 internal const val HOME_FEED = "top_stories"
 
-/** The name the Following feed's type keeps, the one it's swapped for. */
-internal const val FOLLOWING_FEED = "following_feed"
+/** The name the most recent feed's type keeps, the one it's swapped for. */
+internal const val MOST_RECENT_FEED = "most_recent"
+
+/** The feed style the builder gives [MOST_RECENT_FEED], the one the Feeds tab's All gets. */
+internal const val MOST_RECENT_STYLE = "MOST_RECENT_FEED_DEFAULT"
 
 internal const val FOLLOWING_HOME = "$EXTENSION_PACKAGE/feed/FollowingHome;"
 internal const val FEED_TYPE_ASKED = "$FOLLOWING_HOME->feedType(Ljava/lang/Object;)Ljava/lang/Object;"
 
 /**
- * Has Home ask for Facebook's Following feed instead of the ranked one.
+ * Has Home ask for the newest posts from the friends, groups and Pages you follow, the feed the
+ * Feeds tab's All shows, instead of the ranked one.
  *
  * Facebook's NewsFeedQueryParamsPreparer builds every news feed request's parameters, and one of
- * its static helpers, handed the feed type second, sets the query's feed style from it: FOLLOWING_FEED
- * for the Following feed's type, MOST_RECENT_FEED_DEFAULT, FAVORITES_FEED and the rest for the Feeds
- * tab's, and Home's own ordering for Home's. It's the one method that opens the
- * "Companion.setPagedNewsfeedParams" trace section (581 `LX/1bb;->A02`, 580 `LX/1SU;->A02`, 577
- * `LX/3JX;->A02`), and the preparer's prepare method is its one caller. Every later read of the feed
- * type in it, the call it ends on included, reads the parameter, so a feed type put there first is
- * the one the whole request is built for.
+ * its static helpers, handed the feed type second, sets the query's feed style from it:
+ * MOST_RECENT_FEED_DEFAULT for the most recent feed types, FAVORITES_FEED and the rest for the
+ * Feeds tab's other filters, FOLLOWING_FEED for the Following feed's type, and Home's own ordering
+ * for Home's. It's the one method that opens the "Companion.setPagedNewsfeedParams" trace section
+ * (581 `LX/1bb;->A02`), and the preparer's prepare method is its one caller. Every later read of
+ * the feed type in it, the call it ends on included, reads the parameter, so a feed type put there
+ * first is the one the whole request is built for.
  *
  * The patch hands the parameter to the extension's FollowingHome first thing and keeps its answer
- * there. While the switch is on, Home's feed type ("top_stories") comes back as the Following
- * feed's ("following_feed"), both public constants of FeedType the extension finds by those names.
- * Every other feed type comes back as it was.
+ * there. While the switch is on, Home's feed type ("top_stories") comes back as the most recent
+ * feed's ("most_recent"), both public constants of FeedType the extension finds by those names.
+ * Every other feed type comes back as it was. Froggo's swap answered the Following feed's type
+ * ("following_feed"), but on the S22 test account (581, 2026-10-08) Facebook answered that request
+ * with the ranked feed, suggestions and all.
  *
  * In the default selection with its switch off: it only acts once the switch is turned on.
  */
@@ -70,8 +77,9 @@ internal const val FEED_TYPE_ASKED = "$FOLLOWING_HOME->feedType(Ljava/lang/Objec
 val followingFeedHomePatch = bytecodePatch(
     // The README table check reads this literal; PATCH carries the same text for the messages.
     name = "Following feed on Home",
-    description = "Has Home load Facebook's Following feed instead of the ranked one. The Feeds tab's filters stay " +
-        "as they are. Its switch starts off, under Opening Facebook.",
+    description = "Has Home load the newest posts from the friends, groups and Pages you follow, like the Feeds tab's " +
+        "All, instead of the ranked feed. The Feeds tab's filters stay as they are. Its switch starts off, under " +
+        "Opening Facebook.",
     default = true,
 ) {
     category("Feed")
@@ -119,7 +127,7 @@ internal fun newsFeedParams(holders: List<ClassDef>): Method {
 internal fun feedTypeRefusal(feedTypes: ClassDef): String? {
     val initializer = feedTypes.methods.singleOrNull { it.name == "<clinit>" }
         ?: return "$HOME_FEED_TYPE_CLASS has no static initializer"
-    listOf(HOME_FEED, FOLLOWING_FEED).firstOrNull { !holdsString(initializer, it) }
+    listOf(HOME_FEED, MOST_RECENT_FEED).firstOrNull { !holdsString(initializer, it) }
         ?.let { return "$HOME_FEED_TYPE_CLASS names no \"$it\" feed type" }
     val hidden = feedTypes.staticFields.filter { it.type == HOME_FEED_TYPE_CLASS }.filterNot {
         AccessFlags.PUBLIC.isSet(it.accessFlags) && AccessFlags.FINAL.isSet(it.accessFlags)

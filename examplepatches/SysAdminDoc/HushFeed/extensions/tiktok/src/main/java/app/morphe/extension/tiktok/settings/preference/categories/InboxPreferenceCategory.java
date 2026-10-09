@@ -79,6 +79,12 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Hide Bulletin board",
+                    "The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.",
+                    Settings.HIDE_INBOX_BULLETIN_BOARDS
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Hide message requests",
                     "The Message requests row leaves the Inbox. Requests keep arriving and wait there until you turn this off.",
                     Settings.HIDE_INBOX_MESSAGE_REQUESTS
@@ -108,6 +114,14 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                     "The activity status control leaves the Inbox header. Whether others see you as active is unchanged.",
                     Settings.HIDE_INBOX_ACTIVITY_STATUS
             ));
+            if (SettingsStatus.groupChatBannerEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide the group chat prompt",
+                        "The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.",
+                        Settings.HIDE_INBOX_GROUP_CHAT_BANNER
+                ));
+            }
             addPreference(new InputTextPreference(
                     context,
                     "Hide rows by title",
@@ -154,6 +168,20 @@ public final class InboxPreferenceCategory extends ConditionalPreferenceCategory
                     "TikTok's suggested reply cells and their intro banner stop showing in a "
                             + "chat. Messages you type or receive are untouched.",
                     Settings.HIDE_CHAT_AI_REPLIES
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Turn off double tap to react",
+                    "A double tap on a message no longer adds a heart to it. A single tap and "
+                            + "a long press work as before.",
+                    Settings.TURN_OFF_CHAT_DOUBLE_TAP
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Turn off swipe to reply",
+                    "Swiping a message sideways no longer starts a reply to it. Taps and long "
+                            + "presses work as before.",
+                    Settings.TURN_OFF_CHAT_SWIPE_REPLY
             ));
         }
         if (SettingsStatus.notificationControlsEnabled || SettingsStatus.expandActivityListEnabled

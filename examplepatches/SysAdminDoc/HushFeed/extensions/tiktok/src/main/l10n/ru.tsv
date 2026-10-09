@@ -1775,11 +1775,13 @@ Galaxy Store	Galaxy Store
 AppGallery	AppGallery
 Amazon Appstore	Amazon Appstore
 Swipe for brightness and volume	Свайп для яркости и громкости
-Drag up or down along the left edge of a video to change the screen brightness, or along the right edge to change the volume. Swiping anywhere else still scrolls the feed.	Проведите вверх или вниз у левого края видео, чтобы изменить яркость экрана, или у правого края, чтобы изменить громкость. В любом другом месте лента листается как обычно.
+Drag up or down along the left or right edge of a video to change what that edge strip is set to below. By default that's the screen brightness on the left and the volume on the right. Swiping anywhere else still scrolls the feed.	Проведите вверх или вниз у левого или правого края видео, чтобы изменить то, что выбрано для этой боковой полосы ниже. По умолчанию слева это яркость экрана, а справа громкость. В любом другом месте лента листается как обычно.
 Edge strip width	Ширина боковых полос
 How wide each edge strip is, as a percent of the screen width.	Ширина каждой боковой полосы в процентах от ширины экрана.
 Brightness	Яркость
 Volume	Громкость
+Left edge strip	Левая боковая полоса
+Right edge strip	Правая боковая полоса
 Stop search results playing on their own	Не воспроизводить результаты поиска сами по себе
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	Видео в результатах поиска показывают обложку и запускаются, когда вы их открываете. Лента и открытые вами видео воспроизводятся как обычно.
 In a chat	В чате
@@ -1998,4 +2000,32 @@ When Copy link gives you a short vt.tiktok.com or vm.tiktok.com link, Hushfeed o
 Full link copied	Полная ссылка скопирована
 Mark saved videos	Отмечать сохранённые видео
 Put a ✓ before the view count on profile grids, and before the time on a feed video's creator row, for videos Hushfeed saved here. The feed's mark shows wherever Always show publish date shows the time. It reads the record Check for already-saved videos keeps, so it works only while that switch is on. Photo posts aren't marked, and a video you've deleted since keeps its mark until you use Forget saved videos.	Ставит ✓ перед числом просмотров в сетке профиля и перед временем в строке автора видео в ленте у видео, которые Hushfeed сохранил здесь. В ленте отметка видна там, где «Всегда показывать дату публикации» показывает время. Берёт данные из записи, которую ведёт «Проверять уже сохранённые видео», поэтому работает, только пока этот переключатель включён. Фотопосты не отмечаются, а удалённое вами видео остаётся отмеченным, пока вы не нажмёте «Забыть сохранённые видео».
-Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in sends your real region, apart from a few values TikTok saved as it started, which keep the preset. Your IP address and your account's own rules still apply.	Также отправлять предустановку вместо региона, который серверы TikTok сохранили на этом телефоне, и кода страны сети, которые уходят с каждым запросом. При входе в аккаунт отправляется ваш настоящий регион, кроме нескольких значений, сохранённых TikTok при запуске, в которых остаётся предустановка. Ваш IP-адрес и правила вашего аккаунта по-прежнему действуют.
+Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.	Также отправлять предустановку вместо региона, который серверы TikTok сохранили на этом телефоне, и кода страны сети, которые уходят с каждым запросом. При входе в аккаунт по-прежнему отправляется ваш настоящий регион. Ваш IP-адрес и правила вашего аккаунта по-прежнему действуют.
+Turn off double tap to react	Отключить двойное касание для реакции
+A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.	Двойное касание сообщения больше не ставит на него сердечко. Одиночное касание и долгое нажатие работают как раньше.
+Turn off swipe to reply	Отключить свайп для ответа
+Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.	Свайп по сообщению в сторону больше не начинает ответ на него. Касания и долгие нажатия работают как раньше.
+Hide the bottom tab names	Скрыть названия нижних вкладок
+The words under the bottom tab icons go away. The icons stay, and each tab opens what it always did.	Слова под значками нижних вкладок исчезают. Значки остаются, и каждая вкладка открывает то же, что и раньше.
+Home tab name	Название вкладки «Главная»
+Friends tab name	Название вкладки «Друзья»
+Inbox tab name	Название вкладки «Входящие»
+Profile tab name	Название вкладки «Профиль»
+Shop tab name	Название вкладки «Магазин»
+A name of your own under this tab's icon. Leave it empty to keep TikTok's.	Ваше собственное название под значком этой вкладки. Оставьте пустым, чтобы сохранить название TikTok.
+Hide TikTok's wind-down screens	Скрывать экраны отдыха TikTok
+Stop the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. It only works on an account TikTok knows is an adult's. A teen's account keeps them, and so does one Family Pairing links to a parent. With Leave when TikTok says time is up on, the daily limit screen still comes up so that switch can act on it.	Убирает экран отдыха перед сном, дыхательное упражнение и экран дневного лимита, которые TikTok показывает поверх ленты. Работает только на аккаунте, который TikTok считает аккаунтом взрослого. На аккаунте подростка они остаются, как и на аккаунте, который Семейная синхронизация связывает с родителем. Если включено Выходить, когда TikTok сообщает об окончании времени, экран дневного лимита всё равно появляется, чтобы этот переключатель мог сработать.
+Hide Footnotes	Скрывать Footnotes
+Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	Скрывать баннер Footnotes, который TikTok показывает на видео с прикреплённой заметкой. Само видео и комментарии не меняются.
+Hide Bulletin board	Скрывать Bulletin board
+The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.	Строки Bulletin board, которые TikTok добавляет во Входящие, исчезают из списка. Чаты и остальные строки остаются на месте.
+Hide the group chat prompt	Скрывать приглашение в групповой чат
+The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.	Баннер вверху Входящих с предложением создать групповой чат больше не показывается. Группы, в которых вы уже состоите, не меняются.
+Skip TikTok's setup screens	Пропускать экраны настройки TikTok
+Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show.	Не показывать выбор интересов, вопросы о языке и поле, авторов для подписки, подсказку о свайпе вверх и страницу уведомлений TikTok, когда TikTok запускает настройку. Экраны согласия, возраста и входа по-прежнему показываются.
+Hide unverified content notices	Скрывать пометки о непроверенном контенте
+Hide the Check sources banner TikTok puts on videos it marks as unverified, and the warnings it shows when you share one.	Скрывать баннер «Проверьте источники», который TikTok ставит на видео с пометкой о непроверенном контенте, и предупреждения при попытке поделиться таким видео.
+Keep offline videos until you delete them	Хранить офлайн-видео, пока вы их не удалите
+TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. Delete them there when you want a fresh set. TikTok can still clear ones you've watched when your phone runs low on space.	TikTok выбрасывает видео, сохранённые для офлайн-просмотра, через заданное время, иногда всего через два дня, независимо от того, смотрели вы их или нет. С этой настройкой они остаются, пока вы не удалите их в настройках офлайн-видео TikTok. Удалите их там, когда захотите новую подборку. Просмотренные TikTok всё равно может удалить, когда на телефоне заканчивается место.
+Hide Thoughts on profiles	Скрывать Thoughts в профилях
+Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	Скрывать облачко Thoughts, которое TikTok показывает над фото профиля, а в вашем профиле и предложение поделиться им. Перезапустите TikTok, чтобы это применить.

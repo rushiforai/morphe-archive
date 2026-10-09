@@ -16,6 +16,7 @@ val removeAfterShipAccountPageLinksPatch = bytecodePatch(
     description = "Removes the About the app, Share the app, and Feedback links from the Account screen.",
     default = true
 ) {
+    category("Interface")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     dependsOn(bypassSignatureCheckResourcePatch)
 

@@ -75,6 +75,7 @@ import app.hushgram.extension.instagram.media.TapToPlayScope;
 import app.hushgram.extension.instagram.media.ResumePlayback;
 import app.hushgram.extension.instagram.misc.OverrideExchange;
 import app.hushgram.extension.instagram.feed.LikeAnimation;
+import app.hushgram.extension.instagram.misc.FlagNames;
 import app.hushgram.extension.instagram.misc.MediaCache;
 import app.hushgram.extension.instagram.misc.NotificationGroups;
 import app.hushgram.extension.instagram.misc.OverrideImport;
@@ -139,10 +140,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     private static final int EXPORT_OVERRIDES = 0x4849;
     private static final int VALIDATE_OVERRIDES = 0x484a;
     private static final int IMPORT_OVERRIDES = 0x484b;
-    /** Restore, Discard and Reset need no document, so they never become a document request. */
-    private static final int RESTORE_OVERRIDES = 0, DISCARD_OVERRIDES = -1, RESET_OVERRIDES = -2;
+    private static final int IMPORT_FLAG_NAMES = 0x484c;
+    /** Restore, Discard, Reset and Remove flag names need no document, so they never become a document request. */
+    private static final int RESTORE_OVERRIDES = 0, DISCARD_OVERRIDES = -1, RESET_OVERRIDES = -2, REMOVE_FLAG_NAMES = -3;
     /** Framework fragment callbacks run on the main thread. Never reuse a code across pages. */
-    private static int documentSequence = IMPORT_OVERRIDES;
+    private static int documentSequence = IMPORT_FLAG_NAMES;
     private int documentRequest;
     private int documentCode;
     @Nullable private String configurationExportToken;
@@ -165,6 +167,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
     @Nullable private SwitchPreference ghostMode;
     private List<BooleanSetting> ghostSwitches = new ArrayList<>();
     @Nullable static volatile String overrideImportFeedback, overrideRestoreFeedback, overrideDiscardFeedback, overrideResetFeedback;
+    /** Import and Remove flag names, which only change HushGram's own copy of the names. */
+    @Nullable private Row importFlagNames, removeFlagNames;
+    @Nullable static volatile String flagNamesFeedback;
 
     private String searchQuery = "";
     @Nullable private SearchRow search;
@@ -326,6 +331,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         Set<PatchFamily> build = PatchFamily.inThisBuild();
         PreferenceCategory entry = category(screen, L10n.t("Settings entry"));
         entry.addPreference(navigationRow(context));
+        entry.addPreference(toggle(context, Settings.HIDE_MENU_ROW, L10n.t("Hide the HushGram row in Instagram's menu"),
+                L10n.t("While a tab long press opens HushGram, Instagram's Settings and activity screen leaves out "
+                        + "the HushGram row. Turn the long press off and the row comes back.")));
         entry.addPreference(toggle(context, Settings.CATEGORY_PAGES, L10n.t("Open categories as pages"),
                 L10n.t("Settings shows a list of its categories, and a tap opens one on its own page. "
                         + "Search still looks through all of them.")));
@@ -474,6 +482,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                             + "The menu's other options stay.")));
             metaAi.addPreference(toggle(context, Settings.HIDE_ASK_META_AI, L10n.t("Hide Ask Meta AI in About this reel"),
                     L10n.t("About this reel keeps its summary and Sources without the Ask Meta AI box under them.")));
+            metaAi.addPreference(toggle(context, Settings.HIDE_META_AI_SHARE_TARGET, L10n.t("Hide Meta AI in the share sheet"),
+                    L10n.t("Takes Meta AI's target out of the row at the bottom of the share sheet. Some accounts see it as Muse.")));
         }
 
         if (build.contains(PatchFamily.EXPLORE_GRID) || build.contains(PatchFamily.RECENT_SEARCHES)) {
@@ -597,6 +607,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("A double tap on a reel doesn't like it. Turn this off to keep double tap to like on reels.")));
             reels.add(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_COMMENTS, L10n.t("On comments"),
                     L10n.t("A double tap on a comment doesn't like it. Starts off, so comments keep double tap to like until you turn this on.")));
+            reels.add(toggle(context, Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_MESSAGES, L10n.t("On messages"),
+                    L10n.t("A double tap on a message in a chat doesn't react to it. Starts off. A long press still shows the reactions.")));
         }
         if (build.contains(PatchFamily.LIKE_ANIMATION)) {
             reels.add(toggle(context, Settings.CHANGE_LIKE_ANIMATION, L10n.t("Change the like animation"),
@@ -772,6 +784,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             if (build.contains(PatchFamily.COMMENT_COPY)) {
                 comments.addPreference(toggle(context, Settings.COPY_COMMENTS, L10n.t("Copy comment"),
                         L10n.t("Adds Copy to a selected comment's menu. Copies the original text, including line breaks.")));
+                comments.addPreference(toggle(context, Settings.COPY_COMMENT_AUTHORS, L10n.t("Copy the commenter's username"),
+                        L10n.t("Adds Copy username to a selected comment's menu, for the account that wrote it.")));
             }
             if (build.contains(PatchFamily.COMMENT_PHOTO)) {
                 comments.addPreference(toggle(context, Settings.SAVE_COMMENT_PHOTOS, L10n.t("Save comment photo"),
@@ -875,6 +889,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_VIDEOS, L10n.t("Download feed videos"),
                         L10n.t("Adds Download to the menu of a post in your feed with a video. Uses the quality below. "
                                 + "Off or paused, Instagram's own menu returns.")));
+                downloads.addPreference(toggle(context, Settings.DOWNLOAD_FEED_COVER, L10n.t("Download video covers"),
+                        L10n.t("Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. "
+                                + "It saves the still picture shown before the video plays, at its largest size.")));
                 downloads.addPreference(toggle(context, Settings.DOWNLOAD_PHOTOS, L10n.t("Download feed photos"),
                         L10n.t("The same Download on a photo post, and on a carousel showing a photo. Saves the largest "
                                 + "size Instagram has.")));
@@ -944,6 +961,25 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
                     L10n.t("Opens Instagram's native flag editor. A wrong override can break parts of Instagram."),
                     app.hushgram.extension.instagram.misc.DeveloperOptions::openOverrides,
                     L10n.t("MetaConfig is unavailable on this screen. Open HushGram settings from Home while signed in.")));
+            // The names go through the patch's hook on MetaConfig's list, which a build goes without
+            // when Instagram moved it.
+            if (PatchFamily.flagNamesInBuild()) {
+                importFlagNames = new Row(context);
+                importFlagNames.setKey("hushgram_import_flag_names");
+                importFlagNames.setPersistent(false);
+                importFlagNames.setTitle(L10n.t("Import flag names"));
+                importFlagNames.setSummary(L10n.t("Pick a list of MetaConfig names, such as an id_name_mapping.json file, "
+                        + "and MetaConfig shows those names in place of numbers. Searching by number still works."));
+                importFlagNames.setOnPreferenceClickListener(row -> { pickOverrides(IMPORT_FLAG_NAMES); return true; });
+                developer.addPreference(importFlagNames);
+                removeFlagNames = new Row(context);
+                removeFlagNames.setKey("hushgram_remove_flag_names");
+                removeFlagNames.setPersistent(false);
+                removeFlagNames.setTitle(L10n.t("Remove flag names"));
+                removeFlagNames.setSummary(L10n.t("Forget the imported names, so MetaConfig shows Instagram's own labels again."));
+                removeFlagNames.setOnPreferenceClickListener(row -> { flagNames(null, REMOVE_FLAG_NAMES); return true; });
+                developer.addPreference(removeFlagNames);
+            }
             developer.addPreference(nativeScreenRow(context, "hushgram_open_whitehat",
                     L10n.t("Open Whitehat settings"),
                     L10n.t("Opens Instagram's own Whitehat settings. Its switch lets Instagram trust the certificates "
@@ -1439,6 +1475,11 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
             resetOverrides.setEnabled(!busy);
             if (overrideResetFeedback != null) resetOverrides.setSummary(overrideResetFeedback);
         }
+        if (importFlagNames != null) {
+            importFlagNames.setEnabled(!busy);
+            if (flagNamesFeedback != null) importFlagNames.setSummary(flagNamesFeedback);
+        }
+        if (removeFlagNames != null) removeFlagNames.setEnabled(!busy);
         filterSettings();
     }
 
@@ -1480,14 +1521,17 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         documentCode = ++documentSequence;
         showConfiguration();
         boolean exporting = request == EXPORT_OVERRIDES;
+        boolean names = request == IMPORT_FLAG_NAMES;
+        // A name list can be HushGram's plain text as well as JSON, and some providers don't type either.
         Intent picker = new Intent(exporting ? Intent.ACTION_CREATE_DOCUMENT : Intent.ACTION_OPEN_DOCUMENT)
-                .addCategory(Intent.CATEGORY_OPENABLE).setType("application/json");
+                .addCategory(Intent.CATEGORY_OPENABLE).setType(names ? "*/*" : "application/json");
         if (exporting) picker.putExtra(Intent.EXTRA_TITLE, "HushGram-overrides.json");
         try { startActivityForResult(picker, documentCode); }
         catch (ActivityNotFoundException | SecurityException failure) {
             documentRequest = 0;
             documentCode = 0;
-            overrideFeedback(request, L10n.t("No document picker is available. Overrides haven't changed."));
+            overrideFeedback(request, names ? L10n.t("No document picker is available. Your settings haven't changed.")
+                    : L10n.t("No document picker is available. Overrides haven't changed."));
             showConfiguration();
         }
     }
@@ -1498,7 +1542,8 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         if (code != documentCode) return;
         int request = documentRequest;
         boolean overrides = request == EXPORT_OVERRIDES || request == VALIDATE_OVERRIDES || request == IMPORT_OVERRIDES;
-        if (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION && !overrides) return;
+        boolean names = request == IMPORT_FLAG_NAMES;
+        if (request != EXPORT_CONFIGURATION && request != IMPORT_CONFIGURATION && !overrides && !names) return;
         documentRequest = 0;
         documentCode = 0;
         if (request == EXPORT_CONFIGURATION) {
@@ -1516,7 +1561,9 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         Uri uri = data == null ? null : data.getData();
         if (uri == null || !"content".equals(uri.getScheme())) {
-            if (overrides) {
+            if (names) {
+                overrideFeedback(request, L10n.t("Couldn't read flag names from that file. Nothing changed."));
+            } else if (overrides) {
                 overrideFeedback(request, L10n.t("Couldn't use that overrides document. Native overrides haven't changed."));
             } else {
                 if (request == EXPORT_CONFIGURATION) ExportStatus.CONFIGURATION.finish(configurationExportToken,
@@ -1528,6 +1575,10 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
         if (overrides) {
             exchangeOverrides(uri, request);
+            return;
+        }
+        if (names) {
+            flagNames(uri, request);
             return;
         }
         if (request == IMPORT_CONFIGURATION) changeConfiguration(uri, 0);
@@ -1628,6 +1679,50 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         }
     }
 
+    /**
+     * Import flag names reads the picked list into HushGram's own copy, and Remove forgets that copy.
+     * Neither touches Instagram's overrides, its schema or anything it sends. A file that isn't a
+     * name list, or names nothing, changes nothing and says so in one line.
+     */
+    private void flagNames(@Nullable Uri uri, int request) {
+        boolean removing = request == REMOVE_FLAG_NAMES;
+        if (removing && (documentRequest != 0 || changingConfiguration || changingOverrides || ExportStatus.CONFIGURATION.active())) return;
+        Context context = getContext();
+        if (context == null || (!removing && uri == null)) { showConfiguration(); return; }
+        changingOverrides = true;
+        showConfiguration();
+        if (!Utils.runOnBackgroundThread(() -> {
+            try {
+                if (removing) {
+                    overrideFeedback(request, FlagNames.clear(context)
+                            ? L10n.t("Flag names removed. Open MetaConfig again to see Instagram's own labels.")
+                            : L10n.t("There are no imported flag names to remove."));
+                } else {
+                    byte[] bytes;
+                    try (java.io.InputStream input = context.getContentResolver().openInputStream(uri)) {
+                        bytes = FlagNames.read(input);
+                    }
+                    FlagNames.Names names = FlagNames.importNames(context, bytes);
+                    String imported = L10n.f("Flag names imported: %1$d. Open MetaConfig again to see them.", names.size());
+                    overrideFeedback(request, names.leftOut == 0 ? imported : imported + " " + L10n.f(
+                            "Entries left out because they repeat or don't fit: %1$d.", names.leftOut));
+                }
+            } catch (FlagNames.Empty failure) {
+                overrideFeedback(request, L10n.t("That file has no flag names in it. Nothing changed."));
+            } catch (FlagNames.Unreadable failure) {
+                overrideFeedback(request, L10n.t("Couldn't read flag names from that file. Nothing changed."));
+            } catch (Exception failure) {
+                Logger.printInfo(() -> "Flag names operation failed", failure);
+                overrideFeedback(request, removing ? L10n.t("Couldn't remove the flag names. Try again.")
+                        : L10n.t("Couldn't save the flag names. Nothing changed."));
+            } finally { configurationFinished(); }
+        })) {
+            changingOverrides = false;
+            overrideFeedback(request, L10n.t("Couldn't start the settings operation. Try again."));
+            showConfiguration();
+        }
+    }
+
     private static String resetOutcome(OverrideImport.Result result) {
         if (result.outcome == OverrideImport.Outcome.UNCHANGED) {
             return L10n.t("There are no overrides to reset. Nothing changed.");
@@ -1668,6 +1763,7 @@ public final class HushgramPreferenceFragment extends AbstractPreferenceFragment
         else if (request == RESTORE_OVERRIDES) overrideRestoreFeedback = message;
         else if (request == DISCARD_OVERRIDES) overrideDiscardFeedback = message;
         else if (request == RESET_OVERRIDES) overrideResetFeedback = message;
+        else if (request == IMPORT_FLAG_NAMES || request == REMOVE_FLAG_NAMES) flagNamesFeedback = message;
         else overrideExportFeedback = message;
         Utils.showToastLong(message);
         Utils.runOnMainThread(this::showConfiguration);

@@ -15,6 +15,7 @@ val unlockCustomAppIconsPatch = rawResourcePatch(
     description = "Enables custom launcher app icons (Arctic, Peach, Glass, Rainbow, Sand, Classic) without requiring a Sezzle Premium subscription.",
     default = true
 ) {
+    category("Customization")
     compatibleWith(COMPATIBILITY_SEZZLE)
 
     execute {

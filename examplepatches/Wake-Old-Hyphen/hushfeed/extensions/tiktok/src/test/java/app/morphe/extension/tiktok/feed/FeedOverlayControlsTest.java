@@ -7,6 +7,8 @@ import android.app.Activity;
 import android.os.Looper;
 import android.view.View;
 import android.widget.FrameLayout;
+import app.morphe.extension.shared.diagnostics.HookStatus;
+import app.morphe.extension.shared.settings.PausedProcess;
 import app.morphe.extension.tiktok.SettingsContextRule;
 import app.morphe.extension.tiktok.settings.Settings;
 import org.junit.After;
@@ -50,6 +52,37 @@ public class FeedOverlayControlsTest {
             assertTrue(FeedOverlayControls.shouldHideReportButton());
         } finally {
             Settings.HIDE_FEED_REPORT_BUTTON.resetToDefault();
+        }
+    }
+
+    /**
+     * The Footnotes banner's gate is closed only by its own switch, is left to TikTok while
+     * Hushfeed is paused, and says it ran so the build report can tell a bound hook from a
+     * missing one.
+     */
+    @Test public void theFootnotesGateIsClosedOnlyByItsOwnSwitchAndHonoursPause() {
+        try {
+            assertEquals(Boolean.FALSE, Settings.HIDE_FOOTNOTES.defaultValue);
+            Settings.HIDE_FEED_REPORT_BUTTON.save(true);
+            Settings.HIDE_FEED_SURVEYS.save(true);
+            assertFalse("another overlay switch closed the Footnotes gate",
+                    FeedOverlayControls.shouldHideFootnotes());
+            Settings.HIDE_FEED_REPORT_BUTTON.save(false);
+            Settings.HIDE_FEED_SURVEYS.save(false);
+            Settings.HIDE_FOOTNOTES.save(true);
+            assertTrue(FeedOverlayControls.shouldHideFootnotes());
+            assertFalse("the Footnotes switch closed the Report gate",
+                    FeedOverlayControls.shouldHideReportButton());
+            PausedProcess.set(true);
+            assertFalse("a paused Hushfeed still closed the gate", FeedOverlayControls.shouldHideFootnotes());
+            PausedProcess.set(false);
+            assertTrue(String.join(" ", HookStatus.report()).contains("footnote banner"));
+        } finally {
+            PausedProcess.set(false);
+            HookStatus.clear();
+            Settings.HIDE_FOOTNOTES.resetToDefault();
+            Settings.HIDE_FEED_REPORT_BUTTON.resetToDefault();
+            Settings.HIDE_FEED_SURVEYS.resetToDefault();
         }
     }
 

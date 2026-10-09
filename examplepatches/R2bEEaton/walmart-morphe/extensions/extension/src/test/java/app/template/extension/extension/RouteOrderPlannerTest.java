@@ -57,6 +57,27 @@ public class RouteOrderPlannerTest {
     }
 
     @Test
+    public void finishesOneGroupBeforeLeavingItWhenGroupsAreKnown() {
+        // Straight-line distance alone interleaves: produce, frozen (in between), produce.
+        List<RouteOrderPlanner.Entrance> entrances = Arrays.asList(
+                new RouteOrderPlanner.Entrance("main", new RouteOrderPlanner.Point(0, 0)));
+        RouteOrderPlanner.Result plain = RouteOrderPlanner.optimize(entrances, Arrays.asList(
+                new RouteOrderPlanner.Stop(0, new RouteOrderPlanner.Point(10, 0)),
+                new RouteOrderPlanner.Stop(1, new RouteOrderPlanner.Point(10, 10)),
+                new RouteOrderPlanner.Stop(2, new RouteOrderPlanner.Point(10, 20))));
+        assertEquals(Arrays.asList(0, 1, 2), plain.orderedOriginalIndexes);
+
+        RouteOrderPlanner.Result grouped = RouteOrderPlanner.optimize(entrances, Arrays.asList(
+                new RouteOrderPlanner.Stop(0, new RouteOrderPlanner.Point(10, 0), "AP"),
+                new RouteOrderPlanner.Stop(1, new RouteOrderPlanner.Point(10, 10), "A"),
+                new RouteOrderPlanner.Stop(2, new RouteOrderPlanner.Point(10, 20), "AP")));
+
+        assertNotNull(grouped);
+        List<Integer> order = grouped.orderedOriginalIndexes;
+        assertEquals(1, Math.abs(order.indexOf(0) - order.indexOf(2)));
+    }
+
+    @Test
     public void usesDeterministicCompleteOutputPastExactLimit() {
         List<RouteOrderPlanner.Stop> stops = new ArrayList<>();
         for (int index = 0; index <= RouteOrderPlanner.EXACT_STOP_LIMIT; index++) {

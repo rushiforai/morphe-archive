@@ -27,7 +27,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
-/** The three chat switches: the answers the hooks read, the call buttons, and the settings rows. */
+/** The chat switches: the answers the hooks read, the call buttons, the gestures and the settings rows. */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
 public class ChatDeclutterTest {
@@ -45,6 +45,8 @@ public class ChatDeclutterTest {
         Settings.HIDE_CHAT_CALL_BUTTONS.save(false);
         Settings.HIDE_CHAT_STICKER_BANNER.save(false);
         Settings.HIDE_CHAT_AI_REPLIES.save(false);
+        Settings.TURN_OFF_CHAT_DOUBLE_TAP.resetToDefault();
+        Settings.TURN_OFF_CHAT_SWIPE_REPLY.resetToDefault();
         SettingsStatus.chatDeclutterEnabled = false;
     }
 
@@ -128,6 +130,39 @@ public class ChatDeclutterTest {
         }
     }
 
+    /** The dispatcher's gesture enum, by the constant names it keeps on every declared build. */
+    private enum Gesture { SINGLE_TAP, DOUBLE_TAP, LONG_PRESS, SWIPE }
+
+    @Test public void everyGestureGoesThroughWithBothSwitchesOff() {
+        assertFalse(Settings.TURN_OFF_CHAT_DOUBLE_TAP.defaultValue);
+        assertFalse(Settings.TURN_OFF_CHAT_SWIPE_REPLY.defaultValue);
+        for (Gesture gesture : Gesture.values()) assertFalse(gesture.name(), ChatGestures.skip(gesture));
+        assertFalse(ChatGestures.skip(null));
+    }
+
+    @Test public void eachGestureSwitchStopsItsOwnGestureOnly() {
+        Settings.TURN_OFF_CHAT_DOUBLE_TAP.save(true);
+        assertTrue(ChatGestures.skip(Gesture.DOUBLE_TAP));
+        assertFalse(ChatGestures.skip(Gesture.SWIPE));
+        assertFalse(ChatGestures.skip(Gesture.SINGLE_TAP));
+        assertFalse(ChatGestures.skip(Gesture.LONG_PRESS));
+
+        Settings.TURN_OFF_CHAT_DOUBLE_TAP.save(false);
+        Settings.TURN_OFF_CHAT_SWIPE_REPLY.save(true);
+        assertTrue(ChatGestures.skip(Gesture.SWIPE));
+        assertFalse(ChatGestures.skip(Gesture.DOUBLE_TAP));
+        assertFalse(ChatGestures.skip(Gesture.SINGLE_TAP));
+        assertFalse(ChatGestures.skip(Gesture.LONG_PRESS));
+    }
+
+    @Test public void pausedEveryGestureGoesThrough() {
+        Settings.TURN_OFF_CHAT_DOUBLE_TAP.save(true);
+        Settings.TURN_OFF_CHAT_SWIPE_REPLY.save(true);
+        PausedProcess.set(true);
+        assertFalse(ChatGestures.skip(Gesture.DOUBLE_TAP));
+        assertFalse(ChatGestures.skip(Gesture.SWIPE));
+    }
+
     @Test public void aMissingButtonIsSkipped() {
         Settings.HIDE_CHAT_CALL_BUTTONS.save(true);
         ChatTitleBar.hideCallButton(null);
@@ -144,6 +179,8 @@ public class ChatDeclutterTest {
             assertNull(absent.findPreference("hide_chat_call_buttons"));
             assertNull(absent.findPreference("hide_chat_sticker_banner"));
             assertNull(absent.findPreference("hide_chat_ai_replies"));
+            assertNull(absent.findPreference("turn_off_chat_double_tap"));
+            assertNull(absent.findPreference("turn_off_chat_swipe_reply"));
 
             SettingsStatus.chatDeclutterEnabled = true;
             PreferenceScreen present = activity.getPreferenceManager().createPreferenceScreen(activity);
@@ -151,6 +188,8 @@ public class ChatDeclutterTest {
             assertNotNull(present.findPreference("hide_chat_call_buttons"));
             assertNotNull(present.findPreference("hide_chat_sticker_banner"));
             assertNotNull(present.findPreference("hide_chat_ai_replies"));
+            assertNotNull(present.findPreference("turn_off_chat_double_tap"));
+            assertNotNull(present.findPreference("turn_off_chat_swipe_reply"));
             assertTrue(InboxPreferenceCategory.isAvailable());
         }
     }

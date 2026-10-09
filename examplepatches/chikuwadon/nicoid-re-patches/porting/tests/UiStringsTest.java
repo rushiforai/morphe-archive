@@ -21,6 +21,9 @@ public final class UiStringsTest {
         check("none".equals(UiStrings.translate("none", Locale.US)), "Preference values unchanged");
         check("%s".equals(UiStrings.translate("%s", Locale.US)), "List summary placeholder unchanged");
         check(UiStrings.translate(null, Locale.US) == null, "Null is safe");
+        check("Startup screen".equals(UiStrings.translate("起動時の画面", Locale.US)), "Startup title translates");
+        check("Nico Reports".equals(UiStrings.translate("ニコレポ", Locale.US)), "Reports title translates");
+        check("顯示投稿者追蹤按鈕".equals(UiStrings.translate("投稿者のフォローボタンを表示", Locale.TAIWAN)), "Follow setting translates");
         UiStrings.selectLanguage("ja");
         check("ショート".equals(UiStrings.translate("ショート")), "App Japanese selection overrides device locale");
         UiStrings.selectLanguage("en");

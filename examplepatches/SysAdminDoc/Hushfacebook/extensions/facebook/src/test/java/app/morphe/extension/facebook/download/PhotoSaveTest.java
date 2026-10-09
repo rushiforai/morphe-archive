@@ -4,12 +4,14 @@
  */
 package app.morphe.extension.facebook.download;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import android.net.Uri;
 import android.view.MenuItem;
 
 import com.facebook.graphservice.tree.TreeJNI;
@@ -28,10 +30,14 @@ import java.util.List;
 
 import app.morphe.extension.facebook.settings.Settings;
 import app.morphe.extension.shared.SettingsContextRule;
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.shared.settings.HushfacebookPause;
 import app.morphe.extension.shared.settings.PauseForTests;
 
-/** Download any photo: the menu's answer, the image a save takes, and who saves on a tap. */
+/**
+ * Download any photo: the menu's answer, the image a save takes (the CDN's copy at the most it
+ * serves, when Facebook's modifier gives one, else the largest copy), and who saves on a tap.
+ */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
 public class PhotoSaveTest {
@@ -44,6 +50,15 @@ public class PhotoSaveTest {
             + "475148478_1134540631592283_1316146539584337463_n.jpg?stp=dst-jpg_s960x960_tt6&_nc_cat=1&oh=00_AYB&oe=66F0A1B2";
     private static final String SMALL = "https://scontent-iad3-1.xx.fbcdn.net/v/t39.30808-6/"
             + "475148478_1134540631592283_1316146539584337463_n.jpg?stp=dst-jpg_s320x320_tt6&_nc_cat=1&oh=00_AYC&oe=66F0A1B2";
+    /** An imageHigh address that names the most the CDN serves (cstp) and the size it asks for (ctp). */
+    private static final String HIGH = "https://scontent-iad3-1.xx.fbcdn.net/v/t39.30808-6/"
+            + "475148478_1134540631592283_1316146539584337463_n.jpg?stp=dst-jpg_s1080x2048_tt6&_nc_cat=1"
+            + "&cstp=mx1536x2048&ctp=s1080x1440&oh=00_AYD&oe=66F0A1B2";
+
+    /** The modifier's answer for [address] asked to fit [width] x [height]: its ctp rewritten to that. */
+    private static Uri asking(Uri address, int width, int height) {
+        return Uri.parse(address.toString().replace("ctp=s1080x1440", "ctp=s" + width + "x" + height));
+    }
 
     private final List<PostDetails> saved = new ArrayList<>();
     private int facebooksTaps;
@@ -58,6 +73,10 @@ public class PhotoSaveTest {
         // socket opens.
         MediaDownload.policyForTests = new MediaUrlPolicy(host -> new InetAddress[] { InetAddress.getByName("10.9.8.7") });
         MediaDownload.detailsForTests = saved::add;
+        // These cases run at sdk 30 but stand for a phone that reads AVIF, where the CDN's copy is
+        // asked for; the case below covers Android 11's largest copy.
+        PhotoFormat.readsAvifForTests = true;
+        HookStatus.clear();
     }
 
     @After
@@ -69,6 +88,9 @@ public class PhotoSaveTest {
         }
         MediaDownload.policyForTests = null;
         MediaDownload.detailsForTests = null;
+        PhotoSave.resizerForTests = null;
+        PhotoFormat.readsAvifForTests = null;
+        HookStatus.clear();
         PauseForTests.resume();
         Settings.DOWNLOAD_PHOTOS.resetToDefault();
     }
@@ -117,6 +139,89 @@ public class PhotoSaveTest {
         assertNull(PhotoSave.largest(photo().with("imageHigh", image(FULL, 2048, 1536)).releasedTree()));
         assertNull(PhotoSave.largest(new Object()));
         assertNull(PhotoSave.largest(null));
+    }
+
+    /** Facebook's own save asks its modifier for a bigger copy; ours asks it for the most the CDN serves. */
+    @Test
+    public void theSaveAsksFacebooksModifierForTheMostTheCdnServes() {
+        int[] asked = new int[2];
+        PhotoSave.resizerForTests = (address, width, height) -> {
+            asked[0] = width;
+            asked[1] = height;
+            return asking(address, width, height);
+        };
+        TreeJNI photo = photo().with("imageHigh", image(HIGH, 1080, 1440)).with("image", image(MEDIUM, 960, 720));
+        assertEquals(HIGH.replace("ctp=s1080x1440", "ctp=s1536x2048"), PhotoSave.saveAddress(photo));
+        assertArrayEquals("asked for the cstp's most", new int[] {1536, 2048}, asked);
+        assertTrue(HookStatus.report().toString(), HookStatus.report().toString().contains(PhotoSave.FULL_SIZE + " 1"));
+
+        TreeJNI unsized = photo().with("imageHigh", new TreeJNI().with("uri", HIGH));
+        assertEquals("with no sizes to compare, the CDN's copy goes",
+                HIGH.replace("ctp=s1080x1440", "ctp=s1536x2048"), PhotoSave.saveAddress(unsized));
+    }
+
+    /** The CDN sends its bigger copies as AVIF, and Android 11 reads none, so the largest copy goes. */
+    @Test
+    public void anAndroidThatReadsNoAvifKeepsTheLargestCopy() {
+        int[] calls = new int[1];
+        PhotoSave.resizerForTests = (address, width, height) -> {
+            calls[0]++;
+            return asking(address, width, height);
+        };
+        PhotoFormat.readsAvifForTests = false;
+        TreeJNI photo = photo().with("imageHigh", image(HIGH, 1080, 1440)).with("image", image(MEDIUM, 960, 720));
+        assertEquals(HIGH, PhotoSave.saveAddress(photo));
+        assertEquals("the modifier isn't asked", 0, calls[0]);
+        assertFalse(HookStatus.report().toString().contains(PhotoSave.FULL_SIZE));
+
+        PhotoFormat.readsAvifForTests = null;
+        assertFalse("sdk 30 is Android 11, which reads no AVIF", PhotoFormat.readsAvif());
+        assertEquals(HIGH, PhotoSave.saveAddress(photo));
+    }
+
+    @Test
+    public void theLargestCopyGoesWhenTheModifierGivesNoMore() {
+        TreeJNI photo = photo().with("imageHigh", image(HIGH, 1080, 1440)).with("image", image(MEDIUM, 960, 720));
+        assertEquals("unpatched, the stub answers nothing", HIGH, PhotoSave.saveAddress(photo));
+
+        PhotoSave.resizerForTests = (address, width, height) -> address;
+        assertEquals("the modifier changed nothing", HIGH, PhotoSave.saveAddress(photo));
+        PhotoSave.resizerForTests = (address, width, height) -> null;
+        assertEquals("the modifier answered nothing", HIGH, PhotoSave.saveAddress(photo));
+        PhotoSave.resizerForTests = (address, width, height) -> {
+            throw new IllegalStateException("no modifier");
+        };
+        assertEquals("the modifier threw", HIGH, PhotoSave.saveAddress(photo));
+
+        PhotoSave.resizerForTests = (address, width, height) -> asking(address, 720, 960);
+        TreeJNI bigCopy = photo().with("imageHigh", image(HIGH, 1080, 1440)).with("image", image(FULL, 2048, 1536));
+        assertEquals("a copy the model holds asks for more", FULL, PhotoSave.saveAddress(bigCopy));
+
+        int[] calls = new int[1];
+        PhotoSave.resizerForTests = (address, width, height) -> {
+            calls[0]++;
+            return asking(address, width, height);
+        };
+        assertEquals("an imageHigh address naming no most isn't handed over", FULL,
+                PhotoSave.saveAddress(photo().with("imageHigh", image(FULL, 2048, 1536))));
+        assertEquals(MEDIUM, PhotoSave.saveAddress(photo().with("image", image(MEDIUM, 960, 720))));
+        assertEquals(0, calls[0]);
+        assertNull(PhotoSave.saveAddress(photo()));
+        assertNull(PhotoSave.saveAddress(photo().with("imageHigh", image(HIGH, 1080, 1440)).releasedTree()));
+        assertNull(PhotoSave.saveAddress(null));
+        assertFalse("nothing counted as the CDN's copy", HookStatus.report().toString().contains(PhotoSave.FULL_SIZE));
+    }
+
+    @Test
+    public void theSizeAnAddressAsksForIsReadFromItsCtp() {
+        assertEquals(1080L * 1440, PhotoSave.askedArea(HIGH));
+        assertEquals(1536L * 2048, PhotoSave.askedArea(HIGH.replace("ctp=s1080x1440", "ctp=p1536x2048_q75")));
+        assertEquals("no ctp", 0, PhotoSave.askedArea(FULL));
+        assertEquals(0, PhotoSave.askedArea(HIGH.replace("ctp=s1080x1440", "ctp=q75")));
+        assertEquals(0, PhotoSave.askedArea("mailto:someone@example.com"));
+        assertEquals("not a CDN address", null, PhotoSave.resized("https://example.com/a.jpg"));
+        assertNull(PhotoSave.resized(null));
+        assertNull(PhotoSave.resized(""));
     }
 
     @Test

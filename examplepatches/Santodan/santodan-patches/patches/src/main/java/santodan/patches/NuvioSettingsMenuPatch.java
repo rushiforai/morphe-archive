@@ -30,10 +30,11 @@ public final class NuvioSettingsMenuPatch {
             builder.extendWith(NuvioSettingsMenuPatch::extensionStream);
             builder.execute(context -> {
                 String version = context.getPackageMetadata().getVersionName();
+                NuvioLayout.use(version);
                 if (!"com.nuvio.tv".equals(context.getPackageMetadata().getPackageName()))
                     throw NuvioAiringSeriesPatch.unsupported("Expected com.nuvio.tv");
                 // Keep beta2's existing UI contracts; beta4 introduces collapsible Layout sections.
-                if (NuvioLayout.beta4(version)) hookLayoutList(context.mutableClassDefBy("Lja/n;"));
+                if (NuvioLayout.modern(version)) hookLayoutList(context.mutableClassDefBy("Lja/n;"));
                 return Unit.INSTANCE;
             });
             return Unit.INSTANCE;
@@ -47,7 +48,7 @@ public final class NuvioSettingsMenuPatch {
         int matches = 0;
         for (int i = instructions.size() - 1; i >= 0; i--) {
             Instruction instruction = instructions.get(i);
-            if (!NuvioAiringSeriesPatch.calls(instruction, "Lja/i2;", "<init>")) continue;
+            if (!NuvioAiringSeriesPatch.calls(instruction, NuvioLayout.current("Lja/i2;"), "<init>")) continue;
             MethodReference constructor = (MethodReference) ((ReferenceInstruction) instruction).getReference();
             if (!constructor.getParameterTypes().contains("Lsa/j6;")) continue;
             int anchor = -1;

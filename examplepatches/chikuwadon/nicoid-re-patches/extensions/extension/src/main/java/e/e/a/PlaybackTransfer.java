@@ -37,6 +37,7 @@ public final class PlaybackTransfer {
                     service.getField("t0").setInt(null,position);
                     fragment.getClass().getField("V1").set(null,metadata);
                     Class.forName("e.e.a.v0").getMethod("a",Context.class,Intent.class).invoke(null,target,intent);
+                    PlaybackReturn.arm(video);
                     target.finish();
                 }catch(Exception error){log(error);}
             };

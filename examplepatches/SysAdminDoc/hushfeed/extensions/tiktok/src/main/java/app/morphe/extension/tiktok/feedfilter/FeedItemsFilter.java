@@ -1187,6 +1187,13 @@ public final class FeedItemsFilter {
                 rangeKept.add(container);
                 continue;
             }
+            // The video a link from outside TikTok opened arrives in a For You response of its
+            // own, and taking it out left TikTok's error screen in its place (#117).
+            if ((contentReason != null || rangeReason != null) && forYou && LinkedVideo.spares(
+                    source, item, initialSize, contentReason != null ? contentReason : rangeReason)) {
+                rangeKept.add(container);
+                continue;
+            }
             if (contentReason != null) {
                 if (contentReason.equals("QualityFilter") && getFilterReason(activeRangeFilters, item) == null) {
                     double distance = AdvancedFeedRules.QualityFilter.distance(item);
@@ -1237,7 +1244,8 @@ public final class FeedItemsFilter {
             // the running count.
             FeedFilterCounters.removed(FOR_YOU_DISTRIBUTION_SOURCE, dropped == null ? 0 : dropped, UNPERSONALIZED_REASON);
         }
-        // Never restore ads, blocked creators/words, seen videos, or other hard rejects.
+        // Never restore ads, blocked creators/words, seen videos, or other hard rejects. (A video a
+        // link opened was kept above, before any rule could take it out.)
         if (rangeKept.isEmpty() && qualityFallback != null) rangeKept.add(qualityFallback);
         List kept = rangeKept;
         int removed = initialSize - kept.size();

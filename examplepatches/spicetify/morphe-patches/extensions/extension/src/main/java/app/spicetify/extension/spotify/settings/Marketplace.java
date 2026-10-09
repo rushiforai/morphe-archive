@@ -1,5 +1,6 @@
 package app.spicetify.extension.spotify.settings;
 
+import app.spicetify.extension.spotify.extensions.Extensions;
 import app.spicetify.extension.spotify.theme.SpicetifyTheme;
 import app.spicetify.extension.spotify.theme.ThemeResolver;
 import app.spicetify.extension.spotify.theme.ThemeState;
@@ -28,12 +29,14 @@ import org.json.JSONObject;
 import org.json.JSONTokener;
 
 /**
- * The Spicetify Marketplace's theme listing, read from GitHub by the rules Marketplace uses
+ * The Spicetify Marketplace's themes and extensions, read from GitHub by the rules Marketplace uses
  * (spicetify/marketplace, FetchRemotes.ts and Utils.ts at ec6f772).
  */
 final class Marketplace {
     static final String SEARCH_URL = "https://api.github.com/search/repositories"
             + "?q=topic%3Aspicetify-themes&sort=stars&order=desc&per_page=100&page=";
+    static final String EXTENSIONS_SEARCH_URL = "https://api.github.com/search/repositories"
+            + "?q=topic%3Aspicetify-extensions&sort=stars&order=desc&per_page=100&page=";
     static final String BLACKLIST_URL =
             "https://raw.githubusercontent.com/spicetify/marketplace/main/resources/blacklist.json";
     private static final int MAX_BYTES = 8 * 1024 * 1024;
@@ -140,22 +143,42 @@ final class Marketplace {
         final String branch;
         final String url;
         final int stars;
+        /** GitHub's description of the repository; empty when it has none. */
+        final String description;
 
         Repo(String owner, String name, String branch, String url, int stars) {
+            this(owner, name, branch, url, stars, "");
+        }
+
+        Repo(String owner, String name, String branch, String url, int stars, String description) {
             this.owner = owner;
             this.name = name;
             this.branch = branch;
             this.url = url;
             this.stars = stars;
+            this.description = description;
         }
     }
 
+    /**
+     * An extension with no Android version, from its search result alone: its repository's name,
+     * description, owner and stars. Its manifest isn't read, so a repository with several extensions
+     * is one row.
+     */
+    static Theme desktopOnly(Repo repo, int repoIndex) {
+        return new Theme(cap(repo.name, MAX_NAME_CHARS), cap(repo.description, MAX_DESCRIPTION_CHARS),
+                cap(repo.owner, MAX_NAME_CHARS), null, null, repo.url, repo.stars, repoIndex * 1000,
+                Collections.singletonList(repo.owner), null, null, Collections.emptyList(), repo.owner + "/" + repo.name);
+    }
+
+    /** A theme, or an extension when {@link #extension} is set. */
     static final class Theme {
         final String title;
         final String description;
         final String author;
         /** Null when the manifest names no preview. */
         final String previewUrl;
+        /** Null for an extension. */
         final String schemesUrl;
         final String repoUrl;
         /** Negative when unknown. */
@@ -169,14 +192,22 @@ final class Marketplace {
          * if any, is found in its scripts or user.css when it's applied.
          */
         final String backgroundUrl;
-        /** The theme's user.css, which may name its own image; null for Galaxy V2 and for a theme from an older cache. */
+        /**
+         * The theme's user.css, which may name its own image; null for Galaxy V2, an extension and a theme
+         * from an older cache.
+         */
         final String usercssUrl;
         /** The scripts the theme includes, in manifest order, which may name its image too. */
         final List<String> includeUrls;
+        /**
+         * For an extension, the desktop extension it is, as owner/repo/main, or the id of one only Android
+         * has; null for a theme.
+         */
+        final String extension;
 
         Theme(String title, String description, String author, String previewUrl, String schemesUrl,
                 String repoUrl, int stars, int order, List<String> keywords, String backgroundUrl,
-                String usercssUrl, List<String> includeUrls) {
+                String usercssUrl, List<String> includeUrls, String extension) {
             this.title = title;
             this.description = description;
             this.author = author;
@@ -189,6 +220,7 @@ final class Marketplace {
             this.backgroundUrl = backgroundUrl;
             this.usercssUrl = usercssUrl;
             this.includeUrls = includeUrls;
+            this.extension = extension;
         }
     }
 
@@ -200,7 +232,8 @@ final class Marketplace {
     static final Theme GALAXY_V2 = new Theme("Galaxy V2",
             "Galaxy's colors over its fullscreen background image, the way the desktop theme shows it.", "harbassan",
             GALAXY_FILES + "preview_playlist.png", GALAXY_FILES + "color.ini", "https://github.com/harbassan/spicetify-galaxy",
-            -1, -1, Collections.singletonList("harbassan"), GALAXY_FILES + "assets/default_bg.jpg", null, Collections.emptyList());
+            -1, -1, Collections.singletonList("harbassan"), GALAXY_FILES + "assets/default_bg.jpg", null, Collections.emptyList(),
+            null);
 
     static final class Page {
         final List<Repo> repos;
@@ -237,7 +270,7 @@ final class Marketplace {
             String[] fullName = item.getString("full_name").split("/", 2);
             if (fullName.length != 2 || item.optBoolean("archived")) continue;
             repos.add(new Repo(fullName[0], fullName[1], item.getString("default_branch"),
-                    item.getString("html_url"), item.optInt("stargazers_count")));
+                    item.getString("html_url"), item.optInt("stargazers_count"), string(item, "description")));
         }
         return new Page(repos, items.length(), root.getInt("total_count"));
     }
@@ -301,9 +334,10 @@ final class Marketplace {
     }
 
     /**
-     * Theme items of a manifest (one object or an array): name, description and usercss, as
-     * Marketplace requires, plus schemes, without which there is nothing to use on Android. Only
-     * the first 50 items count, and long names and descriptions are cut short.
+     * The items of a manifest (one object or an array). A theme needs name, description and usercss,
+     * as Marketplace requires, plus schemes, without which there is nothing to use on Android. An
+     * extension needs name, description and main. An item with both becomes a theme and an
+     * extension. Only the first 50 items count, and long names and descriptions are cut short.
      */
     static List<Theme> parseManifest(String json, Repo repo, int repoIndex) throws JSONException {
         String text = json.startsWith("\ufeff") ? json.substring(1) : json;
@@ -322,21 +356,30 @@ final class Marketplace {
             if (item == null) continue;
             String title = string(item, "name");
             String description = string(item, "description");
-            String usercss = string(item, "usercss");
-            String schemes = string(item, "schemes");
-            if (title.isEmpty() || description.isEmpty() || usercss.isEmpty() || schemes.isEmpty()) continue;
+            if (title.isEmpty() || description.isEmpty()) continue;
             String branch = string(item, "branch");
             if (branch.isEmpty()) branch = repo.branch;
             String preview = string(item, "preview");
-            List<String> includes = new ArrayList<>();
-            for (String include : strings(item.opt("include"))) {
-                if (includes.size() < MAX_INCLUDES) includes.add(resolve(include, repo, branch));
+            String previewUrl = preview.isEmpty() ? null : resolve(preview, repo, branch);
+            String usercss = string(item, "usercss");
+            String schemes = string(item, "schemes");
+            if (!usercss.isEmpty() && !schemes.isEmpty()) {
+                List<String> includes = new ArrayList<>();
+                for (String include : strings(item.opt("include"))) {
+                    if (includes.size() < MAX_INCLUDES) includes.add(resolve(include, repo, branch));
+                }
+                themes.add(new Theme(cap(title, MAX_NAME_CHARS), cap(description, MAX_DESCRIPTION_CHARS),
+                        cap(author(item, repo), MAX_NAME_CHARS), previewUrl, resolve(schemes, repo, branch),
+                        repo.url, repo.stars, repoIndex * 1000 + i, keywords(item, repo), null,
+                        resolve(usercss, repo, branch), includes, null));
             }
-            themes.add(new Theme(cap(title, MAX_NAME_CHARS), cap(description, MAX_DESCRIPTION_CHARS),
-                    cap(author(item, repo), MAX_NAME_CHARS),
-                    preview.isEmpty() ? null : resolve(preview, repo, branch), resolve(schemes, repo, branch),
-                    repo.url, repo.stars, repoIndex * 1000 + i, keywords(item, repo), null,
-                    resolve(usercss, repo, branch), includes));
+            String main = string(item, "main");
+            if (!main.isEmpty()) {
+                themes.add(new Theme(cap(title, MAX_NAME_CHARS), cap(description, MAX_DESCRIPTION_CHARS),
+                        cap(author(item, repo), MAX_NAME_CHARS), previewUrl, null, repo.url, repo.stars,
+                        repoIndex * 1000 + i, keywords(item, repo), null, null, Collections.emptyList(),
+                        repo.owner + "/" + repo.name + "/" + (main.startsWith("./") ? main.substring(2) : main)));
+            }
         }
         return themes;
     }
@@ -395,14 +438,20 @@ final class Marketplace {
     }
 
     /**
-     * Most stars first, then {@link Theme#order}: GitHub's order, then manifest order. GitHub sorts by
-     * stars too, but stars can change between two search pages.
+     * Extensions with an Android version first, then most stars, then {@link Theme#order}: GitHub's
+     * order, then manifest order. GitHub sorts by stars too, but stars can change between two search
+     * pages.
      */
     static List<Theme> sorted(Collection<Theme> themes) {
         List<Theme> list = new ArrayList<>(themes);
-        Collections.sort(list, (a, b) -> a.stars != b.stars ? Integer.compare(b.stars, a.stars)
+        Collections.sort(list, (a, b) -> ported(a) != ported(b) ? Boolean.compare(ported(b), ported(a))
+                : a.stars != b.stars ? Integer.compare(b.stars, a.stars)
                 : Integer.compare(a.order, b.order));
         return list;
+    }
+
+    private static boolean ported(Theme item) {
+        return item.extension != null && Extensions.port(item.extension) != null;
     }
 
     /** Searches as the desktop Marketplace does: the title, the repository's owner, every author and the tags. */
@@ -423,9 +472,10 @@ final class Marketplace {
         for (Theme theme : themes) {
             array.put(new JSONObject().put("title", theme.title).put("description", theme.description)
                     .put("author", theme.author).put("preview", theme.previewUrl == null ? JSONObject.NULL : theme.previewUrl)
-                    .put("schemes", theme.schemesUrl).put("repo", theme.repoUrl)
+                    .put("schemes", theme.schemesUrl == null ? JSONObject.NULL : theme.schemesUrl).put("repo", theme.repoUrl)
                     .put("stars", theme.stars).put("order", theme.order).put("keywords", new JSONArray(theme.keywords))
-                    .put("usercss", theme.usercssUrl).put("include", new JSONArray(theme.includeUrls)));
+                    .put("usercss", theme.usercssUrl).put("include", new JSONArray(theme.includeUrls))
+                    .put("extension", theme.extension == null ? JSONObject.NULL : theme.extension));
         }
         return new JSONObject().put("savedAt", savedAt).put("themes", array).toString();
     }
@@ -439,13 +489,17 @@ final class Marketplace {
             JSONObject item = array.getJSONObject(i);
             String preview = string(item, "preview");
             String usercss = string(item, "usercss");
+            String schemes = string(item, "schemes");
+            String extension = string(item, "extension");
             List<String> keywords = new ArrayList<>();
             JSONArray saved = item.getJSONArray("keywords");
             for (int k = 0; k < saved.length(); k++) keywords.add(saved.getString(k));
+            // Each entry is a theme, with its schemes, or an extension; anything else isn't a cache this wrote.
+            if (schemes.isEmpty() == extension.isEmpty()) throw new JSONException("Neither a theme nor an extension");
             themes.add(new Theme(item.getString("title"), item.getString("description"), item.getString("author"),
-                    preview.isEmpty() ? null : preview, item.getString("schemes"), item.getString("repo"),
+                    preview.isEmpty() ? null : preview, schemes.isEmpty() ? null : schemes, item.getString("repo"),
                     item.getInt("stars"), item.getInt("order"), keywords, null,
-                    usercss.isEmpty() ? null : usercss, strings(item.opt("include"))));
+                    usercss.isEmpty() ? null : usercss, strings(item.opt("include")), extension.isEmpty() ? null : extension));
         }
         return new Cached(themes, root.getLong("savedAt"));
     }

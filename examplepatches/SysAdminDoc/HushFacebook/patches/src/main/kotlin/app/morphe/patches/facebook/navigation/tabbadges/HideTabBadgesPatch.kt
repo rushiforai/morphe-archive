@@ -47,11 +47,11 @@ internal const val BADGER_SUFFIX = "LauncherBadgesInterface"
  *
  * Facebook puts its own count on the launcher icon through one writer per launcher family: Generic
  * (the `BADGE_COUNT_UPDATE` broadcast), Samsung, Honor, HTC, Huawei, Motorola, Oppo, Sony,
- * Transsion, Vivo, Xiaomi and ZTE, each answering getAnalyticsName() with its own kept literal. They
- * share one interface, (FbUserSession, int) -> TriState plus that name (581 `LX/NY0;`, 580
- * `LX/9Xb;`, 577 `LX/G4i;`), and the badge updater hands each the count in turn. The extension goes
- * first in every writer and swaps the count for 0 when the icon switch is on, so the launcher gets a
- * cleared badge. Notifications themselves, and the in-app Notifications list, aren't touched.
+ * Transsion, Vivo, Xiaomi and ZTE, each answering getAnalyticsName() with its own kept literal.
+ * They share one interface, (FbUserSession, int) -> TriState plus that name (581 `LX/NY0;`), and
+ * the badge updater hands each the count in turn. The extension goes first in every writer and
+ * swaps the count for 0 when the icon switch is on, so the launcher gets a cleared badge.
+ * Notifications themselves, and the in-app Notifications list, aren't touched.
  */
 @Suppress("unused")
 val hideTabBadgesPatch = bytecodePatch(

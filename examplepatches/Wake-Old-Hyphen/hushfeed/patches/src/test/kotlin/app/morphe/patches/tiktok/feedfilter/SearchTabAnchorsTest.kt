@@ -26,7 +26,7 @@ class SearchTabAnchorsTest {
     @Test
     fun `every retained fixture serves the search tab list through the two getters the patch filters`() {
         val apks = Fixtures.apks()
-        assertTrue("fixtures: ${apks.map { it.name }}", apks.size >= 2)
+        assertTrue("fixtures: ${apks.map { it.name }}", apks.containsAll(Fixtures.declared()))
         apks.forEach { apk ->
             val app = load(apk)
             val list = app[tabList] ?: error("${apk.name}: no $tabList")
@@ -61,7 +61,7 @@ class SearchTabAnchorsTest {
     @Test
     fun `every retained fixture builds the strip in the container fragment's onViewCreated`() {
         val apks = Fixtures.apks()
-        assertTrue("fixtures: ${apks.map { it.name }}", apks.size >= 2)
+        assertTrue("fixtures: ${apks.map { it.name }}", apks.containsAll(Fixtures.declared()))
         apks.forEach { apk ->
             val app = load(apk)
             val fragment = app[containerFragment] ?: error("${apk.name}: no $containerFragment")

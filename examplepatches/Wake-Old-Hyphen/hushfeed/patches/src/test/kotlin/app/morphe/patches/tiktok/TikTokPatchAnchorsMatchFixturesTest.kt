@@ -6,11 +6,10 @@ import app.morphe.patches.tiktok.feedfilter.COMMENT_TOP_BAR_BRIDGE_BASE
 import app.morphe.patches.tiktok.feedfilter.FriendsV3FeedHandleResponseFingerprint
 import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_BRIDGE
 import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_SERVICE
+import app.morphe.patches.tiktok.feedfilter.COLD_START_STORES
 import app.morphe.patches.tiktok.feedfilter.coldStartCall
 import app.morphe.patches.tiktok.feedfilter.coldStartOrchestrators
 import app.morphe.patches.tiktok.feedfilter.countColdStartFeedItemListStores
-import app.morphe.patches.tiktok.feedfilter.expectedColdStartStores
-import app.morphe.patches.tiktok.feedfilter.goldenRunsTheColdStart
 import app.morphe.patches.tiktok.feedfilter.isCommentTopBarCanShow
 import app.morphe.patches.tiktok.feedfilter.isTakoSearchEntranceInflater
 import app.morphe.patches.tiktok.feedfilter.takoSearchEntranceVariants
@@ -34,6 +33,8 @@ import app.morphe.patches.tiktok.interaction.exactcounts.COUNT_FORMATTERS
 import app.morphe.patches.tiktok.interaction.exactcounts.CompactCountFormatterFingerprint
 import app.morphe.patches.tiktok.interaction.exactcounts.CountFormatterFingerprint
 import app.morphe.patches.tiktok.interaction.exactcounts.isCountFormatter
+import app.morphe.patches.tiktok.interaction.engagement.ProfileGridBindFingerprint
+import app.morphe.patches.tiktok.interaction.engagement.gridCountSite
 import app.morphe.patches.tiktok.profile.BASE_UI_COMPONENT
 import app.morphe.patches.tiktok.profile.HEADER_TEXT_ITEM
 import app.morphe.patches.tiktok.profile.PROFILE_COMMON_INFO
@@ -53,6 +54,9 @@ import app.morphe.patches.tiktok.interaction.videooverlays.*
 import app.morphe.patches.tiktok.interaction.quality.ForceHdrOffFingerprint
 import app.morphe.patches.tiktok.interaction.quality.SimVideoSetBitRateFingerprint
 import app.morphe.patches.tiktok.interaction.quality.SimVideoUrlModelSetBitRateFingerprint
+import app.morphe.patches.tiktok.interaction.quality.SIM_BIT_RATE
+import app.morphe.patches.tiktok.interaction.quality.requireGearCodecField
+import app.morphe.patches.tiktok.interaction.quality.requirePlayerGearSetter
 import app.morphe.patches.tiktok.misc.comment.BIO_EDITOR_CLASSES
 import app.morphe.patches.tiktok.misc.comment.CommentInputLimitFingerprint
 import app.morphe.patches.tiktok.misc.comment.REPOST_NOTE_INPUTS
@@ -64,7 +68,10 @@ import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.Opcodes
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.value.StringEncodedValue
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -76,7 +83,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Instruction-level anchors used by TikTok 47.0.3 remain unique on every
+ * Instruction-level anchors the patches use on TikTok remain unique on every
  * retained universal APK. The assertions describe behavior the patches consume rather than R8
  * names or strings that can move into adjacent methods.
  */
@@ -531,6 +538,36 @@ class TikTokPatchAnchorsMatchFixturesTest {
     }
 
     /**
+     * Show engagement rate hooks the profile grid adapter's bind right after the cell's view count
+     * is formatted, and hands the extension the text and the cell's Aweme. One bind per declared
+     * build, the item in the register its statistics were asked of, and the text the one the
+     * cell's next setText writes (v1 and v12 on all three builds).
+     */
+    @Test
+    fun `profile grid view count site for engagement rate resolves on every declared build`() {
+        Fixtures.forEachDeclared { apk ->
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }.toList()
+            val binds = classes.flatMap { cls -> cls.methods.filter { ProfileGridBindFingerprint.takes(it, cls) } }
+            assertEquals("profile grid binds", 1, binds.size)
+            val bind = binds.single()
+            val site = runCatching { bind.gridCountSite() }.getOrElse { throw AssertionError(it.message, it) }
+            assertEquals("text and item registers", 1 to 12, site.textRegister to site.itemRegister)
+            val instructions = bind.implementation!!.instructions.toList()
+            val result = instructions[site.insertAt - 1]
+            assertEquals(Opcode.MOVE_RESULT_OBJECT, result.opcode)
+            assertEquals(site.textRegister, (result as OneRegisterInstruction).registerA)
+            val setText = (site.insertAt until instructions.size).first {
+                val reference = (instructions[it] as? ReferenceInstruction)?.reference as? MethodReference
+                reference?.name == "setText" && reference.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/CharSequence;")
+            }
+            assertEquals("the cell's text is the formatted count", site.textRegister,
+                (instructions[setText] as FiveRegisterInstruction).registerD)
+        }
+    }
+
+    /**
      * Play SDR instead of HDR hooks TikTok's own HDR-off answer and both player gear setters, one
      * method each. SdrPlayback counts hdrType 1 and 2 as HDR because SimBitRate.isHdr does.
      */
@@ -559,6 +596,70 @@ class TikTokPatchAnchorsMatchFixturesTest {
                 instructions.filterIsInstance<NarrowLiteralInstruction>().map { it.narrowLiteral })
             assertEquals("${apk.name}: SimBitRate.isHdr reads", List(2) { "${models}SimBitRate;->getHdrType()I" },
                 instructions.filterIsInstance<ReferenceInstruction>().map { it.reference.toString() })
+        }
+    }
+
+    /**
+     * Prefer H.264 playback hooks both player gear setters and keeps the gears whose
+     * SimBitRate.getCodecType is 0. That getter has to return the field a converter fills from the
+     * feed's is_bytevc1 (0 H.264, 1 ByteVC1, 2 ByteVC2), and the patch's own shape checks have to
+     * pass, on every declared build.
+     */
+    @Test
+    fun `H264 playback hooks the gear setters and getCodecType reads is_bytevc1 on every declared build`() {
+        val models = "Lcom/ss/android/ugc/playerkit/simapicommon/model/"
+        val bitRate = "Lcom/ss/android/ugc/aweme/feed/model/BitRate;"
+        val expected = mapOf(
+            SimVideoSetBitRateFingerprint to "${models}SimVideo;->setBitRate(Ljava/util/List;)V",
+            SimVideoUrlModelSetBitRateFingerprint to "${models}SimVideoUrlModel;->setBitRate(Ljava/util/List;)V",
+        )
+        Fixtures.forEachDeclared { apk ->
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }.toList()
+            for ((fingerprint, signature) in expected) {
+                val taken = classes.flatMap { classDef ->
+                    classDef.methods.filter { fingerprint.takes(it, classDef) }
+                }
+                assertEquals(signature, listOf(signature), taken.map { it.anchorSignature() })
+                requirePlayerGearSetter(taken.single())
+            }
+
+            val byType = classes.associateBy { it.type }
+            val codec = requireGearCodecField { byType[it] }
+            fun Method.fieldReads() = implementation!!.instructions
+                .mapNotNull { ((it as? ReferenceInstruction)?.reference as? FieldReference)?.toString() }.toList()
+            val gear = byType.getValue(SIM_BIT_RATE)
+            assertEquals("SimBitRate.isBytevc1 reads the codec field", listOf(codec.toString()),
+                gear.methods.single { it.name == "isBytevc1" && it.parameterTypes.isEmpty() }.fieldReads())
+
+            // The feed model's is_bytevc1 is the field its isBytevc1() returns.
+            val feedField = byType.getValue(bitRate).fields.single { field ->
+                field.annotations.any { annotation ->
+                    annotation.elements.any { (it.value as? StringEncodedValue)?.value == "is_bytevc1" }
+                }
+            }
+            assertEquals("I", feedField.type)
+            assertEquals(listOf("$bitRate->${feedField.name}:I"),
+                byType.getValue(bitRate).methods.single { it.name == "isBytevc1" && it.parameterTypes.isEmpty() }
+                    .fieldReads())
+
+            // And a converter hands BitRate.isBytevc1() straight to the gear's codec setter.
+            val feedCodec = "$bitRate->isBytevc1()I"
+            val gearCodec = setOf("$SIM_BIT_RATE->setCodecType(I)V", "$SIM_BIT_RATE->setBytevc1(I)V")
+            val converters = classes.flatMap { it.methods }.filter { method ->
+                val instructions = method.implementation?.instructions?.toList() ?: return@filter false
+                instructions.indices.any { index ->
+                    val read = (instructions[index] as? ReferenceInstruction)?.reference?.toString() == feedCodec
+                    val result = instructions.getOrNull(index + 1) as? OneRegisterInstruction
+                    read && result != null && result.opcode == Opcode.MOVE_RESULT &&
+                        instructions.drop(index + 2).firstOrNull { it.opcode.name.startsWith("invoke") }?.let { call ->
+                            (call as ReferenceInstruction).reference.toString() in gearCodec &&
+                                (call as FiveRegisterInstruction).registerD == result.registerA
+                        } == true
+                }
+            }
+            assertTrue("no converter copies BitRate.isBytevc1 into a gear's codec", converters.isNotEmpty())
         }
     }
 
@@ -621,6 +722,56 @@ class TikTokPatchAnchorsMatchFixturesTest {
                 .filter { it in aiAnchorKeys }
                 .toSet()
             assertEquals("AI effect anchor keys", aiAnchorKeys, loaded)
+        }
+    }
+
+    /**
+     * Match text stickers too reads Aweme's sticker list and each sticker's type and textStruct.
+     * TikTok's own translation service is what says a type 18 sticker's textStruct is its words:
+     * it checks the type against 18 before it reads the string; type 5 keeps anchor JSON there.
+     */
+    @Test
+    fun `text sticker members the sticker word rule reads resolve on every declared build`() {
+        val aweme = "Lcom/ss/android/ugc/aweme/feed/model/Aweme;"
+        val sticker = "Lcom/ss/android/ugc/aweme/sticker/data/InteractStickerStruct;"
+        val translation = "Lcom/ss/android/ugc/aweme/translation/service/TranslationServiceImpl;"
+        val textModel = "Lcom/ss/android/ugc/aweme/tools/sticker/core/text/model/TextStickerModel;"
+        Fixtures.forEachDeclared { apk ->
+            val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
+            val classes = container.dexEntryNames.asSequence()
+                .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
+                .filter { it.type == aweme || it.type == sticker || it.type == translation || it.type == textModel }
+                .associateBy { it.type }
+            for ((type, name, returns) in listOf(
+                Triple(aweme, "getInteractStickerStructs", "Ljava/util/List;"),
+                Triple(sticker, "getType", "I"),
+                Triple(sticker, "getTextStruct", "Ljava/lang/String;"),
+            )) {
+                assertTrue("${apk.name}: $type.$name()$returns", classes[type]?.methods?.toList().orEmpty().any {
+                    it.name == name && it.parameterTypes.isEmpty() && it.returnType == returns
+                })
+            }
+            val readsTextStickerWords = classes[translation]?.methods?.toList().orEmpty().any { method ->
+                val instructions = method.implementation?.instructions?.toList().orEmpty()
+                fun calls(name: String) = instructions.any {
+                    val reference = (it as? ReferenceInstruction)?.reference as? MethodReference
+                    reference != null && reference.definingClass == sticker && reference.name == name
+                }
+                calls("getType") && calls("getTextStruct") && instructions.any {
+                    it.opcode == Opcode.CONST_16 && (it as NarrowLiteralInstruction).narrowLiteral == 18
+                }
+            }
+            assertTrue("${apk.name}: the translation service reads a type 18 sticker's textStruct", readsTextStickerWords)
+            // The editor writes the typed text into textStruct as type 20 with a caption model, else 18.
+            val written = classes[textModel]?.methods?.toList().orEmpty().singleOrNull { it.name == "getInteractStickerStruct" }
+            val instructions = written?.implementation?.instructions?.toList().orEmpty()
+            val literals = instructions.filter { it.opcode == Opcode.CONST_16 }
+                .map { (it as NarrowLiteralInstruction).narrowLiteral }.toSet()
+            assertTrue("${apk.name}: the editor's text sticker types $literals", literals.containsAll(setOf(18, 20)))
+            assertTrue("${apk.name}: the editor writes textStruct", instructions.any {
+                val reference = (it as? ReferenceInstruction)?.reference as? MethodReference
+                reference != null && reference.definingClass == sticker && reference.name == "setTextStruct"
+            })
         }
     }
 
@@ -842,6 +993,21 @@ class TikTokPatchAnchorsMatchFixturesTest {
                     it.name == getter && it.parameterTypes.isEmpty() && it.returnType == "Ljava/lang/String;"
                 })
             }
+            // Account facts reads these by their real names; a renamed or retyped one says Not sent.
+            val accountFields = classes.getValue(user).fields.associate { it.name to it.type }
+            for ((name, type) in listOf(
+                "createTime" to "Ljava/lang/Long;",
+                "registerTime" to "J",
+                "region" to "Ljava/lang/String;",
+                "accountRegion" to "Ljava/lang/String;",
+                "language" to "Ljava/lang/String;",
+                "uniqueIdModifyTime" to "J",
+                "nickNameModifyTs" to "I",
+                "secret" to "Z",
+                "hasOpenFavorite" to "Z",
+            )) {
+                assertEquals("the account's $name", type, accountFields[name])
+            }
         }
     }
 
@@ -958,8 +1124,10 @@ class TikTokPatchAnchorsMatchFixturesTest {
             assertEquals("${apk.name}: offline cold-cache anchor", 1, offlineCache.size)
             assertEquals("${apk.name}: playback speed anchor", 1, speed.size)
 
-            // What calls both cache methods: nothing on 47.0.3, where the golden method runs the
-            // cold start itself, and the orchestrator 47.1.3 split off, which the patch hooks too.
+            // What calls both cache methods: the cold start's orchestrator, which the patch hooks
+            // too. Up to 47.0.3 the golden method ran the cold start itself, a shape the patch no
+            // longer takes, so only a declared build is held to it.
+            if (Fixtures.versionOf(apk) !in Fixtures.declaredVersions()) continue
             val targets = setOf(goldenCache.single().coldStartCall(), offlineCache.single().coldStartCall())
             val calls = container.dexEntryNames.asSequence()
                 .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
@@ -971,12 +1139,12 @@ class TikTokPatchAnchorsMatchFixturesTest {
                         ?.filter { it in targets }?.toSet().orEmpty()
                     if (called.isEmpty()) null else method to called
                 }.toMap()
-            val orchestrators = if (goldenCache.single().goldenRunsTheColdStart()) emptyList()
-                else coldStartOrchestrators(goldenCache.single(), offlineCache.single(), calls)
+            val orchestrators = coldStartOrchestrators(goldenCache.single(), offlineCache.single(), calls)
+            assertEquals("${apk.name}: cold-start orchestrators", 1, orchestrators.size)
             val coldMethods = (goldenCache + offlineCache + orchestrators).distinctBy { it.anchorSignature() }
             assertEquals(
-                "${apk.name}: cold-cache FeedItemList stores with ${orchestrators.size} orchestrator(s)",
-                expectedColdStartStores(orchestrators.size),
+                "${apk.name}: cold-cache FeedItemList stores",
+                COLD_START_STORES,
                 coldMethods.sumOf { it.countColdStartFeedItemListStores() },
             )
             val offlineMarkers = coldMethods.sumOf { method ->

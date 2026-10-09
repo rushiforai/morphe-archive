@@ -184,7 +184,8 @@ final class HushfacebookPages {
             }
             if (build.contains(PatchFamily.RESTORE_TRUST)) {
                 patched.addPreference(mark(info(context, L10n.t("Re-signed build fix"),
-                        L10n.t("Profiles and some Settings pages open again on this re-signed build.")), SettingsIcons.BUILD));
+                        L10n.t("Profiles, photos, posts and some Settings pages open again on this re-signed build.")),
+                        SettingsIcons.BUILD));
             }
             if (build.contains(PatchFamily.INSTALL_BESIDE_META_APPS)) {
                 patched.addPreference(mark(info(context, L10n.t("Room for Meta's apps"),

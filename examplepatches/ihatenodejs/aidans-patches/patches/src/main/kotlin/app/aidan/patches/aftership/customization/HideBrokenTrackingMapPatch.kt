@@ -15,6 +15,7 @@ val hideBrokenTrackingMapPatch = bytecodePatch(
     description = "Suppresses the unauthenticated blank white Google Maps view when neither a custom Google Maps API key nor OpenStreetMap is used.",
     default = false
 ) {
+    category("Interface")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     dependsOn(bypassSignatureCheckResourcePatch)
 

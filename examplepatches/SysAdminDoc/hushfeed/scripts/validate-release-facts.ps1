@@ -181,7 +181,7 @@ $targetVersionText = Format-VersionList -Versions $targetVersions
 
 $bundleVersion = [string]$bundle.version
 $publishedPatchMatch = [regex]::Match([string]$bundle.description, '\b(\d+) patches\b')
-# "TikTok 47.0.3", or with more than one target "TikTok 47.0.3 and 47.1.3".
+# "TikTok 47.1.4", or with more than one target "TikTok 47.1.4 and 47.2.3".
 $publishedTargetMatch = [regex]::Match([string]$bundle.description,
     'TikTok\s+(\d+(?:\.\d+)+(?:(?:,\s*|,?\s+and\s+)\d+(?:\.\d+)+)*)')
 # @() around the whole if: an if hands back one match as a plain string, and indexing that

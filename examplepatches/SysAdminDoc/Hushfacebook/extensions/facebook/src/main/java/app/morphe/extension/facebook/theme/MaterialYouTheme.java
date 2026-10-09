@@ -8,12 +8,16 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.ComponentCallbacks;
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -309,14 +313,27 @@ public final class MaterialYouTheme {
     }
 
     /**
-     * A colour resource read as a drawable with {@code Context.getDrawable}. Litho resolves a token's
-     * theme attribute to the resource it points at and asks for its drawable (581 {@code LX/2b3;->A05},
-     * 580 {@code LX/2Z3;->A05}, 577 {@code LX/23p;->A05}), so the feed's composer row is a plain
-     * drawable of SURFACE_BACKGROUND's #252728 (issue #37). Facebook keeps that colour only in its
-     * default configuration, and the night style can't move a token some code reads as a plain colour
-     * when no system tone sits close to it. A colour drawable of one of the {@link #SURFACES} takes
-     * the palette here, as a colour read with {@code getColor} does; any other drawable comes back as
-     * it was.
+     * The same for {@code TypedArray.getColor}, how Litho reads a token's colour from the theme (581
+     * {@code LX/1Mx;->A04}: obtainStyledAttributes, then getColor). Some code reads SURFACE_BACKGROUND
+     * as a plain colour, so its night style item keeps #252728 when no system tone sits close, and
+     * the comment list's rows drew it (issue #37).
+     */
+    public static int getColor(TypedArray array, int index, int fallback) {
+        return getColor(array, index, fallback, SettingsStatus.amoledTheme());
+    }
+
+    static int getColor(TypedArray array, int index, int fallback, boolean amoled) {
+        return withoutToken(amoled ? AmoledTheme.getColor(array, index, fallback) : array.getColor(index, fallback));
+    }
+
+    /**
+     * A colour resource read as a drawable with {@code Context.getDrawable}. Litho resolves a
+     * token's theme attribute to the resource it points at and asks for its drawable (581 {@code
+     * LX/2b3;->A05}), so the feed's composer row is a plain drawable of SURFACE_BACKGROUND's
+     * #252728 (issue #37). Facebook keeps that colour only in its default configuration, and the
+     * night style can't move a token some code reads as a plain colour when no system tone sits
+     * close to it. A colour drawable of one of the {@link #SURFACES} takes the palette here, as a
+     * colour read with {@code getColor} does; any other drawable comes back as it was.
      */
     public static Drawable getDrawable(Context context, int id) {
         return recolour(context.getDrawable(id));
@@ -344,13 +361,13 @@ public final class MaterialYouTheme {
     /**
      * The page under the feed's last unit in dark mode. It's the window's own background, which the
      * framework draws from the activity theme's {@code android:windowBackground}: Facebook's main
-     * theme points it at {@code ?attr/WASH} (581 attribute 0x7f040633, 580 0x7f040632, 577
-     * 0x7f040635), and the dark FDS style gives WASH its #101011 colour resource, which has no night
-     * value. The framework reads it, so no hook sees it, and some code reads WASH as a plain colour
-     * too, so the night style can't move it when no system tone sits that close. Called once the
-     * application is created, with the theme in the build: from then on each activity's window
-     * background takes the palette when the activity is created, as it resumes and before each frame
-     * ({@link #recolourWindow}, {@link #recolourBeforeEachFrame}).
+     * theme points it at {@code ?attr/WASH} (581 attribute 0x7f040633), and the dark FDS style
+     * gives WASH its #101011 colour resource, which has no night value. The framework reads it, so
+     * no hook sees it, and some code reads WASH as a plain colour too, so the night style can't
+     * move it when no system tone sits that close. Called once the application is created, with the
+     * theme in the build: from then on each activity's window background takes the palette when the
+     * activity is created, as it resumes and before each frame ({@link #recolourWindow}, {@link
+     * #recolourBeforeEachFrame}).
      */
     public static synchronized void watchWindows(Context context) {
         if (windowsWatched || !(context instanceof Application)) return;
@@ -429,7 +446,8 @@ public final class MaterialYouTheme {
      * Gives each view under [root] whose background is a plain colour of the {@link #SURFACES} the
      * palette's neutral at the same lightness, in dark mode and without AMOLED, as
      * {@link #recolourWindow} does for a window. Litho's hosts are walked too: on 581 the comment
-     * rows draw #252728 with no FDS token reaching {@link #fds}.
+     * rows draw #252728 with no FDS token reaching {@link #fds}. A shape's flat fill, alone or as a
+     * layer, takes the palette too ({@link #recolourShapes}).
      *
      * @return how many views it recoloured
      */
@@ -444,6 +462,8 @@ public final class MaterialYouTheme {
         if (background instanceof ColorDrawable && isSurface(((ColorDrawable) background).getColor())) {
             recolour(background);
             recoloured++;
+        } else if (recolourShapes(background)) {
+            recoloured++;
         }
         if (view instanceof ViewGroup && depth < MAX_SHEET_DEPTH) {
             ViewGroup group = (ViewGroup) view;
@@ -457,6 +477,57 @@ public final class MaterialYouTheme {
 
     /** Deeper than the comment sheet's views go, so a broken tree can't hold a layout up. */
     private static final int MAX_SHEET_DEPTH = 40;
+
+    /**
+     * Gives a shape's flat fill, or each such fill of a layer list, the palette as a React background
+     * takes it ({@link #darkBackground}): the sheet's comment bar is a 581
+     * SingleLineCommentComposerView whose background is the drawable sutro_top_border, a DIVIDER
+     * #65686C layer under a SURFACE_BACKGROUND #252728 one inset 1dp at the top (#37). The framework
+     * reads both from the theme, so no hook sees them. A gradient or a fill that changes with the
+     * view's state keeps its colours. The drawable's state is copied first, since every view drawn
+     * from the resource shares it.
+     *
+     * @return whether a fill changed
+     */
+    private static boolean recolourShapes(@Nullable Drawable background) {
+        if (background instanceof GradientDrawable) {
+            GradientDrawable shape = (GradientDrawable) background;
+            Integer themed = themedFill(shape);
+            if (themed == null) return false;
+            shape.mutate();
+            shape.setColor(themed);
+            return true;
+        }
+        if (!(background instanceof LayerDrawable)) return false;
+        LayerDrawable layers = (LayerDrawable) background;
+        if (!hasThemedFill(layers)) return false;
+        layers.mutate();
+        for (int i = 0; i < layers.getNumberOfLayers(); i++) {
+            Drawable layer = layers.getDrawable(i);
+            if (!(layer instanceof GradientDrawable)) continue;
+            Integer themed = themedFill((GradientDrawable) layer);
+            if (themed != null) ((GradientDrawable) layer).setColor(themed);
+        }
+        return true;
+    }
+
+    private static boolean hasThemedFill(LayerDrawable layers) {
+        for (int i = 0; i < layers.getNumberOfLayers(); i++) {
+            Drawable layer = layers.getDrawable(i);
+            if (layer instanceof GradientDrawable && themedFill((GradientDrawable) layer) != null) return true;
+        }
+        return false;
+    }
+
+    /** The palette's colour for a shape's flat fill, or null when it keeps its own. */
+    @Nullable
+    private static Integer themedFill(GradientDrawable shape) {
+        ColorStateList fill = shape.getColor();
+        if (fill == null || fill.isStateful()) return null;
+        int color = fill.getDefaultColor();
+        int themed = darkBackground(color);
+        return themed == color ? null : themed;
+    }
 
     /**
      * Runs {@link #recolourWindow} for each activity once it's created and each time it resumes, and
@@ -535,6 +606,14 @@ public final class MaterialYouTheme {
      */
     static int reactBackground(int color) {
         HookStatus.invoked(FamilyNames.MATERIAL_YOU_THEME);
+        return darkBackground(color);
+    }
+
+    /**
+     * {@link #withoutToken}, and once Facebook has said dark mode is on, the palette's neutral at the
+     * same lightness for any grey {@link #FDS_DARK} lists.
+     */
+    private static int darkBackground(int color) {
         int themed = withoutToken(color);
         if (themed != color || !DarkMode.saidOn() || Arrays.binarySearch(DARK_GREYS, color) < 0) return themed;
         return palette().sameLightness(TonePalette.NEUTRAL, color);

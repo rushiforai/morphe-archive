@@ -6,8 +6,10 @@
     The stock APK is a feature package with id 0x7e, the shape of TikTok's df_search_biz whose
     layout/bj went missing upstream (#84): two colors (one with a night value), a theme on a base
     theme, and one layout. Each patched APK moves one thing. An unchanged table, a rewritten color
-    and a renamed entry pass and are reported, and so does a restyled launcher icon (the XML the
-    manifest's icon names, which Custom launcher icon rewrites). A lost layout, a layout file missing from the
+    and a renamed entry pass and are reported, and so do a restyled launcher icon (the XML the
+    manifest's icon names, which Custom launcher icon rewrites) and a rewritten network security
+    config (the XML the manifest's application names, which Trust user certificates rewrites).
+    A lost layout, a layout file missing from the
     archive, a changed layout file, a lost style item, a changed parent, a lost night value, a
     reference to nothing, a renamed type and a missing package fail, and each failure names what
     it lost.
@@ -314,6 +316,33 @@ try {
     Assert-True ($notIcon.ExitCode -eq 1) "A changed layout passed beside a restyled launcher icon.`n$($notIcon.Output)"
     Assert-True ($notIcon.Output -match 'layout/bj \[default\]: res/layout/bj\.xml is not the file the stock archive holds for it') `
         "The changed layout beside the icon was not named.`n$($notIcon.Output)"
+
+    # Trust user certificates adds the user's certificates to the network security config the
+    # manifest's application names, so other bytes there are reported. The same APK's layout with
+    # other bytes still fails.
+    $networkFiles = [ordered]@{}
+    foreach ($entry in $stockFiles.GetEnumerator()) { $networkFiles[$entry.Key] = $entry.Value }
+    $networkFiles['res/xml/network.xml'] = @'
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" overridePins="true" />
+        </trust-anchors>
+    </base-config>
+</network-security-config>
+'@
+    $networkManifest = $manifest -replace '<application ', '<application android:networkSecurityConfig="@xml/network" '
+    $networkStock = New-ResourceApk -Name 'network-stock' -Files $networkFiles -ManifestText $networkManifest
+    $trusting = Copy-ApkWithLongerFile -From $networkStock -Name 'network-trusting' -Path 'res/xml/network.xml'
+    $network = Invoke-Check -Stock $networkStock -Patched $trusting -Name 'network-trusting'
+    Assert-True ($network.ExitCode -eq 0) "A rewritten network security config failed the check.`n$($network.Output)"
+    Assert-True ($network.Output -match '(?m)network security config files rewritten \(Trust user certificates\): 1$') `
+        "The rewritten network security config was not reported.`n$($network.Output)"
+    $networkAndLayout = Copy-ApkWithLongerFile -From $trusting -Name 'network-and-layout' -Path 'res/layout/bj.xml'
+    $notNetwork = Invoke-Check -Stock $networkStock -Patched $networkAndLayout -Name 'network-and-layout'
+    Assert-True ($notNetwork.ExitCode -eq 1) "A changed layout passed beside a rewritten network security config.`n$($notNetwork.Output)"
+    Assert-True ($notNetwork.Output -match 'layout/bj \[default\]: res/layout/bj\.xml is not the file the stock archive holds for it') `
+        "The changed layout beside the network security config was not named.`n$($notNetwork.Output)"
 
     # A type renamed in the table's own type pool: every color resolves to a type called colox.
     # The pool is UTF-16 as aapt2 writes type names (length 5, then the characters); UTF-8 is the

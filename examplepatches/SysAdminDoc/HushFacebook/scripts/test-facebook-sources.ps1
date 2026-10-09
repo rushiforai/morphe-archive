@@ -338,7 +338,10 @@ New-Item -ItemType Directory -Path (Join-Path $fixtureRoot 'sources'), (Join-Pat
 Copy-Item -LiteralPath (Join-Path $Root 'patches-list.json') -Destination (Join-Path $fixtureRoot 'patches-list.json')
 $adoptedCommit = 'ad' * 20
 $declaredBuilds = @((Get-PatchTarget -PatchList ([IO.File]::ReadAllText((Join-Path $Root 'patches-list.json')) | ConvertFrom-Json)).PackageVersions)
-Assert-True ($declaredBuilds.Count -ge 2) "The catalog declares $($declaredBuilds.Count) build(s), so the receipt cases would prove nothing."
+Assert-True ($declaredBuilds.Count -ge 1) 'The catalog declares no build, so the receipt cases would prove nothing.'
+# Only the newest Facebook is declared, and an adopted source still needs two-fixture evidence: the
+# declared build and one before it, both unforced in one receipt, as the real ledger's receipts are.
+$evidenceBuilds = @(@($declaredBuilds) + '580.0.0.51.74' | Select-Object -Unique)
 [IO.File]::WriteAllText((Join-Path $fixtureRoot 'NOTICE'), "Fixture NOTICE`n  alpha  https://github.com/fixture-owner/alpha-patches`n")
 [IO.File]::WriteAllText((Join-Path $fixtureRoot 'provenance.json'), (@{ rules = @(@{ paths = @('patches/**'); origin = 'ported'
     upstream = 'https://github.com/fixture-owner/alpha-patches'; commit = $adoptedCommit; license = 'GPL-3.0'; via = @() }) } | ConvertTo-Json -Depth 6))
@@ -378,7 +381,7 @@ $fixtureLedger = [ordered]@{
             features = @('Hide ads'); branches = @([ordered]@{ name = 'main'; commit = $commitA1 }); watchPaths = @()
             license = [ordered]@{ spdx = 'GPL-3.0'; url = "https://github.com/fixture-owner/alpha-patches/blob/$commitA1/LICENSE"; sha256 = $licenseHash }
             contaminatedBy = $null; disposition = 'adopted'; reason = 'A fixture source.'; archived = $false
-            adopted = [ordered]@{ commit = $adoptedCommit; fixtures = [ordered]@{ receipt = $receiptUrl; builds = $declaredBuilds } }
+            adopted = [ordered]@{ commit = $adoptedCommit; fixtures = [ordered]@{ receipt = $receiptUrl; builds = $evidenceBuilds } }
             forks = @('someone/alpha-patches'); contentHashes = @($blobKnown)
             mirrors = @([ordered]@{ repository = 'https://github.com/copier/alpha-copy'; reason = 'A fixture copy.'; blobs = @($blobMirror) })
             lastChecked = '2026-09-01' }
@@ -457,7 +460,7 @@ function New-FakeAnswers {
         gitlabSearchProject = @{ Status = 200; Content = '{"path_with_namespace":"fixture-group/gamma-patches"}' }
         repoMeta = @{ Status = 200; Content = '{"full_name":"newcomer/fb-patches","license":{"spdx_id":"MIT"},"fork":false,"archived":false,"pushed_at":"2026-09-20T00:00:00Z","description":"Facebook patches"}' }
         oldNameMeta = @{ Status = 200; Content = '{"full_name":"fixture-owner/alpha-patches","fork":false,"archived":false}' }
-        receipt = @{ Status = 200; Content = (@{ targets = @($declaredBuilds | ForEach-Object {
+        receipt = @{ Status = 200; Content = (@{ targets = @($evidenceBuilds | ForEach-Object {
             @{ source = @{ versionName = $_; forced = $false }; patches = @(@{ name = 'Hide ads'; applied = $true }) } }) } | ConvertTo-Json -Depth 8) }
     }
     return $answers
@@ -795,9 +798,9 @@ $fakeForge = @{ Answers = (New-FakeAnswers); Requests = (New-Object System.Colle
     Assert-Drift 'official-bundle-changed' '*official bundle now patches*com.facebook.orca*' 'The official bundle taking on Messenger'
     $fakeForge.Answers = New-FakeAnswers
 
-    # An adopted source's receipt has to prove every declared build, unforced.
+    # An adopted source's receipt has to prove every build its evidence names, unforced.
     $fakeForge.Answers.receipt.Content = $fakeForge.Answers.receipt.Content -replace '"forced":\s*false', '"forced": true'
-    Assert-Drift 'fixture-evidence' "*alpha-patches*no unforced run of Facebook $($declaredBuilds[0])*" 'An adopted source whose receipt forced a build'
+    Assert-Drift 'fixture-evidence' "*alpha-patches*no unforced run of Facebook $($evidenceBuilds[0])*" 'An adopted source whose receipt forced a build'
     $fakeForge.Answers = New-FakeAnswers
 
     $fakeForge.Answers.alphaRepo.Content = $fakeForge.Answers.alphaRepo.Content.Replace('"fixture-owner/alpha-patches"', '"fixture-owner/alpha-renamed"')

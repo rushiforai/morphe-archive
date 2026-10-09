@@ -156,9 +156,9 @@ Pause Hushfacebook	Jeda Hushfacebook
 Posts Facebook files as promotions rather than as ads.	Postingan yang dikategorikan Facebook sebagai promosi, bukan iklan.
 Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.	Postingan dari orang dan Halaman yang tidak Anda ikuti serta dari grup tempat Anda belum bergabung, yang diselipkan Facebook ke Kabar Beranda Anda.
 Posts that Facebook's own detection marks as made with AI. A post that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real feed yet.	Postingan yang ditandai deteksi Facebook sendiri sebagai buatan AI. Postingan yang hanya diberi label AI oleh pembuatnya tetap ada. Sakelar ini nonaktif secara default karena belum diuji di Kabar Beranda sungguhan.
-Profiles and some Settings pages open again on this re-signed build.	Profil dan beberapa halaman Pengaturan dapat dibuka lagi di build yang ditandatangani ulang ini.
-Profiles and some Settings pages won't open	Profil dan beberapa halaman Pengaturan tidak akan terbuka
-Patch again with %1$s selected. Re-signed builds need it for profiles and some Facebook Settings pages.	Tambal ulang dengan %1$s dipilih. Build yang ditandatangani ulang membutuhkannya untuk profil dan beberapa halaman Pengaturan Facebook.
+Profiles, photos, posts and some Settings pages open again on this re-signed build.	Profil, foto, postingan, dan beberapa halaman Pengaturan dapat dibuka lagi di build yang ditandatangani ulang ini.
+Profiles, photos and posts won't open	Profil, foto, dan postingan tidak akan terbuka
+Patch again with %1$s selected. Re-signed builds need it to open profiles, photos, posts and some Facebook Settings pages.	Tambal ulang dengan %1$s dipilih. Build yang ditandatangani ulang membutuhkannya untuk membuka profil, foto, postingan, dan beberapa halaman Pengaturan Facebook.
 Re-signed build fix	Perbaikan build yang ditandatangani ulang
 Reading the settings file	Membaca file pengaturan
 Reels and Watch	Reels dan Watch
@@ -355,7 +355,7 @@ Facebook will open on %1$s.	Facebook akan terbuka di %1$s.
 # context: switch title under Opening Facebook; Following is Facebook's feed of the friends, Pages and groups you follow, and Home is the tab
 Following feed on Home	Feed Diikuti di Beranda
 # context: summary of that switch; the ranked feed is the one Facebook orders for you, and the Feeds tab has its own filters
-Home loads Facebook's Following feed instead of the ranked one. The Feeds tab's filters stay as they are.	Beranda memuat feed Diikuti dari Facebook, bukan feed yang diurutkan. Filter di tab Feed tetap seperti semula.
+Home loads the newest posts from the friends, groups and Pages you follow, like the Feeds tab's All. The Feeds tab's filters stay as they are.	Beranda memuat postingan terbaru dari teman, grup, dan Halaman yang Anda ikuti, seperti Semua di tab Feed. Filter di tab Feed tetap seperti semula.
 Jump to a section	Lompat ke bagian
 Go straight to one group of settings. Back returns to where you were.	Langsung ke satu kelompok setelan. Kembali membawamu ke tempat semula.
 # context: switch title under Downloads; on, every video save keeps to formats other apps accept
@@ -395,6 +395,8 @@ Hide Upgrades	Sembunyikan “Upgrade”
 The Upgrades section and its offers leave Facebook's Menu. Settings, Help and support and the rest of the Menu stay.	Bagian “Upgrade” dan penawarannya hilang dari Menu Facebook. Pengaturan, Bantuan & dukungan, dan bagian Menu lainnya tetap ada.
 # context: switch title under Menu; Also from Meta is the name of a section in Facebook's own Menu
 Hide Also from Meta	Sembunyikan “Juga dari Meta”
+Hide the Muse card	Sembunyikan kartu Muse
+The Muse card, Meta's ad for its AI agent app, leaves the top of Facebook's Menu.	Kartu Muse, iklan Meta untuk aplikasi agen AI-nya, hilang dari bagian atas Menu Facebook.
 # context: summary of that switch; the section links to Meta's other apps and shows ads for its devices
 The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps and its ads for Meta's devices. Your own shortcuts stay.	Bagian “Juga dari Meta” hilang dari Menu Facebook, beserta tautannya ke aplikasi Meta lainnya dan iklannya untuk perangkat Meta. Pintasanmu sendiri tetap ada.
 # context: section title for the search settings, named like Facebook's own search
@@ -425,6 +427,8 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 Open every reply thread	Buka semua utas balasan
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
 Comments show their replies right away, so there's no View replies to tap.	Komentar langsung menampilkan balasannya, jadi tidak perlu mengetuk Lihat balasan.
+Hide related groups	Sembunyikan grup terkait
+A group post's comments end without the Related groups list and its Join buttons.	Komentar postingan grup berakhir tanpa daftar Grup terkait dan tombol Gabung-nya.
 # context: row title under Comments that opens Facebook's own settings; reaction counts are the numbers next to the reactions on a post
 Hide reaction counts	Sembunyikan jumlah reaksi
 # context: summary of that row; Preferences and Reaction preferences are the names Facebook's own settings use
@@ -713,7 +717,7 @@ Holding a reel plays it at double speed until you let go, in place of Facebook's
 # context: label of a switch under Hold a reel for 2x that keeps the hold to the reel's right edge
 Only on the right edge	Hanya di tepi kanan
 # context: summary of that switch; the right third is the right-hand third of the reel's width, the long-press menu is Facebook's menu on a long press
-With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook does what it always does, usually its long-press menu.	Jika sakelar di atas aktif, hanya menahan sepertiga kanan reel yang memutarnya dengan kecepatan dua kali lipat. Kalau kamu menahan di bagian lain, Facebook melakukan hal yang biasa, umumnya membuka menu tekan lamanya.
+With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook's long-press menu opens.	Jika sakelar di atas aktif, hanya menahan sepertiga kanan reel yang memutarnya dengan kecepatan dua kali lipat. Kalau kamu menahan di bagian lain, menu tekan lama Facebook terbuka.
 Default playback quality	Kualitas pemutaran default
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Putar video, reel, dan cerita dengan kualitas di bawah. Kualitas yang dipilih di menu video itu sendiri tetap diutamakan.
 Playback quality	Kualitas pemutaran

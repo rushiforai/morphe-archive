@@ -19,6 +19,11 @@ private val SITES = listOf(
     "RemoveAdverts.IsPurchaseApplied" to byteArrayOf(
         0xFE.toByte(), 0x4F, 0xBF.toByte(), 0xA9.toByte(), 0x13, 0x1F, 0x01, 0x90.toByte(),
     ),
+    "MediationController.get_AdvertsDisabled" to byteArrayOf(
+        0xFE.toByte(), 0x0F, 0x1E, 0xF8.toByte(), 0xF4.toByte(), 0x4F, 0x01, 0xA9.toByte(),
+        0x13, 0x27, 0x01, 0xB0.toByte(), 0xB4.toByte(), 0x13, 0x01, 0xD0.toByte(),
+        0x68, 0x4A, 0x68, 0x39,
+    ),
     "UnlockLevelAndAchievementItems.IsPurchaseApplied" to byteArrayOf(
         0x4C, 0xFF.toByte(), 0xFF.toByte(), 0x17, 0xFE.toByte(), 0x57, 0xBE.toByte(),
         0xA9.toByte(),
@@ -77,7 +82,7 @@ private fun indexOfUnique(bytes: ByteArray, anchor: ByteArray, label: String): I
 @Suppress("unused")
 val solarSmashAllPackagesPurchasedPatch = rawResourcePatch(
     name = "Solar Smash All Packages Purchased",
-    description = "Every in-app purchase package reports as purchased: the all weapons pack, all planets pack, remove ads and unlock levels and achievements stay permanently owned and unlocked, without contacting Google Play.",
+    description = "Every in-app purchase package reports as purchased: the all weapons pack, all planets pack, remove ads and unlock levels and achievements stay permanently owned and unlocked, without contacting Google Play. Banner, interstitial and rewarded ads are suppressed via the Remove Ads entitlement.",
     default = true,
 ) {
     compatibleWith(COMPATIBILITY_SOLARSMASH)

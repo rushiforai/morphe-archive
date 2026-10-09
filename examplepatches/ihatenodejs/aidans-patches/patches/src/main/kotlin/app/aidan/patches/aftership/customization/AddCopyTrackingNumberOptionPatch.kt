@@ -16,6 +16,7 @@ val addCopyTrackingNumberOptionPatch = bytecodePatch(
     description = "Adds an option to copy tracking numbers in the multi-shipment selection menu.",
     default = true
 ) {
+    category("Features")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     extendWith("extensions/extension.mpe")
     dependsOn(bypassSignatureCheckResourcePatch)

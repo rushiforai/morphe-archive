@@ -17,6 +17,7 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.MainActivityOnCreateFingerprint
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
+import app.morphe.patches.tiktok.misc.navigation.MainNewIntentFingerprint
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
 import app.morphe.patches.tiktok.misc.theme.declaredVersions
@@ -55,6 +56,7 @@ private const val SEARCH_LYNX_CARDS_CLASS_DESCRIPTOR = "Lapp/morphe/extension/ti
 private const val LIVE_FEED_FILTER_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/LiveFeedFilter;"
 private const val FEED_ITEM_LIST_DESCRIPTOR = "Lcom/ss/android/ugc/aweme/feed/model/FeedItemList;"
 private const val FILTERED_COUNT_PILL_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/FilteredCountPill;"
+private const val LINKED_VIDEO_CLASS_DESCRIPTOR = "Lapp/morphe/extension/tiktok/feedfilter/LinkedVideo;"
 
 @Suppress("unused")
 val feedFilterPatch = bytecodePatch(
@@ -106,6 +108,17 @@ val feedFilterPatch = bytecodePatch(
         MainActivityOnCreateFingerprint.method.addInstruction(
             0,
             "invoke-static/range { p0 .. p0 }, $FILTERED_COUNT_PILL_CLASS_DESCRIPTOR->install(Landroid/app/Activity;)V",
+        )
+
+        // The video a link from outside TikTok opens gets past the rules (#117). A cold start
+        // carries the link in the activity's intent, and the running app gets it in onNewIntent.
+        MainActivityOnCreateFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p0 .. p1 }, $LINKED_VIDEO_CLASS_DESCRIPTOR->onCreate(Landroid/app/Activity;Landroid/os/Bundle;)V",
+        )
+        MainNewIntentFingerprint.method.addInstruction(
+            0,
+            "invoke-static/range { p1 .. p1 }, $LINKED_VIDEO_CLASS_DESCRIPTOR->onNewIntent(Landroid/content/Intent;)V",
         )
 
         MainFeedResponseFingerprint.method.let { method ->
@@ -488,18 +501,17 @@ val feedFilterPatch = bytecodePatch(
             )
         }
 
-        // The golden cache method, the offline cache method and whatever runs them both. On 47.0.3
-        // the golden method is itself the cold start's orchestrator: it calls the offline method
-        // and makes three of the four stores. 47.1.3 moved the golden hit-cache step into a method
-        // of its own with one store, and the two parse stores into an orchestrator that calls the
-        // golden and the offline method in turn, five stores in all.
+        // The golden cache method, the offline cache method and the orchestrator that runs them
+        // both. The golden hit-cache step is a method of its own with one store, and the two parse
+        // stores sit in an orchestrator that calls the golden and the offline method in turn, five
+        // stores in all. (Up to 47.0.3 the golden method ran the cold start itself.)
         val golden = ColdStartGoldenCacheFingerprint.method
         val offline = ColdStartOfflineCacheFingerprint.method
-        val orchestrators = if (golden.goldenRunsTheColdStart()) emptyList() else findColdStartOrchestrators(golden, offline)
-        if (!golden.goldenRunsTheColdStart() && orchestrators.size != 1) {
+        val orchestrators = findColdStartOrchestrators(golden, offline)
+        if (orchestrators.size != 1) {
             throw PatchException(
-                "The golden cold-start method no longer runs the cold start, and ${orchestrators.size} " +
-                    "methods call it with the offline one where one orchestrator was expected",
+                "${orchestrators.size} methods call the golden and the offline cold-start method " +
+                    "where one orchestrator was expected",
             )
         }
         val coldStartMethods = (listOf(golden, offline) + orchestrators).distinctBy { method ->
@@ -524,11 +536,8 @@ val feedFilterPatch = bytecodePatch(
                 .toList()
         }
         val cacheStoreCount = coldStartStores.sumOf { (_, indices) -> indices.size }
-        val expectedStores = expectedColdStartStores(orchestrators.size)
-            ?: throw PatchException("Expected at most one cold-start orchestrator, found ${orchestrators.size}")
-        check(cacheStoreCount == expectedStores) {
-            "Expected $expectedStores cold-start cached FeedItemList stores with " +
-                "${orchestrators.size} separate orchestrator(s), found $cacheStoreCount"
+        check(cacheStoreCount == COLD_START_STORES) {
+            "Expected $COLD_START_STORES cold-start cached FeedItemList stores, found $cacheStoreCount"
         }
 
         val offlineMarkers = coldStartMethods.flatMap { method ->
@@ -1215,7 +1224,7 @@ private fun MutableMethod.filterProfileDetailAdEvent() {
     )
 }
 
-/** The cold start's orchestrator where it is a method of its own (47.1.3), found by what it calls. */
+/** The cold start's orchestrator, a method of its own, found by what it calls. */
 private fun BytecodePatchContext.findColdStartOrchestrators(golden: Method, offline: Method): List<MutableMethod> {
     val sites = invokeSitesOf(setOf(golden.coldStartCall(), offline.coldStartCall()), static = true)
     val calls = sites.groupBy { it.method.coldStartCall() }.values.associate { group ->

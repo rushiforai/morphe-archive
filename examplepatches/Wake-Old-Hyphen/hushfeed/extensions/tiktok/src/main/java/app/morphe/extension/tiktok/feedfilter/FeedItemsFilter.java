@@ -55,7 +55,9 @@ public final class FeedItemsFilter {
         new ContentMarkerFilters.PlaylistFilter(),
         new CardFilters.InsertedCardFilter(),
         new SeenVideoFilter(),
+        new OfflineVideoFilter(),
         new AdvancedFeedRules.KeywordFilter(),
+        new AdvancedFeedRules.StickerTextFilter(),
         new AdvancedFeedRules.CreatorFilter(),
         new AdvancedFeedRules.PromotionalMusicFilter(),
         new AdvancedFeedRules.LiveReplayFilter(),
@@ -88,7 +90,7 @@ public final class FeedItemsFilter {
     private static final int CACHE_SOURCE_COLD_CACHE = 0;
     private static final int CACHE_SOURCE_FEED_UNCONSUMED = 1;
     private static final int CACHE_SOURCE_GOLDEN_HOUSE = 2;
-    private static final int CACHE_SOURCE_OFFLINE_MODE = 3;
+    static final int CACHE_SOURCE_OFFLINE_MODE = 3;
     private static final int CACHE_SOURCE_MERGE_CACHE = 4;
 
     private static final int MAX_NULL_ITEMS_LOGS = 3;
@@ -438,7 +440,7 @@ public final class FeedItemsFilter {
             logKeptItem(MID_AD_SOURCE, ad, verbose);
             return false;
         }
-        FeedFilterCounters.removed(MID_AD_SOURCE, 1, MID_AD_REASON);
+        FeedFilterCounters.removedItems(MID_AD_SOURCE, 1, MID_AD_REASON);
         logItem(ad, MID_AD_REASON, verbose);
         return true;
     }
@@ -489,7 +491,7 @@ public final class FeedItemsFilter {
                 }
                 return preloads;
             }
-            FeedFilterCounters.removed(TOP_VIEW_SOURCE, count, TOP_VIEW_REASON);
+            FeedFilterCounters.removedItems(TOP_VIEW_SOURCE, count, TOP_VIEW_REASON);
             for (Object ad : preloads) {
                 if (ad instanceof Aweme) logItem((Aweme) ad, TOP_VIEW_REASON, verbose);
             }
@@ -549,7 +551,7 @@ public final class FeedItemsFilter {
             }
             return ads;
         }
-        FeedFilterCounters.removed(PROFILE_AD_SOURCE, ads.size(), PROFILE_AD_REASON);
+        FeedFilterCounters.removedItems(PROFILE_AD_SOURCE, ads.size(), PROFILE_AD_REASON);
         for (Object item : ads) {
             if (item instanceof Aweme) logItem((Aweme) item, PROFILE_AD_REASON, verbose);
         }
@@ -627,8 +629,8 @@ public final class FeedItemsFilter {
         // Counted only once the page has actually been rewritten. The all-ads refusal above and
         // a failed write both leave the grid alone, and a counter that said otherwise would
         // point an ad report at a route that removed nothing.
-        FeedFilterCounters.removed(SEARCH_SOURCE, adsRemoved, "searchAd");
-        FeedFilterCounters.removed(SEARCH_SOURCE, shopRemoved, "searchShop");
+        FeedFilterCounters.removedItems(SEARCH_SOURCE, adsRemoved, "searchAd");
+        FeedFilterCounters.removedItems(SEARCH_SOURCE, shopRemoved, "searchShop");
 
         // printInfo is not gated on the debug switch, unlike printDebug, so every search page
         // used to append to the bounded diagnostic buffer and push out the events around a crash.
@@ -789,7 +791,7 @@ public final class FeedItemsFilter {
             Field field = Reflect.field(response.getClass(), listField);
             if (field == null) return;
             field.set(response, kept);
-            if (count) FeedFilterCounters.removed(source, items.size() - kept.size(), lastReason);
+            if (count) FeedFilterCounters.removedItems(source, items.size() - kept.size(), lastReason);
 
             final int before = items.size();
             final int after = kept.size();
@@ -872,7 +874,7 @@ public final class FeedItemsFilter {
         }
 
         own.report();
-        FeedFilterCounters.removed(source, removed, lastReason);
+        FeedFilterCounters.removedItems(source, removed, lastReason);
         FeedFilterCounters.unreadable(source, notVideos);
         if (kept == null) return items;
         if (verbose && shouldLogBatch()) {
@@ -919,8 +921,7 @@ public final class FeedItemsFilter {
                 if (kept != null) kept.add(container);
                 continue;
             }
-            if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE &&
-                    !Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.get()) {
+            if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE && keepsOfflineVideos()) {
                 if (kept != null) kept.add(container);
                 continue;
             }
@@ -941,7 +942,7 @@ public final class FeedItemsFilter {
             logItem(item, reason, BaseSettings.DEBUG.get());
         }
 
-        FeedFilterCounters.removed(FINAL_INSERT_SOURCE + source, removed, lastReason);
+        FeedFilterCounters.removedItems(FINAL_INSERT_SOURCE + source, removed, lastReason);
         if (kept == null) return items;
         if (BaseSettings.DEBUG.get()) {
             int removedCount = removed;
@@ -960,9 +961,28 @@ public final class FeedItemsFilter {
 
     public static FeedItemList filterOfflineFeedList(FeedItemList feedItemList) {
         if (feedItemList == null || feedItemList.items == null) return null;
+        if (Settings.HIDE_OFFLINE_VIDEOS.get()) {
+            // Every item here is an offline copy, whatever cache source it carries yet.
+            int dropped = feedItemList.items.size();
+            FeedFilterCounters.sawList(OFFLINE_FALLBACK_SOURCE, dropped);
+            FeedFilterCounters.removedItems(OFFLINE_FALLBACK_SOURCE, dropped, OFFLINE_REASON);
+            feedItemList.items = new ArrayList<>();
+            return null;
+        }
         if (!Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.get()) return feedItemList;
-        filterCachedFeedItems("FeedItemList:offline-fallback", feedItemList);
+        filterCachedFeedItems(OFFLINE_FALLBACK_SOURCE, feedItemList);
         return feedItemList.items.isEmpty() ? null : feedItemList;
+    }
+
+    static final String OFFLINE_FALLBACK_SOURCE = "FeedItemList:offline-fallback";
+    static final String OFFLINE_REASON = "OfflineVideoFilter";
+
+    /**
+     * Whether an offline video skips the filters: the reader didn't ask for them to reach
+     * offline videos, and didn't ask for offline videos to go altogether.
+     */
+    private static boolean keepsOfflineVideos() {
+        return !Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.get() && !Settings.HIDE_OFFLINE_VIDEOS.get();
     }
 
     /**
@@ -1012,8 +1032,7 @@ public final class FeedItemsFilter {
         if (item == null) return null;
 
         int cacheSourceType = AwemeBizExtKt.getCacheSourceType(item);
-        if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE &&
-                !Settings.FILTER_OFFLINE_FALLBACK_VIDEOS.get()) {
+        if (cacheSourceType == CACHE_SOURCE_OFFLINE_MODE && keepsOfflineVideos()) {
             return null;
         }
 
@@ -1168,6 +1187,13 @@ public final class FeedItemsFilter {
                 rangeKept.add(container);
                 continue;
             }
+            // The video a link from outside TikTok opened arrives in a For You response of its
+            // own, and taking it out left TikTok's error screen in its place (#117).
+            if ((contentReason != null || rangeReason != null) && forYou && LinkedVideo.spares(
+                    source, item, initialSize, contentReason != null ? contentReason : rangeReason)) {
+                rangeKept.add(container);
+                continue;
+            }
             if (contentReason != null) {
                 if (contentReason.equals("QualityFilter") && getFilterReason(activeRangeFilters, item) == null) {
                     double distance = AdvancedFeedRules.QualityFilter.distance(item);
@@ -1214,9 +1240,12 @@ public final class FeedItemsFilter {
         }
         if (countDistribution) {
             Integer dropped = reasonCounts.get(UNPERSONALIZED_REASON);
+            // A diagnostic share of this list's removals: the list's own count below adds them to
+            // the running count.
             FeedFilterCounters.removed(FOR_YOU_DISTRIBUTION_SOURCE, dropped == null ? 0 : dropped, UNPERSONALIZED_REASON);
         }
-        // Never restore ads, blocked creators/words, seen videos, or other hard rejects.
+        // Never restore ads, blocked creators/words, seen videos, or other hard rejects. (A video a
+        // link opened was kept above, before any rule could take it out.)
         if (rangeKept.isEmpty() && qualityFallback != null) rangeKept.add(qualityFallback);
         List kept = rangeKept;
         int removed = initialSize - kept.size();
@@ -1271,7 +1300,7 @@ public final class FeedItemsFilter {
             recordProbeScan(listId, removed, System.nanoTime() - startNs);
         }
 
-        FeedFilterCounters.removed(source, removed,
+        FeedFilterCounters.removedItems(source, removed,
             reasonCounts.isEmpty() ? null : reasonCounts.keySet().iterator().next());
         FeedFilterFeedback.onBatchResult(source, initialSize, resultList.size(), reasonCounts,
                 System.currentTimeMillis());

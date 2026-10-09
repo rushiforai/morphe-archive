@@ -11,6 +11,7 @@ public final class VideoInfoUi {
 
     /** Called after each metadata panel is populated, including embedded playback panels. */
     public static void bindStatistics(Object fragment, View root) {
+        VideoDetails.bind(fragment, root);
         if (root == null) return;
         try {
             android.os.Bundle data = (android.os.Bundle) fragment.getClass().getField("i0").get(fragment);
@@ -35,6 +36,7 @@ public final class VideoInfoUi {
 
     /** Reuse the metadata response already fetched by the app; never invent missing counts. */
     public static void captureStatistics(org.json.JSONObject data, android.os.Bundle bundle) {
+        VideoDetails.capture(data, bundle);
         if (data == null || bundle == null) return;
         org.json.JSONObject video = data.optJSONObject("video");
         org.json.JSONObject counts = video == null ? null : video.optJSONObject("count");

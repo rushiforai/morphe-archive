@@ -355,11 +355,11 @@
 
     move-result-object v1
 
-    if-eqz v1, :cond_9
+    if-eqz v1, :cond_18
 
     return-void
 
-    :cond_9
+    :cond_18
     invoke-virtual {p0}, Landroid/preference/PreferenceActivity;->getPreferenceScreen()Landroid/preference/PreferenceScreen;
 
     move-result-object v1
@@ -388,12 +388,12 @@
 
     const/4 v4, 0x0
 
-    :goto_25
-    if-ge v4, p0, :cond_5d
+    :goto_34
+    if-ge v4, p0, :cond_6c
 
     const/4 v5, 0x2
 
-    if-ge v4, v5, :cond_33
+    if-ge v4, v5, :cond_42
 
     sget-object v5, Le/e/a/StartupScreen;->LABELS:[Ljava/lang/String;
 
@@ -403,9 +403,9 @@
 
     move-result-object v5
 
-    goto :goto_58
+    goto :goto_67
 
-    :cond_33
+    :cond_42
     new-instance v5, Ljava/lang/StringBuilder;
 
     invoke-direct {v5}, Ljava/lang/StringBuilder;-><init>()V
@@ -442,14 +442,14 @@
 
     move-result-object v5
 
-    :goto_58
+    :goto_67
     aput-object v5, v0, v4
 
     add-int/lit8 v4, v4, 0x1
 
-    goto :goto_25
+    goto :goto_34
 
-    :cond_5d
+    :cond_6c
     invoke-virtual {v2, v0}, Landroid/preference/ListPreference;->setEntries([Ljava/lang/CharSequence;)V
 
     sget-object p0, Le/e/a/StartupScreen;->IDS:[Ljava/lang/String;

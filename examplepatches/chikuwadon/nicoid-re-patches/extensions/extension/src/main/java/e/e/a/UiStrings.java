@@ -12,6 +12,10 @@ public final class UiStrings {
     // 0 = Japanese, 1 = English, 2 = Traditional Chinese; -1 follows the device locale.
     private static volatile int selectedLanguage = -1;
     static {
+        TEXT.put("起動時の画面", new String[]{"Startup screen", "啟動畫面"});
+        TEXT.put("ニコレポ", new String[]{"Nico Reports", "Nico 動態"});
+        TEXT.put("投稿者のフォローボタンを表示", new String[]{"Show creator follow button", "顯示投稿者追蹤按鈕"});
+        TEXT.put("動画情報にフォローボタンを表示します", new String[]{"Show a follow button in video details", "在影片資訊顯示追蹤按鈕"});
         TEXT.put("コメントを太字にする", new String[]{"Bold comments", "粗體留言"});
         TEXT.put("次の再生から反映されます", new String[]{"Applies on the next playback", "下次播放時生效"});
         JAPANESE_ALIASES.put("I will change the language of the entire application.", "アプリ全体の言語を変更します。");

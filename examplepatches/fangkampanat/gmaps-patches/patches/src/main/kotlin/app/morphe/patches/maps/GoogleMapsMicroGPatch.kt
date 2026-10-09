@@ -80,8 +80,8 @@ private val manifestPatch = resourcePatch {
 
 @Suppress("unused")
 val googleMapsMicroGPatch = bytecodePatch(
-    name = "Google Maps for MicroG-RE-BYD",
-    description = "Connects supported Google Maps builds to MicroG-RE-BYD, with BYD navigation audio and compatibility with devices that also have official Google Play services.",
+    name = "Google Maps for MicroG-RE",
+    description = "Connects supported Google Maps builds to MicroG-RE 7.2.1 and prefers synthesized navigation speech with the existing audio fallback.",
     default = true,
 ) {
     compatibleWith(compatibility)
@@ -95,6 +95,7 @@ val googleMapsMicroGPatch = bytecodePatch(
         patchAvailabilityChecks()
         suppressMisleadingPlayServicesUpdateNotification()
         patchBydNavigationAudio()
+        patchNavigationTts()
         injectExtensionContext()
         injectGmsCoreCheck()
     }
@@ -534,7 +535,7 @@ private fun Method.hasAudioStreamCall() = implementation?.instructions?.any {
 
 // Fingerprint.methodOrNull returns the first match. Scan individual methods so
 // duplicated strings or method shapes cannot silently select a different hook.
-private fun app.morphe.patcher.patch.BytecodePatchContext.uniqueMapsHook(
+internal fun app.morphe.patcher.patch.BytecodePatchContext.uniqueMapsHook(
     fingerprint: Fingerprint,
     label: String,
     required: Boolean = true,

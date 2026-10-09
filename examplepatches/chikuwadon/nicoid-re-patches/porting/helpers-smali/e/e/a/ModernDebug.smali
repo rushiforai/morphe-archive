@@ -8,7 +8,7 @@
 
 # direct methods
 .method static constructor <clinit>()V
-    .locals 1
+    .registers 1
 
     new-instance v0, Ljava/lang/StringBuilder;
 
@@ -20,7 +20,7 @@
 .end method
 
 .method public static http(Ljava/net/HttpURLConnection;I)V
-    .locals 4
+    .registers 6
 
     invoke-virtual {p0}, Ljava/net/HttpURLConnection;->getURL()Ljava/net/URL;
 
@@ -54,16 +54,16 @@
 
     move-result v0
 
-    if-eqz v0, :cond_0
+    if-eqz v0, :cond_29
 
     const-string v0, " playlist"
 
-    goto :goto_0
+    goto :goto_2b
 
-    :cond_0
+    :cond_29
     const-string v0, " segment"
 
-    :goto_0
+    :goto_2b
     invoke-virtual {v1, v0}, Ljava/lang/StringBuilder;->append(Ljava/lang/String;)Ljava/lang/StringBuilder;
 
     invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
@@ -76,13 +76,13 @@
 .end method
 
 .method public static declared-synchronized record(Ljava/lang/String;)V
-    .locals 4
+    .registers 5
 
     const-class v0, Le/e/a/ModernDebug;
 
     monitor-enter v0
 
-    :try_start_0
+    :try_start_3
     sget-object v1, Le/e/a/ModernDebug;->entries:Ljava/lang/StringBuilder;
 
     invoke-static {}, Ljava/lang/System;->currentTimeMillis()J
@@ -107,7 +107,7 @@
 
     const/16 v3, 0x7000
 
-    if-le v2, v3, :cond_0
+    if-le v2, v3, :cond_27
 
     const/4 v2, 0x0
 
@@ -115,14 +115,14 @@
 
     invoke-virtual {v1, v2, v3}, Ljava/lang/StringBuilder;->delete(II)Ljava/lang/StringBuilder;
 
-    :cond_0
+    :cond_27
     monitor-exit v0
 
     return-void
-    :try_end_0
-    .catchall {:try_start_0 .. :try_end_0} :catchall_0
+    :try_end_29
+    .catchall {:try_start_3 .. :try_end_29} :catchall_29
 
-    :catchall_0
+    :catchall_29
     move-exception p0
 
     monitor-exit v0
@@ -131,7 +131,7 @@
 .end method
 
 .method public static restart(Landroid/content/Context;)V
-    .locals 3
+    .registers 4
 
     invoke-virtual {p0}, Landroid/content/Context;->getPackageManager()Landroid/content/pm/PackageManager;
 
@@ -145,7 +145,7 @@
 
     move-result-object v0
 
-    if-eqz v0, :cond_0
+    if-eqz v0, :cond_20
 
     const v1, 0x10008000
 
@@ -155,31 +155,42 @@
 
     instance-of v0, p0, Landroid/app/Activity;
 
-    if-eqz v0, :cond_0
+    if-eqz v0, :cond_20
 
     check-cast p0, Landroid/app/Activity;
 
     invoke-virtual {p0}, Landroid/app/Activity;->finish()V
 
-    :cond_0
+    :cond_20
     return-void
 .end method
 
- .method public static share(Landroid/content/Context;)V
-    .locals 3
+.method public static share(Landroid/content/Context;)V
+    .registers 4
+
     const-class v0, Le/e/a/ModernDebug;
+
     monitor-enter v0
-    :try_start_save
+
+    :try_start_3
     sget-object v1, Le/e/a/ModernDebug;->entries:Ljava/lang/StringBuilder;
+
     invoke-virtual {v1}, Ljava/lang/StringBuilder;->toString()Ljava/lang/String;
+
     move-result-object v1
+
     monitor-exit v0
-    :try_end_save
-    .catchall {:try_start_save .. :try_end_save} :save_error
+    :try_end_a
+    .catchall {:try_start_3 .. :try_end_a} :catchall_e
+
     invoke-static {p0, v1}, Le/e/a/Followup173;->saveLog(Landroid/content/Context;Ljava/lang/String;)V
+
     return-void
-    :save_error
+
+    :catchall_e
     move-exception v2
+
     monitor-exit v0
+
     throw v2
 .end method

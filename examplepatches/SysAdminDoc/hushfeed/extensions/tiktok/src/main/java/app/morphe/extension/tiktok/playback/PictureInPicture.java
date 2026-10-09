@@ -22,6 +22,7 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver;
 
 import androidx.annotation.RequiresApi;
 
@@ -86,6 +87,9 @@ public final class PictureInPicture {
     private static long openedAt;
     private static boolean readerPaused;
     private static final List<SetAside> setAside = new ArrayList<>();
+    private static WeakReference<View> asideVideo = new WeakReference<>(null);
+    private static WeakReference<View> asideRoot = new WeakReference<>(null);
+    private static WeakReference<View> keptOn = new WeakReference<>(null);
     private static BroadcastReceiver toggle;
 
     private PictureInPicture() {
@@ -146,7 +150,7 @@ public final class PictureInPicture {
         // Only the window this class opened: TikTok's own LIVE window is TikTok's.
         if (activity == null || opened.get() != activity) return;
         if (inWindow) {
-            setAside(activity.getWindow().getDecorView());
+            keepAsideWhileUp(activity.getWindow().getDecorView());
             listen(activity);
             WeakReference<Activity> owner = new WeakReference<>(activity);
             for (long delay : RESUME_CHECKS_MS) {
@@ -243,6 +247,34 @@ public final class PictureInPicture {
     static void setAside(View root) {
         View video = videoView(root);
         if (video == null) return;
+        asideVideo = new WeakReference<>(video);
+        asideRoot = new WeakReference<>(root);
+        hideBeside(video, root);
+    }
+
+    /**
+     * Keeps the video alone until {@link #bringBack}. TikTok shows the cell's caption, right
+     * column and search bar again after the window opens, so on 47.1.4 they sat in the small
+     * window over the video (S22, 2026-10-08). Every frame sets aside again whatever TikTok has
+     * shown beside the video since. The frame still draws: a skipped one could hold a
+     * TextureView's video still if TikTok shows a view on every layout.
+     */
+    static void keepAsideWhileUp(View root) {
+        stopKeeping();
+        setAside(root);
+        if (asideVideo.get() == null) return;
+        root.getViewTreeObserver().addOnPreDrawListener(KEEP_ASIDE);
+        keptOn = new WeakReference<>(root);
+    }
+
+    private static final ViewTreeObserver.OnPreDrawListener KEEP_ASIDE = () -> {
+        View video = asideVideo.get();
+        View root = asideRoot.get();
+        if (video != null && root != null && video.isAttachedToWindow()) hideBeside(video, root);
+        return true;
+    };
+
+    private static void hideBeside(View video, View root) {
         View child = video;
         ViewParent parent = child.getParent();
         while (parent instanceof ViewGroup) {
@@ -250,7 +282,7 @@ public final class PictureInPicture {
             for (int i = 0; i < group.getChildCount(); i++) {
                 View sibling = group.getChildAt(i);
                 if (sibling == child || sibling.getVisibility() != View.VISIBLE) continue;
-                setAside.add(new SetAside(sibling));
+                if (!isSetAside(sibling)) setAside.add(new SetAside(sibling));
                 sibling.setVisibility(View.INVISIBLE);
             }
             if (group == root) break;
@@ -259,7 +291,25 @@ public final class PictureInPicture {
         }
     }
 
+    private static boolean isSetAside(View view) {
+        for (SetAside entry : setAside) {
+            if (entry.view.get() == view) return true;
+        }
+        return false;
+    }
+
+    private static void stopKeeping() {
+        View root = keptOn.get();
+        if (root != null && root.getViewTreeObserver().isAlive()) {
+            root.getViewTreeObserver().removeOnPreDrawListener(KEEP_ASIDE);
+        }
+        keptOn = new WeakReference<>(null);
+    }
+
     static void bringBack() {
+        stopKeeping();
+        asideVideo = new WeakReference<>(null);
+        asideRoot = new WeakReference<>(null);
         for (SetAside entry : setAside) {
             View view = entry.view.get();
             if (view != null && view.getVisibility() == View.INVISIBLE) view.setVisibility(entry.visibility);

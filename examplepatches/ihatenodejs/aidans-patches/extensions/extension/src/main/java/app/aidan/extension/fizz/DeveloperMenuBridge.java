@@ -36,7 +36,17 @@ public final class DeveloperMenuBridge {
      */
     public static Object getClickListener() {
         try {
-            Class<?> function0Class = Class.forName("wl.a");
+            Class<?> function0Class = null;
+            for (String clsName : new String[] {"yl.a", "wl.a"}) {
+                try {
+                    function0Class = Class.forName(clsName);
+                    break;
+                } catch (Throwable ignored) {
+                }
+            }
+            if (function0Class == null) {
+                return null;
+            }
             return Proxy.newProxyInstance(
                 function0Class.getClassLoader(),
                 new Class<?>[] { function0Class },
@@ -47,9 +57,19 @@ public final class DeveloperMenuBridge {
                         if ("invoke".equals(name)) {
                             openMenu();
                             try {
-                                Class<?> unitClass = Class.forName("il.z");
-                                Field aField = unitClass.getField("a");
-                                return aField.get(null);
+                                Class<?> unitClass = null;
+                                for (String uName : new String[] {"kl.z", "il.z"}) {
+                                    try {
+                                        unitClass = Class.forName(uName);
+                                        break;
+                                    } catch (Throwable ignored) {
+                                    }
+                                }
+                                if (unitClass != null) {
+                                    Field aField = unitClass.getField("a");
+                                    return aField.get(null);
+                                }
+                                return null;
                             } catch (Throwable ignored) {
                                 return null;
                             }
@@ -104,13 +124,31 @@ public final class DeveloperMenuBridge {
             m0Field.setAccessible(true);
             Object j1Instance = m0Field.get(activity);
             if (j1Instance != null) {
-                Field f4616aField = j1Instance.getClass().getDeclaredField("f4616a");
-                f4616aField.setAccessible(true);
-                Object sharedFlow = f4616aField.get(j1Instance);
-                if (sharedFlow != null) {
-                    Class<?> unitClass = Class.forName("il.z");
-                    Field aField = unitClass.getField("a");
-                    Object unit = aField.get(null);
+                Field sharedFlowField = null;
+                for (String fName : new String[] {"a", "f4616a"}) {
+                    try {
+                        sharedFlowField = j1Instance.getClass().getDeclaredField(fName);
+                        break;
+                    } catch (Throwable ignored) {
+                    }
+                }
+                if (sharedFlowField != null) {
+                    sharedFlowField.setAccessible(true);
+                    Object sharedFlow = sharedFlowField.get(j1Instance);
+                    if (sharedFlow != null) {
+                        Class<?> unitClass = null;
+                        for (String uName : new String[] {"kl.z", "il.z"}) {
+                            try {
+                                unitClass = Class.forName(uName);
+                                break;
+                            } catch (Throwable ignored) {
+                            }
+                        }
+                        Object unit = null;
+                        if (unitClass != null) {
+                            Field aField = unitClass.getField("a");
+                            unit = aField.get(null);
+                        }
 
                     Method emitMethod = null;
                     for (Method m : sharedFlow.getClass().getMethods()) {
@@ -138,8 +176,8 @@ public final class DeveloperMenuBridge {
                     }
                 }
             }
-        } catch (Throwable t) {
-            Log.w(TAG, "Failed reflection trigger for Mobile Studio: " + t.getMessage());
+        }
+    } catch (Throwable t) {
         }
 
         // Strategy 2: Alternating hardware key simulation (UP -> DOWN within 1200ms)

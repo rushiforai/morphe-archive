@@ -3,10 +3,6 @@
 Generates the patches section of README.md from patches-list.json
 and injects it between <!-- PATCHES_START --> / <!-- PATCHES_END --> markers.
 
-Spoilers are expanded (open by default) if:
-  1. Total patch count <= AUTO_EXPAND_THRESHOLD.
-  2. The README marker explicitly says: <!-- PATCHES_START EXPANDED -->
-
 python3 generate_patches_readme.py <owner/repo> <branch> [patches-list.json] [README.md]
 """
 
@@ -36,11 +32,6 @@ with open(json_path, encoding="utf-8") as file:
     data = json.load(file)
 
 
-def pkg_emoji(_pkg):
-    """Return a standard package emoji regardless of the package name."""
-    return "📦"
-
-
 # Group patches by package; patches with no compatiblePackages are universal.
 by_pkg = {}
 universal = {}
@@ -58,7 +49,6 @@ for patch in data["patches"]:
         if package_name not in by_pkg:
             by_pkg[package_name] = {
                 "name": name,
-                "emoji": pkg_emoji(package_name),
                 "patches": {},
                 "targets": package_entry.get("targets", []),
             }
@@ -66,19 +56,12 @@ for patch in data["patches"]:
             by_pkg[package_name]["patches"][patch["name"]] = patch
 
 
-def anchor(name):
-    """Convert a patch name to a GitHub-compatible anchor slug."""
-    return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", name.lower())).strip("-")
-
-
 def patches_table(patches):
     """Render a sorted Markdown table of patches."""
-    rows = [
-        "| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |",
-        "|----------|----------------|-----------|",
-    ]
+    has_options = any(patch.get("options") for patch in patches)
+    columns = ["Patch", "Description"] + (["Options"] if has_options else [])
+    rows = ["| " + " | ".join(columns) + " |", "| " + " | ".join("---" for _ in columns) + " |"]
     for patch in sorted(patches, key=lambda item: item["name"]):
-        patch_anchor = anchor(patch["name"])
         options = patch.get("options") or []
         if options:
             parts = [option.get("title") or option.get("key") or "" for option in options]
@@ -86,88 +69,51 @@ def patches_table(patches):
         else:
             options_cell = ""
         description = (patch.get("description") or "").replace("\n", "<br>")
-        rows.append(
-            f"| [{patch['name']}](#{patch_anchor}) | {description} | {options_cell} |"
-        )
+        cells = [patch["name"], description] + ([options_cell] if has_options else [])
+        rows.append("| " + " | ".join(cells) + " |")
     return "\n".join(rows)
 
 
-def versions_table(targets):
-    """Render a Markdown table of supported versions."""
-    if not targets:
-        return ""
-
-    cells = []
+def versions_text(targets):
+    """Render eligibility without implying that every version was tested."""
+    versions = []
     for target in targets:
         version = target["version"]
         version = "Any version" if version is None else version
-        label = f"🧪&nbsp;{version}" if target.get("isExperimental") else version
-        cells.append(label)
-
-    if not cells:
-        return ""
-
-    header = "| " + " | ".join(cells) + " |"
-    separator = "| " + " | ".join(":---:" for _ in cells) + " |"
-    rows = [header, separator]
-
-    descriptions = [
-        (target.get("description") or "").replace("\n", "<br>") for target in targets
-    ]
-    if any(descriptions):
-        rows.append("| " + " | ".join(descriptions) + " |")
-
-    return "\n".join(rows)
+        if target.get("isExperimental"):
+            version += " (experimental)"
+        if target.get("description"):
+            version += ": " + target["description"].replace("\n", " ")
+        versions.append(version)
+    return "Eligible versions: " + "; ".join(versions) + "." if versions else ""
 
 
-def spoiler(label, count, targets, table, expanded=False):
-    """Wrap a patches table in a details block with supported versions."""
-    noun = "patch" if count == 1 else "patches"
-    versions = versions_table(targets)
-    versions_section = f"**🎯 Supported versions:**\n\n{versions}\n\n" if versions else ""
-    tag = "<details open>" if expanded else "<details>"
-    return f"""{tag}
-<summary>{label}&nbsp;&nbsp;•&nbsp;&nbsp;{count} {noun}</summary>
-<br>
-
-{versions_section}{table}
-
-</details>"""
-
-
-def build_content(expanded=False):
+def build_content():
     """Build the full generated patches section."""
     total_noun = "patch" if total == 1 else "patches"
     lines = [
-        f"> **[v{version}](https://github.com/{owner}/{repo}/releases/tag/v{version})**"
-        f"&nbsp;&nbsp;•&nbsp;&nbsp;`{branch}`&nbsp;&nbsp;•&nbsp;&nbsp;"
-        f"{total} {total_noun} total"
+        f"[v{version}](https://github.com/{owner}/{repo}/releases/tag/v{version})"
+        f" · {total} {total_noun}",
+        "",
     ]
 
+    multiple_groups = len(by_pkg) + bool(universal) > 1
     for entry in by_pkg.values():
         patches = list(entry["patches"].values())
-        label = f"{entry['emoji']} {entry['name']}"
-        lines.append(
-            spoiler(label, len(patches), entry["targets"], patches_table(patches), expanded)
-        )
+        if multiple_groups:
+            lines.extend([f"### {entry['name']}", ""])
+        versions = versions_text(entry["targets"])
+        if versions:
+            lines.extend([versions, ""])
+        lines.append(patches_table(patches))
         lines.append("")
 
     if universal:
-        universal_patches = list(universal.values())
-        noun = "patch" if len(universal_patches) == 1 else "patches"
-        tag = "<details open>" if expanded else "<details>"
-        lines.append(
-            f"""{tag}
-<summary>🌐 Universal&nbsp;&nbsp;•&nbsp;&nbsp;{len(universal_patches)} {noun}</summary>
-<br>
+        if multiple_groups:
+            lines.extend(["### Universal", ""])
+        lines.extend([patches_table(list(universal.values())), ""])
 
-{patches_table(universal_patches)}
-
-</details>"""
-        )
-        lines.append("")
-
-    return "\n".join(lines)
+    return "\n".join(lines).rstrip() + "\n"
 
 
 raw_version = data["version"]
@@ -181,7 +127,7 @@ end_marker = "<!-- PATCHES_END -->"
 marker_match = re.search(start_pattern, readme)
 
 if not marker_match or end_marker not in readme:
-    print(build_content(expanded=False))
+    print(build_content())
     sys.stderr.write(
         f"Markers <!-- PATCHES_START [EXPANDED] --> / {end_marker} not found in "
         f"{readme_path}. Printed to stdout instead.\n"
@@ -189,9 +135,7 @@ if not marker_match or end_marker not in readme:
     sys.exit(1)
 
 actual_start = marker_match.group(0)
-auto_expand_threshold = 20
-expanded = total <= auto_expand_threshold or "EXPANDED" in actual_start
-generated = build_content(expanded=expanded)
+generated = build_content()
 
 new_readme = re.sub(
     rf"{start_pattern}.*?{re.escape(end_marker)}",
@@ -203,5 +147,5 @@ readme_path.write_text(new_readme, encoding="utf-8")
 print(
     f"Injected patches section into {readme_path} "
     f"(v{version}, branch={branch}, {total} "
-    f"{'patch' if total == 1 else 'patches'}, expanded={expanded})"
+    f"{'patch' if total == 1 else 'patches'})"
 )

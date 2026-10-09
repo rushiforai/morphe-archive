@@ -30,8 +30,6 @@ class FeedTextFixturesTest {
     @Test
     fun `all declared hosts resolve native owners and safely size before line breaking`() {
         val expected = mapOf(
-            "47.0.3" to Triple("LX/09Gd;", "LX/07dX;", 0x7f0a2041 to 0x7f0a87a6),
-            "47.1.3" to Triple("LX/09Ca;", "LX/07ZQ;", 0x7f0a2075 to 0x7f0a8893),
             "47.1.4" to Triple("LX/09Ce;", "LX/07ZU;", 0x7f0a2075 to 0x7f0a8893),
         )
         assertEquals(Fixtures.declaredVersions().toSet(), expected.keys)
@@ -56,9 +54,9 @@ class FeedTextFixturesTest {
             assertEquals("LJFF", native.builderCache.name)
             assertEquals(6, native.layoutCaches.size)
             assertEquals("LJLLLL", native.refreshOriginal.name)
-            assertEquals(if (version == "47.0.3") "LJZ" else "LJLZ", native.refreshTranslated.name)
-            assertEquals(if (version == "47.0.3") "ts" else "As", native.authorBind.name)
-            assertEquals(if (version == "47.0.3") "LLLLLIL" else "LLLLLILLIL", native.authorView.name)
+            assertEquals("LJLZ", native.refreshTranslated.name)
+            assertEquals("As", native.authorBind.name)
+            assertEquals("LLLLLILLIL", native.authorView.name)
             assertTrue(native.authorLoader.implementation!!.instructions.any {
                 it is NarrowLiteralInstruction && it.narrowLiteral == ids.second
             })

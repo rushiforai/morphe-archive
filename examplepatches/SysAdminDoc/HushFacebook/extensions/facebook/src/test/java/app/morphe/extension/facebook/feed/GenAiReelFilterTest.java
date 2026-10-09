@@ -153,6 +153,39 @@ public class GenAiReelFilterTest {
     }
 
     /**
+     * The listener walk after an insert sees the page as Facebook passed it in, so it reads a reel the
+     * insert already took out. It drops it too, counting on its own route and not on the item route a
+     * second time.
+     */
+    @Test
+    public void theListenerWalkCountsApartAndReadsNoItemTwiceInTheReport() {
+        Settings.HIDE_AI_DETECTED_REELS.save(true);
+        ReelItem plain = reel(attribution(false));
+        Collection<?> page = page(reel(attribution(true)), plain);
+
+        assertEquals(Collections.singletonList(plain), new ArrayList<>(filter(page)));
+        assertEquals(Collections.singletonList(plain), new ArrayList<>(
+                GenAiReelFilter.withoutAiReels(page, MODEL, FINDER, NO_STORY_INFO, GenAiReelFilter.ANNOUNCED_ROUTE)));
+
+        assertEquals(GenAiReelFilter.ANNOUNCED_ROUTE + ": 1 lists, 2 items, 1 removed. Last reason: "
+                + "was_detected_as_ai_generated. Removed: was_detected_as_ai_generated 1", line(GenAiReelFilter.ANNOUNCED_ROUTE));
+        assertEquals(GenAiReelFilter.PAGES_ROUTE + ": 1 lists, 2 items, 1 removed. Last reason: "
+                + "was_detected_as_ai_generated. Removed: was_detected_as_ai_generated 1", line(GenAiReelFilter.PAGES_ROUTE));
+        assertTrue(line(GenAiReelFilter.ITEMS_ROUTE), line(GenAiReelFilter.ITEMS_ROUTE).startsWith(
+                GenAiReelFilter.ITEMS_ROUTE + ": 2 lists, 2 items, 1 removed"));
+    }
+
+    /** A one-item insert of a flagged reel comes back empty, which is what makes the patch skip the insert (#47). */
+    @Test
+    public void aOneItemInsertOfAFlaggedReelComesBackEmpty() {
+        Settings.HIDE_AI_DETECTED_REELS.save(true);
+
+        assertTrue(filter(Collections.singletonList(reel(attribution(true)))).isEmpty());
+        List<Object> kept = Collections.singletonList(reel(attribution(false)));
+        assertSame(kept, filter(kept));
+    }
+
+    /**
      * The mutation control for the one above: the same reel with the flag false, and every way the
      * attribution can be missing or unclear, keeps the item and records why.
      */

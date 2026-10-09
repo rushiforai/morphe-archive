@@ -58,13 +58,13 @@ public class HomeTabSettingsShortcutTest {
         bar.addView(home, new FrameLayout.LayoutParams(216, 138));
         content.addView(bar, new FrameLayout.LayoutParams(-1, 138, Gravity.BOTTOM));
         activity.setContentView(content);
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:omq", HOME_ID);
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.1.4:oph", HOME_ID);
     }
 
     @After public void tearDown() {
         PausedProcess.set(false);
         HomeTabSettingsShortcut.resetForTests();
-        FeedVisibility.resolveForTests(activity.getPackageName(), "47.0.3:omq", 0);
+        FeedVisibility.resolveForTests(activity.getPackageName(), "47.1.4:oph", 0);
         ReflectionHelpers.setStaticField(SettingsStatus.class, "feedNavigationEnabled", false);
         Settings.HOME_TAB_OPENS_SETTINGS.resetToDefault();
         owner.pause().stop().destroy();

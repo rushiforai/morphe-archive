@@ -226,12 +226,15 @@ Assert-Throws { Resolve-PatchVerificationTarget -Stock $futureStock -Target $tar
     'A future build was accepted without force.'
 Assert-True (Resolve-PatchVerificationTarget -Stock $futureStock -Target $target -Force).Forced `
     'An explicitly forced future build was not marked forced.'
-Assert-True ((@($target.PackageVersions) -join ',') -eq '47.0.3,47.1.3,47.1.4' -and $target.PackageVersion -eq '47.1.4') `
+Assert-True ((@($target.PackageVersions) -join ',') -eq '47.1.4' -and $target.PackageVersion -eq '47.1.4') `
     "The catalog versions were not resolved: $(@($target.PackageVersions) -join ', ')."
 Assert-True ((Format-VersionList -Versions @('47.0.3')) -eq '47.0.3' -and
     (Format-VersionList -Versions @('47.0.3', '47.1.3')) -eq '47.0.3 and 47.1.3' -and
     (Format-VersionList -Versions @('1.0', '2.0', '3.0')) -eq '1.0, 2.0 and 3.0') 'A version list was not written as a sentence.'
-Assert-True ((Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersion = '47.0.3' }) -Target $target) -eq '47.0.3' -and
+$twoTargets = [pscustomobject]@{ PackageVersions = @('47.1.4', '47.2.3'); PackageVersion = '47.2.3' }
+Assert-True ((Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersion = '47.1.4' }) -Target $twoTargets) -eq '47.1.4' -and
+    (Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersion = '47.1.4' }) -Target $target) -eq '47.1.4' -and
+    (Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersion = '47.0.3' }) -Target $target) -eq '47.1.4' -and
     (Get-DeclaredReportVersion -Report ([pscustomobject]@{ packageVersion = '47.2.3' }) -Target $target) -eq '47.1.4' -and
     (Get-DeclaredReportVersion -Report $null -Target $target) -eq '47.1.4') `
     'A report was held to a version other than the declared one it names.'
@@ -456,7 +459,8 @@ exit /b 19
         Resolve-Java -Explicit $emptyJdk
     } "*$emptyJdk*" 'An explicit directory without bin/java fell through to the PATH Java.'
 
-    $pathJava = Resolve-Java
+    # Resolve-Java answers a bare `java` when the one on PATH is new enough; take its file.
+    $pathJava = (Get-Command -Name (Resolve-Java) -CommandType Application | Select-Object -First 1).Source
     $jdkRoot = Split-Path -Parent (Split-Path -Parent $pathJava)
     $resolvedJava = Resolve-Java -Explicit $jdkRoot
     Assert-True ([System.IO.Path]::GetFullPath($resolvedJava).Equals(
@@ -2079,6 +2083,39 @@ try {
         Assert-True ($wrapped -like "dir=$hookRoot tasks=*:extensions:tiktok:test*:patches:test*") `
             "The build wrapper was not handed the repository and the test tasks: $wrapped"
 
+        # Cheap checks first: one build without nativeTest's fixture scans, then the full one. A
+        # slip in a two-minute test used to show only after the half-hour partition. A stub that
+        # logs every call, and fails the quick one while the fail marker exists.
+        $passLog = Join-Path $hookRoot 'wrapper-passes.txt'
+        $passFails = Join-Path $hookRoot 'wrapper-quick-fails.txt'
+        $passStub = Join-Path $hookRoot 'build-wrapper-passes.ps1'
+        Set-Content -LiteralPath $passStub -Encoding UTF8 -Value @(
+            'param([string]$ProjectDir, [string[]]$Tasks)',
+            "Add-Content -LiteralPath '$passLog' -Value (`$Tasks -join ',')",
+            "if ((Test-Path -LiteralPath '$passFails') -and `$Tasks -contains '-x') { exit 1 }",
+            'exit 0')
+        $env:HUSHFEED_BUILD_WRAPPER = $passStub
+        try {
+            Remove-Item -LiteralPath $passLog, $passFails -Force -ErrorAction SilentlyContinue
+            & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/tiktok/src/test/java/AnyTest.java') 6> $null
+            $passes = @(Get-Content -LiteralPath $passLog)
+            Assert-True ($passes.Count -eq 2) "The gate did not build twice, quick then full: $($passes -join ' | ')"
+            Assert-True ($passes[0] -like '*:patches:test*-x,:patches:nativeTest*' -and
+                $passes[0] -like '*-x,:patches:verifyPatchTestSelection*' -and $passes[0] -like '*:extensions:tiktok:lint*') `
+                "The first build was not the quick one without nativeTest: $($passes[0])"
+            Assert-True ($passes[1] -notlike '*-x*' -and $passes[1] -like '*:patches:test*') `
+                "The second build was not the full one: $($passes[1])"
+
+            Remove-Item -LiteralPath $passLog -Force -ErrorAction SilentlyContinue
+            Set-Content -LiteralPath $passFails -Value 'fail' -Encoding ASCII
+            Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @('extensions/tiktok/src/test/java/AnyTest.java') 6> $null } `
+                '*runtime test build did not pass*' 'A failed quick build was ignored.'
+            Assert-True (@(Get-Content -LiteralPath $passLog).Count -eq 1) 'The full build ran after the quick one failed.'
+        } finally {
+            Remove-Item -LiteralPath $passLog, $passFails, $passStub -Force -ErrorAction SilentlyContinue
+            $env:HUSHFEED_BUILD_WRAPPER = $wrapperStub
+        }
+
         $env:HUSHFEED_BUILD_WRAPPER = Join-Path $hookRoot 'no-such-wrapper.ps1'
         Assert-Throws { & $prePushScript -Root $hookRoot -ChangedPaths @('patches/build.gradle.kts') 6> $null } `
             '*HUSHFEED_BUILD_WRAPPER*' 'A build wrapper that is not there was ignored rather than reported.'
@@ -2123,9 +2160,9 @@ try {
                 'exit 0')
             $env:HUSHFEED_BUILD_WRAPPER = $wrapperStub
             Set-Content -LiteralPath (Join-Path $hookRoot 'scripts/verify-all-patches.ps1') -Encoding UTF8 -Value @(
-                'param([string]$Apk, [string]$DesktopJar, [string]$WorkDir, [string]$Bundle, [string]$PatchList)',
+                'param([string]$Apk, [string]$DesktopJar, [string]$WorkDir, [string]$Bundle, [string]$PatchList, [string]$KeepIn)',
                 "Set-Content -LiteralPath (Join-Path '$applyCalls' ([guid]::NewGuid().ToString('N') + '.txt')) -Value (",
-                '    "apk=$(Split-Path -Leaf $Apk) jar=$DesktopJar bundle=$Bundle list=$PatchList")',
+                '    "apk=$(Split-Path -Leaf $Apk) jar=$DesktopJar bundle=$Bundle list=$PatchList keep=$KeepIn")',
                 "if (Test-Path -LiteralPath '$applySlow') {",
                 '    $started = [DateTime]::UtcNow.Ticks',
                 '    Start-Sleep -Milliseconds 1500',
@@ -2148,8 +2185,10 @@ try {
             Assert-True ($wrapped.Trim() -like '*:patches:test*,:patches:buildAndroid') `
                 "A patch source push did not end its build with :patches:buildAndroid: $wrapped"
             $calls = Get-ApplyCalls
-            $expected = @('com.zhiliaoapp.musically_1.0.3-100_apkmirror.com.apk', 'tiktok-1.1.3.apk') | ForEach-Object {
-                "apk=$_ jar=$env:HUSHFEED_DESKTOP_JAR bundle=$bundleStub list=$stubCatalog"
+            # Each run is kept by version under the gate root, where the release receipt reads it.
+            $keptRoot = Join-Path $hookRoot 'patches/build/fixture-apply'
+            $expected = @(@('com.zhiliaoapp.musically_1.0.3-100_apkmirror.com.apk', '1.0.3'), @('tiktok-1.1.3.apk', '1.1.3')) | ForEach-Object {
+                "apk=$($_[0]) jar=$env:HUSHFEED_DESKTOP_JAR bundle=$bundleStub list=$stubCatalog keep=$(Join-Path $keptRoot $_[1])"
             }
             Assert-True (($calls -join "`n") -eq ($expected -join "`n")) `
                 ("A patch source push did not apply the built bundle to each declared build once, and only those: " + ($calls -join '; '))
@@ -3045,6 +3084,18 @@ Assert-True ($libsReaders.Count -eq 0) `
         ($libsReaders -join ', '))
 
 Write-Host '[scripts] release bundle path contracts passed'
+
+# Every tracked PowerShell file parses. Most scripts here run only on a release or on a phone, so
+# a syntax slip would otherwise surface there first: a "$label:" in build-release-receipt.ps1
+# passed every contract above and stopped the first receipt that reached it.
+$unparsed = New-Object System.Collections.Generic.List[string]
+foreach ($tracked in @(& git -C $Root ls-files -- '*.ps1')) {
+    $parseErrors = $null
+    [void][System.Management.Automation.Language.Parser]::ParseFile((Join-Path $Root $tracked), [ref]$null, [ref]$parseErrors)
+    foreach ($parseError in @($parseErrors)) { $unparsed.Add("${tracked}:$($parseError.Extent.StartLineNumber) $($parseError.Message)") }
+}
+Assert-True ($unparsed.Count -eq 0) ("These scripts don't parse: " + ($unparsed -join '; '))
+Write-Host '[scripts] every tracked PowerShell file parses'
 
 # --- tracked files name no machine -----------------------------------------------------------
 #

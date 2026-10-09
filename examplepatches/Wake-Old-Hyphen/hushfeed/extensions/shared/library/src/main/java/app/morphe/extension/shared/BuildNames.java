@@ -10,11 +10,11 @@ import android.content.Context;
  * Resource names written for one build of the host app.
  *
  * <p>TikTok's build shortens most resource names to two or three characters and hands the same
- * short names out again on every build, mostly to other views: {@code g6r} is the like button on
- * 47.0.3 and something else on the next build. A name written {@code "47.0.3:g6r"} is 47.0.3's
- * name and resolves on 47.0.3 alone, so a list can carry each supported build's name for one view
- * without another build's name ever finding the wrong one. A name with no build in front is a
- * real name, the same on every build.
+ * short names out again on every build, mostly to other views: {@code g85} is the like button on
+ * 47.1.4 and something else on another build. A name written {@code "47.1.4:g85"} is 47.1.4's
+ * name and resolves on 47.1.4 alone, so a build the bundle doesn't declare never finds the wrong
+ * view under it, and a list can carry each supported build's name for one view. A name with no
+ * build in front is a real name, the same on every build.
  */
 public final class BuildNames {
     private static volatile String runningBuild;

@@ -42,6 +42,7 @@ val unlockDevSettingsPatch = rawResourcePatch(
     description = "Makes the internal Development Settings menu visible to every signed-in account.",
     default = false
 ) {
+    category("Developer")
     compatibleWith(COMPATIBILITY_SEZZLE)
 
     execute {

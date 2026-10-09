@@ -9,8 +9,8 @@ import org.w3c.dom.Element
 private const val ANDROID_NAMESPACE = "http://schemas.android.com/apk/res/android"
 private const val INTERNET_PERMISSION = "android.permission.INTERNET"
 private const val SHARED_ASSETS_SPLIT = "assets/bin/Data/sharedassets0.assets.split71"
-private const val HELP_CENTER_BUTTON_PRIMARY_OFFSET = 0x301ae
-private const val HELP_CENTER_BUTTON_DAILY_CHALLENGE_OFFSET = 0x3627e
+private const val HELP_CENTER_BUTTON_PRIMARY_OFFSET = 0x3022e
+private const val HELP_CENTER_BUTTON_DAILY_CHALLENGE_OFFSET = 0x362fe
 
 @Suppress("unused")
 val removeInternetPermissionsPatch = resourcePatch(
@@ -18,6 +18,7 @@ val removeInternetPermissionsPatch = resourcePatch(
     description = "Removes Internet permissions from AndroidManifest.xml to prevent network access.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_BLACKJACK)
 
     val removeBrokenScreens = booleanOption(

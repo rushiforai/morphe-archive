@@ -66,6 +66,7 @@ export const PATCH_SOURCE_FILES: Record<string, string> = {
   // SidelineSwap
   'sidelineswap:Block Tracking and Telemetry': 'patches/src/main/kotlin/app/aidan/patches/sidelineswap/tracking/BlockTrackingAndTelemetryPatch.kt',
   'sidelineswap:Change Brand Color': 'patches/src/main/kotlin/app/aidan/patches/sidelineswap/customization/ChangeBrandColorPatch.kt',
+  'sidelineswap:AMOLED Theme': 'patches/src/main/kotlin/app/aidan/patches/sidelineswap/customization/AmoledThemePatch.kt',
 };
 
 export function getPatchSourceUrl(patchName: string, appId?: string): string {

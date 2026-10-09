@@ -36,7 +36,9 @@ internal val SUBATTACHMENTS_FIELD = "subattachments".hashCode()
 
 /**
  * Offers Save photo on every photo the viewer opens and saves it through Hushfacebook. See
- * PhotoSaveAnchors.kt for where the hooks go, and the extension's PhotoSave for what they do.
+ * PhotoSaveAnchors.kt for where the hooks go, and the extension's PhotoSave for what they do. The
+ * save asks Facebook's own image address modifier for the most the CDN serves the photo at, the
+ * call PhotoSizeAnchors.kt finds in Facebook's save.
  *
  * Its second switch puts Save photo in a post's own three-dot menu too, through the same place
  * Download any video adds its item ([postMenu]): after Facebook fills the menu, the extension's
@@ -60,6 +62,7 @@ val downloadPhotoPatch = bytecodePatch(
         // fails whole instead of keeping the photo hooks with no switch in settings.
         val addPostMenuItem = postMenuPhotoItem()
         unlockPhotoSave()
+        fillCdnResize()
         addPostMenuItem()
         enableStatus("photoDownload")
     }

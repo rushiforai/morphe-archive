@@ -44,10 +44,10 @@ public final class CaptionStyle {
      * dlk and the text from dfu to dlr. On 47.0.3 dfu names nothing at all and dfn an icon in
      * another layout, so both settings did nothing on the target. Read off the renderer's render
      * method, which loads dlr, and CLACaptionAssemV2, which loads dlk. 47.1.3 renamed them again,
-     * the text dmb and the strip dm5, so each has a name per build.
+     * the text dmb and the strip dm5, the names 47.1.4 keeps, so the names are written for the build.
      */
-    private static final String[] TEXT_IDS = {"47.0.3:dlr", "47.1.3:dmb", "47.1.4:dmb"};
-    private static final String[] BACKGROUND_IDS = {"47.0.3:dlk", "47.1.3:dm5", "47.1.4:dm5"};
+    private static final String[] TEXT_IDS = {"47.1.4:dmb"};
+    private static final String[] BACKGROUND_IDS = {"47.1.4:dm5"};
     private static final String TEXT = String.join("|", TEXT_IDS);
     private static final String BACKGROUND = String.join("|", BACKGROUND_IDS);
     private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();

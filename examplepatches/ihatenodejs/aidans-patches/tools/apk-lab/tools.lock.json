@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "tools": {
+    "morphe": {
+      "version": "1.18.0",
+      "url": "https://github.com/MorpheApp/morphe-desktop/releases/download/v1.18.0/morphe-desktop-1.18.0-all.jar",
+      "sha256": "36e20d7a18f655fb5829ae50aadd61217e2208536c0741df5f7799300f758f56",
+      "license": "GPL-3.0",
+      "supportedPlatforms": ["any"],
+      "toolType": "jar",
+      "executablePath": "morphe-desktop-1.18.0-all.jar",
+      "versionProbe": {
+        "args": ["java", "-jar", "{executable}", "--help"],
+        "expectedPattern": "(?i)morphe|options|usage"
+      }
+    },
+    "jadx": {
+      "version": "1.5.6",
+      "url": "https://github.com/skylot/jadx/releases/download/v1.5.6/jadx-1.5.6.zip",
+      "sha256": "545ea2be9c242511bc145755cf4bda2485ade42966e096f8b4d3da2a230e8974",
+      "license": "Apache-2.0",
+      "supportedPlatforms": ["any"],
+      "toolType": "zip",
+      "executablePath": "bin/jadx",
+      "versionProbe": {
+        "args": ["{executable}", "--version"],
+        "expectedPattern": "1\\.5\\.6"
+      }
+    },
+    "apktool": {
+      "version": "3.0.3",
+      "url": "https://github.com/iBotPeaches/Apktool/releases/download/v3.0.3/apktool_3.0.3.jar",
+      "sha256": "dbf930b076c6b9be08d57c449cacefc3bdd6b71ebd59b3066fc0e1f5b14f9423",
+      "license": "Apache-2.0",
+      "supportedPlatforms": ["any"],
+      "toolType": "jar",
+      "executablePath": "apktool_3.0.3.jar",
+      "versionProbe": {
+        "args": ["java", "-jar", "{executable}", "--version"],
+        "expectedPattern": "3\\.0\\.3"
+      }
+    },
+    "baksmali": {
+      "version": "3.0.10",
+      "url": "https://github.com/baksmali/smali/releases/download/3.0.10/baksmali-3.0.10-fat.jar",
+      "sha256": "37ae4a41a8886e15c20b8362fa4250f96bbdb55e1a608199ad8b5dff068b588f",
+      "license": "BSD-3-Clause",
+      "supportedPlatforms": ["any"],
+      "toolType": "jar",
+      "executablePath": "baksmali-3.0.10-fat.jar",
+      "versionProbe": {
+        "args": ["java", "-jar", "{executable}", "--version"],
+        "expectedPattern": "3\\.0\\.10"
+      }
+    },
+    "apkeep": {
+      "version": "1.1.0",
+      "url": "https://github.com/EFForg/apkeep/releases/download/1.1.0/apkeep-x86_64-unknown-linux-gnu",
+      "sha256": "badd7ad9fa7d2f32abe01eaf33b7ff086361a95bbc000a33bf44b630d4bf2140",
+      "license": "MIT",
+      "supportedPlatforms": ["linux-x86_64"],
+      "toolType": "binary",
+      "executablePath": "apkeep",
+      "versionProbe": {
+        "args": ["{executable}", "--version"],
+        "expectedPattern": "apkeep\\s+1\\.1\\.0"
+      }
+    }
+  }
+}

@@ -284,6 +284,31 @@ Hide Telegram Features and Invite Friends	Ocultar Recursos do Telegram e Convida
 Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	As configurações deixam de mostrar a linha Recursos do Telegram e os Contatos deixam de mostrar Convidar amigos. Se você ainda não tem contatos, a lista de convites que aparece no lugar deles também some. Desativado por padrão nas configurações.
 Add Repeat to the message menu	Adicionar Repetir ao menu de mensagens
 Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Coloca Repetir abaixo de Encaminhar no menu que você abre ao tocar e segurar uma mensagem. Ele envia a mensagem de novo para o mesmo chat, como uma nova mensagem sua. Só aparece onde o Telegram oferece Encaminhar e você pode escrever, então nunca em chats protegidos ou secretos. Desativado por padrão nas configurações.
+Keep deleted messages	Manter mensagens apagadas
+Messages other people delete stay in your chats on this phone, marked deleted next to the time. Your own deletes and anything that disappears or is protected work as usual. Off by default in settings.	As mensagens que outras pessoas apagam ficam nos seus chats neste celular, marcadas como apagadas ao lado da hora. As suas próprias exclusões e tudo o que some sozinho ou é protegido funcionam como sempre. Desativado por padrão nas configurações.
+Ask before sending a sticker	Perguntar antes de enviar um sticker
+Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it, and a scheduled sticker goes through as it always did. Off by default in settings.	Pergunta com Enviar ou Cancelar antes de um sticker em que você tocou entrar em um chat. Cancelar o descarta, e um sticker agendado passa como sempre. Desativado por padrão nas configurações.
+Ask before sending a GIF	Perguntar antes de enviar um GIF
+Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it, and a scheduled GIF goes through as it always did. Off by default in settings.	Pergunta com Enviar ou Cancelar antes de um GIF em que você tocou entrar em um chat. Cancelar o descarta, e um GIF agendado passa como sempre. Desativado por padrão nas configurações.
+Ask before sending a voice or video message	Perguntar antes de enviar uma mensagem de voz ou de vídeo
+Asks Send or Cancel before a voice or video message you recorded goes into a chat. Cancel throws the recording away. Off by default in settings.	Pergunta com Enviar ou Cancelar antes de uma mensagem de voz ou de vídeo que você gravou entrar em um chat. Cancelar joga a gravação fora. Desativado por padrão nas configurações.
+Ask before starting a call	Perguntar antes de iniciar uma chamada
+Asks Call or Cancel before the call button in a chat's header or on a profile starts a call. Off by default in settings.	Pergunta com Ligar ou Cancelar antes de o botão de chamada no topo de um chat ou em um perfil iniciar uma chamada. Desativado por padrão nas configurações.
+Send sticker	Enviar sticker
+Send this sticker to this chat?	Enviar este sticker para este chat?
+Send GIF	Enviar GIF
+Send this GIF to this chat?	Enviar este GIF para este chat?
+Send voice message	Enviar mensagem de voz
+Send this voice message to this chat?	Enviar esta mensagem de voz para este chat?
+Send video message	Enviar mensagem de vídeo
+Send this video message to this chat?	Enviar esta mensagem de vídeo para este chat?
+Send	Enviar
+Start a call	Iniciar uma chamada
+Start a voice call?	Iniciar uma chamada de voz?
+Start a video call?	Iniciar uma chamada de vídeo?
+Call	Ligar
+# context: the label before the time of a message someone else deleted that this phone kept
+deleted	apagada
 Add Copy photo to the message menu	Adicionar Copiar foto ao menu de mensagens
 Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Coloca Copiar foto abaixo de Encaminhar no menu que você abre ao tocar e segurar uma foto, depois que ela foi baixada. Copia a própria imagem, para você colar em outro app. Não aparece em chats protegidos ou secretos. Desativado por padrão nas configurações.
 Add Message details to the message menu	Adicionar Detalhes da mensagem ao menu de mensagens
@@ -304,6 +329,13 @@ File data center: %1$s	Data center do arquivo: %1$s
 File size: %1$s	Tamanho do arquivo: %1$s
 Copy	Copiar
 Message details copied	Detalhes da mensagem copiados
+Add Quick forward to the message menu	Adicionar Encaminhar rápido ao menu de mensagens
+Puts Quick forward under Forward in a message's long-press menu. It lists Saved Messages and a few recent chats, and one tap forwards the message there with the sender shown, unless Hide sender names when forwarding is on. It won't appear in protected or secret chats. Off by default in settings.	Coloca Encaminhar rápido abaixo de Encaminhar no menu que você abre ao tocar e segurar uma mensagem. Ele lista Mensagens salvas e alguns chats recentes, e um toque encaminha a mensagem para lá com o remetente visível, a menos que Ocultar remetentes ao encaminhar esteja ligado. Não aparece em chats protegidos ou secretos. Desativado por padrão nas configurações.
+Quick forward	Encaminhar rápido
+Forward to	Encaminhar para
+Forwarding to %1$s	Encaminhando para %1$s
+Can't forward there	Não dá para encaminhar para lá
+No chat to forward to	Nenhum chat para encaminhar
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Notificações
@@ -321,6 +353,11 @@ Notification permission: %1$s	Permissão de notificações: %1$s
 Push token saved: %1$s	Token de push salvo: %1$s
 Signed-in accounts: %1$s	Contas conectadas: %1$s
 Accounts confirmed for push: %1$s	Contas com registro push confirmado: %1$s
+Telegram's push answer: %1$s	Resposta do Telegram ao registro push: %1$s
+None since Telegram started	Nenhuma desde que o Telegram abriu
+Accepted	Aceito
+Refused	Recusado
+Refused (%1$s)	Recusado (%1$s)
 Read-only local state. This doesn't confirm notification delivery.	Apenas consulta o estado local. Isso não confirma a entrega de notificações.
 Unknown	Desconhecido
 Allowed	Permitido

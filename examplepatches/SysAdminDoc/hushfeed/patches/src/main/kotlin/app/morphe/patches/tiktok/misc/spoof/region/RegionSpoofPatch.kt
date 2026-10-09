@@ -44,7 +44,9 @@ private object RegionService : Fingerprint(
  * renames it on every build; the two query keys only it loads as literals find it
  * (RegionSpoofAnchorsTest). carrier_region, sys_region and region in that map are the region hub's
  * getters, which the hooks below already wrap; current_region, residence and carrier_region_v2
- * come from caches no getter hook reaches.
+ * come from caches no getter hook reaches. The map also holds copies of sys_region and
+ * timezone_name that TikTok took once at start-up, through the wrapped getters, so they carry the
+ * preset until the process ends. A sign-in puts the live answers back (RegionSpoof.requestParams).
  */
 internal object CommonParamsBuilderFingerprint : Fingerprint(
     returnType = "V",
@@ -197,6 +199,119 @@ internal fun tokenFill(method: Method): TokenFill? {
     return TokenFill(mapAt, map, fillAt, request)
 }
 
+internal const val APP_LOG = "Lcom/ss/android/common/applog/AppLog;"
+private const val STRING = "Ljava/lang/String;"
+private const val STRING_BUILDER = "Ljava/lang/StringBuilder;"
+
+/**
+ * AppLog's `addCommonParams(String, boolean)`: it copies a URL into a StringBuilder, runs the URL
+ * funnel into the common-parameter builder and hands the URL back. The callers in the declared
+ * builds pass page, media, log and push URLs, and none of them is a /passport/ one, but the URL is
+ * the caller's to choose, so it is read here like the handler's. AppLog is not renamed by R8.
+ */
+internal object AppLogUrlFingerprint : Fingerprint(
+    definingClass = APP_LOG,
+    name = "addCommonParams",
+    returnType = STRING,
+    parameters = listOf(STRING, "Z"),
+)
+
+/**
+ * AppLog's `appendCommonParams(StringBuilder, boolean)`: the same funnel, on a URL the caller is
+ * still building. The StringBuilder holds the URL so far.
+ */
+internal object AppLogBuilderFingerprint : Fingerprint(
+    definingClass = APP_LOG,
+    name = "appendCommonParams",
+    returnType = "V",
+    parameters = listOf(STRING_BUILDER, "Z"),
+)
+
+/** The URL funnel an AppLog entry point calls, and where the entry point returns. */
+internal class AppLogEntry(val funnel: MethodReference, val returns: List<Int>)
+
+/**
+ * [method]'s entry, or null when it isn't a static `(argument, boolean)` method that makes exactly
+ * one static `(StringBuilder, boolean, level)V` call, has a [returnOpcode] to hook, and keeps p0
+ * within a four-bit operand.
+ */
+internal fun appLogEntry(method: Method, argument: String, returnOpcode: Opcode): AppLogEntry? {
+    if (!AccessFlags.STATIC.isSet(method.accessFlags)) return null
+    if (method.parameterTypes.map(CharSequence::toString) != listOf(argument, "Z")) return null
+    val body = method.implementation ?: return null
+    if (body.registerCount - 2 > 15) return null
+    val instructions = body.instructions.toList()
+    val funnel = instructions.mapNotNull { instruction ->
+        val reference = instruction.getReference<MethodReference>() ?: return@mapNotNull null
+        if (instruction.opcode != Opcode.INVOKE_STATIC || reference.returnType != "V") return@mapNotNull null
+        val types = reference.parameterTypes.map(CharSequence::toString)
+        if (types.size == 3 && types[0] == STRING_BUILDER && types[1] == "Z") reference else null
+    }.singleOrNull() ?: return null
+    val returns = instructions.indices.filter { instructions[it].opcode == returnOpcode }
+    if (returns.isEmpty()) return null
+    return AppLogEntry(funnel, returns)
+}
+
+internal const val COMMON_API = "Lcom/ss/android/ugc/aweme/net/CommonApi;"
+
+/**
+ * Where a JS bridge request helper fills the body of a POST, and which field of its request
+ * holds the URL: the page chooses that URL, so a /passport/ one can come through. The URL read
+ * is copied in front of the fill, onto the register that read writes.
+ */
+internal class ProxyFill(val fillAt: Int, val urlRegister: Int, val objectRegister: Int, val urlField: FieldReference)
+
+/**
+ * The JS request helper's fill, or null when [method] isn't a static one-argument method returning
+ * Object with this shape: one static `(Map, boolean)V` fill, then only field reads, then a
+ * `doPost` on CommonApi taking `(String, ..., Map)` with that map. One of the field reads writes
+ * the URL's register and nothing else between the fill and the call reads it, so that register is
+ * free at the fill. R8 renames the helper's classes and the numbered methods the Callable lambdas
+ * were moved to; the fill, CommonApi and the String field find them.
+ */
+internal fun proxyFill(method: Method): ProxyFill? {
+    if (!AccessFlags.STATIC.isSet(method.accessFlags) || method.parameterTypes.size != 1 ||
+        method.returnType != "Ljava/lang/Object;"
+    ) {
+        return null
+    }
+    val instructions = method.implementation?.instructions?.toList() ?: return null
+    val fillAt = instructions.indices.filter { index ->
+        val reference = instructions[index].getReference<MethodReference>() ?: return@filter false
+        instructions[index].opcode == Opcode.INVOKE_STATIC && reference.returnType == "V" &&
+            reference.parameterTypes.map(CharSequence::toString) == listOf("Ljava/util/Map;", "Z")
+    }.singleOrNull() ?: return null
+    val fill = instructions[fillAt] as FiveRegisterInstruction
+    val postAt = (fillAt + 1 until instructions.size).firstOrNull {
+        instructions[it].opcode == Opcode.INVOKE_INTERFACE &&
+            instructions[it].getReference<MethodReference>()?.let { call ->
+                call.definingClass == COMMON_API && call.name == "doPost"
+            } == true
+    } ?: return null
+    if ((fillAt + 1 until postAt).any { instructions[it].opcode != Opcode.IGET_OBJECT }) return null
+    val post = instructions[postAt] as FiveRegisterInstruction
+    val types = instructions[postAt].getReference<MethodReference>()!!.parameterTypes.map(CharSequence::toString)
+    if (types.size < 2 || types.first() != STRING || types.last() != "Ljava/util/Map;" ||
+        post.registerCount != types.size + 1
+    ) {
+        return null
+    }
+    val registers = listOf(post.registerC, post.registerD, post.registerE, post.registerF, post.registerG)
+    val url = registers[1]
+    if (registers[types.size] != fill.registerC || url == fill.registerC || url == fill.registerD) return null
+    val read = (fillAt + 1 until postAt).filter { writes(instructions[it], url) }.singleOrNull() ?: return null
+    val get = instructions[read] as TwoRegisterInstruction
+    val field = instructions[read].getReference<FieldReference>() ?: return null
+    if (field.type != STRING) return null
+    val owner = get.registerB
+    // The copy in front of the fill reads the URL into its own register, so a read that replaces
+    // the request with its own URL would leave the original read nothing to read from.
+    if (url > 15 || owner > 15 || url == owner) return null
+    if ((fillAt + 1 until postAt).any { it != read && writes(instructions[it], owner) }) return null
+    if ((fillAt + 1 until read).any { (instructions[it] as TwoRegisterInstruction).registerB == url }) return null
+    return ProxyFill(fillAt, url, owner, field)
+}
+
 private fun writes(instruction: Instruction, register: Int): Boolean {
     if (!instruction.opcode.setsRegister()) return false
     val target = (instruction as? OneRegisterInstruction)?.registerA ?: return false
@@ -227,6 +342,24 @@ val regionSpoofPatch = bytecodePatch(
         val tokenFill = tokenFill(tokenInterceptor) ?: throw PatchException(
             "Region spoof: the token interceptor no longer fills a new map off its request the way it did.",
         )
+        val appLogUrl = AppLogUrlFingerprint.method
+        val appLogUrlEntry = appLogEntry(appLogUrl, STRING, Opcode.RETURN_OBJECT) ?: throw PatchException(
+            "Region spoof: AppLog.addCommonParams no longer wraps a URL and calls the URL funnel the way it did.",
+        )
+        val appLogBuilder = AppLogBuilderFingerprint.method
+        val appLogBuilderEntry = appLogEntry(appLogBuilder, STRING_BUILDER, Opcode.RETURN_VOID) ?: throw PatchException(
+            "Region spoof: AppLog.appendCommonParams no longer calls the URL funnel the way it did.",
+        )
+        if (appLogUrlEntry.funnel.toString() != appLogBuilderEntry.funnel.toString()) {
+            throw PatchException("Region spoof: AppLog's two URL entry points no longer share one funnel.")
+        }
+        val proxyHelpers = mutableListOf<Method>()
+        classDefForEach { definition ->
+            definition.methods.forEach { method -> if (proxyFill(method) != null) proxyHelpers += method }
+        }
+        if (proxyHelpers.isEmpty()) {
+            throw PatchException("Region spoof: no JS request helper fills a POST body off a URL the way it did.")
+        }
 
         val replacements = mapOf("Ljava/util/Locale;" to "locale", "Ljava/util/TimeZone;" to "timeZone")
         val counts = mutableMapOf<String, Int>()
@@ -346,7 +479,8 @@ val regionSpoofPatch = bytecodePatch(
 
         // Sign-in requests: the handler says which request it's about to fill, in the map's own
         // register just before the map is made, and when the fill is over. A fill that throws
-        // skips the second call, and the thread's next request puts the mark right.
+        // skips the second call; the thread's next request puts the mark right, and the mark
+        // runs out after RegionSpoof.MARK_LIFETIME_MS if no request comes.
         val register = "v${fill.mapRegister}"
         handler.addInstruction(fill.fillAt + 1, "invoke-static {}, $EXTENSION->requestDone()V")
         handler.addInstructionsAtControlFlowLabel(
@@ -371,6 +505,37 @@ val regionSpoofPatch = bytecodePatch(
                 invoke-static { $tokenMap }, $EXTENSION->requestUrl(Ljava/lang/String;)V
             """,
         )
+
+        // The two AppLog entry points that add common parameters to a URL. The URL is p0, read
+        // before anything runs, and the end is marked at each return (the early exit of
+        // addCommonParams lands on the same return as the long path).
+        appLogUrlEntry.returns.asReversed().forEach { index ->
+            appLogUrl.addInstructionsAtControlFlowLabel(index, "invoke-static {}, $EXTENSION->requestDone()V")
+        }
+        appLogUrl.addInstruction(0, "invoke-static { p0 }, $EXTENSION->requestUrl(Ljava/lang/String;)V")
+        appLogBuilderEntry.returns.asReversed().forEach { index ->
+            appLogBuilder.addInstructionsAtControlFlowLabel(index, "invoke-static {}, $EXTENSION->requestDone()V")
+        }
+        appLogBuilder.addInstruction(0, "invoke-static { p0 }, $EXTENSION->requestUrlBuilder(Ljava/lang/StringBuilder;)V")
+
+        // The JS request helpers fill a POST body's common parameters themselves, before the
+        // request reaches the handler, so the handler's mark never covers that fill. The URL
+        // read that follows the fill is copied in front of it, on the register it writes.
+        proxyHelpers.forEach { original ->
+            val helper = mutableClassDefBy(original.definingClass).findMutableMethodOf(original)
+            val proxy = proxyFill(helper) ?: throw PatchException(
+                "Region spoof: ${original.definingClass}->${original.name} changed under the patch.",
+            )
+            val url = "v${proxy.urlRegister}"
+            helper.addInstruction(proxy.fillAt + 1, "invoke-static {}, $EXTENSION->requestDone()V")
+            helper.addInstructionsAtControlFlowLabel(
+                proxy.fillAt,
+                """
+                    iget-object $url, v${proxy.objectRegister}, ${proxy.urlField}
+                    invoke-static { $url }, $EXTENSION->requestUrl(Ljava/lang/String;)V
+                """,
+            )
+        }
         SettingsStatusLoadFingerprint.method.addInstruction(0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableRegionSpoof()V")
     }

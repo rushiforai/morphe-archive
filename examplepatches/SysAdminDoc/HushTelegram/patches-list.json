@@ -64,7 +64,7 @@
     },
     {
       "name": "Add Repeat to the message menu",
-      "description": "Adds switches, off by default, for a message's long-press menu. Repeat sends the message again to the same chat as a new message from you. Copy photo puts a downloaded photo on the clipboard, and Message details shows the message's IDs and times, plus the file's data center and size.",
+      "description": "Adds switches, off by default, for a message's long-press menu. Repeat sends the message again to the same chat as a new message from you. Copy photo puts a downloaded photo on the clipboard, and Message details shows the message's IDs and times, plus the file's data center and size. Quick forward lists a few recent chats to forward to in one tap.",
       "category": "Chats",
       "use": true,
       "dependencies": [
@@ -122,6 +122,63 @@
     {
       "name": "Allow chat blur on slower phones",
       "description": "Adds a switch, off by default, that lets phones Telegram rates as slow use its blurred chat header and panels.",
+      "category": "Chats",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushTelegram settings"
+      ],
+      "compatiblePackages": {
+        "org.telegram.messenger.web": [
+          "12.10.6"
+        ],
+        "org.telegram.messenger.beta": [
+          "12.10.7"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Telegram",
+          "packageName": "org.telegram.messenger.web",
+          "description": null,
+          "appIconColor": 2796526,
+          "signatures": [
+            "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1"
+          ],
+          "targets": [
+            {
+              "version": "12.10.6",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 71129
+              }
+            }
+          ]
+        },
+        {
+          "name": "Telegram Beta",
+          "packageName": "org.telegram.messenger.beta",
+          "description": null,
+          "appIconColor": 2796526,
+          "signatures": [
+            "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1"
+          ],
+          "targets": [
+            {
+              "version": "12.10.7",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 71239
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Ask before sending a sticker",
+      "description": "Adds switches, off by default, that ask before a sticker, a GIF, a voice or video message or a call goes out. Cancel drops it.",
       "category": "Chats",
       "use": true,
       "dependencies": [
@@ -1894,6 +1951,64 @@
       "dependencies": [
         "BytecodePatch",
         "HushTelegram settings"
+      ],
+      "compatiblePackages": {
+        "org.telegram.messenger.web": [
+          "12.10.6"
+        ],
+        "org.telegram.messenger.beta": [
+          "12.10.7"
+        ]
+      },
+      "compatibility": [
+        {
+          "name": "Telegram",
+          "packageName": "org.telegram.messenger.web",
+          "description": null,
+          "appIconColor": 2796526,
+          "signatures": [
+            "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1"
+          ],
+          "targets": [
+            {
+              "version": "12.10.6",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 71129
+              }
+            }
+          ]
+        },
+        {
+          "name": "Telegram Beta",
+          "packageName": "org.telegram.messenger.beta",
+          "description": null,
+          "appIconColor": 2796526,
+          "signatures": [
+            "49c1522548ebacd46ce322b6fd47f6092bb745d0f88082145caf35e14dcc38e1"
+          ],
+          "targets": [
+            {
+              "version": "12.10.7",
+              "experimental": false,
+              "versionCodes": {
+                "ARM64_V8A": 71239
+              }
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Keep deleted messages",
+      "description": "Adds a switch, off by default, that keeps a message on your phone when someone else deletes it, and shows a deleted label next to its time. Your own deletes, disappearing messages and protected chats work as usual, and turning it off keeps what's already saved.",
+      "category": "Chats",
+      "use": true,
+      "dependencies": [
+        "BytecodePatch",
+        "HushTelegram settings",
+        "Message times with seconds"
       ],
       "compatiblePackages": {
         "org.telegram.messenger.web": [

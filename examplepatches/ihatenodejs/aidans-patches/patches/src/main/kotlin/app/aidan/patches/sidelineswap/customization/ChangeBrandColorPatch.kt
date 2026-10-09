@@ -13,6 +13,7 @@ val changeBrandColorPatch = resourcePatch(
     description = "Customizes the primary accent brand color across SidelineSwap buttons, navigation highlights, badges, and accents.",
     default = false
 ) {
+    category("Customization")
     compatibleWith(COMPATIBILITY_SIDELINESWAP)
 
     val primaryColor = stringOption(

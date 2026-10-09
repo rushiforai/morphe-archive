@@ -45,7 +45,7 @@ class FotMobSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "237.17536.20260911",
+            version = "238.17666.20260928",
             patchNames = setOf("Enable FotMob+"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

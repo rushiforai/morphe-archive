@@ -29,6 +29,7 @@ import app.morphe.extension.tiktok.cleardisplay.RememberClearDisplayPatch;
 import app.morphe.extension.tiktok.navigation.NavigationTabsFilter;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -39,47 +40,43 @@ import java.util.WeakHashMap;
 /**
  * Hides controls TikTok lays over the video player.
  *
- * Ids were read off the live view hierarchy of TikTok 47.0.3 with a video paused, apart from
- * the two search module ids, which were read off the module's code in the APK. Where 47.0.3
- * renamed a 46.x view, only the 47.0.3 name is looked up: TikTok hands the old short names
- * out again, and on 47.0.3 each one names some other view, which a fallback would have hidden
- * in any cell that lacked the current one.
+ * Ids are TikTok 47.1.4's, the one declared build, read off its live view hierarchy with a video
+ * paused, apart from the two search module ids, which were read off the module's code in the
+ * APK. TikTok hands its short names out again on every build, so only the declared build's
+ * name for a view is looked up: an older build's name names some other view there, which a
+ * fallback would have hidden in any cell that lacked the current one.
  * <pre>
  *   df_search_biz:id/fo   the full screen layer the visual search prompt lives in, the root
- *                         of the layout SearchVisualSearchContainerComponentV2 inflates.
- *                         46.2.3 called it fb, which on 47.0.3 is a row of the visual search
- *                         camera page
+ *                         of the layout SearchVisualSearchContainerComponentV2 inflates
  *   df_search_biz:id/d4   the clickable visual search pill, the root of both layouts the VTag
- *                         processors inflate. 46.2.3 called it cn, which on 47.0.3 is a row of
- *                         the floating card in search results
- *   id/k_5                the Live entrance, top left, 158 px square, no description
- *   id/liy                the interaction area over the video: the right-hand column's slots,
- *                         the caption block and the music row
- *   id/f7u                the root of every feed survey card; the cell's survey ViewStubs
+ *                         processors inflate
+ *   id/kam                the Live entrance, top left, 158 px square, no description
+ *   id/llj                the right-hand column's slots. The caption frame bqv,
+ *                         videomusiccoverblock and the search bar's container ll8 sit beside it
+ *   id/f98                the root of every feed survey card; the cell's survey ViewStubs
  *                         carry no inflatedId, so the card keeps its own layout id. All
- *                         seven layouts those stubs inflate have it on 47.0.3, where 46.2.3
- *                         called it ezp (on 47.0.3 ezp is a label in the paid series panel).
+ *                         seven layouts those stubs inflate have it.
  *                         It is a shared root id: the profile's Favorites page is a
  *                         LinearLayout with the same id.
  *   id/view_rootview      the root of every feed cell (VideoViewCellRootView). The ids below
- *                         it here are feed furniture inside one, apart from uvy, qo4 and cn8,
+ *                         it here are feed furniture inside one, apart from uzf, qqw and cnk,
  *                         which sit outside the cells. id/long_press_layout
  *                         is a sibling layer under it, not an ancestor of the rail: scoping
  *                         to that from 0.35.0 hid nothing in the right column (S22, 2026-09-17,
  *                         read off the live tree with the probe's views action).
- *   id/uvy                the strip across the top holding For You, Following and the rest
- *   id/qo4 id/cn8         on a video opened from a profile, a hashtag, a sound or search, the
+ *   id/uzf                the strip across the top holding For You, Following and the rest
+ *   id/qqw id/cnk         on a video opened from a profile, a hashtag, a sound or search, the
  *                         Add comment bar and the plain View under the pager that keeps its
  *                         138 px (S22). Clear display hides the bar's frame and keeps the
- *                         strip, so both go and the pager takes the room back (#50). cn8 also
+ *                         strip, so both go and the pager takes the room back (#50). cnk also
  *                         names a Space in other layouts, so only the child of
  *                         id/viewpager_container counts
- *   id/i98 id/g6r id/ep7  the avatar, like and comment controls
- *   id/i7r id/pnp id/w_2  the favourite, music and share controls
- *   id/g6t id/ej_         the rows under like, comment, favourite and share
- *   id/i6r id/w6_         whose icon stays put when its count goes
- *   id/g6s id/ej9         the numeric TextViews inside those rows
- *   id/i6q id/w69
+ *   id/i_l id/g85 id/eq5  the avatar, like and comment controls
+ *   id/i93 id/pqg id/wct  the favourite, music and share controls
+ *   id/g87 id/ek6         the rows under like, comment, favourite and share
+ *   id/i83 id/w_1         whose icon stays put when its count goes
+ *   id/g86 id/ek5         the numeric TextViews inside those rows
+ *   id/i82 id/w_0
  * </pre>
  * The first two belong to TikTok's search dynamic feature module, so they resolve under
  * that module's package name rather than the app's. Views are re-hidden on every layout
@@ -91,51 +88,64 @@ public final class VideoOverlayHider {
     private static final String SEARCH_MODULE_PACKAGE = "com.zhiliaoapp.musically.df_search_biz";
     private static final String[] VISUAL_SEARCH_LAYER_IDS = {"fo"};
     private static final String[] VISUAL_SEARCH_PILL_IDS = {"d4"};
-    private static final String[] LIVE_ENTRANCE_IDS = {"47.0.3:k_5", "47.1.3:kam", "47.1.4:kam"};
+    private static final String[] LIVE_ENTRANCE_IDS = {"47.1.4:kam"};
 
     /** The caption under the creator's name. */
     private static final String[] CAPTION_IDS = {"desc"};
     /** VideoMusicTitleAssem's label container, including ordinary and matched-song titles. */
-    private static final String[] MUSIC_IDS = {"47.0.3:o6f", "47.1.3:o97", "47.1.4:o97"};
-    private static final String[] ACTION_BAR_IDS = {"47.0.3:liy", "47.1.3:llj", "47.1.4:llj"};
-    private static final String[] SURVEY_IDS = {"47.0.3:f7u", "47.1.3:f98", "47.1.4:f98"};
-    private static final String[] TAB_STRIP_IDS = {"47.0.3:uvy", "47.1.3:uzf", "47.1.4:uzf"};
+    private static final String[] MUSIC_IDS = {"47.1.4:o97"};
+    private static final String[] ACTION_BAR_IDS = {"47.1.4:llj"};
+    private static final String[] SURVEY_IDS = {"47.1.4:f98"};
+    private static final String[] TAB_STRIP_IDS = {"47.1.4:uzf"};
     /**
      * The bottom tab bar (Home, Friends, the create button, Inbox, Profile). TikTok takes it away
      * when Clear display starts, but the automatic path can switch the mode on before the bar is
      * laid out after a cold start, and then the bar stays over the first video (#84). It sits
      * outside the cells, under the feed.
      */
-    private static final String[] BOTTOM_TABS_IDS = {"47.0.3:omy", "47.1.3:opp", "47.1.4:opp"};
+    private static final String[] BOTTOM_TABS_IDS = {"47.1.4:opp"};
     /** The story-count button is a sibling of the main feed, outside its tab strip and cells. */
-    private static final String[] FOLLOWING_STORY_IDS = {"47.0.3:wq0", "47.1.3:wtr", "47.1.4:wtr"};
+    private static final String[] FOLLOWING_STORY_IDS = {"47.1.4:wtr"};
     /**
      * The bar TikTok shows only while Clear display is on: its round close button and the
      * pause and speed pill beside it, with the progress bar above them (#97). The main feed keeps
      * them in its seek bar mask and an opened video in its pager column, outside the cells on both.
      */
-    private static final String[] CLEAR_EXIT_IDS = {"47.0.3:e9j", "47.1.3:e_5", "47.1.4:e_5"};
-    private static final String[] CLEAR_PLAYBACK_IDS = {"47.0.3:l6h", "47.1.3:l83", "47.1.4:l83"};
+    private static final String[] CLEAR_EXIT_IDS = {"47.1.4:e_5"};
+    private static final String[] CLEAR_PLAYBACK_IDS = {"47.1.4:l83"};
     private static final String[] CLEAR_SEEK_BAR_IDS = {"video_seek_bar"};
     /**
      * A photo post's Clear display has no such bar, only this close button at the bottom right,
      * inside the cell. TikTok takes it and its parent away as Clear display ends.
      */
-    private static final String[] CLEAR_PHOTO_EXIT_IDS = {"47.0.3:uxv", "47.1.3:v1c", "47.1.4:v1c"};
+    private static final String[] CLEAR_PHOTO_EXIT_IDS = {"47.1.4:v1c"};
     /**
      * The anchor row under the caption: a related search, a place, a product or a template.
      * Clear display only fades it, so it stayed tappable while out of sight and a tap near the
      * bottom of the picture opened a search (#84). It goes invisible rather than gone, which
      * takes it out of reach without moving the caption above it.
      */
-    private static final String[] ANCHOR_IDS = {"47.0.3:bql", "47.1.3:bqv", "47.1.4:bqv"};
+    private static final String[] ANCHOR_IDS = {"47.1.4:bqv"};
+    /**
+     * The spinning music disc at the bottom right, beside the rail's column. On 47.1.4 the
+     * anchor's frame above also holds the caption and the music row, and neither sits in the
+     * column, so the fade reaches them through these two (S22, 2026-10-08).
+     */
+    private static final String[] MUSIC_COVER_IDS = {"videomusiccoverblock"};
+    /**
+     * The full-width search bar under the caption ("Search · ..."). On 47.1.4 it sits in its own
+     * container beside the cell's interaction area, outside both the column and the anchor's
+     * frame, so neither the fade nor Clear display reached it (S22, 2026-10-08). The music disc
+     * is laid out above it, which is how its name is found on each build.
+     */
+    private static final String[] SEARCH_BAR_IDS = {"47.1.4:ll8"};
     /**
      * The blank TikTok keeps above the video on tall screens, as tall as the status bar, so the
      * bar never covers the picture. With the bar hidden it's only a black strip (#97).
      */
-    private static final String[] STATUS_BAR_SPACER_IDS = {"47.0.3:duc", "47.1.3:dux", "47.1.4:dux"};
-    private static final String[] DETAIL_COMMENT_BAR_IDS = {"47.0.3:qo4", "47.1.3:qqw", "47.1.4:qqw"};
-    private static final String[] DETAIL_COMMENT_STRIP_IDS = {"47.0.3:cn8", "47.1.3:cnk", "47.1.4:cnk"};
+    private static final String[] STATUS_BAR_SPACER_IDS = {"47.1.4:dux"};
+    private static final String[] DETAIL_COMMENT_BAR_IDS = {"47.1.4:qqw"};
+    private static final String[] DETAIL_COMMENT_STRIP_IDS = {"47.1.4:cnk"};
     /**
      * The feed cell root. Furniture is only hidden underneath one: Hide feed surveys used to
      * take every survey card id in the window, and on the profile that is the Favorites tab's whole
@@ -147,7 +157,7 @@ public final class VideoOverlayHider {
     private static final String CELL_ROOT_ID = "view_rootview";
     /**
      * The column the detail pager shares with the comment strip under it. The strip's id isn't
-     * its own: on 47.0.3 and 47.1.4 it also names a Space in twenty other layouts, any of which
+     * its own: on 47.1.4 it also names a Space in twenty other layouts, any of which
      * may be inflated in the detail window, so only the column's own child counts as the strip.
      * The column keeps this name on every build so far.
      */
@@ -181,22 +191,23 @@ public final class VideoOverlayHider {
     private static WeakReference<View> rescaleRoot = new WeakReference<>(null);
     private static final ViewTreeObserver.OnPreDrawListener RESCALE = () -> {
         reapplyScale();
+        reapplyFade();
         return true;
     };
     /** The row under each rail button holding its count, without the button itself. */
-    private static final String[] LIKE_COUNT_ROW_IDS = {"47.0.3:g6t", "47.1.3:g87", "47.1.4:g87"};
-    private static final String[] COMMENT_COUNT_ROW_IDS = {"47.0.3:ej_", "47.1.3:ek6", "47.1.4:ek6"};
-    private static final String[] FAVORITE_COUNT_ROW_IDS = {"47.0.3:i6r", "47.1.3:i83", "47.1.4:i83"};
-    private static final String[] SHARE_COUNT_ROW_IDS = {"47.0.3:w6_", "47.1.3:w_1", "47.1.4:w_1"};
+    private static final String[] LIKE_COUNT_ROW_IDS = {"47.1.4:g87"};
+    private static final String[] COMMENT_COUNT_ROW_IDS = {"47.1.4:ek6"};
+    private static final String[] FAVORITE_COUNT_ROW_IDS = {"47.1.4:i83"};
+    private static final String[] SHARE_COUNT_ROW_IDS = {"47.1.4:w_1"};
     private static final String[][] RAIL_COUNT_ROW_IDS = {
             LIKE_COUNT_ROW_IDS, COMMENT_COUNT_ROW_IDS,
             FAVORITE_COUNT_ROW_IDS, SHARE_COUNT_ROW_IDS
     };
     /** The numeric text inside each row, retained by layouts that replace the row wrapper. */
-    private static final String[] LIKE_COUNT_TEXT_IDS = {"47.0.3:g6s", "47.1.3:g86", "47.1.4:g86"};
-    private static final String[] COMMENT_COUNT_TEXT_IDS = {"47.0.3:ej9", "47.1.3:ek5", "47.1.4:ek5"};
-    private static final String[] FAVORITE_COUNT_TEXT_IDS = {"47.0.3:i6q", "47.1.3:i82", "47.1.4:i82"};
-    private static final String[] SHARE_COUNT_TEXT_IDS = {"47.0.3:w69", "47.1.3:w_0", "47.1.4:w_0"};
+    private static final String[] LIKE_COUNT_TEXT_IDS = {"47.1.4:g86"};
+    private static final String[] COMMENT_COUNT_TEXT_IDS = {"47.1.4:ek5"};
+    private static final String[] FAVORITE_COUNT_TEXT_IDS = {"47.1.4:i82"};
+    private static final String[] SHARE_COUNT_TEXT_IDS = {"47.1.4:w_0"};
     private static final String[][] RAIL_COUNT_TEXT_IDS = {
             LIKE_COUNT_TEXT_IDS, COMMENT_COUNT_TEXT_IDS,
             FAVORITE_COUNT_TEXT_IDS, SHARE_COUNT_TEXT_IDS
@@ -209,12 +220,12 @@ public final class VideoOverlayHider {
      */
     private static final int[] RAIL_COUNT_BUTTON_INDEX = {1, 2, 3, 5};
     /** The six buttons inside the action column, in the order they are stacked. */
-    private static final String[] AVATAR_BUTTON_IDS = {"47.0.3:i98", "47.1.3:i_l", "47.1.4:i_l"};
-    private static final String[] LIKE_BUTTON_IDS = {"47.0.3:g6r", "47.1.3:g85", "47.1.4:g85"};
-    private static final String[] COMMENT_BUTTON_IDS = {"47.0.3:ep7", "47.1.3:eq5", "47.1.4:eq5"};
-    private static final String[] FAVORITE_BUTTON_IDS = {"47.0.3:i7r", "47.1.3:i93", "47.1.4:i93"};
-    private static final String[] MUSIC_BUTTON_IDS = {"47.0.3:pnp", "47.1.3:pqg", "47.1.4:pqg"};
-    private static final String[] SHARE_BUTTON_IDS = {"47.0.3:w_2", "47.1.3:wct", "47.1.4:wct"};
+    private static final String[] AVATAR_BUTTON_IDS = {"47.1.4:i_l"};
+    private static final String[] LIKE_BUTTON_IDS = {"47.1.4:g85"};
+    private static final String[] COMMENT_BUTTON_IDS = {"47.1.4:eq5"};
+    private static final String[] FAVORITE_BUTTON_IDS = {"47.1.4:i93"};
+    private static final String[] MUSIC_BUTTON_IDS = {"47.1.4:pqg"};
+    private static final String[] SHARE_BUTTON_IDS = {"47.1.4:wct"};
     private static final String[][] RAIL_BUTTON_IDS = {
             AVATAR_BUTTON_IDS, LIKE_BUTTON_IDS, COMMENT_BUTTON_IDS,
             FAVORITE_BUTTON_IDS, MUSIC_BUTTON_IDS, SHARE_BUTTON_IDS
@@ -239,6 +250,8 @@ public final class VideoOverlayHider {
     private static final int CLEAR_PHOTO_EXIT_TARGET = STATUS_BAR_SPACER_TARGET + 1;
     private static final int BOTTOM_TABS_TARGET = CLEAR_PHOTO_EXIT_TARGET + 1;
     private static final int ANCHOR_TARGET = BOTTOM_TABS_TARGET + 1;
+    private static final int MUSIC_COVER_TARGET = ANCHOR_TARGET + 1;
+    private static final int SEARCH_BAR_TARGET = MUSIC_COVER_TARGET + 1;
     private static final String[][] TRAVERSAL_TARGET_IDS = traversalTargetIds();
     private static final int LOGICAL_TARGET_COUNT = TRAVERSAL_TARGET_IDS.length;
     private static final int TRAVERSAL_TARGET_COUNT = candidateCount(TRAVERSAL_TARGET_IDS);
@@ -259,6 +272,19 @@ public final class VideoOverlayHider {
 
     /** Views this class made see-through instead of hiding, with the alpha each had before. */
     private static final Map<View, Float> FADED_HERE = new WeakHashMap<>();
+
+    /**
+     * Views faded to the chosen opacity (#84): the alpha each had before, the alpha this class
+     * wrote, so a value TikTok wrote since (an animation ending) is told apart from our own, and
+     * the fraction it was faded by, for the pre-draw pass that fades such a value again.
+     */
+    private static final Map<View, float[]> FADED_TO = new WeakHashMap<>();
+
+    /** The lowest opacity the tabs are faded to, so the way around the app stays findable. */
+    static final int NAVIGATION_FADE_FLOOR = 10;
+
+    /** The opacity the current pass fades the controls to, 100 meaning not at all. */
+    private static int fadeLevel = 100;
 
     /**
      * How long a status bar may stay visible before it is hidden again on Android 11 and
@@ -308,6 +334,7 @@ public final class VideoOverlayHider {
             boolean installed = LAYOUT_HOOK.install(root, VideoOverlayHider::refresh);
             activityReference = new WeakReference<>(activity);
             LiveStatusBar.follow(activity);
+            EdgeSwipeLevels.sync(activity);
             follow(activity.getApplication());
             if (installed) {
                 Logger.printDebug(() -> "Video overlay hider installed on " + activity.getClass().getSimpleName());
@@ -332,7 +359,7 @@ public final class VideoOverlayHider {
 
             @Override public void onActivityCreated(Activity created, Bundle state) { }
             @Override public void onActivityStarted(Activity started) { }
-            @Override public void onActivityPaused(Activity paused) { }
+            @Override public void onActivityPaused(Activity paused) { EdgeSwipeLevels.onPaused(paused); }
             @Override public void onActivityStopped(Activity stopped) { }
             @Override public void onActivitySaveInstanceState(Activity activity, Bundle state) { }
             @Override public void onActivityDestroyed(Activity destroyed) { }
@@ -359,6 +386,9 @@ public final class VideoOverlayHider {
             if (activity.isFinishing()) {
                 return;
             }
+            // Swipe for brightness and volume wraps the window once, and gives the brightness
+            // back on this pass when its switch goes off or Hushfeed is paused.
+            EdgeSwipeLevels.sync(activity);
             // The names above the feed follow their own switch on the strip TikTok's tab filter
             // hides; this pass is the one thing that runs on every layout, so it carries the ask.
             NavigationTabsFilter.refreshTopTabStrips();
@@ -411,6 +441,10 @@ public final class VideoOverlayHider {
             // which it shows only in Clear display; see gateClearControls.
             boolean clearControls = !HushfeedPause.isPaused() && Settings.HIDE_CLEAR_DISPLAY_CONTROLS.get();
             boolean statusBar = Settings.HIDE_STATUS_BAR.get();
+            // The fade belongs to the overlay patch: a value saved before a repatch without it
+            // does nothing, and Pause answers the stock look.
+            fadeLevel = HushfeedPause.isPaused() || !SettingsStatus.videoOverlaysEnabled ? 100
+                    : Math.max(0, Math.min(100, Settings.FADE_CONTROLS_OPACITY.get()));
             boolean counts = Settings.HIDE_RAIL_COUNTS.get();
             boolean[] rail = TRAVERSAL.rail;
             updateRailButtonsWanted(rail);
@@ -431,6 +465,7 @@ public final class VideoOverlayHider {
             if (caption || music || actionBar || surveys || tabStrip || carry || detailCommentBar || anchor
                     || clearControls
                     || statusBar || anyRail || !HIDDEN_HERE.isEmpty() || !FADED_HERE.isEmpty()
+                    || fadeLevel != 100 || !FADED_TO.isEmpty()
                     || touchScale != 1f || scaledLastPass) {
                 ViewGroup root = activity.findViewById(android.R.id.content);
                 int[] ids = TRAVERSAL.ids;
@@ -452,6 +487,9 @@ public final class VideoOverlayHider {
                 wanted[CLEAR_SEEK_BAR_TARGET] = clearControls;
                 wanted[CLEAR_PHOTO_EXIT_TARGET] = clearControls;
                 wanted[ANCHOR_TARGET] = anchor;
+                // Only ever faded, never hidden by a switch of its own.
+                wanted[MUSIC_COVER_TARGET] = false;
+                wanted[SEARCH_BAR_TARGET] = anchor;
                 wanted[STATUS_BAR_SPACER_TARGET] = statusBar;
                 for (int i = 0; i < RAIL_BUTTON_IDS.length; i++) {
                     wanted[RAIL_TARGET_START + i] = rail[i] || carry;
@@ -591,7 +629,12 @@ public final class VideoOverlayHider {
         if (view.getScaleY() != scale) view.setScaleY(scale);
     }
 
-    /** Keeps the scaled icons for the pre-draw pass, and the pass itself on the root. */
+    /**
+     * Keeps the scaled icons for the pre-draw pass, and the pass itself on the root while
+     * anything is scaled or faded. The fade needs it too: Clear display ending animates the
+     * caption, the rail and the search bar back to full opacity, and no layout follows, so
+     * they stayed at full until the next video (S22, 2026-10-08).
+     */
     private static void rememberScaled(List<View> scaled, float touchScale, View root) {
         SCALED.clear();
         scaleWanted = touchScale;
@@ -601,7 +644,7 @@ public final class VideoOverlayHider {
             }
         }
         View watched = rescaleRoot.get();
-        if (touchScale != 1f) {
+        if (touchScale != 1f || !FADED_TO.isEmpty()) {
             if (watched != root && root != null) {
                 if (watched != null && watched.getViewTreeObserver().isAlive()) {
                     watched.getViewTreeObserver().removeOnPreDrawListener(RESCALE);
@@ -642,6 +685,30 @@ public final class VideoOverlayHider {
         }
     }
 
+    /** When the frame pass last said what it faded again, so the log is not written per frame. */
+    private static long refadeLoggedAt;
+
+    /** The pre-draw pass: every faded view TikTok has written its own opacity to, faded again. */
+    static void reapplyFade() {
+        if (FADED_TO.isEmpty()) return;
+        int corrected = 0;
+        for (Map.Entry<View, float[]> entry : FADED_TO.entrySet()) {
+            View view = entry.getKey();
+            float[] held = entry.getValue();
+            if (view == null || !view.isAttachedToWindow() || view.getAlpha() == held[1]) continue;
+            held[0] = view.getAlpha();
+            held[1] = held[0] * held[2];
+            view.setAlpha(held[1]);
+            corrected++;
+        }
+        long now = SystemClock.uptimeMillis();
+        if (corrected > 0 && now - refadeLoggedAt > 2000L) {
+            refadeLoggedAt = now;
+            final int put = corrected;
+            Logger.printDebug(() -> "Fade put back on " + put + " views TikTok had written");
+        }
+    }
+
     private static void updateRailButtonsWanted(boolean[] rail) {
         rail[0] = Settings.HIDE_RAIL_FOLLOW.get();
         rail[1] = Settings.HIDE_RAIL_LIKE.get();
@@ -652,7 +719,7 @@ public final class VideoOverlayHider {
     }
 
     private static String[][] traversalTargetIds() {
-        String[][] targets = new String[ANCHOR_TARGET + 1][];
+        String[][] targets = new String[SEARCH_BAR_TARGET + 1][];
         targets[CAPTION_TARGET] = CAPTION_IDS;
         targets[MUSIC_TARGET] = MUSIC_IDS;
         targets[ACTION_BAR_TARGET] = ACTION_BAR_IDS;
@@ -675,6 +742,8 @@ public final class VideoOverlayHider {
         targets[CLEAR_PHOTO_EXIT_TARGET] = CLEAR_PHOTO_EXIT_IDS;
         targets[BOTTOM_TABS_TARGET] = BOTTOM_TABS_IDS;
         targets[ANCHOR_TARGET] = ANCHOR_IDS;
+        targets[MUSIC_COVER_TARGET] = MUSIC_COVER_IDS;
+        targets[SEARCH_BAR_TARGET] = SEARCH_BAR_IDS;
         return targets;
     }
 
@@ -787,8 +856,24 @@ public final class VideoOverlayHider {
                     // The progress bar only goes see-through, so a drag along the bottom edge
                     // still seeks while it's out of sight (#84).
                     if (target == CLEAR_SEEK_BAR_TARGET) setTransparent(view, wanted);
-                    else if (target == ANCHOR_TARGET) setHidden(view, wanted, View.INVISIBLE);
-                    else setHidden(view, wanted);
+                    else if (target == ANCHOR_TARGET || target == MUSIC_COVER_TARGET
+                            || target == SEARCH_BAR_TARGET) {
+                        // 47.1.4 keeps the caption frame, the music disc and the search bar
+                        // beside the column, so they fade here. Invisible rather than gone, so
+                        // the caption doesn't move.
+                        boolean gone = wanted || fadeLevel == 0;
+                        setFaded(view, gone ? 100 : fadeLevel);
+                        setHidden(view, gone, View.INVISIBLE);
+                    } else if (target == ACTION_BAR_TARGET) {
+                        // The rail's column. Fully faded it goes the way Clear display takes it,
+                        // so nothing invisible takes a tap.
+                        boolean gone = wanted || fadeLevel == 0;
+                        setFaded(view, gone ? 100 : fadeLevel);
+                        setHidden(view, gone);
+                    } else if (target == TAB_STRIP_TARGET || target == BOTTOM_TABS_TARGET) {
+                        setFaded(view, wanted ? 100 : Math.max(NAVIGATION_FADE_FLOOR, fadeLevel));
+                        setHidden(view, wanted);
+                    } else setHidden(view, wanted);
                 }
             // A survey is content TikTok inserts only on selected posts. Its absence from an
             // ordinary feed cell says nothing about whether this build still has the anchor.
@@ -1058,6 +1143,35 @@ public final class VideoOverlayHider {
         if (before != null && view.getAlpha() == 0f) {
             view.setAlpha(before);
         }
+    }
+
+    /**
+     * Fades a view to {@code percent} of the opacity it had, leaving it touchable, or puts back
+     * one this class faded. Every pass writes it again: views are recycled and re-bound, and
+     * TikTok writes alpha itself (an animation ends by writing its own value back).
+     */
+    static void setFaded(View view, int percent) {
+        if (view == null) {
+            return;
+        }
+        float[] held = FADED_TO.get(view);
+        if (percent >= 100) {
+            if (held != null) {
+                FADED_TO.remove(view);
+                if (view.getAlpha() == held[1]) view.setAlpha(held[0]);
+            }
+            return;
+        }
+        if (held == null) {
+            held = new float[]{view.getAlpha(), view.getAlpha(), 1f};
+            FADED_TO.put(view, held);
+        } else if (view.getAlpha() != held[1]) {
+            // TikTok wrote its own value since the last pass; that is the new look to fade.
+            held[0] = view.getAlpha();
+        }
+        held[2] = percent / 100f;
+        held[1] = held[0] * held[2];
+        if (view.getAlpha() != held[1]) view.setAlpha(held[1]);
     }
 
     /** Lets a test stand in for a TikTok resource id, which only the real APK resolves. */

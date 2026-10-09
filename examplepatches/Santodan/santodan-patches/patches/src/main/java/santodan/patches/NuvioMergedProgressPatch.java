@@ -30,14 +30,15 @@ public final class NuvioMergedProgressPatch {
                 builder.extendWith(NuvioMergedProgressPatch::extensionStream);
                 builder.execute(context -> {
                     String version = context.getPackageMetadata().getVersionName();
-                    NuvioLayout.beta4(version);
+                NuvioLayout.use(version);
+                    NuvioLayout.modern(version);
                     MutableClass repository = context.mutableClassDefBy(NuvioLayout.type(version, "Lja/md;"));
                     hookRepository(repository);
-                    if (NuvioLayout.beta4(version)) {
-                        hookInlinedCutoff(context.mutableClassDefBy("Lla/h5;"));
-                        hookInlinedCutoff(context.mutableClassDefBy("Lla/w1;"));
-                        hookBadgeCacheHit(context.mutableClassDefBy("Lla/e5;"));
-                        hookBadgeGroupProgress(context.mutableClassDefBy("Lla/t5;"));
+                    if (NuvioLayout.modern(version)) {
+                        hookInlinedCutoff(context.mutableClassDefBy(NuvioLayout.current("Lla/h5;")));
+                        hookInlinedCutoff(context.mutableClassDefBy(NuvioLayout.current("Lla/w1;")));
+                        hookBadgeCacheHit(context.mutableClassDefBy(NuvioLayout.current("Lla/e5;")));
+                        hookBadgeGroupProgress(context.mutableClassDefBy(NuvioLayout.current("Lla/t5;")));
                     } else {
                         hookMergedProviderPolicies(repository);
                     }
@@ -45,13 +46,13 @@ public final class NuvioMergedProgressPatch {
                     hookMergedProvider(context.mutableClassDefBy(NuvioLayout.type(version, "Lja/cc;")));
                     hookEffectiveSource(context.mutableClassDefBy(NuvioLayout.type(version, "La/a;")));
                     hookWatchProgressEnum(context.mutableClassDefBy(NuvioLayout.type(version, "Lcom/nuvio/tv/data/local/rb;")));
-                    if (!NuvioLayout.beta4(version)) hookWatchProgressPicker(context.mutableClassDefBy("Lfb/h3;"), "W0", "Lfb/sj;");
+                    if (!NuvioLayout.modern(version)) hookWatchProgressPicker(context.mutableClassDefBy("Lfb/h3;"), "W0", "Lfb/sj;");
                     else {
                         hookSettingsStore(context.mutableClassDefBy("Lo9/a1;"));
                         hookSettingsComponent(context.mutableClassDefBy("Lp8/e;"));
                     }
                     hookWatchProgressSelection(context.mutableClassDefBy(NuvioLayout.type(version, "Lfb/c2;")));
-                    hookWatchProgressSummary(context.mutableClassDefBy(NuvioLayout.type(version, "Lfb/lj;")), NuvioLayout.beta4(version) ? "g1" : "W0");
+                    hookWatchProgressSummary(context.mutableClassDefBy(NuvioLayout.type(version, "Lfb/lj;")), NuvioLayout.BETA5.equals(version) ? "h1" : NuvioLayout.modern(version) ? "g1" : "W0");
                     return Unit.INSTANCE;
                 });
                 return Unit.INSTANCE;
@@ -80,7 +81,7 @@ public final class NuvioMergedProgressPatch {
         int anchor = -1;
         for (int i = 0; i + 2 < ins.size(); i++) {
             if (ins.get(i).getOpcode() != Opcode.IGET_OBJECT || !(ins.get(i) instanceof ReferenceInstruction) || !((ReferenceInstruction) ins.get(i)).getReference()
-                .toString().equals("Lla/z3;->V0:Ljava/util/Set;")) continue;
+                .toString().equals(NuvioLayout.current("Lla/z3;->V0:Ljava/util/Set;"))) continue;
             if (anchor >= 0 || !calls(ins.get(i + 1), "Lkotlin/jvm/internal/Intrinsics;", "areEqual")
                 || ins.get(i + 2).getOpcode() != Opcode.MOVE_RESULT)
                 throw unsupported("Badge ID cache comparison changed");
@@ -106,7 +107,7 @@ public final class NuvioMergedProgressPatch {
         for (int i = 0; i < ins.size(); i++) {
             Instruction instruction = ins.get(i);
             if (instruction instanceof ReferenceInstruction && ((ReferenceInstruction) instruction).getReference()
-                .toString().equals("Lla/z3;->T0:Ljava/util/Map;")) {
+                .toString().equals(NuvioLayout.current("Lla/z3;->T0:Ljava/util/Map;"))) {
                 int receiver = ((TwoRegisterInstruction) instruction).getRegisterB();
                 if (home >= 0 && home != receiver) throw unsupported("Badge group Home register changed");
                 home = receiver;
@@ -428,7 +429,7 @@ public final class NuvioMergedProgressPatch {
     private static List<Instruction> instructions(MutableMethod method) { List<Instruction> out = new ArrayList<>(); for (Instruction i : method.getImplementation().getInstructions()) out.add(i); return out; }
     private static boolean calls(Instruction i, String owner, String name) { if (!(i instanceof ReferenceInstruction)) return false; Object r=((ReferenceInstruction)i).getReference(); return r instanceof MethodReference && owner.equals(((MethodReference)r).getDefiningClass()) && name.equals(((MethodReference)r).getName()); }
     private static ImmutableMethodReference method(String owner,String name,List<String> params,String result){return new ImmutableMethodReference(owner,name,params,result);}
-    private static IllegalStateException unsupported(String reason){return new IllegalStateException("Unsupported NuvioTV bytecode: "+reason+". Use an original NuvioTV 1.1.0-beta.2 or 1.1.0-beta.4 APK.");}
+    private static IllegalStateException unsupported(String reason){return new IllegalStateException("Unsupported NuvioTV bytecode: "+reason+". Use an original NuvioTV 1.1.0-beta.2, 1.1.0-beta.4, or 1.1.0-beta.5 APK.");}
     private static InputStream extensionStream() {
         String path="extensions/nuvio-merged-progress.mpe"; InputStream resource=NuvioMergedProgressPatch.class.getClassLoader().getResourceAsStream(path); if(resource!=null)return resource;
         try { URI source=NuvioMergedProgressPatch.class.getProtectionDomain().getCodeSource().getLocation().toURI(); try(ZipFile zip=new ZipFile(new File(source))){ZipEntry entry=zip.getEntry(path);if(entry==null)throw new FileNotFoundException(path);try(InputStream input=zip.getInputStream(entry)){return new ByteArrayInputStream(input.readAllBytes());}} } catch(Exception error){throw new IllegalStateException("Cannot load merged-progress extension",error);}

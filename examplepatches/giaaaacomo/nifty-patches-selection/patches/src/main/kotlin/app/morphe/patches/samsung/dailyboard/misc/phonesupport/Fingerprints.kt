@@ -123,3 +123,10 @@ internal object LauncherComponentStateFingerprint : Fingerprint(
     returnType = "V",
     parameters = listOf("Landroid/content/Context;", "Z")
 )
+
+internal object DisableDreamSettingsWriteFingerprint : Fingerprint(
+    definingClass = "Lcom/bumptech/glide/d;",
+    name = "x",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Context;")
+)

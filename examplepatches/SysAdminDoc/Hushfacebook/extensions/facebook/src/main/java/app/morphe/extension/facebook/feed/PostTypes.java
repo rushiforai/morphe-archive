@@ -53,7 +53,9 @@ public final class PostTypes {
     static final String STYLE = "style ";
 
     static final Set<String> PHOTO_STYLES = new HashSet<>(Arrays.asList("PHOTO", "ALBUM"));
-    static final Set<String> VIDEO_STYLES = new HashSet<>(Arrays.asList("VIDEO", "VIDEO_INLINE", "VIDEO_AUTOPLAY"));
+    /** The direct response pair is a Page's video drawn with a button under it, such as Get tickets. */
+    static final Set<String> VIDEO_STYLES = new HashSet<>(Arrays.asList("VIDEO", "VIDEO_INLINE", "VIDEO_AUTOPLAY",
+            "VIDEO_DIRECT_RESPONSE", "VIDEO_DIRECT_RESPONSE_AUTOPLAY"));
     static final Set<String> LINK_STYLES = new HashSet<>(Arrays.asList("SHARE", "SHARE_LARGE_IMAGE", "IMAGE_SHARE"));
 
     /** The GraphQL type of a story's text format, and the fields Facebook's check of one reads. */

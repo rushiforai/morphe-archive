@@ -37,6 +37,31 @@ public final class StoreIdentity {
     static final String STORE = "com.android.vending";
 
     /**
+     * The stores an installer read can name, the Play Store first. Each one ships TikTok, so a
+     * store TikTok doesn't know never comes up. A saved value off this list reads as the Play Store.
+     */
+    private static final String[] INSTALLERS = {
+            STORE,
+            "com.sec.android.app.samsungapps",
+            "com.huawei.appmarket",
+            "com.amazon.venezia",
+    };
+
+    /** The choices for the settings row, in the order its labels name them. */
+    public static String[] installers() {
+        return INSTALLERS.clone();
+    }
+
+    /** The store picked under the switch, or the Play Store for anything not on the list. */
+    static String installer() {
+        String picked = Settings.STORE_IDENTITY_INSTALLER.get();
+        for (String installer : INSTALLERS) {
+            if (installer.equals(picked)) return installer;
+        }
+        return STORE;
+    }
+
+    /**
      * TikTok's own signing certificate (CN=musical.ly) as DER, the bytes
      * {@link Signature#toByteArray()} gives on a store build. Its SHA-256 is the
      * {@code 9041803e...ab5ba} digest Morphe Manager holds a picked APK to.
@@ -95,14 +120,14 @@ public final class StoreIdentity {
     }
 
     /**
-     * In place of {@link PackageManager#getInstallerPackageName(String)}: the Play Store for
+     * In place of {@link PackageManager#getInstallerPackageName(String)}: the picked store for
      * TikTok's own package, and the real installer for anything else it asks about. The patch
      * puts this in place of each call site, so anything else, and everything with the switch
      * off, gets the real call with whatever it throws.
      */
     @Nullable
     public static String installerFor(PackageManager manager, String packageName) {
-        if (answersFor(packageName)) return STORE;
+        if (answersFor(packageName)) return installer();
         return manager.getInstallerPackageName(packageName);
     }
 

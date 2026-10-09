@@ -410,6 +410,9 @@ public class FeedLockTest {
     @Test public void onlyALinkToOneVideoIsAPass() {
         assertTrue(FeedLock.isVideoLink(view("https://www.tiktok.com/@a.b/video/7123456789")));
         assertTrue(FeedLock.isVideoLink(view("https://www.tiktok.com/share/video/7123456789/")));
+        assertTrue("a photo post", FeedLock.isVideoLink(view("https://www.tiktok.com/@a.b/photo/7123456789")));
+        assertTrue("the mobile site", FeedLock.isVideoLink(view("https://m.tiktok.com/v/7123456789.html")));
+        assertFalse("a profile's video tab", FeedLock.isVideoLink(view("https://www.tiktok.com/@a.b/video")));
         assertTrue(FeedLock.isVideoLink(view("https://vm.tiktok.com/ZMabc123/")));
         assertTrue(FeedLock.isVideoLink(view("https://www.tiktok.com/t/ZTabc123/")));
         assertTrue(FeedLock.isVideoLink(view("aweme://aweme/detail/7123456789")));

@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "patches": [
     {
       "name": "Unlock Premium",
@@ -20,6 +20,128 @@
             {
               "version": "2.0.5",
               "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2.2",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "2.3.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.2",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.4",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.5",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "3.5.1",
+              "versionCodes": null,
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            }
+          ]
+        }
+      ],
+      "options": []
+    },
+    {
+      "name": "Unlock VPN Plus",
+      "description": "Unlocks Plus features and routes connections through free servers",
+      "default": true,
+      "category": null,
+      "dependencies": [],
+      "compatiblePackages": [
+        {
+          "packageName": "ch.protonvpn.android",
+          "name": "Proton VPN",
+          "description": null,
+          "apkFileType": "APK",
+          "appIconColor": "#6D4AFF",
+          "signatures": null,
+          "targets": [
+            {
+              "version": "5.19.99.0",
+              "versionCodes": {
+                "ARM64_V8A": 605199900,
+                "ARMEABI_V7A": 605199900,
+                "X86_64": 605199900,
+                "X86": 605199900
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "5.20.8.0",
+              "versionCodes": {
+                "ARM64_V8A": 605200800,
+                "ARMEABI_V7A": 605200800,
+                "X86_64": 605200800,
+                "X86": 605200800
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "5.20.21.0",
+              "versionCodes": {
+                "ARM64_V8A": 605202100,
+                "ARMEABI_V7A": 605202100,
+                "X86_64": 605202100,
+                "X86": 605202100
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "5.20.39.0",
+              "versionCodes": {
+                "ARM64_V8A": 605203900,
+                "ARMEABI_V7A": 605203900,
+                "X86_64": 605203900,
+                "X86": 605203900
+              },
+              "isExperimental": false,
+              "minSdk": null,
+              "description": null
+            },
+            {
+              "version": "5.20.57.0",
+              "versionCodes": {
+                "ARM64_V8A": 605205700,
+                "ARMEABI_V7A": 605205700,
+                "X86_64": 605205700,
+                "X86": 605205700
+              },
               "isExperimental": false,
               "minSdk": null,
               "description": null

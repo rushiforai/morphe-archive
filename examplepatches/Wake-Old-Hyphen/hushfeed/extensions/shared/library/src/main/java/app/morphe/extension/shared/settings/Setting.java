@@ -457,7 +457,17 @@ public abstract class Setting<T> {
      */
     @NonNull
     public final T get() {
-        return pausedForProcess && !keptWhenPaused ? pausedValue() : value;
+        return pausedForProcess && !keptWhenPaused ? pausedValue() : currentValue();
+    }
+
+    /**
+     * What {@link #get()} answers when the setting isn't paused. That's the saved value, unless
+     * a setting adds something the reader turned on for a while without saving it, as a timed
+     * diagnostic capture does for {@link BaseSettings#DEBUG}.
+     */
+    @NonNull
+    protected T currentValue() {
+        return value;
     }
 
     /**

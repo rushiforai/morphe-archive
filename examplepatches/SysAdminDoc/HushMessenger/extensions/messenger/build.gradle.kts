@@ -9,7 +9,7 @@ android {
     defaultConfig {
         minSdk = 28
         targetSdk = 36
-        versionCode = 211
+        versionCode = 220
         versionName = project.version.toString()
         testInstrumentationRunner = "app.hushmessenger.extension.BuildTransportProbe"
     }

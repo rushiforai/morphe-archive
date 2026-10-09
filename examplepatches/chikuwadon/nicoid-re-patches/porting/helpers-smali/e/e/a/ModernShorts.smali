@@ -42,7 +42,7 @@
 
 .field private static final MODE:Ljava/lang/String; = "nicoid_re_shorts"
 
-.field private static final PATCH_VERSION:Ljava/lang/String; = "v@NICOID_PATCH_VERSION@ @chikuwadon"
+.field private static final PATCH_VERSION:Ljava/lang/String; = "v1.7.2 @chikuwadon"
 
 .field private static final PLAYER:Ljava/lang/String; = "com.sauzask.nicoid.NicoidVideoActivity"
 
@@ -6556,10 +6556,8 @@
     return-void
 
     .line 210
-    :cond_1e
-
-
     .line 211
+    :cond_1e
     const-string v1, "player"
 
     invoke-virtual {p0, v1}, Landroid/preference/PreferenceActivity;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
@@ -6568,12 +6566,12 @@
 
     check-cast v1, Landroid/preference/PreferenceGroup;
 
-    if-nez v1, :cond_2c
+    if-nez v1, :cond_29
 
     move-object v1, v0
 
     .line 212
-    :cond_2c
+    :cond_29
     const-string v3, "show_shorts_menu"
 
     invoke-virtual {p0, v3}, Landroid/preference/PreferenceActivity;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
@@ -6582,7 +6580,7 @@
 
     const/4 v5, 0x1
 
-    if-nez v4, :cond_61
+    if-nez v4, :cond_5e
 
     .line 213
     new-instance v4, Landroid/preference/CheckBoxPreference;
@@ -6626,7 +6624,7 @@
     invoke-virtual {v1, v4}, Landroid/preference/PreferenceGroup;->addPreference(Landroid/preference/Preference;)Z
 
     .line 217
-    :cond_61
+    :cond_5e
     const-string v1, "nicoid_patch_version"
 
     invoke-virtual {p0, v1}, Landroid/preference/PreferenceActivity;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
@@ -6636,7 +6634,7 @@
     .line 218
     const/4 v3, 0x0
 
-    if-eqz v1, :cond_87
+    if-eqz v1, :cond_84
 
     .line 219
     const-string v4, "v@NICOID_PATCH_VERSION@ @chikuwadon"
@@ -6668,14 +6666,14 @@
     invoke-virtual {v1, v7}, Landroid/preference/Preference;->setOnPreferenceClickListener(Landroid/preference/Preference$OnPreferenceClickListener;)V
 
     .line 233
-    :cond_87
+    :cond_84
     const-string v1, "nicoid_share_debug"
 
     invoke-virtual {p0, v1}, Landroid/preference/PreferenceActivity;->findPreference(Ljava/lang/CharSequence;)Landroid/preference/Preference;
 
     move-result-object v4
 
-    if-nez v4, :cond_130
+    if-nez v4, :cond_12d
 
     .line 234
     new-instance v4, Landroid/preference/PreferenceCategory;
@@ -6706,12 +6704,12 @@
     .line 236
     const/4 v7, 0x0
 
-    :goto_ab
+    :goto_a8
     invoke-virtual {v0}, Landroid/preference/PreferenceScreen;->getPreferenceCount()I
 
     move-result v8
 
-    if-ge v7, v8, :cond_ca
+    if-ge v7, v8, :cond_c7
 
     .line 237
     invoke-virtual {v0, v7}, Landroid/preference/PreferenceScreen;->getPreference(I)Landroid/preference/Preference;
@@ -6723,7 +6721,7 @@
 
     move-result v9
 
-    if-nez v9, :cond_c7
+    if-nez v9, :cond_c4
 
     const-string v9, "player_lang"
 
@@ -6731,26 +6729,26 @@
 
     move-result v8
 
-    if-eqz v8, :cond_c4
+    if-eqz v8, :cond_c1
 
-    goto :goto_c7
+    goto :goto_c4
 
     .line 236
-    :cond_c4
+    :cond_c1
     add-int/lit8 v7, v7, 0x1
 
-    goto :goto_ab
+    goto :goto_a8
 
     .line 239
-    :cond_c7
-    :goto_c7
+    :cond_c4
+    :goto_c4
     add-int/lit8 v6, v7, 0x1
 
     .line 240
     nop
 
     .line 244
-    :cond_ca
+    :cond_c7
     new-instance v2, Ljava/util/ArrayList;
 
     invoke-direct {v2}, Ljava/util/ArrayList;-><init>()V
@@ -6758,12 +6756,12 @@
     .line 245
     const/4 v7, 0x0
 
-    :goto_d0
+    :goto_cd
     invoke-virtual {v0}, Landroid/preference/PreferenceScreen;->getPreferenceCount()I
 
     move-result v8
 
-    if-ge v7, v8, :cond_e0
+    if-ge v7, v8, :cond_dd
 
     invoke-virtual {v0, v7}, Landroid/preference/PreferenceScreen;->getPreference(I)Landroid/preference/Preference;
 
@@ -6773,18 +6771,18 @@
 
     add-int/lit8 v7, v7, 0x1
 
-    goto :goto_d0
+    goto :goto_cd
 
     .line 246
-    :cond_e0
+    :cond_dd
     nop
 
-    :goto_e1
+    :goto_de
     invoke-virtual {v2}, Ljava/util/ArrayList;->size()I
 
     move-result v7
 
-    if-ge v3, v7, :cond_fa
+    if-ge v3, v7, :cond_f7
 
     invoke-virtual {v2, v3}, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
 
@@ -6794,22 +6792,22 @@
 
     mul-int/lit8 v8, v3, 0x2
 
-    if-ge v3, v6, :cond_f2
+    if-ge v3, v6, :cond_ef
 
-    goto :goto_f4
+    goto :goto_f1
 
-    :cond_f2
+    :cond_ef
     add-int/lit8 v8, v8, 0x2
 
-    :goto_f4
+    :goto_f1
     invoke-virtual {v7, v8}, Landroid/preference/Preference;->setOrder(I)V
 
     add-int/lit8 v3, v3, 0x1
 
-    goto :goto_e1
+    goto :goto_de
 
     .line 247
-    :cond_fa
+    :cond_f7
     mul-int/lit8 v6, v6, 0x2
 
     sub-int/2addr v6, v5
@@ -6861,7 +6859,7 @@
     invoke-virtual {v4, v2}, Landroid/preference/PreferenceCategory;->addPreference(Landroid/preference/Preference;)Z
 
     .line 256
-    :cond_130
+    :cond_12d
     invoke-static {v0}, Le/e/a/UiText;->preferences(Landroid/preference/Preference;)V
 
     .line 257

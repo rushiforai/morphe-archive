@@ -9,7 +9,7 @@ object Constants {
         packageName = "com.wave.aphelion",
         appIconColor = 0x1A237E,
         targets = listOf(
-            AppTarget(version = "0.4.9")
+            AppTarget(version = "0.5.8")
         )
     )
 }

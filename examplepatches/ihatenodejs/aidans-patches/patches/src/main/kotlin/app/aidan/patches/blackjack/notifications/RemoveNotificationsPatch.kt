@@ -14,6 +14,7 @@ val removeNotificationsPatch = resourcePatch(
     description = "Removes notification permissions from AndroidManifest.xml to eliminate push notifications entirely.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_BLACKJACK)
 
     execute {

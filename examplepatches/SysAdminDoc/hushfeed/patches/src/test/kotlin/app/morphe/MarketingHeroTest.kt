@@ -52,11 +52,18 @@ class MarketingHeroTest {
         )
     }
 
-    /** The installation cleanup explicitly retires the inherited donation button. */
+    /**
+     * The fork cleanup retired the upstream author's Ko-fi (P5P5YOUU7), not this project's own.
+     * a2371055 read it as "no Ko-fi at all" and removed the support button; this holds both apart.
+     */
     @Test
-    fun `the README leaves out inherited donation links`() {
+    fun `the README keeps the project Ko-fi above the title and leaves out the inherited one`() {
         val readme = File(root, "README.md").readText()
-        assertFalse("the retired donation link returned", readme.contains("ko-fi.com", ignoreCase = true))
+        val link = readme.indexOf("https://ko-fi.com/X8K126YVER")
+
+        assertTrue("the README must keep the project support link", link >= 0)
+        assertTrue("the support button belongs above the title", link < readme.indexOf("\n# Hushfeed"))
+        assertFalse("the inherited upstream donation link returned", readme.contains("ko-fi.com/P5P5YOUU7", ignoreCase = true))
     }
 
     @Test

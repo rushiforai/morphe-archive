@@ -53,12 +53,12 @@
     .line 27
     const/4 p1, 0x1
 
-    if-ne p2, p1, :cond_10
+    if-ne p2, p1, :cond_8
 
     iget-object p1, p0, Le/e/a/CommentListExtras$3;->val$follow:Le/e/a/CommentListExtras$Follow;
 
     invoke-virtual {p1}, Le/e/a/CommentListExtras$Follow;->cancelTap()V
 
-    :cond_10
+    :cond_8
     return-void
 .end method

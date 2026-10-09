@@ -31,6 +31,7 @@ import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.NarrowLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.StringReference
@@ -48,6 +49,11 @@ internal const val SHARED_CONFIG = "Lorg/telegram/messenger/SharedConfig;"
 internal const val USER_CONFIG = "Lorg/telegram/messenger/UserConfig;"
 internal const val TOKEN_READER = "hushTelegramTokenPresence"
 internal const val ACCOUNT_READER = "hushTelegramAccountCounts"
+internal const val PUSH_CONTROLLER = "Lorg/telegram/messenger/MessagesController;"
+internal const val ANSWER_HOOK = "$FIREBASE_PUSH->registerDeviceAnswer(Ljava/lang/Object;Ljava/lang/Object;)V"
+private const val TL_OBJECT = "Lorg/telegram/tgnet/TLObject;"
+private const val TL_ERROR = "Lorg/telegram/tgnet/TLRPC\$TL_error;"
+private const val BOOL_TRUE = "Lorg/telegram/tgnet/TLRPC\$TL_boolTrue;"
 
 /**
  * Fresh implementation from Firebase's documented header path. Telegram 12.10.6 inlines
@@ -71,9 +77,13 @@ val repairFirebasePushPatch = bytecodePatch(
         requireStatusMethod("firebaseLocalStatus")
         val plan = resolveFirebaseHeader()
         val local = resolveLocalNotificationReaders()
+        val answer = resolvePushAnswer()
         plan.method.addInstructionsAtControlFlowLabel(plan.index, """
             invoke-static {v${plan.connection}, v${plan.value}}, $CERTIFICATE_HOOK
             move-result-object v${plan.value}
+        """)
+        answer.method.addInstructionsAtControlFlowLabel(0, """
+            invoke-static {v${answer.response}, v${answer.error}}, $ANSWER_HOOK
         """)
         for ((owner, original, replacement) in local.methods) {
             if (original != null) owner.methods.remove(original)
@@ -92,6 +102,40 @@ internal data class FirebaseHeaderPlan(
 internal enum class FirebaseRequest { CREATE, TOKEN, DELETE }
 
 internal data class LocalNotificationPlan(val methods: List<Triple<MutableClass, MutableMethod?, MutableMethod>>)
+
+internal data class PushAnswerPlan(val method: MutableMethod, val response: Int, val error: Int)
+
+/**
+ * Telegram's account.registerDevice callback keeps its lambda$registerForPush$N name and is the only place the
+ * server's answer arrives. Telegram drops a refusal without a trace, so "confirmed for push: 0" couldn't say why.
+ * The hook goes in front of the boolTrue test and only reads the response and error parameters.
+ */
+internal fun BytecodePatchContext.resolvePushAnswer(): PushAnswerPlan {
+    val owners = mutableListOf<String>()
+    classDefForEach { if (it.type == PUSH_CONTROLLER) owners += it.type }
+    shape(owners.size == 1, "push registration owner is missing or ambiguous")
+    // registerForPush also owns a no-argument lambda that clears its in-flight flag, so the name alone isn't enough.
+    val callback = mutableClassDefBy(PUSH_CONTROLLER).methods.filter {
+        it.name.startsWith("lambda\$registerForPush\$") && it.hasShape(listOf("I", STRING, TL_OBJECT, TL_ERROR), "V")
+    }.unique("push registration answer callback")
+    shape(!AccessFlags.STATIC.isSet(callback.accessFlags) && callback.implementation != null,
+        "push registration answer callback is static or has no body")
+    // Parameters fill the last registers: this, push type, token, response, error.
+    val registers = callback.implementation!!.registerCount
+    val response = registers - 2
+    val error = registers - 1
+    val body = callback.instructions()
+    val test = body.firstOrNull()
+    shape(test?.opcode == Opcode.INSTANCE_OF && (test as ReferenceInstruction).reference.toString() == BOOL_TRUE &&
+        (test as TwoRegisterInstruction).registerB == response && body.count { it.opcode == Opcode.INSTANCE_OF } == 1,
+        "push registration answer is no longer tested for boolTrue first")
+    shape(body.count { it.opcode == Opcode.IPUT_BOOLEAN && it.field()?.toString() == "$USER_CONFIG->registeredForPush:Z" } == 1,
+        "push registration answer no longer records an accepted registration")
+    val hook = mutableClassDefBy(FIREBASE_PUSH).methods.filter { it.name == "registerDeviceAnswer" }.unique("extension push answer hook")
+    shape(hook.hasShape(listOf("Ljava/lang/Object;", "Ljava/lang/Object;"), "V") &&
+        hook.accessFlags == (AccessFlags.PUBLIC.value or AccessFlags.STATIC.value), "extension push answer hook is not callable")
+    return PushAnswerPlan(callback, response, error)
+}
 
 /** The bridges read existing loaded memory. No account creation, configuration loading or registration. */
 internal fun BytecodePatchContext.resolveLocalNotificationReaders(): LocalNotificationPlan {

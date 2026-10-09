@@ -94,6 +94,41 @@ internal val DEFAULT_CALLS = setOf(DEFAULT_FROM_STYLE, CREATE_FROM_NAME, CREATE_
 /** The extension's stand-in for [call], one of [DEFAULT_CALLS]. */
 internal fun ownCall(call: String): String = call.replaceFirst("$TYPEFACE->", "$OWN_FONT->")
 
+private const val CHAR_SEQUENCE = "Ljava/lang/CharSequence;"
+private const val TEXT_PAINT = "Landroid/text/TextPaint;"
+internal const val LAYOUT_BUILDER = "Landroid/text/StaticLayout\$Builder;"
+private const val BORING_LAYOUT = "Landroid/text/BoringLayout;"
+private const val BORING_MAKE = "(${CHAR_SEQUENCE}${TEXT_PAINT}ILandroid/text/Layout\$Alignment;FFLandroid/text/BoringLayout\$Metrics;Z"
+
+/** How Facebook starts each multi-line text layout, with the paint the text is drawn in. */
+internal const val OBTAIN_LAYOUT = "$LAYOUT_BUILDER->obtain(${CHAR_SEQUENCE}II${TEXT_PAINT}I)$LAYOUT_BUILDER"
+
+/** Where it chooses the font padding for one, mostly none. */
+internal const val SET_INCLUDE_PAD = "$LAYOUT_BUILDER->setIncludePad(Z)$LAYOUT_BUILDER"
+
+/**
+ * Android's text layout calls whose font padding the extension decides (#96), each with its
+ * stand-in, a static method of the extension taking the very same arguments, a builder's call
+ * taking the builder first. Facebook's TextLayoutBuilder, which Litho text is drawn through
+ * (581 `LX/2ni;`), and Compose's layouts make every multi-line layout with [OBTAIN_LAYOUT], and
+ * TextLayoutBuilder makes one-line text with BoringLayout.make. The thirty-odd uses of
+ * StaticLayout's old constructor take the padding inside a register range, and stay Facebook's.
+ */
+internal val LAYOUT_CALLS = mapOf(
+    OBTAIN_LAYOUT to "$OWN_FONT->obtain(${CHAR_SEQUENCE}II${TEXT_PAINT}I)$LAYOUT_BUILDER",
+    SET_INCLUDE_PAD to "$OWN_FONT->setIncludePad(${LAYOUT_BUILDER}Z)$LAYOUT_BUILDER",
+    "$BORING_LAYOUT->make$BORING_MAKE)$BORING_LAYOUT" to "$OWN_FONT->make$BORING_MAKE)$BORING_LAYOUT",
+    "$BORING_LAYOUT->make${BORING_MAKE}Landroid/text/TextUtils\$TruncateAt;I)$BORING_LAYOUT" to
+        "$OWN_FONT->make${BORING_MAKE}Landroid/text/TextUtils\$TruncateAt;I)$BORING_LAYOUT",
+)
+
+/** The one of [LAYOUT_CALLS] [instruction] makes, as its static or virtual call, or null. */
+internal fun layoutCall(instruction: Instruction): String? = when (instruction.opcode) {
+    Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE, Opcode.INVOKE_VIRTUAL, Opcode.INVOKE_VIRTUAL_RANGE ->
+        (instruction as ReferenceInstruction).reference.toString().takeIf { it in LAYOUT_CALLS }
+    else -> null
+}
+
 /**
  * Whether every use of the typeface the field read at [index] loads is a comparison with another
  * typeface: an if-eq or if-ne, an equals call it's handed to, or Kotlin's areEqual, a static call

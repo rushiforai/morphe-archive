@@ -18,7 +18,7 @@
 .EXAMPLE
     $env:HUSHFEED_WORKDIR = "C:\scratch"
     $env:HUSHFEED_JAVA = "C:\jdk-21\bin\java.exe"
-    $env:HUSHFEED_APK = "C:\fixtures\com.zhiliaoapp.musically_46.2.3.apk"
+    $env:HUSHFEED_APK = "C:\fixtures\com.zhiliaoapp.musically_47.1.4.apk"
     scripts/measure-patch-heap.ps1 settings:640m settings:768m all:768m
 #>
 [CmdletBinding()]

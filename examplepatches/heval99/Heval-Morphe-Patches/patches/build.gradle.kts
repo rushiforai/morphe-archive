@@ -4,10 +4,10 @@ patches {
     about {
         name = "Heval's Morphe Patches"
         description = "Patches for apps I like"
-        source = "https://github.com/heval99/morphe-patches"
+        source = "https://github.com/heval99/Heval-Morphe-Patches"
         author = "heval99"
         contact = "https://github.com/heval99"
-        website = "https://morphe.software/add-source?github=heval99/morphe-patches"
+        website = "https://morphe.software/add-source?github=heval99/Heval-Morphe-Patches"
         license = "GPLv3"
     }
 }

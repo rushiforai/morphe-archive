@@ -13,6 +13,7 @@ val enableAppDebuggingPatch = resourcePatch(
     description = "Marks the app debuggable so patch developers can use ADB run-as after reinstalling.",
     default = false
 ) {
+    category("Developer")
     compatibleWith(COMPATIBILITY_SEZZLE)
 
     execute {

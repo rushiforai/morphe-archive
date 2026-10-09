@@ -35,6 +35,7 @@ export async function fetchGooglePlayApp(
 
   try {
     const response = await fetch(url, {
+      signal: AbortSignal.timeout(10000),
       headers: {
         'User-Agent': USER_AGENT,
         Accept:

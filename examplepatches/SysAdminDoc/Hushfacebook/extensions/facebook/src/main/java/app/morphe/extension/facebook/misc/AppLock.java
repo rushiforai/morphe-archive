@@ -872,6 +872,15 @@ public final class AppLock {
     }
 
     /**
+     * This process's windows, for a Debug logging read of what Facebook shows over its screens (the
+     * reel long-press menu's, in MenuLayoutDump). Null when the phone won't give them.
+     */
+    @Nullable
+    public static List<View> windowsForDiagnostics() {
+        return frameworkRoots();
+    }
+
+    /**
      * This process's windows from the framework's own list, in the order they were added, which is
      * not the order Android layers them. Reads WindowManagerGlobal's list of views, and when a phone
      * won't give that, its root names. Null when neither is reachable. The reflection objects are

@@ -20,21 +20,24 @@ val localCreationDownloaderPatch = bytecodePatch(
     dependsOn(sharedExtensionPatch)
 
     execute {
-        var patched = false
+        var patchedSaveMixin = false
+        var patchedMfyMixin = false
 
         classDefForEach { classDef ->
             if (classDef.type.startsWith("Lapp/morphe/")) return@classDefForEach
 
-            // Identify SaveCreationMixin: class containing string constant "SaveCreationMixin"
-            val hasSaveCreationMixin = classDef.methods.any { method ->
-                method.implementation?.instructions?.any { instruction ->
-                    (instruction.opcode == Opcode.CONST_STRING || instruction.opcode == Opcode.CONST_STRING_JUMBO) &&
-                    ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string == "SaveCreationMixin"
-                } == true
+            val stringConstants = buildSet {
+                classDef.methods.forEach { method ->
+                    method.implementation?.instructions?.forEach { instruction ->
+                        if (instruction.opcode == Opcode.CONST_STRING || instruction.opcode == Opcode.CONST_STRING_JUMBO) {
+                            ((instruction as? ReferenceInstruction)?.reference as? StringReference)?.string?.let { add(it) }
+                        }
+                    }
+                }
             }
 
-            if (hasSaveCreationMixin) {
-                // Find save execution method returning boolean (Z) with SavePendingItemsOptimisticTask
+            // 1. Identify SaveCreationMixin: class containing string constant "SaveCreationMixin"
+            if ("SaveCreationMixin" in stringConstants) {
                 val saveMethod = classDef.methods.find { method ->
                     method.returnType == "Z" &&
                     method.parameterTypes.size == 2 &&
@@ -60,7 +63,6 @@ val localCreationDownloaderPatch = bytecodePatch(
                         """.trimIndent(),
                     )
 
-                    // Find isSaved check method returning boolean (Z) with 1 parameter (Lakxr->e(Lbwel;)Z)
                     val isSavedMethod = classDef.methods.find { method ->
                         method.returnType == "Z" && method.parameterTypes.size == 1
                     }
@@ -79,13 +81,94 @@ val localCreationDownloaderPatch = bytecodePatch(
                         )
                     }
 
-                    patched = true
+                    patchedSaveMixin = true
+                }
+            }
+
+            // 2. Identify MFYCreationMixin: Made-For-You creations in Create tab
+            if ("MFYCreationMixin" in stringConstants) {
+                val mfySaveMethod = classDef.methods.find { method ->
+                    method.returnType == "V" &&
+                    method.parameterTypes.size == 3 &&
+                    method.parameterTypes[1] == "Ljava/lang/String;" &&
+                    method.parameterTypes[2] == "Z"
+                }
+                if (mfySaveMethod != null) {
+                    val mutableClass = mutableClassDefBy(classDef)
+                    val mutableMethod = mutableClass.findMutableMethodOf(mfySaveMethod)
+                    mutableMethod.addInstructions(
+                        0,
+                        """
+                        invoke-static/range { p0 .. p2 }, Lapp/morphe/extension/shared/patches/LocalCreationDownloader;->onMfySaveRequested(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)Z
+                        move-result v0
+                        if-eqz v0, :cond_orig_mfy
+                        return-void
+                        :cond_orig_mfy
+                        """.trimIndent(),
+                    )
+                    patchedMfyMixin = true
+                }
+
+                val bindMethod = classDef.methods.find { method ->
+                    method.name == "gc" || (method.parameterTypes.size == 3 && method.parameterTypes[0] == "Landroid/content/Context;" && method.parameterTypes[2] == "Landroid/os/Bundle;")
+                }
+                if (bindMethod != null) {
+                    val mutableClass = mutableClassDefBy(classDef)
+                    val mutableBindMethod = mutableClass.findMutableMethodOf(bindMethod)
+                    mutableBindMethod.addInstructions(
+                        0,
+                        """
+                        invoke-static { p0 }, Lapp/morphe/extension/shared/patches/LocalCreationDownloader;->onMfyMixinBound(Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
+                }
+            }
+
+            // 3. Identify MFYSectionDelegate: Create tab hero card presenter
+            if ("MFYSectionDelegate" in stringConstants) {
+                val cardMethod = classDef.methods.find { method ->
+                    method.parameterTypes.size == 2 &&
+                    method.parameterTypes[0] == "Ljava/lang/String;" &&
+                    method.returnType != "V" &&
+                    method.returnType != "Z"
+                }
+                if (cardMethod != null) {
+                    val mutableClass = mutableClassDefBy(classDef)
+                    val mutableCardMethod = mutableClass.findMutableMethodOf(cardMethod)
+                    mutableCardMethod.addInstructions(
+                        0,
+                        """
+                        invoke-static/range { p0 .. p2 }, Lapp/morphe/extension/shared/patches/LocalCreationDownloader;->onCheckHeroCardSaved(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
+                }
+
+                val heroSaveMethod = classDef.methods.find { method ->
+                    method.parameterTypes.size == 1 &&
+                    method.parameterTypes[0] != "Z" &&
+                    method.parameterTypes[0] != "I" &&
+                    method.parameterTypes[0] != "Ljava/lang/String;" &&
+                    cardMethod != null && method.parameterTypes[0] != cardMethod.returnType &&
+                    method.returnType == "V"
+                }
+                if (heroSaveMethod != null) {
+                    val mutableClass = mutableClassDefBy(classDef)
+                    val mutableHeroSaveMethod = mutableClass.findMutableMethodOf(heroSaveMethod)
+                    mutableHeroSaveMethod.addInstructions(
+                        0,
+                        """
+                        invoke-static/range { p0 .. p1 }, Lapp/morphe/extension/shared/patches/LocalCreationDownloader;->onCreateHeroSaveRequested(Ljava/lang/Object;Ljava/lang/Object;)V
+                        """.trimIndent(),
+                    )
                 }
             }
         }
 
-        if (!patched) {
+        if (!patchedSaveMixin) {
             throw PatchException("Could not find SaveCreationMixin or its save execution method.")
+        }
+        if (!patchedMfyMixin) {
+            throw PatchException("Could not find MFYCreationMixin or its save method.")
         }
     }
 }

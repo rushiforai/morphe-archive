@@ -7,14 +7,12 @@ package app.morphe.extension.facebook.misc;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.os.Build;
 import android.view.View;
 import android.view.inspector.WindowInspector;
 
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -26,9 +24,8 @@ public final class WindowsAbove {
 
     private WindowsAbove() {}
 
-    /** The app's window roots [activity] has open above [decor], top one first, up to [max]. Android 10 and newer. */
+    /** The app's window roots [activity] has open above [decor], top one first, up to [max]. */
     public static List<View> of(Activity activity, View decor, int max) {
-        if (Build.VERSION.SDK_INT < 29) return Collections.emptyList();
         return of(activity, decor, WindowInspector.getGlobalWindowViews(), max);
     }
 

@@ -40,13 +40,13 @@ import org.robolectric.annotation.Config;
 public class VideoMusicLineTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
-    private static final String[] BUILDS = {"47.0.3", "47.1.3", "47.1.4"};
+    /** The declared build. OLD_TITLE stands for the id an older build gave the title. */
+    private static final String[] BUILDS = {"47.1.4"};
     private static final int CELL = 0x7f0a7800;
     private static final int OLD_TITLE = 0x7f0a7801;
     private static final int NEW_TITLE = 0x7f0a7802;
     private static final int CAPTION = 0x7f0a7803;
     private static final int COVER = 0x7f0a7804;
-    private static final int OLD_DISC = 0x7f0a7805;
     private static final int NEW_DISC = 0x7f0a7806;
 
     @Before public void setUp() {
@@ -173,7 +173,7 @@ public class VideoMusicLineTest {
                     View caption = view(activity, CAPTION);
                     View disc = view(activity, discId(build));
                     View cover = view(activity, COVER);
-                    Title otherBuild = new Title(activity, build.equals("47.0.3") ? NEW_TITLE : OLD_TITLE, false);
+                    Title otherBuild = new Title(activity, OLD_TITLE, false);
                     Title outside = new Title(activity, titleId(build), true);
                     root.addView(cell(activity, title.root, caption, disc, cover, otherBuild.root));
                     root.addView(outside.root);
@@ -213,16 +213,16 @@ public class VideoMusicLineTest {
         VideoOverlayHider.resolveForTests("o6f", OLD_TITLE);
         VideoOverlayHider.resolveForTests("o97", NEW_TITLE);
         for (String candidate : BUILDS) {
-            String title = candidate + ":" + (candidate.equals("47.0.3") ? "o6f" : "o97");
-            String disc = candidate + ":" + (candidate.equals("47.0.3") ? "pnp" : "pqg");
+            String title = candidate + ":o97";
+            String disc = candidate + ":pqg";
             // The cache's test override is literal. Another build resolves to zero in the app.
             VideoOverlayHider.resolveForTests(title, BuildNames.entryName(title) == null ? 0 : titleId(candidate));
             VideoOverlayHider.resolveForTests(disc, BuildNames.entryName(disc) == null ? 0 : discId(candidate));
         }
     }
 
-    private static int titleId(String build) { return build.equals("47.0.3") ? OLD_TITLE : NEW_TITLE; }
-    private static int discId(String build) { return build.equals("47.0.3") ? OLD_DISC : NEW_DISC; }
+    private static int titleId(String build) { return NEW_TITLE; }
+    private static int discId(String build) { return NEW_DISC; }
 
     private static View view(Activity activity, int id) {
         View view = new View(activity);

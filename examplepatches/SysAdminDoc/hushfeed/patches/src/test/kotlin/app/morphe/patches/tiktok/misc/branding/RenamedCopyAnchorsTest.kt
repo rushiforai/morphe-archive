@@ -139,6 +139,13 @@ class RenamedCopyAnchorsTest {
             checks.forEach { check ->
                 val sites = storePackageChecks(check)
                 assertEquals("$version: ${check.definingClass}->${check.name} checks the store package once", 1, sites.size)
+                // The patch puts the extension's check where contains is, so its answer has to be
+                // read straight after, as contains' is.
+                assertEquals(
+                    "$version: ${check.definingClass}->${check.name} reads contains' answer next",
+                    Opcode.MOVE_RESULT,
+                    check.implementation!!.instructions.elementAt(sites.single() + 2).opcode,
+                )
                 // TikTok Asia's package is asked about the same way, so the swap leaves a pair.
                 assertTrue(
                     "$version: ${check.definingClass}->${check.name} doesn't check TikTok Asia's package too",

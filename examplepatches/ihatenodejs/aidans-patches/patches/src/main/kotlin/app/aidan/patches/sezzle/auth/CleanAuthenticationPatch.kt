@@ -15,6 +15,7 @@ val cleanAuthenticationPatch = rawResourcePatch(
     description = "Shows Google sign-in only and removes the unavailable phone sign-in controls.",
     default = true
 ) {
+    category("Security")
     compatibleWith(COMPATIBILITY_SEZZLE)
     val injectPatchWarning = booleanOption(
         key = "injectPatchWarning",

@@ -24,6 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.telegram.tgnet.TLRPC;
 
 import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.diagnostics.HookStatus;
@@ -46,6 +47,7 @@ public class FirebasePushTest {
         HookStatus.clear();
         PauseForTests.resume();
         Settings.REPAIR_FIREBASE_PUSH.resetToDefault();
+        forgetAnswer();
     }
 
     @After public void restore() {
@@ -53,6 +55,70 @@ public class FirebasePushTest {
         Settings.REPAIR_FIREBASE_PUSH.resetToDefault();
         PauseForTests.resume();
         HookStatus.clear();
+        forgetAnswer();
+    }
+
+    /** Statics outlive a test in Robolectric's shared sandbox, so every class that reads the answer starts from none. */
+    public static void forgetAnswer() { FirebasePush.lastAnswer = null; }
+
+    @Test public void anAcceptedRegistrationIsRecordedAndCounted() {
+        FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolTrue(), null);
+        assertEquals("accepted", FirebasePush.lastAnswer);
+        assertTrue(HookStatus.report().get(0).contains("push registrations accepted 1"));
+        assertFalse(HookStatus.report().get(0).contains("refused"));
+        assertEquals(Arrays.asList(), HookStatus.missing(FamilyNames.REPAIR_FIREBASE_PUSH));
+    }
+
+    @Test public void aRefusalKeepsOnlyTheUpperCaseErrorNameAndCode() {
+        FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolFalse(), new TLRPC.TL_error(400, "APP_PUSH_ERROR"));
+        assertEquals("refused APP_PUSH_ERROR 400", FirebasePush.lastAnswer);
+        FirebasePush.registerDeviceAnswer(null, new TLRPC.TL_error(420, "FLOOD_WAIT_30"));
+        assertEquals("refused FLOOD_WAIT_30 420", FirebasePush.lastAnswer);
+        String privateText = "token fcm:abc123 for +15550001234";
+        FirebasePush.registerDeviceAnswer(null, new TLRPC.TL_error(-1000, privateText));
+        assertEquals("refused unreadable -1000", FirebasePush.lastAnswer);
+        FirebasePush.registerDeviceAnswer(null, new TLRPC.TL_error(400, null));
+        assertEquals("refused unreadable 400", FirebasePush.lastAnswer);
+        StringBuilder tooLong = new StringBuilder();
+        for (int i = 0; i < 65; i++) tooLong.append('A');
+        FirebasePush.registerDeviceAnswer(null, new TLRPC.TL_error(400, tooLong.toString()));
+        assertEquals("refused unreadable 400", FirebasePush.lastAnswer);
+        FirebasePush.registerDeviceAnswer(null, new Object());
+        assertEquals("refused unreadable", FirebasePush.lastAnswer);
+        String report = HookStatus.report().get(0);
+        assertTrue(report, report.contains("push registrations refused 6"));
+        assertFalse(report, report.contains(privateText));
+        assertFalse(report, report.contains("accepted"));
+    }
+
+    @Test public void aRefusalWithoutAnErrorIsStillRecorded() {
+        FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolFalse(), null);
+        assertEquals("refused", FirebasePush.lastAnswer);
+        FirebasePush.registerDeviceAnswer(null, null);
+        assertEquals("refused", FirebasePush.lastAnswer);
+        assertTrue(HookStatus.report().get(0).contains("push registrations refused 2"));
+    }
+
+    @Test public void theLatestAnswerWinsAndEachIsCountedOnce() {
+        FirebasePush.registerDeviceAnswer(null, new TLRPC.TL_error(400, "APP_PUSH_ERROR"));
+        FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolTrue(), null);
+        assertEquals("accepted", FirebasePush.lastAnswer);
+        FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolFalse(), null);
+        assertEquals("refused", FirebasePush.lastAnswer);
+        String report = HookStatus.report().get(0);
+        assertTrue(report, report.contains("push registrations accepted 1"));
+        assertTrue(report, report.contains("push registrations refused 2"));
+    }
+
+    @Test public void answersAreRecordedWithTheRepairOffAndUnderEveryPauseReason() {
+        Settings.REPAIR_FIREBASE_PUSH.save(false);
+        for (HushTelegramPause.Reason reason : HushTelegramPause.Reason.values()) {
+            PauseForTests.pause(reason);
+            forgetAnswer();
+            FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolTrue(), null);
+            assertEquals(reason.name(), "accepted", FirebasePush.lastAnswer);
+        }
+        assertFalse(Settings.REPAIR_FIREBASE_PUSH.savedValue());
     }
 
     @Test public void repairsOnlyTheCertificateValueWithoutChangingHeadersOrConnecting() throws Exception {

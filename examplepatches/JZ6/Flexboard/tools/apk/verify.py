@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""A register type-merge check over a patched method — the class of bug ART rejects at load.
+"""Checks over every method a patch changed, for the bugs ART only reports on a phone.
+
+Three of them: a register type-merge conflict (rejected at class load), a call into the extension
+that nothing declares (throws when the call runs), and a reference the patched class is not allowed
+to make (throws when the instruction runs). The first is most of this file; the other two are
+sections at the end.
 
 ## Why
 
@@ -14,7 +19,7 @@ that does `iget-object v13, v3, Lpvi;->B:…` while our path had just made `v3` 
 ## What it is, and what it is not
 
 This is **not** a reimplementation of ART's verifier. It is a forward abstract interpretation over
-the real control-flow graph with a deliberately small type lattice, tuned to be quiet:
+switch cases and the DEX try-handler ranges with a deliberately small type lattice, tuned to be quiet:
 
 * types come only from instructions that state one outright — `new-instance`, `sget-object`,
   `iget-object`, `check-cast`, `const-string`, `move-result-object` after a call with a known
@@ -32,15 +37,33 @@ reads is legal and common.
 False negatives are the accepted trade. A checker that cries wolf gets switched off, and this
 project has enough checks that pass without meaning something.
 
+## Access
+
+An emission runs as code *of the class it is injected into*, and ART holds it to that class's
+access rights. `2.5.1-dev.9` emitted `instance-of Lozi;` and `iget Lozi;->b` into
+`ScrubMotionEventHandler`, in `com.google...scrubmove`; `Lozi;` is package-private and lives in the
+unnamed package. ART does not reject the class for that — an access failure is a *soft* verification
+failure — so the keyboard opened, and the instruction threw `IllegalAccessError` the first time it
+ran, on every swipe up. Nothing here could see it, and the device had no logcat to say so.
+
+The rule checked is ART's: a class is accessible when it is public or in the host's package; a
+member when it is public, private to the host itself, in the host's package, or protected and the
+host is a subclass. The class named in the reference is checked, then the member where resolution
+finds it, which is the order ART uses. A reference whose class or member is outside the APK —
+anything in the framework — cannot be judged and is counted as unchecked, never as passed.
+
 ## Use
 
     tools/apk/verify.py <patched.apk> <descriptor>
     tools/apk/verify.py <patched.apk> --changed-from gboard-apk    # every method the patch touched
+    tools/apk/verify.py <patched.apk> --differs-from <baseline.apk>
+    tools/apk/verify.py <patched.apk> --unchanged-from gboard-apk <descriptor>
 """
 
 import os
 import re
 import shutil
+import struct
 import sys
 import tempfile
 import zipfile
@@ -48,16 +71,11 @@ import zipfile
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import dexlib  # noqa: E402
-import dis as ddis  # noqa: E402
+import dalvik_dis as ddis  # noqa: E402
 
 EXTENSION = "Ldev/jz6/flexboard/extension/"
 
 OBJECT = "Ljava/lang/Object;"
-
-# What reaching the root still resolves. Short by design: treating Object as opaque would make the
-# whole walk vacuous, since Object is not in the APK and every chain ends there.
-OBJECT_MEMBERS = ("toString", "hashCode", "equals", "getClass", "clone", "finalize",
-                  "wait", "notify", "notifyAll")
 
 UNKNOWN = "?"
 ZERO = "0"
@@ -66,7 +84,7 @@ CONFLICT = "!"
 # Instructions whose first register operand receives a reference of a type the operand text states.
 _NEW = re.compile(r"^v(\d+), (L[\w/$;]+;|\[[\w/$;\[]+)$")
 _SGET = re.compile(r"^v(\d+), L[\w/$;]+;->[^:]+:(L[\w/$;]+;|\[[\w/$;\[]+)$")
-_IGET = re.compile(r"^v(\d+), v(\d+), (L[\w/$;]+;)->[^:]+:(L[\w/$;]+;|\[[\w/$;\[]+)$")
+_IGET = re.compile(r"^v(\d+), v(\d+), (L[\w/$;]+;)->[^:]+:(\S+)$")
 _IPUT = _IGET
 _INVOKE = re.compile(r"^\{([^}]*)\}, (L[\w/$;]+;)->([^(]+)\(([^)]*)\)(.+)$")
 _MOVE_OBJ = re.compile(r"^v(\d+), v(\d+)$")
@@ -131,13 +149,17 @@ class Hierarchy:
     def __init__(self, dexes):
         self.parent = {}
         self.interfaces = {}
+        self.interface_types = set()
         for d in dexes:
-            import struct
             for i in range(d.cls_n):
-                ci, _af, su, io, _sf, _ao, _cd, _sv = struct.unpack_from(
+                ci, af, su, io, _sf, _ao, _cd, _sv = struct.unpack_from(
                     "<8I", d.b, d.cls_o + 32 * i)
                 name = d.type(ci)
+                if name in self.parent:
+                    continue
                 self.parent[name] = d.type(su) if su != 0xFFFFFFFF else None
+                if af & 0x200:
+                    self.interface_types.add(name)
                 if io:
                     n = struct.unpack_from("<I", d.b, io)[0]
                     self.interfaces[name] = [
@@ -155,10 +177,12 @@ class Hierarchy:
         pair, which merged the two types instead of conflicting them and let the check miss the
         shipped bug it was written to catch.
         """
-        if value == target or target == "Ljava/lang/Object;":
+        if value == target or target == OBJECT:
             return True
+        if target in self.interface_types:
+            return True  # an interface may be implemented by a subtype beyond this walk
         if value not in self.parent:
-            return True  # value is a framework class; its hierarchy is not here to walk
+            return target not in self.parent  # framework classes cannot extend app classes
         target_known = target in self.parent
         seen, cur = set(), value
         while cur and cur not in seen:
@@ -184,32 +208,139 @@ def join(a, b, hierarchy):
         return a
     if a == CONFLICT or b == CONFLICT:
         return CONFLICT
+    if a not in hierarchy.parent and b not in hierarchy.parent:
+        # Two different framework types cannot be ordered without android.jar. Picking either
+        # operand used to oscillate forever when handler edges joined them in opposite orders.
+        return UNKNOWN
     if hierarchy.assignable(a, b):
         return b
     if hierarchy.assignable(b, a):
         return a
+    seen = set()
+    cur = a
+    while cur and cur not in seen:
+        seen.add(cur)
+        if hierarchy.assignable(b, cur):
+            return cur
+        cur = hierarchy.parent.get(cur)
     return CONFLICT
 
 
 def handler_entries(ins):
-    """Indices of every `move-exception`, which is where a catch handler begins.
-
-    The try/catch tables are not read. Instead every instruction is treated as able to reach
-    every handler in the method, which over-approximates: some of those instructions are outside
-    the try range. Over-approximating *edges* makes merges happen that ART would not perform, so
-    it can only produce findings ART would not, which is the wrong direction for a checker meant
-    to stay quiet.
-
-    It is accepted because the alternative is worse. Modelling no handler edges means a register
-    that conflicts only at a handler is invisible, and `Lpvf;->t` -- the method this whole
-    exercise is about -- has a try block. A false positive gets argued about; a false negative
-    ships.
-    """
+    """Fallback for synthetic instruction streams without a code_item/try table."""
     return [i for i, (_pc, mnemonic, _a) in enumerate(ins)
             if mnemonic.startswith('move-exception')]
 
 
-def successors(ins, index, pc_index, handlers=()):
+def _sleb(b, offset):
+    value, shift = 0, 0
+    while True:
+        byte = b[offset]
+        offset += 1
+        value |= (byte & 0x7f) << shift
+        shift += 7
+        if not byte & 0x80:
+            if byte & 0x40:
+                value -= 1 << shift
+            return value, offset
+
+
+def can_throw(mnemonic):
+    """Conservative ART exception edges: avoid paths from moves/branches that cannot throw."""
+    if mnemonic.startswith(("invoke", "iget", "iput", "sget", "sput", "aget", "aput",
+                            "new-", "filled-new-array", "check-cast", "throw", "monitor",
+                            "array-length", "const-string", "const-class", "const-method-",
+                            "fill-array-data")):
+        return True
+    for prefix in ("binop2addr", "binop", "lit16_", "lit8_"):
+        if mnemonic.startswith(prefix):
+            try:
+                op = int(mnemonic[len(prefix):], 16)
+            except ValueError:
+                return True  # unknown arithmetic: don't silently discard an exceptional edge
+            return op in {0x93, 0x94, 0x9e, 0x9f, 0xb3, 0xb4, 0xbe, 0xbf,
+                          0xd3, 0xd4, 0xdb, 0xdc}
+    return False
+
+
+def catch_targets(d, code, ins):
+    """Instruction index -> actual try-handler entries for the protected range covering it.
+
+    We include instructions that can throw in each try range, not every move/branch or instructions
+    outside the range. This reduces spurious type merges at handlers.
+    """
+    count = code.get("tries_size", 0)
+    if not count:
+        return {}
+    from dexlib import uleb
+    b = d.b
+    pc_index = {pc: i for i, (pc, _n, _a) in enumerate(ins)}
+    tries_at = code["insns_off"] + 2 * code["insns_size"]
+    if code["insns_size"] & 1:
+        tries_at += 2  # padding to a 4-byte boundary before the try_items
+    handlers_at = tries_at + 8 * count
+    num_handlers, cursor = uleb(b, handlers_at)
+    by_offset = {}
+    for _ in range(num_handlers):
+        start = cursor - handlers_at
+        size, cursor = _sleb(b, cursor)
+        addresses = []
+        for _ in range(abs(size)):
+            _type, cursor = uleb(b, cursor)
+            address, cursor = uleb(b, cursor)
+            addresses.append(address)
+        if size <= 0:
+            address, cursor = uleb(b, cursor)
+            addresses.append(address)
+        targets = [pc_index.get(pc) for pc in addresses]
+        # A handler may ignore the exception and start on an ordinary instruction. Gboard's
+        # AccessPointsBar ctor has a handler at pc 72 (iput), not move-exception.
+        if any(target is None for target in targets):
+            raise ValueError(f"try handler at {addresses} has no instruction target")
+        by_offset[start] = targets
+
+    outgoing = {}
+    for n in range(count):
+        first, length, handler_off = struct.unpack_from("<IHH", b, tries_at + n * 8)
+        if handler_off not in by_offset:
+            raise ValueError(f"try handler offset {handler_off} is not decoded")
+        for pc, index in pc_index.items():
+            if first <= pc < first + length and can_throw(ins[index][1]):
+                outgoing.setdefault(index, set()).update(by_offset[handler_off])
+    return {index: sorted(targets) for index, targets in outgoing.items()}
+
+
+def switch_case_targets(d, c, ins):
+    """Switch instruction index -> case instruction indices from the dex payload.
+
+    DEX stores signed case offsets relative to the *switch*, not to its payload. Refuse a malformed
+    or missing payload rather than silently inspecting only the fall-through arm.
+    """
+    pc_index = {pc: i for i, (pc, _nm, _args) in enumerate(ins)}
+    out = {}
+    base = c["insns_off"]
+    for index, (pc, mnemonic, args) in enumerate(ins):
+        if mnemonic not in ("packed-switch", "sparse-switch"):
+            continue
+        match = re.search(r"-> (\d+)", args or "")
+        if not match or int(match.group(1)) not in pc_index:
+            raise ValueError(f"{mnemonic} at pc {pc}: missing payload target")
+        payload_pc = int(match.group(1))
+        pos = base + 2 * payload_pc
+        expected = 0x0100 if mnemonic == "packed-switch" else 0x0200
+        tag, count = struct.unpack_from("<HH", d.b, pos)
+        if tag != expected or ins[pc_index[payload_pc]][1] != "payload":
+            raise ValueError(f"{mnemonic} at pc {pc}: unexpected payload tag 0x{tag:04x}")
+        start = pos + (8 if mnemonic == "packed-switch" else 4 + 4 * count)
+        relative = struct.unpack_from(f"<{count}i", d.b, start)
+        targets = [pc_index.get(pc + delta) for delta in relative]
+        if any(target is None for target in targets):
+            raise ValueError(f"{mnemonic} at pc {pc}: case target is not an instruction")
+        out[index] = targets
+    return out
+
+
+def successors(ins, index, pc_index, handlers=(), switch_targets=None):
     _pc, mnemonic, args = ins[index]
     out = []
     m = re.search(r"-> (\d+)", args or "")
@@ -217,6 +348,10 @@ def successors(ins, index, pc_index, handlers=()):
         target = pc_index.get(int(m.group(1)))
         if target is not None:
             out.append(target)
+    if mnemonic in ("packed-switch", "sparse-switch"):
+        if switch_targets is None or index not in switch_targets:
+            raise ValueError(f"{mnemonic} at pc {_pc}: switch cases were not decoded")
+        out.extend(switch_targets[index])
     if mnemonic.startswith("goto"):
         pass
     elif mnemonic.startswith(("return", "throw")):
@@ -229,17 +364,18 @@ def successors(ins, index, pc_index, handlers=()):
     return out + [h for h in handlers if h != index]
 
 
-def check_method(ins, register_count, parameters, hierarchy):
+def check_method(ins, register_count, parameters, hierarchy, switch_targets=None,
+                 exception_targets=None):
     """Findings as (index, register, incoming types, what the use site required)."""
     pc_index = {pc: i for i, (pc, _n, _a) in enumerate(ins)}
-    handlers = handler_entries(ins)
+    handlers = handler_entries(ins) if exception_targets is None else ()
 
     entry = [UNKNOWN] * register_count
     for slot, descriptor in enumerate(parameters):
         entry[register_count - len(parameters) + slot] = descriptor
 
     state = {0: entry}
-    order, seen_edges = [0], set()
+    order = [0]
     while order:
         i = order.pop()
         if i >= len(ins):
@@ -250,6 +386,10 @@ def check_method(ins, register_count, parameters, hierarchy):
         after = list(before)
         _pc, mnemonic, args = ins[i]
         text = (args or "").strip()
+        if mnemonic.startswith(("invoke-polymorphic", "invoke-custom")):
+            # Their extra proto/call-site operands are not ordinary MethodReferences. Guessing
+            # with _INVOKE would give a plausible-looking but wrong return type.
+            raise ValueError(f"{mnemonic} at pc {_pc} needs a call-site/proto type model")
 
         if mnemonic == "new-instance":
             m = _NEW.match(text)
@@ -261,7 +401,7 @@ def check_method(ins, register_count, parameters, hierarchy):
                 after[int(m.group(1))] = m.group(2)
         elif mnemonic.startswith("iget-object"):
             m = _IGET.match(text)
-            if m:
+            if m and m.group(4).startswith(("L", "[")):
                 after[int(m.group(1))] = m.group(4)
         elif mnemonic == "check-cast":
             m = _NEW.match(text)
@@ -296,17 +436,31 @@ def check_method(ins, register_count, parameters, hierarchy):
             if r:
                 after[r[0]] = UNKNOWN
 
-        for s in successors(ins, i, pc_index, handlers):
+        # An unmodelled write must kill its old type. Keeping it makes a dead conflict look live,
+        # and can make an int silently retain a reference type after an iget/aget/arithmetic op.
+        if mnemonic.startswith(("iget", "sget", "aget", "instance-of", "array-length",
+                                "new-array", "cmp", "binop", "unop", "lit8_", "lit16_",
+                                "move-exception")):
+            r = _regs(text)
+            if r and not (mnemonic == "iget-object" and _IGET.match(text)
+                          or mnemonic == "sget-object" and _SGET.match(text)):
+                after[r[0]] = UNKNOWN
+                if (mnemonic.endswith("-wide") or mnemonic.startswith(("cmp-long", "cmpg-double",
+                                                                       "cmpl-double"))) and r[0] + 1 < len(after):
+                    after[r[0] + 1] = UNKNOWN
+
+        normal = successors(ins, i, pc_index, (), switch_targets)
+        exceptional = handlers if exception_targets is None else exception_targets.get(i, ())
+        for s, incoming in [(s, after) for s in normal] + [(s, before) for s in exceptional if s != i]:
             merged = state.get(s)
             if merged is None:
-                state[s] = list(after)
+                state[s] = list(incoming)
                 order.append(s)
             else:
-                new = [join(x, y, hierarchy) for x, y in zip(merged, after)]
+                new = [join(x, y, hierarchy) for x, y in zip(merged, incoming)]
                 if new != merged:
                     state[s] = new
                     order.append(s)
-            seen_edges.add((i, s))
 
     findings = []
     for i, (_pc, mnemonic, args) in enumerate(ins):
@@ -319,7 +473,7 @@ def check_method(ins, register_count, parameters, hierarchy):
             m = _IGET.match(text)
             if m:
                 demands.append((int(m.group(2)), m.group(3)))
-                if mnemonic.startswith("iput-object"):
+                if mnemonic.startswith("iput-object") and m.group(4).startswith(("L", "[")):
                     demands.append((int(m.group(1)), m.group(4)))
         elif mnemonic.startswith("invoke"):
             m = _INVOKE.match(text)
@@ -337,7 +491,9 @@ def check_method(ins, register_count, parameters, hierarchy):
                     if declared is not None:
                         demands.append((register, declared))
         for register, required in demands:
-            if register < len(here) and here[register] == CONFLICT:
+            if (register < len(here) and here[register] not in (UNKNOWN, ZERO)
+                    and (here[register] == CONFLICT
+                         or not hierarchy.assignable(here[register], required))):
                 findings.append((i, register, required, mnemonic))
     return findings
 
@@ -349,16 +505,14 @@ def declared_members(dexes):
         for _cname, _af, cd in d.classes():
             for m, _maf, _co in d.class_methods(cd):
                 methods.add(m)
-            try:
-                for descriptor, _static in _class_fields(d, cd):
-                    fields.add(descriptor)
-            except Exception:
-                pass
+            for descriptor, _static, _af in _class_fields(d, cd):
+                fields.add(descriptor)
     return methods, fields
 
 
 def _class_fields(d, cd):
-    """(descriptor, is_static) per field — the encoded_field walk dexlib does not expose."""
+    """(descriptor, is_static, access_flags) per field — the encoded_field walk dexlib does not
+    expose."""
     if not cd:
         return
     from dexlib import uleb
@@ -371,9 +525,9 @@ def _class_fields(d, cd):
         idx = 0
         for _ in range(count):
             delta, o = uleb(b, o)
-            _af, o = uleb(b, o)
+            af, o = uleb(b, o)
             idx += delta
-            yield d.field(idx), static
+            yield d.field(idx), static, af
 
 
 def unresolved_extension_references(ins, methods, fields):
@@ -410,16 +564,162 @@ def unresolved_extension_references(ins, methods, fields):
     return missing
 
 
-def _is_framework(descriptor):
-    return descriptor.startswith((
-        "Landroid/", "Ljava/", "Ljavax/", "Lkotlin/", "Ldalvik/", "Lorg/w3c/", "Lorg/xml/",
-        "Lorg/json/", "Lorg/apache/", "Lj$/", "Lsun/",
-    ))
+PUBLIC, PRIVATE, PROTECTED, INTERFACE = 0x1, 0x2, 0x4, 0x200
+
+FIELD_OPS = ("iget", "iput", "sget", "sput")
+TYPE_OPS = ("check-cast", "instance-of", "new-instance", "const-class", "new-array",
+            "filled-new-array")
+
+
+def package_of(descriptor):
+    """`com/a/b` for `Lcom/a/b/C;`, and `""` for an obfuscated class in the unnamed package."""
+    body = descriptor[1:-1]
+    return body.rsplit("/", 1)[0] if "/" in body else ""
+
+
+class Access:
+    """The access rules ART applies to an instruction, over the classes the APK declares.
+
+    Members are decoded per class on first use: indexing every field and method of sixty thousand
+    classes up front would cost more than the rest of verify put together, for the dozen classes a
+    patch actually names.
+    """
+
+    def __init__(self, dexes):
+        import struct
+        self.flags, self.parent, self.interfaces, self._data = {}, {}, {}, {}
+        self._members = {"field": {}, "method": {}}
+        for d in dexes:
+            for i in range(d.cls_n):
+                ci, af, su, io, _sf, _ao, cd, _sv = struct.unpack_from(
+                    "<8I", d.b, d.cls_o + 32 * i)
+                name = d.type(ci)
+                if name in self.flags:
+                    continue  # the first definition is the one that loads
+                self.flags[name] = af
+                self.parent[name] = d.type(su) if su != 0xFFFFFFFF else None
+                self.interfaces[name] = []
+                if io:
+                    n = struct.unpack_from("<I", d.b, io)[0]
+                    self.interfaces[name] = [
+                        d.type(struct.unpack_from("<H", d.b, io + 4 + 2 * k)[0]) for k in range(n)]
+                self._data[name] = (d, cd)
+
+    def knows(self, descriptor):
+        """True when the class is in the APK, or is a primitive array that needs no access."""
+        element = descriptor.lstrip("[")
+        return not element.startswith("L") or element in self.flags
+
+    def members(self, cls, kind):
+        cache = self._members[kind]
+        if cls not in cache:
+            d, cd = self._data[cls]
+            if kind == "field":
+                cache[cls] = {desc.split("->", 1)[1]: af for desc, _s, af in _class_fields(d, cd)}
+            else:
+                cache[cls] = {m.split("->", 1)[1]: af for m, af, _co in d.class_methods(cd)}
+        return cache[cls]
+
+    def resolve(self, cls, signature, kind):
+        """(declaring class, flags) for a member, or None when the search leaves the APK first.
+
+        The superclass chain, then every interface it reaches. ART interleaves a class's interfaces
+        before its superclass for fields; the two orders differ only for a name and type declared
+        in both an interface and a superclass, which nothing in Gboard does.
+        """
+        chain, cur, seen = [], cls, set()
+        while cur in self.flags and cur not in seen:
+            seen.add(cur)
+            chain.append(cur)
+            cur = self.parent[cur]
+        for c in chain:
+            flags = self.members(c, kind).get(signature)
+            if flags is not None:
+                return c, flags
+        queue = [i for c in chain for i in self.interfaces[c]]
+        while queue:
+            i = queue.pop(0)
+            if i in seen or i not in self.flags:
+                continue
+            seen.add(i)
+            flags = self.members(i, kind).get(signature)
+            if flags is not None:
+                return i, flags
+            queue.extend(self.interfaces[i])
+        return None
+
+    def extends(self, host, ancestor):
+        cur, seen = host, set()
+        while cur and cur not in seen:
+            if cur == ancestor:
+                return True
+            seen.add(cur)
+            cur = self.parent.get(cur)
+        return False
+
+    def class_problem(self, host, target):
+        element = target.lstrip("[")
+        if not element.startswith("L"):
+            return None
+        if self.flags[element] & PUBLIC or package_of(element) == package_of(host):
+            return None
+        return f"class {element} is package-private, and {host} is in another package"
+
+    def member_problem(self, host, declarer, flags):
+        if flags & PUBLIC:
+            return None
+        if flags & PRIVATE:
+            return None if host == declarer else f"it is private to {declarer}"
+        if package_of(host) == package_of(declarer):
+            return None
+        if (flags & PROTECTED and not self.flags.get(host, 0) & INTERFACE
+                and self.extends(host, declarer)):
+            return None
+        if flags & PROTECTED:
+            return f"it is protected in {declarer}, and {host} is neither a subclass nor in its package"
+        return f"it is package-private in {declarer}, and {host} is in another package"
+
+
+def inaccessible_references(host, ins, access):
+    """References [host] may not make, as (index, reference, why), and how many were undecidable.
+
+    Every instruction in the method is checked, stock ones included. Those were compiled against
+    the same rules and pass, so a finding is always the emission's; checking them anyway means
+    nobody has to decide where the emission starts.
+    """
+    findings, unchecked = [], 0
+    for index, (_pc, mnemonic, args) in enumerate(ins):
+        base = mnemonic.split("/")[0]
+        if base.startswith(FIELD_OPS):
+            kind = "field"
+        elif base.startswith("invoke-") and base not in ("invoke-polymorphic", "invoke-custom"):
+            kind = "method"
+        elif base in TYPE_OPS:
+            kind = "type"
+        else:
+            continue
+        reference = (args or "").rsplit(", ", 1)[-1].strip()
+        owner = reference.split("->", 1)[0]
+        if not access.knows(owner):
+            unchecked += 1
+            continue
+        problem = access.class_problem(host, owner)
+        if problem is None and kind != "type" and owner.startswith("L"):
+            found = access.resolve(owner, reference.split("->", 1)[1], kind)
+            if found is None:
+                unchecked += 1  # inherited from a framework class, whose flags are not here
+                continue
+            problem = access.member_problem(host, *found)
+        if problem:
+            findings.append((index, reference, problem))
+    return findings, unchecked
 
 
 def extract(apk, into):
     with zipfile.ZipFile(apk) as zf:
         names = [n for n in zf.namelist() if n.startswith("classes") and n.endswith(".dex")]
+        if not names:
+            raise ValueError(f"{apk}: no classes*.dex members")
         for name in sorted(names):
             with zf.open(name) as s, open(os.path.join(into, os.path.basename(name)), "wb") as d:
                 shutil.copyfileobj(s, d)
@@ -443,7 +743,7 @@ def parameters_of(descriptor, is_static):
             out.append(inside[i:j + 1])
             i = j + 1
         else:
-            out.append(UNKNOWN if inside[i] not in "JD" else UNKNOWN)
+            out.append(UNKNOWN)
             if inside[i] in "JD":
                 out.append(UNKNOWN)
             i += 1
@@ -452,7 +752,7 @@ def parameters_of(descriptor, is_static):
 
 
 def method_bodies(dexes):
-    """(registers, size) per method descriptor — enough to tell changed from untouched."""
+    """(registers, size, dex, code) per method descriptor, to compare actual instructions."""
     out = {}
     for d in dexes:
         for _cname, _af, cd in d.classes():
@@ -461,8 +761,27 @@ def method_bodies(dexes):
                     continue
                 c = d.code(co)
                 if c is not None:
-                    out[m] = (c["registers"], c["insns_size"])
+                    out[m] = (c["registers"], c["insns_size"], d, c)
     return out
+
+
+def same_body(a, b):
+    """Compare resolved instructions, not only code size or raw reference indexes.
+
+    R8 can swap an invoke or field reference for one of the same size. Byte-for-byte comparison
+    alone can also lie when two dexes renumber their reference tables. An unchanged DEX signature
+    plus identical code bytes is a cheap safe shortcut for the many classes Morphe did not touch.
+    """
+    if a[:2] != b[:2]:
+        return False
+    _ar, _as, ad, ac = a
+    _br, _bs, bd, bc = b
+    a_code = ad.b[ac["insns_off"]:ac["insns_off"] + 2 * ac["insns_size"]]
+    b_code = bd.b[bc["insns_off"]:bc["insns_off"] + 2 * bc["insns_size"]]
+    if ad.b[12:32] == bd.b[12:32] and a_code == b_code:
+        return True
+    a_ins, b_ins = ddis.disasm(ad, ac), ddis.disasm(bd, bc)
+    return a_ins == b_ins and catch_targets(ad, ac, a_ins) == catch_targets(bd, bc, b_ins)
 
 
 def changed_methods(stock_tree, patched_dexes):
@@ -474,7 +793,41 @@ def changed_methods(stock_tree, patched_dexes):
     """
     stock = method_bodies(dexlib.load(stock_tree))
     patched = method_bodies(patched_dexes)
-    return sorted(m for m, body in patched.items() if m in stock and stock[m] != body)
+    return sorted(m for m, body in patched.items() if m in stock and not same_body(stock[m], body))
+
+
+def added_methods(stock_tree, patched_dexes):
+    """Methods a patch added to one of Gboard's own classes.
+
+    Included in type-merge and access checks too: a new method can have conflicting paths within
+    its own body, and it runs with its host's access rights.
+
+    Only classes Gboard already has. Whole new classes — the extension, and the Kotlin standard
+    library the bundle carries with it — are this project's own, compiled by javac and kotlinc
+    against rules they already enforce, and there are twenty thousand methods of them.
+    """
+    stock_dexes = dexlib.load(stock_tree)
+    gboard = {name for d in stock_dexes for name, _af, _cd in d.classes()}
+    stock = method_bodies(stock_dexes)
+    patched = method_bodies(patched_dexes)
+    return sorted(m for m in patched if m not in stock and m.split("->")[0] in gboard)
+
+
+def differing_methods(patched_apk, baseline_apk):
+    """Methods whose body differs between two patched builds of the same APK.
+
+    The evidence that one extra patch emitted anything at all. An emission that produces nothing
+    looks exactly like one that worked -- the patch applies, verify finds nothing wrong, and the
+    build ships unchanged, which is what `2.5.0-dev.1` was. Comparing a build with the patch
+    against the same bundle's build without it removes that possibility: if they are identical, the
+    patch did nothing, however cleanly it applied.
+    """
+    with tempfile.TemporaryDirectory() as a, tempfile.TemporaryDirectory() as b:
+        extract(patched_apk, a)
+        extract(baseline_apk, b)
+        mine = method_bodies(dexlib.load(a))
+        base = method_bodies(dexlib.load(b))
+        return sorted(m for m, body in mine.items() if m not in base or not same_body(base[m], body))
 
 
 def check_all(apk, stock_tree):
@@ -483,24 +836,33 @@ def check_all(apk, stock_tree):
         extract(apk, tmp)
         dl = dexlib.load(tmp)
         hierarchy = Hierarchy(dl)
+        access = Access(dl)
         targets = changed_methods(stock_tree, dl)
+        added = added_methods(stock_tree, dl)
         methods, fields = declared_members(dl)
 
-        print(f"  {len(targets)} method(s) changed by the patch")
-        bad = 0
-        for descriptor in targets:
+        print(f"  {len(targets)} method(s) changed by the patch, "
+              f"{len(added)} added to Gboard's own classes")
+        bad = unchecked = 0
+        for descriptor in targets + added:
             d, c, maf = ddis.find(descriptor, dl)
             if not c:
                 continue
             ins = ddis.disasm(d, c)
-            findings = check_method(ins, c["registers"],
-                                    parameters_of(descriptor, bool(maf & 0x8)), hierarchy)
+            findings = check_method(
+                ins, c["registers"], parameters_of(descriptor, bool(maf & 0x8)), hierarchy,
+                switch_case_targets(d, c, ins), catch_targets(d, c, ins))
             # A member that moved is a NoSuchMethodError when the call runs, not when the class
             # loads, so the merge check above cannot see it: the patch applies, verifies, and
             # fails under a finger.
             missing = unresolved_extension_references(ins, methods, fields)
-            mark = "FAIL" if (findings or missing) else "ok  "
-            print(f"    {mark} {descriptor[:92]}")
+            # Neither can an access the host is not allowed: the class loads and the instruction
+            # throws IllegalAccessError when it runs. See "Access" at the top.
+            denied, undecided = inaccessible_references(descriptor.split("->")[0], ins, access)
+            unchecked += undecided
+            failed = findings or missing or denied
+            mark = "FAIL" if failed else "ok  "
+            print(f"    {mark} {descriptor[:92]}{'  (added)' if descriptor in added else ''}")
             for index, register, required, _nm in findings:
                 pc, nm, a = ins[index]
                 print(f"         pc {pc}: v{register} conflicts, `{nm}` requires {required}")
@@ -508,27 +870,81 @@ def check_all(apk, stock_tree):
             for index, reference in missing:
                 pc = ins[index][0]
                 print(f"         pc {pc}: nothing in the APK declares {reference}")
-            bad += 1 if (findings or missing) else 0
+            for index, reference, why in denied:
+                pc, nm = ins[index][0], ins[index][1]
+                print(f"         pc {pc}: `{nm}` may not reach {reference}: {why}")
+            bad += 1 if failed else 0
+        print(f"  access: {unchecked} reference(s) lead outside the APK and were not judged")
     return bad
 
 
 def main():
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
 
+    if "--unchanged-from" in sys.argv:
+        at = sys.argv.index("--unchanged-from")
+        if at != 2 or len(sys.argv) != 5:
+            print("usage: verify.py <patched.apk> --unchanged-from <stock-dex-dir> <descriptor>",
+                  file=sys.stderr)
+            return 2
+        apk, tree, descriptor = sys.argv[1], sys.argv[at + 1], sys.argv[at + 2]
+        with tempfile.TemporaryDirectory() as tmp:
+            extract(apk, tmp)
+            before_d, before_c, before_flags = ddis.find(descriptor, dexlib.load(tree))
+            after_d, after_c, after_flags = ddis.find(descriptor, dexlib.load(tmp))
+            if (before_c is None or after_c is None or before_flags != after_flags or
+                    not same_body((before_c["registers"], before_c["insns_size"],
+                                   before_d, before_c),
+                                  (after_c["registers"], after_c["insns_size"],
+                                   after_d, after_c))):
+                print(f"  FAIL: {descriptor} changed or is missing from the patched APK")
+                return 1
+        print(f"  unchanged from stock: {descriptor}")
+        return 0
+
+    if "--differs-from" in sys.argv:
+        at = sys.argv.index("--differs-from")
+        if at + 1 >= len(sys.argv):
+            print("--differs-from requires a baseline APK", file=sys.stderr)
+            return 2
+        baseline = sys.argv[at + 1]
+        # By position, not by value: filtering out "the baseline's path" also removed the patched
+        # argument whenever the two were the same file, and reported a usage error instead.
+        args = [a for j, a in enumerate(sys.argv[1:], 1)
+                if j not in (at, at + 1) and not a.startswith("--")]
+        if len(args) != 1:
+            print("usage: verify.py <patched.apk> --differs-from <baseline.apk>", file=sys.stderr)
+            return 2
+        changed = differing_methods(args[0], baseline)
+        if not changed:
+            print("  identical to the baseline: the extra patch applied and emitted nothing")
+            return 1
+        print(f"  {len(changed)} method(s) differ from the baseline:")
+        for descriptor in changed:
+            print(f"    {descriptor[:100]}")
+        return 0
+
     if "--changed-from" in sys.argv:
-        stock_tree = sys.argv[sys.argv.index("--changed-from") + 1]
-        args = [a for a in args if a != stock_tree]
+        at = sys.argv.index("--changed-from")
+        if at + 1 >= len(sys.argv):
+            print("--changed-from requires a stock dex directory", file=sys.stderr)
+            return 2
+        stock_tree = sys.argv[at + 1]
+        args = [a for j, a in enumerate(sys.argv[1:], 1)
+                if j not in (at, at + 1) and not a.startswith("--")]
         if len(args) != 1:
             print(__doc__.strip().split("## Use")[1].strip(), file=sys.stderr)
             return 2
         bad = check_all(args[0], stock_tree)
         print()
         if bad:
-            print(f"  {bad} method(s) have a conflicting merge or an unresolved reference")
-            print("  (a merge conflict is rejected at class load; an unresolved reference throws "
-                  "when the call runs)")
+            print(f"  {bad} method(s) have a conflicting merge, an unresolved reference or an "
+                  f"inaccessible one")
+            print("  (a merge conflict is rejected at class load; the other two throw when the "
+                  "instruction runs)")
             return 1
-        print("  no changed method has a conflicting register reaching a typed use")
+        print("  no changed method has a conflicting register reaching a typed use, an "
+              "unresolved extension call, or a reference its class may not make")
         return 0
 
     if len(args) != 2:
@@ -546,12 +962,16 @@ def main():
             return 1
         ins = ddis.disasm(d, c)
         params = parameters_of(descriptor, bool(maf & 0x8))
-        findings = check_method(ins, c["registers"], params, hierarchy)
+        findings = check_method(ins, c["registers"], params, hierarchy,
+                                switch_case_targets(d, c, ins), catch_targets(d, c, ins))
+        denied, undecided = inaccessible_references(descriptor.split("->")[0], ins, Access(dl))
+        missing = unresolved_extension_references(ins, *declared_members(dl))
         registers, count = c["registers"], len(ins)
 
     print(f"=== {descriptor}  registers={registers}  instructions={count}")
-    if not findings:
-        print("  no conflicting register reaches a use site that requires a type.")
+    if not findings and not denied and not missing:
+        print("  no conflicting register reaches a use site that requires a type, and every")
+        print(f"  reference is one this class may make ({undecided} outside the APK not judged).")
         print("  (a quiet result is not a proof: unknown types are never reported)")
         return 0
     for index, register, required, mnemonic in findings:
@@ -559,6 +979,11 @@ def main():
         print(f"  FAIL pc {pc}: v{register} holds conflicting types here and `{nm}` requires "
               f"{required}")
         print(f"       {nm} {a}")
+    for index, reference, why in denied:
+        pc, nm = ins[index][0], ins[index][1]
+        print(f"  FAIL pc {pc}: `{nm}` may not reach {reference}: {why}")
+    for index, reference in missing:
+        print(f"  FAIL pc {ins[index][0]}: nothing in the APK declares {reference}")
     return 1
 
 

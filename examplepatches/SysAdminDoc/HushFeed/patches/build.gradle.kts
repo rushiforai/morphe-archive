@@ -254,7 +254,7 @@ group = "app.morphe"
 patches {
     about {
         name = "Hushfeed"
-        description = "Hushfeed patches for TikTok 47.0.3, 47.1.3 and 47.1.4, built for Morphe. Fewer accidental taps, less noise, more control over the feed, inbox, comments and downloads."
+        description = "Hushfeed patches for TikTok 47.1.4, built for Morphe. Fewer accidental taps, less noise, more control over the feed, inbox, comments and downloads."
         source = "https://github.com/SysAdminDoc/hushfeed"
         author = "SysAdminDoc"
         contact = "https://github.com/SysAdminDoc/hushfeed/issues"
@@ -419,6 +419,7 @@ val extensionClasses = listOf(
     "app/morphe/patches/tiktok/interaction/downloads/StoryHoldFixturesTest.class",
     "app/morphe/patches/tiktok/misc/diagnostics/BuildDetailsPatchTest.class",
     "app/morphe/patches/tiktok/misc/featuregatelab/FeatureGateLabFramesTest.class",
+    "app/morphe/patches/tiktok/misc/onboarding/FirstLaunchSkipListTest.class",
 )
 // The plugin copies extensions/*.mpe into the main resources. nativeTest reads this copy instead,
 // so rebuilding the extension doesn't change its classpath.
@@ -591,10 +592,18 @@ val fixtureDigests by lazy {
 // Both partitions that open TikTok APKs.
 tasks.withType<Test>().matching { it.name == "test" || it.name == "nativeTest" }.configureEach {
     // GateCatalogFixturesTest runs the catalog generator on each declared build, and the
-    // generator holds a whole APK's dex (some 430 MB on 47.1.3, feature modules included)
+    // generator holds a whole APK's dex (some 430 MB on 47.1.x, feature modules included)
     // while it walks it; the fixture scans in nativeTest hold the same dex. Gradle's default
     // test heap is 512 MB, where that ran out of memory.
     maxHeapSize = "4g"
+    // nativeTest is some 600 single-threaded scans over the one declared build's dex. Two forks
+    // each decode it once (the [fixtures] line in the report counts decodes) and split the
+    // classes, which takes the two workers the build governor allows. 2 GB holds one 47.1.4 dex
+    // and a scan, so two forks take no more heap than the single 4 GB JVM did.
+    if (name == "nativeTest") {
+        maxParallelForks = 2
+        maxHeapSize = "2g"
+    }
     // What the folder holds is the input, not its name: a run whose APK was swapped, re-signed
     // or deleted under the same path has to run again, not come back up to date or out of the
     // build cache with the last folder's verdict. Relative, so where the folder sits on this

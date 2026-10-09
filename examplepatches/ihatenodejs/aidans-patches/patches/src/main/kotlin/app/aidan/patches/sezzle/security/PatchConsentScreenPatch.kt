@@ -16,6 +16,7 @@ val patchConsentScreenPatch = bytecodePatch(
     description = "Requires consent to a patched-app warning before opening Sezzle authentication.",
     default = true
 ) {
+    category("Security")
     compatibleWith(COMPATIBILITY_SEZZLE)
     dependsOn(cleanAuthenticationPatch)
     extendWith("extensions/extension.mpe")

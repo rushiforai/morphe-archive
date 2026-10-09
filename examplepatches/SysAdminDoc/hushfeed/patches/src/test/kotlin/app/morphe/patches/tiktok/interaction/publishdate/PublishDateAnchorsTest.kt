@@ -19,9 +19,9 @@ import org.junit.Test
  * <p>VideoAuthorInfoVM.paramSync2StateAccept turns the item's createTime into milliseconds and
  * hands it to one of three date formatters, and the three meet at one empty check. The hook goes
  * past that check's `if-nez` with the text in v1 and the Aweme in the register its createTime was
- * asked of: v12 on 47.0.3, v10 on both 47.1 builds. 47.1.x passes the text to a small static
- * helper next, 47.0.3 appends it to the row text inline, so either way the text is read right
- * after the hook.
+ * asked of: v10 on 47.1.4 (it was v12 on 47.0.3). 47.1.4 passes the text to a small static helper
+ * next (47.0.3 appended it to the row text inline), so either way the text is read right after the
+ * hook.
  */
 class PublishDateAnchorsTest {
     @Test
@@ -39,8 +39,7 @@ class PublishDateAnchorsTest {
 
             val site = runCatching { method.postTimeSite() }.getOrElse { throw AssertionError("$version: ${it.message}", it) }
             assertEquals("$version: date formatters", 3, site.formatters)
-            val item = if (version == "47.0.3") 12 else 10
-            assertEquals("$version: text and item registers", 1 to item, site.textRegister to site.itemRegister)
+            assertEquals("$version: text and item registers", 1 to 10, site.textRegister to site.itemRegister)
 
             val instructions = method.implementation!!.instructions.toList()
             assertEquals("$version: the hook follows the empty check", Opcode.IF_NEZ, instructions[site.insertAt - 1].opcode)

@@ -295,11 +295,21 @@ public class PausedHooksTest {
         // Settings loses Telegram Features and Contacts loses Invite Friends.
         probes.put(PatchFamily.HIDE_FEATURES_AND_INVITE, Collections.singletonList(
                 () -> app.hushtelegram.extension.telegram.misc.FeaturesInviteForTests.on()));
-        // A message's long-press menu offers Repeat, Copy photo and Message details, each under its own switch.
+        // A message's long-press menu offers Repeat, Copy photo, Message details and Quick forward, each under its own switch.
         probes.put(PatchFamily.MESSAGE_MENU_REPEAT, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.MessageMenuForTests.repeatOn(),
                 () -> app.hushtelegram.extension.telegram.misc.MessageMenuForTests.copyPhotoOn(),
-                () -> app.hushtelegram.extension.telegram.misc.MessageMenuForTests.detailsOn()));
+                () -> app.hushtelegram.extension.telegram.misc.MessageMenuForTests.detailsOn(),
+                () -> app.hushtelegram.extension.telegram.misc.MessageMenuForTests.quickForwardOn()));
+        // A message another person deletes stays on the phone.
+        probes.put(PatchFamily.KEEP_DELETED_MESSAGES, Collections.singletonList(
+                () -> app.hushtelegram.extension.telegram.misc.KeepDeleted.on()));
+        // A sticker, a GIF, a voice or video message and a call each ask first, under their own switches.
+        probes.put(PatchFamily.ASK_BEFORE_STICKER, Arrays.asList(
+                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.stickerOn(),
+                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.gifOn(),
+                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.voiceVideoOn(),
+                () -> app.hushtelegram.extension.telegram.misc.SendConfirmForTests.callOn()));
         // The gallery's camera stays off until a tap, and a tap that asks for the permission wakes it.
         probes.put(PatchFamily.GALLERY_CAMERA_ON_TAP, Arrays.asList(
                 () -> app.hushtelegram.extension.telegram.misc.GalleryCamera.keepCameraOff(new Object()),

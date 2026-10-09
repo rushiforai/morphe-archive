@@ -9,6 +9,8 @@ package app.morphe.extension.tiktok.settings;
 public class SettingsStatus {
     public static boolean regionSpoofEnabled;
     public static void enableRegionSpoof() { regionSpoofEnabled = true; }
+    public static boolean networkProxyEnabled;
+    public static void enableNetworkProxy() { networkProxyEnabled = true; }
     public static boolean foldableSplitViewEnabled;
     public static void enableFoldableSplitView() { foldableSplitViewEnabled = true; }
     public static boolean subtitleToolsEnabled;
@@ -29,6 +31,8 @@ public class SettingsStatus {
     public static void enablePlaybackQuality() { playbackQualityEnabled = true; }
     public static boolean sdrPlaybackEnabled;
     public static void enableSdrPlayback() { sdrPlaybackEnabled = true; }
+    public static boolean h264PlaybackEnabled;
+    public static void enableH264Playback() { h264PlaybackEnabled = true; }
     public static boolean advancedDownloadsEnabled;
     public static void enableAdvancedDownloads() { advancedDownloadsEnabled = true; }
     public static boolean doubleTapEnabled;
@@ -52,23 +56,40 @@ public class SettingsStatus {
     public static boolean captchaPopupSuppressionEnabled = false;
     public static boolean promotionalBannersEnabled = false;
     public static boolean profileShortcutsEnabled = false;
+    public static boolean popupLabelsEnabled = false;
+    /** Block popups found the wind-down triggers' checks on this build and hooked them. */
+    public static boolean windDownScreensEnabled = false;
+    /** Feed tab navigation found the bottom tab icons' names on this build and hooked them. */
+    public static boolean bottomTabLabelsEnabled = false;
+    /** Playback speed found the on-screen player's progress report, so a strip can drag the speed. */
+    public static boolean liveSpeedEnabled = false;
     public static boolean longPressSpeedLockEnabled = false;
     public static boolean disableLongPressQuickShareEnabled = false;
     public static boolean disableLongPressRepostEnabled = false;
     public static boolean nonPersonalizedSearchEnabled = false;
     public static boolean hideSearchSuggestionsEnabled = false;
+    public static boolean searchAutoplayEnabled = false;
+    public static boolean hdUploadEnabled = false;
     public static boolean liveSearchEnabled = false;
     public static boolean seekbarThumbnailEnabled = false;
     public static boolean stopVideoLoopingEnabled = false;
     public static boolean fullScreenHoldEnabled = false;
+    public static boolean storyControlsEnabled = false;
+    public static boolean liveControlsEnabled = false;
+    public static boolean keepPulledSoundsEnabled = false;
+    public static boolean pictureInPictureEnabled = false;
     public static boolean resumeVideoAfterScrollEnabled = false;
     public static boolean externalBrowserEnabled = false;
     public static boolean alwaysShowPublishDateEnabled = false;
     public static boolean systemFontEnabled = false;
+    public static boolean turnOffHapticsEnabled = false;
+    public static boolean screenTransitionsEnabled = false;
     public static boolean diagnosticsEnabled = false;
     public static boolean blockAuthorEnabled = false;
     public static boolean authorRegionEnabled = false;
     public static boolean sensitiveWarningsEnabled = false;
+    /** Skip content warnings found Aweme's risk model getter, so the unverified notices switch works. */
+    public static boolean unverifiedNoticesEnabled = false;
     public static boolean notInterestedEnabled = false;
 
     public static void enableNotInterested() {
@@ -88,12 +109,14 @@ public class SettingsStatus {
     public static boolean videoFitEnabled = false;
     public static boolean refreshRateEnabled = false;
     public static boolean launcherShortcutsEnabled = false;
+    public static boolean firstLaunchSetupEnabled = false;
     public static boolean duetStitchEnabled = false;
     public static boolean notificationControlsEnabled = false;
     public static boolean suggestedVideoPushBlockEnabled = false;
     public static boolean autoStreakEnabled = false;
     public static boolean hideSuggestedAccountsEnabled = false;
     public static boolean hideInboxStoriesEnabled = false;
+    public static boolean chatDeclutterEnabled = false;
     public static boolean expandActivityListEnabled = false;
     public static boolean commentToolsEnabled = false;
     public static boolean hideCommentEggsEnabled = false;
@@ -107,6 +130,7 @@ public class SettingsStatus {
     public static boolean hideFeedFollowButtonEnabled = false;
     public static boolean hideFeedSaveButtonEnabled = false;
     public static boolean exactCountsEnabled = false;
+    public static boolean engagementRateEnabled = false;
     public static boolean avatarRingsEnabled = false;
     public static boolean lengthLimitsEnabled = false;
     public static boolean keepFavoritesTabEnabled = false;
@@ -118,6 +142,7 @@ public class SettingsStatus {
     public static boolean sanitizeShareUrlsEnabled = false;
     public static boolean contactListBlockerEnabled = false;
     public static boolean searchHistoryEnabled = false;
+    public static boolean watchHistoryEnabled = false;
     public static boolean installedAppsBlockerEnabled = false;
     public static boolean locationGovernorEnabled = false;
     public static boolean devicePrivacyGuardEnabled = false;
@@ -125,6 +150,7 @@ public class SettingsStatus {
     public static boolean browserPrivacyGuardEnabled = false;
     public static boolean cameraMicIndicatorEnabled = false;
     public static boolean storeIdentityEnabled = false;
+    public static boolean appLockEnabled = false;
 
     public static void enableContactListBlocker() {
         contactListBlockerEnabled = true;
@@ -132,6 +158,10 @@ public class SettingsStatus {
 
     public static void enableSearchHistory() {
         searchHistoryEnabled = true;
+    }
+
+    public static void enableWatchHistory() {
+        watchHistoryEnabled = true;
     }
 
     public static void enableInstalledAppsBlocker() {
@@ -160,6 +190,10 @@ public class SettingsStatus {
 
     public static void enableStoreIdentity() {
         storeIdentityEnabled = true;
+    }
+
+    public static void enableAppLock() {
+        appLockEnabled = true;
     }
 
     public static void enableFeedFilter() {
@@ -194,6 +228,13 @@ public class SettingsStatus {
         customOfflineVideosEnabled = true;
     }
 
+    /** Custom offline videos limit found the offline lifetime on this build and hooked it. */
+    public static boolean keepOfflineVideosEnabled = false;
+
+    public static void enableKeepOfflineVideos() {
+        keepOfflineVideosEnabled = true;
+    }
+
     public static void enableSimSpoof() {
         simSpoofEnabled = true;
     }
@@ -210,6 +251,22 @@ public class SettingsStatus {
 
     public static void enableProfileShortcuts() {
         profileShortcutsEnabled = true;
+    }
+
+    public static void enablePopupLabels() {
+        popupLabelsEnabled = true;
+    }
+
+    public static void enableWindDownScreens() {
+        windDownScreensEnabled = true;
+    }
+
+    public static void enableBottomTabLabels() {
+        bottomTabLabelsEnabled = true;
+    }
+
+    public static void enableLiveSpeed() {
+        liveSpeedEnabled = true;
     }
 
     public static void enableLongPressSpeedLock() {
@@ -232,6 +289,14 @@ public class SettingsStatus {
         hideSearchSuggestionsEnabled = true;
     }
 
+    public static void enableSearchAutoplay() {
+        searchAutoplayEnabled = true;
+    }
+
+    public static void enableHdUpload() {
+        hdUploadEnabled = true;
+    }
+
     public static void enableLiveSearch() {
         liveSearchEnabled = true;
     }
@@ -246,6 +311,22 @@ public class SettingsStatus {
 
     public static void enableSanitizeShareUrls() {
         sanitizeShareUrlsEnabled = true;
+    }
+
+    public static void enableStoryControls() {
+        storyControlsEnabled = true;
+    }
+
+    public static void enableLiveControls() {
+        liveControlsEnabled = true;
+    }
+
+    public static void enableKeepPulledSounds() {
+        keepPulledSoundsEnabled = true;
+    }
+
+    public static void enablePictureInPicture() {
+        pictureInPictureEnabled = true;
     }
 
     public static void enableFullScreenHold() {
@@ -268,6 +349,14 @@ public class SettingsStatus {
         systemFontEnabled = true;
     }
 
+    public static void enableTurnOffHaptics() {
+        turnOffHapticsEnabled = true;
+    }
+
+    public static void enableScreenTransitions() {
+        screenTransitionsEnabled = true;
+    }
+
     public static void enableAlwaysShowPublishDate() {
         alwaysShowPublishDateEnabled = true;
     }
@@ -278,6 +367,10 @@ public class SettingsStatus {
 
     public static void enableSensitiveWarnings() {
         sensitiveWarningsEnabled = true;
+    }
+
+    public static void enableUnverifiedNotices() {
+        unverifiedNoticesEnabled = true;
     }
 
     public static void enableAuthorRegion() {
@@ -296,6 +389,10 @@ public class SettingsStatus {
         hideInboxStoriesEnabled = true;
     }
 
+    public static void enableChatDeclutter() {
+        chatDeclutterEnabled = true;
+    }
+
     public static void enableExpandActivityList() {
         expandActivityListEnabled = true;
     }
@@ -310,6 +407,10 @@ public class SettingsStatus {
 
     public static void enableLauncherShortcuts() {
         launcherShortcutsEnabled = true;
+    }
+
+    public static void enableFirstLaunchSetup() {
+        firstLaunchSetupEnabled = true;
     }
 
     public static void enableVideoFit() {
@@ -368,6 +469,10 @@ public class SettingsStatus {
         exactCountsEnabled = true;
     }
 
+    public static void enableEngagementRate() {
+        engagementRateEnabled = true;
+    }
+
     public static void enableAvatarRings() {
         avatarRingsEnabled = true;
     }
@@ -407,6 +512,27 @@ public class SettingsStatus {
 
     public static void enableFeedTextSize() {
         feedTextSizeEnabled = true;
+    }
+
+    /** Hide video overlays found the Footnotes banner's gate on this build and hooked it. */
+    public static boolean footnotesEnabled = false;
+
+    public static void enableFootnotes() {
+        footnotesEnabled = true;
+    }
+
+    /** Hide inbox items found the group chat banner's update on this build and hooked it. */
+    public static boolean groupChatBannerEnabled = false;
+
+    public static void enableGroupChatBanner() {
+        groupChatBannerEnabled = true;
+    }
+
+    /** Hide profile shortcuts found the profile picture's Thoughts bubble on this build and hooked it. */
+    public static boolean profileThoughtsEnabled = false;
+
+    public static void enableProfileThoughts() {
+        profileThoughtsEnabled = true;
     }
 
     static {

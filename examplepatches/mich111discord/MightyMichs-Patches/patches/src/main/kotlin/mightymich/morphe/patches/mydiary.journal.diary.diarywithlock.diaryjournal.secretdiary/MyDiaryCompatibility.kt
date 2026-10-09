@@ -11,10 +11,8 @@ object MyDiaryCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5722,
         targets = listOf(
-            AppTarget(
-                version = "1.04.16.0813"
-                version = "1.04.17.0918"
-            )
+            AppTarget(version = "1.04.16.0813"),
+            AppTarget(version = "1.04.17.0918")
         )
     )
 }

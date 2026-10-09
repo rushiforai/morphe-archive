@@ -300,6 +300,8 @@ public class ColdStartHooksTest {
                 CommentSheetOptions.skipReactionPicker());
         assertFalse("a comment drawn before the context had its reply thread open",
                 CommentSheetOptions.openReplyThreads(false));
+        assertFalse("a post's comments drawn before the context lost Related groups",
+                CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
         assertFalse("a word typed before the context lost its tag suggestions", TagSuggestionsForTests.skipsAPlainWord());
         assertFalse("a list of people open before the context was closed", TagSuggestionsForTests.closesAListLeftOpen());
         assertFalse("a Chats list built before the context lost the Get Messenger card",

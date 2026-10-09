@@ -13,6 +13,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.util.addInstruction
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.addInstructionsWithLabels
@@ -229,7 +230,7 @@ internal fun MutableMethod.returnEarlyWhen(switch: String, returning: String) {
 @Suppress("unused")
 val blockPopupsPatch = bytecodePatch(
     name = "Block popups",
-    description = "Lets you stop TikTok's own popups one at a time, like the follow-your-friends card or an upsell. The checklist lists each popup TikTok has tried to show on your phone, the sheets its server sends as campaigns included, so one appears there after its first showing. Tick it and it stays away from then on. A switch beside it hides the LIVE bubble at the top of the feed, which never reaches the checklist. Nothing is blocked until you tick something or turn it on. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed and never blocked. Switch: Hushfeed settings > Feed screen.",
+    description = "Lets you stop TikTok's own popups one at a time, like the follow-your-friends card or an upsell. The checklist lists each popup TikTok has tried to show on your phone, the sheets its server sends as campaigns included, so one appears there after its first showing. Tick it and it stays away from then on. A switch beside it hides the LIVE bubble at the top of the feed, which never reaches the checklist. Another keeps TikTok's bedtime wind-down and daily limit screens off the feed, on an account TikTok knows is an adult's. Nothing is blocked until you tick something or turn it on. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed and never blocked. Switch: Hushfeed settings > Feed screen.",
     default = true,
 ) {
     category("Feed")
@@ -237,6 +238,16 @@ val blockPopupsPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
+        // The wind-down screens are optional on a build nobody has checked: found before anything
+        // is written, and left out with a note rather than failing the whole patch.
+        val windDown = try {
+            windDownSites { classDefByOrNull(it) }
+        } catch (problem: PatchException) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[Block popups] Left out the wind-down screens on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
+
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enablePopupLabels()V",
@@ -249,5 +260,17 @@ val blockPopupsPatch = bytecodePatch(
 
         PopSuiteTriggerFingerprint.method.passCampaignToChecklist()
         LiveBubbleCheckFingerprint.method.returnEarlyWhen("hideLiveBubble", "return-void")
+
+        if (windDown != null) {
+            windDown.triggers.forEach { trigger ->
+                mutableClassDefBy(trigger.definingClass).methods.single {
+                    it.name == trigger.name && it.parameterTypes.isEmpty() && it.returnType == "Z"
+                }.keepBackWindDown()
+            }
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableWindDownScreens()V",
+            )
+        }
     }
 }

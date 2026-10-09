@@ -28,6 +28,7 @@ import app.morphe.util.superclassChain
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.Instruction
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
@@ -56,7 +57,9 @@ internal const val OWN_INFLATED = "$OWN_FONT->inflated($VIEW)V"
  * without Optimistic, and its answer goes through the extension so a picked file reaches them too.
  * So do Facebook's own reads of Android's default typefaces, where the names bolded in a post's
  * header or a notification get theirs, and each of Android's text views Facebook builds, which
- * take their typeface from a layout or never set one.
+ * take their typeface from a layout or never set one. Facebook's text layouts and text views also
+ * ask the extension whether to take the font padding, which a phone font drawing past its own line
+ * box needs to keep the tails of y, g and p (#96).
  */
 @Suppress("unused")
 val useSystemFontPatch = bytecodePatch(
@@ -77,6 +80,7 @@ val useSystemFontPatch = bytecodePatch(
         hookRobotoBuilder()
         hookDefaultTypefaces()
         hookTextViews()
+        hookTextLayouts()
         enableStatus("systemFont")
     }
 }
@@ -139,15 +143,7 @@ internal fun MutableMethod.sendDefaultReads(isEquality: (MethodReference) -> Boo
         .filterNot { (index, _, read) -> read in DEFAULT_TYPEFACES && onlyCompared(index, isEquality) }
     sites.asReversed().forEach { (index, instruction, read) ->
         if (read in DEFAULT_CALLS) {
-            val arguments = when (instruction) {
-                is RegisterRangeInstruction ->
-                    "invoke-static/range { v${instruction.startRegister} .. v${instruction.startRegister + instruction.registerCount - 1} }"
-                is FiveRegisterInstruction -> "invoke-static { " + listOf(
-                    instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF, instruction.registerG,
-                ).take(instruction.registerCount).joinToString { "v$it" } + " }"
-                else -> throw PatchException("$PATCH: $definingClass->$name calls $read in an unexpected form")
-            }
-            replaceInstruction(index, "$arguments, ${ownCall(read)}")
+            replaceInstruction(index, "${staticArguments(instruction, read)}, ${ownCall(read)}")
         } else {
             val register = (instruction as OneRegisterInstruction).registerA
             replaceInstruction(index, "invoke-static { }, $OWN_FONT->${DEFAULT_TYPEFACES.getValue(read)}()$TYPEFACE")
@@ -155,6 +151,50 @@ internal fun MutableMethod.sendDefaultReads(isEquality: (MethodReference) -> Boo
         }
     }
     return sites.size
+}
+
+/**
+ * An `invoke-static` naming the registers [instruction], a call of [what], passes, in the same
+ * form, so a stand-in taking the same arguments reads exactly what the call did.
+ */
+private fun MutableMethod.staticArguments(instruction: Instruction, what: String): String = when (instruction) {
+    is RegisterRangeInstruction ->
+        "invoke-static/range { v${instruction.startRegister} .. v${instruction.startRegister + instruction.registerCount - 1} }"
+    is FiveRegisterInstruction -> "invoke-static { " + listOf(
+        instruction.registerC, instruction.registerD, instruction.registerE, instruction.registerF, instruction.registerG,
+    ).take(instruction.registerCount).joinToString { "v$it" } + " }"
+    else -> throw PatchException("$PATCH: $definingClass->$name calls $what in an unexpected form")
+}
+
+/**
+ * Each of Android's text layout calls in [LAYOUT_CALLS] Facebook makes goes to the extension's
+ * stand-in, which takes the same arguments in the same registers and answers the same type, so
+ * nothing around the call changes (#96). The extension's own classes make the real calls, so
+ * they're left alone. Answers the calls it sent, one entry a call.
+ */
+internal fun BytecodePatchContext.hookTextLayouts(): List<String> {
+    val owners = mutableSetOf<String>()
+    classDefForEach { classDef ->
+        if (classDef.type.startsWith(EXTENSION_CLASSES)) return@classDefForEach
+        if (classDef.methods.any { method -> method.implementation?.instructions?.any { layoutCall(it) != null } == true }) {
+            owners += classDef.type
+        }
+    }
+    val sent = owners.flatMap { type -> mutableClassDefByOrNull(type)?.methods?.flatMap { it.sendTextLayouts() }.orEmpty() }
+    for (call in listOf(OBTAIN_LAYOUT, SET_INCLUDE_PAD)) {
+        if (call !in sent) throw PatchException("$PATCH: found no call of $call outside the extension")
+    }
+    return sent
+}
+
+/** Sends each of [LAYOUT_CALLS] this method makes to the extension's stand-in. Answers the calls sent. */
+internal fun MutableMethod.sendTextLayouts(): List<String> {
+    val sites = (implementation ?: return emptyList()).instructions.withIndex()
+        .mapNotNull { (index, instruction) -> layoutCall(instruction)?.let { Triple(index, instruction, it) } }
+    sites.forEach { (index, instruction, call) ->
+        replaceInstruction(index, "${staticArguments(instruction, call)}, ${LAYOUT_CALLS.getValue(call)}")
+    }
+    return sites.map { it.third }
 }
 
 /**

@@ -66,6 +66,10 @@ jobs:
         if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         run: python3 inject-amoled.py
 
+      - name: Relax Device privacy guard transport check
+        if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
+        run: python3 inject-guard-relax.py
+
       - name: Configure local.properties
         if: steps.sync.outputs.UPSTREAM_CHANGED == 'true'
         run: echo "sdk.dir=$ANDROID_HOME" > local.properties

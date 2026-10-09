@@ -14,6 +14,7 @@ internal const val SPLASH_SETTING_DESCRIPTOR =
     "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/core/SplashSettingServiceImpl;"
 internal const val REALTIME_SPLASH_DESCRIPTOR =
     "Lcom/bytedance/ies/ugc/aweme/commercialize/splash/realtimesplash/RealTimeSplashManagerImpl;"
+internal const val LIVE_WIDGET_DESCRIPTOR = "Lcom/bytedance/ies/sdk/widgets/LiveWidget;"
 internal const val FRESCO_FRAME_CACHE_DESCRIPTOR =
     "Lcom/facebook/fresco/animation/bitmap/cache/FrescoFrameCache;"
 

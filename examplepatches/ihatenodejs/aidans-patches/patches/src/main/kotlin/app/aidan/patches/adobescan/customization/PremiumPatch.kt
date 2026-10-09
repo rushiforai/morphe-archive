@@ -38,6 +38,7 @@ val premiumPatch = bytecodePatch(
     description = "Enables locally executable premium OCR, editing, compression, and page-organization tools without cloud or GenAI access.",
     default = true
 ) {
+    category("Features")
     compatibleWith(COMPATIBILITY_ADOBE_SCAN)
     val removeBrokenFeatures = booleanOption(
         key = "removeBrokenFeatures",

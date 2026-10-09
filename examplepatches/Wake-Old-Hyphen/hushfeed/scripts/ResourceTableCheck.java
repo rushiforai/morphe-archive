@@ -77,6 +77,9 @@ public final class ResourceTableCheck {
     /** The ids the stock manifest's application, activities and aliases name as icon or round icon. */
     private final Set<Integer> launcherIcons = new HashSet<>();
     private final List<String> restyledIcons = new ArrayList<>();
+    /** The id the stock manifest's application names as its network security config. */
+    private final Set<Integer> networkConfigs = new HashSet<>();
+    private final List<String> trustedConfigs = new ArrayList<>();
     private int stockResources;
     private int stockValues;
     private int patchedResources;
@@ -92,6 +95,7 @@ public final class ResourceTableCheck {
         ResourceTableCheck check = new ResourceTableCheck();
         try (ZipFile stockZip = new ZipFile(stockFile); ZipFile patchedZip = new ZipFile(patchedFile)) {
             check.launcherIcons.addAll(launcherIcons(stockZip));
+            check.networkConfigs.addAll(networkSecurityConfigs(stockZip));
             check.run(table(stockZip), stockZip, table(patchedZip), patchedZip);
         }
         List<String> lines = check.lines(stockFile.getName(), patchedFile.getName());
@@ -113,8 +117,18 @@ public final class ResourceTableCheck {
 
     private static final int ICON = 0x01010002;
     private static final int ROUND_ICON = 0x0101052c;
+    private static final int NETWORK_SECURITY_CONFIG = 0x01010527;
 
     private static Set<Integer> launcherIcons(ZipFile zip) throws IOException {
+        return manifestReferences(zip, Set.of("application", "activity", "activity-alias"), ICON, ROUND_ICON);
+    }
+
+    private static Set<Integer> networkSecurityConfigs(ZipFile zip) throws IOException {
+        return manifestReferences(zip, Set.of("application"), NETWORK_SECURITY_CONFIG);
+    }
+
+    /** The ids the manifest's elements with one of these names give in any of these attributes. */
+    private static Set<Integer> manifestReferences(ZipFile zip, Set<String> elementNames, int... attributes) throws IOException {
         Set<Integer> ids = new HashSet<>();
         ZipEntry manifest = zip.getEntry("AndroidManifest.xml");
         if (manifest == null) return ids;
@@ -127,9 +141,10 @@ public final class ResourceTableCheck {
         Iterator<?> elements = root.recursiveElements();
         while (elements.hasNext()) {
             ResXmlElement element = (ResXmlElement) elements.next();
+            // Set.of refuses a null lookup, and an element can come back without a name.
             String name = element.getName();
-            if (!"application".equals(name) && !"activity".equals(name) && !"activity-alias".equals(name)) continue;
-            for (int attribute : new int[]{ICON, ROUND_ICON}) {
+            if (name == null || !elementNames.contains(name)) continue;
+            for (int attribute : attributes) {
                 ResXmlAttribute value = element.searchAttributeByResourceId(attribute);
                 if (value != null && value.getValueType() == ValueType.REFERENCE) ids.add(value.getData());
             }
@@ -302,11 +317,15 @@ public final class ResourceTableCheck {
                     if (stockPath == null || stockFile == null) continue;
                     if (!stockPath.equals(path)) moved.add(where + " " + stockPath + " -> " + path);
                     // No patch writes a resource file but Custom launcher icon, which restyles the
-                    // launcher's adaptive icon XML. Any other file whose bytes changed is one the
-                    // rebuild swapped or damaged (a path clash loses content as well as paths).
+                    // launcher's adaptive icon XML, and Trust user certificates, which adds the
+                    // user's certificates to the network security config. Any other file whose
+                    // bytes changed is one the rebuild swapped or damaged (a path clash loses
+                    // content as well as paths).
                     if (stockFile.getCrc() != file.getCrc() || stockFile.getSize() != file.getSize()) {
                         if (launcherIcons.contains(resource.getResourceId()) && path.endsWith(".xml")) {
                             restyledIcons.add(where + " " + path);
+                        } else if (networkConfigs.contains(resource.getResourceId()) && path.endsWith(".xml")) {
+                            trustedConfigs.add(where + " " + path);
                         } else {
                             failures.add(where + ": " + path + " is not the file the stock archive holds for it");
                         }
@@ -444,6 +463,7 @@ public final class ResourceTableCheck {
         for (String line : moved) lines.add("  moved " + line);
         for (String line : absentInStock) lines.add("  absent in both " + line);
         section(lines, "launcher icon files restyled (Custom launcher icon)", restyledIcons);
+        section(lines, "network security config files rewritten (Trust user certificates)", trustedConfigs);
         if (failures.isEmpty()) {
             lines.add(String.format(Locale.ROOT, "[resources] every one of the stock table's %d resources resolves in the patched table, with its type and a value in each of its configurations, and every file and reference the patched values name is there",
                     stockResources));

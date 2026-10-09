@@ -38,8 +38,6 @@ class ReelsAdPoolTest {
     /** The pool class and its two vends in each declared build. */
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to ("LX/5eK;" to listOf("A0H", "A0J")),
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to ("LX/5e6;" to listOf("A0J", "A0L")),
-        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to ("LX/5bF;" to listOf("A0G", "A0I")),
     )
 
     private fun method(

@@ -1,8 +1,8 @@
 # Fizz Android App Hidden Feature Flags, Cohorts, & Mobile Studio Catalog
 
-**Target Package:** `com.ashtoncofer.Buzz`  
-**Analyzed Version:** `1.53.0` (VersionCode: `394385`)  
-**Target Runtime:** Native Android (Target SDK: `36` / Android 16, Min SDK: `23` / Android 6.0); Jetpack Compose, Dagger/Hilt, Kotlinx Coroutines, Retrofit 2/OkHttp 4, Google Play Integrity / PairIP  
+**Target Package:** `com.ashtoncofer.Buzz`
+**Analyzed Version:** `1.54.0` (VersionCode: `400032`)
+**Target Runtime:** Native Android (Target SDK: `36` / Android 16, Min SDK: `23` / Android 6.0); Jetpack Compose, Dagger/Hilt, Kotlinx Coroutines, Retrofit 2/OkHttp 4, Google Play Integrity / PairIP
 
 ---
 
@@ -421,7 +421,7 @@ The local state resetter (`ResetLocalStateViewModel` / `ab.s` / `ab.t`) catalogs
 | **Overrides** | `fizz_debug_flags` | Layout debuggers, FPS counter, and diagnostic switches. |
 | **Overrides** | `fizz_mono_app_settings` | Cloudrun sandbox toggle and custom backend URLs. |
 | **Overrides** | `analytics.identity` | Mixpanel identity and anonymous UUID tracking state. |
-| **Overrides** | `analytics.events` | Offline disk queue for client event uploads (`ra.da`). |
+| **Overrides** | `analytics.events` | Offline disk queue for client event uploads (`ra.ga`). |
 
 ---
 
@@ -483,7 +483,7 @@ To unlock Fizz+ and Fizz+ Gold without purchasing:
 ---
 
 ### Strategy D: Neutralizing Screenshot Surveillance
-In `mc.j0` (or in `ConversationViewModel`), force `isDmScreenshotNotificationEnabled` (`j0.u1`) to return `false`, or neutralize `jc.l2.q` from dispatching the POST request to `/chat/notify-screenshot`. This is already shipped in the repository's `RemoveTrackingAndAnalyticsPatch`.
+In `mc.j0` (or in `ConversationViewModel`), force `isDmScreenshotNotificationEnabled` (`j0.u1`) to return `false`, or neutralize `jc.n2.q` from dispatching the POST request to `/chat/notify-screenshot`. This is already shipped in the repository's `RemoveTrackingAndAnalyticsPatch`.
 
 ---
 
@@ -494,8 +494,8 @@ The Morphe patches developed in this repository directly interact with the featu
 | Feature / Architecture Area | Target Mechanism | Shipped Morphe Patch | Source File |
 |---|---|---|---|
 | **DM Screenshot Surveillance** | Neutralizes `/chat/notify-screenshot` alert dispatch | [Remove Tracking & Analytics](../fizz/patches.md#patch-remove-tracking-and-analytics) | `patches/.../fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` |
-| **First-Party Event Uploads** | Disables `ra.da` batch event uploads to `/app/track-client-events` | [Remove Tracking & Analytics](../fizz/patches.md#patch-remove-tracking-and-analytics) | `patches/.../fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` |
-| **Third-Party Telemetry SDKs** | Blocks Mixpanel (`dk.u`), Airbridge (`sa.n`), Adjust (`sa.b`), Sentry (`io.sentry`) | [Remove Tracking & Analytics](../fizz/patches.md#patch-remove-tracking-and-analytics) | `patches/.../fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` |
-| **Advertising Identifier (AAID)**| Neutralizes `sa.k.a` querying Google Advertising ID | [Remove Tracking & Analytics](../fizz/patches.md#patch-remove-tracking-and-analytics) | `patches/.../fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` |
+| **First-Party Event Uploads** | Disables `ra.ga` / `jc.k0` batch event uploads to `/app/track-client-events` | [Remove Tracking & Analytics](../fizz/patches.md#patch-remove-tracking-and-analytics) | `patches/.../fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` |
+| **Third-Party Telemetry SDKs** | Blocks Mixpanel (`fk.u`), Airbridge (`sa.l0`), Adjust (`sa.b`), Sentry (`io.sentry`) | [Remove Tracking & Analytics](../fizz/patches.md#patch-remove-tracking-and-analytics) | `patches/.../fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` |
+| **Advertising Identifier (AAID)**| Neutralizes `sa.n0` querying Google Advertising ID | [Remove Tracking & Analytics](../fizz/patches.md#patch-remove-tracking-and-analytics) | `patches/.../fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` |
 | **Play Integrity / PairIP** | Bypasses `com.pairip.licensecheck.LicenseClient` | [Remove Tracking & Analytics](../fizz/patches.md#patch-remove-tracking-and-analytics) | `patches/.../fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` |
 | **Native Typography & Emojis** | Replaces Noto emoji engine with iOS Apple Color Emoji via `EmojiFontBridge` | [Replace Emoji Font With iOS](../fizz/patches.md#patch-replace-emoji-font-with-ios) | `patches/.../fizz/customization/ReplaceEmojiFontWithIosPatch.kt` |

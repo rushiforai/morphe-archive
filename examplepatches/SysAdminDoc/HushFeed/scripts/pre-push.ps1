@@ -302,16 +302,21 @@ function Invoke-FixturePatching {
     }
     $patchList = Join-Path $GateRoot 'patches-list.json'
     $work = Join-Path ([IO.Path]::GetTempPath()) ('hushfeed-pre-push-apply-' + [guid]::NewGuid().ToString('N'))
+    # Each passing run is kept, stamped, for the release receipt (build-release-receipt.ps1
+    # -AppliedDir), so a release patches each fixture once. A stale run from an earlier bundle
+    # goes first: its stamp would not match anyway.
+    $kept = Join-Path $GateRoot 'patches/build/fixture-apply'
+    if (Test-Path -LiteralPath $kept) { Remove-Item -LiteralPath $kept -Recurse -Force }
     Write-Step ("patch sources changed, applying $($bundles[0].Name) to TikTok " +
         (Format-VersionList -Versions @($Fixtures | ForEach-Object { $_.Version })) + ' with the desktop CLI')
     $runs = @(Invoke-WithoutGitEnvironment {
         foreach ($fixture in $Fixtures) {
             $job = Start-Job -ArgumentList $verify, $fixture.Apk, $env:HUSHFEED_DESKTOP_JAR,
-                (Join-Path $work $fixture.Version), $bundles[0].FullName, $patchList -ScriptBlock {
-                param($Verify, $Apk, $Jar, $WorkDir, $Bundle, $PatchList)
+                (Join-Path $work $fixture.Version), $bundles[0].FullName, $patchList, (Join-Path $kept $fixture.Version) -ScriptBlock {
+                param($Verify, $Apk, $Jar, $WorkDir, $Bundle, $PatchList, $KeepIn)
                 $global:LASTEXITCODE = 0
                 try {
-                    & $Verify -Apk $Apk -DesktopJar $Jar -WorkDir $WorkDir -Bundle $Bundle -PatchList $PatchList *>&1 |
+                    & $Verify -Apk $Apk -DesktopJar $Jar -WorkDir $WorkDir -Bundle $Bundle -PatchList $PatchList -KeepIn $KeepIn *>&1 |
                         ForEach-Object { "$_" }
                     $code = $LASTEXITCODE
                 } catch {
@@ -621,6 +626,13 @@ try {
         # buildAndroid's verifyBundle also fails a catalog that no longer matches the patches. It
         # writes patches/build/release only, never the tracked patches-list.json.
         if ($touchesBundle) { $tasks += ':patches:buildAndroid' }
+        # Everything but nativeTest's fixture scans runs first, so a slip in a two-minute test or a
+        # lint stops the push in minutes: 0.69.0's second gate failed ObfuscatedIdentityTest after
+        # 47 minutes, behind nativeTest. The full run after it finds those tasks up to date. The
+        # finalizer waits for the full run, since it reads all three partitions' results and a
+        # fresh gate worktree has no nativeTest results yet.
+        $quickTasks = @($tasks | Where-Object { $_ -ne ':patches:buildAndroid' }) +
+            @('-x', ':patches:nativeTest', '-x', ':patches:verifyPatchTestSelection')
         # HUSHFEED_BUILD_WRAPPER names a PowerShell script that runs Gradle on this machine,
         # called as <wrapper> -ProjectDir <repository> -Tasks <task>...: a machine that shares its
         # CPU and memory between several builds points it at a governor. Unset, the Gradle
@@ -644,18 +656,20 @@ try {
                 # Before the build, so a missing fixture stops the push in seconds, not after it.
                 $fixtures = @()
                 if ($touchesBundle) { $fixtures = @(Get-DeclaredFixtures -GateRoot $gateRoot) }
-                $global:LASTEXITCODE = 0
-                Invoke-WithoutGitEnvironment {
-                    if ($wrapper) {
-                        & $wrapper -ProjectDir $gateRoot -Tasks $tasks
-                    } else {
-                        & (Join-Path $gateRoot 'gradlew.bat') -p $gateRoot @tasks
+                foreach ($passTasks in @(, $quickTasks) + @(, $tasks)) {
+                    $global:LASTEXITCODE = 0
+                    Invoke-WithoutGitEnvironment {
+                        if ($wrapper) {
+                            & $wrapper -ProjectDir $gateRoot -Tasks $passTasks
+                        } else {
+                            & (Join-Path $gateRoot 'gradlew.bat') -p $gateRoot @passTasks
+                        }
                     }
-                }
-                if ($LASTEXITCODE -ne 0) {
-                    throw ('The runtime test build did not pass. Read the output above: it says whether a ' +
-                        'test failed, an API level above the payload floor was reached, or the build could ' +
-                        'not start. Push anyway with HUSHFEED_SKIP_PRE_PUSH=1.')
+                    if ($LASTEXITCODE -ne 0) {
+                        throw ('The runtime test build did not pass. Read the output above: it says whether a ' +
+                            'test failed, an API level above the payload floor was reached, or the build could ' +
+                            'not start. Push anyway with HUSHFEED_SKIP_PRE_PUSH=1.')
+                    }
                 }
                 if ($fixtures.Count -gt 0) { Invoke-FixturePatching -GateRoot $gateRoot -Fixtures $fixtures }
                 } finally {

@@ -162,9 +162,9 @@ public class Utils {
     }
 
     /**
-     * The host's version code, such as 475019344 for Facebook 580.0.0.51.74, or -1 when the
-     * package manager can't say. Facebook ships several builds under one version name, and the
-     * code is what tells them apart in a report.
+     * The host's version code, such as 475215365 for Facebook 581.0.0.45.58, or -1 when the package
+     * manager can't say. Facebook ships several builds under one version name, and the code is what
+     * tells them apart in a report.
      */
     @SuppressWarnings("deprecation")
     public static long getAppVersionCode() {

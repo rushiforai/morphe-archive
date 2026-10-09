@@ -11,6 +11,7 @@ import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.reels.THREADS_CARD_SECTION_FILTER
 import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.builder.BuilderOffsetInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import org.junit.After
@@ -24,6 +25,9 @@ import org.junit.Test
  * card filter on the controller's page method too: the page copied down into
  * v0, the class name in v1, and the answer copied back. 577's controller page method has 15
  * registers, its page in v14, so two more would have put the page out of the filter call's reach.
+ *
+ * The second test covers the inserts 581's client-side Reels loader uses (#47): the one-item insert,
+ * which drops an item both filters empty out, and the static append 580 and 581 have.
  */
 class ReelPagesFixtureTest {
     @Before
@@ -36,8 +40,6 @@ class ReelPagesFixtureTest {
     /** Registers and the page's register of the page insert, the announcement and the controller's page method. */
     private val expected = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to listOf(6 to 5, 7 to 6, 13 to 12),
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to listOf(6 to 5, 7 to 6, 11 to 10),
-        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to listOf(6 to 5, 7 to 6, 15 to 14),
     )
 
     private fun MutableMethod.assertFilteredAtTop(where: String, page: Int, at: Int) {
@@ -96,5 +98,64 @@ class ReelPagesFixtureTest {
             }
         }
         assertEquals("a declared build has no fixture", versions, checked)
+    }
+
+    /** Registers and the item's register of the one-item insert, then the static append's, null where a build has none. */
+    private val inserts = mapOf(
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to listOf(8 to 6, 4 to 3),
+    )
+
+    /** The one-item drop at [at]: the item copied into a one-item list in v0, the filter's answer asked if empty. */
+    private fun MutableMethod.assertItemDropAt(where: String, item: Int, at: Int, next: Int) {
+        val body = implementation!!.instructions.toList()
+        val copy = body[at] as TwoRegisterInstruction
+        assertEquals("$where: copy down", listOf(Opcode.MOVE_OBJECT_FROM16, 0, item), listOf(body[at].opcode, copy.registerA, copy.registerB))
+        val call = body[at + 4] as FiveRegisterInstruction
+        assertEquals("$where: the filter call", listOf(0, 1), listOf(call.registerC, call.registerD))
+        assertEquals(
+            "$where: the drop",
+            listOf(Opcode.INVOKE_INTERFACE, Opcode.MOVE_RESULT, Opcode.IF_EQZ, Opcode.RETURN_VOID),
+            body.subList(at + 6, at + 10).map { it.opcode },
+        )
+        assertEquals("$where: a kept item goes on", next, (body[at + 8] as BuilderOffsetInstruction).target.location.index)
+    }
+
+    @Test
+    fun `the one-item insert and the static append each build adds the Reels tab's reels by carry both filters`() {
+        val checked = mutableSetOf<String>()
+        for ((version, shapes) in inserts) {
+            for (bundle in Fixtures.files { it.extension == "apkm" && it.name.contains("-$version-") }) {
+                forgetMatches()
+                val anchors = FixtureDex.classesHolding(bundle, "VideoHomeDataControllerSfdAdsUtil") +
+                    FixtureDex.classesHolding(bundle, "VideoHomeDataControllerImpl.maybeInsertAds")
+                val taken = anchors.flatMap { it.methods }.filter { it.name == "<init>" }
+                    .flatMap { method -> method.parameterTypes.map { it.toString() } }
+                    .filter { it.startsWith("L") }.toSet()
+                val context = PatchContexts.of(anchors + FixtureDex.classes(bundle, taken).values)
+                val pages = with(context) { reelPages(SPONSORED_REELS_PATCH) }
+
+                val item = shapes[0]!!
+                val append = shapes[1]
+                assertEquals("${bundle.name}: the one-item insert", item, pages.insertItem.implementation!!.let { it.registerCount to it.registerCount - 2 })
+                assertEquals("${bundle.name}: the static append", append, pages.appendPage?.implementation?.let { it.registerCount to it.registerCount - 1 })
+                assertEquals("${bundle.name}: the page inserts", if (append == null) 1 else 2, pages.pageInserts.size)
+
+                // Hide sponsored reels first, then Hide AI-detected posts in front of it.
+                pages.insertItem.dropItemFirst("fixture.Ad")
+                pages.insertItem.dropItemFirst("fixture.Model", "Lfixture/Reels;->pages(Ljava/util/Collection;Ljava/lang/String;)Ljava/util/Collection;")
+                val where = "${bundle.name}: ${pages.insertItem.definingClass}->${pages.insertItem.name}"
+                pages.insertItem.assertItemDropAt("$where, the AI drop", item.second, at = 0, next = 10)
+                pages.insertItem.assertItemDropAt("$where, the ad drop", item.second, at = 10, next = 20)
+
+                pages.appendPage?.let { method ->
+                    method.filterPageFirst("fixture.Ad")
+                    method.filterPageFirst("fixture.Model", "Lfixture/Reels;->pages(Ljava/util/Collection;Ljava/lang/String;)Ljava/util/Collection;")
+                    method.assertFilteredAtTop("${bundle.name}: the append, the AI filter", append!!.second, at = 0)
+                    method.assertFilteredAtTop("${bundle.name}: the append, the ad filter", append.second, at = 5)
+                }
+                checked += version
+            }
+        }
+        assertEquals("a declared build has no fixture", inserts.keys, checked)
     }
 }

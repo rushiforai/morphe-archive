@@ -6,7 +6,7 @@
 |---|---|
 | **Application Name** | Blackjack |
 | **Package Name** | `com.tripledot.blackjack` |
-| **Supported Version** | `2.22.08` (Morphe Compatibility: `2.22.08`, `minSdk` 25) |
+| **Supported Version** | `2.22.09` (Morphe Compatibility: `2.22.09`, `minSdk` 25) |
 | **Analyzed Version Code** | Null / Unconstrained in Constants |
 | **Minimum SDK** | `25` (Android 7.1) |
 | **Distribution Format** | APKM (`ApkFileType.APKM`) |

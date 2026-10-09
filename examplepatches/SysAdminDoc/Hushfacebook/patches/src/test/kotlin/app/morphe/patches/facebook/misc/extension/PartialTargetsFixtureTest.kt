@@ -22,13 +22,13 @@ import org.junit.Test
 
 /**
  * What each declared Facebook build lacks of the four target lists, which is exactly what the patch
- * log names when it's patched: 580 dropped six suggested feed units that 577 still carries, and
- * both builds have every ad prefetch scheduler, ad telemetry class and Audience Network component.
+ * log names when it's patched: 581 lacks six suggested feed units older builds carried, and has
+ * every ad prefetch scheduler, ad telemetry class and Audience Network component.
  * A new fixture that changes any of it fails here, naming the target, before a release says
  * something about it that isn't so.
  */
 class PartialTargetsFixtureTest {
-    private val droppedIn580 = setOf(
+    private val droppedSince577 = setOf(
         "Lcom/facebook/graphql/model/GraphQLPagesYouMayFollowFeedUnit;",
         "Lcom/facebook/graphql/model/GraphQLPagesYouMayAdvertiseFeedUnit;",
         "Lcom/facebook/graphql/model/GraphQLEndOfFeedUpsellCustomNTFeedUnit;",
@@ -38,9 +38,7 @@ class PartialTargetsFixtureTest {
     )
 
     private val expectedMissing = mapOf(
-        AppCompatibilities.FACEBOOK_TARGET_VERSION to droppedIn580,
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to droppedIn580,
-        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to emptySet(),
+        AppCompatibilities.FACEBOOK_TARGET_VERSION to droppedSince577,
     )
 
     @Test

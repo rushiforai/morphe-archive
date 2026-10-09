@@ -9,15 +9,17 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.tiktok.privacy.StoreIdentity;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
+import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
 import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.ProfileShortcutChecklistPreference;
 import app.morphe.extension.tiktok.settings.preference.SectionHeadingPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
 /**
- * The app around the feed: its layout, search, the profile and the system it runs on. The
+ * The app around the feed: its layout, search, the profile, posting and the system it runs on. The
  * feed's own buttons and gestures are on Feed screen, the player's rows on Playback and Duet
  * and Stitch on Share sheet, beside the rows they belong with.
  */
@@ -41,16 +43,21 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
     public static boolean isAvailable() {
         return SettingsStatus.foldableSplitViewEnabled
                 || SettingsStatus.systemFontEnabled
+                || SettingsStatus.turnOffHapticsEnabled
+                || SettingsStatus.screenTransitionsEnabled
                 || SettingsStatus.nonPersonalizedSearchEnabled
                 || SettingsStatus.liveSearchEnabled
                 || SettingsStatus.hideSearchSuggestionsEnabled
+                || SettingsStatus.searchAutoplayEnabled
                 || SettingsStatus.keepFavoritesTabEnabled
                 || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.profileShortcutsEnabled
                 || SettingsStatus.followStatusEnabled
                 || SettingsStatus.copyIdsEnabled
+                || SettingsStatus.hdUploadEnabled
                 || SettingsStatus.refreshRateEnabled
                 || SettingsStatus.launcherShortcutsEnabled
+                || SettingsStatus.firstLaunchSetupEnabled
                 || SettingsStatus.screenCaptureEnabled
                 || SettingsStatus.videoOverlaysEnabled
                 || SettingsStatus.storeIdentityEnabled;
@@ -71,8 +78,11 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     "Split comment minimum width", "Window width needed to enable the layout. Restart TikTok to apply this.",
                     Settings.FOLDABLE_SPLIT_VIEW_MIN_WIDTH_DP, "%1$s dp", "%1$s dp"));
         }
-        if (SettingsStatus.systemFontEnabled) {
+        if (SettingsStatus.systemFontEnabled || SettingsStatus.turnOffHapticsEnabled
+                || SettingsStatus.screenTransitionsEnabled) {
             addPreference(new SectionHeadingPreference(context, "Appearance"));
+        }
+        if (SettingsStatus.systemFontEnabled) {
             addPreference(new TogglePreference(
                     context,
                     "Use system font",
@@ -80,9 +90,37 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "animations and the @ and # glyphs keep their own fonts. Restart TikTok to apply this.",
                     Settings.SYSTEM_FONT
             ));
+            // Its own hook, in androidx EmojiCompat rather than the font engine, but the same
+            // patch: picking Use system font brings both switches.
+            addPreference(new TogglePreference(
+                    context,
+                    "Use system emoji",
+                    "Draw every emoji with your device's emoji font. TikTok normally draws the newest "
+                            + "ones your device doesn't have yet with Google's emoji, and those may show "
+                            + "as a box or in pieces with this on.",
+                    Settings.SYSTEM_EMOJI
+            ));
+        }
+        if (SettingsStatus.turnOffHapticsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Turn off haptics",
+                    "Stop the short vibrations TikTok plays on its own taps and gestures. Your "
+                            + "keyboard and your phone's own haptics stay as they are.",
+                    Settings.TURN_OFF_HAPTICS
+            ));
+        }
+        if (SettingsStatus.screenTransitionsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Turn off screen transitions",
+                    "Open and close TikTok's screens without their slide. Swipes inside a screen "
+                            + "still follow your finger.",
+                    Settings.TURN_OFF_SCREEN_TRANSITIONS
+            ));
         }
         boolean hasSearch = SettingsStatus.nonPersonalizedSearchEnabled || SettingsStatus.liveSearchEnabled
-                || SettingsStatus.hideSearchSuggestionsEnabled;
+                || SettingsStatus.hideSearchSuggestionsEnabled || SettingsStatus.searchAutoplayEnabled;
         if (hasSearch) {
             addPreference(new SectionHeadingPreference(context, "Search"));
         }
@@ -116,6 +154,14 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.HIDE_SEARCH_REWARDS
             ));
         }
+        if (SettingsStatus.searchAutoplayEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Stop search results playing on their own",
+                    "Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.",
+                    Settings.STOP_SEARCH_AUTOPLAY
+            ));
+        }
         if (SettingsStatus.keepFavoritesTabEnabled || SettingsStatus.promotionalBannersEnabled
                 || SettingsStatus.profileShortcutsEnabled || SettingsStatus.followStatusEnabled
                 || SettingsStatus.copyIdsEnabled) {
@@ -147,6 +193,15 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "username and user ID, and a video's share sheet one that copies the video ID.",
                     Settings.COPY_IDS
             ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Account facts on profiles",
+                    "A profile's share sheet gets an Account facts button. It shows what TikTok already "
+                            + "sent about the account: when it joined, its region and language, when its "
+                            + "username and display name last changed, whether it's private and whether "
+                            + "its liked videos are public. Nothing extra is fetched.",
+                    Settings.ACCOUNT_FACTS
+            ));
         }
         if (SettingsStatus.promotionalBannersEnabled) {
             addPreference(new TogglePreference(
@@ -165,12 +220,31 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "such as TikTok Studio or Your orders. Restart TikTok to apply this.",
                     Settings.HIDDEN_PROFILE_SHORTCUTS
             ));
+            if (SettingsStatus.profileThoughtsEnabled) {
+                addPreference(new TogglePreference(
+                        context,
+                        "Hide Thoughts on profiles",
+                        "Hide the Thoughts bubble TikTok shows above a profile picture, and the "
+                                + "prompt to share one on your own profile. Restart TikTok to apply this.",
+                        Settings.HIDE_PROFILE_THOUGHTS
+                ));
+            }
+        }
+        if (SettingsStatus.hdUploadEnabled) {
+            addPreference(new SectionHeadingPreference(context, "Posting"));
+            addPreference(new TogglePreference(
+                    context,
+                    "Always upload in HD",
+                    "Post every video as if you'd turned on TikTok's own HD upload on the post page. "
+                            + "A clip TikTok doesn't count as high quality posts as before.",
+                    Settings.ALWAYS_UPLOAD_HD
+            ));
         }
         // The whole app, not the feed: screenshots and the status bar used to be on Feed screen and
         // the store check on Privacy, under a heading of its own.
         if (SettingsStatus.screenCaptureEnabled || SettingsStatus.videoOverlaysEnabled
                 || SettingsStatus.refreshRateEnabled || SettingsStatus.launcherShortcutsEnabled
-                || SettingsStatus.storeIdentityEnabled) {
+                || SettingsStatus.firstLaunchSetupEnabled || SettingsStatus.storeIdentityEnabled) {
             addPreference(new SectionHeadingPreference(context, "System"));
         }
         if (SettingsStatus.screenCaptureEnabled) {
@@ -214,6 +288,16 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                     Settings.HIDE_LAUNCHER_SHORTCUTS
             ));
         }
+        if (SettingsStatus.firstLaunchSetupEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Skip TikTok's setup screens",
+                    "Leave out the interest picker, the language and gender questions, the creators "
+                            + "to follow, the swipe up tutorial and TikTok's notification page when TikTok "
+                            + "runs its setup. Consent, age and sign-in screens still show.",
+                    Settings.SKIP_FIRST_LAUNCH_SETUP
+            ));
+        }
         if (SettingsStatus.storeIdentityEnabled) {
             addPreference(new TogglePreference(
                     context,
@@ -223,6 +307,10 @@ public class ExtensionPreferenceCategory extends ConditionalPreferenceCategory {
                             + "TikTok can also check from native code this doesn't reach, so it may not help.",
                     Settings.STORE_IDENTITY
             ));
+            addPreference(new ChoicePreference(context, "Store TikTok reads as its installer",
+                    Settings.STORE_IDENTITY_INSTALLER,
+                    new String[]{"Play Store", "Galaxy Store", "AppGallery", "Amazon Appstore"},
+                    StoreIdentity.installers()));
         }
     }
 }

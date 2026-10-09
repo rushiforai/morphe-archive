@@ -1,12 +1,19 @@
 package app.morphe.patches.tiktok.misc.branding
 
 import app.morphe.patcher.patch.PatchException
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.RandomAccessFile
 import java.io.StringWriter
+import java.nio.ByteBuffer
+import java.util.zip.CRC32
+import javax.imageio.ImageIO
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.TransformerFactory
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
+import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
@@ -171,6 +178,131 @@ class CustomLauncherIconTest {
         assertThrows(PatchException::class.java) { IconLayers.of(res, readXml(adaptive.single())) }
     }
 
+    @Test
+    fun `the picture option is optional and empty by default`() {
+        val option = customLauncherIconPatch.options["iconPicture"]
+        assertNull(option.default)
+        assertFalse(option.required)
+        assertNull(launcherPicture(null))
+        assertNull(launcherPicture("  "))
+    }
+
+    @Test
+    fun `a picture replaces the note, keeps the style's background and drops the themed layer`() {
+        val picture = "@drawable/$PICTURE_NAME"
+        val kept = parse(ADAPTIVE_ICON.replace("<foreground android:drawable=\"@drawable/c27\"/>", "<foreground>$FOREGROUND_BODY</foreground>"))
+        assertFalse(restyleAdaptiveIcon(kept, layers(), IconStyle.TIKTOK, picture))
+        assertEquals("@drawable/c26", layer(kept.documentElement, "background").getAttribute("android:drawable"))
+        assertEquals(picture, layer(kept.documentElement, "foreground").getAttribute("android:drawable"))
+        assertEquals(0, layer(kept.documentElement, "foreground").childNodes.length)
+        assertEquals(0, kept.documentElement.getElementsByTagName("monochrome").length)
+
+        // A plain style only colors what's behind the picture.
+        val plain = parse(ADAPTIVE_ICON.replace("</adaptive-icon>", "<monochrome android:drawable=\"@drawable/own\"/></adaptive-icon>"))
+        restyleAdaptiveIcon(plain, layers(), IconStyle.WHITE_ON_BLACK, picture)
+        val root = plain.documentElement
+        assertEquals(listOf(SQUARE to "#ff000000"), paths(inlineVector(layer(root, "background"))))
+        assertEquals(picture, layer(root, "foreground").getAttribute("android:drawable"))
+        assertEquals("a themed note would show in place of the picture", 0, root.getElementsByTagName("monochrome").length)
+        assertEquals(picture, parse(serialize(plain)).documentElement.getElementsByTagName("foreground").let {
+            (it.item(0) as Element).getAttribute("android:drawable")
+        })
+
+        // The note isn't read when a picture takes its place.
+        val noNote = parse(FOREGROUND.replace("#ffffffff", "#ff25f4ee")).documentElement
+        restyleAdaptiveIcon(parse(ADAPTIVE_ICON), IconLayers(parse(BACKGROUND).documentElement, noNote), IconStyle.TIKTOK, picture)
+    }
+
+    @Test
+    fun `a real PNG's size is read off its header`() {
+        assertEquals(432 to 432, pngSize(png(432, 432)))
+        assertEquals(500 to 300, pngSize(png(500, 300)))
+        val bytes = png(16, 16)
+        assertEquals(16 to 16, pngSize(bytes + byteArrayOf(1, 2, 3)))
+    }
+
+    @Test
+    fun `a damaged or cut short PNG is refused`() {
+        val bytes = png(16, 16)
+        assertNull("cut short", pngSize(bytes.copyOf(bytes.size - 5)))
+        assertNull("no end chunk", pngSize(bytes.copyOf(bytes.size - 12)))
+        assertNull("not a PNG", pngSize("GIF89a not a png at all".toByteArray()))
+        assertNull("empty", pngSize(ByteArray(0)))
+        val flipped = bytes.copyOf().also { it[it.size - 20] = (it[it.size - 20].toInt() xor 0x40).toByte() }
+        assertNull("checksum", pngSize(flipped))
+
+        val header = chunk("IHDR", ByteBuffer.allocate(13).putInt(16).putInt(16).put(byteArrayOf(8, 6, 0, 0, 0)).array())
+        val data = chunk("IDAT", byteArrayOf(0x78, 0x9c.toByte(), 3, 0, 0, 0, 0, 1))
+        val end = chunk("IEND", ByteArray(0))
+        assertEquals(16 to 16, pngSize(SIGNATURE + header + data + end))
+        assertNull("header not first", pngSize(SIGNATURE + data + header + end))
+        assertNull("no image data", pngSize(SIGNATURE + header + end))
+        assertNull("two headers", pngSize(SIGNATURE + header + header + data + end))
+        val huge = SIGNATURE + header.copyOf().also { ByteBuffer.wrap(it).putInt(0, Int.MAX_VALUE) } + data + end
+        assertNull("a length past the end", pngSize(huge))
+    }
+
+    @Test
+    fun `a PNG header the spec doesn't allow is refused`() {
+        fun header(depth: Int, color: Int, compression: Int = 0, filter: Int = 0, interlace: Int = 0) =
+            chunk("IHDR", ByteBuffer.allocate(13).putInt(16).putInt(16)
+                .put(byteArrayOf(depth.toByte(), color.toByte(), compression.toByte(), filter.toByte(), interlace.toByte())).array())
+        val palette = chunk("PLTE", byteArrayOf(0, 0, 0, -1, -1, -1))
+        val data = chunk("IDAT", byteArrayOf(0x78, 0x9c.toByte(), 3, 0, 0, 0, 0, 1))
+        val end = chunk("IEND", ByteArray(0))
+
+        for ((depth, color) in listOf(1 to 0, 16 to 0, 8 to 2, 16 to 6, 8 to 4)) {
+            assertEquals("depth $depth color $color", 16 to 16, pngSize(SIGNATURE + header(depth, color) + data + end))
+        }
+        assertEquals("interlaced", 16 to 16, pngSize(SIGNATURE + header(8, 6, interlace = 1) + data + end))
+        assertEquals("palette first", 16 to 16, pngSize(SIGNATURE + header(8, 3) + palette + data + end))
+
+        assertNull("16-bit palette", pngSize(SIGNATURE + header(16, 3) + palette + data + end))
+        assertNull("4-bit color", pngSize(SIGNATURE + header(4, 2) + data + end))
+        assertNull("3-bit gray", pngSize(SIGNATURE + header(3, 0) + data + end))
+        assertNull("color type 5", pngSize(SIGNATURE + header(8, 5) + data + end))
+        assertNull("compression", pngSize(SIGNATURE + header(8, 6, compression = 1) + data + end))
+        assertNull("filter", pngSize(SIGNATURE + header(8, 6, filter = 1) + data + end))
+        assertNull("interlace", pngSize(SIGNATURE + header(8, 6, interlace = 2) + data + end))
+        assertNull("no palette", pngSize(SIGNATURE + header(8, 3) + data + end))
+        assertNull("palette after the data", pngSize(SIGNATURE + header(8, 3) + data + palette + end))
+    }
+
+    @Test
+    fun `a missing, damaged, oblong, small or large picture stops patching with a reason`() {
+        fun refusal(path: String): String = assertThrows(PatchException::class.java) { launcherPicture(path) }.message!!
+        fun file(name: String, bytes: ByteArray) = folder.newFile(name).apply { writeBytes(bytes) }.path
+
+        assertTrue(refusal(folder.root.resolve("gone.png").path).contains("there's no file at"))
+        assertTrue(refusal(folder.root.path).contains("there's no file at"))
+        assertTrue(refusal(file("photo.png", "not a png".toByteArray())).contains("isn't a PNG"))
+        assertTrue(refusal(file("wide.png", png(600, 432))).contains("has to be square, and \"wide.png\" is 600 by 432 pixels"))
+        assertTrue(refusal(file("small.png", png(431, 431))).contains("from 432 to 1024 pixels a side, and \"small.png\" is 431"))
+        assertTrue(refusal(file("large.png", png(1025, 1025))).contains("is 1025"))
+        val big = folder.newFile("big.png").also { RandomAccessFile(it, "rw").use { raf -> raf.setLength(8L * 1024 * 1024 + 1) } }
+        assertTrue(refusal(big.path).contains("larger than 8 MB"))
+        for (message in listOf(refusal(big.path), refusal(file("tiny.png", png(16, 16))))) {
+            assertTrue(message, message.startsWith("Custom launcher icon: ") && message.endsWith(" Nothing was changed."))
+        }
+
+        for (side in listOf(MIN_PICTURE_SIDE, 512, MAX_PICTURE_SIDE)) {
+            val bytes = png(side, side)
+            val picture = launcherPicture(" " + file("icon-$side.png", bytes) + " ")!!
+            assertEquals(side, picture.side)
+            assertArrayEquals(bytes, picture.bytes)
+        }
+    }
+
+    private fun png(width: Int, height: Int): ByteArray = ByteArrayOutputStream().also {
+        assertTrue(ImageIO.write(BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB), "png", it))
+    }.toByteArray()
+
+    private fun chunk(type: String, data: ByteArray): ByteArray {
+        val body = type.toByteArray(Charsets.ISO_8859_1) + data
+        val crc = CRC32().apply { update(body) }.value.toInt()
+        return ByteBuffer.allocate(4).putInt(data.size).array() + body + ByteBuffer.allocate(4).putInt(crc).array()
+    }
+
     private fun layers() = IconLayers(parse(BACKGROUND).documentElement, parse(FOREGROUND).documentElement)
 
     private fun layer(root: Element, tag: String): Element =
@@ -195,6 +327,7 @@ class CustomLauncherIconTest {
     }.toString()
 
     private companion object {
+        val SIGNATURE = byteArrayOf(0x89.toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)
         const val SQUARE = "M 0 0 H 108 V 108 H 0 V 0 Z"
         const val WHITE_NOTE = "M61.1,45.3C64.3,47.62 68.1,48.93 72.2,48.9L72.2,42.9L55.7,63.6Z"
 

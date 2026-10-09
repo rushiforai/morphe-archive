@@ -38,7 +38,7 @@
 .EXAMPLE
     scripts/verify-injected-registers.ps1 -FromDevice -Serial $env:HUSHFEED_DEVICE_SERIAL
 
-    The clean APK defaults to the 46.2.3 vendor build in the folder HUSHFEED_FIXTURE_DIR names.
+    The clean APK defaults to the 47.1.4 vendor build in the folder HUSHFEED_FIXTURE_DIR names.
 #>
 [CmdletBinding()]
 param(
@@ -53,8 +53,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-# The vendor 46.2.3 build the README links, which is the only clean side this comparison means.
-$CleanApkSha256 = '2fbe277a568e0e820cb51b09bcf0c0d788dc4fb070e66025f12d11cd3ec16936'
+# The vendor 47.1.4 build the README links, which is the only clean side this comparison means.
+$CleanApkSha256 = '4226ed5d3031b68208c29f62d80ac421b281fc74201bc4163d98e442d0991a40'
 . (Join-Path $PSScriptRoot 'Resolve-Java.ps1')
 . (Join-Path $PSScriptRoot 'injected-register-contracts.ps1')
 . (Join-Path $PSScriptRoot 'injected-register-device.ps1')
@@ -81,7 +81,7 @@ function Resolve-Adb {
 }
 
 if (-not $CleanApk -and $env:HUSHFEED_FIXTURE_DIR) {
-    $fixture = Get-ChildItem -LiteralPath $env:HUSHFEED_FIXTURE_DIR -Filter '*46.2.3*.apk' -File -ErrorAction SilentlyContinue |
+    $fixture = Get-ChildItem -LiteralPath $env:HUSHFEED_FIXTURE_DIR -Filter '*47.1.4*.apk' -File -ErrorAction SilentlyContinue |
         Select-Object -First 1
     if ($fixture) { $CleanApk = $fixture.FullName }
 }
@@ -94,7 +94,7 @@ if (-not $CleanApk -or -not (Test-Path -LiteralPath $CleanApk -PathType Leaf)) {
 # report differences, and the run passes while comparing nothing against a clean baseline.
 $cleanHash = (Get-FileHash -LiteralPath $CleanApk -Algorithm SHA256).Hash.ToLowerInvariant()
 if ($cleanHash -ne $CleanApkSha256) {
-    throw "The clean APK at $CleanApk hashes to $cleanHash, not the vendor 46.2.3 build ($CleanApkSha256)."
+    throw "The clean APK at $CleanApk hashes to $cleanHash, not the vendor 47.1.4 build ($CleanApkSha256)."
 }
 
 $work = Join-Path ([System.IO.Path]::GetTempPath()) ("hushfeed-regs-" + [guid]::NewGuid().ToString('N').Substring(0, 8))

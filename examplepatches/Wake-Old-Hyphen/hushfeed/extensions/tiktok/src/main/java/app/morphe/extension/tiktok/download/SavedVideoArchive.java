@@ -12,9 +12,11 @@ import android.app.Application;
 import android.os.Bundle;
 import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
+import android.os.SystemClock;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.L10n;
@@ -24,6 +26,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -35,13 +39,30 @@ import java.util.concurrent.atomic.AtomicReference;
  * memory for the settings banner's Undo and nowhere else, and moves the record to a new
  * generation: a save that was already running when the reader forgot records nothing, so the
  * record they emptied doesn't fill back up behind them. The saved files are left alone.
+ *
+ * <p>The profile grid's mark ({@link SavedVideoMark}) asks about every cell it binds, on the main
+ * thread, so it never reaches the database: it asks {@link #isSaved}, which answers from the ids
+ * the record holds, read once off the main thread and changed with the rows from then on.
  */
 public final class SavedVideoArchive {
     static final String DATABASE_NAME = "hushfeed-saved-videos.db";
     public static final int LIMIT = 10_000;
+    /** How long a read of the ids that failed, or couldn't start, waits before the next try. */
+    static final long IDS_RETRY_MS = 60_000L;
 
     /** Serializes writes, so a forget and a save finishing at the same moment can't interleave. */
     private static final Object LOCK = new Object();
+    /**
+     * The ids the record holds, or null until they're read. Read without the lock, from the main
+     * thread among others. Changed only under {@link #LOCK}, in step with the rows: a save that
+     * lands adds its id and takes out any the limit pushed off, a forget empties it and an Undo
+     * reads it again. A process that never shows the mark never reads it.
+     */
+    private static volatile Set<String> savedIds;
+    /** Set while a read of the ids is queued or running, so a grid full of cells asks once. */
+    private static final AtomicBoolean READING_IDS = new AtomicBoolean();
+    /** {@link SystemClock#elapsedRealtime()} before which a failed read isn't tried again. */
+    private static volatile long idsRetryAt = Long.MIN_VALUE;
     /** Moved on by every forget. A save records only into the generation it started in. */
     private static final AtomicLong GENERATION = new AtomicLong();
     /**
@@ -93,11 +114,23 @@ public final class SavedVideoArchive {
     static void remember(Context context, String id, MediaFileWriter.Saved saved, long startedIn) {
         synchronized (LOCK) {
             if (GENERATION.get() != startedIn) return;
-            remember(context, id, saved);
+            Set<String> ids = savedIds;
+            List<String> pushedOff = writeRow(context, id, saved, ids != null);
+            if (ids != null) {
+                ids.add(id);
+                ids.removeAll(pushedOff);
+            }
         }
     }
 
-    private static void remember(Context context, String id, MediaFileWriter.Saved saved) {
+    /**
+     * Writes the row and keeps the record within {@link #LIMIT}. Throws when the write fails, and
+     * then nothing changed.
+     *
+     * @return the ids the limit pushed off, when {@code listPushedOff}; otherwise empty
+     */
+    private static List<String> writeRow(Context context, String id, MediaFileWriter.Saved saved,
+            boolean listPushedOff) {
         try (Database helper = new Database(context)) {
             SQLiteDatabase db = helper.getWritableDatabase();
             ContentValues row = new ContentValues();
@@ -111,13 +144,91 @@ public final class SavedVideoArchive {
                 if (db.insertWithOnConflict("saved_videos", null, row, SQLiteDatabase.CONFLICT_REPLACE) == -1) {
                     throw new android.database.sqlite.SQLiteException("Could not remember the saved video");
                 }
+                List<String> pushedOff = listPushedOff ? pastLimit(db) : Collections.<String>emptyList();
                 db.execSQL("DELETE FROM saved_videos WHERE aid IN (SELECT aid FROM saved_videos "
                         + "ORDER BY saved_at DESC, aid DESC LIMIT -1 OFFSET ?)", new Object[]{LIMIT});
                 db.setTransactionSuccessful();
+                return pushedOff;
             } finally {
                 db.endTransaction();
             }
         }
+    }
+
+    /** The rows past {@link #LIMIT}, the ones the trim after a write takes out. */
+    private static List<String> pastLimit(SQLiteDatabase db) {
+        List<String> ids = new ArrayList<>();
+        try (Cursor cursor = db.rawQuery("SELECT aid FROM saved_videos "
+                + "ORDER BY saved_at DESC, aid DESC LIMIT -1 OFFSET " + LIMIT, null)) {
+            while (cursor.moveToNext()) ids.add(cursor.getString(0));
+        }
+        return ids;
+    }
+
+    /**
+     * Whether the record holds {@code id}, for the grid's mark. Never touches the database, so it
+     * is safe on the main thread for every cell: until the ids have been read this answers false
+     * and has them read off the main thread, and the cells bound after that get their answer.
+     */
+    static boolean isSaved(String id) {
+        if (id == null || id.isEmpty()) return false;
+        Set<String> ids = savedIds;
+        if (ids == null) {
+            readIdsLater();
+            return false;
+        }
+        return ids.contains(id);
+    }
+
+    /**
+     * Has the ids read off the main thread, unless they are read already, a read is under way, or
+     * the last one failed less than {@link #IDS_RETRY_MS} ago.
+     */
+    static void readIdsLater() {
+        if (savedIds != null || SystemClock.elapsedRealtime() < idsRetryAt) return;
+        Context context = Utils.getContext();
+        if (context == null || !READING_IDS.compareAndSet(false, true)) return;
+        Context application = context.getApplicationContext();
+        Context app = application == null ? context : application;
+        boolean started = Utils.runOnBackgroundThread(() -> {
+            try {
+                readIds(app);
+            } finally {
+                READING_IDS.set(false);
+            }
+        });
+        if (!started) {
+            idsRetryAt = SystemClock.elapsedRealtime() + IDS_RETRY_MS;
+            READING_IDS.set(false);
+        }
+    }
+
+    /** Reads the ids under the lock, so no save, forget or Undo lands between the read and the swap. */
+    private static void readIds(Context context) {
+        synchronized (LOCK) {
+            if (savedIds != null) return;
+            try {
+                savedIds = queryIds(context);
+            } catch (RuntimeException failure) {
+                idsRetryAt = SystemClock.elapsedRealtime() + IDS_RETRY_MS;
+                Logger.printException(() -> "Could not read which videos are saved", failure);
+            }
+        }
+    }
+
+    /** Every id in the record, in a set that is safe to read while it is changed under the lock. */
+    private static Set<String> queryIds(Context context) {
+        Set<String> ids = emptyIds();
+        try (Database helper = new Database(context);
+             Cursor cursor = helper.getReadableDatabase().query("saved_videos", new String[]{"aid"},
+                     null, null, null, null, null)) {
+            while (cursor.moveToNext()) ids.add(cursor.getString(0));
+        }
+        return ids;
+    }
+
+    private static Set<String> emptyIds() {
+        return Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
     }
 
     /**
@@ -151,6 +262,8 @@ public final class SavedVideoArchive {
                 return ForgetResult.FAILED;
             }
             long generation = GENERATION.incrementAndGet();
+            // A fresh set rather than a clear, so a cell never reads one half emptied.
+            if (savedIds != null) savedIds = emptyIds();
             if (forgotten != null && forgotten.length > 0) forgotten[0] = generation;
             // A newer forget replaces an older Undo: putting that one back now would restore rows
             // the reader has since chosen to forget again.
@@ -194,6 +307,16 @@ public final class SavedVideoArchive {
             }
             // Unless the banner let go of it meanwhile, or a newer forget replaced it.
             UNDO.compareAndSet(held, null);
+            // What came back went around the saves made since and the limit, so the ids are read
+            // again rather than worked out. Should that fail, the next cell that asks reads them.
+            if (savedIds != null) {
+                try {
+                    savedIds = queryIds(context);
+                } catch (RuntimeException failure) {
+                    savedIds = null;
+                    Logger.printException(() -> "Could not read which videos are saved", failure);
+                }
+            }
             return UndoResult.RESTORED;
         }
     }
@@ -283,12 +406,20 @@ public final class SavedVideoArchive {
         });
     }
 
-    /** Forgets the in-memory Undo and the generation, as a new process would. Tests only. */
+    /** Forgets the in-memory Undo, the ids and the generation, as a new process would. Tests only. */
     static void resetForTests() {
         synchronized (LOCK) {
             UNDO.set(null);
             GENERATION.set(0);
+            savedIds = null;
+            READING_IDS.set(false);
+            idsRetryAt = Long.MIN_VALUE;
         }
+    }
+
+    /** Whether the ids are in memory yet. Tests only. */
+    static boolean idsReadForTests() {
+        return savedIds != null;
     }
 
     private static final class Database extends SQLiteOpenHelper {

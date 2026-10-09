@@ -35,9 +35,9 @@ Both keyboards stay installed, so you can switch back whenever you like.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v2.4.2](https://github.com/JZ6/Flexboard/releases/tag/v2.4.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;15 patches total
+> **[v2.5.0](https://github.com/JZ6/Flexboard/releases/tag/v2.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;14 patches total
 <details open>
-<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;15 patches</summary>
+<summary>📦 Gboard&nbsp;&nbsp;•&nbsp;&nbsp;14 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -48,20 +48,19 @@ Both keyboards stay installed, so you can switch back whenever you like.
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Bigger Toolbar](#bigger-toolbar) | Raises how many icons Gboard's toolbar can hold — five on a stock build — to 12, so Flexboard's hotkeys and text action buttons fit alongside Gboard's own. How many actually show stays yours, set by dragging them in Gboard's toolbar settings. Force-stop Gboard afterwards: a cached keyboard view can go on showing the old capacity. |  |
-| [Bypass Gboard Signature](#bypass-gboard-signature) | Bypass Gboard's signature whitelist checks and force them to pass. |  |
-| Enable Rambler | Exposes Google Rambler — Gboard's agentic dictation, which rewrites what you say into composed text — as a choice in Voice settings. It is not switched on for you: the feature uses a Google server, has its own quota and asks for consent, so picking it is left to you. |  |
+| [Bypass Gboard Signature](#bypass-gboard-signature) | Bypass Gboard's own startup signature check without changing other callers. |  |
+| [Crash reporter (debug)](#crash-reporter-debug) | For debugging. After a keyboard crash, the error is saved and copied to your clipboard the next time the keyboard starts, so it can be pasted into a bug report. This replaces whatever was on the clipboard. Off by default. |  |
+| [Enable Rambler](#enable-rambler) | Exposes Google Rambler — Gboard's agentic dictation, which rewrites what you say into composed text — as a choice in Voice settings. It is not switched on for you: the feature uses a Google server, has its own quota and asks for consent, so picking it is left to you. |  |
 | [Hidden Features](#hidden-features) | Turns on two finished Gboard features that a resigned build can never receive: grammar check, and a close control on the chips Gboard offers unprompted. Their flags are delivered per app signature, so resigning the APK means they never arrive and stay off. Both are confirmed working on a device; five other flags were tried and dropped. |  |
-| Hidden Features (unconfirmed) | Turns on four finished Gboard features that a resigned build can never receive: Emoji Kitchen browse, the custom sticker tab, offline translation, and search in Gboard's settings. Off by default because none of the four has been seen working on a device — the flags flip, but each also depends on data Google only sends to an unpatched install. Safe to try: none of them crashes. |  |
 | [Install as Gboard Clone](#install-as-gboard-clone) | Rename the package to dev.jz6.com.google.android.inputmethod.latin so the patched build installs alongside the official Gboard instead of replacing it. |  |
-| Modern keypress haptics | Uses Android's haptic primitives for keypresses — the crisp tick the rest of the system uses — instead of a plain buzz. Gboard has the code and disables it with an impossible minimum Android version; this removes that. Devices whose vibrator cannot do primitives are unaffected, because Gboard's own hardware check still runs. Note that it changes what the vibration strength slider means, from milliseconds to intensity. |  |
-| Suggested Settings | Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. Grammar check is the switch, not the feature: the row only exists on a resigned build if Hidden Features is applied too. |  |
-| [Swipe Left to Delete](#swipe-left-to-delete) | Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's own word-scrub engine, so it behaves exactly like swiping on the backspace key already does — only it can start anywhere. |  |
+| [Modern keypress haptics](#modern-keypress-haptics) | Uses Android's haptic primitives for keypresses — the crisp tick the rest of the system uses — instead of a plain buzz. Gboard has the code and disables it with an impossible minimum Android version; this removes that. Devices whose vibrator cannot do primitives are unaffected, because Gboard's own hardware check still runs. Note that it changes what the vibration strength slider means, from milliseconds to intensity. |  |
+| [Suggested Settings](#suggested-settings) | Turns on flick keys for symbols, touch & hold keys for numbers, suggestion strip, grammar check and smart replies, and turns off block offensive words and word suggestions. Written once as defaults, so each can still be changed in Gboard's own settings. Grammar check is the switch, not the feature: the row only exists on a resigned build if Hidden Features is applied too. |  |
+| [Swipe Left to Delete](#swipe-left-to-delete) | Swipe left anywhere on the keyboard to delete the previous word, and swipe right to restore it. Uses Gboard's word-scrub engine; anywhere swipes have a one-word default cap, while deliberate backspace swipes keep Gboard's uncapped behaviour. |  |
 | [Swipe Right to Undo](#swipe-right-to-undo) | Swipe right after deleting to put the words back — the swipe starts on the Delete key, or anywhere when Swipe Left to Delete is also applied. Uses Gboard's own undo, which already records what a delete swipe removed. |  |
-| Swipe up diagnostic (temporary) | Diagnostic build only. Swipe up on a key to type a marker character, which proves whether the swipe gesture is being detected at all without eating any text. Cannot be used alongside "Swipe up to undo autocorrect" — they attach to the same instruction, and selecting both fails the patch rather than giving you both effects. Off by default, and this patch will be removed once it has answered its question. |  |
-| [Swipe up to undo autocorrect](#swipe-up-to-undo-autocorrect) | Swipe up on the keyboard to put back the word an autocorrect replaced. Gboard has the same undo on backspace, behind a setting; this adds a gesture for it and works whether or not that setting is on. A swipe with nothing to undo does nothing. Cannot be used alongside "Swipe up diagnostic (temporary)", which attaches to the same instruction. Off by default until it has been confirmed on a device. |  |
+| [Swipe up to undo autocorrect](#swipe-up-to-undo-autocorrect) | Swipe up on the keyboard to undo the last autocorrection: the word you typed comes back, as with Gboard's own undo autocorrect on backspace. It works right after the correction, before you type anything else; otherwise the swipe does nothing. The key you swiped on is not typed. |  |
 | [Text Action Buttons](#text-action-buttons) | Add Select all, Copy and Paste buttons to the toolbar above the keyboard, so each is one tap instead of opening Gboard's text editing panel first. Registered natively, so drag-to-reorder through the toolbar customize page persists. These three share the toolbar with Gboard's own icons and with Toolbar Hotkeys. Bigger Toolbar, which is applied unless you deselect it, raises the ceiling from five to twelve; without it, five is all the bar can hold. |  |
 | [Toolbar Hotkeys](#toolbar-hotkeys) | Adds eight configurable hotkey slots to Gboard's toolbar — each commits a text of your choice on tap. A slot appears when its text is set; when cleared it hides at the next toolbar rebuild (rotate, switch IME, or restart — there's no mid-session un-register). Text and icon edits apply on the next keyboard open. The slots share the toolbar with Gboard's own icons: Bigger Toolbar, which is applied unless you deselect it, makes room for twelve, but on a stock ceiling of five not all eight fit. |  |
-| Vibration Slider Everywhere | Forces Gboard to show its own vibration strength slider on every device, rather than deferring to the system haptic settings page, so the strength is adjustable instead of being fixed by whichever rollout the device landed in. |  |
+| [Vibration Slider Everywhere](#vibration-slider-everywhere) | Forces Gboard to show its own vibration strength slider on every device, rather than deferring to the system haptic settings page, so the strength is adjustable instead of being fixed by whichever rollout the device landed in. |  |
 
 </details>
 
@@ -89,34 +88,34 @@ It also changes two of Gboard's settings at startup, because the gesture cannot 
 
 Both are in Gboard's **Glide typing** screen, and because both are written on every start, both are
 **greyed out** while the gesture is on — otherwise changing either would appear to work and quietly
-revert at the next start. The switch that hands them back sits directly above them in that same
-screen, so the way out is where the problem is. It is the same setting as the switch on Flexboard's
-own screen, not a copy.
+revert at the next start. A non-selectable **Managed by Flexboard** note sits above the rows. To
+restore glide typing, re-patch without Swipe Left to Delete, then turn glide typing back on.
 
 Removing Flexboard leaves glide typing off — tick it back on in Gboard's own settings.
 
 ## Settings
 
-Gboard's settings gain a **Flexboard** entry that opens a screen of sliders. Three of them shape
-the swipe-anywhere gesture; the backspace key keeps Gboard's own behaviour, see below.
+Gboard's settings gain a **Flexboard** entry with one slider, hotkey editors and an About section.
+The slider shapes the swipe-anywhere gesture; the backspace key keeps Gboard's own behaviour.
 
 | Setting | Default | What it does |
 |---|---|---|
 | **Max words per swipe** | 1 | The most words one swipe can delete. At 1 a swipe deletes a single word however far it travels; 10 means no limit. Swiping back still restores. |
 
-Swipe length and hold delay are fixed rather than adjustable. The swipe travels Gboard's own
-distance per word, and deleting starts immediately instead of after Gboard's 200 ms press-and-hold.
-Both were sliders once; [`docs/design.md`](docs/design.md) has why they are not now.
+Swipe length and hold delay have no controls. The swipe travels Gboard's own distance per word.
+On a fresh install, deleting starts immediately instead of after Gboard's 200 ms press-and-hold;
+an older stored hold-delay value still applies until that preference is cleared. Both were sliders
+once; [`docs/design.md`](docs/design.md) has why they are not now.
 
-The screen also carries eight **Hotkeys** fields belonging to
+The screen also carries eight **Hotkeys** editor rows belonging to
 [Toolbar Hotkeys](#toolbar-hotkeys).
 
 Every value is read out of Gboard's own preference store, so there is no separate settings app and
 nothing to keep in sync.
 
-The starting values are written into the store the first time the patched app runs, rather than
-being numbers inside the patch. So they behave as defaults for a fresh install, and a later update
-can pick different ones without moving settings you have already got used to.
+The slider reads a default from the patch unless you set a value in the store. Suggested Settings
+seeds Gboard preferences individually when unset, so later updates can add a new default without
+overwriting values you chose.
 
 Changes are not instant: a new setting is picked up the next time the keyboard is opened. Hotkeys
 are half an exception — *editing* a snippet takes effect immediately, because the text is read when
@@ -129,12 +128,12 @@ features that are not in your build.
 
 ### The backspace key still behaves the way Gboard built it
 
-The sliders above apply to swipes that start **anywhere on the letters**. A swipe that starts on the
+The word-cap slider above applies to swipes that start **anywhere on the letters**. A swipe that starts on the
 **backspace key** — the one place Gboard's own word-delete has always worked — keeps Gboard's
 distance per word and is not capped, so it still deletes as many words as you drag across.
 
-That is deliberate. A one-word cap and a short swipe are right for a gesture you trigger by accident
-sometimes; they are wrong for the deliberate press-and-drag on backspace that people already have
+That is deliberate. A one-word cap is right for a gesture you trigger by accident sometimes;
+it is wrong for the deliberate press-and-drag on backspace that people already have
 muscle memory for. Flexboard adds a gesture rather than replacing one.
 
 It works because Gboard keeps the key a gesture started on for the gesture's whole life, so the
@@ -180,20 +179,26 @@ when you swipe on the backspace key, so it works there too.
 
 ## Swipe up to undo autocorrect
 
-Swipe up on the keyboard to put back the word an autocorrect just replaced.
+Swipe up on the keyboard to put back the word an autocorrect just replaced. Gboard can already do
+this on backspace, behind its **Undo autocorrect with backspace** setting; this adds a gesture for
+it, and the gesture works with that setting off.
 
-Gboard can already do this, but only on backspace, and only if you have found **Undo autocorrect
-with backspace** in the settings. This adds a gesture for the same thing, and it works whether or
-not that setting is on — it does not go through Gboard's arming, and nothing downstream checks.
+The revert is Gboard's own. The swipe asks Gboard's decoder for the same autocorrect revert it uses
+for a physical keyboard's delete-word, so the decoder decides whether there is an autocorrection to
+undo, as it does for backspace. If there is none, the swipe does nothing: it does not delete a word
+or undo some other edit. Either way the key you swiped on is not typed.
 
-A swipe with nothing to undo does nothing at all. The gesture is only read on keys that do not
-already define an upward flick of their own, so flick-for-symbols keys keep their behaviour, and
-the swipe has to be reasonably vertical — twice as much up as sideways — which is what keeps it
-apart from the sideways scrub that **Swipe left to delete** uses.
+**It reaches only the word just corrected.** As soon as you type anything after the correction,
+even one letter, Gboard forgets it and the swipe has nothing to undo. Backspace's undo behaves the
+same way. Keeping Flexboard's own history of corrections to reach further back was considered, and
+the native behaviour kept instead.
 
-**Off by default.** It has not yet been confirmed on a device, and this project has shipped one
-default-on patch that had to be bisected across four releases afterwards. Turn it on in the patch
-selector if you want to try it.
+The swipe has to be reasonably vertical, at least twice as far up as sideways, which keeps it apart
+from **Swipe left to delete** and **Swipe right to undo**.
+
+Confirmed on a device in 2.5.2-dev.0. It was rebuilt one step per release after the first attempt
+crashed the keyboard on a swipe up; [`docs/undo-autocorrect-plan.md`](docs/undo-autocorrect-plan.md)
+has the story. **On by default.**
 
 ## Text action buttons
 
@@ -203,14 +208,14 @@ each, on whatever you are typing into.
 Gboard can already do all three, behind its **Text editing** toolbar button — open that panel, then
 tap the one you want. These are the same actions without the panel.
 
-They take the first three slots on the toolbar, which pushes whatever used to be last into the
+They share the toolbar's capacity, which can push whatever used to be last into the
 overflow menu behind the chevron. Long-press the toolbar to reorder them like any other button.
 
 The labels are Gboard's own, so they are already translated wherever Gboard is. The icons are
 Material's — the select-all marquee, and the familiar copy and paste marks. Gboard ships all three
 and draws none of them, because its text editing panel spells the actions out in words rather than
-using icons; that is why Select all first shipped borrowing an unrelated icon. Flexboard still adds
-no images of its own.
+using icons; that is why Select all first shipped borrowing an unrelated icon. These three use
+Gboard's own icons; the hotkeys below use a separate Flexboard icon pack.
 
 ## Toolbar hotkeys
 
@@ -218,15 +223,15 @@ Eight more toolbar buttons, each typing a string you set under **Hotkeys** in Fl
 an email address, a signature, "brb", whatever you type often enough to resent typing.
 
 **A slot you have not filled in makes no button.** Fresh out of the box there are no hotkeys at all;
-fill one in and its icon appears on the toolbar, clear the field and the button goes away again.
+fill one in and its icon appears on the toolbar. Clearing its text hides the button when the toolbar
+is rebuilt (for example after switching IMEs or restarting), since there is no mid-session removal.
 That is the on/off switch, and it is per-button.
 
 Each button is named by your own text, so they are easy to tell apart when you long-press to
-reorder the toolbar. On the bar itself there is only room for the icon, and here the icons are
-arbitrary — a star, a sparkle, scissors, a ticked box, a ring, a share mark. They have to be:
-Gboard bundles 29 Material shapes and not one of them is a digit, and Flexboard ships no images of
-its own. So the settings screen draws each slot's real icon beside the field that fills it, which
-is the moment you actually need to know which is which.
+reorder the toolbar. On the bar itself there is only room for the icon. Flexboard bundles a picker
+of 24 vector icons, including digits 0–9. The eight slot defaults are email, password, phone,
+post office, home pin, work, heart and star. A slot's settings row opens an editor with a text
+field and the icon picker, and shows the selected icon beside its text.
 
 Long text is fine. The whole of it gets typed; only the first line, cut short, becomes the name.
 
@@ -259,41 +264,38 @@ drag more icons onto the bar, because that number is your setting and the patch 
 
 ## Hidden features
 
-Gboard ships a lot of finished features switched off behind Google's own feature flags, waiting on
-a server-side rollout. Those flags are delivered per app **signature** — and a patched build is
-resigned, so the delivery never arrives and every flag stays at whatever it was compiled with. On
-this build that is 666 of them.
+Gboard gates features behind per-signature flags that a resigned build may not receive. The
+default-on patch enables **grammar check** and **dismissable suggestion chips**; both were seen
+working on a device. Five other flags were tried and removed: on-device Proofread prevented Gboard
+from starting, and Emoji Kitchen browse, the custom sticker tab, offline translation and settings
+search never showed any effect. Forcing a flag does not supply downloaded models, locale allowlists
+or language packs behind it.
 
-Most deserve to stay off; they are experiments and half-built code. Seven do not:
+## Enable Rambler
 
-| | |
-|---|---|
-| **Grammar check** | the settings row, and the checking behind it |
-| **Proofread** | on-device proofreading |
-| **Emoji Kitchen browse** | the browse surface for sticker mashups |
-| **Custom sticker tab** | your own stickers, as a tab |
-| **Offline translate** | translation without a round trip to a server |
-| **Dismissable chips** | a close control on the chips Gboard offers unprompted |
-| **Settings search** | search inside Gboard's own settings |
+Rambler is Gboard's agentic dictation option in **Voice** settings. Flexboard reveals the choice;
+it does not select it or give consent on your behalf. The feature uses a server and has its own
+quota. Choosing Rambler in Gboard is what switches it on.
 
-Each is something Google ships to ordinary Gboard users today, so the code behind the flag is
-finished — this is restoring what resigning took away, not switching on an experiment.
+## Modern keypress haptics
 
-Some are locale- or account-dependent and may do nothing on your device, which is Google's doing
-rather than the patch's. If a feature does not appear, it was not enabled for you upstream either.
+Gboard ships a haptic-primitives path but gives its minimum Android version an impossible value.
+This patch lowers that minimum to API 30. Gboard still checks hardware support; where primitives
+aren't available it keeps the legacy vibration path. With primitives, the slider value describes
+intensity rather than milliseconds. The result has not been tested on a device for feel.
 
-## Flick keys for symbols
+## Suggested Settings
 
-Gboard can already enter a key's hinted symbol when you pull down on it — **Flick keys to enter
-symbols**, in its Preferences screen — and ships it off. Flexboard turns it on.
+This default-on patch turns on **Flick keys to enter symbols**, **Touch & hold keys for numbers**,
+the suggestion strip, grammar check and smart replies; it turns off offensive-word blocking and
+word suggestions. Each preference is written only when unset, so changes you make in Gboard stick.
+The grammar check row also needs the [Hidden Features](#hidden-features) patch to be visible on a
+resigned build.
 
-It is written **once**, only if you have never set it, so it behaves as a default rather than
-something forced: turn it off in Gboard's settings and it stays off.
-
-One quirk worth knowing. Gboard's own settings row for it depends on **Touch & hold keys for
-numbers**, so while that is off the flick row shows as on but greyed out — the feature works, you
-just cannot toggle it from there. Enabling "Touch & hold keys for numbers" un-greys it. Flexboard
-deliberately does not change that setting for you, since nothing at runtime needs it.
+Gboard's own flick row depends on **Touch & hold keys for numbers**, which this patch enables so
+the flick setting can be changed. Earlier Flexboard builds also wrote a slide-sensitivity value of
+0.6, which isn't a choice on Gboard's slider and doesn't control swipe-up. This patch removes that
+old value once, if it is still 0.6; other values are left alone.
 
 ## Install as Gboard clone
 
@@ -306,17 +308,33 @@ Untick it and the patched build replaces the Gboard you already have.
 ## Bypass Gboard signature
 
 Gboard hashes its own signing certificate and compares it against a list baked into the app. A
-patched build is re-signed, so that check fails. Flexboard forces it to pass.
+patched build is re-signed, so the cold-start self-check fails. Flexboard skips that self-check's
+failure branch; it leaves the check itself intact for other callers.
 
-Nothing about this one is visible either way, and it turns out that nothing is behind it. The
-check gates no feature: its only real caller does nothing except the check itself, and throws if
-it fails. Patched **without** this one the keyboard still opens — the exception lands on a
-background thread during startup and everything carries on. So it removes a startup crash rather
-than restoring anything.
+The self-check gates no feature: that call site does nothing except check and throw if it fails.
+Patched **without** this one the keyboard still opens — the exception lands on a background thread
+during startup and everything carries on. A second caller protects Gboard's exported debug bridge;
+its signature verification must stay intact.
 
 It is kept anyway, because an exception on every cold start is worth silencing even when it is
 survivable, and because assuming it stays harmless on every device is a worse bet than simply
 patching it out.
+
+## Vibration Slider Everywhere
+
+Gboard hides its own vibration-strength slider on some devices and sends users to Android's
+system haptic settings instead. This patch makes Gboard use its own slider on every device; the
+keypress vibration toggle still governs whether vibration runs at all.
+
+## Crash reporter (debug)
+
+For reporting a bug. With this patch on, a keyboard crash is recorded: the error is saved, and the
+next time the keyboard starts it is copied to your clipboard, ready to paste into a bug report.
+Android's own crash handling is unchanged.
+
+Copying the report replaces whatever was on your clipboard, which is why it is a patch you opt into.
+It was built while **Swipe up to undo autocorrect** was crashing the keyboard on devices with no
+other way to read the error. **Off by default.**
 
 ## Development
 

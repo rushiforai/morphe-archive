@@ -107,7 +107,7 @@ internal object AutoHideNavigationBarOnDismissMiniplayerFingerprint : Fingerprin
 )
 
 internal object PivotBarStyleFingerprint : Fingerprint(
-    definingClass = "/PivotBar;",
+    definingClass = "Lcom/google/android/libraries/youtube/rendering/ui/pivotbar/PivotBar;",
     returnType = "V",
     parameters = listOf("L"),
     filters = OpcodesFilter.opcodesToFilters(
@@ -118,7 +118,7 @@ internal object PivotBarStyleFingerprint : Fingerprint(
 )
 
 internal object PivotBarChangedFingerprint : Fingerprint(
-    definingClass = "/PivotBar;",
+    definingClass = "Lcom/google/android/libraries/youtube/rendering/ui/pivotbar/PivotBar;",
     name = "onConfigurationChanged",
     returnType = "V",
     filters = OpcodesFilter.opcodesToFilters(
@@ -235,6 +235,51 @@ internal object PivotBarRendererListFingerprint : Fingerprint(
             type = "L"
         ),
         literal(45633821L),
+    )
+)
+
+/**
+ * Tabs of the browse response (singleColumnBrowseResultsRenderer).
+ * The tab protos are converted to tab items, that are cached in a field of the class.
+ */
+internal object BrowseResponseTabsFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL, AccessFlags.DECLARED_SYNCHRONIZED),
+    returnType = "L",
+    parameters = listOf(),
+    filters = listOf(
+        literal(58173949L),
+        methodCall(name = "stream"),
+        fieldAccess(
+            opcode = Opcode.IPUT_OBJECT,
+            definingClass = "this"
+        )
+    ),
+    custom = { _, classDef ->
+        classDef.interfaces.contains("Landroid/os/Parcelable;")
+    }
+)
+
+/**
+ * Creates a navigation bar item proto with a browse endpoint.
+ * Parameters: browse id, label, icon type, icon only.
+ */
+internal object PivotBarItemProtoFactoryFingerprint : Fingerprint(
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    returnType = "L",
+    parameters = listOf("Ljava/lang/String;", "Ljava/lang/String;", "L", "Z"),
+    filters = listOf(
+        literal(117501096L)
+    )
+)
+
+/**
+ * Navigation bar used before the guide response is loaded.
+ * The Subscriptions button is not added if the flag is enabled.
+ */
+internal object OfflineNavigationBarSubscriptionsFeatureFlagFingerprint : Fingerprint(
+    filters = listOf(
+        literal(45780222L),
+        string("FEsubscriptions")
     )
 )
 

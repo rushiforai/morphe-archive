@@ -39,7 +39,8 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
  * With Debug logging on, a Menu build has Menu's layout written a moment later, cut down to the
  * Litho components naming the Muse card with their parents (their text left out) and the views
  * whose description names Muse, and the rest of Menu, hidden views and words like Museum left
- * out. Off, nothing is read.
+ * out. A reel's long press has every window read the same way, for the long-press menu's Muse
+ * share target. Off, nothing is read.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 30)
@@ -56,6 +57,14 @@ public class MenuLayoutDumpTest {
             "      litho.Button{6 V.E..... .. 0,500-300,600 text=\"Get app\"}",
             "  litho.Shortcuts{7 V.E..... .. 0,600-1080,1200}",
             "    litho.Text{8 V.E..... .. 0,600-1080,650 text=\"Museum trip, so amused\"}");
+
+    /** A reel's long-press menu: the share targets' row, Muse first. */
+    private static final String REEL_MENU = String.join("\n",
+            "litho.Column{1 V.E..... .. 0,1161-1080,2158}",
+            "  litho.HScroll{2 V.E..... .. 0,1195-1080,1500}",
+            "    litho.ShareTarget{3 V.E..... .. 0,1195-231,1500 text=\"Muse\"}",
+            "    litho.ShareTarget{4 V.E..... .. 231,1195-462,1500 text=\"Messenger\"}",
+            "  litho.Actions{5 V.E..... .. 0,1853-1080,2158 text=\"Save\"}");
 
     @Before
     public void start() {
@@ -160,5 +169,33 @@ public class MenuLayoutDumpTest {
         MenuSectionsForTests.hidesServerUpgrades();
         shadowOf(Looper.getMainLooper()).idleFor(MenuLayoutDump.DELAY_MS, TimeUnit.MILLISECONDS);
         assertFalse("read again after the card was found", LogBufferManager.buildExportText().contains("Menu layout"));
+    }
+
+    @Test
+    public void withDebugLoggingOnEveryWindowIsReadAMomentAfterAReelsLongPress() {
+        FbMainTabActivity screen = Robolectric.buildActivity(FbMainTabActivity.class).setup().get();
+        BaseMountingView sheet = new BaseMountingView(screen);
+        sheet.description = REEL_MENU;
+        screen.setContentView(sheet);
+
+        MenuLayoutDump.reelLongPressed();
+        shadowOf(Looper.getMainLooper()).idleFor(MenuLayoutDump.REEL_MENU_DELAY_MS, TimeUnit.MILLISECONDS);
+        assertFalse("read with Debug logging off", LogBufferManager.buildExportText().contains(MenuLayoutDump.REEL_MENU));
+
+        BaseSettings.DEBUG.save(true);
+        MenuLayoutDump.reelLongPressed();
+        assertFalse("read before the menu opened", LogBufferManager.buildExportText().contains(MenuLayoutDump.REEL_MENU));
+        shadowOf(Looper.getMainLooper()).idleFor(MenuLayoutDump.REEL_MENU_DELAY_MS, TimeUnit.MILLISECONDS);
+        String report = LogBufferManager.buildExportText();
+        assertTrue(report, report.contains(MenuLayoutDump.REEL_MENU + ", Litho tree"));
+        assertTrue(report, report.contains("litho.ShareTarget{3"));
+        assertTrue("the row holding Muse was left out: " + report, report.contains("litho.HScroll{2"));
+        assertFalse("another target was written: " + report, report.contains("Messenger"));
+
+        LogBufferManager.clearLogBuffer();
+        shadowOf(Looper.getMainLooper()).idleFor(MenuLayoutDump.GAP_MS, TimeUnit.MILLISECONDS);
+        MenuLayoutDump.reelLongPressed();
+        shadowOf(Looper.getMainLooper()).idleFor(MenuLayoutDump.REEL_MENU_DELAY_MS, TimeUnit.MILLISECONDS);
+        assertFalse("read again after Muse was found", LogBufferManager.buildExportText().contains(MenuLayoutDump.REEL_MENU));
     }
 }

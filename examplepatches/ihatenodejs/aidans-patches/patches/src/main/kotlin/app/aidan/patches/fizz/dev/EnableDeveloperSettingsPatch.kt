@@ -18,12 +18,12 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 
 private const val MAIN_ACTIVITY = "Lcom/fizzsocial/fizz/MainActivity;"
-private const val HOME_TOP_BAR_CLASS = "Lsd/w;"
+private const val HOME_TOP_BAR_CLASS = "Ltd/v;"
 private const val ALIGNMENT_CLASS = "La3/b;"
 private const val DEVELOPER_MENU_BRIDGE = "Lapp/aidan/extension/fizz/DeveloperMenuBridge;"
-private const val SETTINGS_ICON_CLASS = "Lne/t;"
-private const val MOBILE_STUDIO_DRAWER_GATE = "Lce/w1;"
-private const val SPOOF_USER_CLASS = "Lcom/fizzsocial/fizz/data/local/x6;"
+private const val SETTINGS_ICON_CLASS = "Loe/u;"
+private const val MOBILE_STUDIO_DRAWER_GATE = "Lde/k1;"
+private const val SPOOF_USER_CLASS = "Lcom/fizzsocial/fizz/data/local/v6;"
 
 @Suppress("unused")
 val enableDeveloperSettingsPatch = bytecodePatch(
@@ -31,6 +31,7 @@ val enableDeveloperSettingsPatch = bytecodePatch(
     description = "Adds an in-app developer mod menu accessible via a top-bar header button, with controls for Mobile Studio.",
     default = false
 ) {
+    category("Developer")
     compatibleWith(COMPATIBILITY_FIZZ)
     extendWith("extensions/extension.mpe")
 
@@ -167,8 +168,8 @@ private fun BytecodePatchContext.patchHomeTopBarComposable() {
         const/16 v16, 0x0
         invoke-static {}, $DEVELOPER_MENU_BRIDGE->getClickListener()Ljava/lang/Object;
         move-result-object v18
-        check-cast v18, Lwl/a;
-        invoke-static/range {v14 .. v19}, Landroidx/compose/foundation/a;->e(La3/s;ZLjava/lang/String;Lg4/g;Lwl/a;I)La3/s;
+        check-cast v18, Lyl/a;
+        invoke-static/range {v14 .. v19}, Landroidx/compose/foundation/a;->e(La3/s;ZLjava/lang/String;Lg4/g;Lyl/a;I)La3/s;
         move-result-object v3
 
         # 5. Semantics / testTag: feed-developer-button
@@ -187,7 +188,7 @@ private fun BytecodePatchContext.patchHomeTopBarComposable() {
 
         # 7. Render Icon (Outlined.Settings gear vector, dynamic color scheme tint)
         move-object/from16 v10, v38
-        iget-wide v13, v10, Lwe/c;->z:J
+        iget-wide v13, v10, Lye/c;->z:J
         sget-object v10, $SETTINGS_ICON_CLASS->a:Ln3/e;
         const/16 v16, 0x0
         const/16 v17, 0x0

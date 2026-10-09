@@ -1,0 +1,1 @@
+package e.e.a;public class PlaybackSession{static Object get(Object o,String n)throws Exception{return o.getClass().getField(n).get(o);}static Object call(Object o,String n,Class<?>[] t,Object... args)throws Exception{return o.getClass().getMethod(n,t).invoke(o,args);}}

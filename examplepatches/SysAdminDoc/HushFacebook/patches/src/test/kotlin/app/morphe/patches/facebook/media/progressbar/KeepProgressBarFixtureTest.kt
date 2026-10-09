@@ -12,6 +12,7 @@ import app.morphe.patches.facebook.misc.extension.localRegisterCount
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.util.ControlFlow
 import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.Instruction
@@ -21,6 +22,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+import com.android.tools.smali.dexlib2.immutable.ImmutableClassDef
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotEquals
@@ -35,7 +38,10 @@ import java.io.File
  * one method of FeedFullscreenVideoControlsPlugin's superclass that sets a delayed message. Then the
  * two hooks on those methods: the extension asked first, a yes making the bar full size with the
  * same two arguments or setting no timer, a no landing on Facebook's first instruction, and nothing
- * of Facebook's code moved. Reads the fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
+ * of Facebook's code moved. The newer player's controls extension gets the same no-timer hook on its
+ * one method that posts the hide, and so does the run() of the hide runnable that the landscape
+ * player's controller posts with a delay, a runnable whose hide reaches the controls updater.
+ * Reads the fixture bundles from HUSHFACEBOOK_FIXTURE_DIR and skips without it.
  */
 class KeepProgressBarFixtureTest {
     private fun bundles(check: (File) -> Unit) {
@@ -189,6 +195,64 @@ class KeepProgressBarFixtureTest {
         assertTrue("$where: the hook writes v$register, which isn't a local", register < method.localRegisterCount())
         assertEquals("$where: a no goes on to Facebook", Opcode.IF_EQZ, patched[2].opcode)
         assertEquals("$where: a yes sets no timer", Opcode.RETURN_VOID, patched[3].opcode)
+        assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(4).map { it.opcode })
+        assertEquals("$where: a no lands on Facebook's first instruction", setOf(3, 4), ControlFlow.of(method).normal[2].toSet())
+    }
+
+    @Test
+    fun `each declared build posts no hide for the newer player's controls while kept`() = bundles { bundle ->
+        val name = bundle.name
+        val holders = FixtureDex.classesHolding(bundle, CONTROLS_EXTENSION).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        val (extension, hide) = extensionFadeTimer(holders)
+        val where = "$name: ${extension.type}->${hide.name}"
+        assertTrue("$where posts no 3 second hide", hide.code().any { (it as? WideLiteralInstruction)?.wideLiteral == 3000L })
+        // The hook borrows v0, so the method needs a register below its parameters.
+        assertTrue("$where has no local register for the hook",
+            hide.implementation!!.registerCount - hide.parameterTypes.size - 1 >= 1)
+
+        val context = PatchContexts.of(listOf(extension))
+        val method = context.mutableClassDefBy(extension.type).methods.single { it.sameAs(hide) }
+        val original = method.code()
+        method.noTimerWhileKept()
+        val patched = method.code()
+        assertEquals("$where gains four instructions", original.size + 4, patched.size)
+        assertEquals("$where: the extension is asked first", KEEPS_CONTROLS, patched[0].reference())
+        assertEquals("$where: a yes posts no hide", Opcode.RETURN_VOID, patched[3].opcode)
+        assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(4).map { it.opcode })
+        assertEquals("$where: a no lands on Facebook's first instruction", setOf(3, 4), ControlFlow.of(method).normal[2].toSet())
+    }
+
+    @Test
+    fun `each declared build runs no hide the landscape player's controller posted while kept`() = bundles { bundle ->
+        val name = bundle.name
+        fun classOf(type: String) = FixtureDex.classes(bundle, setOf(type)).values.singleOrNull()
+        val holders = FixtureDex.classesHolding(bundle, PLAYER_CONTROL_UPDATE).filterNot { it.type.startsWith(EXTENSION_CLASSES) }
+        val updater = controlsUpdater(holders, ::classOf)
+        val controllers = mutableListOf<ClassDef>()
+        FixtureDex.forEach(bundle) { dex ->
+            for (classDef in dex.classes) if (takesUpdater(classDef, updater)) controllers += ImmutableClassDef.of(classDef)
+        }
+        val (runnable, run) = controlsHideRunnable(controllers, ::classOf)
+        val where = "$name: ${runnable.type}->run"
+        // The hide the runnable asks for has to reach the updater, which hands the player the hide.
+        val asked = run.code().mapNotNull { (it as? ReferenceInstruction)?.reference as? MethodReference }
+            .filter { call -> controllers.any { it.type == call.definingClass } }
+        assertEquals("$where asks its controller for more than the hide", 1, asked.size)
+        val hide = controllers.single { it.type == asked.single().definingClass }.methods.single { it.name == asked.single().name }
+        assertTrue("$where: ${hide.name} doesn't hand the updater the hide",
+            hide.code().any { it.opcode == Opcode.INVOKE_INTERFACE && it.reference()!!.startsWith("$updater->") })
+        assertTrue("$where has no local register for the hook", run.implementation!!.registerCount - 1 >= 1)
+
+        val context = PatchContexts.of(listOf(runnable))
+        val method = context.mutableClassDefBy(runnable.type).methods.single { it.sameAs(run) }
+        val original = method.code()
+        method.noTimerWhileKept()
+        val patched = method.code()
+        assertEquals("$where gains four instructions", original.size + 4, patched.size)
+        assertEquals("$where: the extension is asked first", KEEPS_CONTROLS, patched[0].reference())
+        val register = (patched[1] as OneRegisterInstruction).registerA
+        assertTrue("$where: the hook writes v$register, which isn't a local", register < method.localRegisterCount())
+        assertEquals("$where: a yes hides nothing", Opcode.RETURN_VOID, patched[3].opcode)
         assertEquals("$where: Facebook's code stays", original.map { it.opcode }, patched.drop(4).map { it.opcode })
         assertEquals("$where: a no lands on Facebook's first instruction", setOf(3, 4), ControlFlow.of(method).normal[2].toSet())
     }

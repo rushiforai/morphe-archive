@@ -11,6 +11,8 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.declaredVersions
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstruction
 import com.android.tools.smali.dexlib2.AccessFlags
 
@@ -47,10 +49,12 @@ private fun MutableMethod.filterProfileUserParameter(parameterIndex: Int) {
     )
 }
 
+private const val PATCH_NAME = "Hide profile shortcuts"
+
 @Suppress("unused")
 val hideProfileShortcutsPatch = bytecodePatch(
     name = "Hide profile shortcuts",
-    description = "Hides the shortcuts you pick from the row under a profile's bio, like TikTok Studio or Your orders. TikTok's server decides what goes in that row, so the checklist offers the ones it has sent to your phone, and you can also type names. Restart TikTok after a change. Switch: Hushfeed settings > App.",
+    description = "Hides the shortcuts you pick from the row under a profile's bio, like TikTok Studio or Your orders. TikTok's server decides what goes in that row, so the checklist offers the ones it has sent to your phone, and you can also type names. A separate switch hides the Thoughts bubble above a profile picture. Restart TikTok after a change. Switch: Hushfeed settings > App.",
     default = true,
 ) {
     category("Feed")
@@ -62,7 +66,31 @@ val hideProfileShortcutsPatch = bytecodePatch(
             0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableProfileShortcuts()V",
         )
+        // The Thoughts bubble (#122) is required on a declared build, where
+        // ProfileThoughtsAnchorsTest holds both of its hooks, and left out with a note on any
+        // other, so a renamed bubble does not take the shortcut filter down with it. Everything
+        // is found before anything is written, so a miss leaves neither half applied.
+        val thoughts = try {
+            val avatar = ProfileAvatarViewCreatedFingerprint.method
+            val store = avatar.thoughtBubbleStore(PATCH_NAME)
+            val visibility = ThoughtVisibilityCallbackFingerprint.method.also { it.requireLocals(PATCH_NAME, 1) }
+            Triple(avatar, store, visibility)
+        } catch (problem: Exception) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Hide thoughts on profiles on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
         OwnProfileConversionFingerprint.method.filterProfileUserParameter(0)
         ProfileConversionFingerprint.method.filterProfileUserParameter(1)
+
+        if (thoughts != null) {
+            val (avatar, store, visibility) = thoughts
+            avatar.hideThoughtBubble(store)
+            visibility.keepThoughtSpaceClosed(PATCH_NAME)
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableProfileThoughts()V",
+            )
+        }
     }
 }

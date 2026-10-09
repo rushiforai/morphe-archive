@@ -1,3 +1,19 @@
+## [0.9.0](https://github.com/Santodan/santodan-patches/compare/v0.8.0...v0.9.0) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **nuviotv:** reduce badge work and isolate badge composition [skip ci] ([8bcfc45](https://github.com/Santodan/santodan-patches/commit/8bcfc45cbfbd3984371a578dd296fea7cb16a6ee))
+
+### ✨ New Features
+
+* **nuvio:** label patch settings groups [skip ci] ([c434e81](https://github.com/Santodan/santodan-patches/commit/c434e81f568db2d2fbe19588dcfd3d0800111956))
+* **nuvio:** preload stream sources with diagnostics [skip ci] ([c645e4f](https://github.com/Santodan/santodan-patches/commit/c645e4fa65b743424a75908be15b2e07cc63a484))
+* **nuvio:** show upcoming movie dates in library and collections ([f8d6bd1](https://github.com/Santodan/santodan-patches/commit/f8d6bd1915a4412e0731a9ecb1aed805d9b6aa3f))
+
+### 🚀 Updated App Support
+
+* **nuviotv:** support 1.1.0-beta.5 across all patches [skip ci] ([dd7a8f4](https://github.com/Santodan/santodan-patches/commit/dd7a8f4b08fa71cf9b167e7c67f9e27dfa4bea41))
+
 ## [0.8.0](https://github.com/Santodan/santodan-patches/compare/v0.7.0...v0.8.0) (2026-10-07)
 
 ### 🐛 Bug Fixes
@@ -54,14 +70,31 @@
 
 ## Unreleased
 
+### Bug Fixes
+
+* **nuviotv:** isolate remaining-count and finale-date badge composition in dedicated groups to prevent remembered-slot type collisions and Compose start/end imbalance crashes
+
+* **nuviotv:** publish incremental merged Watched badges only for changed cached metadata, preserve full history for remaining counts, bound unchanged-history retries to two minutes, and limit badge progress logs to once every 30 seconds
+
+* **nuviotv:** limit Remaining Episodes work to recently rendered Continue Watching cards, skip counting while disabled, calculate off the rendering thread, persist only changed counts, and bound fallback fetches with retry backoff
+
+* **nuviotv:** allow beta.5 through the remaining-episode patch execution guard, matching advertised compatibility; verify supported and rejected targets alongside real APK hooks
+
+### Updated App Support
+
+* **nuviotv:** support 1.1.0-beta.5 across all five patches, including the shared Santodan-Patches menu, merged progress and Watched badges, remaining counts, Upcoming finale dates, library/collection finale dates, and side-by-side installation; retain beta.2/beta.4 support
+
 ### Improvements
 
+* **nuviotv:** log stream preload starts, completion times, source counts, skipped targets, cancellations, and timeouts under SantodanStreams without repeating composition hits or exposing stream URLs
+* **nuviotv:** add native Continue Watching and UI labels inside Layout > Santodan-Patches on beta.4/beta.5; group the existing switches and omit labels for uninstalled patch groups
 * **nuviotv:** open Home without waiting for merged tracking refresh; restore per-profile cached progress, watched items, episode history, and catalog aliases in the background, then refresh connected providers every two minutes
 * **nuviotv:** cache reflection lookups, index next-up seeds by show, and reuse a single worker for incremental Watched badge updates; log provider-read and total merge times
 * **nuviotv:** emulator validation reduced fully drawn startup from approximately 17 seconds to 2.725 seconds while merged synchronization completed in the background
 
 ### New Features
 
+* **nuviotv:** add independent opt-in Continue Watching and detail-page stream preloading patches for beta.4/beta.5, grouped under Streams; reuse native profile/configuration-aware source searches with bounded background work
 * **nuviotv:** group beta.4 runtime patch settings under the expandable Layout > Santodan-Patches menu, including merged progress and its strategy; preserve existing preferences and show only installed patches
 * **nuviotv:** add the independent beta.4 Finale dates in library and collections patch, with separate disabled-by-default switches under Layout > Santodan-Patches
 * **nuviotv:** display the latest known catalog episode date on library and collection series posters as a blue `dd-MMM-yy` badge, including past dates; retain each location during recomposition and skip movies, unknown dates, and unrelated catalog rows

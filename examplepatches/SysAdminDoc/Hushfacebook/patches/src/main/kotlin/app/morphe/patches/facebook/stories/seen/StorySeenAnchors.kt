@@ -45,19 +45,19 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * that creates that class and fills story_ids_list, and the one other method of that method's
  * class that calls it.
  *
- * Mark as seen (#88, read from 577, 580 and 581 on 2026-10-07). The sender has the same shape on all
- * three (581 LX/AR6;->A00, 580 LX/AqQ;->A00, 577 LX/A5o;->A00): a callback, the FbUserSession, three
- * strings, the map of bucket filters, the set of card ids and the peek flag. The hook hands all of
- * it to the extension and sends the set it answers, which can be a new set of only the marked
- * cards; a null still returns before anything is built. The filters map may be null, since the
- * builder skips bucket_to_story_card_id_filters then.
+ * Mark as seen (#88, read from 577, 580 and 581 on 2026-10-07). The sender has the same shape on
+ * all three (581 LX/AR6;->A00): a callback, the FbUserSession, three strings, the map of bucket
+ * filters, the set of card ids and the peek flag. The hook hands all of it to the extension and
+ * sends the set it answers, which can be a new set of only the marked cards; a null still returns
+ * before anything is built. The filters map may be null, since the builder skips
+ * bucket_to_story_card_id_filters then.
  *
- * The seen helper (581 LX/AGC, 580 LX/9fg, 577 LX/A3k) is the one class loading "story_preview" that
- * calls the sender. Its static void (FbUserSession, StoryBucket, StoryCard, helper, boolean) method
- * (A00 on all three) runs for each card about to be counted as viewed, and reads the card's id
- * through StoryCard.getId(), a kept method. The hook goes first in it with the session, the bucket
- * and the card, so the button knows the card on screen. The extension's two stubs are filled to
- * call the sender and StoryCard.getId().
+ * The seen helper (581 LX/AGC) is the one class loading "story_preview" that calls the sender. Its
+ * static void (FbUserSession, StoryBucket, StoryCard, helper, boolean) method (A00 on all three)
+ * runs for each card about to be counted as viewed, and reads the card's id through
+ * StoryCard.getId(), a kept method. The hook goes first in it with the session, the bucket and the
+ * card, so the button knows the card on screen. The extension's two stubs are filled to call the
+ * sender and StoryCard.getId().
  *
  * The eye must follow the card on screen, which the helper doesn't promise: its caller skips the
  * counted method for some bucket types and some cards, and a late callback can count a card the

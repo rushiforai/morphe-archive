@@ -1,15 +1,20 @@
 {
   "name": "aidans-patches-version-checker",
   "version": "1.0.0",
+  "type": "module",
   "private": true,
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "types": "wrangler types",
+    "test": "vitest run",
     "check": "tsc --noEmit"
   },
   "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.22.0",
     "@cloudflare/workers-types": "^4.20250214.0",
     "typescript": "^5.7.3",
+    "vitest": "^4.1.0",
     "wrangler": "^3.111.0"
   }
 }

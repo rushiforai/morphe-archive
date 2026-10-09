@@ -43,12 +43,11 @@ private const val GATE_WINDOW = 16
 /**
  * Facebook already knows how to slide its bottom tab bar away while the feed scrolls down. As the
  * main screen starts, it builds the bar's scroll-away entry, named [BOTTOM_TABS_CONTAINER], only
- * when one check answers yes (581 `LX/1wt;->A0A`, 580 `LX/1rJ;->A0A`, 577 `LX/1qY;->A0B`). The
- * same check is asked by the feed's floating button, the mini player and the screens that make
- * room for the bar, so they all agree on whether it slides. It answers yes when scroll-away runs
- * at all on this phone, the bar is at the bottom (the class's own check of
- * fb4a_bottom_tabs_override_enabled, the read Tab bar at the bottom answers), and two server
- * settings turn the experiment on for the account.
+ * when one check answers yes (581 `LX/1wt;->A0A`). The same check is asked by the feed's floating
+ * button, the mini player and the screens that make room for the bar, so they all agree on whether
+ * it slides. It answers yes when scroll-away runs at all on this phone, the bar is at the bottom
+ * (the class's own check of fb4a_bottom_tabs_override_enabled, the read Tab bar at the bottom
+ * answers), and two server settings turn the experiment on for the account.
  *
  * The extension goes in right after the bar's position check passes. While the switch is on it
  * answers yes in place of the two server settings; otherwise Facebook carries on to them. With the

@@ -175,7 +175,8 @@ class ExtensionBridgeLookupTest {
             "FeedMutePatch.kt:abandonPageFocus", "FeedMutePatch.kt:requestPageFocus",
             "NativePlaybackBridge.kt:currentAweme", "NativePlaybackBridge.kt:pauseNative",
             "NativePlaybackBridge.kt:resumeNative", "SubtitleToolsPatch.kt:rootOf",
-            "PlaybackSpeedPatch.kt:onFirstFrame", "AutoAdvancePatch.kt:readState",
+            "PlaybackSpeedPatch.kt:onFirstFrame", "PlaybackSpeedPatch.kt:setNativeSpeed",
+            "PlaybackSpeedPatch.kt:nativeAweme", "AutoAdvancePatch.kt:readState",
             "NotInterestedPatch.kt:createCall", "RememberClearDisplayPatch.kt:postClear",
             "RememberClearDisplayPatch.kt:readCurrentAweme", "HideLauncherShortcutsPatch.kt:askHostToRebuild",
         )

@@ -20,6 +20,11 @@ public final class MessageMenuForTests {
         return MessageMenu.on(Settings.MESSAGE_MENU_COPY_PHOTO);
     }
 
+    /** Whether a message's menu would offer Quick forward. */
+    public static boolean quickForwardOn() {
+        return MessageMenu.on(Settings.MESSAGE_MENU_QUICK_FORWARD);
+    }
+
     /** Whether a message's menu would offer Message details. */
     public static boolean detailsOn() {
         return MessageMenu.on(Settings.MESSAGE_MENU_DETAILS);

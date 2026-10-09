@@ -95,6 +95,7 @@ val removePromosAndGiveawaysPatch = rawResourcePatch(
     description = "Blocks in-app deal popups, giveaway screens, Knot card-linking dialogs, and marketing banners across the app.",
     default = true
 ) {
+    category("Ads")
     compatibleWith(COMPATIBILITY_SEZZLE)
 
     val blockMerchantDealPopovers = booleanOption(

@@ -739,8 +739,8 @@ public final class FeatureGateLabFragment extends Fragment {
                 SOURCE_MANAGERS[selectedSource]
         );
 
-        // Plain tab and filter changes are cheap. Fuzzy search is not: the complete 47.0.3
-        // catalogue has 16,052 entries, so it is ranked on a serial worker and only the newest
+        // Plain tab and filter changes are cheap. Fuzzy search is not: the complete 47.1.4
+        // catalogue has more than 20,000 entries, so it is ranked on a serial worker and only the newest
         // answer is allowed back onto the view hierarchy.
         if (query.isEmpty()) {
             applyRebuild(generation, buildRebuild(request, generation, false));

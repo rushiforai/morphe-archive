@@ -12,5 +12,5 @@ val COMPATIBILITY_BLACKJACK = Compatibility(
     apkFileType = ApkFileType.APKM,
     appIconColor = 0x205B1F,
     signatures = setOf("32e1c2b4c9ab0189d3e4e1c67806e6f4fc454aa758a74ccaedda8a309aa6b205"),
-    targets = listOf(AppTarget(version = "2.22.08", minSdk = 25))
+    targets = listOf(AppTarget(version = "2.22.09", minSdk = 25))
 )

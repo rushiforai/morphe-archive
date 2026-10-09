@@ -66,6 +66,10 @@ object NuvioMergedProgress {
     private val mergedWatchedItems = MutableStateFlow<List<Any>>(emptyList())
     @Volatile private var mergedWatchedHistory: Map<String, Set<Any>> = emptyMap()
     @Volatile private var mergedShowSiblings: Map<String, Set<String>> = emptyMap()
+    private val badgeDeltas = java.util.Collections.synchronizedMap(java.util.WeakHashMap<Any, NuvioBadgeDelta>())
+    private val badgeRetryTimes = java.util.Collections.synchronizedMap(java.util.WeakHashMap<Any, Long>())
+    private val retryBadgeCache = ThreadLocal<Boolean>()
+    @Volatile private var lastBadgeLog = 0L
     private val pendingBadgePublications = ConcurrentHashMap.newKeySet<Any>()
     private val authenticated = MutableStateFlow(true)
     private val originByContent = ConcurrentHashMap<String, String>()
@@ -110,7 +114,7 @@ object NuvioMergedProgress {
                 else -> "SantodanMergedSettingsCallback"
             }
         }
-        findMethod(loader.loadClass("sa.eb"), "m", 13).invoke(null,
+        findMethod(loader.loadClass(NuvioRuntimeLayout.name("sa.eb")), "m", 13).invoke(null,
             title, description, checked, callback(action), null, callback {}, false, null, 0L, false, composer, 0, 1008)
     }
 
@@ -347,17 +351,27 @@ object NuvioMergedProgress {
         return if (siblings) mergedShowSiblings else mergedWatchedHistory
     }
 
+    /** Other patches need full history even when native incremental publication uses a delta. */
+    @JvmStatic fun completeWatchedHistory(native: Map<*, *>): Map<*, *> =
+        if (enabled() && watchedSnapshotReady.value) mergedWatchedHistory else native
+
     @JvmStatic fun allowBadgeCacheHit(nativeHit: Boolean): Boolean {
-        if (!enabled()) return nativeHit
-        if (nativeHit) Log.d(TAG, "Retrying badge metadata despite unchanged watched IDs")
-        return false
+        val retry = retryBadgeCache.get() == true
+        retryBadgeCache.remove()
+        return if (enabled() && retry) false else nativeHit
     }
 
     /** A persisted deadline cannot replace missing in-memory episode metadata. */
     @JvmStatic fun prepareBadgeValidation(home: Any) {
-        if (!enabled()) return
+        retryBadgeCache.set(false)
+        if (!enabled() || !watchedSnapshotReady.value) return
         try {
-            if (!watchedSnapshotReady.value || badgeHistories[home] == mergedWatchedHistory) return
+            val now = System.nanoTime()
+            val changed = badgeHistories[home] != mergedWatchedHistory
+            if (!changed && now - (badgeRetryTimes[home] ?: 0L) < 120_000_000_000L) return
+            badgeRetryTimes[home] = now
+            retryBadgeCache.set(true)
+            if (!changed) return
             badgeHistories[home] = mergedWatchedHistory
             val cache = field(home, "T0").get(home) as Map<*, *>
             val holder = field(home, "u").get(home) ?: return
@@ -383,11 +397,19 @@ object NuvioMergedProgress {
               try {
                 if (!enabled()) return@execute
                 val cache = field(home, "T0").get(home) as Map<*, *>
-                findMethod(home.javaClass.classLoader.loadClass("la.t5"), "g", 2)
-                    .invoke(null, home, mergedWatchedHistory)
+                val snapshot = synchronized(cache) { HashMap(cache) }
+                val delta = synchronized(badgeDeltas) { badgeDeltas.getOrPut(home) { NuvioBadgeDelta() } }
+                val changed = delta.changed(mergedWatchedHistory, snapshot)
+                if (changed.isEmpty()) return@execute
+                findMethod(home.javaClass.classLoader.loadClass(NuvioRuntimeLayout.name("la.t5")), "g", 2)
+                    .invoke(null, home, changed)
                 val holder = field(home, "u").get(home)
                 val labels = (field(holder, "f").get(holder) as StateFlow<*>).value as Set<*>
-                Log.d(TAG, "Badge validation progress: cached=${cache.size} watched=${mergedWatchedHistory.size} labels=${labels.size}")
+                val now = System.nanoTime()
+                if (now - lastBadgeLog >= 30_000_000_000L) {
+                    lastBadgeLog = now
+                    Log.d(TAG, "Badge validation progress: changed=${changed.size} cached=${cache.size} labels=${labels.size}")
+                }
               } catch (error: Throwable) { Log.e(TAG, "Incremental watched badge validation failed", error) }
               finally { pendingBadgePublications.remove(home) }
             }

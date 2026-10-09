@@ -46,22 +46,22 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * header reads the fields (581 LX/KPB's constructor, 580 LX/LXK, 577 LX/auZ). Each read answers the
  * extension's way. The pill under videos in the feed that opens Edits comes from the server, asked
  * for with the request parameter fetch_edits_app_deep_dive_pill, which Facebook sets from a
- * MobileConfig gate in the feed's query (581 LX/1bb;->A02, 580 LX/1SU, 577 LX/3JX), the async ad
- * query (581 LX/2HF, 577 LX/2QM) and three video queries that pass it boxed (581 LX/8Vc, LX/8Zf,
- * LX/8aU). The gate's answer goes to the extension before it's sent. 577's LX/3Xp reads the name
- * from a response tree, not a gate, and stays.
+ * MobileConfig gate in the feed's query (581 LX/1bb;->A02), the async ad query (581 LX/2HF) and
+ * three video queries that pass it boxed (581 LX/8Vc, LX/8Zf, LX/8aU). The gate's answer goes to
+ * the extension before it's sent. 577's LX/3Xp reads the name from a response tree, not a gate, and
+ * stays.
  *
- * Threads. The composer asks a capability whether to show its Threads cross-posting onboarding:
- * the class whose constructor names itself ComposerThreadsCrossPostOnboardingCapability (581 LX/Bsk,
- * 580 LX/Bss, 577 LX/Bvc), with one no-argument boolean, its only interface method.
+ * Threads. The composer asks a capability whether to show its Threads cross-posting onboarding: the
+ * class whose constructor names itself ComposerThreadsCrossPostOnboardingCapability (581 LX/Bsk),
+ * with one no-argument boolean, its only interface method.
  *
  * Meta Verified. After you post, MetaVerifiedFbAfterPostUpsellBottomSheetHandlerImpl (kept) asks
- * the server whether you're eligible for its offer sheet with MetaVerifiedFbAfterPostUpsellEligibility
- * Query, in a suspend method answering a Boolean, and shows the sheet only on a yes. The label under
- * some posts' headers comes from MetaVerifiedLabelPlugin (kept), whose static (props) -> String
- * answers the label's text or null, and the subtitle plugin dispatcher (581 LX/2Ap;->A1v, 580
- * LX/25t;->A1t, 577 LX/1xW;->A1r) asks it once to decide whether the label is wanted. Only that call
- * is answered: the plugin's own draw asks again and throws on a null.
+ * the server whether you're eligible for its offer sheet with
+ * MetaVerifiedFbAfterPostUpsellEligibility Query, in a suspend method answering a Boolean, and
+ * shows the sheet only on a yes. The label under some posts' headers comes from
+ * MetaVerifiedLabelPlugin (kept), whose static (props) -> String answers the label's text or null,
+ * and the subtitle plugin dispatcher (581 LX/2Ap;->A1v) asks it once to decide whether the label is
+ * wanted. Only that call is answered: the plugin's own draw asks again and throws on a null.
  *
  * Avatar stickers. Three Litho components draw the avatar sticker upsells, each naming itself:
  * AvatarStickerHorizonUpsellQPComponent and InstantAvatarNuxComponent (a render method) and

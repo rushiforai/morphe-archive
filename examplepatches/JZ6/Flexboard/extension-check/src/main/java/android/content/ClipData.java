@@ -1,26 +1,41 @@
 package android.content;
 
 /**
- * Compile-time shape only — the set of members the extension actually uses, nothing more.
- * CI compiles against the real android.jar; this stub is never packaged and never runs.
+ * SDK shape with minimal test behaviour. It runs in extension-check via FakeClipboard but is
+ * never packaged into the shipped extension, which compiles against android.jar.
  */
 public class ClipData {
 
+    private CharSequence text;
+
+    private ClipData() {}
+
     public static ClipData newPlainText(CharSequence label, CharSequence text) {
-        return null;
+        ClipData data = new ClipData();
+        data.text = text;
+        return data;
     }
 
     public int getItemCount() {
-        return 0;
+        return 1;
     }
 
     public static class Item {
+        private final CharSequence text;
+
+        public Item(CharSequence text) {
+            this.text = text;
+        }
+
         public CharSequence getText() {
-            return null;
+            return text;
         }
     }
 
     public Item getItemAt(int index) {
-        return null;
+        if (index != 0) {
+            throw new IndexOutOfBoundsException("one clipboard item");
+        }
+        return new Item(text);
     }
 }

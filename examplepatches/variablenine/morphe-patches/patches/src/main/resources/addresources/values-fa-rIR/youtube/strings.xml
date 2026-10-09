@@ -20,7 +20,6 @@ Second \"item\" text"</string>
   <!-- In languages where "About" is ambiguous, translate this as "About Morphe" (i.e., About this app). -->
   <string name="morphe_settings_screen_00_about_title">درباره</string>
   <string name="morphe_settings_screen_01_ads_title">تبلیغات</string>
-  <string name="morphe_settings_screen_02_alt_thumbnails_title">تصاویر بندانگشتی جایگزین</string>
   <string name="morphe_settings_screen_03_feed_title">خوراک</string>
   <string name="morphe_settings_screen_04_general_title">عمومی</string>
   <string name="morphe_settings_screen_05_player_title">پخش‌کننده</string>
@@ -154,6 +153,7 @@ Second \"item\" text"</string>
   <string name="morphe_hide_sync_button_title">پنهان‌کردن دکمهٔ «همگام‌سازی با ویدئو»</string>
   <string name="morphe_hide_timed_reactions_title">پنهان‌کردن واکنش‌های زمان‌دار</string>
   <string name="morphe_hide_timed_reactions_summary">ویژگی امکان واکنش‌دادن کاربران با ایموجی در بخش دیدگاه‌ها و گفت‌وگوی زنده را پنهان می‌کند</string>
+  <!-- 'Help & feedback' should be translated using the same localized wording YouTube displays for the menu item. -->
   <string name="morphe_hide_video_title_title">پنهان‌کردن عنوان ویدئو</string>
   <string name="morphe_hide_video_title_summary">عنوان ویدئو را در حالت تمام‌صفحه پنهان می‌کند</string>
   <string name="morphe_sanitize_video_subtitle_title">پاک‌سازی زیرنویس ویدئو</string>
@@ -651,7 +651,7 @@ Second \"item\" text"</string>
   <!-- 'Connect' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_connect_button_title">پنهان‌کردن دکمهٔ اتصال</string>
   <!-- 'Report' should be translated using the same localized wording YouTube displays for the button.
-          This button usually appears on live streamed videos. -->
+          This button usually appears on live stream videos. -->
   <string name="morphe_hide_report_button_title">پنهان‌کردن دکمهٔ گزارش</string>
   <!-- 'Remix' should be translated using the same localized wording YouTube displays for the button. -->
   <string name="morphe_hide_remix_button_title">پنهان‌کردن دکمهٔ ریمیکس</string>
@@ -1037,8 +1037,6 @@ Second \"item\" text"</string>
   <string name="morphe_playback_in_feeds_entry_wifi_only">فقط Wi-Fi</string>
   <string name="morphe_playback_in_feeds_entry_off">خاموش</string>
   <!-- layout.originaltitles.restoreOriginalTitlesPatch -->
-  <string name="morphe_restore_original_titles_type_entry_translated">ترجمه شد</string>
-  <string name="morphe_restore_original_titles_type_entry_original">اصلی</string>
   <!-- layout.feedrefresh.disableAutoFeedRefreshPatch -->
   <!-- layout.miniplayer.miniplayerPatch -->
   <string name="morphe_miniplayer_disable_resuming_title">غیرفعال‌کردن ادامهٔ پخش در مینی‌پخش‌کننده</string>
@@ -1106,39 +1104,33 @@ Second \"item\" text"</string>
   <!-- layout.thumbnails.bypassImageRegionRestrictionsPatch -->
   <string name="morphe_bypass_image_region_restrictions_title">دورزدن محدودیت‌های منطقه‌ای تصویر</string>
   <string name="morphe_bypass_image_region_restrictions_summary">درخواست‌های تصاویر بندانگشتی را به سرور جایگزین هدایت می‌کند تا تصاویر گمشده در کشورهای دارای محدودیت را اصلاح کند</string>
-  <!-- layout.thumbnails.alternativeThumbnailsPatch -->
+  <!-- layout.dearrow.deArrowPatch -->
+  <!-- "DeArrow" must be kept untranslated. -->
   <!-- 'Home' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_home_title">برای برگهٔ خانه</string>
+  <string name="morphe_dearrow_thumbnail_home_title">برای برگهٔ خانه</string>
   <!-- 'Subscriptions' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_subscription_title">برای برگهٔ اشتراک‌ها</string>
+  <string name="morphe_dearrow_thumbnail_subscription_title">برای برگهٔ اشتراک‌ها</string>
   <!-- 'You' should be translated using the same localized wording YouTube displays for the tab. -->
-  <string name="morphe_alt_thumbnail_library_title">برای برگهٔ «برای شما»</string>
-  <string name="morphe_alt_thumbnail_player_title">برای فهرست‌های پخش و پیشنهادهای پخش‌کننده</string>
-  <string name="morphe_alt_thumbnail_search_title">برای نتایج جست‌وجو</string>
-  <string name="morphe_alt_thumbnail_options_entry_1">تصاویر بندانگشتی اصلی</string>
-  <string name="morphe_alt_thumbnail_options_entry_2">DeArrow و تصاویر بندانگشتی اصلی</string>
-  <string name="morphe_alt_thumbnail_options_entry_3">DeArrow و تصاویر ثابت</string>
-  <string name="morphe_alt_thumbnail_options_entry_4">تصاویر ثابت</string>
-  <string name="morphe_alt_thumbnail_dearrow_about_summary">"DeArrow تصاویر بندانگشتی جمع‌سپاری‌شده برای ویدئوهای YouTube فراهم می‌کند. این تصاویر معمولاً از تصاویر ارائه‌شده توسط YouTube مرتبط‌تر هستند
-
-اگر فعال باشد، نشانی ویدئوها به سرور API ارسال می‌شود و هیچ دادهٔ دیگری ارسال نمی‌شود. اگر ویدئویی تصویر بندانگشتی DeArrow نداشته باشد، تصاویر اصلی یا ثابت نمایش داده می‌شوند
-
-برای بازکردن DeArrow به اینجا ضربه بزنید: DeArrow.ajay.app"</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_title">نمایش هشدارهای خطای اتصال</string>
-  <string name="morphe_alt_thumbnail_dearrow_connection_toast_summary">وقتی سرور DeArrow در دسترس نباشد، اعلانی نمایش می‌دهد</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_title">نقطهٔ پایانی API DeArrow</string>
-  <string name="morphe_alt_thumbnail_dearrow_api_url_summary">نشانی نقطهٔ پایانی حافظهٔ پنهان تصاویر بندانگشتی DeArrow</string>
-  <string name="morphe_alt_thumbnail_stills_about_title">تصاویر ثابت ویدئو</string>
-  <string name="morphe_alt_thumbnail_stills_about_summary">تصاویر ثابت از ابتدا / میانه / انتهای هر ویدئو گرفته می‌شوند. این تصاویر در YouTube تعبیه شده‌اند و از API خارجی استفاده نمی‌شود</string>
-  <string name="morphe_alt_thumbnail_stills_fast_title">استفاده از تصاویر ثابت سریع</string>
-  <string name="morphe_alt_thumbnail_stills_fast_summary">با استفاده از تصاویر با کیفیت متوسط، سرعت بارگیری را افزایش می‌دهد. پخش‌های زنده، ویدئوهای منتشرنشده و قدیمی‌تر ممکن است تصاویر بندانگشتی خالی نشان دهند</string>
-  <string name="morphe_alt_thumbnail_stills_time_title">استخراج قاب ویدئو از</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_1">ابتدا</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_2">میانه</string>
-  <string name="morphe_alt_thumbnail_stills_time_entry_3">انتها</string>
+  <string name="morphe_dearrow_thumbnail_library_title">برای برگهٔ «برای شما»</string>
+  <string name="morphe_dearrow_thumbnail_player_title">برای فهرست‌های پخش و پیشنهادهای پخش‌کننده</string>
+  <string name="morphe_dearrow_thumbnail_search_title">برای نتایج جست‌وجو</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_1">تصاویر بندانگشتی اصلی</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_2">DeArrow و تصاویر بندانگشتی اصلی</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_3">DeArrow و تصاویر ثابت</string>
+  <string name="morphe_dearrow_thumbnail_options_entry_4">تصاویر ثابت</string>
+  <string name="morphe_dearrow_connection_toast_title">نمایش هشدارهای خطای اتصال</string>
+  <string name="morphe_dearrow_connection_toast_summary">وقتی سرور DeArrow در دسترس نباشد، اعلانی نمایش می‌دهد</string>
+  <string name="morphe_dearrow_api_url_title">نقطهٔ پایانی API DeArrow</string>
+  <string name="morphe_dearrow_api_url_summary">نشانی نقطهٔ پایانی حافظهٔ پنهان تصاویر بندانگشتی DeArrow</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_title">تصاویر ثابت ویدئو</string>
+  <string name="morphe_dearrow_thumbnail_stills_about_summary">تصاویر ثابت از ابتدا / میانه / انتهای هر ویدئو گرفته می‌شوند. این تصاویر در YouTube تعبیه شده‌اند و از API خارجی استفاده نمی‌شود</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_title">استخراج قاب ویدئو از</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_1">ابتدا</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_2">میانه</string>
+  <string name="morphe_dearrow_thumbnail_stills_time_entry_3">انتها</string>
   <!-- Translations of this should not be longer than the original English text, otherwise the text can be clipped and not entirely shown. -->
-  <string name="morphe_alt_thumbnail_dearrow_error">DeArrow موقتاً در دسترس نیست (کد وضعیت: %s)</string>
-  <string name="morphe_alt_thumbnail_dearrow_error_generic">DeArrow موقتاً در دسترس نیست</string>
+  <string name="morphe_dearrow_error">DeArrow موقتاً در دسترس نیست (کد وضعیت: %s)</string>
+  <string name="morphe_dearrow_error_generic">DeArrow موقتاً در دسترس نیست</string>
   <!-- misc.announcements.announcementsPatch -->
   <!-- misc.playercontrols.playerControlsPatch -->
   <string name="morphe_restore_old_player_buttons_title">بازیابی سبک قدیمی دکمه‌های پخش‌کننده</string>

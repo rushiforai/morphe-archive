@@ -14,10 +14,8 @@ export function compareAppVersions(
   targetVersion: string,
   playVersion: string | null
 ): FreshnessStatus {
-  if (!playVersion) {
-    // If Play Store does not expose a discrete version string (e.g. "Varies with device"),
-    // consider it up to date against the tested target.
-    return 'up-to-date';
+  if (!playVersion || playVersion.trim().toLowerCase().includes('varies')) {
+    return 'unknown';
   }
 
   const targetParts = parseVersionSegments(targetVersion);

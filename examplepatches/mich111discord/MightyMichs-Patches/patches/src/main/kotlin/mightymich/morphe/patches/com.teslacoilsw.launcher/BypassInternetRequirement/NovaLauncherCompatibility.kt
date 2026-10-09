@@ -12,8 +12,8 @@ object NovaLauncherCompatibility {
         appIconColor = 0x070437,
         targets = listOf(
             AppTarget(
-                version = 8.8.9,
-                isExperimental = false
+                version = null,
+                isExperimental = true
             )
         )
     )

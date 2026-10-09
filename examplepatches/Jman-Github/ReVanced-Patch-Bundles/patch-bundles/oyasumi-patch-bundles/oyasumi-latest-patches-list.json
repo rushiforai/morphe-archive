@@ -1,5 +1,5 @@
 {
-    "version": "v0.6.0-dev.26",
+    "version": "v0.6.0-dev.33",
     "patches": [
         {
             "category": null,
@@ -278,7 +278,39 @@
                 "BytecodePatch"
             ],
             "description": "Hide the suggested-topics section shown under a pin.",
-            "name": "Hide \"Ideas you might love\" section",
+            "name": "Hide \"Ideas you might love\" section (DIAGNOSTIC BUILD)",
+            "options": []
+        },
+        {
+            "category": null,
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "name": "Pinterest",
+                    "packageName": "com.pinterest",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "14.38.0",
+                            "versionCodes": {
+                                "ARM64_V8A": 14388010,
+                                "ARMEABI_V7A": 14388010,
+                                "X86": 14388010,
+                                "X86_64": 14388010
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "14.38.0"
+                    ]
+                }
+            ],
+            "default": false,
+            "dependencies": [
+                "BytecodePatch"
+            ],
+            "description": "Remove the \"More ideas for this board\" section from a board, header and contents alike.",
+            "name": "Hide \"More ideas for this board\" section",
             "options": []
         },
         {
@@ -567,6 +599,36 @@
             ],
             "description": "Return a random advertising ID instead of the real one, so the app has no advertising identifier to hand to Pinterest or to any bundled tracker.",
             "name": "Neutralize advertising ID",
+            "options": []
+        },
+        {
+            "category": null,
+            "compatiblePackages": [
+                {
+                    "apkFileType": "APK",
+                    "name": "Truecaller",
+                    "packageName": "com.truecaller",
+                    "targets": [
+                        {
+                            "isExperimental": false,
+                            "version": "26.31.6",
+                            "versionCodes": {
+                                "ARM64_V8A": 2631006,
+                                "ARMEABI_V7A": 2631006,
+                                "X86": 2631006,
+                                "X86_64": 2631006
+                            }
+                        }
+                    ],
+                    "versions": [
+                        "26.31.6"
+                    ]
+                }
+            ],
+            "default": true,
+            "dependencies": [],
+            "description": "Make the app see an empty contact list, so nothing is shown from your address book and nothing can be matched or uploaded from it.",
+            "name": "Return an empty contact list",
             "options": []
         }
     ]

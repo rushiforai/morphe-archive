@@ -1,11 +1,14 @@
 package app.spicetify.extension.spotify.settings;
 
 import android.annotation.SuppressLint;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.Editable;
@@ -24,9 +27,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ScrollView;
+import android.widget.Switch;
 import android.widget.TextView;
+import app.spicetify.extension.spotify.extensions.Extensions;
 import app.spicetify.extension.spotify.theme.ThemeBackground;
 import app.spicetify.extension.spotify.theme.ThemeException;
+import app.spicetify.extension.spotify.theme.ThemeRuntime;
 import app.spicetify.extension.spotify.theme.ThemeState;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,9 +48,10 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The Spicetify Marketplace page: Galaxy V2, then the community themes the desktop Marketplace lists,
- * with their previews and a search. A tapped theme's color.ini downloads, with the background image
- * it shows on desktop, if any, and its color scheme, chosen in a sheet when there's more than one,
- * applies like a theme on Appearance.
+ * with their previews, and its extensions, on two tabs with a search. A tapped theme's color.ini
+ * downloads, with the background image it shows on desktop, if any, and its color scheme, chosen in a
+ * sheet when there's more than one, applies like a theme on Appearance. An extension with an Android
+ * version has a switch; any other opens its GitHub page.
  */
 // Built in code by its page host, with English text like every Spicetify page.
 @SuppressLint({"ViewConstructor", "SetTextI18n"})
@@ -71,9 +78,15 @@ final class MarketplaceSettings extends LinearLayout {
     private final SpicetifySettingsScreen screen;
     private final MarketplaceLoader loader;
     private final Adapter adapter = new Adapter();
+    private final TextView themesTab;
+    private final TextView extensionsTab;
     private final EditText search;
     private final TextView status;
     private final Button refresh;
+    private final ListView list;
+    /** The Extensions tab is showing. */
+    private boolean extensions;
+    /** Themes and extensions. */
     private List<Marketplace.Theme> themes = Collections.emptyList();
     private String error;
     /** From the start of a load until its last call. */
@@ -107,17 +120,28 @@ final class MarketplaceSettings extends LinearLayout {
         }
     }
 
-    MarketplaceSettings(SpicetifySettingsScreen screen) {
+    MarketplaceSettings(SpicetifySettingsScreen screen, boolean extensions) {
         super(screen);
         this.screen = screen;
         setOrientation(VERTICAL);
-        // Not the file the IPedrax/spicetify-android fork kept its themes and extensions in.
-        loader = new MarketplaceLoader(fetcher, requests, new File(screen.getCacheDir(), "spicetify_marketplace_themes.json"),
+        // With the extensions patch, a file of its own, so a list cached without extensions can't hide
+        // them; without it, the themes-only file of earlier versions. Never the file the
+        // IPedrax/spicetify-android fork kept.
+        boolean listsExtensions = InstalledPatches.extensions();
+        loader = new MarketplaceLoader(fetcher, requests, new File(screen.getCacheDir(),
+                listsExtensions ? "spicetify_marketplace_listing.json" : "spicetify_marketplace_themes.json"),
                 System::currentTimeMillis);
+
+        LinearLayout tabs = new LinearLayout(screen);
+        tabs.setPadding(dp(16), dp(8), dp(16), 0);
+        themesTab = tab(tabs, "Themes", false);
+        extensionsTab = tab(tabs, "Extensions", true);
+        // Without the extensions patch, the page lists themes alone, as it did before.
+        tabs.setVisibility(listsExtensions ? VISIBLE : GONE);
+        addView(tabs, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
         search = new EditText(screen);
         search.setSingleLine(true);
-        search.setHint("Search themes");
         search.setInputType(InputType.TYPE_CLASS_TEXT);
         SpotifyStyle.style(search);
         search.setTypeface(SpotifyStyle.font(screen, SpotifyStyle.Font.REGULAR));
@@ -150,7 +174,7 @@ final class MarketplaceSettings extends LinearLayout {
         bar.addView(refresh, refreshParams);
         addView(bar, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
 
-        ListView list = new ListView(screen);
+        list = new ListView(screen);
         list.setDivider(null);
         list.setSelector(android.R.color.transparent);
         list.setClipToPadding(false);
@@ -159,7 +183,38 @@ final class MarketplaceSettings extends LinearLayout {
         list.setOnItemClickListener((parent, view, position, id) -> open(adapter.getItem(position)));
         addView(list, new LayoutParams(LayoutParams.MATCH_PARENT, 0, 1));
 
+        select(extensions);
         load(false);
+    }
+
+    /** A tab like Spotify's filter chips. */
+    private TextView tab(LinearLayout tabs, String label, boolean extensions) {
+        TextView tab = SpotifyStyle.text(screen, label, 14, Color.WHITE, SpotifyStyle.Font.REGULAR);
+        tab.setGravity(Gravity.CENTER);
+        tab.setMinHeight(dp(32));
+        tab.setPadding(dp(16), 0, dp(16), 0);
+        tab.setOnClickListener(view -> select(extensions));
+        LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+        params.setMarginEnd(dp(8));
+        tabs.addView(tab, params);
+        return tab;
+    }
+
+    /** Shows the Extensions tab, or the Themes tab, from the top. */
+    private void select(boolean extensions) {
+        this.extensions = extensions;
+        for (TextView tab : new TextView[] {themesTab, extensionsTab}) {
+            boolean selected = (tab == extensionsTab) == extensions;
+            GradientDrawable chip = new GradientDrawable();
+            chip.setCornerRadius(dp(16));
+            chip.setColor(selected ? SpotifyStyle.accent() : SpotifyStyle.field());
+            tab.setBackground(chip);
+            tab.setTextColor(selected ? SpotifyStyle.onColor(SpotifyStyle.accent()) : Color.WHITE);
+            tab.setSelected(selected);
+        }
+        search.setHint(extensions ? "Search extensions" : "Search themes");
+        show();
+        list.setSelection(0);
     }
 
     /** Named threads that end after a minute idle, so a closed Marketplace leaves none behind. */
@@ -208,18 +263,25 @@ final class MarketplaceSettings extends LinearLayout {
         show();
     }
 
-    /** Lists the themes that match the search, Galaxy V2 above the rest, and says what the page is doing. */
+    /**
+     * Lists the tab's items that match the search, Galaxy V2 above the themes where themes apply and
+     * Android's own extensions above the others, and says what the page is doing.
+     */
     private void show() {
-        List<Marketplace.Theme> listed = new ArrayList<>(themes.size() + 1);
-        listed.add(Marketplace.GALAXY_V2);
-        listed.addAll(themes);
+        List<Marketplace.Theme> found = new ArrayList<>();
+        for (Marketplace.Theme item : themes) if ((item.extension != null) == extensions) found.add(item);
+        List<Marketplace.Theme> listed = new ArrayList<>(found.size() + 1);
+        if (!extensions && themesApply()) listed.add(Marketplace.GALAXY_V2);
+        if (extensions) for (String id : Extensions.androidOnly()) listed.add(androidOnly(id));
+        listed.addAll(found);
         List<Marketplace.Theme> shown = Marketplace.filter(listed, search.getText().toString());
         adapter.setThemes(shown);
+        String kind = extensions ? "extensions" : "themes";
         String message = downloading != null ? "Downloading " + downloading.title + "…"
-                : loading ? "Loading themes…"
+                : loading ? "Loading " + kind + "…"
                 : error != null ? error
-                : themes.isEmpty() ? "No themes found"
-                : shown.isEmpty() ? "No themes match"
+                : found.isEmpty() ? "No " + kind + " found"
+                : shown.isEmpty() ? "No " + kind + " match"
                 : null;
         status.setText(message);
         status.setVisibility(message == null ? GONE : VISIBLE);
@@ -227,9 +289,40 @@ final class MarketplaceSettings extends LinearLayout {
         refresh.setVisibility(loading ? GONE : VISIBLE);
     }
 
+    /** An extension only Android has, as an item of the Extensions tab: its {@code extension} is its id. */
+    private static Marketplace.Theme androidOnly(String id) {
+        return new Marketplace.Theme(Extensions.title(id), Extensions.description(id), "Spicetify", null, null, null, -1, -1,
+                Collections.emptyList(), null, null, Collections.emptyList(), id);
+    }
+
+    /** Whether a theme can apply here: Theme colors is installed, on Android 11 or later. */
+    private static boolean themesApply() {
+        return InstalledPatches.themeColors() && ThemeRuntime.supported();
+    }
+
+    /** Why a theme can't apply here, for its card; null when it can. */
+    private static String themesNeed() {
+        return !InstalledPatches.themeColors() ? "Needs the Theme colors patch"
+                : !ThemeRuntime.supported() ? "Themes need Android 11 or later" : null;
+    }
+
+    /** An extension with an Android version turns on or off; any other opens its GitHub page. */
+    private void openExtension(Marketplace.Theme extension, Switch toggle) {
+        if (toggle.getVisibility() == VISIBLE) {
+            toggle.toggle();
+            return;
+        }
+        try {
+            screen.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(extension.repoUrl)));
+        } catch (ActivityNotFoundException noBrowser) {
+            new SpotifySheet(screen, "Couldn't open GitHub", "Nothing on this phone opens " + extension.repoUrl + ".")
+                    .primary("OK", () -> true).show();
+        }
+    }
+
     /** Downloads a theme's color.ini on its own thread, one theme at a time, so a tap never waits for a load. */
     private void open(Marketplace.Theme theme) {
-        if (downloading != null) return;
+        if (downloading != null || !themesApply()) return;
         downloading = theme;
         show();
         downloads.execute(() -> {
@@ -386,18 +479,75 @@ final class MarketplaceSettings extends LinearLayout {
         @Override public int getCount() { return shown.size(); }
         @Override public Marketplace.Theme getItem(int position) { return shown.get(position); }
         @Override public long getItemId(int position) { return position; }
+        @Override public int getViewTypeCount() { return 2; }
+        @Override public int getItemViewType(int position) { return shown.get(position).extension != null ? 1 : 0; }
+        /** A theme card can't be tapped where themes don't apply; an extension row handles its own taps. */
+        @Override public boolean isEnabled(int position) { return shown.get(position).extension == null && themesApply(); }
+        @Override public boolean areAllItemsEnabled() { return false; }
 
         @Override public View getView(int position, View reusable, ViewGroup parent) {
+            Marketplace.Theme item = shown.get(position);
+            if (item.extension != null) {
+                ExtensionRow row = reusable == null ? new ExtensionRow() : (ExtensionRow) reusable.getTag();
+                row.bind(item);
+                return row.view;
+            }
             Card card = reusable == null ? new Card() : (Card) reusable.getTag();
-            Marketplace.Theme theme = shown.get(position);
             // Galaxy V2's stars aren't known.
-            String stars = theme.stars < 0 ? null : theme.stars + (theme.stars == 1 ? " star" : " stars");
-            card.title.setText(theme.title);
-            card.byline.setText(stars == null ? theme.author : theme.author + " • " + stars);
-            card.description.setText(theme.description);
-            card.view.setContentDescription(theme.title + ", " + theme.author + (stars == null ? "" : ", " + stars));
-            previews.load(theme.previewUrl, card.preview, getResources().getDisplayMetrics().widthPixels);
+            String stars = item.stars < 0 ? null : item.stars + (item.stars == 1 ? " star" : " stars");
+            String need = themesNeed();
+            card.title.setText(item.title);
+            card.byline.setText(need != null ? need : stars == null ? item.author : item.author + " • " + stars);
+            card.description.setText(item.description);
+            card.view.setContentDescription(item.title + ", "
+                    + (need != null ? need : item.author + (stars == null ? "" : ", " + stars)));
+            previews.load(item.previewUrl, card.preview, getResources().getDisplayMetrics().widthPixels);
             return card.view;
+        }
+    }
+
+    /**
+     * An extension as one of the settings rows: a port has a switch, which the extensions patch
+     * enables, and any other extension says it's desktop only and opens its GitHub page.
+     */
+    private final class ExtensionRow {
+        final LinearLayout view = SpotifyStyle.row(getContext());
+        final TextView title = SpotifyStyle.text(getContext(), "", 17, Color.WHITE, SpotifyStyle.Font.REGULAR);
+        final TextView description = SpotifyStyle.text(getContext(), "", 14, SpotifyStyle.SUBDUED, SpotifyStyle.Font.REGULAR);
+        final Switch toggle = new Switch(getContext());
+
+        ExtensionRow() {
+            LinearLayout labels = SpotifyStyle.column(getContext());
+            labels.addView(title);
+            description.setPadding(0, dp(4), 0, 0);
+            labels.addView(description);
+            LayoutParams labelParams = new LayoutParams(0, LayoutParams.WRAP_CONTENT, 1);
+            labelParams.setMarginEnd(dp(16));
+            view.addView(labels, labelParams);
+            SpotifyStyle.style(toggle);
+            view.addView(toggle, new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
+            view.setTag(this);
+        }
+
+        void bind(Marketplace.Theme extension) {
+            String port = Extensions.androidOnly().contains(extension.extension) ? extension.extension
+                    : Extensions.port(extension.extension);
+            String name = port != null ? Extensions.title(port) : extension.title;
+            String about = port == null ? "Desktop only" + (extension.description.isEmpty() ? "" : " • " + extension.description)
+                    : Extensions.description(port);
+            title.setText(name);
+            description.setText(about);
+            toggle.setOnCheckedChangeListener(null); // a reused row's switch still has its last extension's listener
+            toggle.setVisibility(port == null ? GONE : VISIBLE);
+            if (port != null) {
+                toggle.setChecked(Extensions.isOn(screen, port));
+                toggle.setContentDescription(name + ". " + about);
+                toggle.setOnCheckedChangeListener((button, on) -> Extensions.setOn(screen, port, on));
+            }
+            // As on a settings page, the switch speaks for a port's row; any other row is a link.
+            view.setImportantForAccessibility(port == null ? IMPORTANT_FOR_ACCESSIBILITY_YES : IMPORTANT_FOR_ACCESSIBILITY_NO);
+            view.setContentDescription(port == null ? name + ", " + about : null);
+            view.setOnClickListener(row -> openExtension(extension, toggle));
         }
     }
 

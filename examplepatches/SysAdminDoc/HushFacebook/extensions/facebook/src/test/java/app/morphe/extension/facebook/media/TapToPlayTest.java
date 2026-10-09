@@ -584,6 +584,29 @@ public class TapToPlayTest {
         assertEquals(report, 1, occurrences(report, "Tap to play: Reels show their play button until a tap"));
     }
 
+    /**
+     * #90: a reel start that comes with its player already partway in is counted, every one, and
+     * the first twenty are logged with the trigger and the decision. A start from the beginning, or
+     * a build where the position reader wasn't found, counts nothing.
+     */
+    @Test
+    public void reelStartsThatComePartwayInAreCountedAndTheFirstLogged() {
+        BaseSettings.DEBUG.save(true);
+        LogBufferManager.clearLogBuffer();
+        TapToPlay.notePosition(TapToPlay.NO_POSITION, "BY_AUTOPLAY", false);
+        TapToPlay.notePosition(0, "BY_AUTOPLAY", false);
+        TapToPlay.notePosition(TapToPlay.PARTWAY_MS - 1, "BY_AUTOPLAY", false);
+        assertFalse(String.join("\n", HookStatus.report()), String.join("\n", HookStatus.report()).contains(TapToPlay.REEL_PARTWAY));
+
+        TapToPlay.notePosition(4_200, "BY_SHORT_FORM_VIDEO_FULLY_VISIBLE", false);
+        for (int start = 1; start <= TapToPlay.PARTWAY_LOGGED + 4; start++) TapToPlay.notePosition(9_000, null, true);
+        String report = String.join("\n", HookStatus.report());
+        assertTrue(report, report.contains(TapToPlay.REEL_PARTWAY + " " + (TapToPlay.PARTWAY_LOGGED + 5)));
+        String log = LogBufferManager.buildExportText();
+        assertEquals(log, 1, occurrences(log, "Tap to play: a reel's BY_SHORT_FORM_VIDEO_FULLY_VISIBLE start came 4200 ms in, held"));
+        assertEquals(log, TapToPlay.PARTWAY_LOGGED - 1, occurrences(log, "Tap to play: a reel's start came 9000 ms in, allowed"));
+    }
+
     /** No answer, an answer that isn't an enum, or an enum with no OFF: Facebook's own answer stands. */
     @Test
     public void anAnswerItCantReadStands() {

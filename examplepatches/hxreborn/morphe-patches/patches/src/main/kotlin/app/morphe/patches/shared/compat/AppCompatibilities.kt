@@ -84,6 +84,17 @@ internal object AppCompatibilities {
         ),
     )
 
+    val AUDIOLAB = Compatibility(
+        name = "AudioLab",
+        packageName = "com.hitrolab.audioeditor",
+        apkFileType = ApkFileType.APKS_REQUIRED,
+        appIconColor = 0xFA4C3F,
+        signatures = setOf(
+            "d441c034a8cd999a79ec5b09f0d03627d8689a53e0441a04aaa4a16315e5cec0",
+        ),
+        targets = listOf(AppTarget(version = "1.3.33", versionCode = 5163, minSdk = 32)),
+    )
+
     val BETTERSLEEP = Compatibility(
         name = "BetterSleep",
         packageName = "ipnossoft.rma.free",
@@ -660,6 +671,17 @@ internal object AppCompatibilities {
             AppTarget(version = "2.33.0", versionCode = 23300, minSdk = 26),
             AppTarget(version = "2.33.1", versionCode = 23301, minSdk = 26),
         ),
+    )
+
+    val YANOSIK = Compatibility(
+        name = "Yanosik",
+        packageName = "pl.neptis.yanosik.mobi.android",
+        apkFileType = ApkFileType.XAPK_REQUIRED,
+        appIconColor = 0x00A99D,
+        signatures = setOf(
+            "5447ddeefa77b9897fd3755c225899a0cbfb61a959f04fc949870808aceb52e6",
+        ),
+        targets = listOf(AppTarget(version = "26.9.0", versionCode = 6001512, minSdk = 32)),
     )
 
     val YI_IOT = Compatibility(

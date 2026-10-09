@@ -156,9 +156,9 @@ Pause Hushfacebook	Pausar Hushfacebook
 Posts Facebook files as promotions rather than as ads.	Publicaciones que Facebook clasifica como promociones y no como anuncios.
 Posts Facebook slips into your feed from people and pages you don't follow and groups you haven't joined.	Publicaciones de personas y páginas que no sigues y de grupos a los que no te has unido que Facebook mete en tu feed.
 Posts that Facebook's own detection marks as made with AI. A post that only its creator labelled as AI stays. It's off by default because it hasn't been tested on a real feed yet.	Publicaciones que la detección propia de Facebook marca como creadas con IA. Una publicación que solo su autor etiquetó como IA se mantiene. Este interruptor viene desactivado porque todavía no se probó en un feed real.
-Profiles and some Settings pages open again on this re-signed build.	Los perfiles y algunas páginas de Configuración vuelven a abrirse en esta versión firmada de nuevo.
-Profiles and some Settings pages won't open	Los perfiles y algunas páginas de Configuración no se abrirán
-Patch again with %1$s selected. Re-signed builds need it for profiles and some Facebook Settings pages.	Vuelve a parchear con %1$s seleccionado. Las versiones firmadas de nuevo lo necesitan para los perfiles y algunas páginas de Configuración de Facebook.
+Profiles, photos, posts and some Settings pages open again on this re-signed build.	Los perfiles, las fotos, las publicaciones y algunas páginas de Configuración vuelven a abrirse en esta versión firmada de nuevo.
+Profiles, photos and posts won't open	Los perfiles, las fotos y las publicaciones no se abrirán
+Patch again with %1$s selected. Re-signed builds need it to open profiles, photos, posts and some Facebook Settings pages.	Vuelve a parchear con %1$s seleccionado. Las versiones firmadas de nuevo lo necesitan para abrir perfiles, fotos, publicaciones y algunas páginas de Configuración de Facebook.
 Re-signed build fix	Arreglo para la nueva firma
 Reading the settings file	Leyendo el archivo de configuración
 Reels and Watch	Reels y Watch
@@ -355,7 +355,7 @@ Facebook will open on %1$s.	Facebook se abrirá en %1$s.
 # context: switch title under Opening Facebook; Following is Facebook's feed of the friends, Pages and groups you follow, and Home is the tab
 Following feed on Home	Feed Siguiendo en Inicio
 # context: summary of that switch; the ranked feed is the one Facebook orders for you, and the Feeds tab has its own filters
-Home loads Facebook's Following feed instead of the ranked one. The Feeds tab's filters stay as they are.	Inicio carga el feed Siguiendo de Facebook en lugar del feed ordenado. Los filtros de la pestaña Feeds no cambian.
+Home loads the newest posts from the friends, groups and Pages you follow, like the Feeds tab's All. The Feeds tab's filters stay as they are.	Inicio carga las publicaciones más recientes de los amigos, grupos y páginas que sigues, como Todo en la pestaña Feeds. Los filtros de la pestaña Feeds no cambian.
 Jump to a section	Ir a una sección
 Go straight to one group of settings. Back returns to where you were.	Ve directo a un grupo de ajustes. Atrás te devuelve a donde estabas.
 # context: switch title under Downloads; on, every video save keeps to formats other apps accept
@@ -395,6 +395,8 @@ Hide Upgrades	Ocultar “Mejoras”
 The Upgrades section and its offers leave Facebook's Menu. Settings, Help and support and the rest of the Menu stay.	La sección “Mejoras” y sus ofertas desaparecen del menú de Facebook. Configuración, Ayuda y soporte técnico y el resto del menú se quedan.
 # context: switch title under Menu; Also from Meta is the name of a section in Facebook's own Menu
 Hide Also from Meta	Ocultar “También de Meta”
+Hide the Muse card	Ocultar la tarjeta de Muse
+The Muse card, Meta's ad for its AI agent app, leaves the top of Facebook's Menu.	La tarjeta de Muse, el anuncio de Meta para su app de agente de IA, desaparece de la parte superior del menú de Facebook.
 # context: summary of that switch; the section links to Meta's other apps and shows ads for its devices
 The Also from Meta section leaves Facebook's Menu, with its links to Meta's other apps and its ads for Meta's devices. Your own shortcuts stay.	La sección “También de Meta” desaparece del menú de Facebook, con sus enlaces a las otras apps de Meta y sus anuncios de dispositivos de Meta. Tus propios accesos directos se quedan.
 # context: section title for the search settings, named like Facebook's own search
@@ -425,6 +427,8 @@ The comment box loses its GIF and sticker buttons. Typing, photos and posting wo
 Open every reply thread	Abrir todos los hilos de respuestas
 # context: summary of that switch; View replies is the link Facebook shows under a comment that has replies
 Comments show their replies right away, so there's no View replies to tap.	Los comentarios muestran sus respuestas al instante, sin tener que tocar Ver respuestas.
+Hide related groups	Ocultar grupos relacionados
+A group post's comments end without the Related groups list and its Join buttons.	Los comentarios de una publicación de grupo terminan sin la lista Grupos relacionados ni sus botones Unirse.
 # context: row title under Comments that opens Facebook's own settings; reaction counts are the numbers next to the reactions on a post
 Hide reaction counts	Ocultar el número de reacciones
 # context: summary of that row; Preferences and Reaction preferences are the names Facebook's own settings use
@@ -713,7 +717,7 @@ Holding a reel plays it at double speed until you let go, in place of Facebook's
 # context: label of a switch under Hold a reel for 2x that keeps the hold to the reel's right edge
 Only on the right edge	Solo en el borde derecho
 # context: summary of that switch; the right third is the right-hand third of the reel's width, the long-press menu is Facebook's menu on a long press
-With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook does what it always does, usually its long-press menu.	Con el interruptor de arriba activado, solo mantener pulsado el tercio derecho de un reel lo reproduce al doble de velocidad. Si lo mantienes pulsado en otro sitio, Facebook hace lo de siempre, que suele ser abrir su menú de pulsación larga.
+With the switch above on, only a hold on the right third of a reel plays it at double speed. Hold anywhere else and Facebook's long-press menu opens.	Con el interruptor de arriba activado, solo mantener pulsado el tercio derecho de un reel lo reproduce al doble de velocidad. Si lo mantienes pulsado en otro sitio, se abre el menú de pulsación larga de Facebook.
 Default playback quality	Calidad de reproducción predeterminada
 Play videos, reels and stories at the quality below. A quality picked in a video's own menu still wins.	Reproduce vídeos, reels e historias en la calidad de abajo. Una calidad elegida en el menú de un vídeo sigue teniendo prioridad.
 Playback quality	Calidad de reproducción

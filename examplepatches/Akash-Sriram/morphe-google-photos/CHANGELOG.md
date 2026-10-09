@@ -1,3 +1,35 @@
+## [1.14.2](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.14.1...v1.14.2) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Localcreationdownloader:** transition hero creation button from saving to saved state ([f2c08c8](https://github.com/Akash-Sriram/morphe-google-photos/commit/f2c08c8e9d61e96d20737a209e73b546f454b07c))
+
+## [1.14.1](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.14.0...v1.14.1) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Seeder:** prevent PhotosModelSeeder from overwriting phenotype flags ([4307a0f](https://github.com/Akash-Sriram/morphe-google-photos/commit/4307a0f1fe8b904822cb11e0b7054f92bbf8df08))
+
+## [1.14.0](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.13.4...v1.14.0) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* **Google Photos - Deps:** bump ip-address to 10.7.1 to resolve CVE-2026-101912 ([22b2382](https://github.com/Akash-Sriram/morphe-google-photos/commit/22b23823879541722763f7f7f036c3c88b09c884))
+* **Google Photos - Deps:** bump postcss-selector-parser, http-cache-semantics, brace-expansion, undici to resolve Dependabot alerts ([db857be](https://github.com/Akash-Sriram/morphe-google-photos/commit/db857be6561a75a631ebd00c3e9ef999a3372776))
+* **Google Photos - Localcreationdownloader:** add video/animation export support and fix MFY state flow update ([a76113a](https://github.com/Akash-Sriram/morphe-google-photos/commit/a76113a63f0f6a19ac7dfec6fd8a8aa859bd4156))
+* **Google Photos - Localcreationdownloader:** fix mark as saved state tracking for Create tab hero cards ([1dc1ce5](https://github.com/Akash-Sriram/morphe-google-photos/commit/1dc1ce59c31d20b8843c2d9f7108a1324835e3bb))
+* **Google Photos - Localcreationdownloader:** remove Lamfd read-state hooks to prevent auto-downloading memories on view ([c58c3bd](https://github.com/Akash-Sriram/morphe-google-photos/commit/c58c3bd18d54562b9022f44ac6af19d8033bb086))
+* **Google Photos - Localcreationdownloader:** remove toast popup for silent creation saves ([e2cf941](https://github.com/Akash-Sriram/morphe-google-photos/commit/e2cf941a0038a5476e523fc80a48ad78ba52bf10))
+
+### ✨ New Features
+
+* **Google Photos - Compat:** omit explicit versionCodes restriction from target specification ([2b7afd2](https://github.com/Akash-Sriram/morphe-google-photos/commit/2b7afd21c2912507760193f8b7c41dd4c6983449))
+* **Google Photos - Compat:** update target specification to template latest spec with SupportedAbi and ApkFileType ([d9cdb89](https://github.com/Akash-Sriram/morphe-google-photos/commit/d9cdb89998913b3d218af6d54c30fe5ce127adf6))
+* **Google Photos - Creations:** divert Create tab and Made-For-You saves to local storage with EXIF timestamps ([d29fb88](https://github.com/Akash-Sriram/morphe-google-photos/commit/d29fb8873f43054f488a0cee7e8be38282a27585))
+* **Google Photos - Flags:** reorganize curated flags registry and unify stories and memories category ([7decf63](https://github.com/Akash-Sriram/morphe-google-photos/commit/7decf63547795d83b0ce7f7f07fbbb87e8097f62))
+* **Google Photos:** add Google Photos 7.96.0 support, update patch availability, and upgrade build tooling ([2ec8d06](https://github.com/Akash-Sriram/morphe-google-photos/commit/2ec8d06b812dfae3a805d707fb412ebff4cc35ec))
+* **Google Photos:** embed EXIF timestamp, suppress duplicate creation downloads, and add 5s Logs long-press reset ([e939902](https://github.com/Akash-Sriram/morphe-google-photos/commit/e939902396424480cd192ac4dbd2c12d2fcf35a8))
+
 ## [1.13.4](https://github.com/Akash-Sriram/morphe-google-photos/compare/v1.13.3...v1.13.4) (2026-10-04)
 
 ### 🐛 Bug Fixes

@@ -30,6 +30,7 @@ hook analytics_uploads Lcom/facebook/analytics2/logger/legacy/uploader/LollipopU
 hook analytics_uploads Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartCommand(Landroid/content/Intent;II)I
 hook analytics_uploads Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartJob(Landroid/app/job/JobParameters;)Z
 hook anonymous_stories LX/N1f;->C2P(Lcom/facebook/messaging/montage/model/MontageCard;Z)V
+hook anonymous_stories Lcom/facebook/messaging/montage/model/MontageBucketPreview;-><init>(Lcom/facebook/messaging/montage/model/MontageBucketKey;Lcom/facebook/messaging/montage/model/MontageBucketLooperLoggingItem;Lcom/facebook/messaging/montage/model/MontageCard;Lcom/facebook/user/model/UserKey;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIZZZZZ)V
 hook app_icons LX/7ho;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z
 hook app_icons LX/7ho;->A03(Lcom/facebook/auth/usersession/FbUserSession;)Z
 hook avatar_stickers LX/GNf;->A01(LX/GNf;)Z
@@ -56,6 +57,7 @@ hook emoji_drawer LX/5NL;->ALl(LX/5kw;LX/1NP;Lcom/facebook/xapp/messaging/capabi
 hook emoji_drawer LX/5UV;->ALl(LX/5kw;LX/1NP;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;LX/5qW;LX/5KG;)LX/1Gd;
 hook emoji_drawer LX/5iR;->render(LX/2AL;)LX/1Gd;
 hook emoji_drawer LX/Eyg;->invoke(Ljava/lang/Object;)Ljava/lang/Object;
+hook emoji_search LX/7GD;->A8e(Landroid/text/Editable;Z)V
 hook emoji_typeface LX/1L4;->A00()Landroid/graphics/Typeface;
 hook event_prompts LX/HG6;->A08()Z
 hook event_prompts LX/HG6;->A09()Z

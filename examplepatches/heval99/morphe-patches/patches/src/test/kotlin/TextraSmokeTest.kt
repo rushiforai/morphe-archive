@@ -44,7 +44,7 @@ class TextraSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "4.85",
+            version = "4.87",
             patchNames = setOf("Enable Pro"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

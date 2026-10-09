@@ -7,9 +7,9 @@ contains only the patches maintained in this repository.
 ## Patches
 
 <!-- PATCHES_START EXPANDED -->
-> **[v0.3.3](https://github.com/giaaaacomo/nifty-patches-selection/releases/tag/v0.3.3)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;2 patches total
+> **[v0.5.0](https://github.com/giaaaacomo/nifty-patches-selection/releases/tag/v0.5.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;7 patches total
 <details open>
-<summary>📦 Samsung Daily Board&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 Samsung Daily Board&nbsp;&nbsp;•&nbsp;&nbsp;6 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -19,7 +19,12 @@ contains only the patches maintained in this repository.
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Enable phone support](#enable-phone-support) | Runs Samsung Daily Board on phones and treats wireless charging, or charging in landscape, as docking. |  |
+| [Customize orientation](#customize-orientation) | Adds portrait, landscape and sensor rotation independent of Android rotation lock. Includes Enable phone support. |  |
+| [Customize screen saver](#customize-screen-saver) | Adds screen saver angle filtering, diagnostics and optional Android screen saver setting control. Includes Enable phone support. |  |
+| [Enable media controls](#enable-media-controls) | Restores media controls using Android notification access. Includes Enable phone support. |  |
+| [Enable phone support](#enable-phone-support) | Runs Samsung Daily Board on phones with launcher, screen layout and crash fixes. Optional features are separate patches. |  |
+| [Use Open-Meteo weather](#use-open-meteo-weather) | Replaces Samsung weather with Open-Meteo using approximate location. Includes Enable phone support. |  |
+| [Use phone charging as dock](#use-phone-charging-as-dock) | Treats wireless charging or charging in landscape as a dock and updates the charging labels. Includes Enable phone support. |  |
 
 </details>
 
@@ -39,6 +44,14 @@ contains only the patches maintained in this repository.
 </details>
 
 <!-- PATCHES_END -->
+
+## Daily Board customization
+
+**Enable phone support** keeps Samsung's interface with the compatibility fixes
+needed on phones. Select optional patches individually for Open-Meteo weather,
+media controls, charging as a dock, orientation, or screen saver
+angle controls. Each includes the base patch automatically; all are opt-in.
+See [Daily Board setup and permissions](docs/DAILY_BOARD.md).
 
 ## Install
 

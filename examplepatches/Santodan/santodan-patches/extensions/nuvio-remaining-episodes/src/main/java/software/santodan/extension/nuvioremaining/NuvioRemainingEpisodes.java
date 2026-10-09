@@ -37,7 +37,18 @@ public final class NuvioRemainingEpisodes {
     private static final Set<String> FETCHING = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private static final Set<String> LOGGED = ConcurrentHashMap.newKeySet();
     private static final ThreadLocal<Integer> PREPARED_BADGE = new ThreadLocal<>();
+    private static final Map<String, Object[]> SEEDS = new ConcurrentHashMap<>();
+    private static final Map<String, Long> VISIBLE = new ConcurrentHashMap<>();
+    private static final Map<String, Long> RETRY_AFTER = new ConcurrentHashMap<>();
+    private static final AtomicBoolean COUNT_PENDING = new AtomicBoolean();
+    private static final java.util.concurrent.ExecutorService COUNTER = java.util.concurrent.Executors.newSingleThreadExecutor(
+        task -> { Thread thread = new Thread(task, "SantodanRemainingCounts"); thread.setDaemon(true); return thread; });
+    private static final java.util.concurrent.ThreadPoolExecutor FETCHER = new java.util.concurrent.ThreadPoolExecutor(
+        1, 1, 0L, java.util.concurrent.TimeUnit.MILLISECONDS, new java.util.concurrent.ArrayBlockingQueue<>(32),
+        task -> { Thread thread = new Thread(task, "SantodanRemainingMetadata"); thread.setDaemon(true); return thread; });
     private static final AtomicBoolean REVISION_PENDING = new AtomicBoolean();
+    private static volatile Method mergedHistoryMethod;
+    private static volatile boolean mergedHistoryResolved;
     private static volatile Map<?, ?> latestAiredById;
     private static volatile Map<?, ?> latestWatchedById;
     private static volatile Object enabledState;
@@ -53,7 +64,7 @@ public final class NuvioRemainingEpisodes {
             Application app = (Application) Class.forName("android.app.ActivityThread")
                 .getMethod("currentApplication").invoke(null);
             if (app == null) throw new IllegalStateException("Application is unavailable");
-            cached = "1.1.0-beta.4".equals(app.getPackageManager()
+            cached = !"1.1.0-beta.2".equals(app.getPackageManager()
                 .getPackageInfo(app.getPackageName(), 0).versionName);
             newerLayout = cached;
         }
@@ -76,8 +87,7 @@ public final class NuvioRemainingEpisodes {
                 }
                 if (LOGGED.add("register:" + id)) Log.d(TAG, "registered id=" + id + " title=" + title
                     + " next=" + season + ':' + episode + " seed=" + seedSeason + ':' + seedEpisode);
-                recalculate(id, latestAiredById, latestWatchedById);
-                fetchRemaining(id, season, episode, seedSeason, seedEpisode);
+                SEEDS.put(id, new Object[]{season, episode, seedSeason, seedEpisode});
             }
         } catch (Throwable error) {
             Log.e(TAG, "NextUpInfo registration failed", error);
@@ -89,17 +99,47 @@ public final class NuvioRemainingEpisodes {
         try {
             if (airedById == null || watchedById == null) return;
             latestAiredById = airedById;
-            latestWatchedById = watchedById;
+            if (!mergedHistoryResolved) {
+                try {
+                    mergedHistoryMethod = Class.forName("software.santodan.extension.nuviomerged.NuvioMergedProgress")
+                        .getMethod("completeWatchedHistory", Map.class);
+                } catch (ClassNotFoundException | NoSuchMethodException ignored) { }
+                mergedHistoryResolved = true;
+            }
+            latestWatchedById = mergedHistoryMethod == null ? watchedById
+                : (Map<?, ?>) mergedHistoryMethod.invoke(null, watchedById);
             // Tracking integrations can update these maps on another coroutine. Snapshot
             // both collections before counting so switching between Local/Trakt/Simkl
             // cannot leak a ConcurrentModificationException into Nuvio's refresh flow.
-            Set<String> ids = new HashSet<>(TITLES.keySet());
-            for (Object key : watchedById.keySet().toArray()) ids.add(normalizeId(String.valueOf(key)));
-            for (String id : ids) recalculate(id, airedById, watchedById);
+            requestCounts();
         } catch (Throwable error) {
             Log.e(TAG, "episode counting failed", error);
             // Counting is optional and must never interrupt a provider refresh.
         }
+    }
+
+    /** Coalesce native bulk updates; count only cards recently composed by Home. */
+    private static void requestCounts() {
+        if (!enabled() || !COUNT_PENDING.compareAndSet(false, true)) return;
+        COUNTER.execute(() -> {
+            try {
+                long now = android.os.SystemClock.elapsedRealtime();
+                for (Map.Entry<String, Long> entry : VISIBLE.entrySet()) {
+                    if (!enabled()) return;
+                    String id = entry.getKey();
+                    if (now - entry.getValue() > 30_000L) {
+                        VISIBLE.remove(id, entry.getValue());
+                        continue;
+                    }
+                    recalculate(id, latestAiredById, latestWatchedById);
+                    if (enabled() && !nativeAvailable(id) && VISIBLE.containsKey(id)) {
+                        Object[] seed = SEEDS.get(id);
+                        if (seed != null) fetchRemaining(id, (Integer) seed[0], (Integer) seed[1],
+                            (Integer) seed[2], (Integer) seed[3]);
+                    }
+                }
+            } finally { COUNT_PENDING.set(false); }
+        });
     }
 
     public static void renderSettings(Object composer) {
@@ -121,7 +161,7 @@ public final class NuvioRemainingEpisodes {
                 "invoke".equals(method.getName()) ? kotlinUnit(loader) : objectMethod(proxy, method, args));
             String description = "Show aired, unwatched episode counts for Local, Trakt, Simkl, and other tracking sources.";
             if (beta4()) {
-                Method row = findStatic(Class.forName("sa.eb", false, loader), "m", 13);
+                Method row = findStatic(Class.forName(NuvioRuntimeLayout.name("sa.eb"), false, loader), "m", 13);
                 row.invoke(null, "Show remaining episodes", description, stateValue(state), toggle,
                     null, noop, false, null, 0L, false, composer, 0, 1008);
             } else {
@@ -148,11 +188,12 @@ public final class NuvioRemainingEpisodes {
         Integer count = null;
         for (Map.Entry<String, String> entry : TITLES.entrySet()) {
             if (title.equals(entry.getValue())) {
-                recalculate(entry.getKey(), latestAiredById, latestWatchedById);
+                VISIBLE.put(entry.getKey(), android.os.SystemClock.elapsedRealtime());
                 Integer candidate = REMAINING.get(entry.getKey());
                 if (candidate != null && (count == null || candidate > count)) count = candidate;
             }
         }
+        requestCounts();
         if (LOGGED.add("card:" + title)) Log.d(TAG, "card title=" + title + " matched=" + matchedCounts(title));
         if (count == null || count <= 0) return;
         PREPARED_BADGE.set(count);
@@ -162,7 +203,7 @@ public final class NuvioRemainingEpisodes {
         Integer count = PREPARED_BADGE.get();
         PREPARED_BADGE.remove();
         if (composer == null) return;
-        try {
+        try (NuvioBadgeComposition group = NuvioBadgeComposition.begin(composer, 1403088897)) {
             ClassLoader loader = composer.getClass().getClassLoader();
             Object revision = revisionState(loader);
             findMethod(revision.getClass(), "getValue", 0).invoke(revision);
@@ -201,7 +242,7 @@ public final class NuvioRemainingEpisodes {
         Object modifier = staticField(modifierOwner, "b").get(null);
         modifier = findStatic(Class.forName("e0.b", false, loader), "u", 2)
             .invoke(null, modifier, Float.valueOf(horizontal));
-        Object shape = staticField(Class.forName(beta4() ? "ba.d3" : "pa.g1", false, loader), "a").get(null);
+        Object shape = staticField(Class.forName(beta4() ? NuvioRuntimeLayout.name("ba.d3") : "pa.g1", false, loader), "a").get(null);
         modifier = findStatic(Class.forName("a2.j", false, loader), "b", 2)
             .invoke(null, modifier, shape);
         Object rectangle = staticField(Class.forName("d2.g0", false, loader), "b").get(null);
@@ -225,8 +266,8 @@ public final class NuvioRemainingEpisodes {
                 : new HashSet<>(java.util.Arrays.asList(watchedValue.toArray()));
             int count = NuvioEpisodeCounts.remaining(airedSnapshot, watchedSnapshot);
             Integer previous = REMAINING.put(id, count);
-            preferences().edit().putInt(COUNT_PREFIX + id, count).apply();
             if (previous == null || previous.intValue() != count) {
+                preferences().edit().putInt(COUNT_PREFIX + id, count).apply();
                 Log.d(TAG, "native count id=" + id + " aired=" + airedSnapshot.size()
                     + " watched=" + watchedSnapshot.size() + " remaining=" + count
                     + " countCoverage=" + (watchedSnapshot.size() >= airedSnapshot.size()));
@@ -239,10 +280,16 @@ public final class NuvioRemainingEpisodes {
 
     private static void fetchRemaining(String id, int nextSeason, int nextEpisode,
                                        Integer seedSeason, Integer seedEpisode) {
-        if (!id.startsWith("tt") || !FETCHING.add(id)) return;
-        Thread worker = new Thread(() -> {
+        long retryTime = android.os.SystemClock.elapsedRealtime();
+        if (!enabled() || !VISIBLE.containsKey(id) || nativeAvailable(id) || !id.startsWith("tt")
+            || retryTime < RETRY_AFTER.getOrDefault(id, 0L) || !FETCHING.add(id)) return;
+        RETRY_AFTER.put(id, retryTime + 60_000L);
+        Runnable worker = () -> {
             HttpURLConnection connection = null;
             try {
+                Long visibleAt = VISIBLE.get(id);
+                if (!enabled() || visibleAt == null || android.os.SystemClock.elapsedRealtime() - visibleAt > 30_000L
+                    || nativeAvailable(id)) return;
                 connection = (HttpURLConnection) new URL(
                     "https://catalog.nuvio.tv/meta/series/" + id + ".json").openConnection();
                 connection.setConnectTimeout(5000);
@@ -288,10 +335,11 @@ public final class NuvioRemainingEpisodes {
                 // after cards are first constructed. Do not flash a metadata
                 // estimate that will immediately be replaced by native data.
                 Thread.sleep(FALLBACK_GRACE_MS);
-                if (!nativeAvailable(id)) {
+                if (enabled() && !nativeAvailable(id) && VISIBLE.containsKey(id)) {
                     Integer previous = REMAINING.put(id, remaining);
-                    preferences().edit().putInt(COUNT_PREFIX + id, remaining.intValue()).apply();
+                    RETRY_AFTER.put(id, android.os.SystemClock.elapsedRealtime() + 600_000L);
                     if (previous == null || previous.intValue() != remaining.intValue()) {
+                        preferences().edit().putInt(COUNT_PREFIX + id, remaining.intValue()).apply();
                         Log.d(TAG, "fallback count id=" + id + " remaining=" + remaining
                             + " next=" + nextSeason + ':' + nextEpisode
                             + " seed=" + seedSeason + ':' + seedEpisode);
@@ -304,9 +352,9 @@ public final class NuvioRemainingEpisodes {
                 if (connection != null) connection.disconnect();
                 FETCHING.remove(id);
             }
-        }, "SantodanRemaining-" + id);
-        worker.setDaemon(true);
-        worker.start();
+        };
+        try { FETCHER.execute(worker); }
+        catch (java.util.concurrent.RejectedExecutionException ignored) { FETCHING.remove(id); }
     }
 
     private static boolean nativeAvailable(String id) {

@@ -33,7 +33,7 @@ public class MessageMenuTest {
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
     private static final List<BooleanSetting> SWITCHES = Arrays.asList(Settings.MESSAGE_MENU_REPEAT, Settings.MESSAGE_MENU_COPY_PHOTO,
-            Settings.MESSAGE_MENU_DETAILS);
+            Settings.MESSAGE_MENU_DETAILS, Settings.MESSAGE_MENU_QUICK_FORWARD);
 
     @Before public void reset() { restore(); }
     @After public void restore() {
@@ -58,33 +58,37 @@ public class MessageMenuTest {
         assertEquals(menu(), menu);
         MessageMenu.chosen(new Object(), MessageMenu.REPEAT);
         MessageMenu.chosen(new Object(), MessageMenu.COPY_PHOTO);
+        MessageMenu.chosen(new Object(), MessageMenu.QUICK_FORWARD);
         MessageMenu.chosen(new Object(), 2);
         assertTrue(String.join("\n", HookStatus.report()).contains(FamilyNames.MESSAGE_MENU_REPEAT));
     }
 
     @Test public void onRepeatAndCopyPhotoFollowForwardAndDetailsGoesLast() {
         List<List<Object>> menu = menu();
-        MessageMenu.offer(menu.get(0), menu.get(1), menu.get(2), true, true, true, 2);
-        assertEquals(Arrays.asList(8, 2, MessageMenu.REPEAT, MessageMenu.COPY_PHOTO, 1, MessageMenu.DETAILS), menu.get(2));
-        assertEquals(Arrays.asList("Reply", "Forward", "Repeat", "Copy photo", "Delete", "Message details"), menu.get(1));
-        assertEquals(6, menu.get(0).size());
+        MessageMenu.offer(menu.get(0), menu.get(1), menu.get(2), true, true, true, true, 2);
+        assertEquals(Arrays.asList(8, 2, MessageMenu.QUICK_FORWARD, MessageMenu.REPEAT, MessageMenu.COPY_PHOTO, 1, MessageMenu.DETAILS), menu.get(2));
+        assertEquals(Arrays.asList("Reply", "Forward", "Quick forward", "Repeat", "Copy photo", "Delete", "Message details"), menu.get(1));
+        assertEquals(7, menu.get(0).size());
 
         // Each switch on its own, a menu without Forward, an empty one and lists out of step.
         List<List<Object>> details = menu();
-        MessageMenu.offer(details.get(0), details.get(1), details.get(2), false, false, true, 2);
+        MessageMenu.offer(details.get(0), details.get(1), details.get(2), false, false, true, false, 2);
         assertEquals(Arrays.asList(8, 2, 1, MessageMenu.DETAILS), details.get(2));
         List<List<Object>> copy = menu();
-        MessageMenu.offer(copy.get(0), copy.get(1), copy.get(2), false, true, false, 2);
+        MessageMenu.offer(copy.get(0), copy.get(1), copy.get(2), false, true, false, false, 2);
+        List<List<Object>> quick = menu();
+        MessageMenu.offer(quick.get(0), quick.get(1), quick.get(2), false, false, false, true, 2);
+        assertEquals(Arrays.asList(8, 2, MessageMenu.QUICK_FORWARD, 1), quick.get(2));
         assertEquals(Arrays.asList(8, 2, MessageMenu.COPY_PHOTO, 1), copy.get(2));
         List<List<Object>> noForward = menu();
-        MessageMenu.offer(noForward.get(0), noForward.get(1), noForward.get(2), true, true, false, 7);
+        MessageMenu.offer(noForward.get(0), noForward.get(1), noForward.get(2), true, true, false, true, 7);
         assertEquals(menu(), noForward);
         List<Object> empty = new ArrayList<>();
-        MessageMenu.offer(new ArrayList<>(), new ArrayList<>(), empty, true, true, true, 2);
+        MessageMenu.offer(new ArrayList<>(), new ArrayList<>(), empty, true, true, true, true, 2);
         assertTrue(empty.isEmpty());
         List<List<Object>> skewed = menu();
         skewed.get(0).remove(0);
-        MessageMenu.offer(skewed.get(0), skewed.get(1), skewed.get(2), true, true, true, 2);
+        MessageMenu.offer(skewed.get(0), skewed.get(1), skewed.get(2), true, true, true, true, 2);
         assertEquals(Arrays.asList(8, 2, 1), skewed.get(2));
     }
 
@@ -96,6 +100,14 @@ public class MessageMenuTest {
         assertEquals(Arrays.asList(message), MessageMenu.batch(new Object(), message));
         assertFalse(ForwardSender.hides(false, 36, 0, 36));
         assertTrue(ForwardSender.hides(true, 36, 0, 36));
+    }
+
+    @Test public void quickForwardKeepsSecretChatsAndForumsOutAndNeverMoreThanFiveChats() {
+        // Unpatched, every chat is secret, so nothing is offered and nothing is listed.
+        assertFalse(MessageMenu.quickable(new Object(), new Object()));
+        assertTrue(MessageMenu.destinations(0, 5L).isEmpty());
+        assertFalse(MessageMenu.hidesSender(new Object(), new ArrayList<>(Arrays.asList(new Object()))));
+        assertEquals(5, MessageMenu.QUICK_CHATS);
     }
 
     @Test public void detailsReadAsOneFactALineInLocalTime() {

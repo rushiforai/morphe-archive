@@ -34,41 +34,40 @@ import com.android.tools.smali.dexlib2.iface.reference.StringReference
  * 2026-10-07. The obfuscated names here are for reviewers; the code finds each by a kept name.
  *
  * The Imagine me button under posts. A post gets one call-to-action from the socket that names
- * itself FeedStoryCtaSelectorSocket. Its name table (581 LX/2du;->A0K, 580 LX/2Yo;->A04, 577
- * LX/2Wo;->A04) names ImagineMePlugin among its plugins, and the socket shows the first plugin
- * whose check answers yes. Unlike the comment sockets, the check doesn't sit in the table's class
- * but in the plugin dispatcher (581 LX/2Ap;->A1u, 580 LX/25t;->A1s, 577 LX/1xW;->A1q): the one
- * static (props, int)Z the socket's methods call whose switch goes over the table's numbers. The
- * extension goes first in it, the way Hide Meta AI comment summaries does it, and the Imagine me
- * plugin gets a no, so the socket goes on to the next button.
+ * itself FeedStoryCtaSelectorSocket. Its name table (581 LX/2du;->A0K) names ImagineMePlugin among
+ * its plugins, and the socket shows the first plugin whose check answers yes. Unlike the comment
+ * sockets, the check doesn't sit in the table's class but in the plugin dispatcher (581
+ * LX/2Ap;->A1u): the one static (props, int)Z the socket's methods call whose switch goes over the
+ * table's numbers. The extension goes first in it, the way Hide Meta AI comment summaries does it,
+ * and the Imagine me plugin gets a no, so the socket goes on to the next button.
  *
  * The other Meta AI buttons under posts come from the same socket and the same check: the name
  * table also names AIStylesPlugin, GenAiDeepDiveCtaPlugin, GenAiDeepDiveUgcChatIcebreakerCtaPlugin,
- * BizAiAgentCtaPlugin and FindsVisualSearchCtaPlugin on all three builds (581 LX/2du;->A0K, 580
- * LX/2Yo;->A04, 577 LX/2Wo;->A04). The hook already hands the extension every plugin's name, so
- * those get a no under their own switch with nothing more to find. The patch doesn't require them:
- * a build that drops one just has nothing to hide there.
+ * BizAiAgentCtaPlugin and FindsVisualSearchCtaPlugin on all three builds (581 LX/2du;->A0K). The
+ * hook already hands the extension every plugin's name, so those get a no under their own switch
+ * with nothing more to find. The patch doesn't require them: a build that drops one just has
+ * nothing to hide there.
  *
  * Meta AI's deep dive under a post's caption comes from another socket, the one that names itself
- * FeedStoryContentCollectorSocket, whose name table (581 LX/2kX;->A0K, 580 LX/2dL;->A07, 577
- * LX/2lC;->A07) names GenAiDeepDiveBelowCaptionPlugin. Only 581 gives that socket a check method
- * of its own (LX/2kX;->A0M); 577 and 580 inline the check into the collector (LX/2lC;->A1N, LX/2dL;->A1F).
+ * FeedStoryContentCollectorSocket, whose name table (581 LX/2kX;->A0K) names
+ * GenAiDeepDiveBelowCaptionPlugin. Only 581 gives that socket a check method of its own
+ * (LX/2kX;->A0M); 577 and 580 inline the check into the collector (LX/2lC;->A1N, LX/2dL;->A1F).
  * Every build's check, and the plugin's own row builder on 581, read the deep dive through the
- * plugin's one static (GraphQLStory) getter, a kept class, and treat a null as nothing to show.
- * So the extension goes first in that getter and answers null while the switch is on.
+ * plugin's one static (GraphQLStory) getter, a kept class, and treat a null as nothing to show. So
+ * the extension goes first in that getter and answers null while the switch is on.
  *
  * The post composer's Imagine. The composer asks its capabilities, an enum whose constants include
- * AI_GEN_IMAGINE, CHECKIN and FEED_COMPOSER_REDESIGN (581 LX/Byc, 580 LX/Bye, 577 LX/C1o), whether
- * Imagine is on, each time loading AI_GEN_IMAGINE right before an (enum)Z call: the Imagine
- * sprout's eligibility (581 LX/CH5;->A07), the sprout list (581 LX/KEb;->A05) and the composer's
- * state (581 LX/BtQ;->A0N). Each answer goes through the extension, which says no.
+ * AI_GEN_IMAGINE, CHECKIN and FEED_COMPOSER_REDESIGN (581 LX/Byc), whether Imagine is on, each time
+ * loading AI_GEN_IMAGINE right before an (enum)Z call: the Imagine sprout's eligibility (581
+ * LX/CH5;->A07), the sprout list (581 LX/KEb;->A05) and the composer's state (581 LX/BtQ;->A0N).
+ * Each answer goes through the extension, which says no.
  *
  * Create story's Imagine tile. The story composer's row of tools comes from an enum (TEXT_BASE,
- * BOOMERANG, IMAGINE, TRY_IT, ADD_YOURS_TEMPLATES and more; 581 LX/6nj, 580 LX/6pv, 577 LX/7Jb).
- * One method reads IMAGINE (581 LX/JMC;->A00, 580 LX/KQX;->A00, 577 LX/Zn7;->A00): it builds a
- * tile for each tool in the list it's handed first, an ImmutableList, and returns the tiles
- * through ImmutableList.copyOf. That list goes through the extension, which takes IMAGINE out,
- * and back through the same copyOf, so the method gets the type it had.
+ * BOOMERANG, IMAGINE, TRY_IT, ADD_YOURS_TEMPLATES and more; 581 LX/6nj). One method reads IMAGINE
+ * (581 LX/JMC;->A00): it builds a tile for each tool in the list it's handed first, an
+ * ImmutableList, and returns the tiles through ImmutableList.copyOf. That list goes through the
+ * extension, which takes IMAGINE out, and back through the same copyOf, so the method gets the type
+ * it had.
  */
 
 internal const val IMAGINE_CTA_SOCKET = "FeedStoryCtaSelectorSocket"

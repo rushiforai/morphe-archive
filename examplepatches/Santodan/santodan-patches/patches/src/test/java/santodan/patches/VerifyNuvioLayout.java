@@ -63,7 +63,16 @@ public final class VerifyNuvioLayout {
     }
     public static void main(String[] args) throws Exception {
         String version = args[0];
-        boolean newer = NuvioLayout.beta4(version);
+        NuvioRemainingEpisodesPatch.validateTarget("com.nuvio.tv", version);
+        for (String[] invalid : new String[][]{{"wrong.package", version}, {"com.nuvio.tv", "1.1.0-beta.999"}}) {
+            boolean rejected = false;
+            try { NuvioRemainingEpisodesPatch.validateTarget(invalid[0], invalid[1]); }
+            catch (IllegalStateException expected) { rejected = true; }
+            if (!rejected) throw new AssertionError("Invalid patch execution target accepted");
+        }
+        NuvioLayout.use(version);
+        System.out.println("PASS: remaining-episode execution accepts supported targets and rejects invalid targets");
+        boolean newer = NuvioLayout.modern(version);
         File[] inputs = new File(args[1]).listFiles((dir, name) -> name.matches("classes.*\\.dex"));
         if (inputs == null || inputs.length == 0) throw new AssertionError("No local DEX inputs");
         for (File input : inputs) try (InputStream in = new BufferedInputStream(new FileInputStream(input))) {
@@ -107,22 +116,26 @@ public final class VerifyNuvioLayout {
             "getTrackingProviderItemId", "getTrackingSourceUrl")) method(watchedModel, getter, 0);
         System.out.println("PASS: profile cache key and watched-item serialization contracts");
         method(registry, "b", 0);
-        String model = newer ? "Lla/aa;" : "Lza/s8;";
+        String model = newer ? NuvioLayout.current("Lla/aa;") : "Lza/s8;";
         for (String name : List.of("a", "c")) field(model, name, "Ljava/lang/String;");
         for (String name : List.of("h", "i")) field(model, name, "I");
         for (String name : List.of("x", "y")) field(model, name, "Ljava/lang/Integer;");
-        field(newer ? "Lba/e2;" : "Lpa/q0;", "r", "Ljava/lang/String;");
-        method(newer ? "Lsa/eb;" : "Lfb/h3;", newer ? "m" : "t", newer ? 13 : 7);
+        field(newer ? NuvioLayout.current("Lba/e2;") : "Lpa/q0;", "r", "Ljava/lang/String;");
+        method(newer ? NuvioLayout.current("Lsa/eb;") : "Lfb/h3;", newer ? "m" : "t", newer ? 13 : 7);
         method(newer ? "Lx5/g2;" : "Lx5/i2;", "b", 19);
         method(newer ? "Lg1/j;" : "Lg1/h;", newer ? "r" : "s", 1);
         for (String type : List.of(newer ? "Lva/x0;" : "Lib/x0;",
                 newer ? "Lx5/i2;" : "Lx5/k2;", newer ? "Lva/l0;" : "Lib/l0;",
-                newer ? "Lba/d3;" : "Lpa/g1;", "Lw1/n;", "Ld2/g0;")) owner(type);
+                newer ? NuvioLayout.current("Lba/d3;") : "Lpa/g1;", "Lw1/n;", "Ld2/g0;")) owner(type);
         if (newer) {
             field("Lw1/b;", "h", "Lw1/i;");
             method("Le0/v;", "a", 2);
             field("Le0/v;", "a", "Le0/v;");
         }
+        String composerType = newer ? "Lg1/m0;" : "Lg1/k0;";
+        method(composerType, "d0", 1);
+        method(composerType, "p", 1);
+        System.out.println("PASS: isolated badge composition group start/end contracts");
         System.out.println("PASS: reflection contracts for " + version);
         if (newer) {
             method("Lw1/v;", "<init>", 1);
@@ -135,12 +148,12 @@ public final class VerifyNuvioLayout {
         }
         hook("hookRepository", owner(repository));
         if (newer) {
-            hook("hookInlinedCutoff", owner("Lla/h5;"));
-            hook("hookInlinedCutoff", owner("Lla/w1;"));
-            NuvioMergedProgressPatch.hookBadgeCacheHit(owner("Lla/e5;"));
-            NuvioMergedProgressPatch.hookBadgeGroupProgress(owner("Lla/t5;"));
-            field("Lla/z3;", "V0", "Ljava/util/Set;");
-            field("Lla/z3;", "u", "Lcom/nuvio/tv/data/local/vc;");
+            hook("hookInlinedCutoff", owner(NuvioLayout.current("Lla/h5;")));
+            hook("hookInlinedCutoff", owner(NuvioLayout.current("Lla/w1;")));
+            NuvioMergedProgressPatch.hookBadgeCacheHit(owner(NuvioLayout.current("Lla/e5;")));
+            NuvioMergedProgressPatch.hookBadgeGroupProgress(owner(NuvioLayout.current("Lla/t5;")));
+            field(NuvioLayout.current("Lla/z3;"), "V0", "Ljava/util/Set;");
+            field(NuvioLayout.current("Lla/z3;"), "u", "Lcom/nuvio/tv/data/local/vc;");
             field("Lcom/nuvio/tv/data/local/vc;", "f", "Lkotlinx/coroutines/flow/StateFlow;");
             field("Lcom/nuvio/tv/data/local/vc;", "g", "Ljava/util/Map;");
             System.out.println("PASS: unchanged-ID badge retry and incremental metadata publication hooks");
@@ -160,41 +173,79 @@ public final class VerifyNuvioLayout {
         }
         hook("hookWatchProgressSelection", owner(NuvioLayout.type(version, "Lfb/c2;")));
         hook("hookWatchProgressSummary", new Class<?>[]{MutableClass.class, String.class},
-            owner(NuvioLayout.type(version, "Lfb/lj;")), newer ? "g1" : "W0");
+            owner(NuvioLayout.type(version, "Lfb/lj;")), NuvioLayout.BETA5.equals(version) ? "h1" : newer ? "g1" : "W0");
         NuvioRemainingEpisodesPatch.hookNextUpModel(owner(model));
         NuvioRemainingEpisodesPatch.hookEpisodeSets(owner(NuvioLayout.type(version, "Lza/z4;")),
-            newer ? "Lla/z3;" : "Lza/k3;");
-        if (newer) verifyRemainingAiredMap(owner("Lla/t5;"));
+            newer ? NuvioLayout.current("Lla/z3;") : "Lza/k3;");
+        if (newer) verifyRemainingAiredMap(owner(NuvioLayout.current("Lla/t5;")));
         if (!newer) NuvioRemainingEpisodesPatch.hookSettings(owner("Lfb/t6;"), 0x7f1106a7);
-        NuvioRemainingEpisodesPatch.hookCard(owner(newer ? "Lba/e2;" : "Lpa/q0;"),
+        NuvioRemainingEpisodesPatch.hookCard(owner(newer ? NuvioLayout.current("Lba/e2;") : "Lpa/q0;"),
             newer ? "Lc7/a;" : "Lfb/jk;");
         System.out.println("PASS: remaining-episode hooks");
         if (newer) {
             NuvioAiringSeriesPatch.hookNextUpModel(owner(model));
-            NuvioAiringSeriesPatch.hookUpcomingSplit(owner("Lla/t5;"));
-            verifyAiringSplitCall(owner("Lla/t5;"));
-            NuvioAiringSeriesPatch.hookCard(owner("Lba/e2;"), "Lc7/a;");
-            NuvioAiringSeriesPatch.hookWide(owner("Lba/d3;"));
+            NuvioAiringSeriesPatch.hookUpcomingSplit(owner(NuvioLayout.current("Lla/t5;")));
+            verifyAiringSplitCall(owner(NuvioLayout.current("Lla/t5;")));
+            NuvioAiringSeriesPatch.hookCard(owner(NuvioLayout.current("Lba/e2;")), "Lc7/a;");
+            NuvioAiringSeriesPatch.hookWide(owner(NuvioLayout.current("Lba/d3;")));
             System.out.println("PASS: standalone airing-series hooks");
-            field("Lba/n3;", "m", "Lcom/nuvio/tv/domain/model/MetaPreview;");
+            field(NuvioLayout.current("Lba/n3;"), "m", "Lcom/nuvio/tv/domain/model/MetaPreview;");
             field("Lba/q1;", "o", "Lcom/nuvio/tv/domain/model/MetaPreview;");
-            for (String getter : List.of("getApiType", "getImdbId", "getId"))
+            for (String getter : List.of("getApiType", "getImdbId", "getId", "getReleased", "getReleaseInfo"))
                 method("Lcom/nuvio/tv/domain/model/MetaPreview;", getter, 0);
-            NuvioFinaleDatesPatch.hookItems(owner("Lba/i1;"));
-            NuvioFinaleDatesPatch.hookCard(owner("Lba/n3;"));
+            NuvioFinaleDatesPatch.hookItems(owner(NuvioLayout.current("Lba/i1;")));
+            NuvioFinaleDatesPatch.hookCard(owner(NuvioLayout.current("Lba/n3;")));
             NuvioFinaleDatesPatch.hookCard(owner("Lba/q1;"));
-            for (String type : List.of("Lba/n3;", "Lba/q1;", "Lba/o3;", "Lba/s1;"))
+            for (String type : List.of(NuvioLayout.current("Lba/n3;"), "Lba/q1;", NuvioLayout.current("Lba/o3;"), "Lba/s1;"))
                 NuvioFinaleDatesPatch.hookContext(owner(type));
             System.out.println("PASS: library and collection finale-date hooks");
+            NuvioFinaleDatesPatch.hookItems(owner(NuvioLayout.current("Lba/i1;")), NuvioMovieReleaseDatesPatch.EXTENSION);
+            NuvioFinaleDatesPatch.hookCard(owner(NuvioLayout.current("Lba/n3;")), NuvioMovieReleaseDatesPatch.EXTENSION);
+            NuvioFinaleDatesPatch.hookCard(owner("Lba/q1;"), NuvioMovieReleaseDatesPatch.EXTENSION);
+            for (String type : List.of(NuvioLayout.current("Lba/n3;"), "Lba/q1;", NuvioLayout.current("Lba/o3;"), "Lba/s1;"))
+                NuvioFinaleDatesPatch.hookContext(owner(type), NuvioMovieReleaseDatesPatch.EXTENSION);
+            System.out.println("PASS: movie release hooks coexist with series finale hooks");
             method("Lg0/i;", "q", 4);
             method("Lq1/s;", "<init>", 3);
             method("Lsa/kc;", "a", 11);
+            method("Lsa/kc;", "e", 6);
+            String streamRepository = NuvioLayout.current("Lv9/i4;");
+            method(streamRepository, "j", 5);
+            field(streamRepository, "e", "Le9/f;");
+            field(streamRepository, "k", "Lkotlinx/coroutines/flow/MutableStateFlow;");
+            field("Lp8/e;", "K2", "Lnb/c;");
+            field("Lp8/e;", "y", "Lnb/c;");
+            field("Le9/f;", "f", "Lkotlinx/coroutines/flow/StateFlow;");
+            field("La9/n;", "a", "Ljava/lang/Object;");
+            method("Lcom/nuvio/tv/domain/model/AddonStreams;", "getStreams", 0);
+            String detailModel = NuvioLayout.current("Lka/l9;");
+            method(detailModel, "u", 0);
+            field(detailModel, "F", "Lkotlinx/coroutines/flow/StateFlow;");
+            String detailState = NuvioLayout.current("Lka/t7;");
+            field(detailState, "b", "Lcom/nuvio/tv/domain/model/Meta;");
+            field(detailState, "h", "Lcom/nuvio/tv/domain/model/NextToWatch;");
+            field(detailState, "f", "Ljava/util/List;");
+            method(NuvioLayout.current("Lka/d1;"), "C", 3);
+            for (String getter : List.of("getNextVideoId", "getNextSeason", "getNextEpisode", "getWatchProgress"))
+                method("Lcom/nuvio/tv/domain/model/NextToWatch;", getter, 0);
+            for (String getter : List.of("getId", "getSeason", "getEpisode"))
+                method("Lcom/nuvio/tv/domain/model/Video;", getter, 0);
+            field(NuvioLayout.current("Lba/e2;"), "x", "Lcom/nuvio/tv/domain/model/WatchProgress;");
+            field(NuvioLayout.current("Lba/e2;"), "y", NuvioLayout.BETA5.equals(version) ? "Lla/g0;" : "Lla/f0;");
+            NuvioStreamPreloadPatch.hookComponent(owner("Lp8/e;"));
+            NuvioStreamPreloadPatch.hookContinueWatching(owner(NuvioLayout.current("Lba/e2;")));
+            NuvioStreamPreloadPatch.hookDetails(owner(detailModel));
+            boolean duplicateStreamHookRejected = false;
+            try { NuvioStreamPreloadPatch.hookContinueWatching(owner(NuvioLayout.current("Lba/e2;"))); }
+            catch (IllegalStateException expected) { duplicateStreamHookRejected = true; }
+            if (!duplicateStreamHookRejected) throw new AssertionError("Duplicate stream hook accepted");
+            System.out.println("PASS: stream preload hooks, native cache/profile contracts, and duplicate rejection");
             field("Lo9/a1;", "k", "Lkotlinx/coroutines/flow/StateFlow;");
             field("Lo9/a1;", "j", "Le9/f;");
             field("Le9/f;", "f", "Lkotlinx/coroutines/flow/StateFlow;");
             method("Lo9/a1;", "f", 2);
             NuvioSettingsMenuPatch.hookLayoutList(owner("Lja/n;"));
-            verifyMenuRelocation(owner("Lja/n;"), owner("Lsa/o3;"));
+            verifyMenuRelocation(owner("Lja/n;"), owner(NuvioLayout.current("Lsa/o3;")));
             System.out.println("PASS: shared native Layout submenu and merged settings persistence contracts");
         }
 
@@ -287,7 +338,7 @@ public final class VerifyNuvioLayout {
             Instruction first = method.getImplementation().getInstructions().iterator().next();
             if (first instanceof ReferenceInstruction) {
                 Object reference = ((ReferenceInstruction) first).getReference();
-                if (reference instanceof FieldReference && "Lla/z3;".equals(((FieldReference) reference).getDefiningClass())
+                if (reference instanceof FieldReference && NuvioLayout.current("Lla/z3;").equals(((FieldReference) reference).getDefiningClass())
                     && "T0".equals(((FieldReference) reference).getName())) return;
             }
         }

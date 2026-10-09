@@ -20,6 +20,24 @@ public class AnonymousStoriesTest {
     @Before public void reset() {
         Settings.initialize(RuntimeEnvironment.getApplication());
         Settings.preferences.edit().clear().putBoolean("anonymous_stories", true).commit();
+        synchronized (Settings.storyRings) {
+            Settings.storyRings.clear();
+        }
+    }
+
+    /** Stands in for Messenger's story preview and the static helper the patch adds to it, which its constructor calls. */
+    public static final class Preview {
+        final String card;
+        boolean unread = true;
+
+        Preview(String card) {
+            this.card = card;
+            hushmessengerStoryRing(this);
+        }
+
+        public static void hushmessengerStoryRing(Preview preview) {
+            if (Settings.storyRingSeen(preview, preview.card)) preview.unread = false;
+        }
     }
 
     private static Set<String> seeded(Object session) {
@@ -95,5 +113,54 @@ public class AnonymousStoriesTest {
         Settings.markStorySeen(null, "316");
         assertEquals(Set.of("316"), seeded(null));
         assertEquals(Set.of("315"), seeded(ACCOUNT));
+    }
+
+    @Test public void theHelperNameMatchesWhatThePatchAdds() {
+        assertEquals("hushmessengerStoryRing", Settings.STORY_RING_HELPER);
+    }
+
+    @Test public void aKeptCardStartsOutSeenAndANewCardKeepsItsRing() {
+        Settings.markStorySeen(ACCOUNT, "311");
+        assertFalse(new Preview("311").unread);
+        assertTrue(new Preview("312").unread);
+        // Card IDs don't depend on the account, so a card the other account opened counts too.
+        Settings.markStorySeen(OTHER_ACCOUNT, "411");
+        assertFalse(new Preview("411").unread);
+    }
+
+    @Test public void openingACardClearsThePreviewMessengerAlreadyHolds() {
+        Preview cached = new Preview("311");
+        Preview other = new Preview("312");
+        assertTrue(cached.unread);
+        Settings.markStorySeen(ACCOUNT, "311");
+        assertFalse(cached.unread);
+        assertTrue(other.unread);
+        // A card posted later has an ID of its own, so it shows as new.
+        assertTrue(new Preview("313").unread);
+    }
+
+    @Test public void offAndPauseLeaveEveryRingTheWayMessengerSetIt() {
+        Settings.markStorySeen(ACCOUNT, "311");
+        Settings.preferences.edit().putBoolean("anonymous_stories", false).commit();
+        assertTrue(new Preview("311").unread);
+        Preview builtWhileOff = new Preview("312");
+
+        Settings.preferences.edit().putBoolean("anonymous_stories", true).putBoolean("paused", true).commit();
+        assertTrue(new Preview("311").unread);
+        Settings.markStorySeen(ACCOUNT, "312");
+        assertTrue(builtWhileOff.unread);
+
+        Settings.preferences.edit().putBoolean("paused", false).commit();
+        assertFalse(new Preview("311").unread);
+        assertTrue(new Preview("312").unread);
+    }
+
+    @Test public void expiredDamagedOrMissingCardsKeepTheirRing() {
+        long now = System.currentTimeMillis();
+        keep(Settings.storyAccount(ACCOUNT) + ":311:" + (now - Settings.SEEN_STORY_TTL - 60_000), "garbage", "311");
+        assertTrue(new Preview("311").unread);
+        assertFalse(Settings.storyRingSeen(null, "311"));
+        assertFalse(Settings.storyRingSeen(new Object(), null));
+        assertFalse(Settings.storyRingSeen(new Object(), ""));
     }
 }

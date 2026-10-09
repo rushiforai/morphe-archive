@@ -228,8 +228,8 @@ class LiveFree(unittest.TestCase):
         )
         self.assertNotIn(6, self.free(ins, 8, 0))
 
-    def test_a_linear_walk_from_the_seam_would_claim_everything_is_available(self):
-        """Why `live_free` exists, stated as a test rather than as a comment.
+    def test_a_branch_read_without_a_write_keeps_the_register_live(self):
+        """Why `live_free` needs a control-flow graph rather than a linear scan.
 
         A linear walk forward from an index eventually touches almost every register, so asking it
         "what is available here" answers "everything". That is how a register handover computed an
@@ -249,18 +249,6 @@ class LiveFree(unittest.TestCase):
         # Backward CFG liveness: v7 is read on a path that does not write it, so it is live.
         self.assertNotIn(7, self.free(ins, 8, 0))
 
-        # A linear walk would have seen the `const/4 v7` at pc 2 first and called v7 available.
-        linear_available = set()
-        written = set()
-        for _pc, mnemonic, args in ins:
-            for r in P.invoke_regs(args or ""):
-                if r not in written:
-                    linear_available.add(r)
-            if not mnemonic.startswith(P.READS_FIRST_OPERAND):
-                first = P.regs(args or "")[:1]
-                written.update(first)
-        self.assertIn(7, written, "the linear walk sees a write and stops worrying about v7")
-
     def test_a_switch_is_refused_rather_than_guessed(self):
         # The case targets live in a payload live_free does not read, so every register the cases
         # read would look dead. Refusing is the only safe answer available.
@@ -270,6 +258,39 @@ class LiveFree(unittest.TestCase):
         )
         with self.assertRaises(ValueError):
             P.live_free(ins, 4, 0)
+
+    def test_a_decoded_switch_case_keeps_its_reads_live(self):
+        # With the payload decoded (verify.switch_case_targets), the case edge is real: v3 is read
+        # only in a case, so it is live at the switch; the default arm alone would call it dead.
+        ins = stream(
+            ("packed-switch", "v0, -> 5"),                # 0
+            ("return-void", ""),                          # 1 -- default arm
+            ("invoke-static", "{v3}, Lfoo;->bar(I)V"),   # 2 -- case target
+            ("return-void", ""),                          # 3
+            ("nop", ""),                                  # 4
+            ("payload", "6 units"),                       # 5
+        )
+        self.assertNotIn(3, P.live_free(ins, 8, 0, switch_targets={0: [2]}))
+        self.assertIn(3, P.live_free(ins, 8, 0, switch_targets={0: []}),
+                      "the positive control: with no case edge, nothing reads v3")
+
+    def test_decoded_handler_edges_only_reach_from_inside_the_try(self):
+        # An instruction outside every try range does not reach the handler, so a register only the
+        # handler reads is dead there; the move-exception heuristic would have kept it live.
+        ins = stream(
+            ("nop", ""),                                  # 0 -- outside the try
+            ("invoke-static", "{}, Lfoo;->mayThrow()V"),  # 1 -- inside the try
+            ("return-void", ""),                          # 2
+            ("move-exception", "v0"),                     # 3
+            ("invoke-static", "{v6}, Lfoo;->log(I)V"),    # 4
+            ("throw", "v0"),                              # 5
+        )
+        self.assertNotIn(6, P.live_free(ins, 8, 0, exception_targets={1: [3]}),
+                         "the throwing call inside the try still reaches the handler")
+        self.assertIn(6, P.live_free(ins, 8, 2, exception_targets={1: [3]}),
+                      "the return after the try does not reach it")
+        self.assertNotIn(6, P.live_free(ins, 8, 2),
+                         "without the try table every instruction is edged to every handler")
 
     def test_unreachable_code_after_a_goto_does_not_make_a_register_live(self):
         """The shape that broke a real build.

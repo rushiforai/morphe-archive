@@ -20,13 +20,13 @@ import com.android.tools.smali.dexlib2.iface.reference.FieldReference
  * here are for reviewers; the code finds each by a kept name.
  *
  * Every item the share sheet can show has a type, a constant of one enum whose names include
- * SHARE_TO_THREADS, OFF_PLATFORM_WHATSAPP, COPY_LINK and SHARE_NOW (581 LX/AyF, 580 LX/Azp, 577
- * LX/B30). One method decides which items a sheet gets and in what order: it answers an
- * ImmutableList of those types, putting SHARE_TO_THREADS in for several kinds of sheet (581
- * LX/aPc;->A00 with five returns, 580 LX/dpQ;->A0E and 577 LX/aW2;->A0E with three). The sheet's
- * builder and the Threads item's own controller both take their items from it. Each list it
- * returns goes through the extension, which takes SHARE_TO_THREADS out and leaves the rest in
- * order, and back through ImmutableList.copyOf, so the method answers the type it declares.
+ * SHARE_TO_THREADS, OFF_PLATFORM_WHATSAPP, COPY_LINK and SHARE_NOW (581 LX/AyF). One method decides
+ * which items a sheet gets and in what order: it answers an ImmutableList of those types, putting
+ * SHARE_TO_THREADS in for several kinds of sheet (581 LX/aPc;->A00 with five returns, 580
+ * LX/dpQ;->A0E and 577 LX/aW2;->A0E with three). The sheet's builder and the Threads item's own
+ * controller both take their items from it. Each list it returns goes through the extension, which
+ * takes SHARE_TO_THREADS out and leaves the rest in order, and back through ImmutableList.copyOf,
+ * so the method answers the type it declares.
  */
 
 internal const val SHARE_TO_THREADS = "SHARE_TO_THREADS"

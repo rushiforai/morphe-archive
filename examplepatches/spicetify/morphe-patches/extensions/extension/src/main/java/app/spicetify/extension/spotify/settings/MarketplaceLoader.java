@@ -1,6 +1,7 @@
 package app.spicetify.extension.spotify.settings;
 
 import android.util.Log;
+import app.spicetify.extension.spotify.extensions.Extensions;
 import app.spicetify.extension.spotify.theme.ThemeException;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,10 +23,13 @@ import java.util.function.LongSupplier;
 import org.json.JSONException;
 
 /**
- * Loads the Spicetify Marketplace's theme list: from the cache file when it is fresh enough,
- * otherwise from GitHub. Each search page's manifests start as soon as the page arrives, and their
- * themes are listed at once. Then each listed theme's color.ini is read, the top ones first, and a
- * theme without a scheme Spotify can use drops out. Only a fully checked list is cached.
+ * Loads the Spicetify Marketplace's list of themes and extensions: from the cache file when it is
+ * fresh enough, otherwise from GitHub, searching the theme topic, and then, with the Spicetify
+ * extensions patch, the extension topic.
+ * Each search page's manifests start as soon as the page arrives, and their items are listed at
+ * once. An extension repository with no Android version is listed from its search result instead,
+ * without its manifest. Then each listed theme's color.ini is read, the top ones first, and a theme
+ * without a scheme Spotify can use drops out. Only a fully checked list is cached.
  */
 final class MarketplaceLoader {
     private static final String TAG = "Spicetify";
@@ -130,29 +134,47 @@ final class MarketplaceLoader {
             List<CountDownLatch> manifests = new ArrayList<>();
             Set<String> seen = new HashSet<>();
             long deadline = 0;
-            int items = 0;
             int index = 0;
-            for (int page = 1; page <= MAX_PAGES; page++) {
-                Marketplace.Page result;
-                try {
-                    result = Marketplace.parseSearch(fetcher.get(Marketplace.SEARCH_URL + page));
-                } catch (Exception e) {
-                    Log.w(TAG, "Marketplace search failed", e);
-                    failure.compareAndSet(null, e);
-                    break;
+            // Without the extensions patch, nothing shows extensions, so their searches would only spend
+            // GitHub's limit of 10 a minute.
+            String[] searches = InstalledPatches.extensions()
+                    ? new String[] {Marketplace.SEARCH_URL, Marketplace.EXTENSIONS_SEARCH_URL}
+                    : new String[] {Marketplace.SEARCH_URL};
+            for (String search : searches) {
+                boolean extensionTopic = search.equals(Marketplace.EXTENSIONS_SEARCH_URL);
+                int items = 0;
+                for (int page = 1; page <= MAX_PAGES; page++) {
+                    Marketplace.Page result;
+                    try {
+                        result = Marketplace.parseSearch(fetcher.get(search + page));
+                    } catch (Exception e) {
+                        Log.w(TAG, "Marketplace search failed", e);
+                        failure.compareAndSet(null, e);
+                        break;
+                    }
+                    if (result.count == 0) break;
+                    if (manifests.isEmpty()) deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(manifestsTimeoutMillis);
+                    List<Runnable> found = new ArrayList<>();
+                    boolean listedHere = false;
+                    for (Marketplace.Repo repo : result.repos) {
+                        // A repository that moved to the next page between two requests, or that has both
+                        // topics, is read once.
+                        if (!seen.add(repo.owner + "/" + repo.name)) continue;
+                        int repoIndex = index++;
+                        if (Marketplace.isBlacklisted(repo.url, blacklist)) continue;
+                        if (extensionTopic && !Extensions.hostsPort(repo.owner + "/" + repo.name)) {
+                            // Its row shows only what the search result has, so its manifest isn't read.
+                            themes.add(Marketplace.desktopOnly(repo, repoIndex));
+                            listedHere = true;
+                        } else {
+                            found.add(() -> list(repo, repoIndex));
+                        }
+                    }
+                    if (listedHere) update();
+                    manifests.add(run(found));
+                    items += result.count;
+                    if (items >= result.total) break;
                 }
-                if (result.count == 0) break;
-                if (manifests.isEmpty()) deadline = System.nanoTime() + TimeUnit.MILLISECONDS.toNanos(manifestsTimeoutMillis);
-                List<Runnable> found = new ArrayList<>();
-                for (Marketplace.Repo repo : result.repos) {
-                    // A repository that moved to the next page between two requests is read once.
-                    if (!seen.add(repo.owner + "/" + repo.name)) continue;
-                    int repoIndex = index++;
-                    if (!Marketplace.isBlacklisted(repo.url, blacklist)) found.add(() -> list(repo, repoIndex));
-                }
-                manifests.add(run(found));
-                items += result.count;
-                if (items >= result.total) break;
             }
             boolean answered = true;
             for (CountDownLatch latch : manifests) {
@@ -162,7 +184,7 @@ final class MarketplaceLoader {
             listed = Collections.synchronizedList(new ArrayList<>(sorted));
             // Then each listed theme's color.ini, the top ones first, with a deadline of their own.
             List<Runnable> checks = new ArrayList<>();
-            for (Marketplace.Theme theme : sorted) checks.add(() -> check(theme));
+            for (Marketplace.Theme theme : sorted) if (theme.extension == null) checks.add(() -> check(theme));
             boolean checked = run(checks).await(checksTimeoutMillis, TimeUnit.MILLISECONDS);
             finish(answered && checked);
         }

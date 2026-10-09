@@ -30,6 +30,7 @@ val removeShipmentSyncPatch = bytecodePatch(
     description = "Removes email shipment synchronization features, including prompts, banners, dialogs, empty state sync cards, and account settings.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     dependsOn(bypassSignatureCheckResourcePatch)
 

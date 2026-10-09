@@ -18,6 +18,7 @@ val bypassSignatureCheckResourcePatch = rawResourcePatch(
     description = "Neutralizes APK signature verification in libandroidsig-lib.so so API requests succeed when signed with custom keys.",
     default = true
 ) {
+    category("Security")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
 
     execute {
@@ -82,6 +83,7 @@ val removeLoginPatch = bytecodePatch(
     description = "Forces guest mode always on first install, removes login buttons and carousels, strips account/login controls from the Account tab, and suppresses login prompts.",
     default = true
 ) {
+    category("Security")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     dependsOn(bypassSignatureCheckResourcePatch)
 

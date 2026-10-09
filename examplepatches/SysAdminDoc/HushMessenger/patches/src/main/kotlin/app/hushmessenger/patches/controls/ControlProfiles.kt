@@ -79,7 +79,10 @@ internal val PROFILE_346013370 = ControlProfile(
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartJob(Landroid/app/job/JobParameters;)Z",
         ),
-        "anonymous_stories" to setOf("LX/Ncx;->C1W(Lcom/facebook/messaging/montage/model/MontageCard;Z)V"),
+        "anonymous_stories" to setOf(
+            "LX/Ncx;->C1W(Lcom/facebook/messaging/montage/model/MontageCard;Z)V",
+            "Lcom/facebook/messaging/montage/model/MontageBucketPreview;-><init>(Lcom/facebook/messaging/montage/model/MontageBucketKey;Lcom/facebook/messaging/montage/model/MontageBucketLooperLoggingItem;Lcom/facebook/messaging/montage/model/MontageCard;Lcom/facebook/user/model/UserKey;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIZZZZZ)V",
+        ),
         "app_icons" to setOf(
             "LX/7X5;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z",
             "LX/7X5;->A03(Lcom/facebook/auth/usersession/FbUserSession;)Z",
@@ -101,6 +104,7 @@ internal val PROFILE_346013370 = ControlProfile(
             "LX/H1T;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
             "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A04()Z",
         ),
+        "emoji_search" to setOf("LX/7S2;->A8X(Landroid/text/Editable;Z)V"),
         "emoji_typeface" to setOf("LX/1KU;->A00()Landroid/graphics/Typeface;"),
         "event_prompts" to setOf("LX/HCH;->A07()Z", "LX/HCH;->A08()Z"),
         "facebook" to setOf(
@@ -196,7 +200,10 @@ internal val PROFILE_346013423 = ControlProfile(
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartJob(Landroid/app/job/JobParameters;)Z",
         ),
-        "anonymous_stories" to setOf("LX/NUZ;->C1g(Lcom/facebook/messaging/montage/model/MontageCard;Z)V"),
+        "anonymous_stories" to setOf(
+            "LX/NUZ;->C1g(Lcom/facebook/messaging/montage/model/MontageCard;Z)V",
+            "Lcom/facebook/messaging/montage/model/MontageBucketPreview;-><init>(Lcom/facebook/messaging/montage/model/MontageBucketKey;Lcom/facebook/messaging/montage/model/MontageBucketLooperLoggingItem;Lcom/facebook/messaging/montage/model/MontageCard;Lcom/facebook/user/model/UserKey;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIZZZZZ)V",
+        ),
         "app_icons" to setOf(
             "LX/7Zm;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z",
             "LX/7Zm;->A03(Lcom/facebook/auth/usersession/FbUserSession;)Z",
@@ -218,6 +225,7 @@ internal val PROFILE_346013423 = ControlProfile(
             "LX/H0E;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
             "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A03()Z",
         ),
+        "emoji_search" to setOf("LX/7UV;->A8X(Landroid/text/Editable;Z)V"),
         "emoji_typeface" to setOf("LX/1Ku;->A00()Landroid/graphics/Typeface;"),
         "event_prompts" to setOf("LX/KHo;->A07()Z", "LX/KHo;->A08()Z"),
         "facebook" to setOf(
@@ -313,7 +321,10 @@ internal val PROFILE_346013357 = ControlProfile(
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartJob(Landroid/app/job/JobParameters;)Z",
         ),
-        "anonymous_stories" to setOf("LX/HMz;->C1T(Lcom/facebook/messaging/montage/model/MontageCard;Z)V"),
+        "anonymous_stories" to setOf(
+            "LX/HMz;->C1T(Lcom/facebook/messaging/montage/model/MontageCard;Z)V",
+            "Lcom/facebook/messaging/montage/model/MontageBucketPreview;-><init>(Lcom/facebook/messaging/montage/model/MontageBucketKey;Lcom/facebook/messaging/montage/model/MontageBucketLooperLoggingItem;Lcom/facebook/messaging/montage/model/MontageCard;Lcom/facebook/user/model/UserKey;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIZZZZZ)V",
+        ),
         "app_icons" to setOf(
             "LX/7YA;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z",
             "LX/7YA;->A03(Lcom/facebook/auth/usersession/FbUserSession;)Z",
@@ -335,6 +346,7 @@ internal val PROFILE_346013357 = ControlProfile(
             "LX/H19;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
             "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A02()Z",
         ),
+        "emoji_search" to setOf("LX/7T7;->A8Y(Landroid/text/Editable;Z)V"),
         "emoji_typeface" to setOf("LX/1KV;->A00()Landroid/graphics/Typeface;"),
         "event_prompts" to setOf("LX/Ts2;->A07()Z", "LX/Ts2;->A08()Z"),
         "facebook" to setOf(
@@ -430,7 +442,10 @@ internal val PROFILE_346013374 = ControlProfile(
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartJob(Landroid/app/job/JobParameters;)Z",
         ),
-        "anonymous_stories" to setOf("LX/NFK;->C1U(Lcom/facebook/messaging/montage/model/MontageCard;Z)V"),
+        "anonymous_stories" to setOf(
+            "LX/NFK;->C1U(Lcom/facebook/messaging/montage/model/MontageCard;Z)V",
+            "Lcom/facebook/messaging/montage/model/MontageBucketPreview;-><init>(Lcom/facebook/messaging/montage/model/MontageBucketKey;Lcom/facebook/messaging/montage/model/MontageBucketLooperLoggingItem;Lcom/facebook/messaging/montage/model/MontageCard;Lcom/facebook/user/model/UserKey;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIZZZZZ)V",
+        ),
         "app_icons" to setOf(
             "LX/7Z6;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z",
             "LX/7Z6;->A03(Lcom/facebook/auth/usersession/FbUserSession;)Z",
@@ -452,6 +467,7 @@ internal val PROFILE_346013374 = ControlProfile(
             "LX/Mxk;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
             "Lcom/facebook/mobileconfig/factory/MobileConfigUnsafeContext;->A02()Z",
         ),
+        "emoji_search" to setOf("LX/7U3;->A8X(Landroid/text/Editable;Z)V"),
         "emoji_typeface" to setOf("LX/1KU;->A00()Landroid/graphics/Typeface;"),
         "event_prompts" to setOf("LX/HKj;->A07()Z", "LX/HKj;->A08()Z"),
         "facebook" to setOf(
@@ -547,7 +563,10 @@ internal val PROFILE_346213494 = ControlProfile(
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartCommand(Landroid/content/Intent;II)I",
             "Lcom/facebook/analytics2/logger/service/LollipopUploadSafeService;->onStartJob(Landroid/app/job/JobParameters;)Z",
         ),
-        "anonymous_stories" to setOf("LX/N1f;->C2P(Lcom/facebook/messaging/montage/model/MontageCard;Z)V"),
+        "anonymous_stories" to setOf(
+            "LX/N1f;->C2P(Lcom/facebook/messaging/montage/model/MontageCard;Z)V",
+            "Lcom/facebook/messaging/montage/model/MontageBucketPreview;-><init>(Lcom/facebook/messaging/montage/model/MontageBucketKey;Lcom/facebook/messaging/montage/model/MontageBucketLooperLoggingItem;Lcom/facebook/messaging/montage/model/MontageCard;Lcom/facebook/user/model/UserKey;Lcom/google/common/collect/ImmutableList;Ljava/lang/Integer;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IIZZZZZ)V",
+        ),
         "app_icons" to setOf(
             "LX/7ho;->A02(Lcom/facebook/auth/usersession/FbUserSession;)Z",
             "LX/7ho;->A03(Lcom/facebook/auth/usersession/FbUserSession;)Z",
@@ -574,6 +593,7 @@ internal val PROFILE_346213494 = ControlProfile(
             "LX/5UV;->ALl(LX/5kw;LX/1NP;Lcom/facebook/xapp/messaging/capability/vector/Capabilities;LX/5qW;LX/5KG;)LX/1Gd;",
             "LX/5iR;->render(LX/2AL;)LX/1Gd;", "LX/Eyg;->invoke(Ljava/lang/Object;)Ljava/lang/Object;",
         ),
+        "emoji_search" to setOf("LX/7GD;->A8e(Landroid/text/Editable;Z)V"),
         "emoji_typeface" to setOf("LX/1L4;->A00()Landroid/graphics/Typeface;"),
         "event_prompts" to setOf("LX/HG6;->A08()Z", "LX/HG6;->A09()Z"),
         "facebook" to setOf(

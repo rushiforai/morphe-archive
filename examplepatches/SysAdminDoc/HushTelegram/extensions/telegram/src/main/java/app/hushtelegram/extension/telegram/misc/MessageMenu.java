@@ -11,7 +11,10 @@ import android.content.Context;
 import android.net.Uri;
 import android.text.format.Formatter;
 import android.util.Pair;
+import android.view.Gravity;
+import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import app.hushtelegram.extension.shared.L10n;
 import app.hushtelegram.extension.shared.Utils;
@@ -52,6 +55,12 @@ public final class MessageMenu {
     static final int REPEAT = 0x48544d01;
     static final int DETAILS = 0x48544d02;
     static final int COPY_PHOTO = 0x48544d03;
+    static final int QUICK_FORWARD = 0x48544d04;
+
+    /** How many chats Quick forward lists, Saved Messages first. */
+    static final int QUICK_CHATS = 5;
+    /** How far down the chat list Quick forward looks for them. */
+    private static final int QUICK_SCAN = 200;
 
     /**
      * Asked as Telegram finishes the menu's lists.
@@ -63,14 +72,16 @@ public final class MessageMenu {
         boolean repeat = on(Settings.MESSAGE_MENU_REPEAT);
         boolean copy = on(Settings.MESSAGE_MENU_COPY_PHOTO);
         boolean details = on(Settings.MESSAGE_MENU_DETAILS);
-        if (!repeat && !copy && !details || icons == null || items == null || options == null) return;
+        boolean quick = on(Settings.MESSAGE_MENU_QUICK_FORWARD);
+        if (!repeat && !copy && !details && !quick || icons == null || items == null || options == null) return;
         try {
             Object message = selected(chat);
             if (message == null) return;
             boolean forwardable = options.contains(forwardOption());
             repeat = repeat && forwardable && repeatable(chat, message);
             copy = copy && forwardable && photo(message) && downloaded(message) != null;
-            offer(icons, items, options, repeat, copy, details, forwardOption());
+            quick = quick && forwardable && quickable(chat, message);
+            offer(icons, items, options, repeat, copy, details, quick, forwardOption());
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "message menu", failure);
         }
@@ -78,7 +89,7 @@ public final class MessageMenu {
 
     /** Asked first when an option is chosen. Telegram's own numbers pass by untouched. */
     public static void chosen(Object chat, int option) {
-        if (option != REPEAT && option != DETAILS && option != COPY_PHOTO) return;
+        if (option != REPEAT && option != DETAILS && option != COPY_PHOTO && option != QUICK_FORWARD) return;
         try {
             Object message = selected(chat);
             if (message == null) return;
@@ -88,6 +99,16 @@ public final class MessageMenu {
                 // Sent once the menu has closed, the way Telegram's own forward panel sends.
                 Utils.runOnMainThread(() -> send(chat, batch));
                 HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "message repeated");
+            } else if (option == QUICK_FORWARD) {
+                if (!on(Settings.MESSAGE_MENU_QUICK_FORWARD)) return;
+                Context context = activity(chat);
+                if (context == null) return;
+                ArrayList<Object> batch = batch(chat, message);
+                int account = account(message);
+                long from = dialog(message);
+                boolean hide = hidesSender(message, batch);
+                Utils.runOnMainThread(() -> chooseChat(context, account, from, batch, hide));
+                HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "quick forward opened");
             } else if (option == COPY_PHOTO) {
                 if (!on(Settings.MESSAGE_MENU_COPY_PHOTO)) return;
                 Context context = activity(chat);
@@ -109,11 +130,11 @@ public final class MessageMenu {
     }
 
     /**
-     * Puts the items whose switches let them in: Repeat and Copy photo right after Forward, Message
-     * details last. The three lists stay in step, so a menu whose lists already differ is left
+     * Puts the items whose switches let them in: Quick forward, Repeat and Copy photo right after
+     * Forward in that order, Message details last. The three lists stay in step, so a menu whose lists already differ is left
      * alone, and so is an empty one, which Telegram doesn't open at all.
      */
-    static void offer(List<Object> icons, List<Object> items, List<Object> options, boolean repeat, boolean copy, boolean details, int forward) {
+    static void offer(List<Object> icons, List<Object> items, List<Object> options, boolean repeat, boolean copy, boolean details, boolean quick, int forward) {
         if (options.isEmpty() || icons.size() != items.size() || items.size() != options.size()) return;
         int at = options.indexOf(forward);
         if (at >= 0 && copy) {
@@ -129,6 +150,13 @@ public final class MessageMenu {
             icons.add(at + 1, icon);
             items.add(at + 1, label);
             options.add(at + 1, REPEAT);
+        }
+        if (at >= 0 && quick) {
+            int icon = quickIcon();
+            String label = L10n.t("Quick forward");
+            icons.add(at + 1, icon);
+            items.add(at + 1, label);
+            options.add(at + 1, QUICK_FORWARD);
         }
         if (details) {
             int icon = detailsIcon();
@@ -149,6 +177,107 @@ public final class MessageMenu {
             types[i] = type(batch.get(i));
         }
         return ForwardSender.hides(premium(message), article(), types);
+    }
+
+    /** Whether Quick forward fits this message: nothing in its batch Telegram won't forward, and not a secret chat. */
+    static boolean quickable(Object chat, Object message) {
+        if (secret(dialog(message))) return false;
+        for (Object each : batch(chat, message)) {
+            if (blocked(each)) return false;
+        }
+        return true;
+    }
+
+    /** Sender names stay shown unless Hide sender names when forwarding is on, and Telegram's own rule for articles still holds. */
+    static boolean hidesSender(Object message, ArrayList<Object> batch) {
+        if (!ForwardSender.on()) return false;
+        int[] types = new int[batch.size()];
+        for (int i = 0; i < types.length; i++) types[i] = type(batch.get(i));
+        return ForwardSender.hides(premium(message), article(), types);
+    }
+
+    /** A chat Quick forward can offer. */
+    static final class Destination {
+        final long id;
+        final String title;
+
+        Destination(long id, String title) {
+            this.id = id;
+            this.title = title;
+        }
+    }
+
+    /**
+     * Saved Messages, then the chats at the top of the list that take new messages, up to
+     * {@link #QUICK_CHATS}. Secret chats, forums and anywhere Telegram wouldn't let you write are left
+     * out, and so is the chat the message is already in.
+     */
+    static List<Destination> destinations(int account, long from) {
+        List<Destination> found = new ArrayList<>();
+        long self = selfId(account);
+        if (self != 0 && self != from && reachable(account, self)) found.add(new Destination(self, title(account, self)));
+        ArrayList<?> dialogs = dialogs(account);
+        if (dialogs == null) return found;
+        int scanned = 0;
+        for (Object dialog : dialogs) {
+            if (found.size() >= QUICK_CHATS || scanned++ >= QUICK_SCAN) break;
+            if (dialog == null) continue;
+            long id = dialogId(dialog);
+            if (id == 0 || id == from || id == self || secret(id) || !reachable(account, id)) continue;
+            String name = title(account, id);
+            if (name != null && !name.isEmpty()) found.add(new Destination(id, name));
+        }
+        return found;
+    }
+
+    /** The list of chats to forward to, a row each. */
+    private static void chooseChat(Context context, int account, long from, ArrayList<Object> batch, boolean hide) {
+        try {
+            List<Destination> where = destinations(account, from);
+            if (where.isEmpty()) {
+                Toast.makeText(context, L10n.t(context, "No chat to forward to"), Toast.LENGTH_SHORT).show();
+                return;
+            }
+            Pair<Dialog, LinearLayout> dialog = CustomDialog.create(context, L10n.t(context, "Forward to"), null, null, null,
+                    null, () -> {}, null, null, true);
+            LinearLayout rows = dialog.second;
+            // Between the title and the Cancel button.
+            int at = Math.min(1, rows.getChildCount());
+            float density = context.getResources().getDisplayMetrics().density;
+            for (Destination destination : where) {
+                TextView row = new TextView(context);
+                row.setText(destination.title);
+                row.setTextSize(16f);
+                row.setTextColor(Utils.getAppForegroundColor());
+                row.setGravity(Gravity.CENTER_VERTICAL);
+                row.setSingleLine(true);
+                int pad = (int) (16 * density);
+                row.setPadding(pad, pad / 2, pad, pad / 2);
+                row.setMinHeight((int) (48 * density));
+                row.setClickable(true);
+                row.setOnClickListener((View view) -> {
+                    dialog.first.dismiss();
+                    forward(context, account, destination, batch, hide);
+                });
+                rows.addView(row, at++);
+            }
+            dialog.first.show();
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "quick forward list", failure);
+        }
+    }
+
+    private static void forward(Context context, int account, Destination destination, ArrayList<Object> batch, boolean hide) {
+        try {
+            int result = forwardTo(account, batch, destination.id, hide);
+            String text = result == 0
+                    ? L10n.f(context, "Forwarding to %1$s", L10n.isolate(destination.title))
+                    : L10n.t(context, "Can't forward there");
+            Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+            if (result == 0) HookStatus.counted(FamilyNames.MESSAGE_MENU_REPEAT, "quick forwarded");
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.MESSAGE_MENU_REPEAT, "quick forward", failure);
+        }
     }
 
     /** The photo's file once it's on the phone: the sent original first, then Telegram's own copy. */
@@ -295,6 +424,7 @@ public final class MessageMenu {
     public static int article() { return -1; }
 
     /** Telegram's icons for the items. Replaced when patching. */
+    public static int quickIcon() { return 0; }
     public static int repeatIcon() { return 0; }
     public static int copyIcon() { return 0; }
     public static int detailsIcon() { return 0; }
@@ -322,6 +452,30 @@ public final class MessageMenu {
 
     /** The message's Telegram type. Replaced when patching. */
     public static int type(Object message) { return 0; }
+
+    /** The account the message belongs to. Replaced when patching. */
+    public static int account(Object message) { return 0; }
+
+    /** The signed-in account's own user ID, which is the chat Saved Messages lives in. Replaced when patching. */
+    public static long selfId(int account) { return 0L; }
+
+    /** The account's chat list, most recent first, or null. Replaced when patching. */
+    public static ArrayList<?> dialogs(int account) { return null; }
+
+    /** A chat list entry's ID. Replaced when patching. */
+    public static long dialogId(Object dialog) { return 0L; }
+
+    /** Whether the ID is a secret chat's. Replaced when patching. */
+    public static boolean secret(long dialog) { return true; }
+
+    /** Whether the account can write to the chat, and it isn't a forum. Replaced when patching. */
+    public static boolean reachable(int account, long dialog) { return false; }
+
+    /** The chat's name, Telegram's own Saved Messages label for your own. Replaced when patching. */
+    public static String title(int account, long dialog) { return null; }
+
+    /** Telegram's own forward of the messages into the chat, sound on, now. Returns its result, 0 for sent. Replaced when patching. */
+    public static int forwardTo(int account, ArrayList<Object> messages, long dialog, boolean hideSender) { return 1; }
 
     /** The details, each replaced when patching. */
     public static int id(Object message) { return 0; }

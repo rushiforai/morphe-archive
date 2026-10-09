@@ -12,10 +12,9 @@ val enablePremiumPatch = bytecodePatch(
     compatibleWith(COMPATIBILITY_BOXBOX)
 
     execute {
-        // Force all RevenueCat entitlements to appear active.
+        // Force all RevenueCat entitlements to appear active. That is the only gate: the
+        // purchase flow is left alone (a former "block launchBillingFlow" step matched no
+        // method in 5.4.9 or 5.4.16 and added nothing once entitlements are active).
         EntitlementInfoIsActiveFingerprint.method.returnEarly(value = true)
-
-        // Disable billing flow launch to prevent purchase dialogs.
-        BillingLaunchFlowFingerprint.methodOrNull?.returnEarly()
     }
 }

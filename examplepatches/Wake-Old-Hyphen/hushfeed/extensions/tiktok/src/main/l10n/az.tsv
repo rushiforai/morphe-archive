@@ -204,6 +204,10 @@ Back up settings	Ayarların ehtiyat nüsxəsini yaradın
 Backup and restore	Ehtiyat nüsxə və bərpa
 Black	Qara
 Block clipboard reads	Mübadilə buferinin oxunmasını bloklayın
+Hide a VPN connection	VPN bağlantısını gizlə
+Keep TikTok from telling you're on a VPN. Only the VPN shows as off to it, and your other connections read as they really are. Leave this off if you need a feature that checks for a VPN.	TikTok-un VPN istifadə etdiyinizi görməsinin qarşısını alır. Ona yalnız VPN sönülü görünür, digər bağlantılarınız əslində olduğu kimi qalır. VPN yoxlayan funksiyaya ehtiyacınız varsa, bunu sönülü saxlayın.
+Block the advertising id	Reklam identifikatorunu bloklayın
+Hand TikTok a blank advertising id, the same one Android gives after you reset yours, so this device can't be matched across apps by it.	TikTok-a boş reklam identifikatoru verir, Android-in siz onu sıfırladıqdan sonra verdiyi eyni identifikatoru, beləcə bu cihaz onun vasitəsilə tətbiqlər arasında tanınmasın.
 Block contact list access	Kontakt siyahısına girişi bloklayın
 Block installed app scanning	Quraşdırılmış tətbiqlərin skanını bloklayın
 Block location	Məkanı bloklayın
@@ -773,7 +777,6 @@ One minute left	Bir dəqiqə qalıb
 One of the quote marks in that list has nothing to close it, so the rest of the line reads as one phrase. Add the missing quote or take the stray one out.	Həmin siyahıdakı dırnaq işarələrindən birinin bağlanışı yoxdur, ona görə sətrin qalanı bir ifadə kimi oxunur. Çatışmayan dırnağı əlavə edin və ya artıq olanı silin.
 One value per line	Hər sətirdə bir dəyər
 Only bottom tabs TikTok has loaded on this device are shown here. This doesn't force unavailable tabs to appear.	Burada yalnız TikTok-un bu cihazda yüklədiyi alt nişanlar göstərilir. Bu, əlçatan olmayan nişanları görünməyə məcbur etmir.
-Turn this on while you record logs for a bug report, then turn it off again. While it's on, TikTok can feel slower and may crash.	Xəta hesabatı üçün qeydləri yazarkən bunu yandırın, sonra yenidən söndürün. Açıq olduqda TikTok daha yavaş işləyə və çökə bilər.
 Only fields the Lab can check and copy safely are shown.	Yalnız Lab-ın yoxlaya və təhlükəsiz kopyalaya biləcəyi sahələr göstərilir.
 Only from these countries	Yalnız bu ölkələrdən
 Only tabs TikTok has loaded on this device are shown here. This doesn't force unavailable tabs to appear.	Burada yalnız TikTok-un bu cihazda yüklədiyi nişanlar göstərilir. Bu, əlçatan olmayan nişanları görünməyə məcbur etmir.
@@ -1171,6 +1174,7 @@ A change that loosens the budget waits until the day starts over and one that ti
 Changes to %1$s at %2$s	%2$s vaxtında %1$s olacaq
 Turns off at %1$s	%1$s vaxtında qapalır
 That loosens the budget. It waits until %1$s.	Bu büdcəni yumşaldır. O, %1$s vaxtına qədər gözləyir.
+That loosens the lock. It waits until %1$s.	Bu kilidi yumşaldır. O, %1$s vaxtına qədər gözləyir.
 Today can't start over while Wait a day to loosen the budget is on. The day starts over at %1$s.	Büdcəni yumşaltmaq üçün bir gün gözləyin seçimi açıq olduqda bu gün yenidən başlaya bilməz. Gün %1$s vaxtında yenidən başlayır.
 Wait a day to loosen the budget is on, so Hushfeed stays on	Büdcəni yumşaltmaq üçün bir gün gözləyin seçimi açıqdır, ona görə Hushfeed aktiv qalır
 Today has moved on, so there's nothing to put back	Bu gün irəlilədi, ona görə geri qaytarılacaq heç nə yoxdur
@@ -1421,8 +1425,8 @@ Couldn't save the change. Try again.	Dəyişikliyi saxlamaq alınmadı. Yenidən
 Off. TikTok can report views and typing.	Qapalıdır. TikTok baxışları və yazmanı bildirə bilər.
 Hushfeed is paused. Ghost mode isn't active.	Hushfeed durdurulub. Xəyal rejimi aktiv deyil.
 Problem detected. Story views may still be reported. Check Ghost mode diagnostics. The warning stays until TikTok restarts.	Problem aşkarlandı. Hekayə baxışları hələ də bildirilə bilər. Xəyal rejimi diaqnostikasını yoxlayın. Xəbərdarlıq TikTok yenidən başlayana qədər qalır.
-Reporting calls were blocked here. Viewer-list privacy hasn't been verified. Online status is unchanged.	Bildirmə sorğuları burada bloklandı. Baxanlar siyahısı məxfiliyi təsdiqlənməyib. Onlayn status dəyişmir.
-On. No reporting call has been observed in this process. Online status is unchanged.	Açıqdır. Bu prosesdə heç bir bildirmə sorğusu müşahidə edilməyib. Onlayn status dəyişmir.
+Reporting calls were blocked here. Viewer-list privacy hasn't been verified.	Bildirmə sorğuları burada bloklandı. Baxanlar siyahısı məxfiliyi təsdiqlənməyib.
+On. No reporting call has been observed in this process.	Açıqdır. Bu prosesdə heç bir bildirmə sorğusu müşahidə edilməyib.
 Ghost mode diagnostics	Xəyal rejimi diaqnostikası
 The partial file couldn't be removed. Delete it from the folder you chose.	Yarımçıq fayl silinə bilmədi. Onu seçdiyiniz qovluqdan silin.
 The backup didn't start and its partial file couldn't be removed. Delete it from the folder you chose.	Ehtiyat nüsxə başlamadı və yarımçıq faylı silinə bilmədi. Onu seçdiyiniz qovluqdan silin.
@@ -1569,3 +1573,291 @@ Video ID copied	Video ID-si kopyalandı
 Copy username	İstifadəçi adını kopyala
 Copy user ID	İstifadəçi ID-sini kopyala
 Copy video ID	Video ID-sini kopyala
+Prefer H.264 video	H.264 videoya üstünlük ver
+Play the H.264 version of videos TikTok also offers in HEVC or ByteVC2. It's easier on phones that stutter or run hot playing those. Videos without an H.264 version still play.	TikTok-un HEVC və ya ByteVC2 ilə də təqdim etdiyi videoların H.264 versiyasını oynat. Bunları oynadarkən donan və ya qızan telefonlar üçün daha yüngüldür. H.264 versiyası olmayan videolar yenə oynadılır.
+Show engagement rate	İştirak dərəcəsini göstərin
+Show likes, comments, shares and saves as a percentage of views, next to the creator's name and after the view count on profile grids.	Bəyənmələri, şərhləri, paylaşımları və yadda saxlamaları baxışların faizi kimi yaradıcının adının yanında və profil şəbəkəsində baxış sayından sonra göstərin.
+App lock	Tətbiq kilidi
+Lock TikTok	TikTok-u kilidləyin
+Ask for the unlock your phone uses, like a fingerprint or a PIN, when TikTok starts and when you come back to it. A link you open from another app still goes to its video once you unlock. While this is on, TikTok's preview in recent apps stays blank. Needs a screen lock on the phone.	TikTok açılanda və ona qayıdanda telefonunuzun istifadə etdiyi kilidi, məsələn barmaq izini və ya PIN-i soruşun. Başqa tətbiqdən açdığınız link kilidi açdıqdan sonra yenə öz videosuna aparır. Bu açıq olanda TikTok-un son tətbiqlərdəki önizləməsi boş qalır. Telefonda ekran kilidi lazımdır.
+Lock again after	Yenidən kilidləmə vaxtı
+Right away	Dərhal
+After 1 minute	1 dəqiqədən sonra
+After 5 minutes	5 dəqiqədən sonra
+After 15 minutes	15 dəqiqədən sonra
+Unlock TikTok	TikTok-un kilidini açın
+Use screen lock	Ekran kilidindən istifadə edin
+TikTok is locked	TikTok kilidlidir
+Unlock	Kilidi açın
+TikTok isn't locked because this phone has no screen lock	Bu telefonda ekran kilidi olmadığı üçün TikTok kilidli deyil
+Save photo posts as a video	Foto paylaşımlarını video kimi saxla
+Download video on a one-photo post makes the MP4 here, with the post's sound and no TikTok logo or end card. On a post with several photos, Download asks whether you want the photos you picked as full-size originals or as one video.	Tək fotolu paylaşımda "Videonu endir" MP4 faylını burada, paylaşımın səsi ilə və TikTok loqosu və ya son ekran olmadan yaradır. Bir neçə fotolu paylaşımda "Endir" seçdiyiniz fotoları tam ölçülü orijinallar kimi, yoxsa bir video kimi istədiyinizi soruşur.
+Seconds per photo	Hər foto üçün saniyə
+How long each photo stays on screen in a video made from a photo post.	Foto paylaşımından hazırlanan videoda hər fotonun ekranda nə qədər qalması.
+Save photos or a video?	Fotolar, yoxsa video saxlanılsın?
+Save photos	Fotoları saxla
+Save as video	Video kimi saxla
+Making a video of the photos	Fotolardan video hazırlanır
+Saved the photos as a video in %1$s	Fotolar video kimi %1$s yerinə saxlanıldı
+Saved the photos as a video in %1$s. The sound couldn't be added, so it's silent.	Fotolar video kimi %1$s yerinə saxlanıldı. Səs əlavə edilə bilmədi, ona görə video səssizdir.
+The video couldn't be made from these photos. Try again.	Bu fotolardan video hazırlana bilmədi. Yenidən cəhd edin.
+Video of photos	Fotolardan video
+# context: search words for the Log diagnostics switch. Never shown, only matched when someone searches settings. Give the words people type for debug logging in this language, separated by spaces.
+debug debugging logs logging	sazlama xəta axtarışı jurnallar loglar
+Export comments	Şərhləri ixrac et
+Adds Export CSV and Export JSON under the search box, so it needs Search within comments. They save the comments and replies this video has loaded to a file you pick. Open the reply threads you want first, since TikTok only loads them when you do.	Axtarış qutusunun altına CSV ixracı və JSON ixracı əlavə edir, ona görə Şərhlər daxilində axtarın lazımdır. Bu video üçün yüklənmiş şərhləri və cavabları seçdiyiniz fayla saxlayır. Əvvəlcə istədiyiniz cavab zəncirlərini açın, çünki TikTok onları yalnız açdıqda yükləyir.
+Export CSV	CSV ixracı
+Export JSON	JSON ixracı
+1 comment or reply loaded	1 şərh və ya cavab yüklənib
+%1$d comments and replies loaded	%1$d şərh və cavab yüklənib
+No comments are loaded to export yet.	İxrac üçün hələ şərh yüklənməyib.
+Exported %1$d comments and %2$d replies	%1$d şərh və %2$d cavab ixrac edildi
+Comment export failed	Şərh ixracı alınmadı
+Some of these notes are in English.	Bu qeydlərin bir hissəsi ingilis dilindədir.
+More than %1$d comments were loaded, so the rest aren't in the file.	%1$d-dən çox şərh yüklənmişdi, ona görə qalanları faylda yoxdur.
+Lock the feed	Lenti kilidlə
+For You, Following and the other feed tabs stay behind a calm panel and won't swipe. Messages, profiles and search work as usual, a link to one video still opens that video, and the app opens on Inbox instead of the feed.	Sizin üçün, İzlədiklərim və digər lent tabları sakit bir panelin arxasında qalır və sürüşdürülmür. Mesajlar, profillər və axtarış həmişəki kimi işləyir, bir videoya keçid yenə də həmin videonu açır, tətbiq isə lentin əvəzinə Gələnlər qutusunda açılır.
+The feed is locked	Lent kilidlidir
+Block popups	Pop-up pəncərələri blokla
+Pick the popups to stop. The list holds the ones TikTok has tried to show on this phone, so a popup appears here after its first showing. CAPTCHA, verification, sign-in, age, ban and legal consent screens are never listed or blocked.	Dayandırmaq istədiyiniz pop-up pəncərələrini seçin. Siyahıda TikTok-un bu telefonda göstərməyə çalışdıqları var, ona görə pop-up ilk dəfə göründükdən sonra burada peyda olur. CAPTCHA, doğrulama, giriş, yaş, qadağa və hüquqi razılıq ekranları heç vaxt siyahıya düşmür və bloklanmır.
+No popups have been seen yet	Hələ heç bir pop-up görünməyib
+Use TikTok for a while. A popup shows up here after TikTok first tries to show it.	TikTok-dan bir müddət istifadə edin. Pop-up, TikTok onu ilk dəfə göstərməyə çalışdıqdan sonra burada görünür.
+Fade the video controls	Video idarəetmələrini solğunlaşdır
+Fade the buttons, caption and tabs over the video to this level instead of hiding them. 100 leaves them as TikTok draws them. Faded controls still take taps. At 0 the buttons and caption are hidden, and the tabs stay at 10.	Videonun üzərindəki düymələri, başlığı və tabları gizlətmək əvəzinə bu səviyyəyə qədər solğunlaşdırır. 100 onları TikTok-un çəkdiyi kimi saxlayır. Solğun idarəetmələr toxunuşları yenə qəbul edir. 0-da düymələr və başlıq gizlənir, tablar isə 10-da qalır.
+Loop a story	Hekayəni təkrarla
+Replay a story from the start when it ends instead of moving to the next one. Tap or swipe to move on.	Hekayə bitəndə növbətiyə keçmək əvəzinə başdan yenidən oxut. Keçmək üçün toxunun və ya sürüşdürün.
+Hold a photo story	Foto hekayəni saxla
+Keep a photo story on screen until you tap or swipe, instead of moving on after a few seconds.	Foto hekayəni toxunana və ya sürüşdürənə qədər ekranda saxla, bir neçə saniyədən sonra keçmə.
+Store TikTok reads as its installer	TikTok-un quraşdırıcı kimi gördüyü mağaza
+Play Store	Play Store
+Galaxy Store	Galaxy Store
+AppGallery	AppGallery
+Amazon Appstore	Amazon Appstore
+Swipe for brightness and volume	Parlaqlıq və səs üçün sürüşdür
+Drag up or down along the left or right edge of a video to change what that edge strip is set to below. By default that's the screen brightness on the left and the volume on the right. Swiping anywhere else still scrolls the feed.	Aşağıda həmin kənar zolaq üçün seçdiyini dəyişmək üçün videonun sol və ya sağ kənarı boyunca yuxarı və ya aşağı sürüşdür. Defolt olaraq solda ekranın parlaqlığı, sağda isə səsdir. Başqa yerdə sürüşdürmək lenti yenə də fırladır.
+Edge strip width	Kənar zolağın eni
+How wide each edge strip is, as a percent of the screen width.	Hər kənar zolağın eni, ekran enindən faizlə.
+Brightness	Parlaqlıq
+Volume	Səs
+Left edge strip	Sol kənar zolaq
+Right edge strip	Sağ kənar zolaq
+Stop search results playing on their own	Axtarış nəticələri özbaşına oynamasın
+Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	Axtarış nəticələrindəki videolar örtüyünü göstərir və onları açanda oynayır. Lent və açdığınız videolar həmişəki kimi oynayır.
+In a chat	Çatda
+Hide call buttons	Zəng düymələrini gizlədin
+The voice and video call buttons leave the top of a chat. Calls still ring, and the chat details button stays.	Səsli və video zəng düymələri çatın yuxarısından yoxa çıxır. Zənglər yenə də çalır, çat təfərrüatları düyməsi isə qalır.
+Hide sticker suggestions	Stiker təkliflərini gizlədin
+The sticker suggestion banner stops showing in a chat. Your own stickers are still in the sticker picker.	Stiker təklifi bannerı çatda göstərilməyi dayandırır. Öz stikerləriniz stiker seçicisində qalır.
+Hide suggested replies	Təklif olunan cavabları gizlədin
+TikTok's suggested reply cells and their intro banner stop showing in a chat. Messages you type or receive are untouched.	TikTok-un təklif etdiyi cavab xanaları və onların təqdimat bannerı çatda göstərilməyi dayandırır. Yazdığınız və ya aldığınız mesajlara toxunulmur.
+Hide online status	Onlayn statusu gizlət
+Stop sending TikTok's activity reports, so friends don't see a green dot or Active now while you're in the app. It works only while Ghost mode is on. The same report brings back your friends' status, so theirs may stop updating for you while it's on. Your last status can stay visible for a while.	TikTok-un fəaliyyət hesabatlarının göndərilməsini dayandırır, beləcə dostlar tətbiqdə olduğunuz zaman yaşıl nöqtə və ya Hazırda aktivdir görməsin. Yalnız Xəyal rejimi açıq olduqda işləyir. Eyni hesabat dostlarınızın statusunu da gətirir, ona görə bu açıq olduqda onların statusu sizdə yenilənməyə bilər. Sonuncu statusunuz bir müddət görünə bilər.
+Stop LIVE previews opening by themselves	LIVE önizləmələrinin özbaşına açılmasını dayandır
+A LIVE in the feed can count down and take you into the room on its own. This keeps you in the feed until you tap it.	Lentdəki LIVE geri sayıb sizi özü otağa apara bilər. Bu, siz ona toxunana qədər sizi lentdə saxlayır.
+Play sounds TikTok pulled	TikTok-un çıxardığı səsləri oynat
+Play the audio on videos TikTok silenced because their sound was pulled for copyright or in your region. TikTok may still say the sound isn't available.	Səsi müəllif hüququna görə və ya bölgənizdə çıxarıldığı üçün TikTok-un səssizləşdirdiyi videolarda səsi oynadır. TikTok yenə də səsin əlçatan olmadığını göstərə bilər.
+Match region fields in requests	Sorğulardakı region sahələrini uyğunlaşdır
+Show exact LIVE viewer counts	Dəqiq LIVE izləyici sayını göstər
+A LIVE room shows how many people are watching as a rounded number like 1.2K. This shows the exact count instead.	LIVE otağı kimin baxdığını 1.2K kimi yuvarlaqlaşdırılmış rəqəmlə göstərir. Bu, əvəzinə dəqiq sayı göstərir.
+Keep watching in a small window	Kiçik pəncərədə izləməyə davam et
+When you leave TikTok while a video plays, it keeps playing in a small window over your other apps, with a button to pause it. Works in the feed and on videos you open from a profile, search or a sound. Needs Android 8 or later.	Video oynayarkən TikTok-dan çıxdığınız zaman o, digər tətbiqlərin üzərində kiçik pəncərədə oynamağa davam edir və onu dayandırmaq üçün düymə olur. Lentdə, həmçinin profildən, axtarışdan və ya səsdən açdığınız videolarda işləyir. Android 8 və ya daha yeni versiya tələb olunur.
+Play	Oynat
+Pause	Fasilə
+Posting	Paylaşım
+Always upload in HD	Həmişə HD keyfiyyətdə yüklə
+Post every video as if you'd turned on TikTok's own HD upload on the post page. A clip TikTok doesn't count as high quality posts as before.	Hər videonu paylaşım səhifəsində TikTok-un öz HD yükləməsini açmısınız kimi paylaşın. TikTok-un yüksək keyfiyyətli saymadığı klip əvvəlki kimi paylaşılır.
+Keeps logging until you turn it off, even after a restart. TikTok can feel slower while it's on.	Siz söndürənə qədər, hətta yenidən başladıqdan sonra da qeyd etməyə davam edir. Açıq olduqda TikTok daha yavaş işləyə bilər.
+Log diagnostics for 15 minutes	Diaqnostikanı 15 dəqiqə qeyd edin
+Logs for 15 minutes, then stops on its own. Restarting TikTok doesn't move the end, and the switch above stays as you set it.	15 dəqiqə qeyd edir, sonra özü dayanır. TikTok-u yenidən başlatmaq bitmə vaxtını dəyişmir, yuxarıdakı açar isə sizin qoyduğunuz kimi qalır.
+Logging until %1$s. Tap to stop now.	%1$s-dək qeyd edilir. İndi dayandırmaq üçün toxunun.
+Logging diagnostics until %1$s	Diaqnostika %1$s-dək qeyd edilir
+Timed logging stopped	Vaxtlı qeyd dayandırıldı
+Preview with a made-up post:	Uydurma paylaşımla önizləmə:
+Hushfeed's downloader: %1$s	Hushfeed yükləyicisi: %1$s
+TikTok's downloader: %1$s	TikTok yükləyicisi: %1$s
+Sound: %1$s	Səs: %1$s
+Details: %1$s	Təfərrüatlar: %1$s
+Subtitles: %1$s	Altyazılar: %1$s
+Stickers: %1$s	Stikerlər: %1$s
+Live photo clips: %1$s	Canlı foto klipləri: %1$s
+TikTok's own name	TikTok-un öz adı
+Not a token here, kept as typed: %1$s	Burada token deyil, yazıldığı kimi saxlanılır: %1$s
+Not a token for Hushfeed's downloader, kept as typed: %1$s	Hushfeed yükləyicisi üçün token deyil, yazıldığı kimi saxlanılır: %1$s
+If that name is taken, Android adds a number to the new file.	Bu ad artıq varsa, Android yeni fayla nömrə əlavə edir.
+If that name is taken, Hushfeed adds a number to the new file.	Bu ad artıq varsa, Hushfeed yeni fayla nömrə əlavə edir.
+Don't start the first video	İlk videonu başlatmayın
+When you open TikTok from its icon, the first video in the feed waits for one tap before it plays. A link, a notification or a shortcut opens as usual.	TikTok-u ikonundan açanda lentdəki ilk video oynamazdan əvvəl bir toxunuş gözləyir. Keçid, bildiriş və ya qısayol həmişəki kimi açılır.
+Network proxy	Şəbəkə proksisi
+Send TikTok through a proxy	TikTok-u proksi ilə göndərin
+Sends TikTok's own network stack, which carries the feed, search, comments and the rest of its API, through the proxy below. Videos and LIVE streams load through TikTok's player, which connects on its own, so they stay direct. Other apps aren't affected.	TikTok-un lenti, axtarışı, şərhləri və API-sinin qalanını daşıyan öz şəbəkə yığınını aşağıdakı proksi ilə göndərir. Videolar və LIVE yayımlar TikTok-un özü qoşulan pleyeri ilə yüklənir, ona görə də birbaşa qalır. Digər tətbiqlərə təsir etmir.
+Proxy type	Proksi növü
+HTTP	HTTP
+SOCKS5	SOCKS5
+Proxy host	Proksi hostu
+The proxy's address, like 192.168.1.20 or proxy.example.com.	Proksinin ünvanı, məsələn 192.168.1.20 və ya proxy.example.com.
+Proxy port	Proksi portu
+The port the proxy listens on, like 8080 or 1080.	Proksinin dinlədiyi port, məsələn 8080 və ya 1080.
+Proxy user name	Proksi istifadəçi adı
+Optional. TikTok's own network stack can't sign in to a proxy, so only plain Java connections use this. Leave it empty for a proxy without a password.	İstəyə bağlı. TikTok-un öz şəbəkə yığını proksiyə daxil ola bilmir, ona görə də bunu yalnız sadə Java bağlantıları istifadə edir. Parolsuz proksi üçün boş saxlayın.
+Proxy password	Proksi parolu
+Optional, used with the user name. It isn't shown, logged or put in a backup.	İstəyə bağlı, istifadəçi adı ilə istifadə olunur. Göstərilmir, jurnala yazılmır və ehtiyat nüsxəyə düşmür.
+Enter a host name or IP address, without a scheme or port	Sxem və port olmadan host adı və ya IP ünvanı daxil edin
+A port is a whole number from 1 to 65535	Port 1 ilə 65535 arasında tam ədəddir
+The proxy at %1$s asks for a password. TikTok's own network stack can't send one, so use a proxy that doesn't need one.	%1$s ünvanındakı proksi parol istəyir. TikTok-un öz şəbəkə yığını parol göndərə bilmir, ona görə də parol tələb etməyən proksi istifadə edin.
+Couldn't reach the proxy at %1$s. TikTok may not load until it's back or you turn the proxy off.	%1$s ünvanındakı proksiyə qoşulmaq alınmadı. Proksi geri qayıdana və ya siz onu söndürənə qədər TikTok yüklənməyə bilər.
+Word rules only, not every feed filter:	Yalnız söz qaydaları, lentdəki bütün filtrlər deyil:
+This list is too long to preview here. Saving still follows the usual limit.	Bu siyahı burada önbaxış üçün çox uzundur. Saxlayanda adi limit keçərli qalır.
+Can't check yet: %1$s	Hələ yoxlamaq olmur: %1$s
+No rules yet, so nothing would match.	Hələ qayda yoxdur, ona görə heç nə uyğun gəlməz.
+Type some sample text to see whether these rules match it.	Bu qaydaların uyğun gəlib-gəlmədiyini görmək üçün nümunə mətn yazın.
+No rule matches this text.	Heç bir qayda bu mətnə uyğun gəlmir.
+Matches the rule: %1$s	Uyğun gələn qayda: %1$s
+Only the first %1$s characters of the sample were checked.	Nümunənin yalnız ilk %1$s simvolu yoxlandı.
+Sample caption to test	Sınamaq üçün nümunə təsvir
+Sample category to test	Sınamaq üçün nümunə kateqoriya
+Keep videos out of Watch history	Videoları Baxış tarixçəsindən kənarda saxlayın
+Stops the view report TikTok sends for each video you watch, which is how videos get into Activity center > Watch history. Your views stop adding to view counts and For You has less to learn from. Videos already there stay, and TikTok still sees likes, follows, searches and its usage logs.	TikTok-un baxdığınız hər video üçün göndərdiyi baxış hesabatını dayandırır, videolar Fəaliyyət mərkəzi > Baxış tarixçəsinə məhz belə düşür. Baxışlarınız baxış saylarına əlavə olunmur və For You-nun öyrənəcəyi az olur. Artıq orada olan videolar qalır, TikTok isə bəyənmələri, izləmələri, axtarışları və öz istifadə jurnallarını yenə görür.
+Set a sleep timer that closes TikTok	TikTok-u bağlayan yuxu taymeri qurun
+Close TikTok after	TikTok-u bu müddətdən sonra bağla
+Turn off the timer (TikTok closes at %1$s)	Taymeri söndür (TikTok-un bağlanma vaxtı: %1$s)
+TikTok closes at %1$s	TikTok-un bağlanma vaxtı: %1$s
+Sleep timer off	Yuxu taymeri söndürüldü
+Keep offline videos out of the feed	Oflayn videoları lentdən kənarda saxlayın
+TikTok slips the videos it saved for offline viewing back into For You when it can't load enough new ones. This takes them all out. Your offline list stays as it is.	TikTok kifayət qədər yeni video yükləyə bilməyəndə oflayn baxış üçün saxladığı videoları For You-ya geri qatır. Bu, hamısını çıxarır. Oflayn siyahınız olduğu kimi qalır.
+About %1$s of storage at this limit	Bu limitdə təxminən %1$s yaddaş
+Save seen history to a file	İzlənmiş videoları fayla saxla
+Restore seen history from a file	İzlənmiş videoları fayldan bərpa et
+Save the videos @%1$s has seen, and when, to a JSON file. Anyone who opens the file can see that viewing history.	@%1$s hesabının izlədiyi videoları və nə vaxt izlənildiklərini JSON faylına saxlayın. Faylı açan hər kəs bu izləmə tarixçəsini görə bilər.
+Save this account's seen videos, and when they were watched, to a JSON file. Anyone who opens the file can see that viewing history.	Bu hesabın izlədiyi videoları və nə vaxt izlənildiklərini JSON faylına saxlayın. Faylı açan hər kəs bu izləmə tarixçəsini görə bilər.
+Add a seen-history file saved by Hushfeed to the videos @%1$s has seen. A video in both keeps the newer date.	Hushfeed-in saxladığı tarixçə faylını @%1$s hesabının izlədiyi videolara əlavə edin. Hər ikisində olan video daha yeni tarixi saxlayır.
+Add a seen-history file saved by Hushfeed to this account's seen videos. A video in both keeps the newer date.	Hushfeed-in saxladığı tarixçə faylını bu hesabın izlədiyi videolara əlavə edin. Hər ikisində olan video daha yeni tarixi saxlayır.
+Sign in to TikTok before saving or restoring seen history.	İzlənmiş videoları saxlamazdan və ya bərpa etməzdən əvvəl TikTok-a daxil olun.
+Saving seen history	İzlənmiş videolar saxlanılır
+Reading the seen-history file	Tarixçə faylı oxunur
+Restoring seen history	İzlənmiş videolar bərpa olunur
+Saved 1 seen video to the file	Fayla 1 izlənmiş video saxlanıldı
+Saved %1$s seen videos to the file	Fayla %1$s izlənmiş video saxlanıldı
+Couldn't save the seen-history file. Try again.	Tarixçə faylı saxlanıla bilmədi. Yenidən cəhd edin.
+Couldn't start the export. Try again in a moment.	İxrac başladıla bilmədi. Bir az sonra yenidən cəhd edin.
+Added 1 seen video	1 izlənmiş video əlavə edildi
+Added %1$s seen videos	%1$s izlənmiş video əlavə edildi
+Added 1 seen video.	1 izlənmiş video əlavə edildi.
+Added %1$s seen videos.	%1$s izlənmiş video əlavə edildi.
+%1$s video was already recorded.	%1$s video artıq qeydə alınmışdı.
+%1$s videos were already recorded.	%1$s video artıq qeydə alınmışdı.
+%1$s video was older than Forget seen videos after allows.	%1$s video İzlənmiş videoları bu müddətdən sonra unudun ayarının icazə verdiyindən köhnə idi.
+%1$s videos were older than Forget seen videos after allows.	%1$s video İzlənmiş videoları bu müddətdən sonra unudun ayarının icazə verdiyindən köhnə idi.
+%1$s video had a date later than this phone's clock.	%1$s videonun tarixi bu telefonun saatından sonra idi.
+%1$s videos had dates later than this phone's clock.	%1$s videonun tarixi bu telefonun saatından sonra idi.
+%1$s video didn't fit in the newest %2$s.	%1$s video ən yeni %2$s videoya sığmadı.
+%1$s videos didn't fit in the newest %2$s.	%1$s video ən yeni %2$s videoya sığmadı.
+%1$s older seen video was dropped to keep the newest %2$s.	Ən yeni %2$s video qalsın deyə %1$s köhnə izlənmiş video silindi.
+%1$s older seen videos were dropped to keep the newest %2$s.	Ən yeni %2$s video qalsın deyə %1$s köhnə izlənmiş video silindi.
+Couldn't restore seen history. Your saved history is unchanged.	İzlənmiş videolar bərpa edilə bilmədi. Saxlanmış tarixçəniz dəyişmədi.
+That file is larger than %1$s MB. Choose a seen-history file saved by Hushfeed.	Bu fayl %1$s MB-dan böyükdür. Hushfeed-in saxladığı tarixçə faylını seçin.
+That file lists more than %1$s videos. Nothing was restored.	Bu faylda %1$s videodan çox var. Heç nə bərpa edilmədi.
+That isn't a seen-history file saved by Hushfeed. For TikTok's own data export, use Import watch history.	Bu, Hushfeed-in saxladığı tarixçə faylı deyil. TikTok-un öz məlumat ixracı üçün İzləmə tarixçəsini idxal et funksiyasından istifadə edin.
+That file was saved by a newer Hushfeed. Update Hushfeed, then try again.	Bu fayl Hushfeed-in daha yeni versiyası ilə saxlanılıb. Hushfeed-i yeniləyin, sonra yenidən cəhd edin.
+That seen-history file is damaged or was edited. Nothing was restored.	Bu tarixçə faylı zədələnib və ya redaktə olunub. Heç nə bərpa edilmədi.
+Turn off haptics	Haptik titrəməni söndürün
+Stop the short vibrations TikTok plays on its own taps and gestures. Your keyboard and your phone's own haptics stay as they are.	TikTok-un öz toxunuşlarında və jestlərində çaldığı qısa titrəmələri dayandırın. Klaviaturanız və telefonunuzun öz haptikası olduğu kimi qalır.
+Turn off screen transitions	Ekran keçidlərini söndürün
+Open and close TikTok's screens without their slide. Swipes inside a screen still follow your finger.	TikTok ekranlarını sürüşmə animasiyası olmadan açın və bağlayın. Ekran daxilində sürüşdürmələr yenə barmağınızı izləyir.
+Save the frame on screen as a photo	Ekrandakı kadrı foto kimi saxlayın
+There's no video on screen to save a frame from	Ekranda kadrı saxlanıla biləcək video yoxdur
+Saving a frame from this video needs Android 7 or newer	Bu videodan kadr saxlamaq üçün Android 7 və ya daha yenisi lazımdır
+Allow storage for TikTok in Android settings to save frames	Kadrları saxlamaq üçün Android ayarlarında TikTok üçün yaddaşa icazə verin
+The frame couldn't be read. Try again.	Kadr oxuna bilmədi. Yenidən cəhd edin.
+Saving the frame	Kadr saxlanılır
+Frame saved to %1$s	Kadr %1$s yerinə saxlanıldı
+The frame couldn't be saved. Try again.	Kadr saxlanıla bilmədi. Yenidən cəhd edin.
+Video frame	Video kadrı
+Hide the LIVE bubble	LIVE qabarcığını gizlədin
+Stop the bubble TikTok floats at the top of the feed to point you to a LIVE.	TikTok-un sizi LIVE-a yönləndirmək üçün lentin yuxarısında göstərdiyi qabarcığı dayandırın.
+Auto-advance in search results	Axtarış nəticələrində avtomatik keçid
+Also turns on TikTok's own auto scroll for videos opened from search. Restart TikTok to apply this.	Axtarışdan açılan videolar üçün TikTok-un öz avtomatik sürüşdürməsini də aktivləşdirir. Tətbiq etmək üçün TikTok-u yenidən başladın.
+Use system emoji	Sistem emojilərindən istifadə edin
+Draw every emoji with your device's emoji font. TikTok normally draws the newest ones your device doesn't have yet with Google's emoji, and those may show as a box or in pieces with this on.	Bütün emojiləri cihazınızın emoji şriftində göstərin. TikTok adətən cihazınızda hələ olmayan ən yeni emojiləri Google-un emojiləri ilə göstərir və bu açıq olduqda onlar qutu kimi və ya hissə-hissə görünə bilər.
+Open shared videos alone	Paylaşılan videoları ayrıca aç
+A link to one video opens just that video, and the feed won't swipe past it. It swipes again once another video plays, like after a refresh or a tap on Following, or when you come back to TikTok after %1$d minutes or more away. Auto-advance doesn't move on from it either.	Bir videoya keçid yalnız həmin videonu açır və lent ondan o yana sürüşdürülmür. Başqa video oynadılan kimi, məsələn yenilədikdən və ya İzlədiklərim tabına toxunduqdan sonra, ya da %1$d dəqiqə və ya daha çox aradan sonra TikTok-a qayıdanda yenidən sürüşdürülür. Avtomatik keçid də ondan sonrakı videoya keçmir.
+Hide comment surveys	Şərhlərdəki rəy sorğularını gizlədin
+Hide the question cards TikTok sometimes puts in a comment list to ask what you think.	TikTok-un fikrinizi soruşmaq üçün bəzən şərh siyahısına qoyduğu sual kartlarını gizlədin.
+Hide comment box buttons	Şərh qutusundakı düymələri gizlədin
+Hide the photo, @ and gift buttons in the box where you write a comment. Emoji and sending work as before.	Şərh yazdığınız qutudakı foto, @ və hədiyyə düymələrini gizlədin. Emoji və göndərmə əvvəlki kimi işləyir.
+Turn off push notifications	Push bildirişlərini söndürün
+TikTok's push service stays off and nothing it sends reaches the drawer. It can't keep your phone awake either. You won't hear about new messages until you open TikTok, and a notification hidden while this is on doesn't come back. Ongoing ones like media controls stay.	TikTok-un push xidməti söndürülü qalır və onun göndərdiyi heç nə bildiriş pərdəsinə çatmır. Telefonunuzu oyaq da saxlaya bilməz. Yeni mesajlardan yalnız TikTok-u açanda xəbər tutacaqsınız, bu açıq olarkən gizlədilən bildiriş isə geri qayıtmır. Media idarəetməsi kimi davam edən bildirişlər qalır.
+Save details as JSON	Təfərrüatları JSON kimi saxlayın
+Write the details file as JSON instead of plain text, for scripts and archive tools.	Təfərrüat faylını adi mətn əvəzinə JSON kimi yazın, skriptlər və arxiv alətləri üçün.
+Tag saved videos with their details	Saxlanılan videolara təfərrüatlarını etiket kimi yazın
+Write the caption, creator, publication date and link into the video file itself, where media players and tools like ffprobe can read them. Applies to saves handled here.	Başlığı, yaradıcını, dərc tarixini və linki video faylının özünə yazın ki, media pleyerlər və ffprobe kimi alətlər onları oxuya bilsin. Burada idarə olunan saxlamalara aiddir.
+Save the video's cover	Videonun örtüyünü saxlayın
+Save the cover as well	Örtüyü də saxla
+Save the video's cover picture at the largest size TikTok has, each time you tap Download. It goes to your photo folder, named after the video.	Hər dəfə Endir düyməsinə toxunduqda videonun örtük şəklini TikTok-da olan ən böyük ölçüdə saxlayın. O, videonun adı ilə foto qovluğunuza düşür.
+This video has no cover to save	Bu videoda saxlanılacaq örtük yoxdur
+Allow storage for TikTok in Android settings to save covers	Örtükləri saxlamaq üçün Android ayarlarında TikTok üçün yaddaşa icazə verin
+The cover couldn't be saved. Try again.	Örtük saxlanıla bilmədi. Yenidən cəhd edin.
+Cover saved to %1$s	Örtük %1$s yerinə saxlanıldı
+Saving the cover	Örtük saxlanılır
+Show the time to the second	Vaxtı saniyəsinə qədər göstərin
+Show when a video was posted down to the second, with your time zone, in place of TikTok's short date by the creator's name.	Videonun nə vaxt paylaşıldığını saniyəsinə qədər və saat qurşağınızla, yaradıcının adının yanındakı TikTok-un qısa tarixi əvəzinə göstərin.
+Show dates on profile grids	Profil şəbəkəsində tarixləri göstərin
+Show the day each video was posted under its view count on profile grids.	Profil şəbəkəsində hər videonun paylaşıldığı günü baxış sayının altında göstərin.
+Fall back to the watermarked copy	Su nişanlı nüsxəyə keçin
+When the video without the watermark can't be fetched, save TikTok's own watermarked copy instead and say so. It's the size TikTok's own save uses, so it may be smaller than the quality you picked.	Su nişanı olmayan video alına bilmədikdə, əvəzində TikTok-un öz su nişanlı nüsxəsini saxlayın və bunu bildirin. Ölçüsü TikTok-un öz saxlamasındakı kimidir, ona görə seçdiyiniz keyfiyyətdən kiçik ola bilər.
+The video without the watermark couldn't be fetched, so TikTok's watermarked copy was saved to %1$s. Try again later for the clean copy.	Su nişanı olmayan video alına bilmədi, ona görə TikTok-un su nişanlı nüsxəsi %1$s yerinə saxlanıldı. Təmiz nüsxə üçün sonra yenidən cəhd edin.
+Match text stickers too	Mətn stikerlərini də yoxlayın
+Also hide videos whose text stickers match a blocked caption word. Text stickers are the words a creator types over the video in TikTok's editor. Text that's part of the picture itself can't be read.	Mətn stikerləri bloklanmış başlıq sözünə uyğun gələn videoları da gizlədin. Mətn stikerləri yaradıcının TikTok redaktorunda videonun üzərinə yazdığı sözlərdir. Şəklin özünə aid olan mətn oxuna bilməz.
+Text sticker words	Mətn stikeri sözləri
+Show how many were filtered	Neçəsinin süzüldüyünü göstərin
+A small label under TikTok's top tabs counts what the feed filter has taken out since TikTok started. It shows only on the feed, and a tap on it reaches the video under it.	TikTok-un yuxarı tablarının altındakı kiçik nişan TikTok açılandan bəri lent filtrinin çıxardıqlarını sayır. O, yalnız lentdə görünür və ona toxunuş altındakı videoya çatır.
+1 filtered out	1 süzüldü
+%1$d filtered out	%1$d süzüldü
+Account facts on profiles	Profillərdə hesab faktları
+A profile's share sheet gets an Account facts button. It shows what TikTok already sent about the account: when it joined, its region and language, when its username and display name last changed, whether it's private and whether its liked videos are public. Nothing extra is fetched.	Profilin paylaşma panelinə Hesab faktları düyməsi əlavə olunur. O, TikTok-un hesab haqqında artıq göndərdiklərini göstərir: nə vaxt qoşulduğunu, regionunu və dilini, istifadəçi adının və görünən adının sonuncu dəfə nə vaxt dəyişdiyini, hesabın gizli olub-olmadığını və bəyəndiyi videoların açıq olub-olmadığını. Əlavə heç nə yüklənmir.
+Account facts	Hesab faktları
+TikTok account facts	TikTok hesab faktları
+Account facts copied	Hesab faktları kopyalandı
+Not sent	Göndərilməyib
+Joined	Qoşulub
+Account region	Hesab regionu
+Language	Dil
+Username last changed	İstifadəçi adı sonuncu dəfə dəyişib
+Display name last changed	Görünən ad sonuncu dəfə dəyişib
+Private account	Gizli hesab
+Liked videos	Bəyənilən videolar
+Public	Hamıya açıq
+Copy	Kopyala
+Copy the full link for short links	Qısa linklər üçün tam linki kopyalayın
+When Copy link gives you a short vt.tiktok.com or vm.tiktok.com link, Hushfeed opens it once in the background to read the full video link and puts that on your clipboard instead. TikTok sees that open, the same as when anyone taps the link. A link you send to another app goes out as it was.	Linki kopyala sizə qısa vt.tiktok.com və ya vm.tiktok.com linki verəndə, Hushfeed tam video linkini oxumaq üçün onu arxa planda bir dəfə açır və bufera onu qoyur. TikTok bu açılışı görür, kimsə linkə toxunanda olduğu kimi. Başqa tətbiqə göndərdiyiniz link olduğu kimi gedir.
+Full link copied	Tam link kopyalandı
+Mark saved videos	Saxlanılmış videoları işarələyin
+Put a ✓ before the view count on profile grids, and before the time on a feed video's creator row, for videos Hushfeed saved here. The feed's mark shows wherever Always show publish date shows the time. It reads the record Check for already-saved videos keeps, so it works only while that switch is on. Photo posts aren't marked, and a video you've deleted since keeps its mark until you use Forget saved videos.	Hushfeed-in burada saxladığı videolar üçün profil şəbəkəsində baxış sayının önünə, lentdəki videonun müəllif sətrində isə vaxtın önünə ✓ qoyun. Lentdəki işarə Paylaşım tarixini həmişə göstərin vaxtı göstərdiyi yerdə görünür. Bu, Artıq saxlanılmış videoları yoxlayın açarının apardığı qeydi oxuyur, ona görə yalnız o açar açıq olanda işləyir. Foto paylaşımları işarələnmir, sonradan sildiyiniz video isə Saxlanılmış videoları unudun istifadə edənə qədər işarəsini saxlayır.
+Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.	TikTok serverlərinin bu telefonda saxladığı region və şəbəkənin ölkə kodu hər sorğu ilə göndərilir. Onların yerinə də hazır ayarı göndərin. Hesaba daxil olarkən yenə də əsl regionunuz göndərilir. IP ünvanınız və hesabınızın öz qaydaları yenə də tətbiq olunur.
+Turn off double tap to react	Reaksiya üçün iki dəfə toxunmanı söndür
+A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.	Mesaja iki dəfə toxunmaq artıq ona ürək əlavə etmir. Bir dəfə toxunma və uzun basma əvvəlki kimi işləyir.
+Turn off swipe to reply	Cavab üçün sürüşdürməni söndür
+Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.	Mesajı yana sürüşdürmək artıq ona cavab başlatmır. Toxunmalar və uzun basmalar əvvəlki kimi işləyir.
+Hide the bottom tab names	Alt panel adlarını gizlət
+The words under the bottom tab icons go away. The icons stay, and each tab opens what it always did.	Alt paneldəki ikonların altındakı sözlər yox olur. İkonlar qalır və hər bölmə əvvəlki kimi açılır.
+Home tab name	Əsas bölmənin adı
+Friends tab name	Dostlar bölməsinin adı
+Inbox tab name	Gələnlər bölməsinin adı
+Profile tab name	Profil bölməsinin adı
+Shop tab name	Mağaza bölməsinin adı
+A name of your own under this tab's icon. Leave it empty to keep TikTok's.	Bu bölmənin ikonunun altında öz adınız. TikTok-un adını saxlamaq üçün boş qoyun.
+Hide TikTok's wind-down screens	TikTok-un sakitləşmə ekranlarını gizlət
+Stop the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. It only works on an account TikTok knows is an adult's. A teen's account keeps them, and so does one Family Pairing links to a parent. With Leave when TikTok says time is up on, the daily limit screen still comes up so that switch can act on it.	TikTok-un lentin üstünə çıxardığı yuxu öncəsi sakitləşmə ekranını, nəfəs məşqini və gündəlik limit ekranını dayandırın. Bu, yalnız TikTok-un böyüyə aid olduğunu bildiyi hesabda işləyir. Yeniyetmənin hesabında onlar qalır, Ailə Cütləşdirməsi ilə valideynə bağlanmış hesabda da. TikTok vaxtın bitdiyini dedikdə çıxın açıq olanda gündəlik limit ekranı yenə də çıxır ki, o açar işləyə bilsin.
+Hide Footnotes	Footnotes-u gizlədin
+Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	TikTok-un qeyd əlavə olunmuş videoda göstərdiyi Footnotes bannerini gizlədin. Video və onun şərhləri olduğu kimi qalır.
+Hide Bulletin board	Bulletin board-u gizlədin
+The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.	TikTok-un Gələnlərə əlavə etdiyi Bulletin board sətirləri siyahıdan çıxır. Söhbətlər və digər sətirlər yerində qalır.
+Hide the group chat prompt	Qrup söhbəti təklifini gizlədin
+The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.	Gələnlərin yuxarısındakı qrup söhbəti başlatmağa dəvət edən banner göstərilməyi dayandırır. Artıq üzv olduğunuz qruplar dəyişmir.
+Skip TikTok's setup screens	TikTok-un quraşdırma ekranlarını keç
+Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show.	TikTok quraşdırmanı işə salanda maraq seçimini, dil və cins suallarını, izləmək üçün təklif olunan yaradıcıları, yuxarı sürüşdürmə təlimatını və TikTok-un bildiriş səhifəsini burax. Razılıq, yaş və giriş ekranları yenə də göstərilir.
+Hide unverified content notices	Təsdiqlənməmiş məzmun bildirişlərini gizlət
+Hide the Check sources banner TikTok puts on videos it marks as unverified, and the warnings it shows when you share one.	TikTok-un təsdiqlənməmiş kimi işarələdiyi videolardakı Mənbələri yoxla bannerini və belə videonu paylaşanda göstərdiyi xəbərdarlıqları gizlət.
+Keep offline videos until you delete them	Oflayn videoları siz silənə qədər saxlayın
+TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. Delete them there when you want a fresh set. TikTok can still clear ones you've watched when your phone runs low on space.	TikTok oflayn baxış üçün saxladığı videoları müəyyən vaxtdan sonra, bəzən cəmi iki gündən sonra, baxılıb-baxılmamasından asılı olmayaraq atır. Bu açıq olanda onlar siz TikTok-un Oflayn videolar ayarlarında silənə qədər qalır. Yeni dəst istəyəndə onları orada silin. Telefonunuzda yer azalanda TikTok baxdığınız videoları yenə də silə bilər.
+Hide Thoughts on profiles	Profillərdə Thoughts-u gizlədin
+Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	TikTok-un profil şəklinin üstündə göstərdiyi Thoughts balonunu və öz profilinizdə onu paylaşmaq təklifini gizlədin. Tətbiq etmək üçün TikTok-u yenidən başladın.

@@ -1634,11 +1634,13 @@ Galaxy Store	Galaxy Store
 AppGallery	AppGallery
 Amazon Appstore	Amazon Appstore
 Swipe for brightness and volume	Scorri per luminosità e volume
-Drag up or down along the left edge of a video to change the screen brightness, or along the right edge to change the volume. Swiping anywhere else still scrolls the feed.	Scorri su o giù lungo il bordo sinistro di un video per cambiare la luminosità dello schermo, o lungo il bordo destro per cambiare il volume. Altrove il feed continua a scorrere come sempre.
+Drag up or down along the left or right edge of a video to change what that edge strip is set to below. By default that's the screen brightness on the left and the volume on the right. Swiping anywhere else still scrolls the feed.	Scorri su o giù lungo il bordo sinistro o destro di un video per cambiare ciò che è impostato per quella fascia laterale qui sotto. Di base è la luminosità dello schermo a sinistra e il volume a destra. Altrove il feed continua a scorrere come sempre.
 Edge strip width	Larghezza delle fasce laterali
 How wide each edge strip is, as a percent of the screen width.	Larghezza di ogni fascia laterale, in percentuale della larghezza dello schermo.
 Brightness	Luminosità
 Volume	Volume
+Left edge strip	Fascia laterale sinistra
+Right edge strip	Fascia laterale destra
 Stop search results playing on their own	Non riprodurre da soli i risultati di ricerca
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	I video nei risultati di ricerca mostrano la copertina e partono quando li apri. Il feed e i video che apri si riproducono come sempre.
 In a chat	In una chat
@@ -1830,4 +1832,32 @@ When Copy link gives you a short vt.tiktok.com or vm.tiktok.com link, Hushfeed o
 Full link copied	Link completo copiato
 Mark saved videos	Segna i video salvati
 Put a ✓ before the view count on profile grids, and before the time on a feed video's creator row, for videos Hushfeed saved here. The feed's mark shows wherever Always show publish date shows the time. It reads the record Check for already-saved videos keeps, so it works only while that switch is on. Photo posts aren't marked, and a video you've deleted since keeps its mark until you use Forget saved videos.	Mette una ✓ prima del numero di visualizzazioni nella griglia del profilo, e prima dell'ora nella riga del creator di un video del feed, per i video che Hushfeed ha salvato qui. Nel feed il segno compare dove Mostra sempre la data di pubblicazione mostra l'ora. Legge l'elenco tenuto da Controlla i video già salvati, quindi funziona solo mentre quell'interruttore è attivo. I post di foto non vengono segnati, e un video che hai eliminato nel frattempo resta segnato finché non usi Dimentica i video salvati.
-Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in sends your real region, apart from a few values TikTok saved as it started, which keep the preset. Your IP address and your account's own rules still apply.	Invia il preset anche al posto della regione che i server di TikTok hanno salvato su questo telefono e del codice paese della rete, che partono con ogni richiesta. All'accesso viene inviata la tua regione reale, tranne alcuni valori che TikTok ha salvato all'avvio, che mantengono il preset. Il tuo indirizzo IP e le regole del tuo account continuano ad applicarsi.
+Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.	Invia il preset anche al posto della regione che i server di TikTok hanno salvato su questo telefono e del codice paese della rete, che partono con ogni richiesta. All'accesso viene comunque inviata la tua regione reale. Il tuo indirizzo IP e le regole del tuo account continuano ad applicarsi.
+Turn off double tap to react	Disattiva il doppio tocco per reagire
+A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.	Un doppio tocco su un messaggio non gli aggiunge più un cuore. Il tocco singolo e la pressione prolungata funzionano come prima.
+Turn off swipe to reply	Disattiva lo scorrimento per rispondere
+Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.	Scorrere un messaggio di lato non avvia più una risposta. I tocchi e le pressioni prolungate funzionano come prima.
+Hide the bottom tab names	Nascondi i nomi delle schede in basso
+The words under the bottom tab icons go away. The icons stay, and each tab opens what it always did.	Le parole sotto le icone delle schede in basso scompaiono. Le icone restano e ogni scheda apre ciò che ha sempre aperto.
+Home tab name	Nome della scheda Home
+Friends tab name	Nome della scheda Amici
+Inbox tab name	Nome della scheda Posta
+Profile tab name	Nome della scheda Profilo
+Shop tab name	Nome della scheda Shop
+A name of your own under this tab's icon. Leave it empty to keep TikTok's.	Un nome tuo sotto l'icona di questa scheda. Lascialo vuoto per tenere quello di TikTok.
+Hide TikTok's wind-down screens	Nascondi le schermate di relax di TikTok
+Stop the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. It only works on an account TikTok knows is an adult's. A teen's account keeps them, and so does one Family Pairing links to a parent. With Leave when TikTok says time is up on, the daily limit screen still comes up so that switch can act on it.	Ferma il relax prima di dormire, l'esercizio di respirazione e la schermata del limite giornaliero che TikTok mette sopra il feed. Funziona solo su un account che TikTok sa essere di un adulto. L'account di un adolescente le mantiene, e così uno che Abbinamento familiare collega a un genitore. Con Esci quando TikTok dice che il tempo è scaduto attivo, la schermata del limite giornaliero compare comunque, così quell'interruttore può agire.
+Hide Footnotes	Nascondi Footnotes
+Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	Nascondi il banner Footnotes che TikTok mostra su un video con una nota allegata. Il video e i suoi commenti restano come sono.
+Hide Bulletin board	Nascondi Bulletin board
+The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.	Le righe Bulletin board che TikTok aggiunge alla Posta in arrivo escono dall'elenco. Le chat e le altre righe restano dove sono.
+Hide the group chat prompt	Nascondi l'invito alla chat di gruppo
+The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.	Il banner in alto nella Posta in arrivo che ti invita a creare una chat di gruppo non viene più mostrato. I gruppi di cui fai già parte non cambiano.
+Skip TikTok's setup screens	Salta le schermate di configurazione di TikTok
+Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show.	Tralascia la scelta degli interessi, le domande su lingua e genere, i creator da seguire, il tutorial dello scorrimento verso l'alto e la pagina delle notifiche di TikTok quando TikTok esegue la configurazione. Le schermate di consenso, età e accesso vengono comunque mostrate.
+Hide unverified content notices	Nascondi gli avvisi sui contenuti non verificati
+Hide the Check sources banner TikTok puts on videos it marks as unverified, and the warnings it shows when you share one.	Nascondi il banner Controlla le fonti che TikTok mette sui video che segnala come non verificati e gli avvisi che mostra quando ne condividi uno.
+Keep offline videos until you delete them	Tieni i video offline finché non li elimini
+TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. Delete them there when you want a fresh set. TikTok can still clear ones you've watched when your phone runs low on space.	TikTok butta via i video che ha salvato per la visione offline dopo un tempo fisso, a volte solo due giorni, che tu li abbia guardati o no. Con questa opzione attiva restano finché non li elimini nelle impostazioni Video offline di TikTok. Eliminali lì quando vuoi una serie nuova. TikTok può ancora togliere quelli che hai già guardato quando il telefono resta a corto di spazio.
+Hide Thoughts on profiles	Nascondi Thoughts sui profili
+Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	Nascondi la nuvoletta Thoughts che TikTok mostra sopra l'immagine di un profilo e, sul tuo profilo, l'invito a condividerne uno. Riavvia TikTok per applicare la modifica.

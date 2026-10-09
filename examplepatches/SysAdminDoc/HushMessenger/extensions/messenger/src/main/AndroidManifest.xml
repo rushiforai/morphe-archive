@@ -23,6 +23,7 @@
         <meta-data android:name="hush.feature.typing" android:value="true" />
         <meta-data android:name="hush.feature.use_system_emoji" android:value="true" />
         <meta-data android:name="hush.feature.emoji_drawer" android:value="true" />
+        <meta-data android:name="hush.feature.emoji_search" android:value="true" />
         <meta-data android:name="hush.feature.original_photo" android:value="true" />
         <meta-data android:name="hush.feature.original_video" android:value="true" />
         <meta-data android:name="hush.feature.system_camera" android:value="true" />

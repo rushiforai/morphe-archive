@@ -557,12 +557,12 @@
 
     check-cast v0, Landroid/widget/ListView;
 
-    if-nez v0, :cond_b
+    if-nez v0, :cond_e
 
     return-void
 
     .line 102
-    :cond_b
+    :cond_e
     const-string v1, "f0"
 
     invoke-static {p0, v1}, Le/e/a/FeedbackDev10;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
@@ -621,7 +621,7 @@
     check-cast v5, Landroid/widget/TextView;
 
     .line 108
-    if-eqz v5, :cond_5f
+    if-eqz v5, :cond_62
 
     const-string v6, "\u767b\u9332\u6e08\u307f\u306eNG\u8a2d\u5b9a\u306f\u3042\u308a\u307e\u305b\u3093"
 
@@ -641,20 +641,20 @@
 
     move-result v6
 
-    if-nez v6, :cond_5a
+    if-nez v6, :cond_5d
 
     const/4 v6, 0x0
 
-    goto :goto_5c
+    goto :goto_5f
 
-    :cond_5a
+    :cond_5d
     const/16 v6, 0x8
 
-    :goto_5c
+    :goto_5f
     invoke-virtual {v5, v6}, Landroid/widget/TextView;->setVisibility(I)V
 
     .line 109
-    :cond_5f
+    :cond_62
     new-instance v6, Le/e/a/FeedbackDev10$1;
 
     invoke-direct {v6, v3, v5, v1}, Le/e/a/FeedbackDev10$1;-><init>(Le/e/a/FeedbackDev10$NgAdapter;Landroid/widget/TextView;Landroid/widget/BaseAdapter;)V
@@ -679,24 +679,24 @@
 
     instance-of v3, p0, Landroid/view/ViewGroup;
 
-    if-eqz v3, :cond_80
+    if-eqz v3, :cond_83
 
     check-cast p0, Landroid/view/ViewGroup;
 
     invoke-static {p0}, Le/e/a/FeedbackDev10;->hideSeekHint(Landroid/view/ViewGroup;)V
 
     .line 113
-    :cond_80
+    :cond_83
     instance-of p0, v4, Landroid/view/ViewGroup;
 
-    if-eqz p0, :cond_89
+    if-eqz p0, :cond_8c
 
     check-cast v4, Landroid/view/ViewGroup;
 
     invoke-static {v4}, Le/e/a/FeedbackDev10;->hideSeekHint(Landroid/view/ViewGroup;)V
 
     .line 114
-    :cond_89
+    :cond_8c
     new-instance p0, Le/e/a/FeedbackDev10$2;
 
     invoke-direct {p0, v0, v1, v2}, Le/e/a/FeedbackDev10$2;-><init>(Landroid/widget/ListView;Landroid/widget/BaseAdapter;Ljava/lang/Object;)V
@@ -705,19 +705,19 @@
 
     .line 115
     invoke-static {v0, v1, v2}, Le/e/a/FeedbackDev10;->refreshNg(Landroid/widget/ListView;Landroid/widget/BaseAdapter;Ljava/lang/Object;)V
-    :try_end_94
-    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_94} :catch_95
+    :try_end_97
+    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_97} :catch_98
 
     .line 116
-    goto :goto_99
+    goto :goto_9c
 
-    :catch_95
+    :catch_98
     move-exception p0
 
     invoke-static {p0}, Le/e/a/FeedbackDev10;->log(Ljava/lang/Exception;)V
 
     .line 117
-    :goto_99
+    :goto_9c
     return-void
 .end method
 
@@ -1882,65 +1882,119 @@
 .end method
 
 .method public static roundButton(Landroid/widget/Button;)V
-    .locals 6
+    .registers 7
+
     invoke-static {p0}, Le/e/a/ThemeChoice;->button(Landroid/widget/Button;)V
+
     invoke-virtual {p0}, Landroid/widget/Button;->getContext()Landroid/content/Context;
+
     move-result-object v2
+
     invoke-static {v2}, Le/e/a/ThemeChoice;->isNight(Landroid/content/Context;)Z
+
     move-result v0
-    if-eqz v0, :light_button
-    # Match the subdued NG settings action in the comment list.
-    const v0, 0xff23283e
-    goto :button_color
-    :light_button
+
+    if-eqz v0, :cond_11
+
+    const v0, -0xdcd7c2
+
+    goto :goto_1f
+
+    :cond_11
     invoke-virtual {p0}, Landroid/widget/Button;->getBackgroundTintList()Landroid/content/res/ColorStateList;
+
     move-result-object v0
-    if-eqz v0, :light_fallback
+
+    if-eqz v0, :cond_1c
+
     invoke-virtual {v0}, Landroid/content/res/ColorStateList;->getDefaultColor()I
+
     move-result v0
-    goto :button_color
-    :light_fallback
-    const v0, 0xffe7e7e7
-    :button_color
+
+    goto :goto_1f
+
+    :cond_1c
+    const v0, -0x181819
+
+    :goto_1f
     new-instance v1, Landroid/graphics/drawable/GradientDrawable;
+
     invoke-direct {v1}, Landroid/graphics/drawable/GradientDrawable;-><init>()V
+
     invoke-virtual {v1, v0}, Landroid/graphics/drawable/GradientDrawable;->setColor(I)V
+
     const/16 v3, 0x8
+
     invoke-static {v2, v3}, Le/e/a/FeedbackFixes;->dp(Landroid/content/Context;I)I
+
     move-result v3
+
     int-to-float v3, v3
+
     invoke-virtual {v1, v3}, Landroid/graphics/drawable/GradientDrawable;->setCornerRadius(F)V
+
     invoke-static {v2}, Le/e/a/ThemeChoice;->accent(Landroid/content/Context;)I
+
     move-result v3
+
     const v4, 0xffffff
+
     and-int/2addr v3, v4
+
     const/high16 v4, 0x33000000
+
     or-int/2addr v3, v4
+
     invoke-static {v3}, Landroid/content/res/ColorStateList;->valueOf(I)Landroid/content/res/ColorStateList;
+
     move-result-object v3
+
     const/4 v4, 0x0
+
     invoke-virtual {p0, v4}, Landroid/widget/Button;->setBackgroundTintList(Landroid/content/res/ColorStateList;)V
+
     new-instance v5, Landroid/graphics/drawable/RippleDrawable;
+
     invoke-direct {v5, v3, v1, v4}, Landroid/graphics/drawable/RippleDrawable;-><init>(Landroid/content/res/ColorStateList;Landroid/graphics/drawable/Drawable;Landroid/graphics/drawable/Drawable;)V
+
     invoke-virtual {p0, v5}, Landroid/widget/Button;->setBackground(Landroid/graphics/drawable/Drawable;)V
+
     invoke-static {p0}, Le/e/a/ThemeChoice;->textColor(Landroid/view/View;)I
+
     move-result v3
+
     invoke-virtual {p0, v3}, Landroid/widget/Button;->setTextColor(I)V
+
     const/4 v3, 0x0
+
     invoke-virtual {p0, v3}, Landroid/widget/Button;->setMinWidth(I)V
+
     invoke-virtual {p0, v3}, Landroid/widget/Button;->setMinimumWidth(I)V
+
     const/16 v4, 0x28
+
     invoke-static {v2, v4}, Le/e/a/FeedbackFixes;->dp(Landroid/content/Context;I)I
+
     move-result v4
+
     invoke-virtual {p0, v4}, Landroid/widget/Button;->setMinHeight(I)V
+
     invoke-virtual {p0, v4}, Landroid/widget/Button;->setMinimumHeight(I)V
+
     const/16 v3, 0xc
+
     invoke-static {v2, v3}, Le/e/a/FeedbackFixes;->dp(Landroid/content/Context;I)I
+
     move-result v3
+
     const/4 v4, 0x4
+
     invoke-static {v2, v4}, Le/e/a/FeedbackFixes;->dp(Landroid/content/Context;I)I
+
     move-result v4
+
     invoke-virtual {p0, v3, v4, v3, v4}, Landroid/widget/Button;->setPadding(IIII)V
+
     return-void
 .end method
 
@@ -1968,6 +2022,75 @@
     invoke-virtual {p1, p0, p2}, Ljava/lang/reflect/Field;->set(Ljava/lang/Object;Ljava/lang/Object;)V
 
     .line 26
+    return-void
+.end method
+
+.method public static themeNg(Ljava/lang/Object;)V
+    .registers 5
+
+    const-string v0, "Z"
+
+    invoke-static {p0, v0}, Le/e/a/FeedbackDev10;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
+
+    move-result-object v0
+
+    check-cast v0, Landroid/view/View;
+
+    if-eqz v0, :cond_42
+
+    invoke-static {v0}, Le/e/a/ThemeChoice;->background(Landroid/view/View;)V
+
+    invoke-virtual {v0}, Landroid/view/View;->getResources()Landroid/content/res/Resources;
+
+    move-result-object v1
+
+    invoke-virtual {v0}, Landroid/view/View;->getContext()Landroid/content/Context;
+
+    move-result-object v2
+
+    invoke-virtual {v2}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
+
+    move-result-object v2
+
+    const-string p0, "comment_message"
+
+    const-string v3, "id"
+
+    invoke-virtual {v1, p0, v3, v2}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
+
+    move-result v1
+
+    invoke-virtual {v0, v1}, Landroid/view/View;->findViewById(I)Landroid/view/View;
+
+    move-result-object v0
+
+    instance-of v1, v0, Landroid/widget/TextView;
+
+    if-eqz v1, :cond_42
+
+    check-cast v0, Landroid/widget/TextView;
+
+    invoke-static {v0}, Le/e/a/ThemeChoice;->textColor(Landroid/view/View;)I
+
+    move-result v1
+
+    invoke-virtual {v0, v1}, Landroid/widget/TextView;->setTextColor(I)V
+
+    invoke-static {v0}, Le/e/a/ThemeChoice;->background(Landroid/view/View;)V
+
+    invoke-virtual {v0}, Landroid/widget/TextView;->getParent()Landroid/view/ViewParent;
+
+    move-result-object v1
+
+    instance-of v2, v1, Landroid/view/View;
+
+    if-eqz v2, :cond_42
+
+    check-cast v1, Landroid/view/View;
+
+    invoke-static {v1}, Le/e/a/ThemeChoice;->background(Landroid/view/View;)V
+
+    :cond_42
     return-void
 .end method
 
@@ -2166,43 +2289,5 @@
 
     .line 65
     :goto_7b
-    return-void
-.end method
-
-.method public static themeNg(Ljava/lang/Object;)V
-    .locals 4
-    const-string v0, "Z"
-    invoke-static {p0, v0}, Le/e/a/FeedbackDev10;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
-    move-result-object v0
-    check-cast v0, Landroid/view/View;
-    if-eqz v0, :done_theme_ng
-    invoke-static {v0}, Le/e/a/ThemeChoice;->background(Landroid/view/View;)V
-    # Resolve by name to avoid coupling the empty label to a resource ID.
-    invoke-virtual {v0}, Landroid/view/View;->getResources()Landroid/content/res/Resources;
-    move-result-object v1
-    invoke-virtual {v0}, Landroid/view/View;->getContext()Landroid/content/Context;
-    move-result-object v2
-    invoke-virtual {v2}, Landroid/content/Context;->getPackageName()Ljava/lang/String;
-    move-result-object v2
-    const-string p0, "comment_message"
-    const-string v3, "id"
-    invoke-virtual {v1, p0, v3, v2}, Landroid/content/res/Resources;->getIdentifier(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)I
-    move-result v1
-    invoke-virtual {v0, v1}, Landroid/view/View;->findViewById(I)Landroid/view/View;
-    move-result-object v0
-    instance-of v1, v0, Landroid/widget/TextView;
-    if-eqz v1, :done_theme_ng
-    check-cast v0, Landroid/widget/TextView;
-    invoke-static {v0}, Le/e/a/ThemeChoice;->textColor(Landroid/view/View;)I
-    move-result v1
-    invoke-virtual {v0, v1}, Landroid/widget/TextView;->setTextColor(I)V
-    invoke-static {v0}, Le/e/a/ThemeChoice;->background(Landroid/view/View;)V
-    invoke-virtual {v0}, Landroid/widget/TextView;->getParent()Landroid/view/ViewParent;
-    move-result-object v1
-    instance-of v2, v1, Landroid/view/View;
-    if-eqz v2, :done_theme_ng
-    check-cast v1, Landroid/view/View;
-    invoke-static {v1}, Le/e/a/ThemeChoice;->background(Landroid/view/View;)V
-    :done_theme_ng
     return-void
 .end method

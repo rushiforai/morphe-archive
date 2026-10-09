@@ -18,6 +18,7 @@ val removeAdsAndTrackingPatch = bytecodePatch(
     description = "Disables Adobe, Branch, Facebook, Creative SDK, and Crashlytics telemetry; removes in-app ads and review prompts; blocks install-referrer collection; and zeroes the Google Play Advertising ID.",
     default = true
 ) {
+    category("Ads")
     compatibleWith(COMPATIBILITY_ADOBE_SCAN)
 
     val removeSettings = booleanOption(

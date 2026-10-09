@@ -35,7 +35,9 @@ import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Gravity;
+import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
@@ -676,7 +678,50 @@ public final class PhenotypeFlagManager {
         labelLogs.setTextColor(theme.textPrimary);
         labelLogs.setTypeface(null, Typeface.BOLD);
         itemLogs.addView(labelLogs);
-        itemLogs.setOnClickListener(v -> app.morphe.extension.shared.diagnostics.DiagnosticsDialog.show(activity));
+
+        Handler longPressHandler = new Handler(Looper.getMainLooper());
+        boolean[] longPressTriggered = new boolean[]{false};
+        float[] downPos = new float[2];
+        Runnable resetMemories5s = () -> {
+            longPressTriggered[0] = true;
+            try {
+                itemLogs.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+            } catch (Throwable ignored) {}
+            LocalCreationDownloader.clearSavedRegistry(activity);
+            Toast.makeText(activity, "Morphe: Saved memories registry reset", Toast.LENGTH_SHORT).show();
+        };
+
+        itemLogs.setOnTouchListener((v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    longPressTriggered[0] = false;
+                    downPos[0] = event.getX();
+                    downPos[1] = event.getY();
+                    longPressHandler.postDelayed(resetMemories5s, 5000);
+                    itemLogs.setPressed(true);
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    float dx = Math.abs(event.getX() - downPos[0]);
+                    float dy = Math.abs(event.getY() - downPos[1]);
+                    if (dx > 24 * density || dy > 24 * density) {
+                        longPressHandler.removeCallbacks(resetMemories5s);
+                        itemLogs.setPressed(false);
+                    }
+                    return true;
+                case MotionEvent.ACTION_UP:
+                    longPressHandler.removeCallbacks(resetMemories5s);
+                    itemLogs.setPressed(false);
+                    if (!longPressTriggered[0]) {
+                        app.morphe.extension.shared.diagnostics.DiagnosticsDialog.show(activity);
+                    }
+                    return true;
+                case MotionEvent.ACTION_CANCEL:
+                    longPressHandler.removeCallbacks(resetMemories5s);
+                    itemLogs.setPressed(false);
+                    return true;
+            }
+            return false;
+        });
         dock.addView(itemLogs);
 
         return dock;

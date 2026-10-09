@@ -85,7 +85,7 @@ public enum PatchFamily {
     FULL_RESOLUTION(FamilyNames.FULL_RESOLUTION, "fullResolution", null, Settings.FULL_RESOLUTION_PHOTOS,
             Settings.ASK_FOR_LARGER_PHOTOS),
     META_AI(FamilyNames.META_AI, "metaAi", null, Settings.HIDE_META_AI_SEARCH, Settings.HIDE_META_AI_POSTS,
-            Settings.HIDE_ABOUT_THIS_REEL, Settings.HIDE_ASK_META_AI),
+            Settings.HIDE_ABOUT_THIS_REEL, Settings.HIDE_ASK_META_AI, Settings.HIDE_META_AI_SHARE_TARGET),
     EXPLORE_GRID(FamilyNames.EXPLORE_GRID, "exploreGrid", null, Settings.HIDE_EXPLORE_GRID),
     RECENT_SEARCHES(FamilyNames.RECENT_SEARCHES, "recentSearches", null, Settings.DONT_SAVE_RECENT_SEARCHES),
     NOTES_ROW(FamilyNames.NOTES_ROW, "notesRow", null, Settings.HIDE_NOTES_ROW),
@@ -103,7 +103,7 @@ public enum PatchFamily {
     PROFILE_SUGGESTIONS(FamilyNames.PROFILE_SUGGESTIONS, "profileSuggestions", null, Settings.HIDE_PROFILE_SUGGESTIONS),
     PROFILE_HIGHLIGHTS(FamilyNames.PROFILE_HIGHLIGHTS, "profileHighlights", null, Settings.HIDE_HIGHLIGHTS),
     THREADS_BUTTON(FamilyNames.THREADS_BUTTON, "threadsButton", null, Settings.HIDE_THREADS_BUTTON),
-    COMMENT_COPY(FamilyNames.COMMENT_COPY, "commentCopy", null, Settings.COPY_COMMENTS),
+    COMMENT_COPY(FamilyNames.COMMENT_COPY, "commentCopy", null, Settings.COPY_COMMENTS, Settings.COPY_COMMENT_AUTHORS),
     COMMENT_PHOTO(FamilyNames.COMMENT_PHOTO, "commentPhoto", null, Settings.SAVE_COMMENT_PHOTOS),
     PROFILE_PICTURE(FamilyNames.PROFILE_PICTURE, "profilePicture", null, Settings.SAVE_PROFILE_PICTURES,
             Settings.VIEW_PROFILE_PICTURES, Settings.COPY_PROFILE_TEXT),
@@ -114,7 +114,7 @@ public enum PatchFamily {
     REEL_DOWNLOAD(FamilyNames.REEL_DOWNLOAD, "reelDownload", null, Settings.DOWNLOAD_REELS),
     DOUBLE_TAP_LIKE(FamilyNames.DOUBLE_TAP_LIKE, "doubleTapLike", null, Settings.TURN_OFF_DOUBLE_TAP_LIKE,
             Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_POSTS, Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_REELS,
-            Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_COMMENTS),
+            Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_COMMENTS, Settings.TURN_OFF_DOUBLE_TAP_LIKE_ON_MESSAGES),
     LIKE_ANIMATION(FamilyNames.LIKE_ANIMATION, "likeAnimation", null, Settings.CHANGE_LIKE_ANIMATION),
     REELS_TAB(FamilyNames.REELS_TAB, "reelsTab", null, Settings.HIDE_REELS_TAB),
     REELS_SUGGESTIONS(FamilyNames.REELS_SUGGESTIONS, "reelsSuggestions", null, Settings.HIDE_REELS_SUGGESTIONS),
@@ -233,6 +233,22 @@ public enum PatchFamily {
         return inBuildForTests != null || SettingsStatus.overrideImport();
     }
 
+    /** Whether a test says this build shows imported flag names in MetaConfig, instead of asking {@link SettingsStatus}. */
+    @Nullable
+    static volatile Boolean flagNamesForTests;
+
+    /**
+     * Whether this build shows imported flag names in Instagram's MetaConfig list, for Import flag
+     * names. Open developer options goes in without it when that list has moved.
+     */
+    public static boolean flagNamesInBuild() {
+        Boolean forced = flagNamesForTests;
+        if (forced != null) return forced;
+        Set<PatchFamily> families = inBuildForTests;
+        if (families != null) return families.contains(DEVELOPER_OPTIONS);
+        return DEVELOPER_OPTIONS.inBuild() && SettingsStatus.flagNames();
+    }
+
     /** The families this build carries, in declaration order. */
     public static Set<PatchFamily> inThisBuild() {
         Set<PatchFamily> found = EnumSet.noneOf(PatchFamily.class);
@@ -284,6 +300,9 @@ public enum PatchFamily {
                     lines.add("  Export, Validate and Import overrides: not in this build (Instagram's override reader didn't match)");
                 } else if (family == DEVELOPER_OPTIONS && !overrideImportInBuild()) {
                     lines.add("  Import overrides: not in this build (Instagram's override writer didn't match)");
+                }
+                if (family == DEVELOPER_OPTIONS && !flagNamesInBuild()) {
+                    lines.add("  Import flag names: not in this build (Instagram's MetaConfig list didn't match)");
                 }
                 if (family == VERSION_CODE) lines.add("  " + VersionCode.reportLine());
                 if (family == DISABLE_ANALYTICS || family == SANITIZE_SHARING_LINKS || family == TRANSLATED_START) {

@@ -22,10 +22,13 @@ import android.widget.TextView;
 import app.morphe.extension.shared.GlobalLayoutHook;
 import app.morphe.extension.shared.ResourceIdCache;
 import app.morphe.extension.shared.Utils;
+import app.morphe.extension.shared.settings.BaseSettings;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.settings.Settings;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.After;
@@ -37,6 +40,7 @@ import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.Shadows;
 import org.robolectric.annotation.Config;
+import org.robolectric.shadows.ShadowLog;
 import org.robolectric.util.ReflectionHelpers;
 
 @RunWith(RobolectricTestRunner.class)
@@ -59,10 +63,10 @@ public class ShareSheetToolsTest {
         Object cache = ReflectionHelpers.getStaticField(ShareSheetTools.class, "RESOURCE_IDS");
         ((ResourceIdCache) cache).clear();
         Map<String, Integer> ids = ReflectionHelpers.getField(cache, "ids");
-        ids.put(context.getPackageName() + ":47.0.3:ip5", 0x7f000201);
+        ids.put(context.getPackageName() + ":47.1.4:iql", 0x7f000201);
         ids.put(context.getPackageName() + ":ibc", 0x7f000101);
-        ids.put(context.getPackageName() + ":47.0.3:v3j", 0x7f000301);
-        ids.put(context.getPackageName() + ":47.0.3:a5t", 0x7f000401);
+        ids.put(context.getPackageName() + ":47.1.4:v71", 0x7f000301);
+        ids.put(context.getPackageName() + ":47.1.4:a5u", 0x7f000401);
     }
 
     @After public void tearDown() {
@@ -236,6 +240,52 @@ public class ShareSheetToolsTest {
             assertEquals("reading labels cannot activate a share action", 0, clicks[0]);
             copy.performClick();
             assertEquals("an allowed cell keeps its listener", 1, clicks[0]);
+        }
+    }
+
+    /**
+     * TikTok's small share sheet lost all but its "Share with" row once anything was hidden (#120),
+     * on a layout no account here gets. The debug line says which row each hidden cell sat in and
+     * its shape, once per hide, and a contact stays unnamed.
+     */
+    @Test public void eachHiddenCellIsLoggedOnceWithItsRowAndNoContactName() {
+        boolean debug = BaseSettings.DEBUG.get();
+        try (var controller = Robolectric.buildActivity(TestActivity.class).setup()) {
+            BaseSettings.DEBUG.save(true);
+            Activity activity = controller.get();
+            FrameLayout root = new FrameLayout(activity);
+            FrameLayout contacts = new FrameLayout(activity);
+            contacts.setId(0x7f000301);
+            FrameLayout alice = new FrameLayout(activity);
+            alice.setContentDescription("Alice");
+            alice.setLayoutParams(new FrameLayout.LayoutParams(120, 48));
+            contacts.addView(alice);
+            FrameLayout actions = actionRow(activity);
+            actions.addView(new NativeActionCell(activity, 137, "Report"));
+            actions.addView(new NativeActionCell(activity, 129, "Repost"));
+            root.addView(contacts);
+            root.addView(actions);
+            activity.setContentView(root);
+            ReflectionHelpers.setStaticField(ShareSheetTools.class, "activityReference",
+                    new WeakReference<>(activity));
+            Settings.SHARE_HIDDEN_ITEMS.save("alice, report");
+            ShadowLog.clear();
+
+            ReflectionHelpers.callStaticMethod(ShareSheetTools.class, "apply");
+            ReflectionHelpers.callStaticMethod(ShareSheetTools.class, "apply");
+
+            List<String> lines = new ArrayList<>();
+            for (ShadowLog.LogItem item : ShadowLog.getLogs()) {
+                if (item.msg.contains("Share sheet hides")) lines.add(item.msg);
+            }
+            assertEquals("one line per hidden cell, not per pass: " + lines, 2, lines.size());
+            String all = String.join("\n", lines);
+            assertTrue(all, all.contains("actions cell 0 \"Report\" (NativeActionCell, 1 children) in FrameLayout of 2"));
+            assertTrue(all, all.contains("contacts cell 0 a person"));
+            assertFalse("a contact's name stays out of the log: " + all, all.contains("Alice"));
+            assertFalse("a cell left showing isn't logged: " + all, all.contains("Repost"));
+        } finally {
+            BaseSettings.DEBUG.save(debug);
         }
     }
 

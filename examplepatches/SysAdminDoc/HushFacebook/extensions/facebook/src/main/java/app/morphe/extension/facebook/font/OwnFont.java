@@ -5,7 +5,14 @@
 package app.morphe.extension.facebook.font;
 
 import android.content.Context;
+import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.text.BoringLayout;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
@@ -80,6 +87,12 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
  * the weight asked for, and any other takes Android's bold and slant where it has none of its own.
  * When the copy won't load, the phone's font stands in, and while the switch is off, Facebook's
  * own does.
+ *
+ * <p>Facebook lays most of its text out without font padding, each line as tall as the font's own
+ * ascent and descent, which fits Optimistic. Some fonts phones offer declare far less descent than
+ * their letters use (#96), and there y, g and p lost their tails. So each text layout Facebook
+ * builds, and each text view, takes the padding while the switch is on and its font is one of
+ * those ({@link #needsPad}).
  */
 public final class OwnFont {
     /** The font variation strings each builder was given, by the builder, for as long as it lives. */
@@ -117,6 +130,30 @@ public final class OwnFont {
 
     /** The roads {@link #ready} has logged an ask before the settings loaded on. */
     private static final Set<String> ASKED_EARLY = Collections.newSetFromMap(new ConcurrentHashMap<>());
+
+    static final String LAYOUTS = "text layouts";
+    /* What Hook status counts for each typeface measured for the padding, once. */
+    static final String PADDED = "Font drawn past its line box, padded";
+    static final String FITS = "Font inside its line box";
+
+    /** Letters reaching below the line, and above the x-height, for {@link #overflows}. */
+    private static final String DESCENDERS = "gjpqy";
+    private static final String ASCENDERS = "bdfhklt";
+    static final float PROBE_SIZE = 100f;
+
+    /** What {@link #overflows} measured for each typeface, for as long as it lives. */
+    static final Map<Typeface, Boolean> OVERFLOWS = Collections.synchronizedMap(new WeakHashMap<>());
+
+    /** Each phone typeface {@link #typeface} handed out, at whatever weight, for {@link #needsPad}. */
+    private static final Set<Typeface> HANDED_OUT = Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<>()));
+
+    /** The builder this thread last obtained through {@link #obtain}, and the paint it was for. */
+    private static final ThreadLocal<Object[]> OBTAINED = new ThreadLocal<Object[]>() {
+        @Override
+        protected Object[] initialValue() {
+            return new Object[2];
+        }
+    };
 
     /** The picked font as last read, or null before the first read and after a change. */
     @Nullable
@@ -346,10 +383,12 @@ public final class OwnFont {
         if (view == null) return;
         try {
             Typeface current = view.getTypeface();
-            if (!isPhoneTypeface(current)) return;
-            Typeface base = current == null ? Typeface.DEFAULT : current;
-            Typeface instead = pickedInstead(base, VIEWS);
-            if (instead != base) view.setTypeface(instead);
+            if (isPhoneTypeface(current)) {
+                Typeface base = current == null ? Typeface.DEFAULT : current;
+                Typeface instead = pickedInstead(base, VIEWS);
+                if (instead != base) view.setTypeface(instead);
+            }
+            if (!view.getIncludeFontPadding() && needsPad(view.getPaint())) view.setIncludeFontPadding(true);
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.SYSTEM_FONT, VIEWS, failure);
         }
@@ -361,6 +400,105 @@ public final class OwnFont {
      */
     public static void inflated(@Nullable View view) {
         if (view instanceof TextView) textView((TextView) view);
+    }
+
+    /**
+     * Android's StaticLayout.Builder.obtain for Facebook's own code (#96): Android's builder, kept
+     * with [paint] for this thread so {@link #setIncludePad} knows the font it lays out. Facebook
+     * sets a builder up right after obtaining it, on the same thread.
+     */
+    public static StaticLayout.Builder obtain(CharSequence source, int start, int end, TextPaint paint, int width) {
+        StaticLayout.Builder builder = StaticLayout.Builder.obtain(source, start, end, paint, width);
+        Object[] last = OBTAINED.get();
+        last[0] = builder;
+        last[1] = paint;
+        return builder;
+    }
+
+    /**
+     * StaticLayout.Builder.setIncludePad for Facebook's own code (#96): Facebook's choice, or true
+     * when [builder] lays out a font {@link #needsPad} pads. Facebook's text mostly turns the
+     * padding off and sizes each line by the font's own ascent and descent, so a phone font whose
+     * letters reach past those has their bottoms cut off: y, g and p lose their tails.
+     */
+    public static StaticLayout.Builder setIncludePad(StaticLayout.Builder builder, boolean includePad) {
+        return builder.setIncludePad(includePad || padsFor(builder));
+    }
+
+    /** Whether {@link #needsPad} pads the paint [builder] was obtained for, when it's the one this thread obtained last. */
+    static boolean padsFor(Object builder) {
+        Object[] last = OBTAINED.get();
+        return last[0] == builder && needsPad((Paint) last[1]);
+    }
+
+    /** BoringLayout.make for Facebook's own code, its one-line text, padded the same way. */
+    public static BoringLayout make(CharSequence source, TextPaint paint, int outerWidth, Layout.Alignment align,
+            float spacingMult, float spacingAdd, BoringLayout.Metrics metrics, boolean includePad) {
+        return BoringLayout.make(source, paint, outerWidth, align, spacingMult, spacingAdd, metrics,
+                includePad || needsPad(paint));
+    }
+
+    /** BoringLayout.make with an ellipsis for Facebook's own code, padded the same way. */
+    public static BoringLayout make(CharSequence source, TextPaint paint, int outerWidth, Layout.Alignment align,
+            float spacingMult, float spacingAdd, BoringLayout.Metrics metrics, boolean includePad,
+            TextUtils.TruncateAt ellipsize, int ellipsizedWidth) {
+        return BoringLayout.make(source, paint, outerWidth, align, spacingMult, spacingAdd, metrics,
+                includePad || needsPad(paint), ellipsize, ellipsizedWidth);
+    }
+
+    /**
+     * Whether text drawn with [paint] needs the font padding: while the switch is on, for the
+     * phone's font or the picked file, when its letters reach past its own line box. Meta's fonts and
+     * the ones a story picks keep Facebook's layout. Never throws.
+     */
+    static boolean needsPad(@Nullable Paint paint) {
+        if (paint == null) return false;
+        try {
+            if (!Utils.settingsReady() || !Settings.USE_SYSTEM_FONT.get()) return false;
+            Typeface face = paint.getTypeface();
+            if (!isPhoneOrPicked(face) && !HANDED_OUT.contains(face)) return false;
+            return overflows(face == null ? Typeface.DEFAULT : face);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.SYSTEM_FONT, LAYOUTS, failure);
+            return false;
+        }
+    }
+
+    /**
+     * Whether [face]'s letters reach past the ascent and descent it declares, measured once. Some
+     * fonts phones offer as the system font declare almost no descent and draw y, g and p well below
+     * it, which Android's own views never show, since they lay out with the padding on.
+     */
+    static boolean overflows(Typeface face) {
+        Boolean known = OVERFLOWS.get(face);
+        if (known != null) return known;
+        Paint probe = new Paint();
+        probe.setTypeface(face);
+        probe.setTextSize(PROBE_SIZE);
+        Paint.FontMetrics metrics = probe.getFontMetrics();
+        Rect below = new Rect();
+        probe.getTextBounds(DESCENDERS, 0, DESCENDERS.length(), below);
+        Rect above = new Rect();
+        probe.getTextBounds(ASCENDERS, 0, ASCENDERS.length(), above);
+        boolean overflows = reachesPast(metrics.ascent, metrics.descent, above.top, below.bottom);
+        OVERFLOWS.put(face, overflows);
+        HookStatus.counted(FamilyNames.SYSTEM_FONT, overflows ? PADDED : FITS);
+        if (overflows) {
+            Logger.printInfo(() -> String.format(Locale.ROOT, "The font at weight %d draws past its line box at %.0f px "
+                    + "(ascent %.1f, descent %.1f, letters %d to %d), so its text gets the font padding",
+                    face.getWeight(), PROBE_SIZE, metrics.ascent, metrics.descent, above.top, below.bottom));
+        }
+        return overflows;
+    }
+
+    /**
+     * Whether letters from [top] to [bottom] reach past a line box from [ascent] to [descent], all
+     * at {@link #PROBE_SIZE}, by more than 2% of it. Meta's Optimistic, Roboto and MiSans keep their
+     * letters inside with room to spare.
+     */
+    static boolean reachesPast(float ascent, float descent, int top, int bottom) {
+        float slack = PROBE_SIZE * 0.02f;
+        return bottom > descent + slack || top < ascent - slack;
     }
 
     /**
@@ -482,7 +620,9 @@ public final class OwnFont {
             Typeface styled = font.styled(clamped, italic);
             if (styled != null) return styled;
         }
-        return Typeface.create(Typeface.DEFAULT, clamped, italic);
+        Typeface phone = Typeface.create(Typeface.DEFAULT, clamped, italic);
+        HANDED_OUT.add(phone);
+        return phone;
     }
 
     /** [weight] when it's one Android takes, 1 to 1000, and 400 otherwise. */

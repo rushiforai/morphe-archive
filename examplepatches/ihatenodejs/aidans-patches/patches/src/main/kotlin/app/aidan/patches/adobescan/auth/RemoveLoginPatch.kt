@@ -50,6 +50,7 @@ val removeLoginPatch = bytecodePatch(
     description = "Starts Adobe Scan in its existing account-free local workspace and removes account sign-in gates; Adobe cloud features are unavailable.",
     default = true
 ) {
+    category("Security")
     compatibleWith(COMPATIBILITY_ADOBE_SCAN)
     val cleanUpAuthComponents = booleanOption(
         key = "cleanUpAuthComponents",

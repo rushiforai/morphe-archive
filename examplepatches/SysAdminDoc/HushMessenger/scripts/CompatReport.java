@@ -78,6 +78,7 @@ public class CompatReport {
     static final String IMMUTABLE_LIST = "Lcom/google/common/collect/ImmutableList;";
     static final String PREFERENCES = "Lcom/facebook/prefs/shared/FbSharedPreferences;";
     static final String MONTAGE_CARD = "Lcom/facebook/messaging/montage/model/MontageCard;";
+    static final String MONTAGE_BUCKET_PREVIEW = "Lcom/facebook/messaging/montage/model/MontageBucketPreview;";
     static final String ANIMATION = "Landroid/view/animation/Animation;";
     static final String FRAGMENT_ANIMATION = "Landroidx/fragment/app/Fragment;->onCreateAnimation(IZI)" + ANIMATION;
     static final String PEOPLE_TAB_FETCH = "Lcom/facebook/messaging/peopletab/segments/friendrequests/usecase/"
@@ -172,6 +173,7 @@ public class CompatReport {
         PATCHES.put("Hide AI sticker tools", List.of("ai_stickers", "ai_sticker_cell"));
         PATCHES.put("Hide avatar stickers", List.of("avatar_stickers", "avatar_tabs"));
         PATCHES.put("Restore old emoji drawer", List.of("emoji_drawer"));
+        PATCHES.put("Keep emoji search on emoji", List.of("emoji_search"));
         PATCHES.put("Hide chat promotions", List.of("chat_promotions"));
         PATCHES.put("Hide business reply suggestions", List.of("suggested_replies"));
         PATCHES.put("Hide business typing suggestions", List.of("business_suggestions"));
@@ -2034,6 +2036,26 @@ public class CompatReport {
         return found;
     }
 
+    /**
+     * emoji_search: the composer's text watcher, (Editable, boolean)V, which names both "afterTextChanged" and the plain
+     * "expression" tray mode. Counted only when exactly one method looks like it. Mirrors EmojiSearch.kt.
+     */
+    static List<Method> emojiSearchWatchers(List<ClassDef> classes) {
+        var watchers = new ArrayList<Method>();
+        for (var cls : classes) for (var method : cls.getMethods()) {
+            if (method.getImplementation() == null || !"V".equals(method.getReturnType()) ||
+                AccessFlags.STATIC.isSet(method.getAccessFlags())) continue;
+            var params = new ArrayList<String>();
+            for (var t : method.getParameterTypes()) params.add(t.toString());
+            if (!params.equals(List.of("Landroid/text/Editable;", "Z"))) continue;
+            var strings = new HashSet<String>();
+            for (var i : method.getImplementation().getInstructions())
+                if (i instanceof ReferenceInstruction ri && ri.getReference() instanceof StringReference sr) strings.add(sr.getString());
+            if (strings.contains("afterTextChanged") && strings.contains("expression")) watchers.add(method);
+        }
+        return watchers.size() == 1 ? watchers : List.of();
+    }
+
     static Map<String, List<Method>> findControls(List<ClassDef> classes) {
         var found = new LinkedHashMap<String, List<Method>>();
         for (var key : CONTROL_KEYS) found.put(key, new ArrayList<>());
@@ -2043,6 +2065,7 @@ public class CompatReport {
         var community = communityInbox(classes);
         if (community != null) found.get("community_inbox").add(community.render());
         found.get("emoji_drawer").addAll(emojiDrawerReaders(classes));
+        found.get("emoji_search").addAll(emojiSearchWatchers(classes));
         found.get("analytics_uploads").addAll(analyticsUploads(classes));
         found.get("message_log").addAll(messageLogHooks(classes));
         found.get("system_camera").addAll(systemCameraLaunches(classes));
@@ -2429,6 +2452,11 @@ public class CompatReport {
                 // anonymous_stories: the story mark-read handler that reports a viewed card
                 if ("V".equals(method.getReturnType()) && paramTypes.equals(List.of(MONTAGE_CARD, "Z")) &&
                     !isStatic && strings.contains("MontageMsysMarkReadHandler")) {
+                    found.get("anonymous_stories").add(method);
+                }
+
+                // anonymous_stories: the story preview's constructor, where a card opened anonymously loses its new-story ring (#35)
+                if (MONTAGE_BUCKET_PREVIEW.equals(cls.getType()) && "<init>".equals(method.getName()) && paramTypes.contains(MONTAGE_CARD)) {
                     found.get("anonymous_stories").add(method);
                 }
 

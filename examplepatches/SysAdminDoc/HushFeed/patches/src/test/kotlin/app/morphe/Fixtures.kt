@@ -11,6 +11,7 @@ import java.lang.ref.SoftReference
 import java.security.DigestInputStream
 import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
 import org.junit.Assert.fail
 import org.junit.Assume.assumeTrue
 
@@ -32,6 +33,7 @@ internal object Fixtures {
         val container: SoftReference<MultiDexContainer<out DexBackedDexFile>>,
     )
     private val cache = ConcurrentHashMap<CacheKey, CacheEntry>()
+    private val decodes = AtomicInteger()
 
     /** The read-only DEX container used by fixture assertions, never a mutable Patcher context. */
     fun dexContainer(apk: File, opcodes: Opcodes? = Opcodes.getDefault()): MultiDexContainer<out DexBackedDexFile> {
@@ -46,6 +48,8 @@ internal object Fixtures {
                 result = retained
                 previous
             } else {
+                // One line per decode, so a run's report shows how often the cache held.
+                System.err.println("[fixtures] decoding ${file.name} (decode ${decodes.incrementAndGet()} in this JVM)")
                 val decoded = DexFileFactory.loadDexContainer(file, opcodes)
                 // The pinned ZIP reader is lazy. Read every entry while this content is current.
                 decoded.dexEntryNames.forEach { checkNotNull(decoded.getEntry(it)) }

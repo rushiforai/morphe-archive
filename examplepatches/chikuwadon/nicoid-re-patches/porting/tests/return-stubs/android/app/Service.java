@@ -1,0 +1,1 @@
+package android.app;public class Service extends android.content.Context{public android.content.Intent intent;public boolean stopped,fail;public void startActivity(android.content.Intent i){if(fail)throw new IllegalStateException("denied");intent=i;}public void stopSelf(){stopped=true;}}

@@ -1,9 +1,13 @@
 package app.morphe.extension.shared.patches;
 
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.media.ExifInterface;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
@@ -12,19 +16,30 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 import java.util.SimpleTimeZone;
 import java.util.TimeZone;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -43,11 +58,73 @@ import java.util.concurrent.Executors;
  * suppressed/hidden (matching official behavior), even if the local file is deleted later.
  */
 public class LocalCreationDownloader {
+    public static final String ACTION_CLEAR_SAVED_MEMORIES = "app.morphe.action.CLEAR_SAVED_MEMORIES";
     private static final String TAG = "LocalCreationDownloader";
     private static final String PREFS_NAME = "morphe_saved_creations";
     private static final ExecutorService EXECUTOR = Executors.newSingleThreadExecutor();
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
+    private static final Set<String> sSavedKeys = Collections.synchronizedSet(new HashSet<>());
+    private static final Map<String, Object> sCardMediaMap = new ConcurrentHashMap<>();
+    private static final Map<Object, Object> sWsfMediaMap = new ConcurrentHashMap<>();
+    private static volatile boolean sReceiverRegistered = false;
     private static volatile Context sAppContext = null;
+    private static volatile java.lang.ref.WeakReference<Object> sCurrentMfyMixin = null;
+    private static volatile java.lang.ref.WeakReference<Object> sCurrentPresenter = null;
+
+    public static synchronized void clearSavedRegistry(Context context) {
+        sSavedKeys.clear();
+        sCardMediaMap.clear();
+        sWsfMediaMap.clear();
+        Context ctx = context != null ? context.getApplicationContext() : getApplicationContext();
+        if (ctx != null) {
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            prefs.edit().clear().commit();
+        }
+        // Clean up test collages in DCIM/Google Photos so testing from scratch is 100% clean
+        try {
+            File dir = getGooglePhotosDir();
+            if (dir.exists()) {
+                File[] files = dir.listFiles((d, name) -> name.contains("-COLLAGE") || name.contains("-ANIMATION"));
+                if (files != null) {
+                    for (File f : files) {
+                        f.delete();
+                    }
+                }
+            }
+        } catch (Throwable ignored) {}
+        Log.i(TAG, "Cleared saved memories registry and cleaned local test creations.");
+    }
+
+    private static void ensureReceiverRegistered(Context context) {
+        if (sReceiverRegistered || context == null) return;
+        synchronized (LocalCreationDownloader.class) {
+            if (sReceiverRegistered) return;
+            try {
+                Context appCtx = context.getApplicationContext();
+                BroadcastReceiver receiver = new BroadcastReceiver() {
+                    @Override
+                    public void onReceive(Context ctx, Intent intent) {
+                        if (intent != null && ACTION_CLEAR_SAVED_MEMORIES.equals(intent.getAction())) {
+                            clearSavedRegistry(ctx);
+                            MAIN_HANDLER.post(() -> {
+                                Toast.makeText(ctx, "Morphe: Saved memories registry reset", Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    }
+                };
+                IntentFilter filter = new IntentFilter(ACTION_CLEAR_SAVED_MEMORIES);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    appCtx.registerReceiver(receiver, filter, Context.RECEIVER_EXPORTED);
+                } else {
+                    appCtx.registerReceiver(receiver, filter);
+                }
+                sReceiverRegistered = true;
+                Log.i(TAG, "Registered broadcast receiver for " + ACTION_CLEAR_SAVED_MEMORIES);
+            } catch (Throwable t) {
+                Log.w(TAG, "Failed registering clear receiver", t);
+            }
+        }
+    }
 
     /**
      * Interception entry point called directly from SaveCreationMixin (Lakxr->h).
@@ -68,6 +145,7 @@ public class LocalCreationDownloader {
             }
             if (context != null) {
                 sAppContext = context.getApplicationContext();
+                ensureReceiverRegistered(sAppContext);
             }
 
             Collection<?> items = (mediaList instanceof Collection)
@@ -93,7 +171,39 @@ public class LocalCreationDownloader {
                 return true;
             }
 
+
             final Context appContext = sAppContext != null ? sAppContext : context.getApplicationContext();
+
+            // Pre-validate that at least one item can be resolved to a downloadable URI.
+            // If URI resolution fails (e.g. unknown obfuscation drift), gracefully fallback
+            // to Google Photos standard cloud save so the user's save is never dropped.
+            boolean canResolveLocally = false;
+            for (Object media : items) {
+                if (media != null && resolveMediaUri(appContext, media) != null) {
+                    canResolveLocally = true;
+                    break;
+                }
+            }
+
+            if (!canResolveLocally) {
+                Log.w(TAG, "Cannot resolve local URI for creation item(s). Falling back to Google Photos standard cloud save.");
+                return false;
+            }
+
+            // Immediately mark items as saved synchronously to suppress consecutive clicks
+            for (Object media : items) {
+                if (media == null) continue;
+                String itemKey = extractItemKey(media);
+                CreationTime time = extractCreationTime(media);
+                String fileName = (time != null && time.utcMs > 0) ? getOfficialCollageFileName(time) : null;
+                long utcMs = time != null ? time.utcMs : 0;
+                recordSavedItem(appContext, itemKey, null, fileName, null, utcMs);
+            }
+
+            // Immediately notify story UI and listeners so the button changes to Saved / hides
+            notifySaveListeners(saveCreationMixin, mediaList);
+            notifyStoryUi(saveCreationMixin);
+
             Log.i(TAG, "Intercepted creation save request for " + items.size() + " item(s). Redirecting to DCIM/Google Photos.");
 
             // Dispatch background save to avoid blocking the main UI thread
@@ -110,9 +220,6 @@ public class LocalCreationDownloader {
                 MAIN_HANDLER.post(() -> {
                     if (saved > 0) {
                         Log.i(TAG, "Successfully exported " + saved + " creation(s) to DCIM/Google Photos.");
-
-                        // Notify save listeners AFTER download finishes so the UI updates
-                        // button state to Saved and advances/dismisses story
                         notifySaveListeners(saveCreationMixin, mediaList);
                         notifyStoryUi(saveCreationMixin);
                     } else {
@@ -125,6 +232,554 @@ public class LocalCreationDownloader {
         } catch (Throwable t) {
             Log.e(TAG, "Error during onSaveRequested interception", t);
             return false;
+        }
+    }
+
+    /**
+     * Intercepts saving Made-For-You creations from MFYCreationMixin (Lqkq->d).
+     */
+    public static boolean onMfySaveRequested(Object mfyMixin, Object mediaItem, String id) {
+        if (mfyMixin == null || mediaItem == null) return false;
+        try {
+            sCurrentMfyMixin = new java.lang.ref.WeakReference<>(mfyMixin);
+            Context context = extractContext(mfyMixin);
+            if (context == null) context = getApplicationContext();
+            if (context != null) {
+                sAppContext = context.getApplicationContext();
+                ensureReceiverRegistered(sAppContext);
+            }
+            final Context appContext = sAppContext != null ? sAppContext : (context != null ? context.getApplicationContext() : null);
+
+            CreationTime time = extractCreationTime(mediaItem);
+            String collageFileName = (time != null && time.utcMs > 0) ? getOfficialCollageFileName(time) : null;
+            String animFileName = (time != null && time.utcMs > 0) ? ("IMG_" + time.formatLocalFileName() + "-ANIMATION.mp4") : null;
+            File targetCollage = (collageFileName != null) ? new File(getGooglePhotosDir(), collageFileName) : null;
+            File targetAnim = (animFileName != null) ? new File(getGooglePhotosDir(), animFileName) : null;
+            boolean fileOnDisk = (targetCollage != null && targetCollage.exists()) || (targetAnim != null && targetAnim.exists());
+
+            // If already saved AND the file is physically present on disk, suppress duplicate download
+            if (fileOnDisk && (isCreationSaved(mediaItem) || isCardSaved(id))) {
+                Log.i(TAG, "MFY creation " + id + " file exists and is already saved locally. Suppressing duplicate download.");
+                recordCardSaved(id);
+                updateMfySaveStatus(mfyMixin, id, true);
+                return true;
+            }
+
+            // Immediately mark as saved in memory/prefs to prevent double clicks
+            String itemKey = extractItemKey(mediaItem);
+            long utcMs = time != null ? time.utcMs : 0;
+            if (appContext != null) {
+                recordSavedItem(appContext, itemKey, id, collageFileName, null, utcMs);
+            }
+
+            // Set saving status (saved = false) in MFY UI state flow immediately
+            updateMfySaveStatus(mfyMixin, id, false);
+            Log.i(TAG, "Intercepted MFY creation save for ID " + id + ". Redirecting to DCIM/Google Photos.");
+
+            EXECUTOR.execute(() -> {
+                if (appContext != null) {
+                    boolean success = saveSingleItem(appContext, mediaItem);
+                    MAIN_HANDLER.post(() -> {
+                        if (success) {
+                            recordCardSaved(id);
+                            updateMfySaveStatus(mfyMixin, id, true);
+                            Log.i(TAG, "Successfully exported MFY creation " + id + " to DCIM/Google Photos.");
+                        } else {
+                            Log.w(TAG, "Failed exporting MFY creation " + id);
+                        }
+                    });
+                }
+            });
+            return true;
+        } catch (Throwable t) {
+            Log.e(TAG, "Error during onMfySaveRequested interception", t);
+            return false;
+        }
+    }
+
+    private static Object resolveStatusObject(boolean saved) {
+        String[] classCandidates = saved
+                ? new String[]{"qlq", "qoe", "qod"}
+                : new String[]{"qlp", "qoc"};
+        for (String cls : classCandidates) {
+            try {
+                Class<?> c = Class.forName(cls);
+                Field aField = c.getDeclaredField("a");
+                if (Modifier.isStatic(aField.getModifiers())) {
+                    aField.setAccessible(true);
+                    Object val = aField.get(null);
+                    if (val != null) return val;
+                }
+            } catch (Throwable ignored) {}
+        }
+        return null;
+    }
+
+    public static void onMfyMixinBound(Object mfyMixin) {
+        if (mfyMixin == null) return;
+        try {
+            sCurrentMfyMixin = new java.lang.ref.WeakReference<>(mfyMixin);
+            Context ctx = getApplicationContext();
+            if (ctx == null) return;
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            Map<String, ?> all = prefs.getAll();
+            if (all == null || all.isEmpty()) return;
+
+            Field bField = null;
+            try {
+                bField = mfyMixin.getClass().getDeclaredField("b");
+            } catch (Throwable ignored) {}
+            if (bField == null) {
+                for (Field f : mfyMixin.getClass().getDeclaredFields()) {
+                    String typeName = f.getType().getName();
+                    if (typeName.contains("crny") || typeName.contains("StateFlow") || typeName.contains("ctcj")) {
+                        bField = f;
+                        break;
+                    }
+                }
+            }
+
+            if (bField != null) {
+                bField.setAccessible(true);
+                Object flow = bField.get(mfyMixin);
+                if (flow != null) {
+                    Method getVal = null;
+                    try {
+                        getVal = flow.getClass().getMethod("e");
+                    } catch (NoSuchMethodException e) {
+                        try {
+                            getVal = flow.getClass().getMethod("getValue");
+                        } catch (NoSuchMethodException ignored) {}
+                    }
+                    if (getVal != null) {
+                        Object cur = getVal.invoke(flow);
+                        Map<Object, Object> newMap = (cur instanceof Map) ? new HashMap<>((Map<?, ?>) cur) : new HashMap<>();
+                        Object savedObj = resolveStatusObject(true);
+
+                        if (savedObj != null) {
+                            boolean changed = false;
+                            for (String k : all.keySet()) {
+                                if (k.startsWith("card_")) {
+                                    newMap.put(k.substring(5), savedObj);
+                                    changed = true;
+                                } else if (k.startsWith("itm:")) {
+                                    newMap.put(k, savedObj);
+                                    changed = true;
+                                }
+                            }
+
+                            if (changed) {
+                                Method setVal = null;
+                                try {
+                                    setVal = flow.getClass().getMethod("f", Object.class);
+                                } catch (NoSuchMethodException e) {
+                                    try {
+                                        setVal = flow.getClass().getMethod("setValue", Object.class);
+                                    } catch (NoSuchMethodException ignored) {}
+                                }
+                                if (setVal != null) {
+                                    setVal.invoke(flow, newMap);
+                                    Log.d(TAG, "Pre-populated MFY state flow with saved creations in onMfyMixinBound");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Error in onMfyMixinBound", t);
+        }
+    }
+
+    private static void updateMfySaveStatus(Object mfyMixin, String id, boolean saved) {
+        if (mfyMixin == null || id == null) return;
+        try {
+            Field bField = null;
+            try {
+                bField = mfyMixin.getClass().getDeclaredField("b");
+            } catch (Throwable ignored) {}
+            if (bField == null) {
+                for (Field f : mfyMixin.getClass().getDeclaredFields()) {
+                    String typeName = f.getType().getName();
+                    if (typeName.contains("crny") || typeName.contains("StateFlow") || typeName.contains("ctcj")) {
+                        bField = f;
+                        break;
+                    }
+                }
+            }
+
+            if (bField != null) {
+                bField.setAccessible(true);
+                Object flow = bField.get(mfyMixin);
+                if (flow != null) {
+                    Method getVal = null;
+                    try {
+                        getVal = flow.getClass().getMethod("e");
+                    } catch (NoSuchMethodException e) {
+                        try {
+                            getVal = flow.getClass().getMethod("getValue");
+                        } catch (NoSuchMethodException ignored) {}
+                    }
+                    if (getVal != null) {
+                        Object cur = getVal.invoke(flow);
+                        Map<Object, Object> newMap = (cur instanceof Map) ? new HashMap<>((Map<?, ?>) cur) : new HashMap<>();
+                        Object statusObj = resolveStatusObject(saved);
+                        if (statusObj != null) {
+                            newMap.put(id, statusObj);
+                            Method setVal = null;
+                            try {
+                                setVal = flow.getClass().getMethod("f", Object.class);
+                            } catch (NoSuchMethodException e) {
+                                try {
+                                    setVal = flow.getClass().getMethod("setValue", Object.class);
+                                } catch (NoSuchMethodException ignored) {}
+                            }
+                            if (setVal != null) {
+                                setVal.invoke(flow, newMap);
+                                Log.i(TAG, "Updated MFY state flow for ID " + id + " to " + (saved ? "SAVED" : "SAVING"));
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Remove from pending creations map d
+            try {
+                Field dField = mfyMixin.getClass().getDeclaredField("d");
+                dField.setAccessible(true);
+                Map<?, ?> dMap = (Map<?, ?>) dField.get(mfyMixin);
+                if (dMap != null) {
+                    dMap.remove(id);
+                }
+            } catch (Throwable ignored) {}
+        } catch (Throwable t) {
+            Log.w(TAG, "Could not update MFY status for " + id, t);
+        }
+    }
+
+
+    public static boolean isCardSaved(String cardId) {
+        if (cardId == null) return false;
+        if (sSavedKeys.contains("card_" + cardId) || sSavedKeys.contains(cardId)) return true;
+        Context ctx = getApplicationContext();
+        if (ctx != null) {
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            if (prefs.getBoolean("card_" + cardId, false) || prefs.getBoolean(cardId, false)) {
+                sSavedKeys.add("card_" + cardId);
+                sSavedKeys.add(cardId);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static void recordCardSaved(String cardId) {
+        if (cardId == null) return;
+        sSavedKeys.add("card_" + cardId);
+        sSavedKeys.add(cardId);
+        Context ctx = getApplicationContext();
+        if (ctx != null) {
+            try {
+                SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                prefs.edit().putBoolean("card_" + cardId, true).putBoolean(cardId, true).commit();
+            } catch (Throwable ignored) {}
+        }
+    }
+
+    /**
+     * Intercepts hero card creation in Create Tab (Lqlb->q / Lqno->q).
+     * Caches the media item and if already saved locally with a physical file,
+     * marks the card ID in presenter.j so the "Save" button starts in the "Saved" state.
+     */
+    public static void onCheckHeroCardSaved(Object presenter, String cardId, Object mediaItem) {
+        if (presenter == null || cardId == null || mediaItem == null) return;
+        try {
+            sCurrentPresenter = new java.lang.ref.WeakReference<>(presenter);
+            sCardMediaMap.put(cardId, mediaItem);
+            Object wsf = null;
+            try {
+                for (String cls : new String[]{"wsg", "wss", "wuw"}) {
+                    try {
+                        Class<?> wsgClass = Class.forName(cls);
+                        for (Method m : wsgClass.getMethods()) {
+                            if (m.getParameterTypes().length == 1 &&
+                                m.getParameterTypes()[0].isInstance(mediaItem) &&
+                                m.getReturnType() != void.class &&
+                                Modifier.isStatic(m.getModifiers())) {
+                                wsf = m.invoke(null, mediaItem);
+                                if (wsf != null) break;
+                            }
+                        }
+                    } catch (Throwable ignored) {}
+                    if (wsf != null) break;
+                }
+            } catch (Throwable ignored) {}
+
+            if (wsf != null) {
+                sWsfMediaMap.put(wsf, mediaItem);
+            }
+
+            CreationTime time = extractCreationTime(mediaItem);
+            String collageFileName = (time != null && time.utcMs > 0) ? getOfficialCollageFileName(time) : null;
+            String animFileName = (time != null && time.utcMs > 0) ? ("IMG_" + time.formatLocalFileName() + "-ANIMATION.mp4") : null;
+            File targetCollage = (collageFileName != null) ? new File(getGooglePhotosDir(), collageFileName) : null;
+            File targetAnim = (animFileName != null) ? new File(getGooglePhotosDir(), animFileName) : null;
+            boolean fileOnDisk = (targetCollage != null && targetCollage.exists()) || (targetAnim != null && targetAnim.exists());
+
+            boolean saved = fileOnDisk && (isCreationSaved(mediaItem) || isCardSaved(cardId));
+            if (saved) {
+                recordCardSaved(cardId);
+                updatePresenterSets(presenter, cardId, wsf, true);
+                Log.i(TAG, "Marked hero card " + cardId + " as saved in Create Tab presenter");
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Error in onCheckHeroCardSaved", t);
+        }
+    }
+
+    private static void updatePresenterSets(Object presenter, Object cardId, Object wsf, boolean saved) {
+        if (presenter == null) return;
+        try {
+            for (Field f : presenter.getClass().getDeclaredFields()) {
+                if (Set.class.isAssignableFrom(f.getType())) {
+                    f.setAccessible(true);
+                    Set set = (Set) f.get(presenter);
+                    if (set != null) {
+                        String name = f.getName();
+                        if ("E".equals(name)) {
+                            // E is the Saving (in-progress) set
+                            if (saved) {
+                                if (cardId != null) set.remove(cardId);
+                                if (wsf != null) set.remove(wsf);
+                            } else {
+                                if (cardId != null) set.add(cardId);
+                                if (wsf != null) set.add(wsf);
+                            }
+                        } else if ("j".equals(name)) {
+                            // j is the Saved set
+                            if (saved) {
+                                if (cardId != null) set.add(cardId);
+                                if (wsf != null) set.add(wsf);
+                            } else {
+                                if (cardId != null) set.remove(cardId);
+                                if (wsf != null) set.remove(wsf);
+                            }
+                        } else {
+                            if (saved) {
+                                if (cardId != null) set.add(cardId);
+                                if (wsf != null) set.add(wsf);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Error updating presenter sets", t);
+        }
+    }
+
+    private static void updatePresenterStateFlow(Object presenter, Object cardId, Object wsf, boolean saved) {
+        if (presenter == null) return;
+        try {
+            Object statusObj = resolveStatusObject(saved);
+            for (Field f : presenter.getClass().getDeclaredFields()) {
+                try {
+                    f.setAccessible(true);
+                    Object val = f.get(presenter);
+                    if (val != null) {
+                        String typeName = val.getClass().getName();
+                        if (typeName.contains("StateFlow") || typeName.contains("ctcj") || typeName.contains("crny")) {
+                            Method eMethod = null;
+                            try {
+                                eMethod = val.getClass().getMethod("e");
+                            } catch (NoSuchMethodException e) {
+                                try {
+                                    eMethod = val.getClass().getMethod("getValue");
+                                } catch (NoSuchMethodException ignored) {}
+                            }
+                            if (eMethod != null) {
+                                Object qln = eMethod.invoke(val);
+                                if (qln != null) {
+                                    Field aField = null;
+                                    for (Field qf : qln.getClass().getDeclaredFields()) {
+                                        if (List.class.isAssignableFrom(qf.getType())) {
+                                            aField = qf;
+                                            break;
+                                        }
+                                    }
+                                    if (aField != null) {
+                                        aField.setAccessible(true);
+                                        List<?> list = (List<?>) aField.get(qln);
+                                        if (list != null) {
+                                            boolean changed = false;
+                                            List<Object> newList = new ArrayList<>();
+                                            for (Object card : list) {
+                                                if (card != null) {
+                                                    boolean match = false;
+                                                    for (Field cf : card.getClass().getDeclaredFields()) {
+                                                        cf.setAccessible(true);
+                                                        Object cv = cf.get(card);
+                                                        if (wsf != null && wsf.equals(cv)) match = true;
+                                                        if (cardId != null && cardId.equals(cv)) match = true;
+                                                    }
+                                                    if (match) {
+                                                        for (Field cf : card.getClass().getDeclaredFields()) {
+                                                            String cft = cf.getType().getName();
+                                                            if (cft.startsWith("Lqlr") || cft.equals("qlr") ||
+                                                                (statusObj != null && cf.getType().isInstance(statusObj))) {
+                                                                cf.setAccessible(true);
+                                                                cf.set(card, statusObj);
+                                                                changed = true;
+                                                            }
+                                                        }
+                                                    }
+                                                    newList.add(card);
+                                                }
+                                            }
+                                            if (changed) {
+                                                Method fMethod = null;
+                                                try {
+                                                    fMethod = val.getClass().getMethod("f", Object.class);
+                                                } catch (NoSuchMethodException e) {
+                                                    try {
+                                                        fMethod = val.getClass().getMethod("setValue", Object.class);
+                                                    } catch (NoSuchMethodException ignored) {}
+                                                }
+                                                if (fMethod != null) {
+                                                    aField.set(qln, newList);
+                                                    fMethod.invoke(val, qln);
+                                                    Log.i(TAG, "Updated hero card in StateFlow to " + (saved ? "SAVED" : "SAVING"));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (Throwable ignored) {}
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Error updating presenter StateFlow", t);
+        }
+    }
+
+    /**
+     * Called when the user taps "Save" on a Create Tab hero card (Lqlb->n / Lqno->n).
+     * Marks the card ID as saved immediately and dispatches background export to DCIM/Google Photos.
+     */
+    public static void onCreateHeroSaveRequested(Object presenter, Object wsf) {
+        if (presenter == null || wsf == null) return;
+        try {
+            sCurrentPresenter = new java.lang.ref.WeakReference<>(presenter);
+            Log.d(TAG, "onCreateHeroSaveRequested called with wsf: " + wsf);
+
+            Object mediaItem = sWsfMediaMap.get(wsf);
+            String targetCardId = null;
+
+            // Inspect StateFlow to resolve cardId matching wsf
+            for (Field f : presenter.getClass().getDeclaredFields()) {
+                try {
+                    f.setAccessible(true);
+                    Object val = f.get(presenter);
+                    if (val != null) {
+                        String typeName = val.getClass().getName();
+                        if (typeName.contains("StateFlow") || typeName.contains("ctcj") || typeName.contains("crny")) {
+                            Method eMethod = null;
+                            try {
+                                eMethod = val.getClass().getMethod("e");
+                            } catch (NoSuchMethodException e) {
+                                try {
+                                    eMethod = val.getClass().getMethod("getValue");
+                                } catch (NoSuchMethodException ignored) {}
+                            }
+                            if (eMethod != null) {
+                                Object qln = eMethod.invoke(val);
+                                if (qln != null) {
+                                    for (Field qf : qln.getClass().getDeclaredFields()) {
+                                        if (List.class.isAssignableFrom(qf.getType())) {
+                                            qf.setAccessible(true);
+                                            List<?> list = (List<?>) qf.get(qln);
+                                            if (list != null) {
+                                                for (Object card : list) {
+                                                    if (card != null) {
+                                                        boolean matches = false;
+                                                        String cardId = null;
+                                                        for (Field cf : card.getClass().getDeclaredFields()) {
+                                                            cf.setAccessible(true);
+                                                            Object cv = cf.get(card);
+                                                            if (wsf.equals(cv)) {
+                                                                matches = true;
+                                                            } else if (cv instanceof String && ((String) cv).startsWith("itm:")) {
+                                                                cardId = (String) cv;
+                                                            }
+                                                        }
+                                                        if (matches && cardId != null) {
+                                                            targetCardId = cardId;
+                                                            if (mediaItem == null) {
+                                                                mediaItem = sCardMediaMap.get(cardId);
+                                                            }
+                                                            Log.i(TAG, "Hero card " + cardId + " resolved from presenter StateFlow");
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (Throwable ignored) {}
+            }
+
+            if (mediaItem == null && targetCardId != null) {
+                mediaItem = sCardMediaMap.get(targetCardId);
+            }
+
+            // Immediately mark as saving in presenter and MFY state flow
+            updatePresenterSets(presenter, targetCardId, wsf, false);
+            updatePresenterStateFlow(presenter, targetCardId, wsf, false);
+            if (sCurrentMfyMixin != null && sCurrentMfyMixin.get() != null && targetCardId != null) {
+                updateMfySaveStatus(sCurrentMfyMixin.get(), targetCardId, false);
+            }
+
+            Context context = extractContext(presenter);
+            if (context == null) context = getApplicationContext();
+            if (context != null) {
+                sAppContext = context.getApplicationContext();
+                ensureReceiverRegistered(sAppContext);
+            }
+            final Context appContext = sAppContext != null ? sAppContext : (context != null ? context.getApplicationContext() : null);
+            final Object finalMediaItem = mediaItem;
+            final String finalCardId = targetCardId;
+            final Object finalWsf = wsf;
+
+            if (appContext != null && finalMediaItem != null) {
+                Log.i(TAG, "Dispatching local download for hero card: " + (finalCardId != null ? finalCardId : wsf));
+                EXECUTOR.execute(() -> {
+                    boolean success = saveSingleItem(appContext, finalMediaItem);
+                    MAIN_HANDLER.post(() -> {
+                        if (success) {
+                            if (finalCardId != null) {
+                                recordCardSaved(finalCardId);
+                            }
+                            updatePresenterSets(presenter, finalCardId, finalWsf, true);
+                            updatePresenterStateFlow(presenter, finalCardId, finalWsf, true);
+                            if (sCurrentMfyMixin != null && sCurrentMfyMixin.get() != null && finalCardId != null) {
+                                updateMfySaveStatus(sCurrentMfyMixin.get(), finalCardId, true);
+                            }
+                            Log.i(TAG, "Successfully exported hero card creation to DCIM/Google Photos and updated UI to Saved.");
+                        } else {
+                            Log.w(TAG, "Failed to download hero card creation locally.");
+                        }
+                    });
+                });
+            } else {
+                Log.w(TAG, "Cannot trigger hero card download: appContext=" + appContext + ", mediaItem=" + finalMediaItem);
+            }
+        } catch (Throwable t) {
+            Log.w(TAG, "Error in onCreateHeroSaveRequested", t);
         }
     }
 
@@ -164,57 +819,40 @@ public class LocalCreationDownloader {
     public static boolean isCreationSaved(Object mediaItem) {
         if (mediaItem == null) return false;
         try {
-            String key = extractItemKey(mediaItem);
-            CreationTime creationTime = extractCreationTime(mediaItem);
-
-            // 1. Check SharedPreferences for permanent saved flag
             Context ctx = getApplicationContext();
             if (ctx != null) {
-                SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-                if (key != null && (prefs.getBoolean(key + "_saved", false) || prefs.contains(key))) {
-                    return true;
-                }
+                ensureReceiverRegistered(ctx);
             }
 
-            // 2. Check deterministic file paths in DCIM/Google Photos
-            // Note: highlight videos are handled natively by Google Photos — we only check collages.
-            File dir = getGooglePhotosDir();
-            if (dir.exists()) {
-                // Primary: local wall-clock filename (matches stock camera / GP naming)
-                File officialCollage = new File(dir, getOfficialCollageFileName(creationTime));
-                if (officialCollage.exists() && officialCollage.length() > 0) {
-                    return true;
-                }
-                // Backward-compat: check earlier UTC-formatted filename
-                File utcCollage = new File(dir, "IMG_" + creationTime.formatUtcFileName() + "-COLLAGE.jpg");
-                if (utcCollage.exists() && utcCollage.length() > 0) {
-                    return true;
-                }
-                // Backward-compat: old format had milliseconds (yyyyMMdd_HHmmssSSS)
-                String dateStr = creationTime.formatUtcFileName();
-                File msCollage = new File(dir, "IMG_" + dateStr + "000-COLLAGE.jpg");
-                if (msCollage.exists() && msCollage.length() > 0) {
-                    return true;
-                }
-                if (key != null) {
-                    File legacyFile = new File(dir, getFileNameForKey(key));
-                    if (legacyFile.exists() && legacyFile.length() > 0) {
-                        return true;
-                    }
-                }
+            String key = extractItemKey(mediaItem);
+            CreationTime time = extractCreationTime(mediaItem);
+            String fileName = (time != null && time.utcMs > 0) ? getOfficialCollageFileName(time) : null;
+            String animFileName = (time != null && time.utcMs > 0) ? ("IMG_" + time.formatLocalFileName() + "-ANIMATION.mp4") : null;
+            File targetCollage = (fileName != null) ? new File(getGooglePhotosDir(), fileName) : null;
+            File targetAnim = (animFileName != null) ? new File(getGooglePhotosDir(), animFileName) : null;
+            if ((targetCollage != null && targetCollage.exists()) || (targetAnim != null && targetAnim.exists())) {
+                return true;
             }
+            long utcMs = time != null ? time.utcMs : 0;
 
-            // 3. Check SharedPreferences for mapped file path
-            if (ctx != null && key != null) {
+            if (key != null && sSavedKeys.contains(key)) return true;
+            if (fileName != null && sSavedKeys.contains("file_" + fileName)) return true;
+            if (animFileName != null && sSavedKeys.contains("file_" + animFileName)) return true;
+            if (utcMs > 0 && sSavedKeys.contains("ts_" + utcMs)) return true;
+
+            if (ctx != null) {
                 SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-                String savedPath = prefs.getString(key, null);
-                if (savedPath != null) {
-                    File f = new File(savedPath);
-                    if (f.exists() && f.length() > 0) {
-                        return true;
-                    }
-                    // IMPORTANT: Do NOT remove key if local file is missing.
-                    // Google Photos "Free up space" or manual purge shouldn't reset the save state.
+                if (key != null && (prefs.getBoolean(key, false) || prefs.getBoolean(key + "_saved", false))) {
+                    sSavedKeys.add(key);
+                    return true;
+                }
+                if (fileName != null && prefs.getBoolean("file_" + fileName, false)) {
+                    sSavedKeys.add("file_" + fileName);
+                    return true;
+                }
+                if (utcMs > 0 && prefs.getBoolean("ts_" + utcMs, false)) {
+                    sSavedKeys.add("ts_" + utcMs);
+                    return true;
                 }
             }
         } catch (Throwable t) {
@@ -297,7 +935,7 @@ public class LocalCreationDownloader {
         for (Method m : mediaItem.getClass().getMethods()) {
             if (m.getParameterTypes().length == 0) {
                 String retName = m.getReturnType().getSimpleName();
-                if (retName.equals("bwol") || retName.contains("Timestamp")) {
+                if (retName.equals("bwol") || retName.equals("bwze") || retName.contains("Timestamp")) {
                     try {
                         Object obj = m.invoke(mediaItem);
                         if (obj != null) {
@@ -432,20 +1070,99 @@ public class LocalCreationDownloader {
             mimeType = "image/jpeg";
         }
 
-        // Only intercept image collages — highlight videos are exported natively by Google Photos.
-        if (mimeType.startsWith("video/")) {
-            Log.i(TAG, "Skipping video item — handled natively by Google Photos.");
-            return false;
+        boolean isVideo = mimeType.startsWith("video/");
+        String extension = isVideo ? ".mp4" : ".jpg";
+        if (isVideo && (mimeType.equals("video/mpeg") || mimeType.equals("video/mp4"))) {
+            mimeType = "video/mp4";
         }
 
         CreationTime creationTime = extractCreationTime(mediaItem);
-        String fileName = getOfficialCollageFileName(creationTime);
+        String fileName = isVideo
+                ? ("IMG_" + creationTime.formatLocalFileName() + "-ANIMATION.mp4")
+                : ("IMG_" + creationTime.formatLocalFileName() + "-COLLAGE.jpg");
         File targetFile = new File(getGooglePhotosDir(), fileName);
 
         String itemKey = extractItemKey(mediaItem);
         String uriKey = extractKeyFromUri(mediaUri);
 
+        // Download stream to a temporary cache file first
+        File tempFile = null;
         try {
+            tempFile = File.createTempFile("morphe_creation_", extension, context.getCacheDir());
+            try (InputStream in = openMediaStream(resolver, mediaUri);
+                 OutputStream out = new FileOutputStream(tempFile)) {
+                if (in == null) {
+                    Log.e(TAG, "Failed to open input stream for " + mediaUri);
+                    return false;
+                }
+                byte[] buffer = new byte[16384];
+                int len;
+                while ((len = in.read(buffer)) > 0) {
+                    out.write(buffer, 0, len);
+                }
+                out.flush();
+            }
+
+            // For JPEG images, inject EXIF capture timestamp into the temporary file
+            if (!isVideo) {
+                try {
+                    ExifInterface exif = new ExifInterface(tempFile.getAbsolutePath());
+                    SimpleDateFormat exifSdf = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US);
+                    if (creationTime.tzOffsetMs != 0) {
+                        exifSdf.setTimeZone(new SimpleTimeZone((int) creationTime.tzOffsetMs, "photo_tz"));
+                    } else {
+                        exifSdf.setTimeZone(TimeZone.getDefault());
+                    }
+                    String dateStr = exifSdf.format(new Date(creationTime.utcMs));
+                    exif.setAttribute(ExifInterface.TAG_DATETIME_ORIGINAL, dateStr);
+                    exif.setAttribute(ExifInterface.TAG_DATETIME, dateStr);
+                    exif.setAttribute(ExifInterface.TAG_DATETIME_DIGITIZED, dateStr);
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && creationTime.tzOffsetMs != 0) {
+                        int totalMinutes = (int) (creationTime.tzOffsetMs / 60000);
+                        int hours = totalMinutes / 60;
+                        int minutes = Math.abs(totalMinutes % 60);
+                        String offsetStr = String.format(Locale.US, "%+03d:%02d", hours, minutes);
+                        try {
+                            exif.setAttribute("OffsetTimeOriginal", offsetStr);
+                            exif.setAttribute("OffsetTime", offsetStr);
+                            exif.setAttribute("OffsetTimeDigitized", offsetStr);
+                        } catch (Throwable ignored) {}
+                    }
+                    exif.saveAttributes();
+                    Log.d(TAG, "Embedded EXIF DateTimeOriginal: " + dateStr + " into " + fileName);
+                } catch (Throwable t) {
+                    Log.w(TAG, "Failed embedding EXIF attributes", t);
+                }
+            }
+
+            // Clean up any existing file or MediaStore entry with this exact name or duplicate suffixes
+            Uri tableUri = isVideo ? MediaStore.Video.Media.EXTERNAL_CONTENT_URI : MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+            try {
+                String basePrefix = fileName.substring(0, fileName.lastIndexOf('.'));
+                String selection = "(" + MediaStore.MediaColumns.DISPLAY_NAME + "=? OR " +
+                        MediaStore.MediaColumns.DISPLAY_NAME + " LIKE ?) AND " +
+                        MediaStore.MediaColumns.RELATIVE_PATH + " LIKE ?";
+                String[] selectionArgs = new String[]{fileName, basePrefix + " (%)%", "DCIM/Google Photos%"};
+                resolver.delete(tableUri, selection, selectionArgs);
+            } catch (Throwable ignored) {}
+
+            try {
+                if (targetFile.exists()) {
+                    targetFile.delete();
+                }
+                File dir = getGooglePhotosDir();
+                if (dir.exists()) {
+                    String basePrefix = fileName.substring(0, fileName.lastIndexOf('.'));
+                    File[] dups = dir.listFiles((d, name) -> name.startsWith(basePrefix + " (") && name.endsWith(extension));
+                    if (dups != null) {
+                        for (File df : dups) {
+                            df.delete();
+                        }
+                    }
+                }
+            } catch (Throwable ignored) {}
+
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContentValues values = new ContentValues();
                 values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
@@ -453,29 +1170,41 @@ public class LocalCreationDownloader {
                 values.put(MediaStore.MediaColumns.RELATIVE_PATH, "DCIM/Google Photos");
                 values.put(MediaStore.MediaColumns.DATE_ADDED, creationTime.utcMs / 1000);
                 values.put(MediaStore.MediaColumns.DATE_MODIFIED, creationTime.utcMs / 1000);
-                values.put(MediaStore.Images.Media.DATE_TAKEN, creationTime.utcMs);
+                if (isVideo) {
+                    values.put(MediaStore.Video.Media.DATE_TAKEN, creationTime.utcMs);
+                } else {
+                    values.put(MediaStore.Images.Media.DATE_TAKEN, creationTime.utcMs);
+                }
                 values.put(MediaStore.MediaColumns.IS_PENDING, 1);
 
-                Uri inserted = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+                Uri inserted = resolver.insert(tableUri, values);
                 if (inserted == null) {
                     Log.e(TAG, "Failed to create MediaStore entry for " + fileName);
                     return false;
                 }
 
-                try (InputStream in = openMediaStream(resolver, mediaUri);
+                try (InputStream fin = new FileInputStream(tempFile);
                      OutputStream out = resolver.openOutputStream(inserted)) {
-                    if (in == null || out == null) {
+                    if (out == null) {
                         return false;
                     }
                     byte[] buffer = new byte[16384];
                     int len;
-                    while ((len = in.read(buffer)) > 0) {
+                    while ((len = fin.read(buffer)) > 0) {
                         out.write(buffer, 0, len);
                     }
+                    out.flush();
                 }
 
                 values.clear();
                 values.put(MediaStore.MediaColumns.IS_PENDING, 0);
+                if (isVideo) {
+                    values.put(MediaStore.Video.Media.DATE_TAKEN, creationTime.utcMs);
+                } else {
+                    values.put(MediaStore.Images.Media.DATE_TAKEN, creationTime.utcMs);
+                }
+                values.put(MediaStore.MediaColumns.DATE_ADDED, creationTime.utcMs / 1000);
+                values.put(MediaStore.MediaColumns.DATE_MODIFIED, creationTime.utcMs / 1000);
                 resolver.update(inserted, values, null, null);
 
                 // Set file modification timestamp if accessible directly
@@ -489,7 +1218,7 @@ public class LocalCreationDownloader {
                         new String[]{mimeType},
                         null);
 
-                recordSavedItem(context, itemKey, uriKey, fileName, targetFile.getAbsolutePath());
+                recordSavedItem(context, itemKey, uriKey, fileName, targetFile.getAbsolutePath(), creationTime.utcMs);
                 return true;
             } else {
                 File dcimDir = getGooglePhotosDir();
@@ -498,14 +1227,14 @@ public class LocalCreationDownloader {
                     return false;
                 }
 
-                try (InputStream in = openMediaStream(resolver, mediaUri);
+                try (InputStream fin = new FileInputStream(tempFile);
                      OutputStream out = new FileOutputStream(targetFile)) {
-                    if (in == null) return false;
                     byte[] buffer = new byte[16384];
                     int len;
-                    while ((len = in.read(buffer)) > 0) {
+                    while ((len = fin.read(buffer)) > 0) {
                         out.write(buffer, 0, len);
                     }
+                    out.flush();
                 }
 
                 targetFile.setLastModified(creationTime.utcMs);
@@ -515,32 +1244,52 @@ public class LocalCreationDownloader {
                         new String[]{mimeType},
                         null);
 
-                recordSavedItem(context, itemKey, uriKey, fileName, targetFile.getAbsolutePath());
+                recordSavedItem(context, itemKey, uriKey, fileName, targetFile.getAbsolutePath(), creationTime.utcMs);
                 return true;
             }
         } catch (Throwable t) {
             Log.e(TAG, "Error streaming creation to local storage", t);
             return false;
+        } finally {
+            if (tempFile != null && tempFile.exists()) {
+                tempFile.delete();
+            }
         }
     }
 
-    private static void recordSavedItem(Context context, String itemKey, String uriKey, String fileName, String filePath) {
-        if (context == null) return;
+    private static void recordSavedItem(Context context, String itemKey, String uriKey, String fileName, String filePath, long utcMs) {
+        if (itemKey != null) {
+            sSavedKeys.add(itemKey);
+        }
+        if (uriKey != null) {
+            sSavedKeys.add(uriKey);
+        }
+        if (fileName != null) {
+            sSavedKeys.add("file_" + fileName);
+        }
+        if (utcMs > 0) {
+            sSavedKeys.add("ts_" + utcMs);
+        }
+        Context ctx = context != null ? context.getApplicationContext() : getApplicationContext();
+        if (ctx == null) return;
         try {
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            SharedPreferences prefs = ctx.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
             SharedPreferences.Editor edit = prefs.edit();
             if (itemKey != null) {
+                edit.putBoolean(itemKey, true);
                 edit.putBoolean(itemKey + "_saved", true);
-                edit.putString(itemKey, filePath);
             }
             if (uriKey != null) {
+                edit.putBoolean(uriKey, true);
                 edit.putBoolean(uriKey + "_saved", true);
-                edit.putString(uriKey, filePath);
             }
             if (fileName != null) {
-                edit.putBoolean(fileName + "_saved", true);
+                edit.putBoolean("file_" + fileName, true);
             }
-            edit.apply();
+            if (utcMs > 0) {
+                edit.putBoolean("ts_" + utcMs, true);
+            }
+            edit.commit(); // synchronous write
         } catch (Throwable ignored) {}
     }
 
@@ -587,9 +1336,9 @@ public class LocalCreationDownloader {
     }
 
     private static Uri resolveMediaUri(Context context, Object mediaItem) {
-        // Attempt 1: Photos DI Binder (bzeq / ahug) with MediaUriProvider (wiy)
-        String[] binderClasses = {"bzeq", "ahug"};
-        String[] providerClasses = {"wiy"};
+        // Attempt 1: Photos DI Binder (bzoq / bzeq / ahug) with MediaUriProvider (wma / wiy)
+        String[] binderClasses = {"bzoq", "bzeq", "ahug"};
+        String[] providerClasses = {"wma", "wiy"};
 
         for (String binderName : binderClasses) {
             try {
@@ -643,21 +1392,33 @@ public class LocalCreationDownloader {
                                 }
                             } catch (Throwable ignored) {}
 
-                            // Try wiw.d (ORIGINAL) or wiw.c (LARGE)
-                            try {
-                                Class<?> wiwClass = Class.forName("wiw");
-                                for (Method pm : provider.getClass().getMethods()) {
-                                    if (pm.getParameterTypes().length == 3 &&
-                                        pm.getParameterTypes()[0].isInstance(mediaItem) &&
-                                        Uri.class.isAssignableFrom(pm.getReturnType())) {
+                            // Try quality enum: wlz.d or wiw.d (ORIGINAL), wlz.c or wiw.c (LARGE)
+                            String[] qualityClasses = {"wlz", "wiw"};
+                            for (String qClassName : qualityClasses) {
+                                try {
+                                    Class<?> qClass = Class.forName(qClassName);
+                                    Object origVal = null;
+                                    try {
+                                        origVal = qClass.getField("d").get(null);
+                                    } catch (Throwable ignored) {
                                         try {
-                                            Object origVal = wiwClass.getField("d").get(null);
-                                            Uri uri = (Uri) pm.invoke(provider, mediaItem, origVal, 0);
-                                            if (uri != null) return uri;
-                                        } catch (Throwable ignored) {}
+                                            origVal = qClass.getField("c").get(null);
+                                        } catch (Throwable ignored2) {}
                                     }
-                                }
-                            } catch (Throwable ignored) {}
+                                    if (origVal != null) {
+                                        for (Method pm : provider.getClass().getMethods()) {
+                                            if (pm.getParameterTypes().length == 3 &&
+                                                pm.getParameterTypes()[0].isInstance(mediaItem) &&
+                                                Uri.class.isAssignableFrom(pm.getReturnType())) {
+                                                try {
+                                                    Uri uri = (Uri) pm.invoke(provider, mediaItem, origVal, 0);
+                                                    if (uri != null) return uri;
+                                                } catch (Throwable ignored) {}
+                                            }
+                                        }
+                                    }
+                                } catch (ClassNotFoundException ignored) {}
+                            }
                         }
                     } catch (ClassNotFoundException ignored) {}
                 }

@@ -1,3 +1,16 @@
+## [1.9.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.8.0...v1.9.0) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* correct ToDoList compatibility syntax and add two versions [skip ci] ([7e92213](https://github.com/mich111discord/MightyMichs-Patches/commit/7e9221334695cea2dae7360fd8325d621b5cb5ad))
+* fixed magovideo patch ([e839f5b](https://github.com/mich111discord/MightyMichs-Patches/commit/e839f5bd815d0e299da47faeee9db8a1223d0685))
+* fixed pou package error ([32b64b6](https://github.com/mich111discord/MightyMichs-Patches/commit/32b64b6cffbf55bc55319fb594d7534613a7ee38))
+* fixed some patches ([e7aa495](https://github.com/mich111discord/MightyMichs-Patches/commit/e7aa495372b4e75e1e1f49d846c86d3842efe3d9))
+
+### ✨ New Features
+
+* add Nova Launcher Enable Prime patch ([73f8710](https://github.com/mich111discord/MightyMichs-Patches/commit/73f8710f151797f75fd64793379487d9e58e0a56))
+
 ## [1.8.0](https://github.com/mich111discord/MightyMichs-Patches/compare/v1.7.0...v1.8.0) (2026-10-06)
 
 ### ✨ New Features

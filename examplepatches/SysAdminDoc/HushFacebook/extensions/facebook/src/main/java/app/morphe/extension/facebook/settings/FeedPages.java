@@ -81,7 +81,7 @@ final class FeedPages {
             if (build.contains(PatchFamily.FOLLOWING_HOME)) {
                 // Home asks for its feed each time it loads one, so no restart is needed.
                 opening.addPreference(toggle(context, Settings.FOLLOWING_FEED_HOME,
-                        L10n.t("Home loads Facebook's Following feed instead of the ranked one. The Feeds tab's filters stay as they are.")));
+                        L10n.t("Home loads the newest posts from the friends, groups and Pages you follow, like the Feeds tab's All. The Feeds tab's filters stay as they are.")));
             }
         }
     }
@@ -358,6 +358,8 @@ final class FeedPages {
                     L10n.t("The comment box loses its GIF and sticker buttons. Typing, photos and posting work as before.")));
             comments.addPreference(toggle(context, Settings.OPEN_REPLY_THREADS,
                     L10n.t("Comments show their replies right away, so there's no View replies to tap.")));
+            comments.addPreference(toggle(context, Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS,
+                    L10n.t("A group post's comments end without the Related groups list and its Join buttons.")));
             comments.addPreference(reactionCountsRow(context));
         }
     }

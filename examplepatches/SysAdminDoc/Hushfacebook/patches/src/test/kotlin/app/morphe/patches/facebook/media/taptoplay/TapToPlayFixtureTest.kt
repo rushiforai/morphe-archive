@@ -11,8 +11,11 @@ import app.morphe.patches.facebook.feed.FixtureDex
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.ads.sponsoredsearch.enumConstantFields
+import app.morphe.patches.facebook.media.resume.POSITION_STUB
 import app.morphe.patches.facebook.media.resume.VIDEO_PLAYER_PARAMS
 import app.morphe.patches.facebook.media.resume.paramsGetters
+import app.morphe.patches.facebook.media.resume.playingInterfaces
+import app.morphe.patches.facebook.media.resume.positionReaders
 import app.morphe.patches.facebook.media.resume.reportedValues
 import app.morphe.util.ControlFlow
 import app.morphe.patches.facebook.misc.extension.SETTINGS_STATUS
@@ -149,11 +152,15 @@ class TapToPlayFixtureTest {
                     playbackClasses.putAll(FixtureDex.classes(fixture, references))
                 }
 
+                // The player's interfaces, where the position reader is declared (#90).
+                val grootInterfaces = FixtureDex.classes(fixture, groot.interfaces.toSet())
+
                 // The patch, on this build's own classes.
                 val context = PatchContexts.of(
                     listOf(groot, legacy, checker, classes.getValue(trigger), setting, classes.getValue(FRAGMENT_ACTIVITY),
                         classes.getValue(controlsType), classes.getValue(VIDEO_PLAYER_PARAMS), ExtensionDex.classDef(TAP_TO_PLAY),
-                        ExtensionDex.classDef(SETTINGS_STATUS)) + components + playbackClasses.values,
+                        ExtensionDex.classDef(SETTINGS_STATUS)) + components + playbackClasses.values +
+                        grootInterfaces.values.filter { it.type != groot.type },
                 )
                 tapToPlayPatch.execute(context)
                 fun patched(method: Method) = context.mutableClassDefBy(method.definingClass).methods.single {
@@ -280,6 +287,15 @@ class TapToPlayFixtureTest {
                 assertEquals("$name: the $FB_SHORTS stub's field", "$VIDEO_PLAYER_PARAMS->${shorts.single().name}:Z",
                     ((flagStub[1] as ReferenceInstruction).reference as FieldReference).toString())
                 assertEquals("$name: the $FB_SHORTS stub reads its argument", 0, (flagStub[1] as TwoRegisterInstruction).registerB)
+
+                // The position stub: the player's one int method of its isPlaying() interface (#90).
+                val face = playingInterfaces(grootInterfaces.values.toList()).single()
+                val positionReader = positionReaders(groot, face).single()
+                val positionStub = stub(POSITION_STUB)
+                assertEquals("$name: the position stub's cast", groot.type, ((positionStub[0] as ReferenceInstruction).reference as TypeReference).type)
+                assertEquals("$name: the position stub's call", "${groot.type}->${positionReader.name}()I", positionStub[1].call.toString())
+                assertEquals("$name: the position stub's answer", listOf(Opcode.MOVE_RESULT, Opcode.RETURN),
+                    positionStub.subList(2, 4).map { it.opcode })
                 checked += version
             }
         }

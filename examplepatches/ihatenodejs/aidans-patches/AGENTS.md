@@ -10,9 +10,9 @@ The project patches eight Android applications:
 3. **AfterShip: Package Tracker** (`com.aftership.AfterShip`, target `5.25.8`): Native Android (Kotlin/Java) tracking app with native C++ libraries (`libandroidsig-lib.so`). Patches neutralize native APK signature verification (`checkApkSha`), remove login barriers (forcing permanent guest mode), strip promotional feedback and shipment sync entry points, zero AAID and ad/tracking SDKs, provide an OpenStreetMap/Leaflet map engine replacement, add multi-shipment copy tracking, and apply a pure AMOLED black theme.
 4. **Canvas Student** (`com.instructure.candroid`, target `8.10.0`): Native Android (Kotlin/Java) learning-management client. Patches repair 16 KB page size compatibility across three prebuilt ARM64 shared libraries (`libandroidx.graphics.path.so`, `libdatastore_shared_counter.so`, `libpspdfkit.so`) and remove Pendo behavioral tracking, Instructure Pandata pageview surveillance, first-party analytics, Firebase Crashlytics reporting, and Play Store rating redirects.
 5. **Navigate360 Student** (`com.eab.se`, target `26.19.22`): Cordova hybrid Android application hosted in an Ionic WebView. Patches neutralize native Gainsight PX telemetry and Cordova bridge methods, remove Sentry Browser/CSP web reporting, and inert embedded Gainsight web engines.
-6. **Blackjack** (`com.tripledot.blackjack`, target `2.22.08`): Unity IL2CPP game compiled to native ARM64 (`libil2cpp.so`). Patches eliminate ads, six telemetry SDKs (Tripledot Analytics, Firebase, Crashlytics, Adjust, AppsFlyer, Unity Analytics), and notification permission requests; rewire defunct store buttons to a custom Android chip balance dialog (`ChipBalanceDialog`); install an in-game level skip touch interceptor (`SkipLevelDialog`); and enforce 16 KB page size alignment.
+6. **Blackjack** (`com.tripledot.blackjack`, target `2.22.09`): Unity IL2CPP game compiled to native ARM64 (`libil2cpp.so`). Patches eliminate ads, six telemetry SDKs (Tripledot Analytics, Firebase, Crashlytics, Adjust, AppsFlyer, Unity Analytics), and notification permission requests; rewire defunct store buttons to a custom Android chip balance dialog (`ChipBalanceDialog`); install an in-game level skip touch interceptor (`SkipLevelDialog`); and enforce 16 KB page size alignment.
 7. **Adobe Scan: PDF Scanner, OCR** (`com.adobe.scan.android`, target `26.09.25`): Native Android (Kotlin/Java + Compose) scanning app. Patches bypass the mandatory Adobe ID / social sign-in gate on cold start, neutralize in-scanner save prompts and banners, preserve local scans without an account, replace Adobe Clean typography with the device system font, and remove Adobe, Branch, Facebook, Creative SDK, and Crashlytics telemetry, in-app ads, AAID and install-referrer collection, rating prompts, and dead telemetry settings.
-8. **Fizz** (`com.ashtoncofer.Buzz`, target `1.53.0`): Native Android (Kotlin/Java + Compose) social application. Patches bypass PairIP Play Integrity licensing verification, neutralize first-party event tracking and batch uploads (`ra.da`, `jc.i0`), disable Mixpanel analytics, Airbridge and Adjust attribution SDKs, zero the Google Play Advertising ID (AAID), and provide options for silent DM screenshots and Sentry telemetry removal.
+8. **Fizz** (`com.ashtoncofer.Buzz`, target `1.54.0`): Native Android (Kotlin/Java + Compose) social application. Patches bypass PairIP Play Integrity licensing verification, neutralize first-party event tracking and batch uploads (`ra.ga`, `jc.k0`), disable Mixpanel analytics, Airbridge and Adjust attribution SDKs, zero the Google Play Advertising ID (AAID), eliminate feed ads and sponsored marketplace listings, and provide options for silent DM screenshots and Sentry telemetry removal.
 
 ---
 
@@ -124,7 +124,8 @@ When `dependsOn` is declared, selecting the user-facing patch automatically trig
 │       │   ├── canvas/                    # Canvas Student patch implementations (1 patch)
 │       │   │   ├── shared/                # Canvas constants & compatibility
 │       │   │   └── tracking/              # RemoveTrackingAndAnalyticsPatch, Fix16KbPageCompatibilityPatch
-│       │   ├── fizz/                      # Fizz patch implementations (3 patches)
+│       │   ├── fizz/                      # Fizz patch implementations (4 patches)
+│       │   │   ├── ads/                   # RemoveAdsPatch (sponsored ads, marketplace feed listings)
 │       │   │   ├── customization/         # ReplaceEmojiFontWithIosPatch
 │       │   │   ├── dev/                   # EnableDeveloperSettingsPatch
 │       │   │   ├── shared/                # Fizz constants & compatibility
@@ -155,7 +156,17 @@ When `dependsOn` is declared, selecting the user-facing patch automatically trig
 │           ├── aftership/                 # CopyTrackingBridge.java, OsmMapBridge.java, OsmMapView.java
 │           ├── blackjack/                 # ChipBalanceDialog.java, SkipLevelDialog.java
 │           └── sezzle/                    # ConsentGate.java
+├── tools/apk-lab/                         # Deterministic APK lifecycle, analysis & compatibility toolkit
+│   ├── pyproject.toml                     # Python 3.12 project configuration with uv lock and CLI entry point
+│   ├── tools.lock.json                    # Pinned toolchain hashes (Morphe, JADX, Apktool, baksmali, apkeep)
+│   ├── apk_lab/                           # Python modules (inspection, comparison, morphe, workspace, fixtures, asm, il2cpp, unity)
+│   └── tests/                             # Automated pytest test suite (78 tests)
+├── worker/                                # Cloudflare Worker control plane (daily Play scraper, badges, dispatch)
+│   ├── wrangler.jsonc                     # Worker configuration & KV namespace binding
+│   └── src/                               # TypeScript sources (apps.ts derived from patches-list.json, badges.ts)
+├── site/                                  # Astro documentation, status dashboard & web surface
 ├── docs/                                  # Reverse engineering specs & deep dive docs
+│   ├── apk-lab.md                         # Complete apk-lab CLI documentation, workflows, and invariants
 │   ├── aftership/                         # architecture.md, patches.md
 │   ├── blackjack/                         # architecture.md, patches.md
 │   ├── canvas/                            # architecture.md, patches.md
@@ -165,6 +176,8 @@ When `dependsOn` is declared, selecting the user-facing patch automatically trig
 │   └── sidelineswap/                      # architecture.md, patches.md
 ├── gradle/                                # Gradle wrapper and libs.versions.toml
 └── .github/                               # CI/CD workflows, issue templates, release scripts
+    ├── workflows/apk-lab-tests.yml        # Public tooling test & build verification workflow
+    └── workflows/apk-compatibility.yml    # Private R2 fixture rotation & patch compatibility CI
 ```
 ---
 
@@ -195,15 +208,48 @@ When `dependsOn` is declared, selecting the user-facing patch automatically trig
 python3 .github/scripts/generate_patches_readme.py <owner/repo> <branch> patches-list.json README.md
 ```
 
-### Patch Application (Local Verification)
+### Patch Application & Artifact Tooling (`apk-lab`)
 ```bash
-# Apply compiled patches to a base APK using Morphe Desktop CLI
-java -jar morphe-desktop.jar patch \
-  --patches patches/build/libs/patches-X.X.X.mpp \
-  --out sezzle-patched.apk \
-  base.apk
-```
+# Setup toolchain and verify host environment
+uv run --project tools/apk-lab apk-lab setup --profile analysis
+uv run --project tools/apk-lab apk-lab doctor
 
+# Inspect container, splits, signers, and DEX inventories (content-based)
+uv run --project tools/apk-lab apk-lab inspect path/to/app.apkm
+
+# Decompile and extract into a managed, marked workspace
+uv run --project tools/apk-lab apk-lab analyze path/to/app.apkm --smali
+
+# Compare two APK/APKM versions (metadata, splits, DEX counts, native libs, assets)
+uv run --project tools/apk-lab apk-lab compare old.apkm new.apkm
+
+# Run isolated patch compatibility check across all patches and option permutations
+uv run --project tools/apk-lab apk-lab check path/to/app.apkm \
+  --mpp patches/build/libs/patches-X.X.X.mpp \
+  --package com.example.app \
+  --all
+
+# Encode ARM64 branch instruction or return into Morphe Kotlin byteArrayOf format
+uv run --project tools/apk-lab apk-lab asm "bl 0x3c98ce4" --pc 0x1fcf6e8 --format kotlin
+
+# Extract and query stripped Unity IL2CPP symbols across splits
+uv run --project tools/apk-lab apk-lab il2cpp path/to/game.apkm --query OpenShop
+
+# Inspect Unity serialized assets and locate GameObject active-state byte offsets
+uv run --project tools/apk-lab apk-lab unity path/to/game.apkm --gameobject Button_HelpCenter
+
+# Acquire application artifact from Google Play
+uv run --project tools/apk-lab apk-lab acquire com.example.app
+
+# Clean managed workspaces safely (never use raw rm -rf on workspaces)
+uv run --project tools/apk-lab apk-lab clean --package com.example.app
+
+### Agent Operational Rules for APKs and Patches
+- **Start with apk-lab**: Always use `uv run --project tools/apk-lab apk-lab inspect|analyze|compare|check|asm|il2cpp|unity`. Never invent arbitrary unzipping/decompilation locations outside the managed `.apk-lab` workspace.
+- **Safe Cleanup**: Never use raw `rm -rf` on workspace folders. Always use `apk-lab clean --run <path>` or `apk-lab clean --package <pkg>`, which verify `.marker.json` and refuse symlinks or escaped paths.
+- **Never Guess Compatibility**: Never mark a target version supported in `Constants.kt` from a metadata diff alone. A version is supported ONLY when `apk-lab check ... --all` executes every patch and boolean option permutation independently and passes Morphe result parsing and Android SDK DEX verification.
+- **New Patch Sequence**: `inspect` $\rightarrow$ targeted `analyze` $\rightarrow$ implement fail-fast bytecode hooks $\rightarrow$ compile `.mpp` $\rightarrow$ `check --all` $\rightarrow$ device smoke.
+- **App Update Sequence**: `compare` $\rightarrow$ forced failing `check --all --force` (capture failing baseline) $\rightarrow$ targeted `analyze` $\rightarrow$ remap anchors and models $\rightarrow$ compile `.mpp` $\rightarrow$ `check --all` $\rightarrow$ update compatibility and docs.
 ### Release Pipeline (Local Dry-Run)
 ```bash
 # Install release automation dependencies
@@ -341,7 +387,7 @@ Keep bytecode injection logic reusable and safe:
 | `.releaserc` | Semantic-release configuration managing version bumps, changelog bundling, and backmerges. |
 | `.github/workflows/release.yml` | CI/CD release workflow with Java 21, build provenance attestation, and fallback build checks. |
 | `docs/sezzle/architecture.md` | Architecture and reverse engineering specification for Sezzle v5.3.9. |
-| `docs/sezzle/patches.md` | Patch specifications for all 15 Sezzle patches across navigation, security, and features. |
+| `docs/sezzle/patches.md` | Patch specifications for all 16 Sezzle patches across navigation, security, and features. |
 | `docs/sezzle/hidden_feature_flags.md` | Catalog of Sezzle hidden feature flags, cohorts, and debugger hooks. |
 | `docs/sidelineswap/architecture.md` | Reverse engineering specification for SidelineSwap architecture and telemetry. |
 | `docs/sidelineswap/patches.md` | Patch specification for SidelineSwap tracking neutralization and brand color customization. |
@@ -356,14 +402,23 @@ Keep bytecode injection logic reusable and safe:
 | `docs/adobe-scan/architecture.md` | Reverse engineering specification for Adobe Scan navigation, local PDF pipeline, telemetry, and advertising surfaces. |
 | `docs/adobe-scan/patches.md` | Patch specifications for Adobe Scan login removal, local-only persistence, and ads/tracking removal. |
 | `patches/src/main/kotlin/app/aidan/patches/fizz/shared/Constants.kt` | Fizz package name (`com.ashtoncofer.Buzz`), signature, APKM type, and Morphe `Compatibility` object. |
+|`patches/src/main/kotlin/app/aidan/patches/fizz/ads/RemoveAdsPatch.kt`|Dalvik patch removing sponsored feed advertisements by default and filtering marketplace listing cards from the feed via option.|
 | `patches/src/main/kotlin/app/aidan/patches/fizz/tracking/RemoveTrackingAndAnalyticsPatch.kt` | Dalvik patch neutralizing first-party tracking, Mixpanel, Airbridge, Adjust, AAID, PairIP check, Sentry, and screenshot alerts in Fizz. |
 | `patches/src/main/kotlin/app/aidan/patches/fizz/customization/ReplaceEmojiFontWithIosPatch.kt` | Dalvik & asset patch bundling Apple Color Emoji and configuring native fallback chain. |
 | `extensions/extension/src/main/java/app/aidan/extension/emoji/EmojiFontBridge.java` | Native Android extension creating and caching `CustomFallbackBuilder` typefaces with Apple Color Emoji. |
 | `docs/fizz/architecture.md` | Reverse engineering specification for Fizz social architecture, PairIP protection, and telemetry pipelines. |
 | `docs/fizz/patches.md` | Patch specifications for Fizz tracking removal, PairIP bypass, and silent screenshots. |
 | `patches/src/main/kotlin/app/aidan/patches/fizz/dev/EnableDeveloperSettingsPatch.kt` | Dalvik patch injecting top-bar developer mod menu icon with Mobile Studio trigger. |
+| `extensions/extension/src/main/java/app/aidan/extension/fizz/FeedFilterBridge.java` | Native Android bridge filtering advertisements and marketplace listings from Home feed display items. |
 | `extensions/extension/src/main/java/app/aidan/extension/fizz/DeveloperMenuBridge.java` | Native Android bridge handling menu invocation, Mobile Studio flow trigger, and app restart. |
 | `extensions/extension/src/main/java/app/aidan/extension/fizz/DeveloperMenuDialog.java` | Native Android modal dialog presenting developer mod menu with Mobile Studio launcher. |
+| `tools/apk-lab/tools.lock.json` | Pinned external toolchain manifest (Morphe Desktop 1.18.0, JADX 1.5.6, Apktool 3.0.3, baksmali 3.0.10, apkeep 1.1.0). |
+| `tools/apk-lab/pyproject.toml` | Isolated Python 3.12 project configuration for the `apk-lab` CLI toolkit. |
+| `docs/apk-lab.md` | Complete reference specification, workflow guides, and storage rules for the `apk-lab` toolkit. |
+| `worker/src/apps.ts` | Dynamic target app metadata module deriving unique packages, targets, and signers from `patches-list.json`. |
+| `worker/src/badges.ts` | SVG badge generator for aggregate and per-package patch compatibility. |
+| `.github/workflows/apk-lab-tests.yml` | GitHub Actions workflow executing the 78-test pytest suite and Gradle patch compilation gate. |
+| `.github/workflows/apk-compatibility.yml` | GitHub Actions workflow acquiring APKs, rotating R2 slots, and testing target/latest compatibility. |
 ---
 
 ## Runtime/Tooling Preferences
@@ -372,16 +427,18 @@ Keep bytecode injection logic reusable and safe:
   - JDK 17+ is required for local builds; JDK 27 is tested and supported.
   - CI uses **Eclipse Temurin JDK 21**.
 - **Android SDK**:
-  - Required to compile `:extensions:extension` (`ConsentGate.java`).
-  - Configure path via `ANDROID_HOME` environment variable or `sdk.dir=/path/to/sdk` in `local.properties`.
+  - Required to compile `:extensions:extension` (`ConsentGate.java`) and run `apk-lab` inspections/verification.
+  - Android SDK Build Tools **36.0.0** (`aapt2`, `apksigner`, `zipalign`, `dexdump`).
+  - Configure path via `ANDROID_HOME` / `ANDROID_SDK_ROOT` environment variables or `sdk.dir=/path/to/sdk` in `local.properties`.
+- **Python & uv**:
+  - Python 3.12+ managed via **uv** (`tools/apk-lab`).
+  - All APK lifecycle tasks (inspect, analyze, compare, check, clean, fixtures, acquire, asm, il2cpp, unity) must run via `uv run --project tools/apk-lab apk-lab <subcommand>`.
 - **Gradle**:
   - Use the bundled wrapper `./gradlew` (pinned to **Gradle 9.7.1** with SHA-256 verification).
   - Parallel execution and build caching are enabled in `gradle.properties`.
-- **Node.js & npm**:
-  - Node.js LTS (`lts/*`) with standard `npm`.
-  - Used exclusively for semantic-release and changelog tooling (`package.json`). Do not introduce runtime JS dependencies into the patches.
-- **Python**:
-  - Python 3 is required to run `.github/scripts/generate_patches_readme.py`.
+- **Node.js, Bun & npm**:
+  - Node.js LTS (`lts/*`) with standard `npm` for semantic-release.
+  - **Bun** is used for Cloudflare Worker runtime tests (`vitest`), types generation (`wrangler types`), and Astro site builds (`site/`).
 - **Repository Authentication**:
   - GitHub Packages registry (`maven.pkg.github.com/MorpheApp/registry`) requires authentication via `GITHUB_TOKEN` / `GITHUB_ACTOR` or `gpr.key` / `gpr.user` in `~/.gradle/gradle.properties`.
 
@@ -390,28 +447,36 @@ Keep bytecode injection logic reusable and safe:
 ## Testing & QA
 
 ### Testing Status
-- **Automated Unit / Integration Tests**: None. There are no test sources in `patches/src/test` or `extensions/extension/src/test`.
-- **Test Dependencies**: `gradle/libs.versions.toml` contains no testing frameworks (no JUnit, MockK, Kotest, or Robolectric). Running `./gradlew test` executes 0 tasks.
-- **Rationale**: Patches transform proprietary, closed-source APK binaries (`base.apk` and embedded Hermes bundles). Synthetic unit testing without real target binaries provides little value compared to build-time invariants and real-world APK testing.
+- **Patch Core Tests**: There are no synthetic test sources in `patches/src/test` or `extensions/extension/src/test`. Patches transform proprietary closed-source APK binaries; synthetic tests provide little value compared to real-world APK application.
+- **Automated Tooling & Archive Tests**: The `tools/apk-lab` module includes a comprehensive pytest suite (`uv run --project tools/apk-lab pytest`, 78 tests) covering safe archive extraction, zip bomb rejection, path traversal rejection, container classification, split consistency, deterministic workspace IDs, tool checksums, Morphe result parsing, multi-split native library extraction, deterministic ARM64 instruction assembly, Unity IL2CPP metadata parsing, and Unity serialized asset inspection.
+- **Automated Worker Tests**: The `worker/` module includes a Vitest suite (`cd worker && bun run test`, 15 tests) testing app metadata derivation, Play Store scraper error handling, duplicate dispatch suppression, authenticated result ingestion, and badge SVG generation.
+- **Automated Compatibility Verification**: `apk-lab check <artifact> --mpp <bundle> --package <pkg> --all` runs live application of all declared patches and boolean option permutations, enforcing Morphe success and Android SDK DEX structural verification.
 
 ### Quality Assurance Strategy
 1. **Compilation Verification**:
-   - Primary CI validation (`release.yml`):
+   - Primary CI validation (`release.yml`, `apk-lab-tests.yml`):
      ```bash
      ./gradlew :patches:buildAndroid clean --no-daemon
      ```
    - Validates that Kotlin sources, Java extension code, and `.mpp` packaging compile cleanly.
-2. **Metadata Verification**:
+2. **Tooling & Unit Test Gates**:
+   - Run `uv run --project tools/apk-lab pytest` to verify archive safety, tool caching, and workspace invariants.
+   - Run `cd worker && bun run test` to verify control plane endpoints, dispatch logic, and badge rendering.
+3. **Metadata Verification**:
    - Run `./gradlew generatePatchesList` to verify that all patches instantiate cleanly, register valid compatibility objects, and serialize to `patches-list.json`.
-3. **Defensive Patch-Time Invariants**:
+4. **Automated Patch Compatibility Testing (`apk-lab check`)**:
+   - Apply the `.mpp` bundle across all compatible patches and option permutations:
+     ```bash
+     uv run --project tools/apk-lab apk-lab check <artifact> --mpp patches/build/libs/patches-*.mpp --package <pkg> --all
+     ```
+   - Enforces Morphe execution success, unchanged package/version identity, SDK DEX verification (`dexdump -c`), and member byte deltas.
+5. **Defensive Patch-Time Invariants**:
    - All patches must enforce strict preconditions. If class names, method signatures, or byte sequences differ from the expected target version, the patch must immediately throw `PatchException` rather than producing a corrupt APK.
-4. **Local Artifact & Bytecode Inspection**:
-   - Apply the `.mpp` bundle to a target Sezzle APK using `morphe-desktop.jar`.
-   - Disassemble the output APK with `jadx` or `baksmali` to verify Dalvik method injections.
+6. **Local Artifact & Bytecode Inspection**:
+   - Use `apk-lab analyze <artifact> --smali` to decompile and inspect smali in a marked, managed run.
+   - Disassemble output APK with `jadx` or `baksmali` to verify Dalvik method injections.
    - Inspect `assets/index.android.bundle` using Hermes disassemblers (`hbctool` or `hermes-dec`) to verify opcode and string edits.
-5. **Device Smoke Testing**:
-   - Install the patched APK on an emulator or device (`adb install -r sezzle-patched.apk`).
-   - Verify that `ConsentGate` blocks interaction until accepted.
-   - Verify that CodePush does not trigger OTA downloads over the network.
-   - Verify UI: "Shop" tab is titled "Home", store feed is empty, Rewards tab is unmounted, and Google sign-in works.
+7. **Device Smoke Testing**:
+   - Install the patched APK on an emulator or device (`adb install -r <patched-apk>`).
+   - Verify user flows, settings toggles, and UI behavior.
    - Monitor `adb logcat` to confirm ad and tracking SDK initializations are neutralized without throwing unhandled exceptions.

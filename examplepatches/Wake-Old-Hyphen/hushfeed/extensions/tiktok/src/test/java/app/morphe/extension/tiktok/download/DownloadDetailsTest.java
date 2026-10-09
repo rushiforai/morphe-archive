@@ -64,6 +64,38 @@ public class DownloadDetailsTest {
         assertFalse(Character.isHighSurrogate(text.charAt(text.length() - 2)));
     }
 
+    @Test public void theJsonFormCarriesTheSameDetailsWithEveryCharacterEscaped() {
+        Post post = new Post("alice", "123");
+        post.desc = "Say \"hi\"\\\n\ttab \u0001 🌿";
+        DownloadDetails details = new DownloadDetails(post, true);
+        assertEquals(".json", details.extension());
+        assertEquals("{\n"
+                + "  \"id\": \"123\",\n"
+                + "  \"creator\": \"@alice\",\n"
+                + "  \"link\": \"https://www.tiktok.com/@alice/video/123\",\n"
+                + "  \"published\": \"2023-11-14T22:13:20Z\",\n"
+                + "  \"caption\": \"Say \\\"hi\\\"\\\\\\n\\ttab \\u0001 🌿\"\n"
+                + "}\n", details.json());
+    }
+
+    @Test public void whatThePostDidNotHaveIsNullInJson() {
+        Post post = new Post("", "123");
+        post.createTime = 0;
+        String json = new DownloadDetails(post, true).json();
+        assertTrue(json.contains("\"creator\": null,"));
+        assertTrue(json.contains("\"published\": null,"));
+        assertTrue(json.contains("\"caption\": null\n"));
+        assertEquals(".txt", new DownloadDetails(post).extension());
+    }
+
+    @Test public void theTitleIsTheCaptionsFirstLine() {
+        Post post = new Post("alice", "123");
+        post.desc = "\n  Morning run  \nwith friends";
+        assertEquals("Morning run", new DownloadDetails(post).title());
+        post.desc = "x".repeat(300);
+        assertEquals(255, new DownloadDetails(post).title().length());
+    }
+
     @Test @Config(sdk = 35)
     public void textAndVideoUseACommonRootOnScopedStorage() {
         assertEquals("Download/Clips/alice", DownloadDetails.pairedPath("DCIM/Clips/alice"));

@@ -2,6 +2,7 @@ package app.spicetify.extension.spotify.settings;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import app.spicetify.extension.spotify.extensions.ActivityTracker;
 import app.spicetify.extension.spotify.home.HomePins;
 import app.spicetify.extension.spotify.localserver.ServerConfig;
 import app.spicetify.extension.spotify.localserver.ServerProcess;
@@ -15,6 +16,7 @@ public final class PatchSettings {
     private static final String HIDE_BRAND_ADS = "hide_brand_ads";
     private static final String HIDE_PLAYER_AD_CARDS = "hide_player_ad_cards";
     private static volatile SharedPreferences preferences;
+    private static volatile Context applicationContext;
     private static volatile String startupState;
     private static volatile boolean restartMarked;
 
@@ -22,15 +24,22 @@ public final class PatchSettings {
 
     public static void initialize(Context context) {
         if (InstalledPatches.serverFiles() && ServerProcess.skipApplication(context)) return;
-        preferences = context.getApplicationContext().getSharedPreferences(FILE, Context.MODE_PRIVATE);
+        applicationContext = context.getApplicationContext();
+        preferences = applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE);
+        if (InstalledPatches.homePins()) HomePins.initialize(context);
         startupState = restartState();
         restartMarked = false;
-        if (InstalledPatches.homePins()) HomePins.initialize(context);
         if (InstalledPatches.serverFiles()) {
             ServerConfig.initialize(context);
             ServerIndex.scanAsync();
         }
         if (InstalledPatches.themeColors()) ThemeRuntime.install(context);
+        if (InstalledPatches.extensions()) ActivityTracker.install(context);
+    }
+
+    /** The application context Spotify's onCreate passed to {@link #initialize}, or null before then. */
+    public static Context applicationContext() {
+        return applicationContext;
     }
 
     /** True when a setting that Spotify reads at startup differs from the value this process started with. */
@@ -44,7 +53,8 @@ public final class PatchSettings {
     }
 
     private static String restartState() {
-        return hidePremiumTabEnabled() + "|" + hideBrandAdsEnabled() + "|" + hidePlayerAdCardsEnabled();
+        return hidePremiumTabEnabled() + "|" + hideBrandAdsEnabled() + "|" + hidePlayerAdCardsEnabled()
+                + "|" + HomePins.onlyPins();
     }
 
     public static boolean cleanSharingEnabled() {

@@ -30,8 +30,9 @@ internal const val LAYOUT = "Landroid/text/Layout;"
 private const val TEXT_VIEW = "Landroid/widget/TextView;"
 private const val PAINT = "Landroid/graphics/Paint;"
 private const val WHAT = "Feed text sizes"
-internal val DESCRIPTION_IDS = setOf(0x7f0a2041, 0x7f0a2075)
-internal val TITLE_IDS = setOf(0x7f0a87a6, 0x7f0a8893)
+// 47.1.4's ids for the caption text and the music title.
+internal val DESCRIPTION_IDS = setOf(0x7f0a2075)
+internal val TITLE_IDS = setOf(0x7f0a8893)
 
 internal data class SizeInput(val index: Int, val builderRegister: Int, val ownerLocal: Int, val argumentLocal: Int)
 internal data class CacheBypass(val index: Int, val fallback: Int, val ownerRegister: Int, val resultLocal: Int)

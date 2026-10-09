@@ -19,15 +19,14 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
  *
  * - The cards Facebook puts between reels (people you may know, groups, games, a Threads post) are
  *   Reels mid-cards, typed by a GraphQL enum whose constant names Redex keeps: THREADS_MIDCARD
- *   beside PYML_MIDCARD, GYSJ_MIDCARD and UNSET_OR_UNRECOGNIZED_ENUM_VALUE (581 LX/55V, 580 LX/oiC,
- *   577 LX/oBA). One larger enum names THREADS_MIDCARD too (581 LX/5bI, 580 LX/oiD, 577 LX/oBs),
- *   but no model answers it.
+ *   beside PYML_MIDCARD, GYSJ_MIDCARD and UNSET_OR_UNRECOGNIZED_ENUM_VALUE (581 LX/55V). One larger
+ *   enum names THREADS_MIDCARD too (581 LX/5bI), but no model answers it.
  * - The mid-card model answers its type through one no-argument interface method (581
- *   LX/UeF;->B75, 580 LX/Uxb;->B6L, 577 LX/V8y;->B8U), and the unit that holds the model hands it
- *   over through one more (581 LX/Udt;->BOZ, 580 LX/Ux9;->BNg, 577 LX/V8g;->BPW).
+ *   LX/UeF;->B75), and the unit that holds the model hands it over through one more (581
+ *   LX/Udt;->BOZ).
  * - A mid-card's Reels item keeps that unit in a field and answers a story like every reel item
- *   (581 LX/8bO;->A01, 580 LX/8Qi;->A01, 577 LX/Aw5;->A01). Every other class that keeps the unit is
- *   a Litho component drawing one, and none of those answers a story.
+ *   (581 LX/8bO;->A01). Every other class that keeps the unit is a Litho component drawing one, and
+ *   none of those answers a story.
  * - The Reels controller's page method, the one the page filters already go on, walks each
  *   section's items, picks out this item class and reads its type the same way (581
  *   LX/5IF;->A0K through LX/58Z;->A02). So a mid-card is in the section lists ReelSections walks.

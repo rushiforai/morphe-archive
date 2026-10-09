@@ -10,6 +10,7 @@ import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.settings.SettingsStatus;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -52,6 +53,17 @@ public final class SensitiveWarnings {
     static final String FAMILY = "sensitive warnings";
 
     private SensitiveWarnings() {
+    }
+
+    /**
+     * True while a video's risk model should read as absent. Called from Aweme's
+     * getAwemeRiskModel, the one way TikTok's readers reach it: the Check sources banner, the
+     * warning label, the bottom notice, the share panel's warning flag and the flag sent with
+     * a share all treat the video as unflagged, which is how they treat most videos. Paused,
+     * the switch answers off.
+     */
+    public static boolean hideUnverifiedNotices() {
+        return SettingsStatus.unverifiedNoticesEnabled && Settings.HIDE_UNVERIFIED_NOTICES.get();
     }
 
     /**

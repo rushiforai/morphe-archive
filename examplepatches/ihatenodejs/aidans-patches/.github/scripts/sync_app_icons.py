@@ -8,8 +8,8 @@ Modes:
   --download-missing   Downloads and generates icons only for missing packages.
   --sync-all           Checks all packages against Google Play, updating if icon changed.
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 import argparse
 import hashlib
@@ -78,11 +78,17 @@ def fetch_google_play_icon_url(package_name: str) -> str | None:
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             if resp.status != 200:
-                print(f"[WARN] Non-200 response for {package_name}: {resp.status}", file=sys.stderr)
+                print(
+                    f"[WARN] Non-200 response for {package_name}: {resp.status}",
+                    file=sys.stderr,
+                )
                 return None
             html = resp.read().decode("utf-8", errors="replace")
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as err:
-        print(f"[WARN] Failed to scrape Google Play for {package_name}: {err}", file=sys.stderr)
+        print(
+            f"[WARN] Failed to scrape Google Play for {package_name}: {err}",
+            file=sys.stderr,
+        )
         return None
 
     match = OG_IMAGE_PATTERN.search(html) or OG_IMAGE_ALT_PATTERN.search(html)
@@ -97,16 +103,20 @@ def fetch_google_play_icon_url(package_name: str) -> str | None:
 def download_and_process_icon(image_url: str) -> bytes | None:
     """Download image and convert/resize to 128x128 RGBA PNG using Pillow."""
     try:
-        from PIL import Image
+        from PIL import Image, UnidentifiedImageError
     except ImportError:
-        raise RuntimeError("Pillow is required for image processing. Run 'pip install Pillow'.")
+        raise RuntimeError(
+            "Pillow is required for image processing. Run 'pip install Pillow'."
+        )
 
     req = urllib.request.Request(image_url, headers={"User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = resp.read()
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError) as err:
-        print(f"[WARN] Failed to download icon image {image_url}: {err}", file=sys.stderr)
+        print(
+            f"[WARN] Failed to download icon image {image_url}: {err}", file=sys.stderr
+        )
         return None
 
     try:
@@ -116,8 +126,10 @@ def download_and_process_icon(image_url: str) -> bytes | None:
         out_buf = io.BytesIO()
         img.save(out_buf, format="PNG", optimize=True)
         return out_buf.getvalue()
-    except Exception as err:
-        print(f"[WARN] Failed to process image from {image_url}: {err}", file=sys.stderr)
+    except (UnidentifiedImageError, OSError, ValueError) as err:
+        print(
+            f"[WARN] Failed to process image from {image_url}: {err}", file=sys.stderr
+        )
         return None
 
 
@@ -147,16 +159,32 @@ def update_icons_ts(icons_ts_path: Path, packages: dict[str, str]):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Synchronize application icons from Google Play.")
+    parser = argparse.ArgumentParser(
+        description="Synchronize application icons from Google Play."
+    )
     mode_group = parser.add_mutually_exclusive_group(required=True)
-    mode_group.add_argument("--check-only", action="store_true", help="Quick check for missing icons.")
-    mode_group.add_argument("--download-missing", action="store_true", help="Download only missing icons.")
-    mode_group.add_argument("--sync-all", action="store_true", help="Sync and refresh all icons.")
+    mode_group.add_argument(
+        "--check-only", action="store_true", help="Quick check for missing icons."
+    )
+    mode_group.add_argument(
+        "--download-missing", action="store_true", help="Download only missing icons."
+    )
+    mode_group.add_argument(
+        "--sync-all", action="store_true", help="Sync and refresh all icons."
+    )
 
     repo_root = Path(__file__).resolve().parent.parent.parent
-    parser.add_argument("--patches-list", type=Path, default=repo_root / "patches-list.json")
-    parser.add_argument("--icons-dir", type=Path, default=repo_root / "site" / "public" / "icons")
-    parser.add_argument("--icons-ts", type=Path, default=repo_root / "site" / "src" / "data" / "icons.ts")
+    parser.add_argument(
+        "--patches-list", type=Path, default=repo_root / "patches-list.json"
+    )
+    parser.add_argument(
+        "--icons-dir", type=Path, default=repo_root / "site" / "public" / "icons"
+    )
+    parser.add_argument(
+        "--icons-ts",
+        type=Path,
+        default=repo_root / "site" / "src" / "data" / "icons.ts",
+    )
 
     args = parser.parse_args()
 
@@ -208,7 +236,10 @@ def main():
 
         if not is_new:
             current_bytes = icon_path.read_bytes()
-            if hashlib.sha256(current_bytes).digest() == hashlib.sha256(png_bytes).digest():
+            if (
+                hashlib.sha256(current_bytes).digest()
+                == hashlib.sha256(png_bytes).digest()
+            ):
                 print(f"  {pkg}: icon unchanged.")
                 continue
 

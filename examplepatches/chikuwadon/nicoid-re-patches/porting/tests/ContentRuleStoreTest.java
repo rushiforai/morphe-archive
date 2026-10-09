@@ -1,0 +1,4 @@
+package e.e.a;
+public final class ContentRuleStoreTest {
+ public static void main(String[] args){String json="[{\"category\":0,\"value\":\"ABC\",\"mode\":\"exact\"},{\"category\":0,\"value\":\"^FX\",\"mode\":\"regex\"},{\"category\":1,\"value\":\"owner\",\"mode\":\"partial\"},{\"category\":0,\"value\":\".*\",\"mode\":\"regex\",\"enabled\":false},{\"value\":\"[\",\"mode\":\"regex\"}]";ContentFilter.Rules r=new ContentFilter.Rules(json);if(!r.blocked("ＡＢＣ",null)||r.blocked("abcd",null)||!r.blocked("FX report",null)||!r.blocked("", "Some OWNER")||r.blocked("nothing",null))throw new AssertionError("Rule modes / enabled state");ContentFilter.Rules legacy=new ContentFilter.Rules("spam", "bad");if(!legacy.blocked("a SPAM b",null)||!legacy.blocked("ok","bad name"))throw new AssertionError("Legacy migration");System.out.println("NG rule storage and match checks passed");}
+}

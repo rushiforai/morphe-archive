@@ -63,15 +63,21 @@ public final class SdrPlayback {
         return sdr;
     }
 
+    /**
+     * Hands back {@link H264Playback#preferredGears}, so this hook and Prefer H.264 video's on
+     * the same setter agree whichever runs first. Only the HDR gears this step dropped count
+     * toward its own report.
+     */
     private static List<?> filter(List<?> original, String member) {
-        List<?> result = dropHdr(original);
-        if (result != original) {
+        List<?> codec = H264Playback.keepH264(original);
+        List<?> result = dropHdr(codec);
+        if (result != codec) {
             HookStatus.bound(FAMILY, member);
             if (!described) {
                 described = true;
-                int dropped = original.size() - result.size();
+                int dropped = codec.size() - result.size();
                 Logger.printInfo(() -> "SDR playback dropped " + dropped + " HDR gear(s) of "
-                        + original.size() + " from " + member);
+                        + codec.size() + " from " + member);
             }
         }
         return result;

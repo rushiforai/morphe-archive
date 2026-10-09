@@ -27,8 +27,6 @@ class SearchHistoryFixturesTest {
     @Test
     fun `each declared host has exactly one history recorder and one manual search log`() {
         val expected = mapOf(
-            "47.0.3" to "LX/0D7Z;",
-            "47.1.3" to "LX/0D1i;",
             "47.1.4" to "LX/0D1m;",
         )
         assertEquals(Fixtures.declaredVersions().toSet(), expected.keys)

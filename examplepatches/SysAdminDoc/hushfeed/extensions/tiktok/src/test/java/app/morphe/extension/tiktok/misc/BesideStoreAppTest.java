@@ -6,11 +6,14 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 import static org.robolectric.Shadows.shadowOf;
 
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.PermissionInfo;
 import android.content.pm.ProviderInfo;
 
@@ -141,6 +144,39 @@ public class BesideStoreAppTest {
         assertNull(BesideStoreApp.ownPackage(null));
     }
 
+    /** TikTok's own-package checks: what named the store package still counts, and the copy's own name joins it. */
+    @Test public void aCheckForTikToksOwnPackageAcceptsTheCopysNameAsWell() {
+        String store = BesideStoreApp.STORE_PACKAGE;
+        assertTrue("a Play link to the store app, as stock",
+                BesideStoreApp.holdsOwnPackage("market://details?id=" + store, store, false));
+        assertTrue("the copy's own settings page",
+                BesideStoreApp.holdsOwnPackage("package:" + ownPackage, store, false));
+        assertTrue("the copy's own provider authority",
+                BesideStoreApp.holdsOwnPackage("content://" + ownPackage + ".fileprovider/x", store, false));
+        assertFalse("another app's link",
+                BesideStoreApp.holdsOwnPackage("market://details?id=com.example.app", store, false));
+        assertFalse("a look-alike that only shares the first letters of the copy's name",
+                BesideStoreApp.holdsOwnPackage("package:" + ownPackage.substring(0, ownPackage.length() - 1), store, false));
+        assertTrue("ignoring case as TikTok asked",
+                BesideStoreApp.holdsOwnPackage("PACKAGE:" + ownPackage.toUpperCase(java.util.Locale.ROOT), store, true));
+        assertFalse("case kept as TikTok asked",
+                BesideStoreApp.holdsOwnPackage("PACKAGE:" + ownPackage.toUpperCase(java.util.Locale.ROOT), store, false));
+        // TikTok Asia's check rides the same call: only a copy's own name is added to it.
+        assertFalse(BesideStoreApp.holdsOwnPackage("package:" + ownPackage, "com.ss.android.ugc.trill", false));
+        assertThrows(NullPointerException.class, () -> BesideStoreApp.holdsOwnPackage(null, store, false));
+    }
+
+    @Test public void theStoreAppAndAPauseCheckOnlyForTheStorePackage() {
+        String store = BesideStoreApp.STORE_PACKAGE;
+        PausedProcess.set(true);
+        assertFalse(BesideStoreApp.holdsOwnPackage("package:" + ownPackage, store, false));
+        assertTrue(BesideStoreApp.holdsOwnPackage("package:" + store, store, false));
+        PausedProcess.set(false);
+        Utils.setContext(storeApp());
+        assertFalse(BesideStoreApp.holdsOwnPackage("package:" + ownPackage, store, false));
+        assertTrue(BesideStoreApp.holdsOwnPackage("package:" + store, store, false));
+    }
+
     @Test public void theStoreAppAPauseAndNoContextKeepTheStorePackageInTheChecks() {
         Utils.setContext(storeApp());
         assertEquals(BesideStoreApp.STORE_PACKAGE, BesideStoreApp.ownPackage(BesideStoreApp.STORE_PACKAGE));
@@ -203,6 +239,27 @@ public class BesideStoreAppTest {
         assertEquals(MULTIPROCESS_AUTHORITY, BesideStoreApp.declared(MULTIPROCESS_AUTHORITY));
     }
 
+    @Test public void aProviderTheManifestDeclaresDisabledIsFoundToo() {
+        assertTrue("the read leaves disabled providers out",
+                (BesideStoreApp.MANIFEST_FLAGS & PackageManager.GET_DISABLED_COMPONENTS) != 0);
+        install(ownPackage, false, ownPackage + "_" + MULTIPROCESS_AUTHORITY);
+        assertEquals(ownPackage + "_" + MULTIPROCESS_AUTHORITY, BesideStoreApp.declared(MULTIPROCESS_AUTHORITY));
+    }
+
+    @Test public void aManifestReadThatFailedIsTriedAgainAtTheNextName() {
+        // A package the package manager doesn't know yet makes the read fail, as a binder
+        // error early in a start would.
+        String copy = "com.example.tiktokcopy";
+        Utils.setContext(new ContextWrapper(context) {
+            @Override public String getPackageName() {
+                return copy;
+            }
+        });
+        assertEquals(MULTIPROCESS_AUTHORITY, BesideStoreApp.declared(MULTIPROCESS_AUTHORITY));
+        install(copy, true, copy + "_" + MULTIPROCESS_AUTHORITY);
+        assertEquals(copy + "_" + MULTIPROCESS_AUTHORITY, BesideStoreApp.declared(MULTIPROCESS_AUTHORITY));
+    }
+
     @Test public void theStoreAppAPauseAndNoContextLeaveANameAsTikTokBuiltIt() {
         declareInManifest(ownPackage + "_" + MULTIPROCESS_AUTHORITY);
         Utils.setContext(storeApp());
@@ -235,20 +292,32 @@ public class BesideStoreAppTest {
      * package, into the package manager as the copy's manifest would declare them.
      */
     private void declareInManifest(String... authorities) {
+        install(ownPackage, true, authorities);
+    }
+
+    /** Installs {@code packageName} with providers of these authorities, enabled or not, and the wallpaper permission. */
+    private void install(String packageName, boolean enabled, String... authorities) {
         PackageInfo info = new PackageInfo();
-        info.packageName = ownPackage;
-        info.applicationInfo = context.getApplicationInfo();
+        info.packageName = packageName;
+        if (packageName.equals(ownPackage)) {
+            info.applicationInfo = context.getApplicationInfo();
+        } else {
+            info.applicationInfo = new ApplicationInfo();
+            info.applicationInfo.packageName = packageName;
+        }
         info.providers = new ProviderInfo[authorities.length];
         for (int i = 0; i < authorities.length; i++) {
             ProviderInfo provider = new ProviderInfo();
-            provider.packageName = ownPackage;
+            provider.packageName = packageName;
             provider.name = "com.ss.android.ugc.aweme.crash.cp.ShellProvider" + i;
             provider.authority = authorities[i];
+            provider.enabled = enabled;
+            provider.applicationInfo = info.applicationInfo;
             info.providers[i] = provider;
         }
         PermissionInfo permission = new PermissionInfo();
-        permission.packageName = ownPackage;
-        permission.name = ownPackage + ".permission.wallpaper";
+        permission.packageName = packageName;
+        permission.name = packageName + ".permission.wallpaper";
         info.permissions = new PermissionInfo[] { permission };
         shadowOf(context.getPackageManager()).installPackage(info);
     }

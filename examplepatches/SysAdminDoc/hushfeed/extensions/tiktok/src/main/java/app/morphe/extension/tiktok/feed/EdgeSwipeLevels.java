@@ -26,6 +26,7 @@ import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.SettingsUi;
+import app.morphe.extension.tiktok.speed.PlaybackSpeedPatch;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
@@ -36,7 +37,8 @@ import java.util.WeakHashMap;
 /**
  * Swipe for brightness and volume. A vertical drag that starts inside a thin strip along the left
  * edge of a feed window changes that window's brightness, and one along the right edge changes
- * the music volume, each with a small level on screen.
+ * the music volume, each with a small level on screen. Either strip can be set to the video's
+ * playback speed instead, in steps of a quarter from 0.5x to 3x.
  *
  * <p>It rides the window's own touch dispatch, which {@link VideoOverlayHider} already follows to
  * the main feed and to a video opened from a profile, so it needs no bytecode of its own. The
@@ -46,7 +48,9 @@ import java.util.WeakHashMap;
  * that starts outside the strips passes through untouched.
  *
  * <p>Brightness is the activity window's own {@code screenBrightness}, which needs no permission
- * and goes back to the system's (-1) when the window pauses or the switch goes off.
+ * and goes back to the system's (-1) when the window pauses or the switch goes off. Speed is
+ * handed to the player of the video on screen, for that video only: the next one starts at the
+ * speed Playback has for it (see {@link PlaybackSpeedPatch#setLiveSpeed}).
  */
 public final class EdgeSwipeLevels {
     /** A drag this share of the window's height spans the whole range. */
@@ -55,10 +59,13 @@ public final class EdgeSwipeLevels {
     static final float MIN_BRIGHTNESS = 0.01f;
     static final float SYSTEM_BRIGHTNESS = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
     private static final long LEVEL_SHOWN_MS = 900L;
-    private static final String TAG = "hushfeed_swipe_level";
+    static final String TAG = "hushfeed_swipe_level";
 
-    /** The strip a press lands in, which says what the drag will change. */
-    enum Side { NONE, BRIGHTNESS, VOLUME }
+    /** The strip a press lands in. */
+    enum Side { NONE, LEFT, RIGHT }
+
+    /** What a drag in a strip changes, as the strip's row has it. */
+    enum Mode { BRIGHTNESS, VOLUME, SPEED }
 
     private static final Map<Window, Boolean> WRAPPED = new WeakHashMap<>();
     private static final Map<Window, Boolean> DIMMED = new WeakHashMap<>();
@@ -83,9 +90,31 @@ public final class EdgeSwipeLevels {
         if (windowWidth <= 0) return Side.NONE;
         int strip = stripWidth(windowWidth, percent);
         if (strip <= 0) return Side.NONE;
-        if (x < strip) return Side.BRIGHTNESS;
-        if (x >= windowWidth - strip) return Side.VOLUME;
+        if (x < strip) return Side.LEFT;
+        if (x >= windowWidth - strip) return Side.RIGHT;
         return Side.NONE;
+    }
+
+    /** The mode a saved row value names, or {@code fallback} for anything else. */
+    static Mode parseMode(String saved, Mode fallback) {
+        if ("brightness".equals(saved)) return Mode.BRIGHTNESS;
+        if ("volume".equals(saved)) return Mode.VOLUME;
+        if ("speed".equals(saved)) return Mode.SPEED;
+        return fallback;
+    }
+
+    /**
+     * What a drag in the strip on {@code side} changes. The left strip's own default is brightness
+     * and the right's is volume. Speed needs the Playback speed patch to have found the player on
+     * screen, so a bundle without it (or a value imported from one that had it) keeps the strip on
+     * its default.
+     */
+    static Mode modeFor(Side side) {
+        Mode fallback = side == Side.RIGHT ? Mode.VOLUME : Mode.BRIGHTNESS;
+        if (side == Side.NONE) return fallback;
+        String saved = (side == Side.LEFT ? Settings.SWIPE_LEVELS_LEFT : Settings.SWIPE_LEVELS_RIGHT).get();
+        Mode chosen = parseMode(saved, fallback);
+        return chosen == Mode.SPEED && !SettingsStatus.liveSpeedEnabled ? fallback : chosen;
     }
 
     /** True once a move is far enough, and mostly enough up or down, to be this gesture. */
@@ -108,6 +137,28 @@ public final class EdgeSwipeLevels {
     /** Whole steps of a stream of {@code max} for a 0 to 1 level. */
     static int volumeStep(float level, int max) {
         return Math.max(0, Math.min(max, Math.round(clamp(level, 0f) * max)));
+    }
+
+    /** Where a playback speed sits between the slowest and the fastest the gesture reaches. */
+    static float levelForSpeed(float speed) {
+        float span = PlaybackSpeedPatch.MAX_SPEED - PlaybackSpeedPatch.MIN_SPEED;
+        return clamp((speed - PlaybackSpeedPatch.MIN_SPEED) / span, 0f);
+    }
+
+    /** The speed for a 0 to 1 level, on the quarter-step grid. */
+    static float speedForLevel(float level) {
+        float span = PlaybackSpeedPatch.MAX_SPEED - PlaybackSpeedPatch.MIN_SPEED;
+        return PlaybackSpeedPatch.snapLiveSpeed(PlaybackSpeedPatch.MIN_SPEED + clamp(level, 0f) * span);
+    }
+
+    /** The on-screen line for a brightness or volume level, such as "Volume 40%". */
+    static String levelText(String label, float level) {
+        return label + " " + Math.round(level * 100) + "%";
+    }
+
+    /** The on-screen line for a playback speed, such as "Speed 1.25x". */
+    static String speedText(String label, float speed) {
+        return label + " " + PlaybackSpeedPatch.speedLabel(speed) + "x";
     }
 
     private static float clamp(float level, float min) {
@@ -180,7 +231,10 @@ public final class EdgeSwipeLevels {
         private final Activity activity;
         private State state = State.IDLE;
         private Side side = Side.NONE;
+        private Mode mode = Mode.BRIGHTNESS;
         private float downX, downY, startY, startLevel;
+        /** The speed last handed to the player in this drag, NaN until one was taken. */
+        private float appliedSpeed = Float.NaN;
 
         Gesture(Activity activity) {
             this.activity = activity;
@@ -254,32 +308,58 @@ public final class EdgeSwipeLevels {
                     : activity.getResources().getDisplayMetrics().heightPixels;
         }
 
-        /** Takes the drag, reading the level it starts from. False leaves the gesture alone. */
+        /**
+         * Takes the drag, reading the level it starts from. False leaves the gesture alone: the
+         * feed keeps it when there is no audio service, or no player to give a speed to.
+         */
         private boolean begin(MotionEvent event) {
-            float level = side == Side.BRIGHTNESS ? currentBrightness(activity) : currentVolume(activity);
-            if (level < 0f) {
+            mode = modeFor(side);
+            float level;
+            switch (mode) {
+                case BRIGHTNESS:
+                    level = currentBrightness(activity);
+                    break;
+                case VOLUME:
+                    level = currentVolume(activity);
+                    break;
+                default:
+                    level = levelForSpeed(PlaybackSpeedPatch.liveStartSpeed());
+                    break;
+            }
+            if (Float.isNaN(level) || level < 0f) {
                 state = State.PASSING;
                 return false;
             }
             startLevel = level;
             startY = event.getY();
+            appliedSpeed = Float.NaN;
             state = State.TAKEN;
             return true;
         }
 
         private void move(MotionEvent event) {
-            if (side == Side.BRIGHTNESS) {
+            if (mode == Mode.BRIGHTNESS) {
                 float level = levelAfter(startLevel, startY, event.getY(), windowHeight(), MIN_BRIGHTNESS);
                 setBrightness(activity.getWindow(), level);
-                show(activity, L10n.t(activity, "Brightness"), level);
-            } else {
+                show(activity, levelText(L10n.t(activity, "Brightness"), level));
+            } else if (mode == Mode.VOLUME) {
                 float level = levelAfter(startLevel, startY, event.getY(), windowHeight(), 0f);
                 AudioManager audio = (AudioManager) activity.getSystemService(Context.AUDIO_SERVICE);
                 if (audio != null) {
                     audio.setStreamVolume(AudioManager.STREAM_MUSIC,
                             volumeStep(level, audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)), 0);
                 }
-                show(activity, L10n.t(activity, "Volume"), level);
+                show(activity, levelText(L10n.t(activity, "Volume"), level));
+            } else {
+                float speed = speedForLevel(levelAfter(startLevel, startY, event.getY(), windowHeight(), 0f));
+                // The player is only asked when the step changes: a drag crosses a handful of them,
+                // and each ask is a call into TikTok's player.
+                if (Float.compare(speed, appliedSpeed) != 0 && PlaybackSpeedPatch.setLiveSpeed(speed)) {
+                    appliedSpeed = speed;
+                }
+                if (!Float.isNaN(appliedSpeed)) {
+                    show(activity, speedText(L10n.t(activity, "Speed"), appliedSpeed));
+                }
             }
         }
     }
@@ -310,9 +390,9 @@ public final class EdgeSwipeLevels {
 
     /**
      * The one level label per window, drawn over the content and taken away shortly after.
-     * {@code label} arrives already translated.
+     * {@code text} arrives already translated and formatted.
      */
-    private static void show(Activity activity, String label, float level) {
+    private static void show(Activity activity, String text) {
         try {
             ViewGroup decor = (ViewGroup) activity.getWindow().getDecorView();
             TextView view = decor.findViewWithTag(TAG);
@@ -336,7 +416,7 @@ public final class EdgeSwipeLevels {
                 params.topMargin = Math.round(96 * density);
                 decor.addView(view, params);
             }
-            view.setText(label + " " + Math.round(level * 100) + "%");
+            view.setText(text);
             view.setVisibility(View.VISIBLE);
             TextView shown = view;
             Runnable earlier = HIDERS.get(shown);

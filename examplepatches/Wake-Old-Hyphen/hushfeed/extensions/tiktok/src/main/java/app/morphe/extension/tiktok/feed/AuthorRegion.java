@@ -35,6 +35,7 @@ import java.util.Objects;
 /**
  * Puts the country a video was posted from next to the creator's name on the feed, and on a
  * video opened from search, a profile or a sound, which plays in a detail pager of its own.
+ * Show engagement rate puts the video's rate after it on the same row, through the same hook.
  *
  * The name lives in a {@code title} button, which is a generic id the comment rows use as
  * well, so the row is identified structurally instead: the feed's author row is the parent
@@ -178,7 +179,8 @@ public final class AuthorRegion {
      * nothing on it may lay out again once its own video starts.
      */
     public static void onVideoChanged() {
-        if (!SettingsStatus.authorRegionEnabled || activityReference.get() == null) {
+        if (!(SettingsStatus.authorRegionEnabled || SettingsStatus.engagementRateEnabled)
+                || activityReference.get() == null) {
             return;
         }
         Utils.runOnMainThread(AuthorRegion::apply);
@@ -397,14 +399,19 @@ public final class AuthorRegion {
     }
 
     /**
-     * The handle and the country to show for the video on screen, in that order, or null
-     * when neither switch asks for anything this video can supply. Each switch only ever
-     * reads its own value: turning the country on must not start showing handles.
+     * The handle and what follows the name for the video on screen, in that order, or null
+     * when no switch asks for anything this video can supply. What follows is the country, the
+     * engagement rate or both. Each switch only ever reads its own value: turning the country
+     * on must not start showing handles. Either patch installs this row, so each switch also
+     * needs its own patch, or a switch saved before it was left out would still show.
      */
     static String[] decoration(Object aweme) {
-        String handle = Settings.SHOW_AUTHOR_HANDLE.get() ? handle(aweme) : null;
-        String region = Settings.SHOW_AUTHOR_REGION.get() ? region(aweme) : null;
-        return handle == null && region == null ? null : new String[]{handle, region};
+        boolean names = SettingsStatus.authorRegionEnabled;
+        String handle = names && Settings.SHOW_AUTHOR_HANDLE.get() ? handle(aweme) : null;
+        String region = names && Settings.SHOW_AUTHOR_REGION.get() ? region(aweme) : null;
+        String rate = EngagementRate.forVideo(aweme);
+        String tail = region == null ? rate : rate == null ? region : region + SEPARATOR + rate;
+        return handle == null && tail == null ? null : new String[]{handle, tail};
     }
 
     /** The creator's @name for the current video, without the at sign. */

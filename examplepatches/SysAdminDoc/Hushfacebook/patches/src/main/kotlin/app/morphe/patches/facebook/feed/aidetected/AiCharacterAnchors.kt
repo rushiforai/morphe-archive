@@ -25,12 +25,11 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * for reviewers; the code never writes one down.
  *
  * - An AI character is one of Meta's Creator AI and AI Studio characters ("embodiments"), which a
- *   post offers to chat with or call. Facebook's feed code asks whether an attachment carries one by
- *   handing the literal AiInteractiveEmbodimentAttachmentStyleInfo to one static finder taking the
- *   attachment and a type name (581 LX/2dD;->A05, 580 LX/2YR;->A05, 577 LX/2WB;->A05, each a public
- *   method of a public class), from 15 to 19 call sites, the attachment renderers among them. The
- *   finder walks the attachment's style_infos and answers the first whose TreeJNI.getTypeName() is
- *   the name, or null.
+ *   post offers to chat with or call. Facebook's feed code asks whether an attachment carries one
+ *   by handing the literal AiInteractiveEmbodimentAttachmentStyleInfo to one static finder taking
+ *   the attachment and a type name (581 LX/2dD;->A05, each a public method of a public class), from
+ *   15 to 19 call sites, the attachment renderers among them. The finder walks the attachment's
+ *   style_infos and answers the first whose TreeJNI.getTypeName() is the name, or null.
  * - The attachment's style_infos are its getCachedModelList of the key of "style_infos" as
  *   StoryAttachmentStyleInfo models (581 GraphQLStoryAttachment.A07), and the story's attachments are
  *   its getCachedModelList of the key of "attachments" as StoryAttachment models of the kept class

@@ -30,10 +30,10 @@ val aphelionInstallerSourceFix = bytecodePatch(
     execute {
         spoofInstallerSource(AdSdkInstallerFingerprint)
         spoofInstallerSource(LicenseInstallerFingerprint)
-        spoofInstallerSource(Wn1InstallerFingerprint)
-        spoofInstallerSource(Pd2InstallerFingerprint)
-        spoofInstallerSource(Ny4InstallerFingerprint)
-        spoofInstallerSource(Wu4InstallingInstallerFingerprint)
-        spoofInstallerSource(Wu4InitiatingInstallerFingerprint)
+        spoofInstallerSource(D32InstallerFingerprint)
+        spoofInstallerSource(Xu2InstallerFingerprint)
+        spoofInstallerSource(Bw5InstallerFingerprint)
+        spoofInstallerSource(Fp5InstallingInstallerFingerprint)
+        spoofInstallerSource(Fp5InitiatingInstallerFingerprint)
     }
 }

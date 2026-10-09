@@ -17,8 +17,11 @@ import app.morphe.patcher.util.smali.ExternalLabel
 import app.morphe.patches.facebook.feed.aidetected.EXTENSION_CLASSES
 import app.morphe.patches.facebook.feed.holdsString
 import app.morphe.patches.facebook.font.objectReturns
+import app.morphe.patches.facebook.media.resume.POSITION_STUB
 import app.morphe.patches.facebook.media.resume.VIDEO_PLAYER_PARAMS
 import app.morphe.patches.facebook.media.resume.paramsGetters
+import app.morphe.patches.facebook.media.resume.playingInterfaces
+import app.morphe.patches.facebook.media.resume.positionReaders
 import app.morphe.patches.facebook.media.resume.reportedValues
 import app.morphe.patches.facebook.misc.extension.enableStatus
 import app.morphe.patches.facebook.misc.extension.parameterRegister
@@ -64,6 +67,11 @@ val tapToPlayPatch = bytecodePatch(
         } catch (moved: PatchException) {
             patchLog.warning("${moved.message}. The patch goes on, and a reel Facebook starts with BY_AUTOPLAY " +
                 "counts as any other video's start.")
+        }
+        try {
+            fillPositionReader(classDefBy(play.definingClass))
+        } catch (moved: PatchException) {
+            patchLog.warning("${moved.message}. The patch goes on without saying where a reel's start came.")
         }
         val checker = hookAutoplaySetting()
         hookReelPlayButton(checker)
@@ -145,6 +153,37 @@ private fun BytecodePatchContext.fillReelCheck(owner: ClassDef) {
         """
             check-cast p0, $VIDEO_PLAYER_PARAMS
             iget-boolean p0, p0, $VIDEO_PLAYER_PARAMS->${field.name}:Z
+            return p0
+        """,
+    )
+}
+
+/**
+ * Fills the extension's position stub with [owner]'s position reader: its one int method from the
+ * interface that declares isPlaying(), the reader Resume long videos uses too. Tap to play counts the
+ * reel starts that come with the player already partway in (#90), whichever other patches are in.
+ */
+internal fun BytecodePatchContext.fillPositionReader(owner: ClassDef) {
+    fun refuse(detail: String): Nothing = throw PatchException("$PATCH: position reader: $detail")
+    val playing = playingInterfaces(owner.interfaces.mapNotNull { classDefByOrNull(it) })
+    val face = playing.singleOrNull() ?: refuse("expected one interface of ${owner.type} declaring isPlaying(), found ${playing.size}")
+    val readers = positionReaders(owner, face)
+    val reader = readers.singleOrNull() ?: refuse("expected one int method of ${face.type} in ${owner.type}, found ${readers.size}")
+    // The stub runs in the extension's package.
+    if (!AccessFlags.PUBLIC.isSet(owner.accessFlags)) refuse("${owner.type} isn't public")
+    if (!AccessFlags.PUBLIC.isSet(reader.accessFlags)) refuse("${owner.type}->${reader.name} isn't public")
+
+    if (classDefByOrNull(TAP_TO_PLAY) == null) refuse("the extension has no $TAP_TO_PLAY")
+    val stub = mutableClassDefBy(TAP_TO_PLAY).methods.singleOrNull {
+        it.name == POSITION_STUB && it.returnType == "I" && AccessFlags.STATIC.isSet(it.accessFlags) &&
+            it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/Object;")
+    } ?: refuse("$TAP_TO_PLAY has no static int $POSITION_STUB(Ljava/lang/Object;)")
+    stub.addInstructions(
+        0,
+        """
+            check-cast p0, ${owner.type}
+            invoke-virtual/range { p0 .. p0 }, ${owner.type}->${reader.name}()I
+            move-result p0
             return p0
         """,
     )

@@ -7,6 +7,7 @@
  */
 package app.morphe.extension.tiktok.inbox;
 
+import app.morphe.extension.shared.diagnostics.HookStatus;
 import app.morphe.extension.tiktok.settings.Settings;
 
 /**
@@ -30,6 +31,16 @@ public final class InboxControls {
     /** Answers the enable check of TikTok's suggested reply cells and their intro banner. */
     public static boolean shouldShowChatAiReplies() {
         return !Settings.HIDE_CHAT_AI_REPLIES.get();
+    }
+
+    /**
+     * Whether the Inbox's invitation to start a group chat is withheld. Asked at the top of the
+     * banner's update, whose early return is the state it starts in, with nothing to show.
+     */
+    public static boolean shouldHideGroupChatBanner() {
+        boolean hide = Settings.HIDE_INBOX_GROUP_CHAT_BANNER.get();
+        HookStatus.bound("group chat banner", hide ? "update skipped" : "update left");
+        return hide;
     }
 
     public static boolean shouldCollapseActivityList(boolean original) {

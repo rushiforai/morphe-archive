@@ -171,9 +171,9 @@ public final class PlaybackQuality {
     private static List<?> filterGears(List<?> original, String owner, String member) {
         String mode = mode();
         if (original == null || original.isEmpty() || "auto".equals(mode)) return original;
-        // With Play SDR instead of HDR on, the choice is made among the SDR gears, whichever of
-        // the two setter hooks runs first.
-        List<?> offered = SdrPlayback.dropHdr(original);
+        // With Prefer H.264 video or Play SDR instead of HDR on, the choice is made among the
+        // gears those switches keep, whichever of the setter hooks runs first.
+        List<?> offered = H264Playback.preferredGears(original);
         Object selected = QualitySelector.choose(offered, mode);
         if (selected == null) {
             HookStatus.missingMember(FAMILY, "playable gear list from", owner, member);

@@ -677,6 +677,80 @@ class OwnFontHookTest {
     }
 
     /**
+     * Each text layout call Facebook makes goes to the extension's stand-in on the same registers
+     * in the same form (#96): obtain plain, setIncludePad as the builder's call, BoringLayout.make by
+     * range. The extension's own class keeps Android's calls, which its stand-ins make.
+     */
+    @Test
+    fun `each text layout call goes to the extension on its own registers`() {
+        val boring = LAYOUT_CALLS.keys.single { it.contains("BoringLayout;->make") && !it.contains("TruncateAt") }
+        val body = """
+            const-string v0, "y"
+            const/4 v1, 0x0
+            const/4 v2, 0x1
+            const/4 v3, 0x0
+            const/16 v4, 0x64
+            invoke-static { v0, v1, v2, v3, v4 }, $OBTAIN_LAYOUT
+            move-result-object v5
+            invoke-virtual { v5, v1 }, $SET_INCLUDE_PAD
+            move-result-object v5
+            invoke-static/range { v0 .. v7 }, $boring
+            move-result-object v8
+            const/4 v8, 0x0
+            return-object v8
+        """
+        val type = "Lfixture/TextLayout;"
+        val extension = "Lapp/morphe/extension/facebook/font/Stub;"
+        val method = staticMethod(type, registers = 9, params = emptyList(), body = body)
+        val context = PatchContexts.of(
+            listOf(robotoClass(type, method), robotoClass(extension, staticMethod(extension, registers = 9, params = emptyList(), body = body))),
+        )
+        assertEquals(listOf(OBTAIN_LAYOUT, SET_INCLUDE_PAD, boring), context.hookTextLayouts())
+
+        val calls = context.mutableClassDefBy(type).methods.single().implementation!!.instructions
+            .filter { it.opcode.name.startsWith("invoke") }
+        assertEquals(listOf(OBTAIN_LAYOUT, SET_INCLUDE_PAD, boring).map(LAYOUT_CALLS::getValue), calls.map(::reference))
+        assertEquals(listOf(Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC, Opcode.INVOKE_STATIC_RANGE), calls.map { it.opcode })
+        assertEquals(listOf((0..4).toList(), listOf(5, 1), (0..7).toList()), calls.map { call ->
+            when (call) {
+                is RegisterRangeInstruction -> (call.startRegister until call.startRegister + call.registerCount).toList()
+                else -> (call as FiveRegisterInstruction).let {
+                    listOf(it.registerC, it.registerD, it.registerE, it.registerF, it.registerG).take(it.registerCount)
+                }
+            }
+        })
+        assertEquals("nothing else moved", method.implementation!!.instructions.size,
+            context.mutableClassDefBy(type).methods.single().implementation!!.instructions.size)
+        assertEquals("the extension keeps Android's calls", listOf(OBTAIN_LAYOUT, SET_INCLUDE_PAD, boring),
+            context.mutableClassDefBy(extension).methods.single().implementation!!.instructions.mapNotNull(::layoutCall))
+    }
+
+    /** A build that never sets the padding on a layout builder has moved its text somewhere the patch doesn't know. */
+    @Test
+    fun `a build without a padding choice on a layout builder stops the patch`() {
+        val type = "Lfixture/TextLayout;"
+        val method = staticMethod(type, registers = 6, params = emptyList(), body = """
+            const-string v0, "y"
+            const/4 v1, 0x0
+            invoke-static { v0, v1, v1, v1, v1 }, $OBTAIN_LAYOUT
+            move-result-object v5
+            const/4 v5, 0x0
+            return-object v5
+        """)
+        assertThrows(PatchException::class.java) { PatchContexts.of(listOf(robotoClass(type, method))).hookTextLayouts() }
+    }
+
+    /** Every stand-in the patch calls is a public static method of the extension's OwnFont, at that very signature. */
+    @Test
+    fun `the extension has each text layout stand-in the patch calls`() {
+        val own = ExtensionDex.classDef(OWN_FONT).methods
+            .filter { AccessFlags.STATIC.isSet(it.accessFlags) && AccessFlags.PUBLIC.isSet(it.accessFlags) }
+            .map { "${it.definingClass}->${it.name}(${it.parameterTypes.joinToString("")})${it.returnType}" }
+            .toSet()
+        for (call in LAYOUT_CALLS.values) assertTrue(call, call in own)
+    }
+
+    /**
      * A try block over the read alone covers its getter and the move after it, and one that starts
      * right after the read leaves both out, as it left the read out.
      */

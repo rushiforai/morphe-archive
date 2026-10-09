@@ -9,29 +9,22 @@ import org.junit.Test
 
 /**
  * The daily hold's player members, resolved by the patch's own code ([resolveNativePlaybackMembers])
- * on every retained fixture and held to what each build calls them. No two builds agree: the pause
- * is LIZ on 46.2.3, 46.8.3 and 46.9.3, and on 47.0.3 LIZ is a getter returning a number, which the
- * hold called by name and took for a pause while the video played on under its panel (the S22,
- * 2026-09-23). The expected names were read off each fixture's pauseVideo and space-key toggle.
+ * on each declared build and held to what that build calls them. Builds disagree: the pause was
+ * LIZ on 46.2.3, 46.8.3 and 46.9.3, and on 47.0.3 LIZ was a getter returning a number, which the
+ * hold called by name and took for a pause while the video played on under its panel (2026-09-23).
+ * The expected names were read off the fixture's pauseVideo and space-key toggle, and a new target
+ * needs its own row.
  */
 class NativePlaybackFixturesTest {
     @Test
     fun `the hold's current video, pause and resume resolve on every fixture`() {
         val expected = mapOf(
             // version to (current-video getter, player manager, pause, resume)
-            "46.2.3" to listOf("LIZIZ", "LX/0M31;", "LIZ", "LJIILL"),
-            "46.7.3" to listOf("LJJJI", "LX/0MP3;", "LJJLIIIJILLIZJL", "LJIIZILJ"),
-            "46.8.3" to listOf("LLJJIII", "LX/0MDj;", "LIZ", "LJIIZILJ"),
-            "46.9.3" to listOf("LIZIZ", "LX/036B;", "LIZ", "LJIILL"),
-            "47.0.3" to listOf("LLJJIJIIJIL", "LX/037l;", "LJJLIIIJJI", "LJIILL"),
-            "47.1.3" to listOf("LLJJJIL", "LX/037o;", "LIZ", "LJIILLIIL"),
             "47.1.4" to listOf("LLJJJIL", "LX/037s;", "LIZ", "LJIILLIIL"),
         )
-        val seen = mutableSetOf<String>()
-        for (apk in Fixtures.apks()) {
-            val version = Regex("""4\d\.\d+\.\d+""").find(apk.name)?.value
-                ?: error("${apk.name}: no TikTok version in the file name")
-            val want = expected[version] ?: error("${apk.name}: no expected members for $version")
+        assertEquals("a row for each declared build", Fixtures.declaredVersions().toSet(), expected.keys)
+        Fixtures.forEachDeclared { apk ->
+            val want = expected.getValue(Fixtures.versionOf(apk))
             val container = Fixtures.dexContainer(apk, Opcodes.getDefault())
             val classes = container.dexEntryNames.flatMap { container.getEntry(it)!!.dexFile.classes }
                 .associateBy { it.type }
@@ -49,8 +42,6 @@ class NativePlaybackFixturesTest {
             assertFalse("${apk.name}: the getter is a virtual call", members.awemeGetter.throughInterface)
             assertTrue("${apk.name}: the pause goes through the manager interface", members.pause.throughInterface)
             assertTrue("${apk.name}: the resume goes through the manager interface", members.resume.throughInterface)
-            seen += version
         }
-        assertEquals("every retained fixture was read", expected.keys, seen)
     }
 }

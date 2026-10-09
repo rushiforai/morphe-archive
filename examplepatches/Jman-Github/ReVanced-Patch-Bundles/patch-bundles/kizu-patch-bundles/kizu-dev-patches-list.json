@@ -1,5 +1,5 @@
 {
-    "version": "v1.9.2-rc.1",
+    "version": "v1.9.3-beta.4.1",
     "patches": [
         {
             "category": null,
@@ -8,6 +8,7 @@
                     "apkFileType": "APKM",
                     "appIconColor": "#9147FF",
                     "name": "Twitch",
+                    "options": [],
                     "packageName": "tv.twitch.android.app",
                     "targets": [
                         {
@@ -24,7 +25,7 @@
             "dependencies": [
                 "BytecodePatch"
             ],
-            "description": "Kizu Twitch enhancements for Twitch 31.3.1. RC1 promotes the verified Beta25 Home & navigation implementation with reversible section-list state and no feed-wide scanner.",
+            "description": "Kizu Twitch enhancements for Twitch 31.3.1. Beta 4.1 fixes the player Reload Stream control visibility.",
             "name": "Twitch Enhancement",
             "options": []
         }

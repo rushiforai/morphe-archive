@@ -11,6 +11,7 @@ val renameShopToHomePatch = rawResourcePatch(
     description = "Replaces the Shop bottom navigation tab with Home, a custom screen to replace the overly-commercial Shop screen.",
     default = true
 ) {
+    category("Interface")
     compatibleWith(COMPATIBILITY_SEZZLE)
 
     execute {

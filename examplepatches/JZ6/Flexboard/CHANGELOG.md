@@ -1,3 +1,158 @@
+# [2.5.0](https://github.com/JZ6/Flexboard/compare/v2.4.2...v2.5.0) (2026-10-09)
+
+* **Gboard:** feat: remove Hidden Features (unconfirmed)
+* **Gboard:** docs: swipe up confirmed on a device, and on by default
+* **Gboard:** feat: on by default; crash recorder moves to its own opt-in patch
+* **Gboard:** docs: swipe up reverts through the decoder, not the undo stack
+* **Gboard:** feat: revert the last autocorrection through Gboard's decoder
+* **Gboard:** refactor: resolve branch targets in one shared helper
+* **Gboard:** chore: store gradlew.bat with LF, as .gitattributes declares
+* **Gboard:** chore: bump gradle-wrapper from 9.7.1 to 9.8.0
+* **Gboard:** chore: bump actions/upload-artifact from 4 to 7
+* **Gboard:** chore: bump actions/setup-java from 6.0.0 to 6.0.1
+* **Gboard:** docs: correct issue forms for unsupported builds and roadmap
+* **Gboard:** chore: pin editor scope and shell script line endings
+* **Gboard:** docs: mark superseded gesture analyses and current undo path
+* **Gboard:** docs: correct settings, toolbar and flag derivations
+* **Gboard:** docs: refresh contributor gate, APK tooling and release guide
+* **Gboard:** docs: align feature guide and roadmap with shipped behavior
+* **Gboard:** docs: restore missing dev and stable release entries
+* **Gboard:** docs: record full-repository findings and fix status
+* **Gboard:** fix: protect provider and verify the pushed tree
+* **Gboard:** fix: make recovery resumable and stamp bundle sources
+* **Gboard:** fix: enforce patch selection and output handling
+* **Gboard:** fix: enforce generated artifacts and source contracts
+* **Gboard:** fix: pin current Gboard bindings and flag defaults
+* **Gboard:** fix: validate resource replay and improve APK readers
+* **Gboard:** fix: follow real control flow and inspect same-size edits
+* **Gboard:** fix: harden settings, hotkeys, and crash diagnostics
+* **Gboard:** fix: guard resource metadata and defaults
+* **Gboard:** fix: validate native registration and capacity seams
+* **Gboard:** fix: validate isolated and long-valued flag rewrites
+* **Gboard:** fix: harden shared resolution and gesture emissions
+* **Gboard:** fix: bypass only Gboard's own startup check
+* **Gboard:** fix: make Lozi; public so the takeover read-back can run
+* **Gboard:** feat: check what a patched class is allowed to reach
+* **Gboard:** docs: the swipe-up crash happens from every row
+* **Gboard:** feat: a crash recorder, so the next crash names its own cause
+* **Gboard:** feat: swipe up stage 2 — take the gesture over, and say whether it took
+* **Gboard:** refactor: one swipe-up patch, rebuilt in stages from the diagnostic
+* **Gboard:** feat: swipe up to undo, rebuilt in the motion-event-handler layer
+* **Gboard:** docs: record that swipe up sends Gboard's general undo, by decision
+* **Gboard:** fix: the gate honours FLEXBOARD_BUNDLE as documented, and proves opt-in patches emit
+* **Gboard:** refactor: delete the dead swipe-up paths and correct what the rest claims
+* **Gboard:** test: report whether the flick crossed the threshold before the finger lifted
+* **Gboard:** feat: move the swipe-up diagnostic into the motion-event-handler layer
+* **Gboard:** fix: the tracker leaked state between gestures, and a tap inherited it
+* **Gboard:** test: report the measurement, not a verdict on it
+* **Gboard:** fix: measure the flick from the touch stream, not from Gboard's start fields
+* **Gboard:** test: make the device say why the up-flick did not fire
+* **Gboard:** revert: drop two patches that did not do what I claimed
+* **Gboard:** feat: recognise the up-flick by its journey, not by where the finger lifted
+* **Gboard:** feat: restore inline autofill suggestions, which a clone install loses
+* **Gboard:** docs: the intermittency is the detection mechanism, not the threshold
+* **Gboard:** feat: a patch for more sensitive slide gestures
+* **Gboard:** docs: the pointer can be claimed — goal 2 confirmed on a device
+* **Gboard:** fix: read the gesture direction from h(), not i() — dev.0 could never fire
+* **Gboard:** feat: claim the pointer in Lpvi;->G instead of un-deciding a keypress
+
+# [2.5.2-dev.1](https://github.com/JZ6/Flexboard/compare/v2.5.2-dev.0...v2.5.2-dev.1) (2026-10-07)
+
+* **Gboard:** feat: remove Hidden Features (unconfirmed)
+* **Gboard:** docs: swipe up confirmed on a device, and on by default
+* **Gboard:** feat: on by default; crash recorder moves to its own opt-in patch
+
+# [2.5.2-dev.0](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.11...v2.5.2-dev.0) (2026-10-07)
+
+* **Gboard:** docs: swipe up reverts through the decoder, not the undo stack
+* **Gboard:** feat: revert the last autocorrection through Gboard's decoder
+* **Gboard:** refactor: resolve branch targets in one shared helper
+* **Gboard:** chore: store gradlew.bat with LF, as .gitattributes declares
+* **Gboard:** chore: bump gradle-wrapper from 9.7.1 to 9.8.0
+* **Gboard:** chore: bump actions/upload-artifact from 4 to 7
+* **Gboard:** chore: bump actions/setup-java from 6.0.0 to 6.0.1
+
+# [2.5.1-dev.11](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.10...v2.5.1-dev.11) (2026-10-07)
+
+* **Gboard:** docs: correct issue forms for unsupported builds and roadmap
+* **Gboard:** chore: pin editor scope and shell script line endings
+* **Gboard:** docs: mark superseded gesture analyses and current undo path
+* **Gboard:** docs: correct settings, toolbar and flag derivations
+* **Gboard:** docs: refresh contributor gate, APK tooling and release guide
+* **Gboard:** docs: align feature guide and roadmap with shipped behavior
+* **Gboard:** docs: restore missing dev and stable release entries
+* **Gboard:** docs: record full-repository findings and fix status
+* **Gboard:** fix: protect provider and verify the pushed tree
+* **Gboard:** fix: make recovery resumable and stamp bundle sources
+* **Gboard:** fix: enforce patch selection and output handling
+* **Gboard:** fix: enforce generated artifacts and source contracts
+* **Gboard:** fix: pin current Gboard bindings and flag defaults
+* **Gboard:** fix: validate resource replay and improve APK readers
+* **Gboard:** fix: follow real control flow and inspect same-size edits
+* **Gboard:** fix: harden settings, hotkeys, and crash diagnostics
+* **Gboard:** fix: guard resource metadata and defaults
+* **Gboard:** fix: validate native registration and capacity seams
+* **Gboard:** fix: validate isolated and long-valued flag rewrites
+* **Gboard:** fix: harden shared resolution and gesture emissions
+* **Gboard:** fix: bypass only Gboard's own startup check
+
+# [2.5.1-dev.10](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.9...v2.5.1-dev.10) (2026-10-02)
+
+* **Gboard:** fix(swipe-up): make Lozi; public so the takeover read-back can run
+* **Gboard:** feat(verify): check what a patched class is allowed to reach
+* **Gboard:** docs: the swipe-up crash happens from every row
+* **Gboard:** feat: a crash recorder, so the next crash names its own cause
+
+# [2.5.1-dev.9](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.8...v2.5.1-dev.9) (2026-10-01)
+
+* **Gboard:** feat: swipe up stage 2 — take the gesture over, and say whether it took
+
+# [2.5.1-dev.8](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.7...v2.5.1-dev.8) (2026-10-01)
+
+* **Gboard:** refactor: one swipe-up patch, rebuilt in stages from the diagnostic
+
+# [2.5.1-dev.7](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.6...v2.5.1-dev.7) (2026-09-30)
+
+* **Gboard:** feat: swipe up to undo, rebuilt in the motion-event-handler layer
+* **Gboard:** docs: record that swipe up sends Gboard's general undo, by decision
+* **Gboard:** fix: the gate honours FLEXBOARD_BUNDLE as documented, and proves opt-in patches emit
+* **Gboard:** refactor: delete the dead swipe-up paths and correct what the rest claims
+
+# [2.5.1-dev.6](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.5...v2.5.1-dev.6) (2026-09-30)
+
+* **Gboard:** test: report whether the flick crossed the threshold before the finger lifted
+* **Gboard:** feat: move the swipe-up diagnostic into the motion-event-handler layer
+* **Gboard:** fix: the tracker leaked state between gestures, and a tap inherited it
+* **Gboard:** test: report the measurement, not a verdict on it
+
+# [2.5.1-dev.5](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.4...v2.5.1-dev.5) (2026-09-29)
+
+* **Gboard:** fix: measure the flick from the touch stream, not from Gboard's start fields
+
+# [2.5.1-dev.4](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.3...v2.5.1-dev.4) (2026-09-23)
+
+* **Gboard:** test: make the device say why the up-flick did not fire
+* **Gboard:** revert: drop two patches that did not do what I claimed
+
+# [2.5.1-dev.3](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.2...v2.5.1-dev.3) (2026-09-21)
+
+* **Gboard:** feat: recognise the up-flick by its journey, not by where the finger lifted
+* **Gboard:** feat: restore inline autofill suggestions, which a clone install loses
+* **Gboard:** docs: the intermittency is the detection mechanism, not the threshold
+
+# [2.5.1-dev.2](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.1...v2.5.1-dev.2) (2026-09-19)
+
+* **Gboard:** feat: a patch for more sensitive slide gestures
+* **Gboard:** docs: the pointer can be claimed — goal 2 confirmed on a device
+
+# [2.5.1-dev.1](https://github.com/JZ6/Flexboard/compare/v2.5.1-dev.0...v2.5.1-dev.1) (2026-09-19)
+
+* **Gboard:** fix: read the gesture direction from h(), not i() — dev.0 could never fire
+
+# [2.5.1-dev.0](https://github.com/JZ6/Flexboard/compare/v2.5.0-dev.4...v2.5.1-dev.0) (2026-09-19)
+
+* **Gboard:** feat: claim the pointer in Lpvi;->G instead of un-deciding a keypress
+
 # [2.4.2](https://github.com/JZ6/Flexboard/compare/v2.4.1...v2.4.2) (2026-09-19)
 
 * **Gboard:** fix: a flag scan that failed on another bundle's merged extension
@@ -188,6 +343,35 @@
 * **Gboard:** 2.3.0-dev.1
 * **Gboard:** docs: finish counting the ids the slot raise changed
 * **Gboard:** feat: raise the hotkey slots from six to eight
+* **Gboard:** refactor: separate the two biggest patches from their emitters
+* **Gboard:** refactor: give every feature's fingerprints one place to live
+* **Gboard:** refactor: name ToolbarIdAdmissionPatch.kt for what it declares
+* **Gboard:** docs: stop three patch descriptions describing a build nobody gets
+* **Gboard:** fix: restore the seventh feature to the Hidden Features description
+* **Gboard:** feat: let a hoisted flag default be overridden per call site
+* **Gboard:** refactor: fold Grammar Check Row into Hidden Features
+* **Gboard:** feat: Hidden Features — five flags a resigned build can never receive
+
+# [2.3.0-dev.4](https://github.com/JZ6/Flexboard/compare/v2.3.0-dev.3...v2.3.0-dev.4) (2026-09-06)
+
+* **Gboard:** feat: default-on the two flags that were watched working
+
+# [2.3.0-dev.3](https://github.com/JZ6/Flexboard/compare/v2.3.0-dev.2...v2.3.0-dev.3) (2026-09-06)
+
+* **Gboard:** fix: drop on-device proofread, the flag that would not let Gboard start
+
+# [2.3.0-dev.2](https://github.com/JZ6/Flexboard/compare/v2.3.0-dev.1...v2.3.0-dev.2) (2026-09-06)
+
+* **Gboard:** fix: split Hidden Features into one patch per flag, all opt-in
+
+# [2.3.0-dev.1](https://github.com/JZ6/Flexboard/compare/v2.3.0-dev.0...v2.3.0-dev.1) (2026-09-06)
+
+* **Gboard:** 2.3.0-dev.1
+* **Gboard:** docs: finish counting the ids the slot raise changed
+* **Gboard:** feat: raise the hotkey slots from six to eight
+
+# [2.3.0-dev.0](https://github.com/JZ6/Flexboard/compare/v2.2.1...v2.3.0-dev.0) (2026-09-05)
+
 * **Gboard:** refactor: separate the two biggest patches from their emitters
 * **Gboard:** refactor: give every feature's fingerprints one place to live
 * **Gboard:** refactor: name ToolbarIdAdmissionPatch.kt for what it declares
@@ -840,4 +1024,3 @@
 * **Gboard:** Init flexboard
 * **Gboard:** chore: name the bundle Flexboard rather than the template placeholder
 * **Gboard:** Initial commit
-

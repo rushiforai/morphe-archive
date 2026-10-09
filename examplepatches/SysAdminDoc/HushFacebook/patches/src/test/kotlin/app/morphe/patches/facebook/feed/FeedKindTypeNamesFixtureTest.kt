@@ -20,15 +20,15 @@ import java.io.File
  * every Facebook build the bundle declares: Memories, friend requests and friends' locations, the
  * promotions and prompts the suggested posts switch takes by name, and the multi-ad carousel.
  *
- * Most of these kinds have no model class of their own. A served unit comes as a shared model, and a
- * tag the model has no case for answers `getTypeName()` from the tree (`BaseModel` hands it to
+ * Most of these kinds have no model class of their own. A served unit comes as a shared model, and
+ * a tag the model has no case for answers `getTypeName()` from the tree (`BaseModel` hands it to
  * native code), which is the GraphQL type name. Facebook reads that name into a type tag through a
  * `(String, ...)I` table, so a name still in that table is one the feed can still serve. A name a
  * shared model answers with a literal of its own counts too: on 581 friend requests left the table,
  * and `LX/40I;->getTypeName()` answers it (read 2026-10-06, the table is `LX/2Y0`). The names match
  * FeedFilter's MEMORIES_TYPES, FRIEND_REQUESTS_TYPE, FRIENDS_LOCATIONS_TYPE, SUGGESTED_TYPES and
- * MULTI_ADS_TYPE. SuggestedShowsFeedUnit is in the table on all three (581 `LX/2Y0;->A1d`, 580
- * `LX/2OO;->A1e`, 577 `LX/2Oi;->A1j`, read 2026-10-07).
+ * MULTI_ADS_TYPE. SuggestedShowsFeedUnit is in the table on all three (581 `LX/2Y0;->A1d`, read
+ * 2026-10-07).
  *
  * The story categories the "Suggested for you" switch takes, FeedFilter's SUGGESTED_CATEGORIES, are
  * held the same way: each declared build's GraphQLFeedStoryCategory still builds them.

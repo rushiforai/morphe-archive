@@ -38,13 +38,17 @@
 
 .field tapPosition:I
 
+.field tapTime:J
+
 .field toggle:Landroid/widget/CheckBox;
 
-.field touchY:F
-.field touchX:F
 .field touchDown:J
+
 .field touchMoved:Z
-.field tapTime:J
+
+.field touchX:F
+
+.field touchY:F
 
 
 # direct methods
@@ -152,31 +156,52 @@
 .end method
 
 .method synthetic lambda$clicks$0$e-e-a-CommentListExtras$Follow(Ljava/lang/Object;Landroid/view/View;)V
-    .locals 3
+    .registers 6
+
     const/4 v0, 0x0
+
     iput-object v0, p0, Le/e/a/CommentListExtras$Follow;->pendingTap:Ljava/lang/Runnable;
+
     const/4 v0, -0x1
+
     iput v0, p0, Le/e/a/CommentListExtras$Follow;->tapPosition:I
+
     iget-boolean v0, p0, Le/e/a/CommentListExtras$Follow;->active:Z
-    if-eqz v0, :single_done
+
+    if-eqz v0, :cond_24
+
     iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
+
     invoke-virtual {v0}, Landroid/widget/ListView;->isAttachedToWindow()Z
+
     move-result v0
-    if-eqz v0, :single_done
-    :single_try
+
+    if-eqz v0, :cond_24
+
+    :try_start_12
     invoke-virtual {p0}, Le/e/a/CommentListExtras$Follow;->items()Ljava/util/ArrayList;
+
     move-result-object v0
+
     invoke-virtual {v0, p1}, Ljava/util/ArrayList;->indexOf(Ljava/lang/Object;)I
+
     move-result v0
-    if-ltz v0, :single_done
+
+    if-ltz v0, :cond_24
+
     invoke-static {p2}, Le/e/a/CommentListExtras;->expandComment(Landroid/view/View;)V
-    :single_end
-    .catch Ljava/lang/Exception; {:single_try .. :single_end} :single_error
-    goto :single_done
-    :single_error
+    :try_end_1f
+    .catch Ljava/lang/Exception; {:try_start_12 .. :try_end_1f} :catch_20
+
+    goto :goto_24
+
+    :catch_20
     move-exception v0
+
     invoke-static {v0}, Le/e/a/FeedbackFixes;->log(Ljava/lang/Exception;)V
-    :single_done
+
+    :cond_24
+    :goto_24
     return-void
 .end method
 
@@ -197,32 +222,39 @@
 
     move-result-object p1
 
-    if-ltz p3, :cond_83
+    if-ltz p3, :cond_97
 
     invoke-virtual {p1}, Ljava/util/ArrayList;->size()I
 
     move-result p4
 
-    if-lt p3, p4, :cond_14
+    if-lt p3, p4, :cond_15
 
-    goto :goto_83
+    goto/16 :goto_97
 
-    :cond_14
+    :cond_15
     iget-object p4, p0, Le/e/a/CommentListExtras$Follow;->pendingTap:Ljava/lang/Runnable;
 
-    if-eqz p4, :cond_69
+    if-eqz p4, :cond_77
 
     iget p4, p0, Le/e/a/CommentListExtras$Follow;->tapPosition:I
 
-    if-ne p4, p3, :cond_69
+    if-ne p4, p3, :cond_77
 
     invoke-static {}, Landroid/os/SystemClock;->uptimeMillis()J
+
     move-result-wide v0
+
     iget-wide v2, p0, Le/e/a/CommentListExtras$Follow;->tapTime:J
+
     sub-long/2addr v0, v2
+
     const-wide/16 v2, 0x190
+
     cmp-long v4, v0, v2
-    if-gtz v4, :cond_69
+
+    if-gtz v4, :cond_77
+
     invoke-virtual {p0}, Le/e/a/CommentListExtras$Follow;->cancelTap()V
 
     iget-object p2, p0, Le/e/a/CommentListExtras$Follow;->fragment:Ljava/lang/Object;
@@ -281,13 +313,13 @@
 
     cmp-long v6, v0, v4
 
-    if-lez v6, :cond_5b
+    if-lez v6, :cond_69
 
     invoke-static {v0, v1, p3, p4}, Ljava/lang/Math;->min(JJ)J
 
     move-result-wide p3
 
-    :cond_5b
+    :cond_69
     invoke-static {v4, v5, p3, p4}, Ljava/lang/Math;->max(JJ)J
 
     move-result-wide p3
@@ -302,12 +334,15 @@
 
     return-void
 
-    :cond_69
+    :cond_77
     invoke-virtual {p0}, Le/e/a/CommentListExtras$Follow;->cancelTap()V
 
     iput p3, p0, Le/e/a/CommentListExtras$Follow;->tapPosition:I
+
     invoke-static {}, Landroid/os/SystemClock;->uptimeMillis()J
+
     move-result-wide v0
+
     iput-wide v0, p0, Le/e/a/CommentListExtras$Follow;->tapTime:J
 
     invoke-virtual {p1, p3}, Ljava/util/ArrayList;->get(I)Ljava/lang/Object;
@@ -327,21 +362,21 @@
     const-wide/16 p3, 0x190
 
     invoke-virtual {p1, p2, p3, p4}, Landroid/widget/ListView;->postDelayed(Ljava/lang/Runnable;J)Z
-    :try_end_82
-    .catch Ljava/lang/Exception; {:try_start_7 .. :try_end_82} :catch_84
+    :try_end_96
+    .catch Ljava/lang/Exception; {:try_start_7 .. :try_end_96} :catch_98
 
-    goto :goto_88
+    goto :goto_9c
 
-    :cond_83
-    :goto_83
+    :cond_97
+    :goto_97
     return-void
 
-    :catch_84
+    :catch_98
     move-exception p1
 
     invoke-static {p1}, Le/e/a/FeedbackFixes;->log(Ljava/lang/Exception;)V
 
-    :goto_88
+    :goto_9c
     return-void
 .end method
 
@@ -380,7 +415,7 @@
     .line 40
     iget-boolean v0, p0, Le/e/a/CommentListExtras$Follow;->active:Z
 
-    if-eqz v0, :cond_a6
+    if-eqz v0, :cond_8c
 
     iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
 
@@ -390,7 +425,7 @@
 
     if-nez v0, :cond_e
 
-    goto/16 :goto_a6
+    goto/16 :goto_8c
 
     :cond_e
     :try_start_e
@@ -400,7 +435,7 @@
 
     move-result v0
 
-    if-eqz v0, :cond_9f
+    if-eqz v0, :cond_85
 
     iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
 
@@ -408,7 +443,7 @@
 
     move-result v0
 
-    if-eqz v0, :cond_9f
+    if-eqz v0, :cond_85
 
     iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->fragment:Ljava/lang/Object;
 
@@ -448,7 +483,7 @@
 
     iget-object v4, p0, Le/e/a/CommentListExtras$Follow;->positions:[J
 
-    if-eqz v4, :cond_58
+    if-eqz v4, :cond_4e
 
     iget-object v4, p0, Le/e/a/CommentListExtras$Follow;->positions:[J
 
@@ -458,9 +493,9 @@
 
     move-result v5
 
-    if-eq v4, v5, :cond_75
+    if-eq v4, v5, :cond_6b
 
-    :cond_58
+    :cond_4e
     invoke-virtual {v3}, Ljava/util/ArrayList;->size()I
 
     move-result v4
@@ -469,12 +504,12 @@
 
     iput-object v4, p0, Le/e/a/CommentListExtras$Follow;->positions:[J
 
-    :goto_60
+    :goto_56
     invoke-virtual {v3}, Ljava/util/ArrayList;->size()I
 
     move-result v4
 
-    if-ge v2, v4, :cond_75
+    if-ge v2, v4, :cond_6b
 
     iget-object v4, p0, Le/e/a/CommentListExtras$Follow;->positions:[J
 
@@ -490,16 +525,16 @@
 
     add-int/lit8 v2, v2, 0x1
 
-    goto :goto_60
+    goto :goto_56
 
-    :cond_75
+    :cond_6b
     iget-object v2, p0, Le/e/a/CommentListExtras$Follow;->positions:[J
 
     invoke-static {v2, v0, v1}, Le/e/a/CommentFollowRules;->nearest([JJ)I
 
     move-result v2
 
-    if-ltz v2, :cond_9b
+    if-ltz v2, :cond_81
 
     iget-object v3, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
 
@@ -515,26 +550,26 @@
 
     iput v2, p0, Le/e/a/CommentListExtras$Follow;->lastIndex:I
 
-    :cond_9b
+    :cond_81
     iput-wide v0, p0, Le/e/a/CommentListExtras$Follow;->last:J
-    :try_end_9d
-    .catch Ljava/lang/Exception; {:try_start_e .. :try_end_9d} :catch_9e
+    :try_end_83
+    .catch Ljava/lang/Exception; {:try_start_e .. :try_end_83} :catch_84
 
-    goto :goto_9f
+    goto :goto_85
 
-    :catch_9e
+    :catch_84
     move-exception v0
 
-    :cond_9f
-    :goto_9f
+    :cond_85
+    :goto_85
     iget-object v0, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
 
     const-wide/16 v1, 0x1f4
 
     invoke-virtual {v0, p0, v1, v2}, Landroid/widget/ListView;->postDelayed(Ljava/lang/Runnable;J)Z
 
-    :cond_a6
-    :goto_a6
+    :cond_8c
+    :goto_8c
     return-void
 .end method
 

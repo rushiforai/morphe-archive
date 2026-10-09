@@ -138,10 +138,13 @@ public class UnpersonalizedForYouFilterTest {
     }
 
     @Test public void theReportCountsEachPoolNextToWhatTheRuleTookOut() {
+        FeedFilterCounters.resetSessionForTests();
         survivors(fill("a"), fill("b"), new Item("c", "for_you_page_1", null));
         String line = reportLine(FeedItemsFilter.FOR_YOU_DISTRIBUTION_SOURCE);
         assertEquals("ForYouDistribution: 1 lists, 3 items, 2 removed. Last reason: UnpersonalizedForYouFilter."
                 + " Kinds: for_you_page_999 2, for_you_page_1 1", line);
+        // The pool line is a share of the list's own count, so the label counts the two once.
+        assertEquals(2, FeedFilterCounters.sessionRemoved());
     }
 
     @Test public void switchedOffItReadsNothingAndCountsNothing() {

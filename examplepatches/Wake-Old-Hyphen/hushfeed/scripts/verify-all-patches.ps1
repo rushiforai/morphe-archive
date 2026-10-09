@@ -40,7 +40,11 @@ param(
     [string]$Java,
     [switch]$Force,
     [string]$Aapt2,
-    [string]$ProbePackage
+    [string]$ProbePackage,
+    # A folder that keeps a passing run's report and patched APK, with a stamp naming the bundle,
+    # APK, patch list and CLI that made them, so the release receipt can read this run instead of
+    # patching the same fixture again. Emptied first; a failed run leaves it empty.
+    [string]$KeepIn
 )
 
 $ErrorActionPreference = 'Stop'
@@ -97,6 +101,7 @@ if ($verificationTarget.Probe) {
     Write-Host "[verify] $($stock.package) $($stock.versionName) is a declared target, so nothing is forced"
 }
 
+if ($KeepIn -and (Test-Path -LiteralPath $KeepIn)) { Remove-Item -LiteralPath $KeepIn -Recurse -Force }
 New-Item -ItemType Directory -Force -Path $WorkDir | Out-Null
 $workRoot = (Resolve-Path -LiteralPath $WorkDir).Path
 $runId = [guid]::NewGuid().ToString('N')
@@ -209,6 +214,21 @@ try {
                 }
             }
             Write-Host '[verify] success: every requested patch applied to a valid APK whose resource table holds every stock resource.'
+            if ($KeepIn) {
+                New-Item -ItemType Directory -Force -Path $KeepIn | Out-Null
+                Move-Item -LiteralPath $out -Destination (Join-Path $KeepIn 'patched.apk') -Force
+                Copy-Item -LiteralPath $result -Destination (Join-Path $KeepIn 'result.json') -Force
+                # Written last, so a keep cut short has no stamp and is never read.
+                [ordered]@{
+                    bundleSha256     = Get-Sha256Hex -Path $Bundle
+                    apkSha256        = Get-Sha256Hex -Path $Apk
+                    patchListSha256  = Get-Sha256Hex -Path $PatchList
+                    desktopJarSha256 = Get-Sha256Hex -Path $DesktopJar
+                    versionName      = $stock.versionName
+                    forced           = [bool]$forced
+                } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $KeepIn 'stamp.json') -Encoding UTF8
+                Write-Host "[verify] kept this run for the release receipt in $KeepIn"
+            }
             $exitCode = 0
         } else {
             Write-Warning "[verify] the patched resource table failed its check against the stock one (exit $resourceExitCode)."

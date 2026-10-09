@@ -12,6 +12,7 @@ import app.morphe.patches.tiktok.misc.theme.decodedPackageRoots
 import app.morphe.patches.tiktok.misc.theme.decodedResourceDirectories
 import app.morphe.patches.tiktok.misc.theme.renamedPathCollisions
 import java.io.File
+import java.util.zip.CRC32
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Document
 import org.w3c.dom.Element
@@ -23,6 +24,19 @@ private const val MONOCHROME = "monochrome"
 
 /** The fill of the note itself in TikTok's foreground; the cyan and red slivers are its echo. */
 internal const val GLYPH_FILL = "#ffffffff"
+
+/** The drawable a supplied picture is added as. */
+internal const val PICTURE_NAME = "hushfeed_launcher_picture"
+
+/** An adaptive icon's layer is 108dp, which is 432 pixels on the densest (xxxhdpi) screens. */
+internal const val MIN_PICTURE_SIDE = 432
+
+/** The launcher decodes the file whole, so this keeps the picture to 4 MB of memory. */
+internal const val MAX_PICTURE_SIDE = 1024
+
+private const val MAX_PICTURE_MEGABYTES = 8
+
+private val PNG_SIGNATURE = byteArrayOf(0x89.toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)
 
 /**
  * The looks this patch offers. Each one only rewrites the adaptive icon, so it shows on Android 8
@@ -40,7 +54,8 @@ val customLauncherIconPatch = resourcePatch(
     name = "Custom launcher icon",
     description = "Gives TikTok's launcher icon a themed version, so on Android 13 and up it takes " +
         "your wallpaper's color when themed icons are on. Its options can also swap in a black " +
-        "background or a plain one-color note on Android 8 and up.",
+        "background or a plain one-color note on Android 8 and up, or put a PNG of your own " +
+        "in the note's place.",
     default = false,
 ) {
     category("Settings")
@@ -55,10 +70,22 @@ val customLauncherIconPatch = resourcePatch(
             "style gets the themed icon.",
         required = true,
     )
+    val pictureFile by stringOption(
+        key = "iconPicture",
+        default = null,
+        title = "Icon picture",
+        description = "The path of a square PNG of your own, from $MIN_PICTURE_SIDE to " +
+            "$MAX_PICTURE_SIDE pixels a side, to show in place of TikTok's note. Launchers cut " +
+            "the icon to their own shape, so keep what matters in the middle two thirds. With a " +
+            "picture the style only sets the color behind it, and the icon has no themed version. " +
+            "Leave it empty to keep the note.",
+        required = false,
+    )
 
     execute {
-        // Checked before anything is read, so a refused style changes nothing.
+        // Checked before anything is read, so a refused style or picture changes nothing.
         val chosen = iconStyle(style)
+        val picture = launcherPicture(pictureFile)
         val packageRoot = get("res").parentFile
         val decodedRoots = decodedPackageRoots(packageRoot)
         val collisions = renamedPathCollisions(
@@ -75,13 +102,17 @@ val customLauncherIconPatch = resourcePatch(
         if (adaptiveIcons.isEmpty()) {
             throw PatchException("Custom launcher icon: TikTok's icon ${icons.joinToString()} has no adaptive version to restyle.")
         }
+        val pictureReference = picture?.let { "@drawable/$PICTURE_NAME" }
         // A dry run on a throwaway copy of each icon first: a refusal leaves every file as it was.
         val layers = adaptiveIcons.associateWith { file ->
-            IconLayers.of(res, readXml(file)).also { restyleAdaptiveIcon(readXml(file), it, chosen) }
+            IconLayers.of(res, readXml(file)).also { restyleAdaptiveIcon(readXml(file), it, chosen, pictureReference) }
         }
+        // One unscaled file: the launcher scales the layer to its icon size on every screen, and
+        // Morphe Manager patches on the phone, where there's no image library to resize it with.
+        picture?.let { res.resolve("drawable-nodpi/$PICTURE_NAME.png").apply { parentFile.mkdirs() }.writeBytes(it.bytes) }
         for ((file, layer) in layers) {
             document(file.relativeTo(get(".")).invariantSeparatorsPath).use { icon ->
-                restyleAdaptiveIcon(icon, layer, chosen)
+                restyleAdaptiveIcon(icon, layer, chosen, pictureReference)
             }
         }
     }
@@ -102,6 +133,89 @@ internal fun iconStyle(raw: String?): IconStyle {
                 IconStyle.entries.joinToString { it.key } + ".",
         )
 }
+
+/** A supplied picture, read and checked before the patch reads or writes anything else. */
+internal class LauncherPicture(val bytes: ByteArray, val side: Int)
+
+/**
+ * The picture at [raw], or null when the option is empty. A file Android's PNG decoder would
+ * refuse is refused here instead, and so is one that isn't square or is too small or too large
+ * for an icon. The size comes off the PNG header, so no image library is needed: Morphe Manager
+ * patches on the phone, where there is none.
+ */
+internal fun launcherPicture(raw: String?): LauncherPicture? {
+    val path = raw?.trim().orEmpty()
+    if (path.isEmpty()) return null
+    fun refuse(why: String): Nothing = throw PatchException("Custom launcher icon: $why Nothing was changed.")
+    val file = File(path)
+    if (!file.isFile) refuse("there's no file at \"$path\".")
+    if (file.length() > MAX_PICTURE_MEGABYTES * 1024L * 1024L) {
+        refuse("\"${file.name}\" is larger than $MAX_PICTURE_MEGABYTES MB, which is too big for an icon.")
+    }
+    val bytes = file.readBytes()
+    val (width, height) = pngSize(bytes) ?: refuse("\"${file.name}\" isn't a PNG, or it's damaged or cut short.")
+    if (width != height) refuse("the picture has to be square, and \"${file.name}\" is $width by $height pixels.")
+    if (width !in MIN_PICTURE_SIDE..MAX_PICTURE_SIDE) {
+        refuse(
+            "the picture has to be from $MIN_PICTURE_SIDE to $MAX_PICTURE_SIDE pixels a side, " +
+                "and \"${file.name}\" is $width.",
+        )
+    }
+    return LauncherPicture(bytes, width)
+}
+
+/**
+ * The width and height in a whole, well-formed PNG, or null. Every chunk has to fit the file and
+ * match its checksum, the header has to come first with a bit depth, color type and method the
+ * PNG spec allows, a palette image needs its palette before the image data, and the file needs
+ * image data and an end chunk, so a cut-short or malformed file is caught here and not by the
+ * launcher.
+ */
+internal fun pngSize(bytes: ByteArray): Pair<Int, Int>? {
+    if (bytes.size < PNG_SIGNATURE.size || !bytes.copyOfRange(0, PNG_SIGNATURE.size).contentEquals(PNG_SIGNATURE)) return null
+    var offset = PNG_SIGNATURE.size
+    var size: Pair<Int, Int>? = null
+    var paletted = false
+    var palette = false
+    var images = 0
+    while (offset + 12 <= bytes.size) {
+        val length = bytes.bigEndianInt(offset)
+        if (length < 0 || length > bytes.size - offset - 12) return null
+        val type = String(bytes, offset + 4, 4, Charsets.ISO_8859_1)
+        val crc = CRC32().apply { update(bytes, offset + 4, 4 + length) }.value
+        if (crc != (bytes.bigEndianInt(offset + 8 + length).toLong() and 0xffffffffL)) return null
+        if (size == null) {
+            if (type != "IHDR" || length != 13 || !pngHeaderValid(bytes, offset + 8)) return null
+            size = bytes.bigEndianInt(offset + 8) to bytes.bigEndianInt(offset + 12)
+            paletted = bytes[offset + 17].toInt() == 3
+        } else {
+            when (type) {
+                "IHDR" -> return null
+                "PLTE" -> palette = true
+                "IDAT" -> if (paletted && !palette) return null else images++
+                "IEND" -> return size.takeIf { images > 0 && it.first > 0 && it.second > 0 }
+            }
+        }
+        offset += 12 + length
+    }
+    return null
+}
+
+/** Whether the IHDR body at [at] names a bit depth and color type pair, compression, filter and interlace method the PNG spec allows. */
+private fun pngHeaderValid(bytes: ByteArray, at: Int): Boolean {
+    val depth = bytes[at + 8].toInt()
+    val depths = when (bytes[at + 9].toInt()) {
+        0 -> setOf(1, 2, 4, 8, 16)
+        3 -> setOf(1, 2, 4, 8)
+        2, 4, 6 -> setOf(8, 16)
+        else -> return false
+    }
+    return depth in depths && bytes[at + 10].toInt() == 0 && bytes[at + 11].toInt() == 0 && bytes[at + 12].toInt() in 0..1
+}
+
+private fun ByteArray.bigEndianInt(at: Int): Int =
+    ((this[at].toInt() and 0xff) shl 24) or ((this[at + 1].toInt() and 0xff) shl 16) or
+        ((this[at + 2].toInt() and 0xff) shl 8) or (this[at + 3].toInt() and 0xff)
 
 /**
  * The icon references the launcher can show: the application's icon and round icon, and the
@@ -172,11 +286,14 @@ internal class IconLayers(val background: Element?, val foreground: Element) {
  * else that draws them changes. The themed layer is the foreground's white note alone: Android
  * 13 launchers draw that shape in the wallpaper color, and the cyan and red slivers would only
  * thicken it. An icon that already has a themed layer keeps it. Returns whether one was added.
+ *
+ * <p>With a [picture], the foreground draws that drawable instead, the style's note color goes
+ * unused and the icon loses any themed layer, which would show TikTok's note in its place.
  */
-internal fun restyleAdaptiveIcon(icon: Document, layers: IconLayers, style: IconStyle): Boolean {
+internal fun restyleAdaptiveIcon(icon: Document, layers: IconLayers, style: IconStyle, picture: String? = null): Boolean {
     val root = icon.documentElement
     if (root?.tagName != ADAPTIVE_ICON) throw PatchException("Custom launcher icon: the icon isn't an adaptive icon.")
-    val note = glyphVector(icon, layers.foreground, GLYPH_FILL)
+    val note = if (picture == null) glyphVector(icon, layers.foreground, GLYPH_FILL) else null
     style.background?.let { color ->
         val background = layers.background ?: throw PatchException(
             "Custom launcher icon: the icon's background isn't a single vector, so the " +
@@ -185,13 +302,20 @@ internal fun restyleAdaptiveIcon(icon: Document, layers: IconLayers, style: Icon
         val layer = root.layer("background") ?: throw PatchException("Custom launcher icon: the icon has no background layer.")
         layer.drawInline(recolored(icon, background, color))
     }
+    if (picture != null) {
+        val layer = root.layer("foreground") ?: throw PatchException("Custom launcher icon: the icon has no foreground layer.")
+        while (layer.firstChild != null) layer.removeChild(layer.firstChild)
+        layer.setAttribute(DRAWABLE, picture)
+        root.layer(MONOCHROME)?.let { root.removeChild(it) }
+        return false
+    }
     style.glyph?.let { color ->
         val layer = root.layer("foreground") ?: throw PatchException("Custom launcher icon: the icon has no foreground layer.")
         layer.drawInline(glyphVector(icon, layers.foreground, color))
     }
     if (root.layer(MONOCHROME) != null) return false
     val monochrome = icon.createElement(MONOCHROME)
-    monochrome.appendChild(note)
+    monochrome.appendChild(note!!)
     root.appendChild(monochrome)
     return true
 }

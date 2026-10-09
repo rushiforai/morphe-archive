@@ -6,7 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Which colors the AMOLED patch paints, held to each fixture's own dark palette.
+ * Which colors the AMOLED patch paints, held to each declared build's own dark palette.
  *
  * <p>The dark app themes set a block of color tokens, the attrs TikTok's views read for their
  * surfaces. On every build read so far the block opens with the same seven values, an 8% white
@@ -19,10 +19,8 @@ import org.junit.Test
 class AmoledPaletteTest {
     @Test
     fun `each fixture's background grays are the ones its dark token block sets`() {
-        val versions = mutableListOf<String>()
-        for (apk in Fixtures.apks()) {
-            val version = Regex("""\d+\.\d+\.\d+""").find(apk.name)?.value ?: error("no version in ${apk.name}")
-            versions += version
+        Fixtures.forEachDeclared { apk ->
+            val version = Fixtures.versionOf(apk)
             val table = FixtureResourceTable(apk)
             val blocks = table.styles.filter { style ->
                 table.colorReferences(style).map { table.colorValues[it] }
@@ -38,17 +36,7 @@ class AmoledPaletteTest {
             val blockNames = blocks.map { it.name }.toSet()
             val elsewhere = table.styles.filter { it.name !in blockNames && table.colorReferences(it).any(palette::contains) }
             assertTrue("$version: other styles point at the palette: ${elsewhere.map { it.name }}", elsewhere.isEmpty())
-
-            if (version == "47.0.3") {
-                // What the 46.x names hold here: an orange, the 8% overlay, the #121212 gray, the
-                // 12% overlay and the brand red. The patch painted all five black before this.
-                assertEquals(
-                    listOf("#ffff4e33", "#14ffffff", "#ff121212", "#1fffffff", "#ffff3b5c"),
-                    listOf("a3y", "a40", "a41", "a43", "a4a").map { table.colorValues[it] },
-                )
-            }
         }
-        assertTrue("the declared build is not among the fixtures: $versions", declaredVersions().all { it in versions })
     }
 
     private companion object {

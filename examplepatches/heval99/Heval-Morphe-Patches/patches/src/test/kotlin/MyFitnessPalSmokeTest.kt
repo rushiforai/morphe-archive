@@ -49,7 +49,7 @@ class MyFitnessPalSmokeTest {
             apk = apk,
             workDir = workDir,
             pkg = PKG,
-            version = "26.37.0",
+            version = "26.39.0",
             patchNames = setOf("Enable Premium+"),
             allPatches = loadAllPatches(newestPatchBundle(root)),
         )

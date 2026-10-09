@@ -52,8 +52,8 @@ class FollowingFeedHomeFixtureTest {
         val where = "$name: ${builder.definingClass}->${builder.name}"
         assertTrue("$where isn't static", AccessFlags.STATIC.isSet(builder.accessFlags))
         assertEquals("$where: the feed type isn't second", HOME_FEED_TYPE_CLASS, builder.parameterTypes[1].toString())
-        // The feed style it sets for the Following feed is what makes the swap a Following request.
-        assertTrue("$where sets no FOLLOWING_FEED style", holdsString(builder, "FOLLOWING_FEED"))
+        // The feed style it sets for the most recent feed is what makes the swap a most recent request.
+        assertTrue("$where sets no $MOST_RECENT_STYLE style", holdsString(builder, MOST_RECENT_STYLE))
         assertTrue("$where has no local register for the hook", builder.localRegisterCount() >= 1)
 
         val feedTypes = FixtureDex.classes(bundle, setOf(HOME_FEED_TYPE_CLASS)).values.single()

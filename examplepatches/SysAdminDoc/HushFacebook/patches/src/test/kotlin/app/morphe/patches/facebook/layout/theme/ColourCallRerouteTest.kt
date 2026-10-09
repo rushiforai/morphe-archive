@@ -82,8 +82,9 @@ class ColourCallRerouteTest {
 
     /**
      * Material You takes over AMOLED's stand-ins when AMOLED went first, and the framework's own
-     * calls without AMOLED. The theme attribute read stays AMOLED's: Material You leaves Facebook's
-     * default colours as they are, so there is nothing for it to give back.
+     * calls without AMOLED. That includes the theme attribute read: SURFACE_BACKGROUND's night style
+     * item keeps #252728, since some code reads it as a plain colour, and Litho reads it with
+     * TypedArray.getColor for the comment list's rows (issue #37).
      */
     @Test
     fun `Material You takes over AMOLED's stand-ins, or the framework's calls without AMOLED`() {
@@ -92,19 +93,18 @@ class ColourCallRerouteTest {
             Triple(Opcode.INVOKE_STATIC, "$you->getColor(Landroid/content/Context;I)I", listOf(1, 2)),
             Triple(Opcode.INVOKE_STATIC, "$you->getColor(Landroid/content/res/Resources;I)I", listOf(3, 2)),
             Triple(Opcode.INVOKE_STATIC, "$you->getColor(Landroid/content/res/Resources;I${theme})I", listOf(3, 2, 4)),
+            Triple(Opcode.INVOKE_STATIC_RANGE, "$you->getColor(Landroid/content/res/TypedArray;II)I", listOf(4, 5, 6)),
+            Triple(Opcode.INVOKE_STATIC, "$you->parseColor(Ljava/lang/String;)I", listOf(5)),
         )
-        val parse = Triple(Opcode.INVOKE_STATIC, "$you->parseColor(Ljava/lang/String;)I", listOf(5))
 
         val both = method(7, reads)
         both.rerouteColourCalls(AMOLED_COLOUR_CALLS, mutableMapOf<String, Int>().withDefault { 0 })
         both.rerouteColourCalls(YOU_COLOUR_CALLS, mutableMapOf<String, Int>().withDefault { 0 })
-        val attribute = Triple(Opcode.INVOKE_STATIC_RANGE, AMOLED_COLOUR_CALLS.getValue(TYPED_ARRAY_GET_COLOR), listOf(4, 5, 6))
-        assertEquals(expected + attribute + parse, both.calls())
+        assertEquals(expected, both.calls())
 
         val alone = method(7, reads)
         alone.rerouteColourCalls(YOU_COLOUR_CALLS, mutableMapOf<String, Int>().withDefault { 0 })
-        val untouched = Triple(Opcode.INVOKE_VIRTUAL_RANGE, TYPED_ARRAY_GET_COLOR, listOf(4, 5, 6))
-        assertEquals(expected + untouched + parse, alone.calls())
+        assertEquals(expected, alone.calls())
     }
 
     /**

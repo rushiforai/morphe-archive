@@ -19,6 +19,7 @@ val removeAdsPatch = rawResourcePatch(
     description = "Removes banner, interstitial, and rewarded advertising and removes ad-based chip offers.",
     default = true
 ) {
+    category("Ads")
     compatibleWith(COMPATIBILITY_BLACKJACK)
 
     execute {
@@ -42,24 +43,24 @@ val removeAdsPatch = rawResourcePatch(
             System.arraycopy(replacement, 0, bytes, offset, replacement.size)
         }
 
-        patch(0x1fa0d28, byteArrayOf(0x00, 0xb0.toByte(), 0x40, 0x39, 0xc0.toByte(), 0x03, 0x5f, 0xd6.toByte()), RETURN_TRUE, "PlayerData.get_AdsDisabled")
-        patch(0x1ffc014, byteArrayOf(0xff.toByte(), 0x03, 0x02, 0xd1.toByte(), 0xe9.toByte(), 0x23, 0x03, 0x6d), RETURN_FALSE, "BlackjackAds.TryShowInterstitial")
-        patch(0x1ffc460, byteArrayOf(0xff.toByte(), 0xc3.toByte(), 0x03, 0xd1.toByte(), 0xfe.toByte(), 0x5b, 0x00, 0xf9.toByte(), 0xf8.toByte(), 0x5f, 0x0c, 0xa9.toByte(), 0xf6.toByte(), 0x57, 0x0d, 0xa9.toByte(), 0xf4.toByte(), 0x4f, 0x0e, 0xa9.toByte()), RETURN_EMPTY_AD_RESULT, "BlackjackAds.ShowInterstitial")
+        patch(0x1fb5210, byteArrayOf(0x00, 0xb0.toByte(), 0x40, 0x39, 0xc0.toByte(), 0x03, 0x5f, 0xd6.toByte()), RETURN_TRUE, "PlayerData.get_AdsDisabled")
+        patch(0x2010568, byteArrayOf(0xff.toByte(), 0x03, 0x02, 0xd1.toByte(), 0xe9.toByte(), 0x23, 0x03, 0x6d), RETURN_FALSE, "BlackjackAds.TryShowInterstitial")
+        patch(0x20109b4, byteArrayOf(0xff.toByte(), 0xc3.toByte(), 0x03, 0xd1.toByte(), 0xfe.toByte(), 0x5b, 0x00, 0xf9.toByte(), 0xf8.toByte(), 0x5f, 0x0c, 0xa9.toByte(), 0xf6.toByte(), 0x57, 0x0d, 0xa9.toByte(), 0xf4.toByte(), 0x4f, 0x0e, 0xa9.toByte()), RETURN_EMPTY_AD_RESULT, "BlackjackAds.ShowInterstitial")
         listOf(
-            0x3b86238 to byteArrayOf(0xff.toByte(), 0x83.toByte(), 0x01, 0xd1.toByte()),
-            0x3b88f2c to byteArrayOf(0xff.toByte(), 0x83.toByte(), 0x01, 0xd1.toByte()),
-            0x3b8afc4 to byteArrayOf(0xfe.toByte(), 0x0f, 0x1c, 0xf8.toByte()),
-            0x3b8b438 to byteArrayOf(0xfe.toByte(), 0x0f, 0x1e, 0xf8.toByte())
+            0x3bc9530 to byteArrayOf(0xff.toByte(), 0x83.toByte(), 0x01, 0xd1.toByte()),
+            0x3bcc22c to byteArrayOf(0xff.toByte(), 0x83.toByte(), 0x01, 0xd1.toByte()),
+            0x3bce2c4 to byteArrayOf(0xfe.toByte(), 0x0f, 0x1c, 0xf8.toByte()),
+            0x3bce738 to byteArrayOf(0xfe.toByte(), 0x0f, 0x1e, 0xf8.toByte())
         ).forEach { (offset, expected) -> patch(offset, expected, RETURN_VOID, "AdManager ad entrypoint") }
         listOf(
-            0x3b874b0 to byteArrayOf(0xff.toByte(), 0x43, 0x01, 0xd1.toByte()),
-            0x3b87544 to byteArrayOf(0xff.toByte(), 0xc3.toByte(), 0x00, 0xd1.toByte()),
-            0x3b87570 to byteArrayOf(0xff.toByte(), 0x03, 0x02, 0xd1.toByte()),
-            0x3b89a08 to byteArrayOf(0xff.toByte(), 0x43, 0x01, 0xd1.toByte()),
-            0x3b89a9c to byteArrayOf(0xff.toByte(), 0xc3.toByte(), 0x00, 0xd1.toByte()),
-            0x3b89ac8 to byteArrayOf(0xff.toByte(), 0x43, 0x02, 0xd1.toByte())
+            0x3bca7a8 to byteArrayOf(0xff.toByte(), 0x43, 0x01, 0xd1.toByte()),
+            0x3bca83c to byteArrayOf(0xff.toByte(), 0xc3.toByte(), 0x00, 0xd1.toByte()),
+            0x3bca868 to byteArrayOf(0xff.toByte(), 0x03, 0x02, 0xd1.toByte()),
+            0x3bccd08 to byteArrayOf(0xff.toByte(), 0x43, 0x01, 0xd1.toByte()),
+            0x3bccd9c to byteArrayOf(0xff.toByte(), 0xc3.toByte(), 0x00, 0xd1.toByte()),
+            0x3bccdc8 to byteArrayOf(0xff.toByte(), 0x43, 0x02, 0xd1.toByte())
         ).forEach { (offset, expected) -> patch(offset, expected, RETURN_EMPTY_AD_RESULT, "AdManager show entrypoint") }
-        patch(0x1fe92bc, byteArrayOf(0x21, 0x00, 0x80.toByte(), 0x52), byteArrayOf(0xe1.toByte(), 0x03, 0x1f, 0x2a), "LevelUpRewardScreen.watchAnAdContainer")
+        patch(0x1ffd7dc, byteArrayOf(0x21, 0x00, 0x80.toByte(), 0x52), byteArrayOf(0xe1.toByte(), 0x03, 0x1f, 0x2a), "LevelUpRewardScreen.watchAnAdContainer")
         library.writeBytes(bytes)
     }
 }

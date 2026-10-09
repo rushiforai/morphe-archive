@@ -22,10 +22,14 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import com.android.tools.smali.dexlib2.AccessFlags
 import com.android.tools.smali.dexlib2.Opcode
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
+import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
+import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.TwoRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.WideLiteralInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 private const val PATCH = "Keep the progress bar"
 
@@ -47,6 +51,13 @@ internal const val SET_ALPHA = "Landroid/graphics/drawable/Drawable;->setAlpha(I
 internal const val SET_ENABLED = "Landroid/view/View;->setEnabled(Z)V"
 internal const val SEND_DELAYED = "Landroid/os/Handler;->sendEmptyMessageDelayed(IJ)Z"
 internal const val REMOVE_MESSAGES = "Landroid/os/Handler;->removeMessages(I)V"
+
+/** The name the newer player's video controls extension gives itself, a kept literal. */
+internal const val CONTROLS_EXTENSION = "VideoControlsExtension"
+internal const val POST_DELAYED = "Landroid/os/Handler;->postDelayed(Ljava/lang/Runnable;J)Z"
+internal const val REMOVE_CALLBACKS = "Landroid/os/Handler;->removeCallbacksAndMessages(Ljava/lang/Object;)V"
+internal const val RUNNABLE = "Ljava/lang/Runnable;"
+internal const val PLAYER_CONTROL_UPDATE = "updateState:FbShortsVideoControlComponent.updatePlayerControl"
 
 internal const val PROGRESS_BAR = "$EXTENSION_PACKAGE/media/ProgressBar;"
 internal const val KEEPS_REEL_BAR = "$PROGRESS_BAR->keepsReelBar()Z"
@@ -78,11 +89,25 @@ internal const val VIEW_GROUP = "Landroid/view/ViewGroup;"
  * instead and returns.
  *
  * A full-screen video's controls are a plugin built on one class, the superclass of the kept
- * [FULLSCREEN_CONTROLS] (581 `LX/ReC;`, 580 `LX/RuU;`, 577 `LX/SHr;`), which also carries Orion,
- * live and Watch and more controls. Its one method that calls [SEND_DELAYED] (581 `A16`) sets the
- * timer whose message fades the controls out, each time they show and each time they're touched.
- * The extension goes first there, and while the switch is on no timer is set, so the controls and
- * their bar stay until a tap hides them the way it always has.
+ * [FULLSCREEN_CONTROLS] (581 `LX/ReC;`), which also carries Orion, live and Watch and more
+ * controls. Its one method that calls [SEND_DELAYED] (581 `A16`) sets the timer whose message fades
+ * the controls out, each time they show and each time they're touched. The extension goes first
+ * there, and while the switch is on no timer is set, so the controls and their bar stay until a tap
+ * hides them the way it always has.
+ *
+ * The newer Litho player hides its controls through an extension named [CONTROLS_EXTENSION] (581
+ * `LX/RbF;`). Its one method that drops its pending callbacks and posts a runnable (581 `A0N`) sets
+ * the hide 3 seconds after the controls are touched, 10 with accessibility on. The same hook goes
+ * first there.
+ *
+ * The player the video viewer's Enter fullscreen landscape mode opens on 577 to 581 runs on the
+ * Reels controls component instead, whose updater traces [PLAYER_CONTROL_UPDATE] (581
+ * `LX/87v;->Don`). A controller built with that updater's interface (581 `LX/87w;`) shows the
+ * controls on a tap and posts its hide runnable (581 `LX/87x;`), whose `run()` asks the controller
+ * to hide them about 3 seconds later. On the S25 (581, 2026-10-08) a stack trace of that hide went
+ * from this `run()` through the controller to the updater, and none of the hooks above ran in that
+ * player. So the same hook goes first in this `run()`. A tap still hides the controls, as the tap
+ * handler calls the controller's hide itself.
  *
  * In the default selection with its switch off: it only acts once the switch is turned on.
  */
@@ -113,6 +138,17 @@ val keepProgressBarPatch = bytecodePatch(
             ?.let { classDefByOrNull(it) }
             ?: refuse("FeedFullscreenVideoControlsPlugin or the controls class it extends isn't in this APK")
         val timer = fadeTimer(controls)
+        val (extension, hide) = extensionFadeTimer(
+            classDefByStrings(CONTROLS_EXTENSION, StringComparisonType.EQUALS)
+                .filterNot { it.type.startsWith(EXTENSION_CLASSES) },
+        )
+        val updater = controlsUpdater(
+            classDefByStrings(PLAYER_CONTROL_UPDATE, StringComparisonType.EQUALS)
+                .filterNot { it.type.startsWith(EXTENSION_CLASSES) },
+        ) { classDefByOrNull(it) }
+        val controllers = mutableListOf<ClassDef>()
+        classDefForEach { if (!it.type.startsWith(EXTENSION_CLASSES) && takesUpdater(it, updater)) controllers += it }
+        val (hider, hiderRun) = controlsHideRunnable(controllers) { classDefByOrNull(it) }
 
         mutableClassDefBy(scrubber.type).methods.single { it.sameAs(scrubber.passive) }
             .activeInstead(scrubber)
@@ -121,6 +157,8 @@ val keepProgressBarPatch = bytecodePatch(
                 .fullSizeInstead(plugin.type, sizes.fullSize)
         }
         mutableClassDefBy(controls.type).methods.single { it.sameAs(timer) }.noTimerWhileKept()
+        mutableClassDefBy(extension.type).methods.single { it.sameAs(hide) }.noTimerWhileKept()
+        mutableClassDefBy(hider.type).methods.single { it.sameAs(hiderRun) }.noTimerWhileKept()
         enableStatus("keepProgressBar")
     }
 }
@@ -238,6 +276,94 @@ internal fun fadeTimer(controls: ClassDef): Method {
         refuse("${controls.type}->${timer.name}, its fade timer, is no longer an instance ()V that drops the old timer first")
     }
     return timer
+}
+
+/**
+ * The newer player's controls hide: the one instance `V` method among [holders] (the classes that
+ * load [CONTROLS_EXTENSION]) that drops its pending callbacks and posts a runnable.
+ */
+internal fun extensionFadeTimer(holders: List<ClassDef>): Pair<ClassDef, Method> {
+    val timers = holders.flatMap { holder ->
+        holder.methods.filter {
+            !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" && it.calls(POST_DELAYED) &&
+                it.calls(REMOVE_CALLBACKS)
+        }.map { holder to it }
+    }
+    return timers.singleOrNull()
+        ?: refuse("expected one method of the classes loading \"$CONTROLS_EXTENSION\" to post the controls' hide, found ${timers.size}")
+}
+
+/**
+ * The interface the landscape player's controls updater implements (581 `LX/9Wi;`): the one
+ * interface, among those of [holders] found with [classOf], declaring an instance `V` method of
+ * theirs that traces [PLAYER_CONTROL_UPDATE].
+ */
+internal fun controlsUpdater(holders: List<ClassDef>, classOf: (String) -> ClassDef?): String {
+    val found = holders.distinctBy { it.type }.flatMap { holder ->
+        methodsHolding(holder, PLAYER_CONTROL_UPDATE)
+            .filter { !AccessFlags.STATIC.isSet(it.accessFlags) && it.returnType == "V" }
+            .flatMap { update ->
+                holder.interfaces.mapNotNull(classOf).filter { face -> face.methods.any { it.sameAs(update) } }
+            }
+    }.map { it.type }.distinct()
+    return found.singleOrNull()
+        ?: refuse("expected one interface for the controls updater tracing \"$PLAYER_CONTROL_UPDATE\", found ${found.size}")
+}
+
+/** Whether a constructor of [classDef] takes the controls updater, as their controller's does. */
+internal fun takesUpdater(classDef: ClassDef, updater: String) = classDef.methods.any { method ->
+    method.name == "<init>" && method.parameterTypes.any { it.toString() == updater }
+}
+
+/** The fields of [owner]'s own [RUNNABLE]s that [method] hands to an interface method with a delay. */
+private fun delayedRunnables(owner: String, method: Method): Set<String> {
+    val code = method.implementation?.instructions?.toList().orEmpty()
+    return code.indices.mapNotNull { index ->
+        val post = (code[index] as? ReferenceInstruction)?.takeIf { code[index].opcode == Opcode.INVOKE_INTERFACE }
+            ?.reference as? MethodReference
+        val field = (code.getOrNull(index - 1) as? ReferenceInstruction)?.takeIf { it.opcode == Opcode.IGET_OBJECT }
+            ?.reference as? FieldReference
+        field?.toString()?.takeIf {
+            post != null && post.returnType == "V" && post.parameterTypes.map(CharSequence::toString) == listOf(RUNNABLE, "J") &&
+                field.definingClass == owner && field.type == RUNNABLE
+        }
+    }.toSet()
+}
+
+private fun delayedRunnables(controller: ClassDef) = controller.methods.flatMap { delayedRunnables(controller.type, it) }.toSet()
+
+/**
+ * The landscape player's controls hide: of [controllers] (the classes taking the updater), the one
+ * that posts one of its own runnables with a delay, that runnable's class, found with [classOf] as
+ * the `new-instance` its constructor stores in the field, and its `run()V`, which asks that
+ * controller to hide the controls through a method other than the one posting it.
+ */
+internal fun controlsHideRunnable(controllers: List<ClassDef>, classOf: (String) -> ClassDef?): Pair<ClassDef, Method> {
+    val posting = controllers.distinctBy { it.type }.map { it to delayedRunnables(it) }.filter { it.second.isNotEmpty() }
+    val (controller, fields) = posting.singleOrNull()
+        ?: refuse("expected one class built with the controls updater to post a runnable with a delay, found ${posting.size}")
+    val field = fields.singleOrNull()
+        ?: refuse("${controller.type} posts ${fields.size} of its runnables with a delay, expected the one hide")
+    val made = controller.methods.filter { it.name == "<init>" }.mapNotNull { init ->
+        val code = init.implementation?.instructions?.toList().orEmpty()
+        val put = code.indexOfFirst { it.opcode == Opcode.IPUT_OBJECT && (it as ReferenceInstruction).reference.toString() == field }
+        if (put < 0) return@mapNotNull null
+        val register = (code[put] as TwoRegisterInstruction).registerA
+        code.subList(0, put).lastOrNull { it.opcode == Opcode.NEW_INSTANCE && (it as OneRegisterInstruction).registerA == register }
+            ?.let { ((it as ReferenceInstruction).reference as TypeReference).type }
+    }.distinct()
+    val runnable = made.singleOrNull()?.let(classOf)?.takeIf { RUNNABLE in it.interfaces }
+        ?: refuse("$field isn't filled with one Runnable of Facebook's by ${controller.type}'s constructor")
+    val run = runnable.methods.singleOrNull { it.name == "run" && it.returnType == "V" && it.parameterTypes.isEmpty() }
+        ?: refuse("${runnable.type}, the controls' hide runnable, has no run()V")
+    val posters = controller.methods.filter { field in delayedRunnables(controller.type, it) }
+    val asked = run.implementation!!.instructions.mapNotNull { instruction ->
+        (instruction as? ReferenceInstruction)?.takeIf { instruction.opcode.name.startsWith("invoke") }?.reference as? MethodReference
+    }.filter { it.definingClass == controller.type }
+    if (asked.isEmpty() || asked.any { call -> posters.any { it.name == call.name && it.returnType == call.returnType } }) {
+        refuse("${runnable.type}->run doesn't ask ${controller.type} to hide the controls")
+    }
+    return runnable to run
 }
 
 /**

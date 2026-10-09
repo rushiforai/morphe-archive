@@ -141,7 +141,7 @@ public class ExpandedControlsTest {
             assertEquals(View.VISIBLE, ((View) root.findViewWithTag("people").getParent()).getVisibility());
             assertEquals(View.GONE, ((View) root.findViewWithTag("stories").getParent()).getVisibility());
             search.setText("Stickers");
-            assertEquals(ExpectedTotals.shown(3), status.getText().toString());
+            assertEquals(ExpectedTotals.shown(4), status.getText().toString());
             search.setText("missing control xyz");
             assertEquals("No matching controls. Try another search.", status.getText().toString());
             search.setText("");

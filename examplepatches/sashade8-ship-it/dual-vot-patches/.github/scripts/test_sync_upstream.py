@@ -363,6 +363,59 @@ class SyncUpstreamTests(unittest.TestCase):
             '</resources>\n',
         )
 
+    def test_retains_known_title_removed_by_morphe_dev4(self):
+        from xml.etree import ElementTree
+
+        for newline in ("\n", "\r\n"):
+            with self.subTest(newline=repr(newline)):
+                base = newline.join((
+                    '<resources>',
+                    '    <string name="morphe_vot_screen_title">Official title</string>',
+                    '    <string name="morphe_vot_screen_summary">Official summary</string>',
+                    '    <string name="morphe_vot_enabled_title">Old title</string>',
+                    '    <string name="upstream">old</string>',
+                    '</resources>', '',
+                ))
+                ours = base.replace('>Old title<', '>Dual title<').replace(
+                    '</resources>',
+                    '    <string name="dualvot_yandex_enabled">Enabled</string>'
+                    + newline + '</resources>',
+                )
+                theirs = base.replace(
+                    '    <string name="morphe_vot_enabled_title">Old title</string>' + newline,
+                    '',
+                ).replace('name="upstream">old', 'name="upstream">new')
+                merged = sync_upstream.merge_dual_yandex_strings(base, ours, theirs)
+                elements = list(ElementTree.fromstring(merged))
+                names = [element.attrib["name"] for element in elements]
+                values = {element.attrib["name"]: element.text for element in elements}
+                self.assertEqual(names.count("morphe_vot_enabled_title"), 1)
+                self.assertEqual(values["morphe_vot_enabled_title"], "Dual title")
+                self.assertEqual(values["upstream"], "new")
+                self.assertEqual(values["dualvot_yandex_enabled"], "Enabled")
+                if newline == "\r\n":
+                    self.assertNotIn("\n", merged.replace("\r\n", ""))
+                # Later merges must also retain the local compatibility label.
+                self.assertEqual(
+                    sync_upstream.merge_dual_yandex_strings(theirs, merged, theirs), merged
+                )
+
+    def test_rejects_removal_of_other_dual_owned_morphe_labels(self):
+        lines = {
+            name: f'    <string name="{name}">Label</string>\n'
+            for name in sorted(sync_upstream.DUAL_OWNED_MORPHE_STRING_NAMES)
+        }
+        base = '<resources>\n' + ''.join(lines.values()) + '</resources>\n'
+        ours = base.replace(
+            '</resources>',
+            '    <string name="dualvot_yandex_enabled">Enabled</string>\n</resources>',
+        )
+        for name in ("morphe_vot_screen_title", "morphe_vot_screen_summary"):
+            with self.subTest(name=name), self.assertRaisesRegex(
+                sync_upstream.SyncError, "Upstream removed Dual-owned Morphe strings: " + name
+            ):
+                sync_upstream.merge_dual_yandex_strings(base, ours, base.replace(lines[name], ''))
+
     def test_rejects_non_dual_local_resource_change(self):
         base = (
             '<resources>\n'

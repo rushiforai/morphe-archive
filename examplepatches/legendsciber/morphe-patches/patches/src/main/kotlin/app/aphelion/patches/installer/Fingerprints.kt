@@ -16,7 +16,7 @@ object AdSdkInstallerFingerprint : Fingerprint(
     name = "d",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Lcg0;"),
+    parameters = listOf("Lhp0;"),
     filters = listOf(methodCall(smali = GET_INSTALLER_PACKAGE_NAME)),
 )
 
@@ -29,8 +29,8 @@ object LicenseInstallerFingerprint : Fingerprint(
     filters = listOf(methodCall(smali = GET_INSTALLING_PACKAGE_NAME)),
 )
 
-object Wn1InstallerFingerprint : Fingerprint(
-    definingClass = "Lwn1;",
+object D32InstallerFingerprint : Fingerprint(
+    definingClass = "Ld32;",
     name = "d",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     returnType = "Ljava/lang/String;",
@@ -38,36 +38,36 @@ object Wn1InstallerFingerprint : Fingerprint(
     filters = listOf(methodCall(smali = GET_INSTALLER_PACKAGE_NAME)),
 )
 
-object Pd2InstallerFingerprint : Fingerprint(
-    definingClass = "Lpd2;",
-    name = "d",
+object Xu2InstallerFingerprint : Fingerprint(
+    definingClass = "Lxu2;",
+    name = "e",
     accessFlags = listOf(AccessFlags.PRIVATE, AccessFlags.FINAL),
     returnType = "V",
     parameters = emptyList(),
     filters = listOf(methodCall(smali = GET_INSTALLER_PACKAGE_NAME)),
 )
 
-object Ny4InstallerFingerprint : Fingerprint(
-    definingClass = "Lny4;",
-    name = "g",
+object Bw5InstallerFingerprint : Fingerprint(
+    definingClass = "Lbw5;",
+    name = "k",
     accessFlags = listOf(AccessFlags.PUBLIC),
     returnType = "Ljava/lang/Object;",
-    parameters = listOf("Lw6;"),
+    parameters = listOf("La7;"),
     filters = listOf(methodCall(smali = GET_INSTALLER_PACKAGE_NAME)),
 )
 
-object Wu4InstallingInstallerFingerprint : Fingerprint(
-    definingClass = "Lwu4;",
-    name = "f",
+object Fp5InstallingInstallerFingerprint : Fingerprint(
+    definingClass = "Lfp5;",
+    name = "i",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.BRIDGE, AccessFlags.SYNTHETIC),
     returnType = "Ljava/lang/String;",
     parameters = listOf("Landroid/content/pm/InstallSourceInfo;"),
     filters = listOf(methodCall(smali = GET_INSTALLING_PACKAGE_NAME)),
 )
 
-object Wu4InitiatingInstallerFingerprint : Fingerprint(
-    definingClass = "Lwu4;",
-    name = "k",
+object Fp5InitiatingInstallerFingerprint : Fingerprint(
+    definingClass = "Lfp5;",
+    name = "p",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC, AccessFlags.BRIDGE, AccessFlags.SYNTHETIC),
     returnType = "Ljava/lang/String;",
     parameters = listOf("Landroid/content/pm/InstallSourceInfo;"),

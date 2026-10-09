@@ -40,6 +40,34 @@ public class RouteMyListGeometryIntegrationTest {
     }
 
     @Test
+    public void keepsItemsOfOneStoreAreaTogetherUsingTheAisleCodePrefix() {
+        // Produce (AP-*) pins sit on both sides of a grocery (A-*) pin on the straight line.
+        List<Integer> indexes = RouteMyListGeometry.orderIndexes(
+                Collections.singletonList(new RouteMyListGeometry.Poi("Entrance", null, 0, 0, 0, 0)),
+                Arrays.asList(
+                        new RouteMyListGeometry.Pin("", "AP-3", "1", new RouteOrderPlanner.Point(10, 0)),
+                        new RouteMyListGeometry.Pin("", "A-1", "1", new RouteOrderPlanner.Point(10, 10)),
+                        new RouteMyListGeometry.Pin("", "AP-7", "1", new RouteOrderPlanner.Point(10, 20))),
+                Arrays.asList(
+                        new RouteMyListGeometry.ItemLocation(0, "", "AP-3", "1"),
+                        new RouteMyListGeometry.ItemLocation(1, "", "A-1", "1"),
+                        new RouteMyListGeometry.ItemLocation(2, "", "AP-7", "1")));
+
+        assertNotNull(indexes);
+        assertEquals(1, Math.abs(indexes.indexOf(0) - indexes.indexOf(2)));
+    }
+
+    @Test
+    public void derivesStoreAreaFromZoneOtherwiseAisleCodeLetters() {
+        assertEquals("FRESH", RouteMyListGeometry.storeArea("Fresh", "AP-3"));
+        assertEquals("AP", RouteMyListGeometry.storeArea("", "AP-3"));
+        assertEquals("AP", RouteMyListGeometry.storeArea(null, "ap3"));
+        assertEquals("A", RouteMyListGeometry.storeArea("", "A-16"));
+        assertEquals("", RouteMyListGeometry.storeArea("", "16"));
+        assertEquals("", RouteMyListGeometry.storeArea(null, null));
+    }
+
+    @Test
     public void preservesAisleFallbackWhenEntranceOrPinGeometryIsMissing() {
         List<RouteMyListGeometry.ItemLocation> items = Arrays.asList(
                 new RouteMyListGeometry.ItemLocation(0, "zone", "A1", "1"),

@@ -293,6 +293,51 @@ public class BudgetWaitSettingsTest {
                 lock.getSummary().toString().contains("Turns off at " + applies));
     }
 
+    @Test public void turningTheFeedLockOffWaitsAndOnAgainTakesItBack() {
+        Settings.FEED_LOCK.save(true);
+        PreferenceScreen screen = screenTimeRows();
+        Preference lock = screen.findPreference(Settings.FEED_LOCK.key);
+        assertNotNull("the feed lock row is not on the page", lock);
+
+        assertFalse("the feed lock was let go off",
+                lock.getOnPreferenceChangeListener().onPreferenceChange(lock, false));
+        assertTrue("the feed lock went off at once", Settings.FEED_LOCK.get());
+        assertEquals(false, BudgetChanges.waiting(Settings.FEED_LOCK));
+        String applies = SessionLockOverlay.timeLabel(at(2026, Calendar.SEPTEMBER, 8, 4, 0));
+        assertTrue("the row does not say when it goes off: " + lock.getSummary(),
+                lock.getSummary().toString().contains("Turns off at " + applies));
+        assertTrue(ShadowToast.getTextOfLatestToast() == null
+                || !ShadowToast.getTextOfLatestToast().contains("budget"));
+
+        assertTrue(lock.getOnPreferenceChangeListener().onPreferenceChange(lock, true));
+        assertNull("the wait outlived turning it back on", BudgetChanges.waiting(Settings.FEED_LOCK));
+
+        // Applied as the day starts over, like every other waiting change.
+        lock.getOnPreferenceChangeListener().onPreferenceChange(lock, false);
+        now.set(at(2026, Calendar.SEPTEMBER, 8, 4, 1));
+        BudgetChanges.applyDue(now.get());
+        assertFalse("the feed lock stayed on past the day", Settings.FEED_LOCK.savedValue());
+    }
+
+    @Test public void aLockedDayRefusesTurningTheFeedLockOffButNotOn() {
+        Settings.SESSION_BUDGET_MINUTES.save(1);
+        Settings.SESSION_BUDGET_LOCK.save(true);
+        Settings.SESSION_BUDGET_VIDEOS.save(1);
+        SessionBudget.noteVideo("only");
+        assertTrue(SessionBudget.claimNotice());
+        assertTrue("the fixture's day never locked", SessionBudget.lockedToday());
+        PreferenceScreen screen = screenTimeRows();
+        Preference lock = screen.findPreference(Settings.FEED_LOCK.key);
+
+        assertTrue("a locked day refused tightening", lock.getOnPreferenceChangeListener()
+                .onPreferenceChange(lock, true));
+        Settings.FEED_LOCK.save(true);
+        assertFalse("a locked day let the feed lock go",
+                lock.getOnPreferenceChangeListener().onPreferenceChange(lock, false));
+        assertTrue(Settings.FEED_LOCK.get());
+        assertNull("a refused change was kept", BudgetChanges.waiting(Settings.FEED_LOCK));
+    }
+
     @Test public void turningTheSwitchItselfOffWaitsAndOnAgainTakesItBack() {
         PreferenceScreen screen = screenTimeRows();
         Preference wait = screen.findPreference(Settings.SESSION_BUDGET_WAIT_TO_LOOSEN.key);

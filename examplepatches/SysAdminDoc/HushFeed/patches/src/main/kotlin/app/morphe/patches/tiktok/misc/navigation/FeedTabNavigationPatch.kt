@@ -15,6 +15,7 @@ import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.misc.extension.sharedExtensionPatch
 import app.morphe.patches.tiktok.misc.settings.SettingsStatusLoadFingerprint
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.declaredVersions
 import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.addInstructionsAtControlFlowLabel
 import app.morphe.util.getReference
@@ -145,7 +146,7 @@ internal fun com.android.tools.smali.dexlib2.iface.Method.liveTopTabModeRead(): 
 }
 
 /** Whether the instruction writes [register], as itself or as the high half of a wide pair. */
-private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.writes(register: Int): Boolean {
+internal fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.writes(register: Int): Boolean {
     val target = (this as? OneRegisterInstruction)?.registerA ?: return false
     return (opcode.setsRegister() && target == register) || (opcode.setsWideRegister() && target + 1 == register)
 }
@@ -153,7 +154,7 @@ private fun com.android.tools.smali.dexlib2.iface.instruction.Instruction.writes
 @Suppress("unused")
 val feedTabNavigationPatch = bytecodePatch(
     name = "Feed tab navigation",
-    description = "Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, can hide the Following and For You names above the feed while swiping between them keeps working, can hide the Tako AI bubble and the unread badges on the bottom tabs, can keep For You from reloading on a Home tap or a pull down, brings TikTok's LIVE button back to the feed's corner when the LIVE tab is taken off either bar, can open TikTok on Following, Friends, Inbox or Profile, can show TikTok's own feed buttons without a screen reader, and opens Hushfeed's settings from a long press on Home. Switch: Hushfeed settings > Feed tabs.",
+    description = "Controls which loaded top and bottom navigation tabs remain visible, blocks newly added tabs when requested, can hide the Following and For You names above the feed while swiping between them keeps working, can hide the Tako AI bubble and the unread badges on the bottom tabs, can hide or rename the names under the bottom tab icons, can keep For You from reloading on a Home tap or a pull down, brings TikTok's LIVE button back to the feed's corner when the LIVE tab is taken off either bar, can open TikTok on Following, Friends, Inbox or Profile, can show TikTok's own feed buttons without a screen reader, and opens Hushfeed's settings from a long press on Home. Switch: Hushfeed settings > Feed tabs.",
     default = true,
 ) {
     category("Settings")
@@ -162,6 +163,19 @@ val feedTabNavigationPatch = bytecodePatch(
     compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
+        // The bottom tab names are found before anything is written, since a patch that fails
+        // part way keeps what it wrote. On a declared build BottomTabLabelsAnchorsTest holds
+        // them, so a miss there fails the patch; on any other build it leaves just the names out.
+        val labelSites = try {
+            bottomTabLabelSites(classDefBy(TabCountDotVisibilityFingerprint.method.definingClass)) {
+                classDefByOrNull(it)
+            }
+        } catch (problem: PatchException) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[Feed tab navigation] Left out the bottom tab names on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
+
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableFeedNavigation()V",
@@ -251,6 +265,19 @@ val feedTabNavigationPatch = bytecodePatch(
                     invoke-static/range {p1 .. p1}, $TAB_BADGES_CLASS_DESCRIPTOR->$hook(I)I
                     move-result p1
                 """,
+            )
+        }
+
+        // The names under the bottom tab icons: the icon reports its tab's tag when it is built,
+        // and its name view once the tab logic has made it. The extension holds that view to the
+        // switches from then on, however each kind of tab writes its name.
+        labelSites?.let { sites ->
+            icon.methods.mutableCopyOf(sites.constructor).reportBottomTab(sites.tag)
+            mutableClassDefBy(sites.labelSetter.definingClass).methods.mutableCopyOf(sites.labelSetter)
+                .reportBottomTabLabel(sites)
+            SettingsStatusLoadFingerprint.method.addInstruction(
+                0,
+                "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableBottomTabLabels()V",
             )
         }
 

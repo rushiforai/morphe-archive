@@ -4,12 +4,46 @@ Every Hushfeed release, newest first.
 
 ## Unreleased
 
-* **TikTok:** Run beside the store app now points a renamed copy's leftover uses of TikTok's package name at the copy. Its settings shared between TikTok's processes and the data it hands the live wallpaper service go to the copy itself, named however Clone app named it, instead of to the store app installed beside it. TikTok's checks for app-settings and Play links that name its own package now look for the copy's name. A copy that kept the store name, and a paused Hushfeed, behave as before.
-* **TikTok:** Region spoof's Match region fields in requests now leaves sign-in requests alone. Signing in, signing up, account checks, token refreshes and logging out go out with your real region, apart from a few values TikTok saved as it started. The rest of TikTok's requests keep the preset. The switch's description in Hushfeed settings says so too.
+* **TikTok:** Hushfeed now supports TikTok 47.1.4 only. If you're on 47.0.3 or 47.1.3, download the 47.1.4 APK from APKMirror and patch it in Morphe Manager with the same signing key, so your login and settings carry over. Feature Gate Lab keeps each override whose switch 47.1.4 still has and turns the rest off with its usual notice.
+
+* **TikTok:** Custom offline videos limit has a new switch in Hushfeed settings > Downloads, Keep offline videos until you delete them. It's off until you turn it on (#123). TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, and a list saved in one go disappears in one go, watched or not. With the switch on they stay until you delete them in TikTok's Offline videos settings, which is also how you get a fresh set. TikTok can still clear ones you've already watched when your phone runs low on space, and picking a lower limit still trims the list. Keep an eye on the storage line under the offline videos limit. The switch takes effect the next time TikTok starts.
+
+* **TikTok:** Hide profile shortcuts has a new switch under App, Hide Thoughts on profiles, off until you turn it on (#122). It hides the Thoughts bubble TikTok puts above a profile picture, and on your own profile the prompt to share one. Restart TikTok after you change it.
+
+## 0.69.0 (2026-10-08)
+
+* **TikTok:** A TikTok video link you open now shows its video even when a feed filter would hide it, like Hide videos you have already seen for one you watched before (#117). TikTok loads a linked video as a feed page of its own, so filtering it out left TikTok's error screen there. Only that one video gets past the filters, and only for a minute after the link. Links to photo posts and the mobile site's older `m.tiktok.com/v/<id>.html` links count as one post too, here and for `Lock the feed`.
+
+* **TikTok:** Leaving a LIVE room no longer closes TikTok when Remove LIVE extras is in your bundle (#119). The patch skipped a start-up step of the gift-effect widget that TikTok needs again when the room closes. It keeps that step now and still skips the widget's own setup, so animated gifts stay off.
+
+* **TikTok:** Remove content credential and card scanner assets now empties Pitaya's Python runtime too, the five Python and NumPy libraries the Pitaya models ran on. Nothing else in TikTok loads them once the Pitaya feature is gone, which this patch already empties. The APK gets about 6.7 MB smaller than before, about 19 MB in all, and split bundles still match, since they carry the same files for arm64.
+
+* **TikTok:** Skip content warnings has a second switch under Feed screen, Hide unverified content notices, off until you turn it on. It takes away the Check sources banner TikTok puts on a video it marks as unverified, and the warnings TikTok shows when you go to share one. Skipping the tap-through overlay still has its own switch.
+
+* **TikTok:** New patch, Skip first-launch setup, off in the default selection. Pick it and a fresh install opens on the feed without TikTok's interest picker, the language and gender questions, the creators to follow, the swipe up tutorial or its own notification page. Consent, age and sign-in screens still show, and so does Android's own notification prompt. The switch, Skip TikTok's setup screens in Hushfeed settings > App, starts on, since the setup runs before you could reach it.
+
+* **TikTok:** Block popups has a new switch under Feed screen, Hide TikTok's wind-down screens, off until you turn it on. It stops the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. It only acts on an account TikTok's own settings say is an adult's. A teen's account keeps every one of them, and so does an account Family Pairing links to a parent. With Leave when TikTok says time is up on, the daily limit screen still comes up so that switch can act on it, and pausing Hushfeed brings them all back.
+
+* **TikTok:** Hide video overlays has a new Hide Footnotes switch under Feed screen, and Hide inbox items has two more under Inbox, Hide Bulletin board and Hide the group chat prompt. They're all off until you turn them on. Hide Footnotes keeps TikTok's banner off videos that carry a note, Hide Bulletin board takes its rows out of your Inbox, and Hide the group chat prompt stops the banner at the top of the Inbox that invites you to start one.
+
+* **TikTok:** Swipe for brightness and volume has two new rows under Feed screen > Gestures, Left edge strip and Right edge strip. Each one can be Brightness, Volume or Speed, and Speed is there when the Playback speed patch is in your bundle. Set to Speed, a drag along that edge speeds the video up or slows it down in steps of a quarter, from 0.5x to 3x, with the speed shown on screen as you go. The change is for that video only. The next video starts at your saved default, and nothing you've saved changes. The left edge is still brightness and the right is still volume until you change them, and a drag from anywhere else still scrolls the feed.
+
+* **TikTok:** Feed tab navigation can now change the words under the bottom tab icons, from Hushfeed settings > Feed tabs. Hide the bottom tab names takes them away and leaves the icons. A name row for Home, Friends, Inbox, Profile and Shop puts a word of your own under that tab, and an empty row keeps TikTok's. Both apply right away, and clearing a name brings TikTok's back.
+
+* **TikTok:** Hide inbox items has two more switches under Inbox > In a chat, both off until you turn them on. Turn off double tap to react stops a double tap on a message from putting a heart on it, and Turn off swipe to reply stops a sideways swipe from starting a reply. A single tap and a long press on a message work the same either way.
+
+* **TikTok:** Run beside the store app now points a renamed copy's leftover uses of TikTok's package name at the copy. Its settings shared between TikTok's processes and the data it hands the live wallpaper service go to the copy itself, named however Clone app named it, instead of to the store app installed beside it. TikTok's checks for app-settings and Play links that name its own package now accept the copy's name as well as TikTok's. A copy that kept the store name, and a paused Hushfeed, behave as before.
+
+* **TikTok:** Region spoof's Match region fields in requests now leaves sign-in requests alone. Signing in, signing up, account checks, token refreshes and logging out go out with your real region, including the system region and time zone TikTok saved as it started. The rest of TikTok's requests keep the preset. The switch's description in Hushfeed settings says so too.
+
 * **TikTok:** Network proxy checks the proxy again when TikTok comes back to the screen, at most every five minutes, so a proxy that stops answering partway through a session gets one notice instead of none. Emptying the host or port field now saves, which leaves the proxy off, and Reset settings clears the proxy's user name and password as well. They never go into a file, so Undo leaves them empty.
+
 * **TikTok:** New patch, Trust user certificates, left out unless you pick it. It lets TikTok trust certificate authorities you install in Android's settings as well as the system's, for looking at the app's traffic through a proxy like mitmproxy. Anyone who gets a certificate onto that phone could read TikTok's traffic too, so it's meant for a phone you test with.
+
 * **TikTok:** Sanitize sharing links has a new switch in Hushfeed settings > Privacy, Copy the full link for short links, off by default. When Copy link gives you a short vt.tiktok.com or vm.tiktok.com link, Hushfeed opens it once in the background, reads where it leads and puts the full video link on your clipboard instead, with your other link settings applied. TikTok sees that open, just as it would when anyone taps the link. A link you send straight to another app goes out the way TikTok made it.
+
 * **TikTok:** Copy bio and IDs has a new switch in Hushfeed settings > App, Account facts on profiles, off by default. A profile's share sheet then gets an Account facts button next to the copy buttons. It lists when the account joined, its region and language and when its username and display name last changed, and says so when the account is private or shows its liked videos, all from what TikTok already sent for the profile. Nothing extra is fetched, and a date, region or language the server left out says Not sent. Copy puts the whole list on the clipboard.
+
 * **TikTok:** Feed filter has a new switch under Advanced, Show how many were filtered, off by default. It puts a small label under TikTok's top tabs that counts the posts the feed filter has taken out since TikTok started, ads and the rest alike. Tags and banners it hides inside a post don't add to it, and neither does a video TikTok tries again from its cache. It only shows on the Home feed once something's been taken out, and taps go through it to the video.
 
 * **TikTok:** Feed filter has a new switch under Words, countries and languages, Match text stickers too, off by default. With it on, Blocked caption words also reads the text stickers on a video, the words a creator types over it in TikTok's editor, and hides the video when one matches, the same way a caption match does. Text that's part of the picture itself isn't there to read. If your filters ever hide everything TikTok just sent, the notice names these as Text sticker words.
@@ -39,6 +73,7 @@ Every Hushfeed release, newest first.
 * **TikTok:** Block popups' checklist now also lists the sheets and floating cards TikTok's server sends as campaigns, under the campaign's own name, so ticking one stops it before it's built. They never reached the checklist before. A new switch under Feed screen > Popups, Hide the LIVE bubble, off by default, stops the bubble TikTok floats at the top of the feed to point you to a LIVE.
 
 * **TikTok:** Use system font has a second switch, Use system emoji, that draws every emoji with your device's own emoji font. TikTok's fonts don't carry emoji, so most already come from your device, but TikTok fills in the newest ones your device doesn't have with Google's emoji. With the switch on it doesn't, and those may show as a box or in pieces instead. It's off by default and needs a restart. Switch: Hushfeed settings > App.
+
 * **TikTok:** Two new patches, Turn off haptics and Turn off screen transitions. The first stops the short vibrations TikTok plays on its own taps and gestures, the long press buzz included, and your keyboard and your phone's own haptics stay. The second opens and closes TikTok's screens without their slide, while swipes inside a screen still follow your finger. Neither is in the default selection, and each switch starts on once you pick its patch, under Hushfeed settings > App > Appearance.
 
 * **TikTok:** Long press has a new choice, Save the frame on screen as a photo. The press saves the picture the video is showing as a JPEG in the Photo destination folder, DCIM/TikTok unless you've changed it. It's read from the video itself, so the caption and the buttons drawn over it aren't in it. Pause first to pick an exact frame. The file takes the video's name plus where the frame came from, like `_frame_1m05s`.
@@ -67,7 +102,7 @@ Every Hushfeed release, newest first.
 
 * **TikTok:** New patch, Network proxy. Set an HTTP or SOCKS5 proxy in Hushfeed settings > Region, restart TikTok, and its own network stack sends the feed, search, comments and the rest of its API through it. Plain Java connections go through it too. Videos and LIVE streams stay direct, because TikTok's player opens its own connections. TikTok's network stack can't sign in to a proxy, so a user name and password only reach the Java side, and the password never goes into a settings backup. If the proxy doesn't answer when TikTok starts, a message says so. Other apps aren't affected, and it's off by default.
 
-* **TikTok:** New patch, Picture-in-picture. Turn on Keep watching in a small window in Hushfeed settings > Playback, and when you leave TikTok while a video plays it keeps going over your other apps. The window has a play and pause button and takes the video's own shape. It works in the feed and on videos you open from a profile, search or a sound, and needs Android 8 or later. It's off by default.
+* **TikTok:** New patch, Picture-in-picture. Turn on Keep watching in a small window in Hushfeed settings > Playback, and when you leave TikTok while a video plays it keeps going over your other apps with just the video showing, no buttons or caption. The window has a play and pause button and takes the video's own shape. It works in the feed and on videos you open from a profile, search or a sound, and needs Android 8 or later. It's off by default.
 
 * **TikTok:** New patch, Always upload in HD. Turn it on in Hushfeed settings > App, under Posting, and every video you post goes through TikTok's own HD upload, just as if you'd switched HD on yourself on the post page. A clip TikTok doesn't count as high quality posts the way it always did. While it's on, turning HD off on the post page won't stick. It's off by default.
 
@@ -76,7 +111,6 @@ Every Hushfeed release, newest first.
 * **TikTok:** Region spoof has a new switch, Match region fields in requests, in Hushfeed settings > Region. Every request TikTok sends carries the region its servers last saved on your phone and your network's country code, and neither one followed the preset before. With the switch on, both do. The other region fields in a request already follow Match locale and timezone to country. It's off by default.
 
 * **TikTok:** LIVE controls has a second switch, Show exact LIVE viewer counts, under Hushfeed settings > Playback. A LIVE room's viewer count at the top right shows the real number, like 1,234, instead of TikTok's rounded 1.2K, and so does the count in a programmed LIVE, collapsed, expanded or in landscape. It's off by default.
-
 
 * **TikTok:** New patch, LIVE controls. A LIVE that shows up in your feed can count down and drop you into the room without a tap. Turn on Stop LIVE previews opening by themselves in Hushfeed settings > Playback and it stays a preview until you tap it. It's off by default.
 
@@ -92,7 +126,7 @@ Every Hushfeed release, newest first.
 
 * **TikTok:** Hide inbox items now reaches inside a chat too. Under Inbox > In a chat there are three new switches, all off until you turn them on: Hide call buttons takes the voice and video call buttons off the top of a chat, Hide sticker suggestions drops the sticker banner, and Hide suggested replies stops TikTok's reply suggestions and the banner that introduces them. The chat details button and everything you send are left as they were.
 
-* **TikTok:** Fade the video controls, a new number under Clear display, dims the buttons, caption and tabs over the video to the level you pick instead of hiding them, which helps against screen burn-in while you can still see where everything is. 100 leaves TikTok as it is, and faded controls still take taps. At 0 the buttons and caption are hidden the way Clear display hides them, and the tabs stay at 10 so you can still find your way around.
+* **TikTok:** Fade the video controls, a new number under Clear display, dims the buttons, caption, music disc, search bar and tabs over the video to the level you pick instead of hiding them, which helps against screen burn-in while you can still see where everything is. 100 leaves TikTok as it is, and faded controls still take taps. At 0 the buttons and caption are hidden the way Clear display hides them, and the tabs stay at 10 so you can still find your way around.
 
 * **TikTok:** Lock the feed, a new switch under Screen time, keeps For You, Following and the other feed tabs behind a calm panel, and the feed won't swipe. Inbox, profiles and search work as usual, a link to one video still opens that video, and the app opens on Inbox instead of a feed you've shut. The Friends tab's feed is covered too, and clearing the controls doesn't lift the panel. Only a link to a single video gets through, not a profile or a search link. With Wait a day to loosen the budget on, turning Lock the feed off waits until the day starts over, the same as a longer budget does. It's off until you turn it on, and Pause Hushfeed turns it off with everything else.
 
@@ -144,7 +178,7 @@ Every Hushfeed release, newest first.
 
 * **TikTok:** With Automatic clear display on and no delay, the next video stays cleared while you swipe to it, instead of showing its buttons, caption, progress bar and tabs for a moment (#84). Tapping Restore display still brings everything back.
 
-* **TikTok:** In Clear display, the search, place or product link under the caption can't be tapped by accident anymore. TikTok only faded it out, so a tap near the bottom of a video could open a search you couldn't see (#84).
+* **TikTok:** In Clear display, the search, place or product link under the caption can't be tapped by accident anymore, and neither can the wide search bar newer TikTok versions put at the bottom. TikTok only faded it out, so a tap near the bottom of a video could open a search you couldn't see (#84).
 
 * **TikTok:** Clear display now also takes the Add comment bar off photos and videos you open from search or a profile, and Restore display brings it back (#84). Before, it stayed at the bottom unless Hide the comment bar on opened videos was on.
 
@@ -162,9 +196,11 @@ Every Hushfeed release, newest first.
 
 * **TikTok:** What's new can show a release in the phone's language now (#91). The 0.68.0 and 0.67.1 notes are translated into all eight languages Hushfeed's settings come in, and older releases stay in English with a short line saying so.
 
-* **Docs:** The FAQ explains the pure black Profile and Inbox some people see without AMOLED dark theme. It comes from TikTok 47.1.4's own dark mode, and a build without that patch shows the same colors with Hushfeed paused (#69).
+* **TikTok:** With debug logging on, the diagnostic file now lists each share sheet item Hushfeed hides, which row it sat in and what kind of view it was (#120). People in the Send to row are listed without their names. It's there to pin down why TikTok's smaller share sheet loses its rows when something is hidden.
 
-* **Docs:** Troubleshooting now answers whether Feature Gate Lab can hide CAPTCHA popups (it can't), and walks through trying one of the Lab's reviewed presets (#111).
+* **TikTok:** The FAQ on Hushfeed's GitHub page explains the pure black Profile and Inbox some people see without AMOLED dark theme. It comes from TikTok 47.1.4's own dark mode, and a build without that patch shows the same colors with Hushfeed paused (#69).
+
+* **TikTok:** The troubleshooting guide on Hushfeed's GitHub page now answers whether Feature Gate Lab can hide CAPTCHA popups (it can't), and walks through trying one of the Lab's reviewed presets (#111).
 
 ## 0.68.0 (2026-10-06)
 

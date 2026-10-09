@@ -78,3 +78,12 @@ node_modules/
 # Font assets
 *.ttf
 patches/src/main/resources/fonts/
+
+# APK Lab & Python
+.apk-lab/
+.dev.vars*
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/

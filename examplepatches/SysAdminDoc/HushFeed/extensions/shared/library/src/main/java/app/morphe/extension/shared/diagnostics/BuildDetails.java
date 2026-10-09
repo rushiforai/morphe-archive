@@ -135,10 +135,7 @@ public final class BuildDetails {
     private static boolean validTarget(Map<String, String> facts) {
         String name = facts.get("target_package"), version = facts.get("target_version"), code = facts.get("target_version_code");
         if (name.equals("unknown")) return version.equals("unknown") && code.equals("unknown");
-        return name.equals("com.zhiliaoapp.musically") && (
-                version.equals("47.0.3") && code.equals("2024700030")
-                        || version.equals("47.1.3") && code.equals("2024701030")
-                        || version.equals("47.1.4") && code.equals("2024701040"));
+        return name.equals("com.zhiliaoapp.musically") && version.equals("47.1.4") && code.equals("2024701040");
     }
 
     private static boolean matches(String value, String pattern, int max) {

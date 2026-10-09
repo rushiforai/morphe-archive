@@ -17,6 +17,7 @@ val useSystemFontPatch = bytecodePatch(
     description = "Overrides Adobe Clean fonts across XML layouts, dialogs, and Jetpack Compose screens with the device's system font.",
     default = false
 ) {
+    category("Customization")
     compatibleWith(COMPATIBILITY_ADOBE_SCAN)
     extendWith("extensions/extension.mpe")
 

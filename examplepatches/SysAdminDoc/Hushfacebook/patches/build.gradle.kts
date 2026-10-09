@@ -21,6 +21,8 @@ import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
+import javax.xml.parsers.DocumentBuilderFactory
+import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 
 /** SOURCE_DATE_EPOCH, when the environment sets one. It wins over everything below. */
 val sourceDateEpochFromEnvironment: Long? =
@@ -1047,60 +1049,193 @@ dependencies {
     testImplementation("com.github.REAndroid:arsclib:a28c6fb2a7")
 }
 
-tasks {
+// The patch tests run in two parts. fixtureTest takes the ones that read the Facebook fixtures,
+// known by their source calling Fixtures or FixtureDex, the two helpers that open the fixture
+// folder, and :patches:test runs the rest once fixtureTest is done. :patches:test runs without
+// HUSHFACEBOOK_FIXTURE_DIR and without the fixtures among its inputs, so a fixture change reruns
+// only fixtureTest, a run with -x :patches:fixtureTest is the quick pass scripts/pre-push.ps1 makes
+// first, and a fixture reader that slipped into :patches:test skips there, which
+// verifyPatchTestSelection refuses. Asked for by name, :patches:test still runs both.
+val patchTestSources = file("src/test/kotlin")
+val fixtureReader = Regex("""\b(Fixtures|FixtureDex)\.[A-Za-z]""")
+val fixtureTestClasses = fileTree(patchTestSources) { include("**/*Test.kt") }.files
+    .filter { fixtureReader.containsMatchIn(it.readText()) }
+    .map { it.relativeTo(patchTestSources).invariantSeparatorsPath.removeSuffix(".kt") }
+    .sorted()
+val fixtureTestPatterns = fixtureTestClasses.flatMap { listOf("$it.class", "$it\$*.class") }
+
+// The fixture tests skip when this is unset and read the folder when it is set. Blank counts as
+// unset, as Fixtures.kt reads it; File("") would be the whole project.
+val fixtureDirectory = providers.environmentVariable("HUSHFACEBOOK_FIXTURE_DIR")
+val fixtureFiles = fixtureDirectory.map { configured ->
+    if (configured.isBlank()) emptyList() else {
+        val directory = File(configured)
+        check(directory.isDirectory) { "HUSHFACEBOOK_FIXTURE_DIR names $directory, which is not a folder." }
+        checkNotNull(directory.listFiles()) { "HUSHFACEBOOK_FIXTURE_DIR names $directory, which cannot be read." }
+            .filter { it.isFile }.sortedBy { it.name }
+    }
+}.orElse(emptyList())
+fun fixtureSha256(file: File): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    file.inputStream().use { stream ->
+        val buffer = ByteArray(1 shl 16)
+        while (true) {
+            val read = stream.read(buffer)
+            if (read < 0) break
+            digest.update(buffer, 0, read)
+        }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
+}
+fun hashFixtures(): Map<String, String> = fixtureFiles.get().associate { it.name to fixtureSha256(it) }
+// Gradle's file-hash cache can reuse a digest after a file is replaced with the same size and
+// timestamp, so the fixture bytes are hashed here too, once per build, as fixtureTest's input.
+val fixtureDigests by lazy { hashFixtures() }
+// The --tests selection given to :patches:test, which fixtureTest takes as well. The pinned
+// Gradle's TestFilter has no public getter for it.
+fun patchTestSelection(): Set<String> = (tasks.test.get().filter as DefaultTestFilter).commandLineIncludePatterns
+
+val fixtureTest = tasks.register<Test>("fixtureTest") {
+    group = "verification"
+    description = "Runs the patch tests that read the Facebook fixtures in HUSHFACEBOOK_FIXTURE_DIR."
+    testClassesDirs = sourceSets.test.get().output.classesDirs
+    classpath = sourceSets.test.get().runtimeClasspath
+    include(fixtureTestPatterns)
+    // FixtureDex keeps each bundle's parsed dex for the length of the run (149 MB of it for 581's
+    // arm64 build), held softly, so a heap that runs short drops a bundle and reads it again.
+    // Gradle's default of 512 MB would do that between nearly every test.
+    maxHeapSize = "2g"
+    // What the folder holds is the input, not its name: a run whose APK was swapped, re-signed or
+    // deleted under the same path has to run again, not come back up to date or out of the build
+    // cache with the last folder's verdict. Relative, so where the folder sits on this machine
+    // does not count, and an APK moved into or out of a subfolder does: the tests read only the
+    // folder's top level, and name only would call that move no change. A configured empty
+    // folder must run and fail, never reuse an unset folder's skip.
+    inputs.property("fixturesConfigured", fixtureDirectory.map { it.isNotBlank() }.orElse(false))
+    inputs.files(fixtureFiles).withPropertyName("fixtures").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.property("fixtureBytes", provider { fixtureDigests })
+    inputs.property("suiteSelection", provider { patchTestSelection() })
+    failOnNoDiscoveredTests.set(provider { patchTestSelection().isEmpty() })
+    var startedWith = emptyMap<String, String>()
+    doFirst {
+        val selected = patchTestSelection()
+        if (selected.isNotEmpty()) {
+            setTestNameIncludePatterns(selected.toList())
+            filter.isFailOnNoMatchingTests = false
+        }
+        startedWith = fixtureDigests
+    }
+    // A fixture replaced while the tests read it, even one that kept its size and time, which
+    // FixtureDex no longer rehashes on every read.
+    doLast {
+        check(hashFixtures() == startedWith) { "The fixture folder changed while fixtureTest read it. Run it again." }
+    }
+}
+
+// Both partitions' results, against every patch test class there is. It finalizes :patches:test,
+// which runs after fixtureTest, and a finalizer also runs when a task is UP-TO-DATE or comes from
+// the cache. fixtureTest run on its own is part of a run, and nothing here checks it.
+val verifyPatchTestSelection = tasks.register("verifyPatchTestSelection") {
+    group = "verification"
+    description = "Checks that test and fixtureTest ran every patch test class between them."
+    mustRunAfter(tasks.test, fixtureTest)
+    val results = layout.buildDirectory.dir("test-results")
+    doLast {
+        val parser = DocumentBuilderFactory.newInstance().apply {
+            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
+        }.newDocumentBuilder()
+        val suites = mutableMapOf<String, MutableSet<String>>()
+        val tests = mutableMapOf<String, Int>()
+        val skipped = mutableMapOf<String, MutableList<String>>()
+        for (partition in listOf("test", "fixtureTest")) {
+            suites[partition] = mutableSetOf()
+            tests[partition] = 0
+            skipped[partition] = mutableListOf()
+            val reports = results.get().dir(partition).asFile
+            for (report in reports.listFiles().orEmpty().filter { it.name.startsWith("TEST-") && it.extension == "xml" }) {
+                val suite = parser.parse(report).documentElement
+                val name = suite.getAttribute("name")
+                check(suites.values.none { name in it }) { "The patch test class $name ran in both partitions." }
+                suites.getValue(partition) += name
+                tests[partition] = tests.getValue(partition) + suite.getElementsByTagName("testcase").length
+                if ((suite.getAttribute("skipped").toIntOrNull() ?: 0) > 0) skipped.getValue(partition) += name
+            }
+        }
+        val total = tests.values.sum()
+        check(total > 0) { "No patch tests matched the requested selection." }
+        check(skipped.getValue("test").isEmpty()) {
+            "These patch tests skipped in :patches:test, which runs without the fixture folder: " +
+                "${skipped.getValue("test")}. A test that reads the fixtures has to call Fixtures or " +
+                "FixtureDex in its own source, which is how fixtureTest picks its classes."
+        }
+        // A selection given to either task, on the command line or in the build, makes this part
+        // of a run, which the completeness checks below would refuse.
+        val unfiltered = listOf(tasks.test.get(), fixtureTest.get()).all {
+            (it.filter as DefaultTestFilter).commandLineIncludePatterns.isEmpty() && it.filter.includePatterns.isEmpty()
+        }
+        if (fixtureDirectory.map { it.isNotBlank() }.getOrElse(false)) {
+            check(skipped.getValue("fixtureTest").isEmpty()) {
+                "These fixture tests skipped with HUSHFACEBOOK_FIXTURE_DIR set: ${skipped.getValue("fixtureTest")}."
+            }
+            check(!unfiltered || tests.getValue("fixtureTest") > 0) { "fixtureTest ran no tests." }
+        } else if (skipped.getValue("fixtureTest").isNotEmpty()) {
+            logger.lifecycle("HUSHFACEBOOK_FIXTURE_DIR is unset, so ${skipped.getValue("fixtureTest").size} fixture test classes skipped.")
+        }
+        if (unfiltered) {
+            val expected = fileTree(patchTestSources) { include("**/*Test.kt") }.files.map { it.nameWithoutExtension }.toSet()
+            val ran = suites.values.flatten().map { it.substringAfterLast('.') }.toSet()
+            check(ran == expected) { "Incomplete patch test run. Missing: ${expected - ran}; orphaned: ${ran - expected}" }
+        }
+        logger.lifecycle("Patch tests: ${tests.getValue("test")} in test, ${tests.getValue("fixtureTest")} in fixtureTest")
+    }
+}
+
+// The raw files the patch tests read beyond their classpath, for both partitions.
+tasks.withType<Test>().matching { it.name == "test" || it.name == "fixtureTest" }.configureEach {
     // The README tests read the README and the patch list, both outside this module. Declare
     // those inputs so Gradle reruns them when either changes.
+    inputs.file(rootProject.file("README.md"))
+        .withPropertyName("readme")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file(rootProject.file("patches-list.json"))
+        .withPropertyName("patchList")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.file(rootProject.file("provenance.json"))
+        .withPropertyName("provenance")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    // ProvenanceTest also reads NOTICE and every shipped source's header. A header-only edit
+    // compiles to the same classes, so without these the task came back up to date and the
+    // check never saw the change.
+    inputs.file(rootProject.file("NOTICE"))
+        .withPropertyName("notice")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    // ShortcutCallsTest holds the settings patch's shortcut rewrite to the no-call rules there,
+    // and LogoLongPressTest its Facebook logo hook to the next-call rule.
+    inputs.file(rootProject.file("scripts/injected-mutation-contracts.txt"))
+        .withPropertyName("mutationContracts")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(
+        rootProject.fileTree("patches/src/main"),
+        rootProject.fileTree("patches/stub/src/main"),
+        rootProject.fileTree("extensions") {
+            include("**/src/main/**")
+            exclude("**/build/**")
+        },
+    )
+        .withPropertyName("shippedSources")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
+tasks {
     test {
-        inputs.file(rootProject.file("README.md"))
-            .withPropertyName("readme")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        inputs.file(rootProject.file("patches-list.json"))
-            .withPropertyName("patchList")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        inputs.file(rootProject.file("provenance.json"))
-            .withPropertyName("provenance")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        // ProvenanceTest also reads NOTICE and every shipped source's header. A header-only edit
-        // compiles to the same classes, so without these the task came back up to date and the
-        // check never saw the change.
-        inputs.file(rootProject.file("NOTICE"))
-            .withPropertyName("notice")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        // ShortcutCallsTest holds the settings patch's shortcut rewrite to the no-call rules there,
-        // and LogoLongPressTest its Facebook logo hook to the next-call rule.
-        inputs.file(rootProject.file("scripts/injected-mutation-contracts.txt"))
-            .withPropertyName("mutationContracts")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        inputs.files(
-            rootProject.fileTree("patches/src/main"),
-            rootProject.fileTree("patches/stub/src/main"),
-            rootProject.fileTree("extensions") {
-                include("**/src/main/**")
-                exclude("**/build/**")
-            },
-        )
-            .withPropertyName("shippedSources")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
-        // The fixture tests skip when this is unset and read the folder when it is set. What the
-        // folder holds is the input, not its name: a run whose APK was swapped, re-signed or
-        // deleted under the same path has to run again, not come back up to date or out of the
-        // build cache with the last folder's verdict. Relative, so where the folder sits on this
-        // machine does not count, and an APK moved into or out of a subfolder does: the tests
-        // read only the folder's top level, and name only would call that move no change.
-        // Blank counts as unset, as Fixtures.kt reads it; File("") would be the whole project.
-        val fixtureDirectory = providers.environmentVariable("HUSHFACEBOOK_FIXTURE_DIR")
-        // A configured empty folder must run and fail, never reuse an unset folder's skip.
-        inputs.property("fixturesConfigured", fixtureDirectory.map { it.isNotBlank() }.orElse(false))
-        inputs.files(fixtureDirectory.map { configured ->
-            if (configured.isBlank()) emptyList() else {
-                val directory = File(configured)
-                check(directory.isDirectory) { "HUSHFACEBOOK_FIXTURE_DIR names $directory, which is not a folder." }
-                checkNotNull(directory.listFiles()) { "HUSHFACEBOOK_FIXTURE_DIR names $directory, which cannot be read." }
-                    .filter { it.isFile }
-            }
-        }.orElse(emptyList()))
-            .withPropertyName("fixtures")
-            .withPathSensitivity(PathSensitivity.RELATIVE)
+        dependsOn(fixtureTest)
+        finalizedBy(verifyPatchTestSelection)
+        exclude(fixtureTestPatterns)
+        environment.remove("HUSHFACEBOOK_FIXTURE_DIR")
+        // A --tests selection may belong to fixtureTest alone. The finalizer checks both result
+        // sets, so a selection nothing matched still fails.
+        filter.isFailOnNoMatchingTests = false
+        failOnNoDiscoveredTests.set(false)
     }
     // The bundle a release publishes lives in build/release, not build/libs. The plugin's
     // buildAndroid merges the DEX payload into the jar task's own output in place, so any later

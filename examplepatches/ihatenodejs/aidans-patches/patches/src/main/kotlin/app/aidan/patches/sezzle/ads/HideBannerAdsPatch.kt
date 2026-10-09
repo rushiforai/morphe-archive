@@ -133,6 +133,7 @@ val removeAdsAndTrackingFromJsBundlePatch = rawResourcePatch(
     description = "Neutralizes post-payment reward and offer modals (Thanks network and Rokt placements) in the embedded Hermes JavaScript bundle.",
     default = true
 ) {
+    category("Ads")
     compatibleWith(COMPATIBILITY_SEZZLE)
     execute {
         val bundleFile = get("assets/index.android.bundle")
@@ -195,6 +196,7 @@ val removeAdsAndTrackingPatch = bytecodePatch(
     description = "Removes all ads (AppLovin MAX, Google Mobile Ads, Rokt, Thanks network, Playtime, InBrain Surveys) and disables analytics and tracking SDKs (AppsFlyer, FullStory, Braze, Firebase Analytics, mParticle, Facebook SDK, AppCenter).",
     default = true
 ) {
+    category("Ads")
     compatibleWith(COMPATIBILITY_SEZZLE)
     dependsOn(removeAdsAndTrackingFromJsBundlePatch)
 

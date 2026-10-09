@@ -381,6 +381,9 @@ public final class PhotosModelSeeder {
 
         for (File xml : xmlFiles) {
             if (!xml.getName().endsWith(".xml")) continue;
+            // MDD manifest patcher must ONLY operate on MDD manifest files, NEVER phenotype or account files
+            if (!MddManifests.MANIFESTS.containsKey(xml.getName())) continue;
+            if (xml.getName().contains("phenotype") || xml.getName().contains("account")) continue;
             try {
                 String content = readFileToString(xml);
                 Matcher m = entryPattern.matcher(content);

@@ -57,6 +57,12 @@ public class SettingsStatus {
     public static boolean promotionalBannersEnabled = false;
     public static boolean profileShortcutsEnabled = false;
     public static boolean popupLabelsEnabled = false;
+    /** Block popups found the wind-down triggers' checks on this build and hooked them. */
+    public static boolean windDownScreensEnabled = false;
+    /** Feed tab navigation found the bottom tab icons' names on this build and hooked them. */
+    public static boolean bottomTabLabelsEnabled = false;
+    /** Playback speed found the on-screen player's progress report, so a strip can drag the speed. */
+    public static boolean liveSpeedEnabled = false;
     public static boolean longPressSpeedLockEnabled = false;
     public static boolean disableLongPressQuickShareEnabled = false;
     public static boolean disableLongPressRepostEnabled = false;
@@ -82,6 +88,8 @@ public class SettingsStatus {
     public static boolean blockAuthorEnabled = false;
     public static boolean authorRegionEnabled = false;
     public static boolean sensitiveWarningsEnabled = false;
+    /** Skip content warnings found Aweme's risk model getter, so the unverified notices switch works. */
+    public static boolean unverifiedNoticesEnabled = false;
     public static boolean notInterestedEnabled = false;
 
     public static void enableNotInterested() {
@@ -101,6 +109,7 @@ public class SettingsStatus {
     public static boolean videoFitEnabled = false;
     public static boolean refreshRateEnabled = false;
     public static boolean launcherShortcutsEnabled = false;
+    public static boolean firstLaunchSetupEnabled = false;
     public static boolean duetStitchEnabled = false;
     public static boolean notificationControlsEnabled = false;
     public static boolean suggestedVideoPushBlockEnabled = false;
@@ -219,6 +228,13 @@ public class SettingsStatus {
         customOfflineVideosEnabled = true;
     }
 
+    /** Custom offline videos limit found the offline lifetime on this build and hooked it. */
+    public static boolean keepOfflineVideosEnabled = false;
+
+    public static void enableKeepOfflineVideos() {
+        keepOfflineVideosEnabled = true;
+    }
+
     public static void enableSimSpoof() {
         simSpoofEnabled = true;
     }
@@ -239,6 +255,18 @@ public class SettingsStatus {
 
     public static void enablePopupLabels() {
         popupLabelsEnabled = true;
+    }
+
+    public static void enableWindDownScreens() {
+        windDownScreensEnabled = true;
+    }
+
+    public static void enableBottomTabLabels() {
+        bottomTabLabelsEnabled = true;
+    }
+
+    public static void enableLiveSpeed() {
+        liveSpeedEnabled = true;
     }
 
     public static void enableLongPressSpeedLock() {
@@ -341,6 +369,10 @@ public class SettingsStatus {
         sensitiveWarningsEnabled = true;
     }
 
+    public static void enableUnverifiedNotices() {
+        unverifiedNoticesEnabled = true;
+    }
+
     public static void enableAuthorRegion() {
         authorRegionEnabled = true;
     }
@@ -375,6 +407,10 @@ public class SettingsStatus {
 
     public static void enableLauncherShortcuts() {
         launcherShortcutsEnabled = true;
+    }
+
+    public static void enableFirstLaunchSetup() {
+        firstLaunchSetupEnabled = true;
     }
 
     public static void enableVideoFit() {
@@ -476,6 +512,27 @@ public class SettingsStatus {
 
     public static void enableFeedTextSize() {
         feedTextSizeEnabled = true;
+    }
+
+    /** Hide video overlays found the Footnotes banner's gate on this build and hooked it. */
+    public static boolean footnotesEnabled = false;
+
+    public static void enableFootnotes() {
+        footnotesEnabled = true;
+    }
+
+    /** Hide inbox items found the group chat banner's update on this build and hooked it. */
+    public static boolean groupChatBannerEnabled = false;
+
+    public static void enableGroupChatBanner() {
+        groupChatBannerEnabled = true;
+    }
+
+    /** Hide profile shortcuts found the profile picture's Thoughts bubble on this build and hooked it. */
+    public static boolean profileThoughtsEnabled = false;
+
+    public static void enableProfileThoughts() {
+        profileThoughtsEnabled = true;
     }
 
     static {

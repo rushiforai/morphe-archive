@@ -83,8 +83,17 @@ val unversionedBouncyCastleRequests = sortedSetOf<String>()
 val safeGuavaVersion = libs.versions.guava.get()
 
 configurations.configureEach {
+    // Only the unit-test graphs are recorded for the gate below. Every graph is still rewritten,
+    // but the Android plugin's own ones ask for releases of their own (its unified test platform
+    // graph asks for 1.79), and whether one of those had resolved by the time the gate ran
+    // depended on task order: a run with lint before the unit tests failed on a request no test
+    // ever saw.
+    val recordsForGate = name.endsWith("UnitTestRuntimeClasspath")
     resolutionStrategy.eachDependency {
-        if (requested.group == "org.bouncycastle") {
+        if (requested.group == "org.bouncycastle" && !recordsForGate) {
+            useVersion(safeBouncyCastleVersion)
+            because("Every graph in this module takes the reviewed security release.")
+        } else if (requested.group == "org.bouncycastle") {
             // Recorded whatever it is, including a request that carries no version of its own.
             // A ?.let dropped those: one arriving through a platform or a BOM was rewritten to
             // the reviewed release like any other and then counted nowhere, so the unreviewed
@@ -227,7 +236,7 @@ android {
     namespace = "app.morphe.extension.facebook"
 
     defaultConfig {
-        // Facebook 577 and 580 declare minSdk 30, so nothing below it can run this code.
+        // Facebook 581 declares minSdk 30, so nothing below it can run this code.
         minSdk = 30
     }
 

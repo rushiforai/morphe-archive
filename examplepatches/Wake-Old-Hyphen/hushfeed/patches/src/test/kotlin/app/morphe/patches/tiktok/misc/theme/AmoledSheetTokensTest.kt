@@ -15,15 +15,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Where TikTok 47.0.3's two sheets take their dark fill, read off the fixture, so the name the
- * AMOLED patch rewrites for them is held to the build it is declared for.
+ * Where TikTok's two sheets take their dark fill, read off the declared build's fixture (first
+ * traced on 47.0.3), so the name the AMOLED patch rewrites for them is held to that build.
  *
  * <p>The comment panel's shapes and the Tux sheet behind the share sheet fill with one theme
  * attribute: the comment page sets drawable af4 or af9 on its container, whose solid is
  * ?attr/a24, and the Tux sheet reads TuxSheet's tux_sheetBackgroundColor, which its style points
  * at ?attr/a24 as well. The dark themes send a24 to the palette token aia, a dark literal
  * (#1E1E1E on the S22, 2026-09-23), and the light ones to axi, white. The names are the build's
- * own: 46.x reached the same sheets through agk and c3, which 47.0.3 keeps as unrelated tokens.
+ * own: 46.x reached the same sheets through agk and c3, which 47.x keeps as unrelated tokens.
  * a24 is what TikTok's own token table calls UISheetFlat1, the fill of its sheets, panels, modals
  * and text cells as well, so all of those go black with it.
  */
@@ -38,13 +38,9 @@ class AmoledSheetTokensTest {
             val sheetValues = table.styleValues("b79").toSet()
             assertTrue("b79 reaches a24 in a Tux sheet style: $sheetValues", "?attr/a24" in sheetValues)
 
-            // The comment page's two container shapes, as traced on 47.0.3. Drawable names move
-            // with every build and nothing here reads which ones 47.1.3's page sets.
-            if (Fixtures.versionOf(apk) == "47.0.3") {
-                listOf("af4", "af9").forEach { drawable ->
-                    assertTrue("drawable/$drawable fills with ?attr/a24", table.drawableReferencesAttr(drawable, "a24"))
-                }
-            }
+            // The comment page's two container shapes were traced on 47.0.3 (af4 and af9).
+            // Drawable names move with every build and nothing here reads which ones the
+            // declared build's page sets.
 
             val a24 = table.styleValues("a24")
             assertEquals("what the themes point a24 at: $a24", setOf("?attr/aia", "?attr/axi"), a24.toSet())
@@ -52,7 +48,7 @@ class AmoledSheetTokensTest {
             val light = table.styleValues("axi")
             assertTrue("aia is a dark opaque literal wherever it is set: $dark", dark.isNotEmpty() && dark.all(::isDarkOpaqueLiteral))
             assertTrue("axi is light wherever it is set: $light", light.isNotEmpty() && light.none(::isDarkOpaqueLiteral))
-            assertTrue("the patch rewrites aia", "aia" in sheetStyleItems(Fixtures.versionOf(apk), declaredVersions()))
+            assertTrue("the patch rewrites aia", "aia" in SHEET_STYLE_ITEMS)
         }
     }
 

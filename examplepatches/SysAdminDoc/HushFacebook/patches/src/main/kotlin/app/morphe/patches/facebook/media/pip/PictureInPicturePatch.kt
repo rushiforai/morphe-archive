@@ -108,14 +108,13 @@ internal const val HOME_FLAG_ALLOWED = "$PICTURE_IN_PICTURE->homeFlagAllowed(Z)Z
 
 /**
  * A playing reel keeps going in a small window when you leave Facebook. Facebook ships
- * picture-in-picture for its Reels viewer (ReelsPipUtil: 581 `LX/BB6;`, 580 `LX/B3H;`, 577
- * `LX/AIo;`) behind server flags, at two gates. The Reels viewer of the video tab first asks a gate
- * of its own whether its surface has picture-in-picture (581 `LX/Arj;->A01`), then ReelsPipUtil's
- * check whether the activity may use it: Android 12 or later, a server flag or a preference of
- * Facebook's, the phone's feature and a memory check. The patch puts the extension first in both;
- * its yes returns true, and Facebook's own code then sets the window's shape and Android's
- * auto-enter. The activities the viewer plays in already declare picture-in-picture in Facebook's
- * manifest.
+ * picture-in-picture for its Reels viewer (ReelsPipUtil: 581 `LX/BB6;`) behind server flags, at two
+ * gates. The Reels viewer of the video tab first asks a gate of its own whether its surface has
+ * picture-in-picture (581 `LX/Arj;->A01`), then ReelsPipUtil's check whether the activity may use
+ * it: Android 12 or later, a server flag or a preference of Facebook's, the phone's feature and a
+ * memory check. The patch puts the extension first in both; its yes returns true, and Facebook's
+ * own code then sets the window's shape and Android's auto-enter. The activities the viewer plays
+ * in already declare picture-in-picture in Facebook's manifest.
  *
  * Facebook arms the window once as the viewer opens, and turns auto-enter off and on as that one
  * player pauses and plays, through a runnable ReelsPipUtil posts (581 `LX/Ciq;`). A swipe pauses
@@ -133,18 +132,18 @@ internal const val HOME_FLAG_ALLOWED = "$PICTURE_IN_PICTURE->homeFlagAllowed(Z)Z
  * opens inside the hidden main screen at no size, which leaves the window black. The extension
  * swaps an id a view holds for a free one.
  *
- * Facebook's full-screen Watch viewer (the Watch topic feed fragment: 581 `LX/Anv;`, 580 `LX/Aex;`,
- * 577 `LX/ArV;`) arms the same window itself in onResume, behind a server flag of its own, for a
- * video in its engagement state. The flag is the MobileConfig read nearest before that onResume's
- * call of ReelsPipUtil's check (it reads the same in 577, 580 and 581, as the move-result before an
- * if-eqz), and the extension answers it. Facebook's own code then arms the window for the video on
- * screen, and the rest here treats it like any other arming. Its onStop disarm is left behind
- * the same flag, still Facebook's: a screen leaving with the video paused is held by the pause
- * hook, and an immersive screen that closes takes its window arming with it.
+ * Facebook's full-screen Watch viewer (the Watch topic feed fragment: 581 `LX/Anv;`) arms the same
+ * window itself in onResume, behind a server flag of its own, for a video in its engagement state.
+ * The flag is the MobileConfig read nearest before that onResume's call of ReelsPipUtil's check (it
+ * reads the same in 577, 580 and 581, as the move-result before an if-eqz), and the extension
+ * answers it. Facebook's own code then arms the window for the video on screen, and the rest here
+ * treats it like any other arming. Its onStop disarm is left behind the same flag, still
+ * Facebook's: a screen leaving with the video paused is held by the pause hook, and an immersive
+ * screen that closes takes its window arming with it.
  *
  * The Video tab (video_home) arms the window too, as you scroll its videos, in one method of its
- * data controller (581 `LX/84s;->A0J`, 580 `LX/85e;->A0I`, 577 `LX/7s8;->A0J`), the one loading
- * [VIDEO_TAB_SURFACE] that calls ReelsPipUtil's check. Its questions before it arms, in order:
+ * data controller (581 `LX/84s;->A0J`), the one loading [VIDEO_TAB_SURFACE] that calls
+ * ReelsPipUtil's check. Its questions before it arms, in order:
  * - its own copy of the Reels viewer's surface gate, inlined: the same fetch of the surface's
  *   settings (581 `LX/Cr0;->CKK()`) and the same two lambda cases (581 39 and 40, 580 165 and 166,
  *   577 178 and 179), reading one server flag in the Video tab's Reels and another elsewhere. A no

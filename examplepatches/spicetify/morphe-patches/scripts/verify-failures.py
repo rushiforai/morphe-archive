@@ -17,7 +17,8 @@ def altered_apk(source, target, kind):
     with zipfile.ZipFile(source) as original, zipfile.ZipFile(target, "w") as altered:
         for entry in original.infolist():
             data = original.read(entry)
-            if kind in ("sharing", "sharing-response", "settings", "home", "server", "navigation", "ads", "player-ads") and entry.filename.endswith(".dex"):
+            if kind in ("sharing", "sharing-response", "settings", "home", "server", "navigation", "ads", "player-ads",
+                        "player-protocol") and entry.filename.endswith(".dex"):
                 old, new = {"sharing": (b"Invalid uri ", b"Invalid urj "),
                             "sharing-response": (b"fullUrl_", b"testUrl_"),
                             "settings": (b"aboutPage", b"aboutPagg"),
@@ -25,6 +26,7 @@ def altered_apk(source, target, kind):
                             "navigation": (b"premium_tab_enabled", b"premium_tab_enablex"),
                             "ads": (b"featureTypeCase_", b"featureTypeTest_"),
                             "player-ads": (b"sectionTypeCase_", b"sectionTypeTest_"),
+                            "player-protocol": (b"CONTEXT_TRACK_FIELD_NUMBER", b"CONTEXT_TRACK_FIELD_NUMBEX"),
                             "server": (b"Lcom/spotify/localfiles/mediastore/MediaStoreReader;",
                                        b"Lcom/spotify/localfiles/mediastore/MediaStoreReades;")}[kind]
                 count = data.count(old)
@@ -74,6 +76,8 @@ def main():
          "Spotify advertising ABI changed:"),
         ("changed-player-ad-model", "player-ads", "Hide player ad cards", None,
          "Spotify player advertising ABI changed:"),
+        ("changed-player-protocol", "player-protocol", "Spicetify extensions", None,
+         "Spotify extensions protocol changed:"),
     ]
 
     if args.case:

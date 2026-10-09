@@ -201,6 +201,39 @@ public class SettingsSearchQueryTest {
                         || seenTitles.contains("Undo clearing seen videos"));
     }
 
+    @Test public void aTitleHitRanksAboveARowThatOnlyNamesItInItsDescription() throws Exception {
+        // On the S22, "original photos" listed Photo filename, whose description names Download
+        // original photos, above that switch. Both were whole-word hits, so page order decided.
+        TikTokPreferenceFragment search = attachSearch();
+        java.util.List<String> titles = search(search, "original photos");
+        int titleHit = titles.indexOf("Download original photos");
+        int descriptionHit = titles.indexOf("Photo filename");
+        assertTrue("both rows should match, found " + titles, titleHit >= 0 && descriptionHit >= 0);
+        assertTrue("the description hit ranked above the title hit: " + titles,
+                titleHit < descriptionHit);
+    }
+
+    @Test public void debugAndLogsFindLogDiagnostics() throws Exception {
+        // Bug report templates ask for "debug logs", and "debug" answered No matching settings.
+        TikTokPreferenceFragment search = attachSearch();
+        for (String query : new String[] {"debug", "debugging", "logs", "logging"}) {
+            java.util.List<String> titles = search(search, query);
+            assertTrue("searching \"" + query + "\" did not find Log diagnostics, it found "
+                    + titles, titles.contains("Log diagnostics"));
+        }
+        assertEquals("the keywords reached another row",
+                java.util.List.of("Log diagnostics"), search(search, "debugging"));
+    }
+
+    @Config(qualifiers = "de")
+    @Test public void theTranslatedKeywordFindsLogDiagnosticsToo() throws Exception {
+        TikTokPreferenceFragment search = attachSearch();
+        assertTrue("the German keyword missed the row",
+                search(search, "fehlersuche").contains("Diagnose protokollieren"));
+        assertTrue("English stopped matching under a translation",
+                search(search, "debug").contains("Diagnose protokollieren"));
+    }
+
     @Test public void theAboutRowIsFoundByItsNameAndByWhatItSays() throws Exception {
         // The row sits on the master menu, which the index never walked, and had no key besides,
         // so "hushfeed" and "version" both answered "No matching settings" on a phone whose

@@ -8,9 +8,11 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.Window;
 import android.view.WindowManager;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -190,6 +192,21 @@ public final class Settings {
         return false;
     }
 
+    /**
+     * The mode Messenger asks its emoji and sticker tray for after each edit in the composer, right before the tray hears
+     * it. With the switch on, the sticker search mode becomes the plain emoji mode, so typing keeps the tray on emoji.
+     * Every other mode, and every mode while the switch is off, paused or in safe mode, passes through unchanged.
+     */
+    public static String emojiSearchMode(String original) {
+        if (!"expression_search".equals(original)) return original;
+        try {
+            return enabled("emoji_search") ? "expression" : original;
+        } catch (RuntimeException error) {
+            hookFailed("emoji_search", "Can't keep emoji search on emoji", error);
+            return original;
+        }
+    }
+
     public static boolean showSubtabs(boolean original) { return original && !enabled("subtabs"); }
     public static boolean hidePeopleSection(boolean original) { return original || enabled("people"); }
     public static boolean keepPeopleSection(boolean original) { return original && !enabled("people"); }
@@ -292,8 +309,75 @@ public final class Settings {
                 kept.add(card + now);
                 preferences.edit().putStringSet(SEEN_STORIES, kept).apply();
             }
+            clearStoryRings(cardId);
         } catch (RuntimeException error) {
             hookFailed("anonymous_stories", "Can't keep a story marked seen", error);
+        }
+    }
+
+    static final int STORY_RING_CARDS = 512;
+    private static final int STORY_RING_COPIES = 8;
+    /**
+     * Story previews Messenger built while their card was still new, by card ID. Messenger keeps a preview in its
+     * story cache once it's built, so opening the card has to clear the ring of the ones still around.
+     */
+    static final Map<String, List<WeakReference<Object>>> storyRings =
+        new LinkedHashMap<String, List<WeakReference<Object>>>(16, 0.75f, true) {
+            @Override protected boolean removeEldestEntry(Map.Entry<String, List<WeakReference<Object>>> eldest) {
+                return size() > STORY_RING_CARDS;
+            }
+        };
+    /** The patch adds this static method to Messenger's story preview. It asks storyRingSeen, then clears the ring. */
+    static final String STORY_RING_HELPER = "hushmessengerStoryRing";
+
+    /**
+     * Messenger built a story preview, and the new-story ring in the chat list reads it. Messenger sets that ring from
+     * the server's seen state and never looks at the cards read on this phone, so with the switch on a card kept here
+     * counts as seen. Card IDs don't depend on the account, so a card any account here opened counts.
+     */
+    public static boolean storyRingSeen(Object preview, String cardId) {
+        if (preview == null || cardId == null || cardId.isEmpty()) return false;
+        try {
+            if (!wouldUse("anonymous_stories")) return false;
+            if (storyKept(cardId, System.currentTimeMillis())) return enabled("anonymous_stories");
+            synchronized (storyRings) {
+                List<WeakReference<Object>> previews = storyRings.get(cardId);
+                if (previews == null) storyRings.put(cardId, previews = new ArrayList<>());
+                previews.removeIf(ref -> ref.get() == null || ref.get() == preview);
+                if (previews.size() >= STORY_RING_COPIES) previews.remove(0);
+                previews.add(new WeakReference<>(preview));
+            }
+            return false;
+        } catch (RuntimeException error) {
+            hookFailed("anonymous_stories", "Can't check a story ring", error);
+            return false;
+        }
+    }
+
+    static boolean storyKept(String cardId, long now) {
+        for (String entry : preferences.getStringSet(SEEN_STORIES, Collections.emptySet())) {
+            int card = entry.indexOf(':');
+            int time = entry.lastIndexOf(':');
+            if (card >= 0 && time > card && entry.substring(card + 1, time).equals(cardId) && !seenStoryExpired(entry, now)) return true;
+        }
+        return false;
+    }
+
+    /** Runs the preview's own helper again on each preview still around for a card that was just kept. */
+    private static void clearStoryRings(String cardId) {
+        List<WeakReference<Object>> previews;
+        synchronized (storyRings) {
+            previews = storyRings.remove(cardId);
+        }
+        if (previews == null) return;
+        for (WeakReference<Object> ref : previews) {
+            Object preview = ref.get();
+            if (preview == null) continue;
+            try {
+                preview.getClass().getMethod(STORY_RING_HELPER, preview.getClass()).invoke(null, preview);
+            } catch (ReflectiveOperationException | RuntimeException error) {
+                hookFailed("anonymous_stories", "Can't clear a story ring", error);
+            }
         }
     }
 
@@ -446,9 +530,33 @@ public final class Settings {
     static java.io.File mergedEmojiFile;
     static android.graphics.Typeface mergedEmoji;
 
+    /** Where Messenger's emoji font was the last time it loaded, kept across runs. */
+    static final String EMOJI_FONT_PATH = "messenger_emoji_font";
+
     /** Messenger's emoji font holder hands over its font file as Messenger builds it. */
     public static void messengerEmojiFont(java.io.File file) {
         messengerEmojiFile = file;
+        logEmoji("Messenger emoji font " + (file == null ? "null" : file.getName() + " " + file.length() + " bytes"));
+        SharedPreferences prefs = preferences;
+        if (file != null && prefs != null && !file.getPath().equals(prefs.getString(EMOJI_FONT_PATH, null)))
+            prefs.edit().putString(EMOJI_FONT_PATH, file.getPath()).apply();
+    }
+
+    /** The font file Messenger loaded on an earlier run, while it's still there. */
+    static java.io.File rememberedEmojiFont() {
+        SharedPreferences prefs = preferences;
+        String path = prefs == null ? null : prefs.getString(EMOJI_FONT_PATH, null);
+        java.io.File file = path == null ? null : new java.io.File(path);
+        return file != null && file.isFile() ? file : null;
+    }
+
+    static volatile String lastEmojiLog;
+
+    /** One line per change, so a report's logcat shows which emoji path a phone took. */
+    static void logEmoji(String state) {
+        if (state.equals(lastEmojiLog)) return;
+        lastEmojiLog = state;
+        android.util.Log.i("HushMessenger", "use_system_emoji: " + state);
     }
 
     /**
@@ -459,7 +567,14 @@ public final class Settings {
         android.graphics.Typeface system = systemEmojiTypeface();
         if (system == null) return messenger;
         java.io.File file = messengerEmojiFile;
-        if (messenger == null || file == null || android.os.Build.VERSION.SDK_INT < 29) return system;
+        // After an update Messenger can ask before its font has loaded and keeps that first answer for the whole run, so
+        // the chat list would lose the Like until the next restart. The font file from the last run stands in until then.
+        if (file == null) file = rememberedEmojiFont();
+        if (file == null || android.os.Build.VERSION.SDK_INT < 29) {
+            logEmoji("phone emoji only (" + (file == null ? "no Messenger font file yet" : "Android " + android.os.Build.VERSION.SDK_INT)
+                + "), source " + systemEmojiSource);
+            return system;
+        }
         synchronized (Settings.class) {
             if (!file.equals(mergedEmojiFile)) {
                 mergedEmojiFile = file;
@@ -471,6 +586,8 @@ public final class Settings {
                     hookFailedPrivately("use_system_emoji", "Can't add Messenger's emoji font behind the phone's", error);
                 }
             }
+            logEmoji(mergedEmoji != null ? "phone emoji with Messenger's font behind it, source " + systemEmojiSource
+                : "phone emoji only (merge failed), source " + systemEmojiSource);
             return mergedEmoji != null ? mergedEmoji : system;
         }
     }

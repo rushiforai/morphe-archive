@@ -135,12 +135,13 @@ function Test-RunsScriptBlock {
     <#
     .SYNOPSIS
         Whether a script block runs where it's written: as the command itself, which only & or .
-        can make it, or as what ForEach-Object or Where-Object runs, under any of their names
-        (Test-CommandIs), positionally or as -Process, -Begin, -End or -FilterScript. Stored,
-        returned, handed to any other command or to another parameter such as -ArgumentList, it's
-        a value, and nothing here is known to run it. Neither runs a block when a literal @() is
-        all that's piped in, which leaves them no item; that counts their -Begin and -End blocks
-        as not run too, which only ever drops code.
+        can make it, as the -ScriptBlock of common.ps1's Invoke-HeavyJob, which runs it once in a
+        slot of the machine's build queue or straight away, or as what ForEach-Object or
+        Where-Object runs, under any of their names (Test-CommandIs), positionally or as -Process,
+        -Begin, -End or -FilterScript. Stored, returned, handed to any other command or to another
+        parameter such as -ArgumentList, it's a value, and nothing here is known to run it. Neither
+        runs a block when a literal @() is all that's piped in, which leaves them no item; that
+        counts their -Begin and -End blocks as not run too, which only ever drops code.
     #>
     param([System.Management.Automation.Language.ScriptBlockExpressionAst]$Expression)
 
@@ -152,7 +153,6 @@ function Test-RunsScriptBlock {
     }
     if ($command -isnot [System.Management.Automation.Language.CommandAst]) { return $false }
     if ([object]::ReferenceEquals($command.CommandElements[0], $Expression)) { return $true }
-    if (-not (Test-CommandIs $command @('ForEach-Object', 'Where-Object'))) { return $false }
     # Written after a parameter with a space, the block is that parameter's value.
     if ($null -eq $parameter) {
         $before = $command.CommandElements[$command.CommandElements.IndexOf($Expression) - 1]
@@ -160,6 +160,11 @@ function Test-RunsScriptBlock {
             $parameter = $before.ParameterName
         }
     }
+    if ([string]::Equals([string]$command.GetCommandName(), 'Invoke-HeavyJob', [System.StringComparison]::OrdinalIgnoreCase)) {
+        return ($null -ne $parameter -and $parameter.Length -gt 0 -and
+            'ScriptBlock'.StartsWith($parameter, [System.StringComparison]::OrdinalIgnoreCase))
+    }
+    if (-not (Test-CommandIs $command @('ForEach-Object', 'Where-Object'))) { return $false }
     if ($null -ne $parameter) {
         $runs = $false
         foreach ($name in 'Process', 'Begin', 'End', 'FilterScript') {
@@ -677,10 +682,11 @@ function Get-AssignedVariable {
 function Test-DotSourcesFile {
     <#
     .SYNOPSIS
-        Whether a script dot-sources this file where it runs, outside every function and every
-        script block run with &, so what the file defines is there for the rest of the script.
-        Each of those runs in a scope of its own, and what's defined there goes when it returns.
-        A script block run with . or by ForEach-Object or Where-Object runs in the script's own.
+        Whether a script dot-sources this file where it runs, outside every function, every
+        script block run with & and every block handed to Invoke-HeavyJob, so what the file
+        defines is there for the rest of the script. Each of those runs in a scope of its own, and
+        what's defined there goes when it returns. A script block run with . or by ForEach-Object
+        or Where-Object runs in the script's own.
     #>
     param([string]$Path, [string]$File)
 
@@ -694,6 +700,12 @@ function Test-DotSourcesFile {
                 $parent.Parent -is [System.Management.Automation.Language.CommandAst] -and
                 [object]::ReferenceEquals($parent.Parent.CommandElements[0], $parent) -and
                 $parent.Parent.InvocationOperator -eq [System.Management.Automation.Language.TokenKind]::Ampersand) { $scoped = $true }
+            if ($parent -is [System.Management.Automation.Language.ScriptBlockExpressionAst]) {
+                $holder = $parent.Parent
+                if ($holder -is [System.Management.Automation.Language.CommandParameterAst]) { $holder = $holder.Parent }
+                if ($holder -is [System.Management.Automation.Language.CommandAst] -and
+                    [string]::Equals([string]$holder.GetCommandName(), 'Invoke-HeavyJob', [System.StringComparison]::OrdinalIgnoreCase)) { $scoped = $true }
+            }
         }
         if (-not $scoped) { return $true }
     }

@@ -61,12 +61,12 @@ internal const val CAPTION_TRANSLATABLE_KEY = 143667788L
  *
  * Posts: Facebook marks each post's translatability with a GraphQLTranslatabilityType, and the feed
  * puts the auto-translated text plugin (FeedStoryAutoTranslatePlugin) on posts it marks
- * AUTO_TRANSLATION and the "See translation" plugin (FeedStorySeeTranslationPlugin) on posts it marks
- * SEE_TRANSLATION. Every one of those choices reads the type through one getter on the
- * translatability model (581 `LX/40F;->A0V`, 580 `LX/3zh;->A0V`, 577 `LX/3zW;->A0V`): a no-argument
- * method returning the enum, reading [TRANSLATION_TYPE_KEY] with BaseModelWithTree.getCachedEnum.
- * The extension sees what it returns and answers SEE_TRANSLATION for AUTO_TRANSLATION while the
- * switch is on, so the post shows its own text with the link under it.
+ * AUTO_TRANSLATION and the "See translation" plugin (FeedStorySeeTranslationPlugin) on posts it
+ * marks SEE_TRANSLATION. Every one of those choices reads the type through one getter on the
+ * translatability model (581 `LX/40F;->A0V`): a no-argument method returning the enum, reading
+ * [TRANSLATION_TYPE_KEY] with BaseModelWithTree.getCachedEnum. The extension sees what it returns
+ * and answers SEE_TRANSLATION for AUTO_TRANSLATION while the switch is on, so the post shows its
+ * own text with the link under it.
  *
  * Reels: a reel's caption isn't translated by the server. The reels viewer's footer
  * (FbShortsViewerFooterComponent) asks for a translation when the reel's field under

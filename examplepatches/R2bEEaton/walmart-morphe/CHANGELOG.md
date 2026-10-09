@@ -1,3 +1,15 @@
+## [2.1.0](https://github.com/R2bEEaton/walmart-morphe/compare/v2.0.1...v2.1.0) (2026-10-08)
+
+### ✨ New Features
+
+* keep Route My List stops in one store area together ([1cdfc20](https://github.com/R2bEEaton/walmart-morphe/commit/1cdfc2005169a034cfabaa56e714614ecc8c6953))
+
+## [2.0.1](https://github.com/R2bEEaton/walmart-morphe/compare/v2.0.0...v2.0.1) (2026-10-08)
+
+### 🐛 Bug Fixes
+
+* carry list item quantities into Route My List pins ([ac5f1c4](https://github.com/R2bEEaton/walmart-morphe/commit/ac5f1c4e0c8de6e96e38dfd5bb913fb3c1d9cad8))
+
 ## [2.0.0](https://github.com/R2bEEaton/walmart-route-my-list-morphe/compare/v1.3.0...v2.0.0) (2026-10-06)
 
 ### ⚠ BREAKING CHANGES

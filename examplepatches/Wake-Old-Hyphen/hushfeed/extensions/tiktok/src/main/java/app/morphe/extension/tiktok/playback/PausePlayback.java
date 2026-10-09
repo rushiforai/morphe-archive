@@ -9,6 +9,7 @@ package app.morphe.extension.tiktok.playback;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import android.widget.FrameLayout;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.blockauthor.FeedVisibility;
+import app.morphe.extension.tiktok.navigation.StartPage;
 import app.morphe.extension.tiktok.settings.L10n;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
@@ -85,6 +87,16 @@ public final class PausePlayback {
      * an activity that never left, and the reader did not go anywhere.
      */
     private static boolean wasAway;
+
+    /** The feed's activity, from install: only its resumes are the feed coming up. */
+    private static Class<?> feedClass;
+
+    /**
+     * Set at install when this process started from the launcher, and spent at the feed's first
+     * resume either way. A link, a notification or a shortcut starts TikTok for something else,
+     * and a hold in front of it would only be in the way.
+     */
+    private static boolean firstStartPending;
 
     private PausePlayback() {
     }
@@ -251,11 +263,22 @@ public final class PausePlayback {
      * second registration would quieten the feed twice for one return.
      */
     public static void install(Activity activity) {
+        install(activity, null);
+    }
+
+    /**
+     * {@link #install(Activity)} with onCreate's saved state. Android hands one back when it
+     * builds TikTok's screen again after closing it in the background, as a reopen from Recents
+     * does, and the intent it comes with is still the launcher's from the first start.
+     */
+    public static void install(Activity activity, Bundle state) {
         try {
             if (installed || activity == null) return;
             Application application = activity.getApplication();
             if (application == null) return;
             installed = true;
+            feedClass = activity.getClass();
+            firstStartPending = state == null && startedFromTheLauncher(activity.getIntent());
             // Called from onCreate, ahead of this activity's own start, which adds it again.
             STARTED.add(activity);
             // The activity that shows the feed. These callbacks come for every activity in the
@@ -327,10 +350,13 @@ public final class PausePlayback {
         wasAway = true;
         letGo();
         app.morphe.extension.tiktok.wellbeing.SessionLockOverlay.onBackground();
+        // How long the app stays away decides whether a shared video still plays alone.
+        app.morphe.extension.tiktok.wellbeing.FeedLock.onAppLeft();
     }
 
     static void onForeground(Activity activity) {
         app.morphe.extension.tiktok.wellbeing.SessionLockOverlay.onForeground();
+        app.morphe.extension.tiktok.wellbeing.FeedLock.onAppBack();
         try {
             // The sheet the reader left open is the sheet they are looking at again, but only
             // if this is the screen it belongs to. These callbacks are registered for every
@@ -344,6 +370,17 @@ public final class PausePlayback {
             }
             // The same for a sheet drawn into the activity, let go as the app went away.
             if (activity != null && panelActivityReference.get() == activity) syncPanel();
+            if (firstStartPending && activity != null && activity.getClass() == feedClass) {
+                firstStartPending = false;
+                // At the first resume the tab bar isn't drawn yet and the feed reads as showing.
+                // If the app opens on another tab, the catcher's watch takes it down at once.
+                if (Settings.PAUSE_FIRST_VIDEO.get() && !SessionBudget.isLocked()
+                        && FeedVisibility.isOnFeed(activity)) {
+                    quieten();
+                    waitForATap(activity);
+                    return;
+                }
+            }
             if (!wasAway) return;
             wasAway = false;
             if (!Settings.NO_RESUME_ON_FOREGROUND.get()) return;
@@ -355,6 +392,19 @@ public final class PausePlayback {
         } catch (Throwable error) {
             Logger.printException(() -> "Could not hold the feed on returning", error);
         }
+    }
+
+    /**
+     * A tap on TikTok's icon, as the launcher sends it, and nothing that came with a page to open.
+     * Start page's check, which also turns away the push extras some notifications put on the
+     * launcher's own intent. A reopen from Recents after Android closed TikTok carries that intent
+     * too, and plays: the reader was already watching. It's marked as launched from history only
+     * once TikTok's screen itself is gone, so the saved state {@link #install(Activity, Bundle)}
+     * gets covers the rest.
+     */
+    static boolean startedFromTheLauncher(Intent intent) {
+        return StartPage.isLauncherStart(intent)
+                && (intent.getFlags() & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0;
     }
 
     /**
@@ -428,13 +478,25 @@ public final class PausePlayback {
     private static void watchTheFeed(Activity activity, ViewGroup root) {
         stopWatchingTheFeed();
         feedWatcher = () -> {
-            if (catcherReference.get() == null) {
+            View catcher = catcherReference.get();
+            if (catcher == null) {
                 stopWatchingTheFeed();
                 return;
             }
             if (!app.morphe.extension.tiktok.blockauthor.FeedVisibility.isOnFeed(activity)) {
                 removeCatcher();
                 unquieten();
+                return;
+            }
+            // On a cold start the tab bar is drawn after the catcher goes up, so the room left
+            // for it is measured again until it's there.
+            if (catcher.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) catcher.getLayoutParams();
+                int clear = SessionLockOverlay.navigationHeight(activity, root);
+                if (params.bottomMargin != clear) {
+                    params.bottomMargin = clear;
+                    catcher.setLayoutParams(params);
+                }
             }
         };
         watchedRootReference = new WeakReference<>(root);
@@ -554,6 +616,8 @@ public final class PausePlayback {
         installed = false;
         STARTED.clear();
         wasAway = false;
+        feedClass = null;
+        firstStartPending = false;
         sheetReference = new WeakReference<>(null);
         MAIN.removeCallbacks(PANEL_CHECK);
         View watched = panelWatchedReference.get();

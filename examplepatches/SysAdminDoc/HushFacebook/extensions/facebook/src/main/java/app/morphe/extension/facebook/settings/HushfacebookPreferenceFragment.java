@@ -516,17 +516,17 @@ public final class HushfacebookPreferenceFragment extends AbstractPreferenceFrag
     }
 
     /**
-     * A missing Restore screens patch breaks profiles on ordinary re-signed installs. Pull it out of
-     * the generic missing-defaults list so the overview says exactly what fails (#68). Root Mount
-     * installs still carry Meta's key and do not need this patch.
+     * A missing Restore screens patch breaks profiles, photos and posts on ordinary re-signed
+     * installs (#68, #97). Pull it out of the generic missing-defaults list so the overview says
+     * exactly what fails. Root Mount installs still carry Meta's key and do not need this patch.
      */
     @Nullable
     private static Preference missingRestoreTrustRow(Context context, Set<PatchFamily> build) {
         if (build.contains(PatchFamily.RESTORE_TRUST)) return null;
         if (FamilySignatureTrust.thisBuildCarriesMetaKey(context)) return null;
-        Preference row = info(context, L10n.t("Profiles and some Settings pages won't open"),
-                L10n.f("Patch again with %1$s selected. Re-signed builds need it for profiles and some Facebook "
-                        + "Settings pages.", L10n.isolate(FamilyNames.RESTORE_TRUST)));
+        Preference row = info(context, L10n.t("Profiles, photos and posts won't open"),
+                L10n.f("Patch again with %1$s selected. Re-signed builds need it to open profiles, photos, posts "
+                        + "and some Facebook Settings pages.", L10n.isolate(FamilyNames.RESTORE_TRUST)));
         row.setKey(MISSING_RESTORE_TRUST);
         return row;
     }

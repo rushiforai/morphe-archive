@@ -75,9 +75,12 @@ The Marketplace page follows the discovery, blacklist and manifest rules of
 at `ec6f772891bad4bf08b645447c2ade6b06c4f991` (MIT), reimplemented in Java.
 No code or assets are copied. The blacklist is fetched at runtime from that
 repository's `main` branch. Local changes: only themes with a color scheme
-Spotify can use are listed, most stars first; only the first 50 items of a
-manifest are read, and long names and descriptions are cut short; and the list
-is cached for six hours.
+Spotify can use are listed, most stars first; with the extensions patch,
+extensions are listed on a tab of their own, those with an Android version
+first, and an extension repository with no Android version is listed from its
+search result, by its name and description, without its manifest; only the
+first 50 items of a manifest are read, and long names and descriptions are cut
+short; and the list is cached for six hours.
 
 ## Galaxy
 
@@ -92,6 +95,32 @@ it's shown or applied. Galaxy's own Marketplace listing brings the same image:
 its `theme.js` names it as `defImage`, and both are downloaded when the theme
 is applied. That repository has no license, so nothing from it is copied or
 bundled: no code, CSS, or images.
+
+## Spicetify extensions
+
+Trash Bin follows the behavior of Spicetify's desktop extension
+[`Extensions/trashbin.js`](https://github.com/spicetify/cli/blob/7bd6df4b2197132e201c68150f720a4f6f0abd83/Extensions/trashbin.js)
+in spicetify/cli (LGPL-2.1, by khanhas and OhItsTom), at
+`7bd6df4b2197132e201c68150f720a4f6f0abd83`. It is reimplemented in Java for
+Spotify's Android player, and no code is copied. The trash list keeps the
+desktop export format, `{"songs":{uri:true},"artists":{uri:true}}`, so a list
+exported on one moves to the other.
+
+Shuffle+ follows the behavior of Spicetify's desktop extension
+[`Extensions/shuffle+.js`](https://github.com/spicetify/cli/blob/e95f8025c133c277c6601b1977cf3b39a2fa5c2f/Extensions/shuffle+.js)
+in spicetify/cli (LGPL-2.1, by khanhas and Tetrax-10), at
+`e95f8025c133c277c6601b1977cf3b39a2fa5c2f`: it lists every song of a playlist,
+an album or Liked Songs, shuffles them with Fisher-Yates, and plays that exact
+order. It is reimplemented in Java for Spotify's Android player, and no code is
+copied.
+
+Hide podcasts follows the behavior of the desktop extension
+[`hidePodcasts.js`](https://github.com/theRealPadster/spicetify-hide-podcasts/tree/cc3e71597c5aee760e1003529147bec00a8a8a2d)
+in theRealPadster/spicetify-hide-podcasts (GPL-3.0), at
+`cc3e71597c5aee760e1003529147bec00a8a8a2d`. Only its behavior is followed: it
+hides podcasts on Home and in Search, and audiobooks unless that option is
+turned off. It is reimplemented in Java for Spotify's Android screens, and no
+code is copied.
 
 ## APK reverse engineering skill
 

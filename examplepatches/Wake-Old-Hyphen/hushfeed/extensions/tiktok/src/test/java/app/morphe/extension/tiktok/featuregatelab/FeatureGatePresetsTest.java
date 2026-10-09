@@ -41,7 +41,7 @@ public class FeatureGatePresetsTest {
         Utils.awaitBackgroundTasksForTests();
         FeatureGateCatalog.awaitForTests();
         Shadows.shadowOf(Looper.getMainLooper()).idle();
-        BuildNames.setRunningBuildForTests("47.1.3");
+        BuildNames.setRunningBuildForTests("47.1.4");
         FeatureGateLabStore.resetAllLabData();
         FeatureGateLabUndo.resetForTests();
         FeatureGateLabFragment.resetForTests();
@@ -50,7 +50,7 @@ public class FeatureGatePresetsTest {
         FeatureGateLabSession.begin();
         Utils.setIsDarkModeEnabled(true);
         catalog = new LinkedHashMap<>();
-        for (FeatureGateCatalog.Entry entry : FeatureGateCatalog.readStaticCatalog("47.1.3")) {
+        for (FeatureGateCatalog.Entry entry : FeatureGateCatalog.readStaticCatalog("47.1.4")) {
             if (entry.key.equals("feed_translation_reverse")
                     || entry.key.equals("cla_translate_button_weaken_v2")) catalog.put(entry.identity(), entry);
         }
@@ -70,7 +70,7 @@ public class FeatureGatePresetsTest {
         FeatureGateLabStore.saveRule("abmock", "feed_translation_reverse", "INT", "1", false);
         FeatureGateLabStore.saveRule("abmock", "unrelated", "BOOLEAN", "true", true);
         JSONObject before = FeatureGateLabStore.exportSettings();
-        FeatureGateLabUndo.applyPreset("47.1.3", "see_translation", catalog);
+        FeatureGateLabUndo.applyPreset("47.1.4", "see_translation", catalog);
         for (FeatureGateCatalog.Entry entry : catalog.values()) {
             FeatureGateLabStore.Rule rule = FeatureGateLabStore.rule(entry.manager, entry.key, entry.type);
             assertEquals("0", rule.value);
@@ -115,11 +115,11 @@ public class FeatureGatePresetsTest {
 
     @Test public void aMissingGateOrAnotherBuildCannotApplyHalfAPreset() throws Exception {
         catalog.remove("abmock\nfeed_translation_reverse");
-        assertThrows(JSONException.class, () -> FeatureGateLabUndo.applyPreset("47.1.3", "see_translation", catalog));
+        assertThrows(JSONException.class, () -> FeatureGateLabUndo.applyPreset("47.1.4", "see_translation", catalog));
         assertTrue(FeatureGateLabStore.rules().isEmpty());
         assertFalse(FeatureGateLabUndo.canUndo());
-        BuildNames.setRunningBuildForTests("47.0.3");
-        assertThrows(JSONException.class, () -> FeatureGateLabUndo.applyPreset("47.1.3", "see_translation", catalog));
+        BuildNames.setRunningBuildForTests("47.2.1");
+        assertThrows(JSONException.class, () -> FeatureGateLabUndo.applyPreset("47.1.4", "see_translation", catalog));
         assertTrue(FeatureGateLabStore.rules().isEmpty());
         assertFalse(FeatureGateLabUndo.canUndo());
     }
@@ -142,7 +142,7 @@ public class FeatureGatePresetsTest {
             org.robolectric.shadows.ShadowToast.reset();
             var show = FeatureGateLabFragment.class.getDeclaredMethod("showPreset", String.class, String.class);
             show.setAccessible(true);
-            show.invoke(lab, "47.1.3", "see_translation");
+            show.invoke(lab, "47.1.4", "see_translation");
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             assertEquals("Loaded values are still being read. Try again in a moment.",
                     org.robolectric.shadows.ShadowToast.getTextOfLatestToast());
@@ -190,10 +190,10 @@ public class FeatureGatePresetsTest {
             FeatureGateLabUndo.undo();
             assertTrue(FeatureGateLabStore.rules().isEmpty());
 
-            BuildNames.setRunningBuildForTests("47.0.3");
+            BuildNames.setRunningBuildForTests("47.2.1");
             var show = FeatureGateLabFragment.class.getDeclaredMethod("showPreset", String.class, String.class);
             show.setAccessible(true);
-            show.invoke(lab, "47.1.3", "see_translation");
+            show.invoke(lab, "47.1.4", "see_translation");
             AlertDialog mismatch = (AlertDialog) ShadowDialog.getLatestDialog();
             Shadows.shadowOf(Looper.getMainLooper()).idle();
             View apply = mismatch.getButton(AlertDialog.BUTTON_POSITIVE);

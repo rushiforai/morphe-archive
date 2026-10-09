@@ -392,6 +392,92 @@
     return-void
 .end method
 
+.method public static expandComment(Landroid/view/View;)V
+    .registers 5
+
+    const v0, 0x7f0801b4
+
+    invoke-virtual {p0, v0}, Landroid/view/View;->findViewById(I)Landroid/view/View;
+
+    move-result-object p0
+
+    instance-of v0, p0, Landroid/widget/TextView;
+
+    if-eqz v0, :cond_4e
+
+    check-cast p0, Landroid/widget/TextView;
+
+    invoke-virtual {p0}, Landroid/widget/TextView;->getText()Ljava/lang/CharSequence;
+
+    move-result-object v0
+
+    invoke-interface {v0}, Ljava/lang/CharSequence;->toString()Ljava/lang/String;
+
+    move-result-object v0
+
+    const/16 v1, 0xa
+
+    invoke-virtual {v0, v1}, Ljava/lang/String;->indexOf(I)I
+
+    move-result v0
+
+    if-gez v0, :cond_41
+
+    invoke-virtual {p0}, Landroid/widget/TextView;->getLayout()Landroid/text/Layout;
+
+    move-result-object v0
+
+    if-eqz v0, :cond_4e
+
+    const/4 v1, 0x0
+
+    invoke-virtual {v0, v1}, Landroid/text/Layout;->getEllipsisCount(I)I
+
+    move-result v2
+
+    if-gtz v2, :cond_41
+
+    invoke-virtual {v0, v1}, Landroid/text/Layout;->getLineWidth(I)F
+
+    move-result v0
+
+    invoke-virtual {p0}, Landroid/widget/TextView;->getWidth()I
+
+    move-result v1
+
+    invoke-virtual {p0}, Landroid/widget/TextView;->getCompoundPaddingLeft()I
+
+    move-result v2
+
+    sub-int/2addr v1, v2
+
+    invoke-virtual {p0}, Landroid/widget/TextView;->getCompoundPaddingRight()I
+
+    move-result v2
+
+    sub-int/2addr v1, v2
+
+    int-to-float v1, v1
+
+    cmpg-float v0, v0, v1
+
+    if-lez v0, :cond_4e
+
+    :cond_41
+    const/4 v0, 0x0
+
+    invoke-virtual {p0, v0}, Landroid/widget/TextView;->setSingleLine(Z)V
+
+    invoke-virtual {p0, v0}, Landroid/widget/TextView;->setHorizontallyScrolling(Z)V
+
+    const v0, 0x7fffffff
+
+    invoke-virtual {p0, v0}, Landroid/widget/TextView;->setMaxLines(I)V
+
+    :cond_4e
+    return-void
+.end method
+
 .method public static install(Ljava/lang/Object;)V
     .registers 13
 
@@ -413,13 +499,13 @@
 
     check-cast v1, Landroid/view/View;
 
-    if-eqz v0, :cond_172
+    if-eqz v0, :cond_175
 
     instance-of v2, v1, Landroid/widget/LinearLayout;
 
     if-nez v2, :cond_18
 
-    goto/16 :goto_172
+    goto/16 :goto_175
 
     .line 19
     :cond_18
@@ -444,7 +530,7 @@
 
     check-cast v2, Le/e/a/CommentListExtras$Follow;
     :try_end_2a
-    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_2a} :catch_173
+    .catch Ljava/lang/Exception; {:try_start_0 .. :try_end_2a} :catch_176
 
     .line 20
     :goto_2a
@@ -746,28 +832,28 @@
 
     move-result p0
 
-    if-eqz p0, :cond_171
+    if-eqz p0, :cond_174
 
     invoke-virtual {v0, v2}, Landroid/widget/ListView;->post(Ljava/lang/Runnable;)Z
-    :try_end_171
-    .catch Ljava/lang/Exception; {:try_start_2e .. :try_end_171} :catch_173
+    :try_end_174
+    .catch Ljava/lang/Exception; {:try_start_2e .. :try_end_174} :catch_176
 
     .line 29
-    :cond_171
-    goto :goto_177
+    :cond_174
+    goto :goto_17a
 
     .line 18
-    :cond_172
-    :goto_172
+    :cond_175
+    :goto_175
     return-void
 
     .line 29
-    :catch_173
+    :catch_176
     move-exception p0
 
     invoke-static {p0}, Le/e/a/FeedbackFixes;->log(Ljava/lang/Exception;)V
 
-    :goto_177
+    :goto_17a
     return-void
 .end method
 
@@ -804,104 +890,193 @@
 .end method
 
 .method static synthetic lambda$install$5(Le/e/a/CommentListExtras$Follow;Landroid/view/View;Landroid/view/MotionEvent;)Z
-    .locals 8
+    .registers 11
+
     invoke-virtual {p2}, Landroid/view/MotionEvent;->getActionMasked()I
+
     move-result v0
+
     const/4 v1, 0x0
-    if-nez v0, :not_down
+
+    if-nez v0, :cond_1c
+
     invoke-virtual {p2}, Landroid/view/MotionEvent;->getY()F
+
     move-result v2
+
     iput v2, p0, Le/e/a/CommentListExtras$Follow;->touchY:F
+
     invoke-virtual {p2}, Landroid/view/MotionEvent;->getX()F
+
     move-result v2
+
     iput v2, p0, Le/e/a/CommentListExtras$Follow;->touchX:F
+
     invoke-virtual {p2}, Landroid/view/MotionEvent;->getEventTime()J
+
     move-result-wide v2
+
     iput-wide v2, p0, Le/e/a/CommentListExtras$Follow;->touchDown:J
+
     iput-boolean v1, p0, Le/e/a/CommentListExtras$Follow;->touchMoved:Z
+
     return v1
-    :not_down
+
+    :cond_1c
     const/4 v2, 0x3
-    if-ne v0, v2, :not_cancel
+
+    if-ne v0, v2, :cond_26
+
     invoke-virtual {p0}, Le/e/a/CommentListExtras$Follow;->cancelTap()V
+
     const/4 v2, 0x1
+
     iput-boolean v2, p0, Le/e/a/CommentListExtras$Follow;->touchMoved:Z
+
     return v1
-    :not_cancel
+
+    :cond_26
     const/4 v2, 0x2
-    if-eq v0, v2, :check_distance
+
+    if-eq v0, v2, :cond_2c
+
     const/4 v2, 0x1
-    if-ne v0, v2, :touch_done
-    :check_distance
+
+    if-ne v0, v2, :cond_a7
+
+    :cond_2c
     invoke-virtual {p2}, Landroid/view/MotionEvent;->getY()F
+
     move-result v2
+
     iget v3, p0, Le/e/a/CommentListExtras$Follow;->touchY:F
+
     sub-float/2addr v2, v3
+
     invoke-static {v2}, Ljava/lang/Math;->abs(F)F
+
     move-result v2
+
     invoke-virtual {p2}, Landroid/view/MotionEvent;->getX()F
+
     move-result v3
+
     iget v4, p0, Le/e/a/CommentListExtras$Follow;->touchX:F
+
     sub-float/2addr v3, v4
+
     invoke-static {v3}, Ljava/lang/Math;->abs(F)F
+
     move-result v3
+
     invoke-static {v2, v3}, Ljava/lang/Math;->max(FF)F
+
     move-result v2
+
     invoke-virtual {p1}, Landroid/view/View;->getContext()Landroid/content/Context;
+
     move-result-object v3
+
     invoke-static {v3}, Landroid/view/ViewConfiguration;->get(Landroid/content/Context;)Landroid/view/ViewConfiguration;
+
     move-result-object v3
+
     invoke-virtual {v3}, Landroid/view/ViewConfiguration;->getScaledTouchSlop()I
+
     move-result v3
+
     int-to-float v3, v3
+
     cmpl-float v2, v2, v3
-    if-lez v2, :not_moved
+
+    if-lez v2, :cond_5d
+
     const/4 v2, 0x1
+
     iput-boolean v2, p0, Le/e/a/CommentListExtras$Follow;->touchMoved:Z
+
     invoke-virtual {p0}, Le/e/a/CommentListExtras$Follow;->cancelTap()V
-    :not_moved
+
+    :cond_5d
     const/4 v2, 0x1
-    if-ne v0, v2, :touch_done
+
+    if-ne v0, v2, :cond_a7
+
     iget-boolean v2, p0, Le/e/a/CommentListExtras$Follow;->touchMoved:Z
-    if-nez v2, :touch_done
+
+    if-nez v2, :cond_a7
+
     invoke-virtual {p2}, Landroid/view/MotionEvent;->getEventTime()J
+
     move-result-wide v2
+
     iget-wide v4, p0, Le/e/a/CommentListExtras$Follow;->touchDown:J
+
     sub-long/2addr v2, v4
+
     invoke-static {}, Landroid/view/ViewConfiguration;->getLongPressTimeout()I
+
     move-result v4
+
     int-to-long v4, v4
+
     cmp-long v2, v2, v4
-    if-gez v2, :touch_done
+
+    if-gez v2, :cond_a7
+
     iget-object v3, p0, Le/e/a/CommentListExtras$Follow;->list:Landroid/widget/ListView;
+
     invoke-virtual {p2}, Landroid/view/MotionEvent;->getX()F
+
     move-result v2
+
     float-to-int v2, v2
+
     invoke-virtual {p2}, Landroid/view/MotionEvent;->getY()F
+
     move-result v4
+
     float-to-int v4, v4
+
     invoke-virtual {v3, v2, v4}, Landroid/widget/ListView;->pointToPosition(II)I
+
     move-result v5
-    if-ltz v5, :touch_done
+
+    if-ltz v5, :cond_a7
+
     invoke-virtual {v3}, Landroid/widget/ListView;->getFirstVisiblePosition()I
+
     move-result v2
+
     sub-int v2, v5, v2
+
     invoke-virtual {v3, v2}, Landroid/widget/ListView;->getChildAt(I)Landroid/view/View;
+
     move-result-object v4
-    if-eqz v4, :touch_done
-    # Cancel native press timers before consuming UP, preserving real long presses.
+
+    if-eqz v4, :cond_a7
+
     invoke-static {p2}, Landroid/view/MotionEvent;->obtain(Landroid/view/MotionEvent;)Landroid/view/MotionEvent;
+
     move-result-object v0
+
     const/4 v1, 0x3
+
     invoke-virtual {v0, v1}, Landroid/view/MotionEvent;->setAction(I)V
+
     invoke-virtual {v3, v0}, Landroid/widget/ListView;->onTouchEvent(Landroid/view/MotionEvent;)Z
+
     invoke-virtual {v0}, Landroid/view/MotionEvent;->recycle()V
-    # v2..v7 are contiguous parameters for the six-register instance callback.
+
     move-object v2, p0
+
     const-wide/16 v6, 0x0
+
     invoke-virtual/range {v2 .. v7}, Le/e/a/CommentListExtras$Follow;->lambda$clicks$1$e-e-a-CommentListExtras$Follow(Landroid/widget/AdapterView;Landroid/view/View;IJ)V
+
     const/4 v1, 0x1
-    :touch_done
+
+    :cond_a7
     return v1
 .end method
 
@@ -1801,7 +1976,7 @@
 
     check-cast p0, Landroid/widget/TextView;
 
-    if-eqz p0, :cond_ae
+    if-eqz p0, :cond_b1
 
     invoke-static {p0}, Le/e/a/Followup173;->centerComment(Landroid/widget/TextView;)V
 
@@ -1811,11 +1986,11 @@
 
     instance-of v0, v0, Landroid/widget/RelativeLayout;
 
-    if-nez v0, :cond_15
+    if-nez v0, :cond_18
 
-    goto/16 :goto_ae
+    goto/16 :goto_b1
 
-    :cond_15
+    :cond_18
     invoke-virtual {p0}, Landroid/widget/TextView;->getParent()Landroid/view/ViewParent;
 
     move-result-object v0
@@ -1832,7 +2007,7 @@
 
     const/4 v2, 0x0
 
-    if-nez v1, :cond_8d
+    if-nez v1, :cond_90
 
     new-instance v1, Landroid/widget/Button;
 
@@ -1920,7 +2095,7 @@
 
     invoke-virtual {p0, v0}, Landroid/widget/TextView;->setLayoutParams(Landroid/view/ViewGroup$LayoutParams;)V
 
-    :cond_8d
+    :cond_90
     invoke-virtual {v1, p1}, Landroid/widget/Button;->setTag(Ljava/lang/Object;)V
 
     sget-object p0, Le/e/a/CommentListExtras;->meta:Ljava/util/Map;
@@ -1931,18 +2106,18 @@
 
     check-cast p0, Le/e/a/CommentListExtras$Meta;
 
-    if-nez p0, :cond_9c
+    if-nez p0, :cond_9f
 
     const/16 v2, 0x8
 
-    :cond_9c
+    :cond_9f
     invoke-virtual {v1, v2}, Landroid/widget/Button;->setVisibility(I)V
 
-    if-nez p0, :cond_a2
+    if-nez p0, :cond_a5
 
     return-void
 
-    :cond_a2
+    :cond_a5
     invoke-static {v1, p0}, Le/e/a/CommentListExtras;->render(Landroid/widget/Button;Le/e/a/CommentListExtras$Meta;)V
 
     new-instance p0, Le/e/a/CommentListExtras$$ExternalSyntheticLambda3;
@@ -1950,21 +2125,21 @@
     invoke-direct {p0, v1, p1}, Le/e/a/CommentListExtras$$ExternalSyntheticLambda3;-><init>(Landroid/widget/Button;Ljava/lang/Object;)V
 
     invoke-virtual {v1, p0}, Landroid/widget/Button;->setOnClickListener(Landroid/view/View$OnClickListener;)V
-    :try_end_ad
-    .catch Ljava/lang/Exception; {:try_start_3 .. :try_end_ad} :catch_af
+    :try_end_b0
+    .catch Ljava/lang/Exception; {:try_start_3 .. :try_end_b0} :catch_b2
 
-    goto :goto_b3
+    goto :goto_b6
 
-    :cond_ae
-    :goto_ae
+    :cond_b1
+    :goto_b1
     return-void
 
-    :catch_af
+    :catch_b2
     move-exception p0
 
     invoke-static {p0}, Le/e/a/FeedbackFixes;->log(Ljava/lang/Exception;)V
 
-    :goto_b3
+    :goto_b6
     return-void
 .end method
 
@@ -1999,50 +2174,4 @@
     const-wide v0, 0x7fffffffffffffffL
 
     return-wide v0
-.end method
-
-.method public static expandComment(Landroid/view/View;)V
-    .locals 4
-    const v0, 0x7f0801b4
-    invoke-virtual {p0, v0}, Landroid/view/View;->findViewById(I)Landroid/view/View;
-    move-result-object p0
-    instance-of v0, p0, Landroid/widget/TextView;
-    if-eqz v0, :expand_done
-    check-cast p0, Landroid/widget/TextView;
-    invoke-virtual {p0}, Landroid/widget/TextView;->getText()Ljava/lang/CharSequence;
-    move-result-object v0
-    invoke-interface {v0}, Ljava/lang/CharSequence;->toString()Ljava/lang/String;
-    move-result-object v0
-    const/16 v1, 0xa
-    invoke-virtual {v0, v1}, Ljava/lang/String;->indexOf(I)I
-    move-result v0
-    if-gez v0, :expand_now
-    invoke-virtual {p0}, Landroid/widget/TextView;->getLayout()Landroid/text/Layout;
-    move-result-object v0
-    if-eqz v0, :expand_done
-    const/4 v1, 0x0
-    invoke-virtual {v0, v1}, Landroid/text/Layout;->getEllipsisCount(I)I
-    move-result v2
-    if-gtz v2, :expand_now
-    invoke-virtual {v0, v1}, Landroid/text/Layout;->getLineWidth(I)F
-    move-result v0
-    invoke-virtual {p0}, Landroid/widget/TextView;->getWidth()I
-    move-result v1
-    invoke-virtual {p0}, Landroid/widget/TextView;->getCompoundPaddingLeft()I
-    move-result v2
-    sub-int/2addr v1, v2
-    invoke-virtual {p0}, Landroid/widget/TextView;->getCompoundPaddingRight()I
-    move-result v2
-    sub-int/2addr v1, v2
-    int-to-float v1, v1
-    cmpg-float v0, v0, v1
-    if-lez v0, :expand_done
-    :expand_now
-    const/4 v0, 0x0
-    invoke-virtual {p0, v0}, Landroid/widget/TextView;->setSingleLine(Z)V
-    invoke-virtual {p0, v0}, Landroid/widget/TextView;->setHorizontallyScrolling(Z)V
-    const v0, 0x7fffffff
-    invoke-virtual {p0, v0}, Landroid/widget/TextView;->setMaxLines(I)V
-    :expand_done
-    return-void
 .end method

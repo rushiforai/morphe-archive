@@ -66,6 +66,7 @@ public final class AppSwitchGuard {
                 resumed = new WeakReference<>(a);
                 for (Runnable pending : PENDING.values()) MAIN.removeCallbacks(pending);
                 PENDING.clear();
+                PlaybackReturn.foreground(a);
             }
             public void onActivityPaused(Activity a) {
                 if (resumed.get() == a) resumed = new WeakReference<>(null);

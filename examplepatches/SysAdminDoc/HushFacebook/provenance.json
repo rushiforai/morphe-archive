@@ -82,7 +82,7 @@
       "commit": "319cde236e373ff8feb66fa30e99028e3d9dff6e",
       "via": [],
       "license": "GPL-3.0",
-      "changes": "Rewritten from the Following feed swap on that commit's fix/following-feed-home branch, which changes Home's feed type for the Following feed's at the start of Facebook 573's news feed parameter builder. The hook point is the same: the first instruction of that static builder, whose second parameter is the feed type. 573's obfuscated names aren't carried over. The builder is found in 577, 580 and 581 by the Companion.setPagedNewsfeedParams trace section it opens, the two feed types by the names they keep (top_stories and following_feed), and the swap is made by the extension's FollowingHome behind a switch that starts off, so pausing Hushfacebook or turning the switch off gives Home its ranked feed again. The extension, written here, sits under the feed extension's own rule."
+      "changes": "Rewritten from the Following feed swap on that commit's fix/following-feed-home branch, which changes Home's feed type for the Following feed's at the start of Facebook 573's news feed parameter builder. The hook point is the same: the first instruction of that static builder, whose second parameter is the feed type. 573's obfuscated names aren't carried over. The builder is found in 577, 580 and 581 by the Companion.setPagedNewsfeedParams trace section it opens, the two feed types by the names they keep (top_stories and most_recent), and the swap is made by the extension's FollowingHome behind a switch that starts off, so pausing Hushfacebook or turning the switch off gives Home its ranked feed again. The extension, written here, sits under the feed extension's own rule."
     },
     {
       "paths": [
@@ -455,7 +455,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: the Upgrades and Also from Meta sections of Facebook's Menu. Facebook 577 and 580 type each Menu group with one enum under kept names, UPSELL and PRODUCTS_FROM_FACEBOOK among them, and build every group from a native section and a section for what the server sends with it. The patch finds the first by the one children builder loading upsell_bookmarks_key and the second by the one loading ABOVE_NATIVE, REPLACE_NATIVE and BELOW_NATIVE, and asks the extension about the group right after each reads it. A yes hands back an empty list of children, built the way the section builds its own. Each group has its own switch, and every other group is left as Facebook built it. The same folder holds Hushfacebook in the Menu: the Settings and privacy group's row list, the one list the native section builds from the session, a list and a flag, goes through the extension, which adds one row made by a factory the patch adds to Facebook's row item class, copying the first row's icon and giving it an id of its own. The Menu's row tap handler, found by the bookmarks_menu trace, opens the settings for that id, and its two loggers skip it."
+      "changes": "Written for Hushfacebook: the Upgrades and Also from Meta sections of Facebook's Menu. Facebook 577 and 580 type each Menu group with one enum under kept names, UPSELL and PRODUCTS_FROM_FACEBOOK among them, and build every group from a native section and a section for what the server sends with it. The patch finds the first by the one children builder loading upsell_bookmarks_key and the second by the one loading ABOVE_NATIVE, REPLACE_NATIVE and BELOW_NATIVE, and asks the extension about the group right after each reads it. A yes hands back an empty list of children, built the way the section builds its own. Each group has its own switch, and every other group is left as Facebook built it. The same folder holds Hushfacebook in the Menu: the Settings and privacy group's row list, the one list the native section builds from the session, a list and a flag, goes through the extension, which adds one row made by a factory the patch adds to Facebook's row item class, copying the first row's icon and giving it an id of its own. The Menu's row tap handler, found by the bookmarks_menu trace, opens the settings for that id, and its two loggers skip it. The Muse card is a Menu bookmark drawn with a Native Templates promotion. The patch finds its component by the kept updateState:BookmarkFolderItemComponent.updateNtContentDismissed string and, right after the render reads whether the card was dismissed, hands the answer and the bookmark to the extension, which answers yes for the bookmark named Muse, read through the kept TreeJNI.getString by the hash of name."
     },
     {
       "paths": [
@@ -630,7 +630,7 @@
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook: hiding posts you've already seen. Facebook's viewport logger saves a post's seen state in ViewportLoggingHandler.persistSeenState(session, feedUnit) once the post has left the screen after a counted view. The method keeps its name and its VPVDLOGGING trace string, and it reads the unit's id through the kept getCacheId interface method, which together find it once in 577, 580 and 581. The patch hands the unit to the extension's SeenPosts on a range call at the method's first instruction, so the post's own register is passed even past v15. The extension remembers a hash of the id, and the shared feed guard drops a remembered post on a later load."
+      "changes": "Written for Hushfacebook: hiding posts you've already seen. Facebook's viewport logger saves a post's seen state in ViewportLoggingHandler.persistSeenState(session, feedUnit) once the post has left the screen after a counted view. The method keeps its name and its VPVDLOGGING trace string, and it reads the unit's id through the kept getCacheId interface method, which together find it once in 577, 580 and 581. Its one caller, the dwell runnable traced VPVDLOGGING.ViewportLoggingHandler.logFeedUnitDurationInternal, skips that call on the News Feed itself (native_newsfeed, friendly_feed and the most recent tab), so the patch hands the unit to the extension's SeenPosts in the runnable instead, on a range call right after the 250 ms dwell check and before that surface check. The extension remembers a hash of the id, and the shared feed guard drops a remembered post on a later load."
     },
     {
       "paths": [
@@ -816,15 +816,27 @@
     },
     {
       "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoFormat.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoMenuItem.java",
         "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/PhotoSave.java",
         "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/DownloadPhotoPatch.kt",
-        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/PhotoSaveAnchors.kt"
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/PhotoSaveAnchors.kt",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/photo/PhotoSizeAnchors.kt"
       ],
       "origin": "original",
       "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
       "license": "GPL-3.0-only",
-      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the photo viewer's two reads of can_viewer_download ask the switch, and Save photo's kept newSavePhotoAction hands its listener to the extension, which saves the photo's biggest image through Hushfacebook's downloader and falls back to Facebook's own save; and, behind a second switch, Save photo in the menu of a post holding photos, added through the same post menu hook as Download to phone, reading the post's attachments, an album's subattachments and the post a share wraps through the kept GraphQL models' getters found by their field hashes, and saving each photo in turn."
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: the photo viewer's two reads of can_viewer_download ask the switch, and Save photo's kept newSavePhotoAction hands its listener to the extension, which saves the photo's biggest image through Hushfacebook's downloader and falls back to Facebook's own save; and, behind a second switch, Save photo in the menu of a post holding photos, added through the same post menu hook as Download to phone, reading the post's attachments, an album's subattachments and the post a share wraps through the kept GraphQL models' getters found by their field hashes, and saving each photo in turn. A save asks Meta's CDN for the biggest copy through the same resize call Facebook's own Save photo makes, and a picture the CDN sends as AVIF or WebP is written out as a JPEG."
+    },
+    {
+      "paths": [
+        "extensions/facebook/src/main/java/app/morphe/extension/facebook/download/ReelMenuDownload.java",
+        "patches/src/main/kotlin/app/morphe/patches/facebook/downloads/reel/ReelMoreSheet.kt"
+      ],
+      "origin": "original",
+      "upstream": "https://github.com/SysAdminDoc/Hushfacebook",
+      "license": "GPL-3.0-only",
+      "changes": "Written for Hushfacebook from Facebook 577, 580 and 581: a Download row in a reel's More sheet, for accounts whose reels lack the sidebar Download any reel puts its button in. The sheet builder is found by the Clear mode row id it holds, the row constructor, click interface and icon wrap by their shapes, and the download icon by the enum constant Facebook's own download row reads; the builder's first call adds the row through a helper that looks up the reel's player and hands it to the same save the sidebar button uses."
     },
     {
       "paths": [

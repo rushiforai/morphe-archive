@@ -10,14 +10,16 @@ const workerUrl = import.meta.env.PUBLIC_WORKER_URL || 'https://worker.patch.p0n
 
 function getNextCheckCountdown(): string {
   const now = new Date();
+  const nextHour = (Math.floor(now.getUTCHours() / 6) + 1) * 6;
   const nextCheck = new Date(Date.UTC(
     now.getUTCFullYear(),
     now.getUTCMonth(),
     now.getUTCDate(),
-    6, 0, 0
+    0, 0, 0, 0
   ));
-  if (now.getTime() >= nextCheck.getTime()) {
-    nextCheck.setUTCDate(nextCheck.getUTCDate() + 1);
+  nextCheck.setUTCHours(nextHour);
+  if (nextCheck.getTime() <= now.getTime()) {
+    nextCheck.setUTCHours(nextCheck.getUTCHours() + 6);
   }
   const diff = Math.max(0, nextCheck.getTime() - now.getTime());
   const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -117,7 +119,7 @@ function formatRelativeTime(dateStr: string): string {
           <input
             type="search"
             id="status-search-input"
-            placeholder="Search applications or package names..."
+            placeholder="Search applications..."
             class="w-full bg-zinc-900 border border-white/10 px-3 py-1.5 pl-8 text-xs font-mono text-white placeholder-zinc-500 rounded-sm focus:outline-none focus:border-white/30"
           />
           <svg class="w-3.5 h-3.5 text-zinc-500 absolute left-2.5 top-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -126,7 +128,7 @@ function formatRelativeTime(dateStr: string): string {
         </div>
 
         <span class="font-mono text-[11px] text-zinc-500 shrink-0" id="last-updated-label">
-          Built with bundle: {stats.releaseDate}
+          Last Update: {stats.releaseDate}
         </span>
       </div>
 
@@ -136,17 +138,13 @@ function formatRelativeTime(dateStr: string): string {
           <thead>
             <tr class="border-b border-white/[0.08] text-[11px] text-zinc-500 uppercase tracking-wider">
               <!-- Sticky Left: Application Column -->
-              <th class="py-3 px-4 sm:sticky sm:left-0 z-20 bg-zinc-950 sm:shadow-[1px_0_0_rgba(255,255,255,0.08)]">
+              <th class="py-3 px-4 sticky left-0 z-20 bg-zinc-950 shadow-[1px_0_0_rgba(255,255,255,0.08)]">
                 Application
               </th>
-              <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap hidden sm:table-cell">Package Name</th>
-              <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap hidden sm:table-cell">Tested Target</th>
+              <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap hidden md:table-cell">Target</th>
               <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap hidden sm:table-cell">Google Play</th>
-              <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap hidden sm:table-cell">Last Checked</th>
-              <!-- Sticky Right: Status Column -->
-              <th class="py-3 px-4 text-right sm:sticky sm:right-0 z-20 bg-zinc-950 sm:shadow-[-1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
-                Status
-              </th>
+              <th class="py-3 px-4 bg-zinc-950/60 whitespace-nowrap">Tests Passed</th>
+              <th class="py-3 px-4 text-right sticky right-0 z-20 bg-zinc-950 shadow-[-1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">Update Status</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-white/[0.06]" id="status-tbody">
@@ -157,7 +155,7 @@ function formatRelativeTime(dateStr: string): string {
                 data-app-name={item.appName.toLowerCase()}
               >
                 <!-- Sticky Left: Application Cell -->
-                <td class="py-3.5 px-4 font-sans font-semibold text-white sm:sticky sm:left-0 z-10 bg-[#080808] group-hover/row:bg-[#0c0c0c] sm:shadow-[1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
+                <td class="py-3.5 px-4 font-sans font-semibold text-white sticky left-0 z-10 bg-[#080808] group-hover/row:bg-[#0c0c0c] shadow-[1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
                   <div class="flex items-center gap-2.5">
                     {item.iconUrl ? (
                       <Image
@@ -179,46 +177,27 @@ function formatRelativeTime(dateStr: string): string {
                   </div>
                 </td>
 
-                <td class="py-3.5 px-4 text-zinc-500 text-[11px] whitespace-nowrap hidden sm:table-cell">
-                  {item.packageName}
-                </td>
-                <td class="py-3.5 px-4 text-zinc-200 whitespace-nowrap hidden sm:table-cell">
+                <td class="py-3.5 px-4 text-zinc-200 whitespace-nowrap hidden md:table-cell">
                   v{item.latestSupportedVersion}
                 </td>
                 <td class="py-3.5 px-4 text-zinc-400 play-version whitespace-nowrap hidden sm:table-cell">
-                  {item.playVersion ? `v${item.playVersion}` : '—'}
-                </td>
-                <td class="py-3.5 px-4 text-zinc-400 text-[11px] check-time whitespace-nowrap hidden sm:table-cell" data-raw-time={item.checkedAt}>
-                  {item.checkedAt ? formatRelativeTime(item.checkedAt) : 'Pending'}
+                  {item.playVersion ? `v${item.playVersion}` : (item.status !== 'not-on-play-store' && item.status !== 'check-failed' ? `v${item.latestSupportedVersion}` : '—')}
                 </td>
 
-                <!-- Sticky Right: Status Cell -->
-                <td class="py-3.5 px-4 text-right status-badge-cell sm:sticky sm:right-0 z-10 bg-[#080808] group-hover/row:bg-[#0c0c0c] sm:shadow-[-1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
-                  {item.status === 'up-to-date' ? (
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
-                      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                      <span>Up to date</span>
-                    </span>
-                  ) : item.status === 'newer-available' ? (
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40">
-                      <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                      <span>Newer version available</span>
-                    </span>
-                  ) : item.status === 'check-failed' ? (
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-rose-950/60 text-rose-400 border border-rose-800/40">
-                      <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                      <span>Check failed</span>
-                    </span>
-                  ) : item.status === 'not-on-play-store' ? (
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-500 border border-white/10">
-                      <span>Not on Play Store</span>
-                    </span>
-                  ) : (
-                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10">
-                      <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
-                      <span>Unknown</span>
-                    </span>
-                  )}
+                <!-- Tests Passed Column -->
+                <td class="py-3.5 px-4 target-compat-cell whitespace-nowrap">
+                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10">
+                    <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                    <span>Checking...</span>
+                  </span>
+                </td>
+
+                <!-- Update Status Column (Pinned on mobile) -->
+                <td class="py-3.5 px-4 text-right play-freshness-cell sticky right-0 z-10 bg-[#080808] group-hover/row:bg-[#0c0c0c] shadow-[-1px_0_0_rgba(255,255,255,0.08)] whitespace-nowrap">
+                  <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10">
+                    <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
+                    <span>Checking...</span>
+                  </span>
                 </td>
               </tr>
             ))}
@@ -240,83 +219,33 @@ function formatRelativeTime(dateStr: string): string {
           <line x1="12" y1="8" x2="12.01" y2="8" />
           <polyline points="11 12 12 12 12 16 13 16" />
         </svg>
-        <span>Understanding Target Stability &amp; Status</span>
+        <span>Understanding Target Stability &amp; Automated Compatibility</span>
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
-        <!-- Section 1: What Statuses Mean -->
-        <div class="space-y-3 p-4 bg-zinc-950/60 border border-white/[0.06] rounded-sm">
-          <h4 class="font-mono text-xs uppercase tracking-wider text-zinc-200 font-semibold flex items-center gap-2">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span>Status Definitions</span>
-          </h4>
-          <ul class="space-y-3 font-mono text-[11px] text-zinc-400">
-            <li>
-              <div class="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                <span class="w-1 h-1 rounded-full bg-emerald-400"></span>
-                <span>Up to date</span>
-              </div>
-              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
-                The latest build distributed on Google Play matches our tested and verified target release.
-              </span>
-            </li>
-            <li>
-              <div class="flex items-center gap-1.5 text-amber-400 font-semibold">
-                <span class="w-1 h-1 rounded-full bg-amber-400"></span>
-                <span>Newer version available</span>
-              </div>
-              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
-                The vendor rolled out an update on the Play Store. Existing patches continue running reliably on the tested APK version.
-              </span>
-            </li>
-            <li>
-              <div class="flex items-center gap-1.5 text-zinc-400 font-semibold">
-                <span class="w-1 h-1 rounded-full bg-zinc-500"></span>
-                <span>Not on Play Store</span>
-              </div>
-              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
-                The application is distributed directly by the organization or institution outside public store channels.
-              </span>
-            </li>
-            <li>
-              <div class="flex items-center gap-1.5 text-rose-400 font-semibold">
-                <span class="w-1 h-1 rounded-full bg-rose-400"></span>
-                <span>Check failed</span>
-              </div>
-              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
-                Google Play Store scraping encountered a network error or rate limit. Existing tested target builds remain unaffected.
-              </span>
-            </li>
-            <li>
-              <div class="flex items-center gap-1.5 text-zinc-400 font-semibold">
-                <span class="w-1 h-1 rounded-full bg-zinc-500"></span>
-                <span>Unknown</span>
-              </div>
-              <span class="block text-zinc-300 mt-1 font-sans text-xs leading-relaxed">
-                Initial baseline target pending upstream Google Play verification.
-              </span>
-            </li>
-          </ul>
+        <div class="space-y-2 p-4 bg-zinc-950/60 border border-white/[0.06] rounded-sm">
+          <div class="font-sans font-semibold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            <span>Update Status</span>
+          </div>
+          <p class="text-zinc-400 leading-relaxed text-[11px]">
+            Compares Google Play's live web store release against the repository's pinned supported target. Upstream releases reflect vendor changes rather than broken patches.
+          </p>
         </div>
 
-        <!-- Section 2: What It Means If an App Is Out of Date -->
-        <div class="space-y-3 p-4 bg-zinc-950/60 border border-white/[0.06] rounded-sm">
-          <h4 class="font-mono text-xs uppercase tracking-wider text-zinc-200 font-semibold flex items-center gap-2">
-            <span class="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-            <span>What If an App Shows an Update?</span>
-          </h4>
-          <div class="space-y-3 text-xs text-zinc-300 leading-relaxed font-sans">
-            <p>
-              <strong class="text-white">Patches purposefully pin exact target versions.</strong> Morphe patches operate directly on compiled Dalvik bytecode, Hermes HBC v98 opcodes, and ARM64 binary structures at specific offsets.
-            </p>
-            <p>
-              An update on the Play Store does <em class="text-white not-italic font-semibold">not</em> mean the patch is broken. It simply indicates that upstream code changed. You can continue installing and running the supported target APK without issues.
-            </p>
-            <div class="font-mono text-[10px] text-zinc-500 pt-2 border-t border-white/[0.06]">
-              When an app updates, new bytecode fingerprints are reverse engineered and verified in subsequent patch releases.
-            </div>
+        <div class="space-y-2 p-4 bg-zinc-950/60 border border-white/[0.06] rounded-sm">
+          <div class="font-sans font-semibold text-white flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-400"></span>
+            <span>Tests Passed</span>
           </div>
+          <p class="text-zinc-400 leading-relaxed text-[11px]">
+            Automated CI applies every compatible patch and option permutation to the pinned supported release, verifying Morphe success, APK validity, and Android SDK DEX integrity.
+          </p>
         </div>
+      </div>
+
+      <div class="p-3 bg-zinc-900/40 border border-white/[0.06] rounded-sm text-[11px] text-zinc-400 font-sans leading-relaxed">
+        <strong class="text-zinc-200">Note on Compatibility:</strong> &ldquo;Compatible&rdquo; indicates automated verification passed (Morphe bytecode/resource transformations, package integrity, and DEX structural checks). Device runtime behavior and UI flows remain verified via separate manual smoke tests.
       </div>
     </div>
   </div>
@@ -324,17 +253,19 @@ function formatRelativeTime(dateStr: string): string {
   <!-- Client-side hydration, countdown timer, and search filter script -->
   <script is:inline define:vars={{ workerUrl }}>
     (function () {
-      // 1. Live Countdown Timer to next 06:00 UTC check
+      // 1. Live Countdown Timer to next UTC six-hour boundary
       function updateCountdown() {
         const now = new Date();
+        const nextHour = (Math.floor(now.getUTCHours() / 6) + 1) * 6;
         const nextCheck = new Date(Date.UTC(
           now.getUTCFullYear(),
           now.getUTCMonth(),
           now.getUTCDate(),
-          6, 0, 0
+          0, 0, 0, 0
         ));
-        if (now.getTime() >= nextCheck.getTime()) {
-          nextCheck.setUTCDate(nextCheck.getUTCDate() + 1);
+        nextCheck.setUTCHours(nextHour);
+        if (nextCheck.getTime() <= now.getTime()) {
+          nextCheck.setUTCHours(nextCheck.getUTCHours() + 6);
         }
         const diff = Math.max(0, nextCheck.getTime() - now.getTime());
         const hours = Math.floor(diff / (1000 * 60 * 60));
@@ -393,7 +324,62 @@ function formatRelativeTime(dateStr: string): string {
         });
       }
 
-      // 4. Hydrate from live Cloudflare Worker API with sessionStorage caching
+      // 4. Compatibility Badge Renderer
+      function renderCompatBadge(compatRecord, defaultLabel, isQueued) {
+        if (!compatRecord) {
+          if (isQueued) {
+            return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Queued</span></span>';
+          }
+          return '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-500 border border-white/10"><span>' + (defaultLabel || 'Not tested') + '</span></span>';
+        }
+        var s = compatRecord.status;
+        var passed = typeof compatRecord.passedCount === 'number' ? compatRecord.passedCount : 0;
+        var failed = typeof compatRecord.failedCount === 'number' ? compatRecord.failedCount : 0;
+        var total = passed + failed;
+
+        var bg = 'bg-zinc-900';
+        var text = 'text-zinc-400';
+        var border = 'border-white/10';
+        var dot = 'bg-zinc-500';
+        var label = s;
+
+        if (s === 'queued') {
+          bg = 'bg-amber-950/60'; text = 'text-amber-400'; border = 'border-amber-800/40'; dot = 'bg-amber-400'; label = 'Queued';
+        } else if (s === 'running') {
+          bg = 'bg-amber-950/60'; text = 'text-amber-400'; border = 'border-amber-800/40'; dot = 'bg-amber-400'; label = 'Running';
+        } else if (total > 0) {
+          label = passed + '/' + total;
+          if (failed === 0 && (s === 'compatible' || passed > 0)) {
+            bg = 'bg-emerald-950/60'; text = 'text-emerald-400'; border = 'border-emerald-800/40'; dot = 'bg-emerald-400';
+          } else {
+            bg = 'bg-rose-950/60'; text = 'text-rose-400'; border = 'border-rose-800/40'; dot = 'bg-rose-400';
+          }
+        } else if (s === 'compatible') {
+          bg = 'bg-emerald-950/60'; text = 'text-emerald-400'; border = 'border-emerald-800/40'; dot = 'bg-emerald-400'; label = 'Compatible';
+        } else if (s === 'incompatible') {
+          bg = 'bg-rose-950/60'; text = 'text-rose-400'; border = 'border-rose-800/40'; dot = 'bg-rose-400'; label = 'Incompatible';
+        } else if (s === 'error') {
+          bg = 'bg-rose-950/60'; text = 'text-rose-400'; border = 'border-rose-800/40'; dot = 'bg-rose-400'; label = 'Error';
+        }
+
+        var titleAttr = '';
+        if (s === 'error' && compatRecord.failureReason) {
+          titleAttr = ' title="' + compatRecord.failureReason.replace(/"/g, '&quot;') + '"';
+        } else if (total > 0) {
+          titleAttr = ' title="' + passed + ' of ' + total + ' patch tests passed (' + s + ')"';
+        }
+
+        var content = '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] ' + bg + ' ' + text + ' border ' + border + '"' + titleAttr + '><span class="w-1.5 h-1.5 rounded-full ' + dot + '"></span><span>' + label + '</span></span>';
+        if (compatRecord.workflowRunUrl) {
+          var linkTitle = (s === 'error' && compatRecord.failureReason)
+            ? ' title="' + compatRecord.failureReason.replace(/"/g, '&quot;') + '"'
+            : (total > 0 ? titleAttr : ' title="CI Run"');
+          return '<a href="' + compatRecord.workflowRunUrl + '" target="_blank" rel="noopener noreferrer" class="hover:opacity-80 transition-opacity"' + linkTitle + '>' + content + '</a>';
+        }
+        return content;
+      }
+
+      // 5. Hydrate from live Cloudflare Worker API with sessionStorage caching
       const STATUS_CACHE_KEY = 'aidans_patches_status_cache';
       const STATUS_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -402,7 +388,7 @@ function formatRelativeTime(dateStr: string): string {
 
         const lastUpdatedEl = document.getElementById('last-updated-label');
         if (lastUpdatedEl && data.updatedAt) {
-          lastUpdatedEl.textContent = 'Live Cloudflare KV: ' + formatRelative(data.updatedAt);
+          lastUpdatedEl.textContent = 'Last Update: ' + formatRelative(data.updatedAt);
         }
 
         // Update Latest Release card if live data is available
@@ -461,60 +447,49 @@ function formatRelativeTime(dateStr: string): string {
           if (!appData) return;
 
           const playCell = row.querySelector('.play-version');
-          const timeCell = row.querySelector('.check-time');
-          const badgeCell = row.querySelector('.status-badge-cell');
+          const playFreshnessCell = row.querySelector('.play-freshness-cell');
+          const targetCompatCell = row.querySelector('.target-compat-cell');
 
-          if (playCell && appData.playVersion) {
-            playCell.textContent = 'v' + appData.playVersion;
-          }
-          if (timeCell && appData.checkedAt) {
-            timeCell.textContent = formatRelative(appData.checkedAt);
+          const effectivePlayVersion = appData.playVersion || (
+            (appData.status !== 'not-on-play-store' && appData.status !== 'check-failed')
+              ? appData.latestSupportedVersion
+              : null
+          );
+
+          if (playCell) {
+            playCell.textContent = effectivePlayVersion ? 'v' + effectivePlayVersion : '—';
           }
 
-          if (badgeCell) {
-            if (appData.status === 'up-to-date') {
-              badgeCell.innerHTML = `
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/40">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                  <span>Up to date</span>
-                </span>
-              `;
-            } else if (appData.status === 'newer-available') {
-              badgeCell.innerHTML = `
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                  <span>Newer version available</span>
-                </span>
-              `;
-            } else if (appData.status === 'not-on-play-store') {
-              badgeCell.innerHTML = `
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-500 border border-white/10">
-                  <span>Not on Play Store</span>
-                </span>
-              `;
-            } else if (appData.status === 'check-failed') {
-              badgeCell.innerHTML = `
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-rose-950/60 text-rose-400 border border-rose-800/40">
-                  <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                  <span>Check failed</span>
-                </span>
-              `;
-            } else if (appData.status === 'unknown') {
-              badgeCell.innerHTML = `
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10">
-                  <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
-                  <span>Unknown</span>
-                </span>
-              `;
+          if (playFreshnessCell) {
+            let effectiveStatus = appData.status;
+            if (effectiveStatus === 'unknown' && effectivePlayVersion) {
+              effectiveStatus = (effectivePlayVersion === appData.latestSupportedVersion) ? 'up-to-date' : 'unknown';
+            }
+
+            if (effectiveStatus === 'up-to-date') {
+              playFreshnessCell.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-emerald-950/60 text-emerald-400 border border-emerald-800/40"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span><span>Up to date</span></span>';
+            } else if (effectiveStatus === 'newer-available') {
+              playFreshnessCell.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-amber-950/60 text-amber-400 border border-amber-800/40"><span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>Newer available</span></span>';
+            } else if (effectiveStatus === 'not-on-play-store') {
+              playFreshnessCell.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-500 border border-white/10"><span>Not on Play Store</span></span>';
+            } else if (effectiveStatus === 'check-failed') {
+              playFreshnessCell.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-rose-950/60 text-rose-400 border border-rose-800/40"><span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span><span>Check failed</span></span>';
             } else {
-              badgeCell.innerHTML = `
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10">
-                  <span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span>
-                  <span>Unknown</span>
-                </span>
-              `;
+              playFreshnessCell.innerHTML = '<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-sm text-[10px] bg-zinc-900 text-zinc-400 border border-white/10"><span class="w-1.5 h-1.5 rounded-full bg-zinc-500"></span><span>Unknown</span></span>';
             }
           }
+
+          var isTargetQueued = Boolean(
+            !appData.targetCompatibility &&
+            appData.outstandingRequest &&
+            appData.outstandingRequest.expectedRoles &&
+            appData.outstandingRequest.expectedRoles.includes('target')
+          );
+
+          if (targetCompatCell) {
+            targetCompatCell.innerHTML = renderCompatBadge(appData.targetCompatibility, 'Not tested', isTargetQueued);
+          }
+
         });
       }
 

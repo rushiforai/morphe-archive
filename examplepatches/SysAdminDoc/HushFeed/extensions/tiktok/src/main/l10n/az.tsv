@@ -1634,11 +1634,13 @@ Galaxy Store	Galaxy Store
 AppGallery	AppGallery
 Amazon Appstore	Amazon Appstore
 Swipe for brightness and volume	Parlaqlıq və səs üçün sürüşdür
-Drag up or down along the left edge of a video to change the screen brightness, or along the right edge to change the volume. Swiping anywhere else still scrolls the feed.	Ekranın parlaqlığını dəyişmək üçün videonun sol kənarı boyunca, səsi dəyişmək üçün sağ kənarı boyunca yuxarı və ya aşağı sürüşdür. Başqa yerdə sürüşdürmək lenti yenə də fırladır.
+Drag up or down along the left or right edge of a video to change what that edge strip is set to below. By default that's the screen brightness on the left and the volume on the right. Swiping anywhere else still scrolls the feed.	Aşağıda həmin kənar zolaq üçün seçdiyini dəyişmək üçün videonun sol və ya sağ kənarı boyunca yuxarı və ya aşağı sürüşdür. Defolt olaraq solda ekranın parlaqlığı, sağda isə səsdir. Başqa yerdə sürüşdürmək lenti yenə də fırladır.
 Edge strip width	Kənar zolağın eni
 How wide each edge strip is, as a percent of the screen width.	Hər kənar zolağın eni, ekran enindən faizlə.
 Brightness	Parlaqlıq
 Volume	Səs
+Left edge strip	Sol kənar zolaq
+Right edge strip	Sağ kənar zolaq
 Stop search results playing on their own	Axtarış nəticələri özbaşına oynamasın
 Videos in search results show their cover and play when you open them. The feed and the videos you open play as usual.	Axtarış nəticələrindəki videolar örtüyünü göstərir və onları açanda oynayır. Lent və açdığınız videolar həmişəki kimi oynayır.
 In a chat	Çatda
@@ -1830,4 +1832,32 @@ When Copy link gives you a short vt.tiktok.com or vm.tiktok.com link, Hushfeed o
 Full link copied	Tam link kopyalandı
 Mark saved videos	Saxlanılmış videoları işarələyin
 Put a ✓ before the view count on profile grids, and before the time on a feed video's creator row, for videos Hushfeed saved here. The feed's mark shows wherever Always show publish date shows the time. It reads the record Check for already-saved videos keeps, so it works only while that switch is on. Photo posts aren't marked, and a video you've deleted since keeps its mark until you use Forget saved videos.	Hushfeed-in burada saxladığı videolar üçün profil şəbəkəsində baxış sayının önünə, lentdəki videonun müəllif sətrində isə vaxtın önünə ✓ qoyun. Lentdəki işarə Paylaşım tarixini həmişə göstərin vaxtı göstərdiyi yerdə görünür. Bu, Artıq saxlanılmış videoları yoxlayın açarının apardığı qeydi oxuyur, ona görə yalnız o açar açıq olanda işləyir. Foto paylaşımları işarələnmir, sonradan sildiyiniz video isə Saxlanılmış videoları unudun istifadə edənə qədər işarəsini saxlayır.
-Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in sends your real region, apart from a few values TikTok saved as it started, which keep the preset. Your IP address and your account's own rules still apply.	TikTok serverlərinin bu telefonda saxladığı region və şəbəkənin ölkə kodu hər sorğu ilə göndərilir. Onların yerinə də hazır ayarı göndərin. Hesaba daxil olarkən əsl regionunuz göndərilir, yalnız TikTok-un açılarkən saxladığı bir neçə dəyər hazır ayarda qalır. IP ünvanınız və hesabınızın öz qaydaları yenə də tətbiq olunur.
+Also send the preset in place of the region TikTok's servers saved on this phone and the network country code, which go out with every request. Signing in still sends your real region. Your IP address and your account's own rules still apply.	TikTok serverlərinin bu telefonda saxladığı region və şəbəkənin ölkə kodu hər sorğu ilə göndərilir. Onların yerinə də hazır ayarı göndərin. Hesaba daxil olarkən yenə də əsl regionunuz göndərilir. IP ünvanınız və hesabınızın öz qaydaları yenə də tətbiq olunur.
+Turn off double tap to react	Reaksiya üçün iki dəfə toxunmanı söndür
+A double tap on a message no longer adds a heart to it. A single tap and a long press work as before.	Mesaja iki dəfə toxunmaq artıq ona ürək əlavə etmir. Bir dəfə toxunma və uzun basma əvvəlki kimi işləyir.
+Turn off swipe to reply	Cavab üçün sürüşdürməni söndür
+Swiping a message sideways no longer starts a reply to it. Taps and long presses work as before.	Mesajı yana sürüşdürmək artıq ona cavab başlatmır. Toxunmalar və uzun basmalar əvvəlki kimi işləyir.
+Hide the bottom tab names	Alt panel adlarını gizlət
+The words under the bottom tab icons go away. The icons stay, and each tab opens what it always did.	Alt paneldəki ikonların altındakı sözlər yox olur. İkonlar qalır və hər bölmə əvvəlki kimi açılır.
+Home tab name	Əsas bölmənin adı
+Friends tab name	Dostlar bölməsinin adı
+Inbox tab name	Gələnlər bölməsinin adı
+Profile tab name	Profil bölməsinin adı
+Shop tab name	Mağaza bölməsinin adı
+A name of your own under this tab's icon. Leave it empty to keep TikTok's.	Bu bölmənin ikonunun altında öz adınız. TikTok-un adını saxlamaq üçün boş qoyun.
+Hide TikTok's wind-down screens	TikTok-un sakitləşmə ekranlarını gizlət
+Stop the bedtime wind-down, the breathing exercise and the daily limit screen TikTok puts over the feed. It only works on an account TikTok knows is an adult's. A teen's account keeps them, and so does one Family Pairing links to a parent. With Leave when TikTok says time is up on, the daily limit screen still comes up so that switch can act on it.	TikTok-un lentin üstünə çıxardığı yuxu öncəsi sakitləşmə ekranını, nəfəs məşqini və gündəlik limit ekranını dayandırın. Bu, yalnız TikTok-un böyüyə aid olduğunu bildiyi hesabda işləyir. Yeniyetmənin hesabında onlar qalır, Ailə Cütləşdirməsi ilə valideynə bağlanmış hesabda da. TikTok vaxtın bitdiyini dedikdə çıxın açıq olanda gündəlik limit ekranı yenə də çıxır ki, o açar işləyə bilsin.
+Hide Footnotes	Footnotes-u gizlədin
+Hide the Footnotes banner TikTok shows on a video that has a note attached. The video and its comments stay as they are.	TikTok-un qeyd əlavə olunmuş videoda göstərdiyi Footnotes bannerini gizlədin. Video və onun şərhləri olduğu kimi qalır.
+Hide Bulletin board	Bulletin board-u gizlədin
+The Bulletin board rows TikTok adds to the Inbox leave the list. Chats and the other rows stay where they are.	TikTok-un Gələnlərə əlavə etdiyi Bulletin board sətirləri siyahıdan çıxır. Söhbətlər və digər sətirlər yerində qalır.
+Hide the group chat prompt	Qrup söhbəti təklifini gizlədin
+The banner at the top of the Inbox that invites you to start a group chat stops showing. Groups you're already in are unchanged.	Gələnlərin yuxarısındakı qrup söhbəti başlatmağa dəvət edən banner göstərilməyi dayandırır. Artıq üzv olduğunuz qruplar dəyişmir.
+Skip TikTok's setup screens	TikTok-un quraşdırma ekranlarını keç
+Leave out the interest picker, the language and gender questions, the creators to follow, the swipe up tutorial and TikTok's notification page when TikTok runs its setup. Consent, age and sign-in screens still show.	TikTok quraşdırmanı işə salanda maraq seçimini, dil və cins suallarını, izləmək üçün təklif olunan yaradıcıları, yuxarı sürüşdürmə təlimatını və TikTok-un bildiriş səhifəsini burax. Razılıq, yaş və giriş ekranları yenə də göstərilir.
+Hide unverified content notices	Təsdiqlənməmiş məzmun bildirişlərini gizlət
+Hide the Check sources banner TikTok puts on videos it marks as unverified, and the warnings it shows when you share one.	TikTok-un təsdiqlənməmiş kimi işarələdiyi videolardakı Mənbələri yoxla bannerini və belə videonu paylaşanda göstərdiyi xəbərdarlıqları gizlət.
+Keep offline videos until you delete them	Oflayn videoları siz silənə qədər saxlayın
+TikTok throws out the videos it saved for offline viewing after a set time, sometimes only two days, watched or not. With this on they stay until you delete them in TikTok's Offline videos settings. Delete them there when you want a fresh set. TikTok can still clear ones you've watched when your phone runs low on space.	TikTok oflayn baxış üçün saxladığı videoları müəyyən vaxtdan sonra, bəzən cəmi iki gündən sonra, baxılıb-baxılmamasından asılı olmayaraq atır. Bu açıq olanda onlar siz TikTok-un Oflayn videolar ayarlarında silənə qədər qalır. Yeni dəst istəyəndə onları orada silin. Telefonunuzda yer azalanda TikTok baxdığınız videoları yenə də silə bilər.
+Hide Thoughts on profiles	Profillərdə Thoughts-u gizlədin
+Hide the Thoughts bubble TikTok shows above a profile picture, and the prompt to share one on your own profile. Restart TikTok to apply this.	TikTok-un profil şəklinin üstündə göstərdiyi Thoughts balonunu və öz profilinizdə onu paylaşmaq təklifini gizlədin. Tətbiq etmək üçün TikTok-u yenidən başladın.

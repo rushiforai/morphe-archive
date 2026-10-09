@@ -44,7 +44,7 @@ public final class NuvioRemainingEpisodesPatch {
     @SuppressWarnings({"unchecked", "deprecation"})
     public static BytecodePatch getNuvioRemainingEpisodesPatch() {
         return PatchKt.bytecodePatch(NAME,
-            "Adds a disabled-by-default setting that displays aired, unwatched episode counts for every tracking integration. Controlled by Layout > Santodan-Patches on beta4.",
+            "Adds a disabled-by-default setting that displays aired, unwatched episode counts for every tracking integration. Controlled by Layout > Santodan-Patches on beta4 and beta5.",
             false, builder -> {
                 builder.compatibleWith(new Compatibility(PACKAGE, "NuvioTV", null, ApkFileType.APK,
                     null, null, NuvioLayout.targets(), false));
@@ -52,15 +52,13 @@ public final class NuvioRemainingEpisodesPatch {
                 builder.extendWith(NuvioRemainingEpisodesPatch::extensionStream);
                 builder.execute(context -> {
                     String version = context.getPackageMetadata().getVersionName();
-                    if (!PACKAGE.equals(context.getPackageMetadata().getPackageName())
-                        || !(VERSION.equals(version) || NuvioLayout.BETA4.equals(version)))
-                        throw unsupported("Expected " + PACKAGE + " " + VERSION);
-                    boolean beta4 = NuvioLayout.beta4(version);
-                    String state = beta4 ? "Lla/z3;" : "Lza/k3;";
-                    hookNextUpModel(context.mutableClassDefBy(beta4 ? "Lla/aa;" : "Lza/s8;"));
-                    hookEpisodeSets(context.mutableClassDefBy(beta4 ? "Lla/t5;" : "Lza/z4;"), state);
+                    validateTarget(context.getPackageMetadata().getPackageName(), version);
+                    boolean beta4 = NuvioLayout.modern(version);
+                    String state = beta4 ? NuvioLayout.current("Lla/z3;") : "Lza/k3;";
+                    hookNextUpModel(context.mutableClassDefBy(beta4 ? NuvioLayout.current("Lla/aa;") : "Lza/s8;"));
+                    hookEpisodeSets(context.mutableClassDefBy(beta4 ? NuvioLayout.current("Lla/t5;") : "Lza/z4;"), state);
                     if (!beta4) hookSettings(context.mutableClassDefBy("Lfb/t6;"), 0x7f1106a7);
-                    hookCard(context.mutableClassDefBy(beta4 ? "Lba/e2;" : "Lpa/q0;"),
+                    hookCard(context.mutableClassDefBy(beta4 ? NuvioLayout.current("Lba/e2;") : "Lpa/q0;"),
                         beta4 ? "Lc7/a;" : "Lfb/jk;");
                     return Unit.INSTANCE;
                 });
@@ -68,8 +66,14 @@ public final class NuvioRemainingEpisodesPatch {
             });
     }
 
+    /** Validate the same versions advertised in compatibility metadata. */
+    static void validateTarget(String packageName, String version) {
+        if (!PACKAGE.equals(packageName)) throw unsupported("Expected package " + PACKAGE);
+        NuvioLayout.use(version);
+    }
+
     static void hookNextUpModel(MutableClass owner) {
-        MutableMethod target = unique(owner, "<init>", "Lla/aa;".equals(owner.getType()) ? 27 : 26);
+        MutableMethod target = unique(owner, "<init>", NuvioLayout.current("Lla/aa;").equals(owner.getType()) ? 27 : 26);
         List<Instruction> ins = instructions(target);
         int instance = parameterStart(target);
         if (instance < 0 || instance > 15)
@@ -90,14 +94,14 @@ public final class NuvioRemainingEpisodesPatch {
             throw unsupported("Aired/watched reconciliation register layout changed");
         target.getImplementation().addInstruction(0,
             new BuilderInstruction22c(Opcode.IGET_OBJECT, 0, 11,
-                new ImmutableFieldReference(stateType, "Lla/z3;".equals(stateType) ? "T0" : "M0", "Ljava/util/Map;")));
+                new ImmutableFieldReference(stateType, NuvioLayout.current("Lla/z3;").equals(stateType) ? "T0" : "M0", "Ljava/util/Map;")));
         target.getImplementation().addInstruction(1,
             new BuilderInstruction35c(Opcode.INVOKE_STATIC, 2, 0, 12, 0, 0, 0,
                 method(EXTENSION, "update", List.of("Ljava/util/Map;", "Ljava/util/Map;"), "V")));
     }
 
     static void hookSettings(MutableClass owner, int showUnairedSub) {
-        boolean beta4 = "Lsa/o3;".equals(owner.getType());
+        boolean beta4 = NuvioLayout.current("Lsa/o3;").equals(owner.getType());
         MutableMethod match = null;
         int insert = -1;
         int composer = -1;
@@ -111,7 +115,7 @@ public final class NuvioRemainingEpisodesPatch {
                 for (int j = i + 1; j < Math.min(ins.size(), i + 45); j++) {
                     if (calls(ins.get(j), beta4 ? "Lc7/a;" : "Lt6/g;", beta4 ? "P" : "I") && ins.get(j) instanceof FiveRegisterInstruction)
                         localComposer = ((FiveRegisterInstruction) ins.get(j)).getRegisterD();
-                    if (calls(ins.get(j), beta4 ? "Lsa/eb;" : "Lfb/h3;", beta4 ? "m" : "t")) { localInsert = j + 1; break; }
+                    if (calls(ins.get(j), beta4 ? NuvioLayout.current("Lsa/eb;") : "Lfb/h3;", beta4 ? "m" : "t")) { localInsert = j + 1; break; }
                 }
                 if (localComposer >= 0 && localComposer <= 15 && localInsert >= 0) {
                     if (match != null) throw unsupported("Multiple Continue Watching settings anchors found");
@@ -126,7 +130,7 @@ public final class NuvioRemainingEpisodesPatch {
     }
 
     static void hookCard(MutableClass owner, String imageOwner) {
-        boolean beta4 = "Lba/e2;".equals(owner.getType());
+        boolean beta4 = NuvioLayout.current("Lba/e2;").equals(owner.getType());
         MutableMethod target = unique(owner, "invoke", 3);
         List<Instruction> ins = instructions(target);
         int imageCall = -1;
@@ -159,7 +163,7 @@ public final class NuvioRemainingEpisodesPatch {
                 && method.getImplementation() != null) {
                 // Beta4 has a 27-argument default-mask overload as well as the real
                 // model constructor. Register only fully initialized model instances.
-                if ("Lla/aa;".equals(owner.getType()) && "<init>".equals(name)
+                if (NuvioLayout.current("Lla/aa;").equals(owner.getType()) && "<init>".equals(name)
                     && !"Lcom/nuvio/tv/domain/model/MDBListRatings;".contentEquals(
                         method.getParameterTypes().get(parameters - 1))) continue;
                 if (result != null) throw unsupported("Multiple " + owner.getType() + "->" + name + " matches");
@@ -198,7 +202,7 @@ public final class NuvioRemainingEpisodesPatch {
 
     static IllegalStateException unsupported(String reason) {
         return new IllegalStateException("Unsupported NuvioTV bytecode: " + reason
-            + ". No fallback was applied. Use an original NuvioTV 1.1.0-beta.2 or 1.1.0-beta.4 APK.");
+            + ". No fallback was applied. Use an original NuvioTV 1.1.0-beta.2, 1.1.0-beta.4, or 1.1.0-beta.5 APK.");
     }
 
     static InputStream extensionStream() {

@@ -14,8 +14,8 @@ import org.robolectric.annotation.Config;
 
 /**
  * A view name written for one TikTok build resolves on that build alone. TikTok hands its short
- * names out again on every build, mostly to other views, so 47.0.3's g6r (the like button) looked
- * up on 47.1.3 would find whatever 47.1.3 calls g6r.
+ * names out again on every build, mostly to other views, so 47.1.4's g85 (the like button) looked
+ * up on the next build would find whatever that build calls g85.
  */
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = 28)
@@ -29,18 +29,18 @@ public class BuildNamesTest {
 
     @Test
     public void aNameWithNoBuildIsTheSameOnEveryBuild() {
-        assertEquals("desc", BuildNames.entryName("desc", "47.0.3"));
-        assertEquals("desc", BuildNames.entryName("desc", "47.1.3"));
+        assertEquals("desc", BuildNames.entryName("desc", "47.1.4"));
+        assertEquals("desc", BuildNames.entryName("desc", "47.2.1"));
     }
 
     @Test
     public void aNameWrittenForOneBuildResolvesOnThatBuildAlone() {
-        assertEquals("g6r", BuildNames.entryName("47.0.3:g6r", "47.0.3"));
-        assertNull(BuildNames.entryName("47.0.3:g6r", "47.1.3"));
+        assertEquals("g85", BuildNames.entryName("47.1.4:g85", "47.1.4"));
+        assertNull(BuildNames.entryName("47.1.4:g85", "47.2.1"));
         // A build that only starts or ends the same way is another build.
-        assertNull(BuildNames.entryName("47.0.3:g6r", "47.0"));
-        assertNull(BuildNames.entryName("47.0.3:g6r", "47.0.31"));
-        assertNull(BuildNames.entryName("47.0.3:g6r", "147.0.3"));
+        assertNull(BuildNames.entryName("47.1.4:g85", "47.1"));
+        assertNull(BuildNames.entryName("47.1.4:g85", "47.1.41"));
+        assertNull(BuildNames.entryName("47.1.4:g85", "147.1.4"));
     }
 
     @Test
@@ -58,18 +58,18 @@ public class BuildNamesTest {
                 return 0;
             }
         };
-        BuildNames.setRunningBuildForTests("47.1.3");
+        BuildNames.setRunningBuildForTests("47.1.4");
         ResourceIdCache cache = new ResourceIdCache();
 
-        assertEquals(0, cache.resolve(resources, PACKAGE, "47.0.3:g6r", false));
+        assertEquals(0, cache.resolve(resources, PACKAGE, "47.2.1:g6r", false));
         assertEquals("another build's name never reaches the lookup", 0, asked[0]);
-        assertEquals(0x7f0a2185, cache.resolve(resources, PACKAGE, "47.1.3:g85", false));
+        assertEquals(0x7f0a2185, cache.resolve(resources, PACKAGE, "47.1.4:g85", false));
         assertEquals(0x7f0a2170, cache.resolve(resources, PACKAGE, "g6r", false));
         assertEquals(2, asked[0]);
 
         // Remembered either way: a second round asks nothing.
-        cache.resolve(resources, PACKAGE, "47.0.3:g6r", false);
-        cache.resolve(resources, PACKAGE, "47.1.3:g85", false);
+        cache.resolve(resources, PACKAGE, "47.2.1:g6r", false);
+        cache.resolve(resources, PACKAGE, "47.1.4:g85", false);
         assertEquals(2, asked[0]);
     }
 }

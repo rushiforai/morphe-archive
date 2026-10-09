@@ -31,7 +31,7 @@ class CommentLivePhotoAnchorsTest {
     @Test
     fun `every retained fixture saves a comment photo through one routine the clip hook can sit in`() {
         val apks = Fixtures.apks()
-        assertTrue("fixtures: ${apks.map { it.name }}", apks.size >= 2)
+        assertTrue("fixtures: ${apks.map { it.name }}", apks.containsAll(Fixtures.declared()))
         val declared = Fixtures.declaredVersions()
         apks.forEach { apk ->
             val app = load(apk)

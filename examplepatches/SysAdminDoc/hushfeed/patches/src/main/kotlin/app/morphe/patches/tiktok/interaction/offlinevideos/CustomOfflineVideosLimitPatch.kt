@@ -13,6 +13,8 @@ import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.tiktok.misc.settings.settingsPatch
+import app.morphe.patches.tiktok.misc.theme.declaredVersions
+import app.morphe.patches.tiktok.shared.requireLocals
 import app.morphe.util.getReference
 import app.morphe.util.implementationOrPatchException
 import app.morphe.util.indexOfFirstInstructionOrThrow
@@ -24,6 +26,8 @@ import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
+
+private const val PATCH_NAME = "Custom offline videos limit"
 
 private const val CUSTOM_OFFLINE_VIDEOS_HELPER =
     "Lapp/morphe/extension/tiktok/offline/CustomOfflineVideosLimitPatch;"
@@ -46,7 +50,7 @@ internal fun isCustomOfflineOptionConstructor(instruction: Instruction, optionEn
 @Suppress("unused")
 val customOfflineVideosLimitPatch = bytecodePatch(
     name = "Custom offline videos limit",
-    description = "Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 10,000 videos, with the storage it needs shown under the setting. Switch: Hushfeed settings > Downloads.",
+    description = "Adds a custom entry to TikTok's offline videos menu with a configurable limit from 1 to 10,000 videos, with the storage it needs shown under the setting, and a switch that keeps offline videos until you delete them. Switch: Hushfeed settings > Downloads.",
     default = true,
 ) {
     category("Feed")
@@ -132,6 +136,17 @@ val customOfflineVideosLimitPatch = bytecodePatch(
         val minutesRegister = limitRegister + 1
         val sizeRegister = limitRegister + 2
 
+        // How long an offline video lives before TikTok hides it and deletes its file (#123).
+        // Required on a declared build, where OfflineVideoLifetimeAnchorsTest holds it, and left
+        // out with a note on any other, so a renamed lifetime doesn't take the limit down with it.
+        val lifetime = try {
+            OfflineVideoLifetimeFingerprint.method.also { it.requireLocals(PATCH_NAME, 2) }
+        } catch (problem: Exception) {
+            if (packageMetadata.versionName in declaredVersions()) throw problem
+            println("[$PATCH_NAME] Left out Keep offline videos on ${packageMetadata.versionName}: ${problem.message}")
+            null
+        }
+
         settingsStatus.addInstruction(
             0,
             "invoke-static {}, " +
@@ -157,6 +172,15 @@ val customOfflineVideosLimitPatch = bytecodePatch(
                 move-result v$sizeRegister
             """,
         )
+
+        if (lifetime != null) {
+            lifetime.keepOfflineVideos(PATCH_NAME)
+            settingsStatus.addInstruction(
+                0,
+                "invoke-static {}, " +
+                    "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableKeepOfflineVideos()V",
+            )
+        }
     }
 }
 

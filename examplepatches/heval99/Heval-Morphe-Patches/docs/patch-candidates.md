@@ -29,11 +29,11 @@ test + decompile-verify.
 | TuneIn Radio | `tunein.player` | 42.5 | **Blocked 2026-10-05** - full PairIP shield; see blocklist |
 | Podcast Republic | `com.podcast.podcasts` | 9.17.0 | **Shipped 2026-10-05** - "Disable ads" (GMA init/loads, MAX load/show, Meta AN + InMobi init). No premium gate: ad-free is Firebase invite state only |
 | Castbox | `fm.castbox.audiobook.radio.podcast` | 11.26.1 | **Shipped 2026-10-05** - "Disable ads" (GMA init/loads, MAX load/show, Meta AN + InMobi init). No premium gate: vip lists are server-synced, purchases RSA-verified |
-| Smart AudioBook Player | `a.a.smartplayer.app` | ? | Free version feature-limited + full-version unlock - historically a local gate. Uncovered 2026-10-06 |
-| Cube ACR | `com.cubil.msgs.callrecorder` | ? | Popular call recorder; premium unlock is usually local. Uncovered 2026-10-06 |
-| Today Weather | `com.todayweather.dev` | ? | Ads + premium upgrade. Uncovered 2026-10-06 |
-| Alarm Clock Xtreme | `alarmclock.xtreme` | ? | Ads + pro; verify the package variant first. Uncovered 2026-10-06 |
-| Radio Garden | `radio.garden` | ? | Fits the Simple Radio / Podcast Republic cluster. Uncovered 2026-10-06 |
+| Smart AudioBook Player | `ak.alizandro.smartaudiobookplayer` | 11.8.2 | Full-version unlock is a single local `Billings$LicenseType` getter (two other bundles force it). Known caveat: re-signing breaks Google sign-in. Package corrected 2026-10-07 (was `a.a.smartplayer.app`). **Next to attempt** |
+| Cube ACR | `com.catalinagroup.callrecorder` | 2.4.281 | Local Play Billing purchase state + rewarded-video premium timers; ~7 methods on obfuscated classes. Package corrected 2026-10-07 (was `com.cubil.msgs.callrecorder`) |
+| Today Weather | `mobi.lockdown.weather` | 2.5.0 | Ads + premium upgrade; local purchase flags. Re-signing breaks the Google Maps key (needs a resource step). Package corrected 2026-10-07 (was `com.todayweather.dev`) |
+| Alarm Clock Xtreme | `com.alarmclock.xtreme.free`? | ? | Ads + PRO via Play Billing; not covered by any bundle. Package from secondary sources only - verify before starting |
+| Radio Garden | `com.jonathanpuckey.radiogarden`? | ? | Fits the Simple Radio / Podcast Republic cluster; IAP removes marketing messages. Package from secondary sources only (`radio.garden` looks wrong) - verify before starting |
 | UEFA Champions League app | `com.uefa.ucl` | ? | Football-adjacent (Sofascore/FotMob/Livescore cluster); needs a triage for ad SDK vs sponsor content. Uncovered 2026-10-06 |
 
 ## Tier 3 - simple Pro unlocks

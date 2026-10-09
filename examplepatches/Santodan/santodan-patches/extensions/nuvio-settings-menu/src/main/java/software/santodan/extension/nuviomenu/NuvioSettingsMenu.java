@@ -12,7 +12,10 @@ public final class NuvioSettingsMenu {
         "software.santodan.extension.nuviomerged.NuvioMergedProgress",
         "software.santodan.extension.nuvioremaining.NuvioRemainingEpisodes",
         "software.santodan.extension.nuvioairing.NuvioAiringSeries",
-        "software.santodan.extension.nuviofinale.NuvioFinaleDates"
+        "software.santodan.extension.nuviofinale.NuvioFinaleDates",
+        "software.santodan.extension.nuviomovierelease.NuvioMovieReleaseDates",
+        "software.santodan.extension.nuviocwstreams.NuvioContinueWatchingStreams",
+        "software.santodan.extension.nuviodetailstreams.NuvioDetailStreams"
     };
     private static volatile Object expandedState;
     private NuvioSettingsMenu() {}
@@ -55,10 +58,26 @@ public final class NuvioSettingsMenu {
 
     private static void renderInstalled(Object composer) {
         ClassLoader loader = composer.getClass().getClassLoader();
-        for (String bridge : BRIDGES) {
+        renderGroup(composer, loader, "Continue Watching", 0, 3);
+        renderGroup(composer, loader, "UI", 3, 5);
+        renderGroup(composer, loader, "Streams", 5, 7);
+    }
+
+    private static void renderGroup(Object composer, ClassLoader loader, String label, int start, int end) {
+        boolean labelled = false;
+        for (int index = start; index < end; index++) {
+            String bridge = BRIDGES[index];
             try {
-                Class.forName(bridge, false, loader).getMethod("renderSettings", Object.class)
-                    .invoke(null, composer);
+                Method render = Class.forName(bridge, false, loader).getMethod("renderSettings", Object.class);
+                if (!labelled) {
+                    // Native SettingsSectionLabel: non-focusable text with the app's spacing and typography.
+                    Field modifier = Class.forName("w1.n", false, loader).getDeclaredField("b");
+                    modifier.setAccessible(true);
+                    method(Class.forName("sa.kc", false, loader), "e", 6)
+                        .invoke(null, 0, 4, composer, label, null, modifier.get(null));
+                    labelled = true;
+                }
+                render.invoke(null, composer);
             } catch (ClassNotFoundException absent) {
                 // A patch can be selected independently; absent patches have no settings.
             } catch (Throwable error) { Log.e(TAG, "Patch settings failed: " + bridge, error); }

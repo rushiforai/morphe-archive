@@ -32,8 +32,12 @@ private val sonySoundConnect = Compatibility(
             versionCode = 130215029
         ),
         AppTarget(
-        version = "13.2.2",
-        versionCode = 130225039
+            version = "13.2.2",
+            versionCode = 130225039
+        ),
+        AppTarget(
+            version = "13.3.0",
+            versionCode = 130305109
         )
     )
 )

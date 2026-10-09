@@ -152,20 +152,24 @@ $argumentFileLines = @($arguments | ForEach-Object {
     $argumentFileLines,
     (New-Object System.Text.UTF8Encoding($false)))
 try {
-    # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
-    # PowerShell 5.1 turns into a terminating error under Stop. The exit code decides.
-    $preference = $ErrorActionPreference
-    try {
-        $ErrorActionPreference = 'Continue'
-        $global:LASTEXITCODE = -1
-        & $Java -jar $DesktopJar "@$argumentFile" 2>&1 | ForEach-Object {
-            $line = [string]$_
-            if ($ShowPatchLog -or $line -match 'SEVERE|ERROR|WARNING|Exception|Saved to') { Write-Host "[device] $line" }
+    # In a slot of the machine's build queue when there is one (Invoke-HeavyJob), which hands back
+    # the CLI's exit code and nothing else.
+    Invoke-HeavyJob -Label "device $(Split-Path -Leaf $Apk)" -ScriptBlock {
+        # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
+        # PowerShell 5.1 turns into a terminating error under Stop. The exit code decides.
+        $preference = $ErrorActionPreference
+        try {
+            $ErrorActionPreference = 'Continue'
+            $global:LASTEXITCODE = -1
+            & $Java -jar $DesktopJar "@$argumentFile" 2>&1 | ForEach-Object {
+                $line = [string]$_
+                if ($ShowPatchLog -or $line -match 'SEVERE|ERROR|WARNING|Exception|Saved to') { Write-Host "[device] $line" }
+            }
+        } finally {
+            $ErrorActionPreference = $preference
         }
-        $cliExitCode = $LASTEXITCODE
-    } finally {
-        $ErrorActionPreference = $preference
     }
+    $cliExitCode = $LASTEXITCODE
     if ($cliExitCode -ne 0) { throw "The desktop CLI exited with $cliExitCode" }
 } finally {
     Remove-Item -LiteralPath $argumentFile -Force -ErrorAction SilentlyContinue

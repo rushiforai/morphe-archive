@@ -25,13 +25,12 @@ import com.android.tools.smali.dexlib2.iface.reference.MethodReference
  * down.
  *
  * - The reel like helper, FbShortsMutationUtil. Its like is the one method in either build holding
- *   "FbShortsMutationUtil.mutateViewerLikeReaction" (581 LX/Awi;->A01, 580 LX/AxU;->A02, 577
- *   LX/AzV;->A02). It takes the session first and the like's source as its last string, which is its
- *   last parameter on 577 and 580 and on 581 comes before two callbacks (Function1) that build added.
- *   The Like button's handler passes a source of its
- *   own, and the double-tap listeners of three players (photo reels with sound, native showreel
- *   ads and one more: 580 LX/RwN;, LX/RwK;, LX/BIF;, 577 LX/STt;, LX/STo;, LX/BDl;) pass the literal
- *   "DOUBLE_TAP", and so do the reel sidebars when a double tap reaches them.
+ *   "FbShortsMutationUtil.mutateViewerLikeReaction" (581 LX/Awi;->A01). It takes the session first
+ *   and the like's source as its last string, which is its last parameter on 577 and 580 and on 581
+ *   comes before two callbacks (Function1) that build added. The Like button's handler passes a
+ *   source of its own, and the double-tap listeners of three players (photo reels with sound,
+ *   native showreel ads and one more: 580 LX/RwN;, LX/RwK;, LX/BIF;, 577 LX/STt;, LX/STo;, LX/BDl;)
+ *   pass the literal "DOUBLE_TAP", and so do the reel sidebars when a double tap reaches them.
  * - The helper's double-tap like, its one instance method taking two objects and a boolean (580 and
  *   577 A03). It asks the helper's static key maker, (object, boolean)String, for the reel's key
  *   and returns when there's none. With one it hands the double tap to the reel's sidebar, which

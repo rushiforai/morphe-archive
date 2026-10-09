@@ -1,19 +1,32 @@
-# MightyMich's Patches
+# MightyMich's Patches 🩹
+[![build](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com)
+[![License](https://img.shields.io/badge/License-GPL_v3-yellow.svg)](https://opensource.org/licenses/GPL-3.0)
+[![GitHub All Releases](https://img.shields.io/github/downloads/mich111discord/MightyMichs-Patches/total)](https://github.com/mich111discordMightyMichs-Patches/releases)
+
+[![Latest Release](https://img.shields.io/github/v/release/mich111discord/Mightymichs-Patches?style=for-the-badge&color=blueviolet&logo=github)](https://github.com/mich111discord/Mightymichs-Patches/releases/latest)
+[![Kotlin](https://img.shields.io/badge/Kotlin-0095D5?style=for-the-badge&logo=kotlin&logoColor=white)](https://kotlinlang.org)
+[![Java](https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://www.oracle.com/java/)
 
 ## ❓ About
 
-Patches for apps I like.
+Patches for the best apps from Playstore🛍️
 
 <!-- TODO: Update this about section with a brief introduction/summary about this repo and what it offers. -->
 
-### How to use these patches
+### How to use these patches 🤔
+Click The image below.
 
-Click here to add these patches to Morphe: https://morphe.software/add-source?github=mich111discord/mightymichs-patches
+<a href="https://morphe.software/add-source?github=mich111discord/MightyMichs-Patches"><img src="https://mightymich.web1337.net/src/img/MightyMichs-Patches/Add-to-Morphe-badge-1.png" alt="Add to Morphe" height="300"></a>
+
+
+Or
+
+[Download MPP](https://mightymich.web1337.net/Projekty/MightyMichs-Patches/download/latest/mpp?from=github)
 
 ## 🩹 Patches list
 
 <!-- PATCHES_START EXPANDED -->
-> **[v1.8.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.8.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;31 patches total
+> **[v1.9.0](https://github.com/mich111discord/MightyMichs-Patches/releases/tag/v1.9.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;38 patches total
 <details open>
 <summary>📦 SofaScore&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
 <br>
@@ -27,6 +40,38 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 |----------|----------------|-----------|
 | [Bypass Login Requirements](#bypass-login-requirements) | Skips SofaScore login requirement by forcing isLoggedIn to true. |  |
 | [Unlock Premium & Remove Ads](#unlock-premium-remove-ads) | Unlocks SofaScore premium and disables ads. |  |
+
+</details>
+
+<details open>
+<summary>📦 Nova Launcher&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 8.8.9 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Enable Prime (Experimental)](#enable-prime-experimental) | Enables Nova Launcher Prime WARNING: May cause crashes.  |  |
+| [Remove Internet permission (Nova)](#remove-internet-permission-nova) | Removes INTERNET permission from Nova Launcher and disables network-only entry points so Nova does not crash. |  |
+
+</details>
+
+<details open>
+<summary>📦 Pou&nbsp;&nbsp;•&nbsp;&nbsp;2 patches</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 1.4.135 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlimited Coins (Experimental)](#unlimited-coins-experimental) | Gives unlimited coins in POU. WARNING: May cause crashes or reset progress. |  |
+| [Unlock Everything (Experimental)](#unlock-everything-experimental) | Unlocks all items in POU and bypasses integrity check. WARNING: May cause crashes. |  |
 
 </details>
 
@@ -61,17 +106,47 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
-<summary>📦 Nova Launcher&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<summary>📦 VivaCut&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 8.8.9 |
+| 3.9.9 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Nova Launcher Prime](#unlock-nova-launcher-prime) | Unlocks Nova Launcher Prime by forcing isPrime() to return true. |  |
+| [Unlock Premium](#unlock-premium) | Unlocks VivaCut Pro by forcing IapService.F()Z to return true. WARNING: May cause crashes. |  |
+
+</details>
+
+<details open>
+<summary>📦 InShot&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.243.1555 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium ](#unlock-premium) | Unlocks InShot premium by forcing billing methods to return true. |  |
+
+</details>
+
+<details open>
+<summary>📦 PhotoApp&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 2.8.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium ](#unlock-premium) | Unlocks PhotoApp Premium by forcing UserViewModel.isPremium to true. WARNING: May cause crashes. |  |
 
 </details>
 
@@ -81,7 +156,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
-| [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks Callfilter.app premium by forcing the 'isSubscribed' check to return true. WARNING: May cause crashes or unexpected behavior. |  |
+| [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks Callfilter.app premium by forcing the 'isSubscribed' check to return true. WARNING: May cause crashes or unexpected behavior.  |  |
 
 </details>
 
@@ -92,6 +167,36 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
 | [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks Remini premium by forcing 'isFreeUser' to true. WARNING: May cause crashes or unexpected behavior. |  |
+
+</details>
+
+<details open>
+<summary>📦 MagoVideo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 5.7.1 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks MagoVideo premium by forcing the premium check method h0 to return true. WARNING: May cause crashes. |  |
+
+</details>
+
+<details open>
+<summary>📦 Polarr&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
+<br>
+
+**🎯 Supported versions:**
+
+| 6.12.0 |
+| :---: |
+
+| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
+|----------|----------------|-----------|
+| [Unlock Premium (Experimental)](#unlock-premium-experimental) | Unlocks Polarr Premium by forcing isPremium to true. WARNING: May cause crashes. |  |
 
 </details>
 
@@ -201,28 +306,13 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 </details>
 
 <details open>
-<summary>📦 MagoVideo&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
-<br>
-
-**🎯 Supported versions:**
-
-| 🧪&nbsp;5.7.1 |
-| :---: |
-
-| 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
-|----------|----------------|-----------|
-| [Unlock Premium Features](#unlock-premium-features) | Unlocks premium features in MagoVideo by forcing the premium check to return true.  |  |
-
-</details>
-
-<details open>
 <summary>📦 My Diary&nbsp;&nbsp;•&nbsp;&nbsp;1 patch</summary>
 <br>
 
 **🎯 Supported versions:**
 
-| 1.04.16.0813 |
-| :---: |
+| 1.04.16.0813 | 1.04.17.0918 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -306,8 +396,8 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 **🎯 Supported versions:**
 
-| 1.02.94.0925 |
-| :---: |
+| 1.02.94.0925 | 1.03.38.0924 |
+| :---: | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |
 |----------|----------------|-----------|
@@ -366,7 +456,7 @@ Click here to add these patches to Morphe: https://morphe.software/add-source?gi
 
 **🎯 Supported versions:**
 
-| 3.2.3.0 |
+| v3.2.3.0 |
 | :---: |
 
 | 💊&nbsp;Patch | 📜&nbsp;Description | ⚙️&nbsp;Options |

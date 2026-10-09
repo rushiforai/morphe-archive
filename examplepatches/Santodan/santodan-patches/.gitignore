@@ -135,3 +135,6 @@ local.properties
 
 # Local credentials. Never commit this file.
 .env
+
+# Kotlin compiler session cache
+.kotlin/

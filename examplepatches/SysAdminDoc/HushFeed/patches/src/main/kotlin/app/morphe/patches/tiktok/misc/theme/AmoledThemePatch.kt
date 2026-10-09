@@ -68,20 +68,23 @@ val amoledThemePatch = resourcePatch(
                 }
             }
         }
-        // The comments sheet and the share sheet never touch colors.xml. On 47.0.3 both fill
-        // with attr/a24 (the comment page's af4/af9 shapes, and the Tux sheet's background
-        // attribute b79), which the dark themes send to attr/aia, and every value aia has is a
-        // literal inside a <style>. 46.x reached the same sheets through agk (comments) and c3
-        // (share), which 47.0.3 keeps as dark surface tokens of their own. Only a dark literal
-        // is rewritten, so a light style's white stays white.
-        val sheetItems = sheetStyleItems(packageMetadata.versionName, declaredVersions())
+        // The comments sheet and the share sheet never touch colors.xml. Both fill with
+        // attr/a24 (traced on 47.0.3: the comment page's af4/af9 shapes, and the Tux sheet's
+        // background attribute b79), which the dark themes send to attr/aia, and every value aia
+        // has is a literal inside a <style>. 46.x reached the same sheets through agk (comments)
+        // and c3 (share), which 47.x keeps as dark surface tokens of their own. Only a dark
+        // literal is rewritten, so a light style's white stays white.
         valuesDirectories.map { it.resolve("styles.xml") }.filter { it.exists() }.forEach { file ->
             document(file.relativeTo(get(".")).invariantSeparatorsPath).use { xml ->
-                styleItemsFound += rewriteDarkStyleItems(xml, sheetItems, color)
+                styleItemsFound += rewriteDarkStyleItems(xml, SHEET_STYLE_ITEMS, color)
             }
         }
         if (found != backgrounds) throw PatchException("Dark background palette is incomplete: $found")
-        checkSheetStyleItems(styleItemsFound, packageMetadata.versionName, declaredVersions())
+        // The palette check above refuses every build whose names weren't read, so this is a
+        // build whose sheet names are known, and one missing means an identity is wrong.
+        if (styleItemsFound != SHEET_STYLE_ITEMS) {
+            throw PatchException("Dark sheet style items are incomplete: $styleItemsFound")
+        }
         BuildDetails.amoled(get(BUILD_DETAILS_ASSET), color)
     }
 }
@@ -138,29 +141,17 @@ internal fun renamedPathCollisions(
 
 /**
  * The dark theme's background grays, per build: the opaque dark grays of the color token block
- * the dark app themes set (attrs fx8 to fyf on 46.2.3, g3w to g54 on 47.0.3), which the surfaces
- * read. The names are each build's own and move. 47.0.3 added a color ahead of the block, so
- * every gray moved one name along, and 46.x's names there are the brand red a4a, the orange a3y
- * and the see-through white overlays a40 and a43, which the patch painted black until this was
- * read off the fixture (AmoledPaletteTest holds every fixture's block to its entry here). The
- * block's pure black is a token of its own and stays. The fifth gray (fxx, g4l on 47.0.3) is
- * the one 48 layouts read on 46.2.3 and 50 on 47.0.3.
+ * the dark app themes set, which the surfaces read. The names are each build's own and move:
+ * 47.0.3 and 47.1.3 each added a color ahead of the block, so every gray moved one name along,
+ * and an older build's names there are an accent and see-through white overlays, which the patch
+ * painted black until this was read off the fixture (AmoledPaletteTest holds every fixture's
+ * block to its entry here). Only the declared build is listed, so a build the bundle moves to
+ * needs its own entry read off its fixture. The block's pure black is a token of its own and
+ * stays.
  */
-internal val DARK_BACKGROUND_COLORS: Map<String, Set<String>> = run {
-    val beforeFortySeven = setOf("a3y", "a40", "a41", "a43", "a4a")
-    linkedMapOf(
-        "46.2.3" to beforeFortySeven,
-        "46.7.3" to beforeFortySeven,
-        "46.8.3" to beforeFortySeven,
-        "46.9.3" to beforeFortySeven,
-        "47.0.3" to setOf("a3z", "a41", "a42", "a44", "a4b"),
-        // 47.1.3 added another color ahead of the block, so every gray moved one name along
-        // again. The five values are 47.0.3's, and still no other style points at one.
-        "47.1.3" to setOf("a40", "a42", "a43", "a45", "a4c"),
-        // 47.1.4's color table is 47.1.3's, name for name and value for value.
-        "47.1.4" to setOf("a40", "a42", "a43", "a45", "a4c"),
-    )
-}
+internal val DARK_BACKGROUND_COLORS: Map<String, Set<String>> = linkedMapOf(
+    "47.1.4" to setOf("a40", "a42", "a43", "a45", "a4c"),
+)
 
 /** This build's background grays, or a refusal: a name carried over from another build is a guess. */
 internal fun darkBackgroundColors(versionName: String?): Set<String> =
@@ -169,50 +160,25 @@ internal fun darkBackgroundColors(versionName: String?): Set<String> =
 internal fun unreadPaletteRefusal(versionName: String?): String {
     val build = if (versionName.isNullOrBlank()) "this TikTok build" else "TikTok $versionName"
     val known = DARK_BACKGROUND_COLORS.keys.toList()
+    val builds = if (known.size == 1) known.single() else known.dropLast(1).joinToString(", ") + " and " + known.last()
     return "AMOLED dark theme hasn't read the dark palette of $build, so nothing was changed. " +
         "TikTok renames its colors from one build to the next, and a name taken from another " +
-        "build can paint an accent or an overlay black. The palette is known for TikTok " +
-        known.dropLast(1).joinToString(", ") + " and " + known.last() + "."
+        "build can paint an accent or an overlay black. The palette is known for TikTok $builds."
 }
 
-/** The builds this patch is declared for, where the sheet style names are known to be right. */
+/** The builds the bundle declares. */
 internal fun declaredVersions(): Set<String> =
     AppCompatibilities.tiktok().flatMap { it.targets }.mapNotNull { it.version }.toSet()
 
 /**
- * On a declared build every sheet item has to have been found: the names are that build's,
- * and one missing means an identity is wrong. On a build the patch was forced onto, the
- * names are not promised. What matched was rewritten, and the failure is nothing matching
- * at all, which says the sheet lookup itself no longer works there. 46.7.3 has the comments
- * sheet's item and not the share sheet's, and a whole patch that fails over one grey sheet
- * on a build it never claimed is the wrong trade.
- */
-internal fun checkSheetStyleItems(found: Set<String>, versionName: String?, declared: Set<String>) {
-    if (found == SHEET_STYLE_ITEMS) return
-    if (versionName != null && versionName in declared) {
-        throw PatchException("Dark sheet style items are incomplete: $found")
-    }
-    if (found.isEmpty()) throw PatchException("No dark sheet style item was found on $versionName")
-}
-
-/**
  * The dark tokens behind TikTok's sheets. agk and c3 were the comments and share sheets' own
- * through 46.x and are dark surfaces of their own on 47.0.3. aia is 47.0.3's dark value for
+ * through 46.x and are dark surfaces of their own on 47.x. aia is the dark value for
  * UISheetFlat1 (attr/a24), which the comment panel, the share sheet and TikTok's other sheets,
- * panels and modals fill with (AmoledSheetTokensTest). 47.1.3 kept every attr where it was
- * (TuxSheet's background attribute is 0x7f0609fb on both), so the three names hold there too.
+ * panels and modals fill with (AmoledSheetTokensTest). 47.1.4 keeps every attr where 47.0.3 had
+ * it (TuxSheet's background attribute is 0x7f0609fb), so the three names hold there. On 46.x
+ * aia was another surface tier, which is why only a build whose palette was read is patched.
  */
 internal val SHEET_STYLE_ITEMS = setOf("agk", "c3", "aia")
-
-/**
- * Names only rewritten on a build the patch is declared for. On 46.7.3 to 46.9.3, aia is the
- * dark value of UISheetGrouped3, another surface tier, and on 46.2.3 a yellow.
- */
-private val DECLARED_ONLY_ITEMS = setOf("aia")
-
-/** The sheet items to rewrite on this build: every one on a declared build, the 46.x pair elsewhere. */
-internal fun sheetStyleItems(versionName: String?, declared: Set<String>): Set<String> =
-    if (versionName != null && versionName in declared) SHEET_STYLE_ITEMS else SHEET_STYLE_ITEMS - DECLARED_ONLY_ITEMS
 
 /**
  * Sets every `<item name="...">` in the named set whose value is a dark opaque colour literal

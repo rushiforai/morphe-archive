@@ -139,6 +139,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "delta_unsent" -> method.validateDeltaUnsent()
             "emoji_typeface" -> method.validateEmojiTypeface()
             EMOJI_DRAWER -> method.validateEmojiDrawer()
+            EMOJI_SEARCH -> method.validateEmojiSearch()
             ANALYTICS_UPLOADS -> method.validateAnalyticsUpload()
             MESSAGE_LOG -> method.validateMessageLog()
             "original_photo" -> method.validateOriginalPhoto()
@@ -181,6 +182,7 @@ internal fun injectControl(key: String, methods: Map<String, List<MutableMethod>
             "delta_unsent" -> method.injectDeltaUnsent()
             "emoji_typeface" -> method.injectEmojiTypeface()
             EMOJI_DRAWER -> method.injectEmojiDrawer()
+            EMOJI_SEARCH -> method.injectEmojiSearch()
             ANALYTICS_UPLOADS -> method.injectAnalyticsUpload()
             MESSAGE_LOG -> method.injectMessageLog()
             "original_photo" -> method.injectOriginalPhoto()
@@ -308,6 +310,9 @@ val restoreEmojiDrawerPatch = controlPatch("emoji_drawer", "Restore old emoji dr
     "Turns off Meta's redesigned emoji drawer, so the emoji keyboard keeps its earlier layout. " +
         "Changes apply after Restart Messenger. Accounts Meta never moved to the redesign see no difference.", "Stickers")
 @Suppress("unused")
+val keepEmojiSearchPatch = controlPatch("emoji_search", "Keep emoji search on emoji",
+    "Typing while the emoji keyboard is open no longer switches it to sticker search. The keyboard stays on emoji.", "Stickers")
+@Suppress("unused")
 val hideChatPromotionsPatch = controlPatch("chat_promotions", "Hide chat promotions", "Hides Messenger quick-promotion banners inside conversations.", "Conversations")
 @Suppress("unused")
 val hideSuggestedRepliesPatch = controlPatch("suggested_replies", "Hide business reply suggestions", "Hides suggested replies in business conversations.", "Conversations")
@@ -377,15 +382,20 @@ val anonymousStoriesPatch = bytecodePatch(
     dependsOn(settingsExtension, anonymousStoriesResources)
     execute {
         validateControls(discoveredControls, setOf("anonymous_stories"))
-        val handler = discoveredControls.getValue("anonymous_stories").single().let { original ->
+        val handler = discoveredControls.getValue("anonymous_stories").single { it.definingClass != MONTAGE_BUCKET_PREVIEW }.let { original ->
             mutableClassDefBy(original.definingClass).methods.single { it.hookId() == original.hookId() }
         }
-        // The read set is checked before the first edit, so a build that moved it fails with the APK untouched.
+        // The read set and the story preview are checked before the first edit, so a build that moved either fails
+        // with the APK untouched.
         val readSetClass = mutableClassDefBy(handler.storyReadSetAdd().definingClass)
         val readSet = readSetClass.validateStoryReadSet(handler.storyReadSetAdd())
+        val previewClass = mutableClassDefBy(MONTAGE_BUCKET_PREVIEW)
+        val ring = previewClass.validateStoryRing()
         injectControl("anonymous_stories", mapOf("anonymous_stories" to listOf(handler)))
         readSetClass.methods.single { it.hookId() == readSet.add }.injectStoryReadSetAdd(readSet)
         readSetClass.methods.single { it.name == "<init>" }.injectStoryReadSetSeed(readSet)
+        // The chat list's ring reads the preview, which Messenger fills from the server's seen state alone (#35).
+        previewClass.injectStoryRing(ring, readSet.cardId)
         recordControl("anonymous_stories")
         anonymousStoriesApplied = true
     }

@@ -225,6 +225,8 @@ Hide About this reel	Bu reel hakkında bölümünü gizle
 A reel's more menu opens without the summary at the top, its Sources or the Ask Meta AI box, in Reels and in your feed. In your feed, the audio row under the summary goes too. The menu's other options stay.	Bir reelin diğer seçenekler menüsü, üstteki özet, kaynakları ve Meta AI'a sor kutusu olmadan açılır. Bu, Reels'te ve akışında geçerlidir. Akışında özetin altındaki ses satırı da kaldırılır. Menünün diğer seçenekleri kalır.
 Hide Ask Meta AI in About this reel	Bu reel hakkında bölümünde Meta AI'a sor kutusunu gizle
 About this reel keeps its summary and Sources without the Ask Meta AI box under them.	Bu reel hakkında bölümü özeti ve kaynakları korur, altındaki Meta AI'a sor kutusu gizlenir.
+Hide Meta AI in the share sheet	Paylaşım sayfasında Meta AI'ı gizle
+Takes Meta AI's target out of the row at the bottom of the share sheet. Some accounts see it as Muse.	Paylaşım sayfasının altındaki satırdan Meta AI hedefini kaldırır. Bazı hesaplar bunu Muse olarak görür.
 Explore	Keşfet
 Hide the Explore grid	Keşfet ızgarasını gizle
 The posts and reels under the Search tab's bar. Search, your recent searches and search results stay.	Ara sekmesinin çubuğu altındaki gönderiler ve reels videoları. Arama, son aramaların ve arama sonuçları kalır.
@@ -352,6 +354,8 @@ Whitehat settings are unavailable on this screen. Open HushGram settings from Ho
 Comments	Yorumlar
 Copy comment	Yorumu kopyala
 Adds Copy to a selected comment's menu. Copies the original text, including line breaks.	Seçilen yorumun menüsüne Kopyala seçeneğini ekler. Satır sonları dahil özgün metni kopyalar.
+Copy the commenter's username	Yorum yapanın kullanıcı adını kopyala
+Adds Copy username to a selected comment's menu, for the account that wrote it.	Seçilen bir yorumun menüsüne, yorumu yazan hesap için Kullanıcı adını kopyala seçeneğini ekler.
 Comment copied	Yorum kopyalandı
 Couldn't copy comment	Yorum kopyalanamadı
 Save comment photo	Yorum fotoğrafını kaydet
@@ -523,11 +527,15 @@ Hide story rewinds	Hikaye geri sarmalarını gizle
 Nothing in the row of stories at the top of Home loads, your own story included, which saves data. A story ring on a profile or in a chat still opens its stories.	Ana Sayfa'nın üstündeki hikaye satırında, kendi hikayen dahil hiçbir şey yüklenmez, bu da veri tasarrufu sağlar. Bir profildeki veya sohbetteki hikaye halkası yine hikayelerini açar.
 Open categories as pages	Kategorileri sayfa olarak aç
 Settings shows a list of its categories, and a tap opens one on its own page. Search still looks through all of them.	Ayarlar kategorilerinin bir listesini gösterir ve bir dokunuş birini kendi sayfasında açar. Arama yine hepsinde arar.
+Hide the HushGram row in Instagram's menu	Instagram menüsündeki HushGram satırını gizle
+While a tab long press opens HushGram, Instagram's Settings and activity screen leaves out the HushGram row. Turn the long press off and the row comes back.	Bir sekmeye uzun basmak HushGram'ı açtığı sürece Instagram'ın Ayarlar ve hareketler ekranında HushGram satırı gösterilmez. Uzun basmayı kapatınca satır geri gelir.
 Stop loading stories	Hikayeleri yükleme
 Takes the Comment button and the comment count off the posts in your feed.	Akışındaki gönderilerden Yorum yap düğmesini ve yorum sayısını kaldırır.
 Takes the memories, recaps, follow anniversaries and birthday cards Instagram makes out of the row of stories at the top of Home. Stories people post stay.	Instagram'ın oluşturduğu anıları, özetleri, takip yıl dönümlerini ve doğum günü kartlarını Ana Sayfa'nın üstündeki hikaye satırından kaldırır. İnsanların paylaştığı hikayeler kalır.
 Takes the rewind cards, which bring back old highlights, out of the row of stories at the top of Home.	Eski öne çıkanları geri getiren geri sarma kartlarını Ana Sayfa'nın üstündeki hikaye satırından kaldırır.
 A double tap on a comment doesn't like it. Starts off, so comments keep double tap to like until you turn this on.	Bir yoruma iki kez dokunmak onu beğenmez. Kapalı başlar, yani sen bunu açana kadar yorumlar iki kez dokunarak beğenmeyi korur.
+On messages	Mesajlarda
+A double tap on a message in a chat doesn't react to it. Starts off. A long press still shows the reactions.	Sohbetteki bir mesaja çift dokunmak ona tepki vermez. Kapalı başlar. Uzun basmak tepkileri yine gösterir.
 Hide the Share button	Paylaş düğmesini gizle
 On comments	Yorumlarda
 Takes the Share button and its count off the posts in your feed and off reels.	Paylaş düğmesini ve sayısını akışındaki gönderilerden ve reel'lerden kaldırır.
@@ -625,3 +633,18 @@ Mentioned in this story	Bu hikâyede bahsedilenler
 See who a story mentions	Bir hikâyede kimlerden bahsedildiğini gör
 Every emoji draws in Google's style, from the emoji font Instagram gets through Google Play services, instead of your phone's own style. Restart Instagram after changing it.	Her emoji, telefonunun kendi stili yerine, Instagram'ın Google Play hizmetlerinden aldığı emoji yazı tipinden Google stilinde görünür. Değiştirdikten sonra Instagram'ı yeniden başlat.
 Google's emoji everywhere	Her yerde Google emojileri
+# context: Downloads switch under Download feed videos; it adds Download cover to a feed video post's menu
+Download video covers	Video kapaklarını indir
+Adds Download cover to the menu of a feed post with a video, and of a carousel showing one. It saves the still picture shown before the video plays, at its largest size.	Videolu bir akış gönderisinin ve video gösteren bir karuselin menüsüne Kapağı indir ekler. Video oynatılmadan önce görünen hareketsiz görüntüyü en büyük boyutunda kaydeder.
+Import flag names	Bayrak adlarını içe aktar
+Pick a list of MetaConfig names, such as an id_name_mapping.json file, and MetaConfig shows those names in place of numbers. Searching by number still works.	id_name_mapping.json dosyası gibi bir MetaConfig ad listesi seç, MetaConfig sayılar yerine bu adları göstersin. Sayıyla arama çalışmaya devam eder.
+Remove flag names	Bayrak adlarını kaldır
+Forget the imported names, so MetaConfig shows Instagram's own labels again.	İçe aktarılan adları unutur, böylece MetaConfig yeniden Instagram'ın kendi etiketlerini gösterir.
+Couldn't read flag names from that file. Nothing changed.	Bu dosyadan bayrak adları okunamadı. Hiçbir şey değişmedi.
+Flag names removed. Open MetaConfig again to see Instagram's own labels.	Bayrak adları kaldırıldı. Instagram'ın kendi etiketlerini görmek için MetaConfig'i yeniden aç.
+There are no imported flag names to remove.	Kaldırılacak içe aktarılmış bayrak adı yok.
+Flag names imported: %1$d. Open MetaConfig again to see them.	İçe aktarılan bayrak adları: %1$d. Görmek için MetaConfig'i yeniden aç.
+Entries left out because they repeat or don't fit: %1$d.	Tekrarlandığı veya uymadığı için dışarıda bırakılan girişler: %1$d.
+That file has no flag names in it. Nothing changed.	Bu dosyada bayrak adı yok. Hiçbir şey değişmedi.
+Couldn't remove the flag names. Try again.	Bayrak adları kaldırılamadı. Yeniden dene.
+Couldn't save the flag names. Nothing changed.	Bayrak adları kaydedilemedi. Hiçbir şey değişmedi.

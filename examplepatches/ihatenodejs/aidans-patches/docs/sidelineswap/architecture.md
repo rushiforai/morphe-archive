@@ -23,7 +23,7 @@ SidelineSwap is a native Android marketplace application designed for buying and
 
 ### 2.1 Presentation & UI Layer
 - **Android Jetpack Navigation**: Single-activity architecture hosting nested navigation graphs (`nav_graph.xml`, `AccountGraphXmlDirections`, `ItemGraphNavigationFragment`).
-- **Material Components & Custom Theming**: `AppTheme` extending `Theme.MaterialComponents.Light.NoActionBar` with standard color attributes (`colorPrimary = #02c874`, `colorPrimaryDark = #009647`, `colorAccent = @color/colorPrimary`).
+- **Material Components & Custom Theming**: `AppTheme` extending `Theme.MaterialComponents.Light.NoActionBar` with standard color attributes (`colorPrimary = #02c874`, `colorPrimaryDark = #009647`, `colorAccent = @color/colorPrimary`). SidelineSwap ships exclusively with light-oriented styles (`res/values/styles.xml`), with dark system bar icon flags (`windowLightStatusBar = true`, `windowLightNavigationBar = true`), and lacks app-owned night resources (`res/values-night/` contains only third-party vendor definitions; no app-owned `colors.xml` or dark theme switching exists). The application combines centralized palette resources (`appBarColor = #ffffff`, `itemBackground = #f8f8f8`, `dividerColor = #b7b7b7`) with hardcoded layout and drawable color literals, necessitating a coordinated multi-layer resource transformation across styles, colors, layouts, and drawables to achieve a true AMOLED dark theme.
 - **View Binding**: Android Jetpack ViewBinding across all Fragments and Activities.
 - **Image Loading**: Glide (`com.bumptech.glide`) with custom transformations for product listings and user profile lockers.
 

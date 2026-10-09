@@ -135,6 +135,18 @@ public class CreatorExceptionsTest {
         public final Object category = 1L;
     }
 
+    /** A sticker as TikTok's InteractStickerStruct has it: its type and its textStruct string. */
+    public static final class Sticker {
+        final int type;
+        final String textStruct;
+        public Sticker(int type, String textStruct) {
+            this.type = type;
+            this.textStruct = textStruct;
+        }
+        public int getType() { return type; }
+        public String getTextStruct() { return textStruct; }
+    }
+
     /** A post whose every read has a plain answer, so only the trip set on it can hide it. */
     public static class Item extends Aweme {
         final String aid;
@@ -145,7 +157,7 @@ public class CreatorExceptionsTest {
         String shareUrl, region, captionLanguage, distributeSource;
         String desc = "";
         List<Object> images;
-        List<?> anchors;
+        List<?> anchors, stickers;
         Object aigcInfo, mixInfo, music, mPaidContentInfo, commercialVideoInfo;
         long createTime;
         long durationMs = 500;
@@ -174,6 +186,7 @@ public class CreatorExceptionsTest {
         public String getDesc() { return desc; }
         public String getRegion() { return region; }
         public List<?> getAnchors() { return anchors; }
+        public List<?> getInteractStickerStructs() { return stickers; }
         public String getAnchorsExtras() { return null; }
         public Object getContentModel() { return null; }
         public Object getAigcInfo() { return aigcInfo; }
@@ -256,12 +269,18 @@ public class CreatorExceptionsTest {
                         item -> SeenVideoHistory.onPlayProgressChange(item.aid, 9_000, 10_000)),
                 new Case("KeywordFilter", () -> Settings.BLOCKED_CAPTION_WORDS.save("sponsored"),
                         item -> item.desc = "a sponsored post"),
+                new Case("StickerTextFilter", () -> {
+                    Settings.BLOCKED_CAPTION_WORDS.save("sponsored");
+                    Settings.BLOCKED_WORDS_IN_STICKERS.save(true);
+                }, item -> item.stickers = List.of(new Sticker(AdvancedFeedRules.TEXT_STICKER_TYPE, "a sponsored post"))),
                 new Case("CreatorFilter", () -> Settings.BLOCKED_CREATORS.save("@" + HANDLE), item -> { }),
                 new Case("CreatorFilter", () -> Settings.LOCAL_HIDDEN_CREATORS.save(UID), item -> { }),
                 new Case("PromotionalMusicFilter", () -> Settings.HIDE_PROMOTIONAL_MUSIC.save(true),
                         item -> item.promotionalMusic = true),
                 new Case("LiveReplayFilter", () -> Settings.HIDE_LIVE_REPLAYS.save(true),
                         item -> item.liveReplay = true),
+                new Case("OfflineVideoFilter", () -> Settings.HIDE_OFFLINE_VIDEOS.save(true),
+                        item -> item.cacheSourceType = FeedItemsFilter.CACHE_SOURCE_OFFLINE_MODE),
                 new Case("CaptionLanguageFilter", () -> Settings.CAPTION_LANGUAGES.save("en"),
                         item -> item.captionLanguage = "es"));
     }
@@ -278,7 +297,8 @@ public class CreatorExceptionsTest {
                 Settings.FILTER_LOCATION_VIDEOS, Settings.HIDE_AI_GENERATED, Settings.HIDE_VERIFIED,
                 Settings.HIDE_SERIES, Settings.HIDE_MINI_DRAMAS, Settings.HIDE_PLAYLIST_VIDEOS,
                 Settings.HIDE_INSERTED_CARDS, Settings.HIDE_SEEN_VIDEOS, Settings.HIDE_PROMOTIONAL_MUSIC,
-                Settings.HIDE_LIVE_REPLAYS, Settings.HIDE_UNPERSONALIZED_FOR_YOU,
+                Settings.HIDE_LIVE_REPLAYS, Settings.HIDE_UNPERSONALIZED_FOR_YOU, Settings.HIDE_OFFLINE_VIDEOS,
+                Settings.BLOCKED_WORDS_IN_STICKERS,
         };
     }
 

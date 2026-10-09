@@ -40,6 +40,17 @@ public final class FeedOverlayControls {
         return hide;
     }
 
+    /**
+     * Whether TikTok's Footnotes banner is withheld. Asked in front of the check that decides
+     * whether a video gets the banner at all, so a false there is what a video with no Footnote
+     * already gets and the rest of the video is left as it was.
+     */
+    public static boolean shouldHideFootnotes() {
+        boolean hide = Settings.HIDE_FOOTNOTES.get();
+        HookStatus.bound("footnote banner", hide ? "gate closed" : "gate left");
+        return hide;
+    }
+
     private static void bind(View view, BooleanSetting setting, boolean location, String name) {
         if (view == null) return;
         HookStatus.bound(name, "native control bind");

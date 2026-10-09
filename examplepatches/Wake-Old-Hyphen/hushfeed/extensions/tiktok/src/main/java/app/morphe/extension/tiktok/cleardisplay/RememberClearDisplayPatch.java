@@ -16,6 +16,7 @@ import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.blockauthor.Reflect;
 import app.morphe.extension.tiktok.feed.VideoOverlayHider;
 import app.morphe.extension.tiktok.settings.Settings;
+import app.morphe.extension.tiktok.wellbeing.FeedLock;
 import app.morphe.extension.tiktok.wellbeing.SessionBudget;
 import java.lang.ref.WeakReference;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -202,7 +203,8 @@ public final class RememberClearDisplayPatch {
             manuallyChanged = false;
             setCarrying(false);
             // Not under the daily hold, whose panel needs TikTok's tabs back (leaveForHold).
-            if (Settings.CLEAR_DISPLAY.get() && !SessionBudget.isLocked()) emit(event, true);
+            // Nor under the feed lock, which covers the feed the same way and needs the tabs too.
+            if (Settings.CLEAR_DISPLAY.get() && !SessionBudget.isLocked() && !FeedLock.covers()) emit(event, true);
             // Switched off while it had the controls hidden: TikTok brings them back on the next
             // video by itself, but the live state, which the tab strip hide reads, would say
             // hidden until TikTok's own clear display bar was used (S22, 2026-09-23).
@@ -222,7 +224,7 @@ public final class RememberClearDisplayPatch {
             if (attempt != generation) return;
             pending = null;
             if (Settings.AUTOMATIC_CLEAR_DISPLAY.get() && id.equals(currentId) && stillCurrent.holds()
-                    && !SessionBudget.isLocked()) {
+                    && !SessionBudget.isLocked() && !FeedLock.covers()) {
                 if (emit(event, true)) {
                     applied = true;
                     automaticHidden = true;
@@ -296,7 +298,8 @@ public final class RememberClearDisplayPatch {
      */
     public static boolean isCarryingClear() {
         return carrying && Settings.AUTOMATIC_CLEAR_DISPLAY.get()
-                && Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.get() == 0 && !SessionBudget.isLocked();
+                && Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.get() == 0 && !SessionBudget.isLocked()
+                && !FeedLock.covers();
     }
 
     private static void setCarrying(boolean carry) {

@@ -493,19 +493,37 @@ public class SettingsTest {
             Settings.preferences.edit().putBoolean("use_system_emoji", true).apply();
             android.graphics.Typeface system = Settings.systemEmojiTypeface();
             assertNotNull(system);
-            // Until Messenger loads its font there's nothing to fall back on, and a missing Messenger font stays missing.
+            // Until Messenger has loaded its font once there's nothing to fall back on.
             assertSame(system, Settings.systemEmojiTypeface(messenger));
             Settings.messengerEmojiFont(messengerFont);
-            assertSame(system, Settings.systemEmojiTypeface(null));
             android.graphics.Typeface merged = Settings.systemEmojiTypeface(messenger);
             assertNotSame(system, merged);
             assertSame(merged, Settings.systemEmojiTypeface(messenger));
+            // Messenger may ask before its own typeface is ready; the font file is what counts.
+            assertSame(merged, Settings.systemEmojiTypeface(null));
+            // One line per change of path, so a report's logcat shows which one the phone took.
+            assertEquals(1, org.robolectric.shadows.ShadowLog.getLogsForTag("HushMessenger").stream()
+                .filter(log -> log.msg.startsWith("use_system_emoji: phone emoji with Messenger's font behind it")).count());
             paint.setTypeface(system);
             assertFalse(paint.hasGlyph(like));
             paint.setTypeface(merged);
             assertTrue(paint.hasGlyph(like));
             assertTrue(paint.hasGlyph(Settings.EMOJI_PROBE));
             assertNull(Settings.hookErrors.get("use_system_emoji"));
+            // The next run, right after an update: Messenger asks before its font loads and keeps that answer, so the
+            // file from the last run stands in (#34).
+            Settings.messengerEmojiFile = null;
+            Settings.mergedEmojiFile = null;
+            Settings.mergedEmoji = null;
+            android.graphics.Typeface early = Settings.systemEmojiTypeface(null);
+            assertNotSame(system, early);
+            paint.setTypeface(early);
+            assertTrue(paint.hasGlyph(like));
+            // A remembered file that's gone leaves the phone's emoji until Messenger loads its font again.
+            Settings.mergedEmojiFile = null;
+            Settings.mergedEmoji = null;
+            Settings.preferences.edit().putString(Settings.EMOJI_FONT_PATH, messengerFont.getPath() + ".gone").apply();
+            assertSame(system, Settings.systemEmojiTypeface(null));
             // Off again: Messenger's own typeface, untouched.
             Settings.preferences.edit().putBoolean("use_system_emoji", false).apply();
             assertSame(messenger, Settings.systemEmojiTypeface(messenger));
@@ -542,6 +560,8 @@ public class SettingsTest {
         Settings.messengerEmojiFile = null;
         Settings.mergedEmojiFile = null;
         Settings.mergedEmoji = null;
+        Settings.lastEmojiLog = null;
+        if (Settings.preferences != null) Settings.preferences.edit().remove(Settings.EMOJI_FONT_PATH).apply();
         Settings.hookErrors.remove("use_system_emoji");
     }
 

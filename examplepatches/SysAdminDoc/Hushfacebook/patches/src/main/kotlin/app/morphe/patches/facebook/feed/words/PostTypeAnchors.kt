@@ -35,10 +35,9 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  *   initialiser on all three, among 1,285 in 581.
  * - A story's text format: GraphQLStory's one accessor that asks `getCachedModel` for the key of
  *   `text_format_metadata` (-1071752347) as TextFormatMetadata (1670815897): A0h() in 581 and 577,
- *   A0i() in 580. Facebook's own check of a formatted text post (581 LX/2ds.A06, 580 LX/2Yp.A06, 577
- *   LX/2Wm.A03) calls it and answers true when the model is there and `getCachedString` finds one
- *   of color, background_color, font_style, font_weight or text_align, the five keys the extension
- *   reads.
+ *   A0i() in 580. Facebook's own check of a formatted text post (581 LX/2ds.A06) calls it and
+ *   answers true when the model is there and `getCachedString` finds one of color,
+ *   background_color, font_style, font_weight or text_align, the five keys the extension reads.
  */
 
 /** The extension class that reads a post's kind, and its two stubs. */

@@ -26,10 +26,20 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
+import org.robolectric.annotation.Implementation;
+import org.robolectric.annotation.Implements;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(sdk = 35, manifest = Config.NONE)
+@Config(sdk = 35, manifest = Config.NONE, shadows = MarketplaceLoaderTest.Installed.class)
 public class MarketplaceLoaderTest {
+    /** Theme colors alone unless a test installs the extensions patch too. */
+    @Implements(value = InstalledPatches.class, isInAndroidSdk = false)
+    public static class Installed {
+        static boolean extensions;
+
+        @Implementation public static boolean extensions() { return extensions; }
+    }
+
     private static final Executor DIRECT = Runnable::run;
     private static final long ONE_HOUR_MILLIS = 60 * 60 * 1000L;
     /** The shape of Marketplace's resources/blacklist.json, comment strings included. */
@@ -57,14 +67,17 @@ public class MarketplaceLoaderTest {
     @Before
     public void setUp() {
         cacheFile = new File(tempFolder.getRoot(), "marketplace.json");
+        Installed.extensions = false;
     }
 
     private Marketplace.Fetcher fetcher() {
         return url -> {
             requested.add(url);
             String value = responses.get(url);
-            // Every theme's color.ini has a scheme Spotify can use, unless a test says otherwise.
+            // Every theme's color.ini has a scheme Spotify can use, and the extension topic has no
+            // repository, unless a test says otherwise.
             if (value == null && url.endsWith("/c.ini")) value = USABLE;
+            if (value == null && url.startsWith(Marketplace.EXTENSIONS_SEARCH_URL)) value = "{\"total_count\":0,\"items\":[]}";
             if (value == null) throw new FileNotFoundException(url);
             if ("RATE".equals(value)) throw new Marketplace.RateLimitException(url);
             if ("FAIL".equals(value)) throw new IOException("Connection reset");
@@ -88,7 +101,8 @@ public class MarketplaceLoaderTest {
 
     private static String repoJson(Marketplace.Repo repo) {
         return "{\"full_name\":\"" + repo.owner + "/" + repo.name + "\",\"default_branch\":\"" + repo.branch + "\","
-                + "\"html_url\":\"" + repo.url + "\",\"stargazers_count\":" + repo.stars + "}";
+                + "\"html_url\":\"" + repo.url + "\",\"stargazers_count\":" + repo.stars
+                + ",\"description\":\"" + repo.description + "\"}";
     }
 
     private static String searchJson(int total, List<Marketplace.Repo> repos) {
@@ -489,6 +503,82 @@ public class MarketplaceLoaderTest {
         // Each manifest's themes are listed as it arrives, by stars.
         assertEquals(Arrays.asList("update [One]", "update [One, Three]", "update [One, Four, Three]",
                 "done [One, Four, Three]"), listener.calls);
+    }
+
+    @Test
+    public void withoutTheExtensionsPatchOnlyTheThemeTopicIsSearched() throws Exception {
+        putFreshData();
+
+        Recorder listener = new Recorder();
+        loader().load(false, listener);
+
+        assertEquals(Arrays.asList("One", "Three A", "Three B"), titles(listener.lastThemes));
+        for (String url : requested) assertFalse(url, url.startsWith(Marketplace.EXTENSIONS_SEARCH_URL));
+        assertEquals(titles(listener.lastThemes), titles(cached().themes));
+    }
+
+    @Test
+    public void aTwoPageExtensionSearchReadsBothPages() throws Exception {
+        Installed.extensions = true;
+        putFreshData();
+        // Three theme results on one page, then three extension results on two: each topic counts its own.
+        Marketplace.Repo five = new Marketplace.Repo("e", "five", "main", "https://github.com/e/five", 5, "d");
+        Marketplace.Repo six = new Marketplace.Repo("f", "six", "main", "https://github.com/f/six", 4, "d");
+        Marketplace.Repo seven = new Marketplace.Repo("g", "seven", "main", "https://github.com/g/seven", 3, "d");
+        responses.put(Marketplace.EXTENSIONS_SEARCH_URL + "1", searchJson(3, Arrays.asList(five, six)));
+        responses.put(Marketplace.EXTENSIONS_SEARCH_URL + "2", searchJson(3, Arrays.asList(seven)));
+
+        Recorder listener = new Recorder();
+        loader().load(false, listener);
+
+        assertTrue(requested.contains(Marketplace.EXTENSIONS_SEARCH_URL + "2"));
+        assertEquals(Arrays.asList("One", "Three A", "Three B", "five", "six", "seven"), titles(listener.lastThemes));
+    }
+
+    @Test
+    public void extensionsComeFromTheirOwnTopic_skipAColorCheck_andAreCachedWithTheThemes() throws Exception {
+        Installed.extensions = true;
+        putFreshData();
+        // FOUR has both topics: its manifest is read once, with the themes.
+        responses.put(Marketplace.SEARCH_URL + "1", searchJson(4, Arrays.asList(ONE, TWO, THREE, FOUR)));
+        responses.put(Marketplace.manifestUrl(FOUR), "{\"name\":\"Four\",\"description\":\"d\",\"main\":\"four.js\"}");
+        // spicetify/cli has Trash Bin's Android version, so its manifest is read.
+        Marketplace.Repo cli = new Marketplace.Repo("spicetify", "cli", "main", "https://github.com/spicetify/cli", 50);
+        responses.put(Marketplace.manifestUrl(cli), "[{\"name\":\"Trash Bin\",\"description\":\"d\","
+                + "\"main\":\"Extensions/trashbin.js\"}]");
+        // five has none, so it's listed from its search result, and its manifest isn't read.
+        Marketplace.Repo five = new Marketplace.Repo("e", "five", "main", "https://github.com/e/five", 40, "Does five things");
+        responses.put(Marketplace.manifestUrl(five), "{\"name\":\"Five\",\"description\":\"d\",\"main\":\"five.js\"}");
+        responses.put(Marketplace.EXTENSIONS_SEARCH_URL + "1", searchJson(3, Arrays.asList(FOUR, five, cli)));
+
+        Recorder listener = new Recorder();
+        loader().load(false, listener);
+
+        assertNull(listener.error);
+        assertEquals(Arrays.asList("Trash Bin", "five", "One", "Four", "Three A", "Three B"), titles(listener.lastThemes));
+        assertEquals("spicetify/cli/Extensions/trashbin.js", listener.lastThemes.get(0).extension);
+        assertEquals("e/five", listener.lastThemes.get(1).extension);
+        assertEquals("Does five things", listener.lastThemes.get(1).description);
+        // Listed as its search page arrives, before spicetify/cli's manifest is read.
+        assertTrue(listener.calls.contains("update [five, One, Four, Three A, Three B]"));
+        assertFalse("five's manifest isn't read", requested.contains(Marketplace.manifestUrl(five)));
+        assertEquals(1, Collections.frequency(requested, Marketplace.manifestUrl(FOUR)));
+        assertFalse("an extension has no color.ini to check", requested.contains(null));
+        assertEquals(titles(listener.lastThemes), titles(cached().themes));
+    }
+
+    @Test
+    public void aFailedExtensionSearchKeepsTheThemes_butTheListIsNotCached() {
+        Installed.extensions = true;
+        putFreshData();
+        responses.put(Marketplace.EXTENSIONS_SEARCH_URL + "1", "RATE");
+
+        Recorder listener = new Recorder();
+        loader().load(false, listener);
+
+        assertNull(listener.error);
+        assertEquals(Arrays.asList("One", "Three A", "Three B"), titles(listener.lastThemes));
+        assertFalse(cacheFile.exists());
     }
 
     @Test

@@ -15,6 +15,6 @@ val COMPATIBILITY_FIZZ = Compatibility(
         "622850867847ccb7a1371bc42c865b1137fa51bd19987dc81b53815c9a9817bf"
     ),
     targets = listOf(
-        AppTarget(version = "1.53.0", minSdk = 23)
+        AppTarget(version = "1.54.0", minSdk = 23)
     )
 )

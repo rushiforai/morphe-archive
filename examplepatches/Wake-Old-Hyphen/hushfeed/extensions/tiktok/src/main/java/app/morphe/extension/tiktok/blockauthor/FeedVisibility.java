@@ -28,8 +28,8 @@ import java.util.WeakHashMap;
  * the user onto every screen.
  *
  * The bottom navigation tabs carry their selected state, so the Home tab being selected
- * is a reliable and cheap signal. On 47.0.3 the bottom navigation ids are omq Home, omp
- * Friends, omm Create, omr Inbox, oms Profile.
+ * is a reliable and cheap signal. On 47.1.4 the bottom navigation ids are oph Home, opg
+ * Friends and opi Inbox.
  *
  * <p>Selected is not enough on its own. A creator's profile opened from the feed by the name
  * or the avatar is a page of the same horizontal pager as the feed, and the pager scrolls the
@@ -38,10 +38,15 @@ import java.util.WeakHashMap;
  * {@link View#isShown} does not check: it reads visibility flags up the tree and nothing else.
  */
 public final class FeedVisibility {
-    private static final String[] HOME_TAB_RESOURCE_NAMES = {"47.0.3:omq", "47.1.3:oph", "47.1.4:oph"};
-    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.0.3:omr", "47.1.3:opi", "47.1.4:opi"};
-    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"47.0.3:pvp", "47.1.3:pyf", "47.1.4:pyf"};
-    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"47.0.3:wk7", "47.1.3:wny", "47.1.4:wny"};
+    private static final String[] HOME_TAB_RESOURCE_NAMES = {"47.1.4:oph"};
+    private static final String[] INBOX_TAB_RESOURCE_NAMES = {"47.1.4:opi"};
+    /**
+     * The bottom Friends tab, the id FriendsTabProtocol loads on every declared build (one before
+     * Home's). A build with no such view answers null and the tab is simply not covered.
+     */
+    private static final String[] FRIENDS_TAB_RESOURCE_NAMES = {"47.1.4:opg"};
+    private static final String[] COMMENT_SHEET_RESOURCE_NAMES = {"47.1.4:pyf"};
+    private static final String[] COMMENT_TITLE_RESOURCE_NAMES = {"47.1.4:wny"};
 
     /**
      * The story viewer's pager. One id rather than the comment sheet's two: this one is not
@@ -58,6 +63,7 @@ public final class FeedVisibility {
 
     private static WeakReference<View> homeTabReference = new WeakReference<>(null);
     private static WeakReference<View> inboxTabReference = new WeakReference<>(null);
+    private static WeakReference<View> friendsTabReference = new WeakReference<>(null);
     private static WeakReference<View> commentSheetReference = new WeakReference<>(null);
     private static WeakReference<View> commentTitleReference = new WeakReference<>(null);
     private static WeakReference<View> storyPagerReference = new WeakReference<>(null);
@@ -326,6 +332,23 @@ public final class FeedVisibility {
             return false;
         }
         return !isCommentSheetVisible(activity);
+    }
+
+    /**
+     * Whether one of the feeds the feed lock covers is certainly on screen: the For You and
+     * Following pages under the Home tab, the bottom Friends tab's feed, and the Home feed with
+     * TikTok's clear display putting its tab bar away. A cleared screen hides the Home tab, so
+     * {@link #onRecommendationFeed} alone calls it "not the feed" there, which is the answer that
+     * would let the lock's panel and its swipe block go the moment the controls are cleared.
+     */
+    public static boolean onFeedTab(Activity activity) {
+        if (onRecommendationFeed(activity)) return true;
+        if (isCommentSheetVisible(activity)) return false;
+        View homeTab = homeTab(activity);
+        if (homeTab != null && cleared(activity, homeTab)) return true;
+        View friends = tab(activity, "Friends", FRIENDS_TAB_RESOURCE_NAMES, friendsTabReference,
+                reference -> friendsTabReference = reference);
+        return friends != null && friends.isShown() && !isScrolledAway(friends) && friends.isSelected();
     }
 
     /**

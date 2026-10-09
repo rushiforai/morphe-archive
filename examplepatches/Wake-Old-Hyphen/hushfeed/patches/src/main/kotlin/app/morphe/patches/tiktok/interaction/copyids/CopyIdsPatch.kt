@@ -51,7 +51,7 @@ internal fun ClassDef.sharePackageField(): Field? = fields.singleOrNull {
 @Suppress("unused")
 val copyIdsPatch = bytecodePatch(
     name = "Copy bio and IDs",
-    description = "Long-press a profile's bio to copy it. A profile's share sheet, the one its menu opens, gets buttons that copy its username and numeric user ID, and a video's share sheet gets one that copies the video ID. Switch: Hushfeed settings > App.",
+    description = "Long-press a profile's bio to copy it. A profile's share sheet, the one its menu opens, gets buttons that copy its username and numeric user ID, and a video's share sheet gets one that copies the video ID. Account facts, off by default, adds a profile button that shows when the account joined, its region and when its names last changed, from what TikTok already sent. Switches: Hushfeed settings > App.",
     default = true,
 ) {
     category("Interaction")

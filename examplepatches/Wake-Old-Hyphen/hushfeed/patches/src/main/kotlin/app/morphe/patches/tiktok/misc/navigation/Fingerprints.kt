@@ -237,6 +237,20 @@ internal fun Method.pullPanelReads(): PullPanelReads? {
     return PullPanelReads(panel, context, fragment)
 }
 
+internal const val MAIN_ACTIVITY = "Lcom/ss/android/ugc/aweme/main/MainActivity;"
+
+/**
+ * The main activity's onNewIntent, which a link reaches while the app is already running. The
+ * feed lock reads it to let one linked video through. Not obfuscated: both the class and the
+ * lifecycle method keep their names, and the method takes the Intent in p1.
+ */
+internal object MainNewIntentFingerprint : Fingerprint(
+    definingClass = MAIN_ACTIVITY,
+    name = "onNewIntent",
+    returnType = "V",
+    parameters = listOf("Landroid/content/Intent;"),
+)
+
 internal const val MAIN_ACTIVITY_ASSEM = "Lcom/ss/android/ugc/aweme/main/assems/MainActivityBusinessAssem;"
 internal const val PUSH_TAB_EXTRA = "com.ss.android.ugc.aweme.intent.extra.EXTRA_AWEME_PUSH_TAB"
 private const val INTENT = "Landroid/content/Intent;"

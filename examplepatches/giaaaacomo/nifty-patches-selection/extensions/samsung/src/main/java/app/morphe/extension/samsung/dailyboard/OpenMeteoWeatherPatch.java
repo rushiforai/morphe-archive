@@ -29,17 +29,28 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 public final class OpenMeteoWeatherPatch {
     private static final String CACHE = "morphe_open_meteo";
+    private static final String LEGACY_CACHE_LATITUDE = "latitude";
+    private static final String LEGACY_CACHE_LONGITUDE = "longitude";
     private static final String PROVIDER = "OPEN_METEO";
     private static final long CACHE_LIFETIME_MS = 30L * 60L * 1000L;
+    private static final long GEOCODER_TIMEOUT_MS = 1_500L;
+    private static final double LOCATION_PRECISION = 100.0;
 
     private OpenMeteoWeatherPatch() {
     }
 
     public static void updateWeather(Context context) {
         SharedPreferences cache = context.getSharedPreferences(CACHE, Context.MODE_PRIVATE);
+        cache.edit()
+                .remove(LEGACY_CACHE_LATITUDE)
+                .remove(LEGACY_CACHE_LONGITUDE)
+                .apply();
         WeatherResult result = null;
 
         if (System.currentTimeMillis() - cache.getLong("fetchedAt", 0L) < CACHE_LIFETIME_MS) {
@@ -77,18 +88,20 @@ public final class OpenMeteoWeatherPatch {
 
     private static WeatherResult fetch(Context context, double latitude, double longitude)
             throws Exception {
+        double approximateLatitude = approximateCoordinate(latitude);
+        double approximateLongitude = approximateCoordinate(longitude);
         String endpoint = String.format(
                 Locale.US,
-                "https://api.open-meteo.com/v1/forecast?latitude=%.5f&longitude=%.5f" +
+                "https://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f" +
                         "&current=temperature_2m,weather_code,is_day" +
                         "&daily=sunrise,sunset&timeformat=unixtime&timezone=auto&forecast_days=1",
-                latitude,
-                longitude
+                approximateLatitude,
+                approximateLongitude
         );
 
         HttpURLConnection connection = (HttpURLConnection) new URL(endpoint).openConnection();
-        connection.setConnectTimeout(5000);
-        connection.setReadTimeout(5000);
+        connection.setConnectTimeout(3000);
+        connection.setReadTimeout(3000);
         connection.setRequestProperty("Accept", "application/json");
         try {
             if (connection.getResponseCode() != HttpURLConnection.HTTP_OK) {
@@ -99,20 +112,22 @@ public final class OpenMeteoWeatherPatch {
             JSONObject current = root.getJSONObject("current");
             JSONObject daily = root.getJSONObject("daily");
             WeatherResult result = new WeatherResult();
-            result.latitude = latitude;
-            result.longitude = longitude;
             result.temperature = (float) current.getDouble("temperature_2m");
             result.weatherCode = current.getInt("weather_code");
             result.isDay = current.optInt("is_day", 1) == 1;
             result.updatedAt = current.getLong("time") * 1000L;
             result.sunrise = firstLong(daily.getJSONArray("sunrise")) * 1000L;
             result.sunset = firstLong(daily.getJSONArray("sunset")) * 1000L;
-            result.locationName = locationName(context, latitude, longitude);
+            result.locationName = locationName(context, approximateLatitude, approximateLongitude);
             result.description = description(result.weatherCode);
             return result;
         } finally {
             connection.disconnect();
         }
+    }
+
+    private static double approximateCoordinate(double coordinate) {
+        return Math.round(coordinate * LOCATION_PRECISION) / LOCATION_PRECISION;
     }
 
     private static void installWeatherData(WeatherResult result) {
@@ -172,13 +187,33 @@ public final class OpenMeteoWeatherPatch {
         return best;
     }
 
-    @SuppressWarnings("deprecation")
     private static String locationName(Context context, double latitude, double longitude) {
         try {
-            if (!Geocoder.isPresent()) return "Current location";
-            List<Address> addresses = new Geocoder(context, Locale.getDefault())
-                    .getFromLocation(latitude, longitude, 1);
-            if (addresses == null || addresses.isEmpty()) return "Current location";
+            if (!Geocoder.isPresent()) return currentLocationName();
+            AtomicReference<List<Address>> result = new AtomicReference<>();
+            CountDownLatch completed = new CountDownLatch(1);
+            new Geocoder(context, Locale.getDefault()).getFromLocation(
+                    latitude,
+                    longitude,
+                    1,
+                    new Geocoder.GeocodeListener() {
+                        @Override
+                        public void onGeocode(List<Address> addresses) {
+                            result.set(addresses);
+                            completed.countDown();
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            completed.countDown();
+                        }
+                    }
+            );
+            if (!completed.await(GEOCODER_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+                return currentLocationName();
+            }
+            List<Address> addresses = result.get();
+            if (addresses == null || addresses.isEmpty()) return currentLocationName();
             Address address = addresses.get(0);
             if (address.getLocality() != null) return address.getLocality();
             if (address.getAdminArea() != null) return address.getAdminArea();
@@ -186,7 +221,13 @@ public final class OpenMeteoWeatherPatch {
         } catch (Exception ignored) {
             // The weather remains useful without reverse geocoding.
         }
-        return "Current location";
+        return currentLocationName();
+    }
+
+    private static String currentLocationName() {
+        return Locale.getDefault().getLanguage().equals(Locale.ITALIAN.getLanguage())
+                ? "Posizione attuale"
+                : "Current location";
     }
 
     private static int samsungIcon(int code) {
@@ -249,8 +290,6 @@ public final class OpenMeteoWeatherPatch {
     }
 
     private static final class WeatherResult {
-        double latitude;
-        double longitude;
         float temperature;
         int weatherCode;
         boolean isDay;
@@ -263,8 +302,6 @@ public final class OpenMeteoWeatherPatch {
         void save(SharedPreferences preferences) {
             preferences.edit()
                     .putLong("fetchedAt", System.currentTimeMillis())
-                    .putLong("latitude", Double.doubleToRawLongBits(latitude))
-                    .putLong("longitude", Double.doubleToRawLongBits(longitude))
                     .putFloat("temperature", temperature)
                     .putInt("weatherCode", weatherCode)
                     .putBoolean("isDay", isDay)
@@ -279,8 +316,6 @@ public final class OpenMeteoWeatherPatch {
         static WeatherResult fromCache(SharedPreferences preferences) {
             if (!preferences.contains("updatedAt")) return null;
             WeatherResult result = new WeatherResult();
-            result.latitude = Double.longBitsToDouble(preferences.getLong("latitude", 0L));
-            result.longitude = Double.longBitsToDouble(preferences.getLong("longitude", 0L));
             result.temperature = preferences.getFloat("temperature", 0.0f);
             result.weatherCode = preferences.getInt("weatherCode", 0);
             result.isDay = preferences.getBoolean("isDay", true);

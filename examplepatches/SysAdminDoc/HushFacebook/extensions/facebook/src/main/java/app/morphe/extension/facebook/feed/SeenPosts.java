@@ -42,10 +42,11 @@ import app.morphe.extension.shared.settings.preference.LogBufferManager;
  * Posts you've already scrolled past stay out of the feed on later loads.
  *
  * <p>Facebook's viewport logger decides a post was seen: when a post leaves the screen after being
- * on it long enough to count as a view, it calls {@code persistSeenState} with the feed unit. That
- * is the signal, so the dwell is Facebook's own, and it fires as the post leaves, which means the
- * post on screen is never judged. The patch hands that unit to {@link #seen}, which remembers the
- * unit's cache id. The feed guard asks {@link #hideReason} for every unit it's about to add, and a
+ * on it long enough to count as a view (250 ms), its dwell runnable would call
+ * {@code persistSeenState} with the feed unit, except on the News Feed itself, where Facebook skips
+ * that call. The patch hands the same unit to {@link #seen} right after the dwell check, before the
+ * News Feed skip, so the dwell is Facebook's own on every surface, and it fires as the post leaves,
+ * which means the post on screen is never judged. {@link #seen} remembers the unit's cache id. The feed guard asks {@link #hideReason} for every unit it's about to add, and a
  * remembered one is dropped before Facebook adds it.
  *
  * <p>Only a short hash of each id is kept, in one file in the app's own storage with the time it was
@@ -156,8 +157,8 @@ public final class SeenPosts {
     }
 
     /**
-     * Injection point, at the start of the viewport logger's {@code persistSeenState}: the feed unit
-     * Facebook just decided you've seen. Remembers it while the switch is on. Never throws, and
+     * Injection point, in the viewport logger's dwell runnable right after its seen check: the feed
+     * unit Facebook just decided you've seen. Remembers it while the switch is on. Never throws, and
      * changes nothing about what Facebook does.
      */
     public static void seen(Object unit) {

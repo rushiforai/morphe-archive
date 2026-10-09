@@ -52,7 +52,7 @@ public final class NuvioAiringSeries {
             Application app = (Application) Class.forName("android.app.ActivityThread")
                 .getMethod("currentApplication").invoke(null);
             if (app == null) throw new IllegalStateException("Application is unavailable");
-            cached = "1.1.0-beta.4".equals(app.getPackageManager()
+            cached = !"1.1.0-beta.2".equals(app.getPackageManager()
                 .getPackageInfo(app.getPackageName(), 0).versionName);
             newerLayout = cached;
         }
@@ -103,7 +103,7 @@ public final class NuvioAiringSeries {
             });
             Object noop = Proxy.newProxyInstance(loader, new Class<?>[]{function0}, (proxy, method, args) ->
                 "invoke".equals(method.getName()) ? kotlinUnit(loader) : objectMethod(proxy, method, args));
-            Method row = findStatic(Class.forName("sa.eb", false, loader), "m", 13);
+            Method row = findStatic(Class.forName(NuvioRuntimeLayout.name("sa.eb"), false, loader), "m", 13);
             row.invoke(null, "Keep airing series in Upcoming",
                 "With Separate Upcoming Row, keep library series there until their latest scheduled episode has aired.",
                 stateValue(state), toggle, null, noop, false, null, 0L, false, composer, 0, 1008);
@@ -166,7 +166,7 @@ public final class NuvioAiringSeries {
         String badge = PREPARED_BADGE.get();
         PREPARED_BADGE.remove();
         if (composer == null) return;
-        try {
+        try (NuvioBadgeComposition group = NuvioBadgeComposition.begin(composer, 1403088898)) {
             ClassLoader loader = composer.getClass().getClassLoader();
             Object revision = revisionState(loader);
             findMethod(revision.getClass(), "getValue", 0).invoke(revision);
@@ -211,7 +211,7 @@ public final class NuvioAiringSeries {
         modifier = modifierType.getMethod("d", modifierType).invoke(modifier, layer);
         modifier = findStatic(Class.forName("e0.b", false, loader), "u", 2)
             .invoke(null, modifier, Float.valueOf(horizontal));
-        Object shape = staticField(Class.forName(beta4() ? "ba.d3" : "pa.g1", false, loader), "a").get(null);
+        Object shape = staticField(Class.forName(beta4() ? NuvioRuntimeLayout.name("ba.d3") : "pa.g1", false, loader), "a").get(null);
         modifier = findStatic(Class.forName("a2.j", false, loader), "b", 2)
             .invoke(null, modifier, shape);
         Object rectangle = staticField(Class.forName("d2.g0", false, loader), "b").get(null);

@@ -136,27 +136,23 @@ public class GeneratedCatalogShapeTest {
     }
 
     /**
-     * The Lab shows the catalog of the build that is running. These three rows are the ones the
-     * two declared builds disagree on: a default that moved, a gate 47.1.3 dropped and one it added.
+     * The Lab shows the catalog of the build that is running, the one declared build. These rows
+     * are ones older builds had otherwise: a default that moved, a gate added and one dropped.
      */
     @Test public void theRunningBuildsCatalogIsTheOneShown() throws Exception {
-        BuildNames.setRunningBuildForTests("47.0.3");
-        assertEquals("47.0.3", FeatureGateCatalog.catalogBuild());
-        FeatureGateCatalog.Snapshot older = load();
-        entry(older, "abmock", "low_memory_kill_monitor", "INT", "25");
-        entry(older, "abmock", "comment_cell_badge_dedup", "BOOLEAN", "false");
-        assertNull(older.byIdentity.get("abmock\n4710_lifecycle_job_next_day_fixed"));
-        FeatureGateCatalog.resetForTests();
-
-        BuildNames.setRunningBuildForTests("47.1.3");
-        assertEquals("47.1.3", FeatureGateCatalog.catalogBuild());
-        FeatureGateCatalog.Snapshot newer = load();
-        entry(newer, "abmock", "low_memory_kill_monitor", "INT", "89");
-        entry(newer, "abmock", "4710_lifecycle_job_next_day_fixed", "INT", "0");
-        assertNull(newer.byIdentity.get("abmock\ncomment_cell_badge_dedup"));
+        BuildNames.setRunningBuildForTests("47.1.4");
+        assertEquals("47.1.4", FeatureGateCatalog.catalogBuild());
+        FeatureGateCatalog.Snapshot shown = load();
+        entry(shown, "abmock", "low_memory_kill_monitor", "INT", "89");
+        entry(shown, "abmock", "4710_lifecycle_job_next_day_fixed", "INT", "0");
+        assertNull(shown.byIdentity.get("abmock\ncomment_cell_badge_dedup"));
     }
 
     @Test public void aBuildWithNoCatalogIsShownTheNewestOne() {
+        // 47.1.3 had a catalog until 47.1.4 replaced it.
+        BuildNames.setRunningBuildForTests("47.1.3");
+        assertFalse(FeatureGateCatalog.hasCatalogFor("47.1.3"));
+        assertEquals(FeatureGateCatalog.newestCatalogBuild(), FeatureGateCatalog.catalogBuild());
         BuildNames.setRunningBuildForTests("46.9.3");
         assertFalse(FeatureGateCatalog.hasCatalogFor("46.9.3"));
         assertEquals(FeatureGateCatalog.newestCatalogBuild(), FeatureGateCatalog.catalogBuild());

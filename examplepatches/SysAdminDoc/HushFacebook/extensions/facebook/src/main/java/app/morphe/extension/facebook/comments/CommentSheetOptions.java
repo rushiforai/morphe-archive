@@ -21,12 +21,15 @@ import app.morphe.extension.shared.diagnostics.HookStatus;
 
 /**
  * Comment sheet options: the comment box without its GIF and sticker buttons, Like without the
- * reaction picker a long press opens, every comment's reply thread open from the start, and a way
- * to Facebook's own setting that hides reaction counts.
+ * reaction picker a long press opens, every comment's reply thread open from the start, a group
+ * post's comments without the Related groups list under them, and a way to Facebook's own setting
+ * that hides reaction counts.
  *
  * <p>The comment box draws its buttons through a socket that asks a check of each button, by
  * number, whether it shows. The patch asks {@link #holdsButton} first in that check with the
- * button's name, and a yes answers no for that button. A long press on Like opens the reaction
+ * button's name, and a yes answers no for that button. What comes after a post's comments is drawn
+ * through another socket of the same kind, and the patch asks {@link #holdsBottomContent} first in
+ * its check. A long press on Like opens the reaction
  * picker through one method, and the patch asks {@link #skipReactionPicker} first there; a yes
  * returns before anything opens. A comment keeps whether its reply thread is open in its state,
  * which starts closed until a tap on View replies opens it. The patch hands
@@ -44,8 +47,15 @@ public final class CommentSheetOptions {
     public static final String STICKER_BUTTON =
             "com.facebook.feedback.comments.plugins.commentcomposer.attachmentbutton.sticker.StickerAttachmentButtonPlugin";
 
+    /** The Related groups list a group post gets under its comments, as its socket's name table gives it. */
+    public static final String RELATED_GROUPS =
+            "com.facebook.feedback.comments.plugins.bottomcontent.impl.relatedgroups.RelatedGroupsPlugin";
+
     /** Counted under the patch's name each time the GIF or sticker button is kept out of a comment box. */
     static final String BUTTON_HIDDEN = "Comment box button kept out";
+
+    /** Counted each time the Related groups list is kept out from under a post's comments. */
+    static final String RELATED_GROUPS_HIDDEN = "Related groups kept out";
 
     /** Counted each time a long press on Like doesn't open the reaction picker. */
     static final String PICKER_SKIPPED = "Reaction picker kept closed";
@@ -55,6 +65,9 @@ public final class CommentSheetOptions {
 
     /** The member the report names once the comment box's socket has asked about the GIF or sticker button. */
     static final String BUTTONS = "comment box buttons";
+
+    /** The member the report names once the socket under a post's comments has asked about Related groups. */
+    static final String BOTTOM = "related groups under comments";
 
     /** The member the report names once the reaction picker has been asked to open. */
     static final String PICKER = "reaction picker";
@@ -88,6 +101,25 @@ public final class CommentSheetOptions {
             return true;
         } catch (Throwable failure) {
             HookStatus.threw(FAMILY, "comment box button check", failure);
+            return false;
+        }
+    }
+
+    /**
+     * The hook, first thing in the check of what shows under a post's comments, handed the
+     * plugin's name. True answers no for the Related groups list while Hide related groups is on;
+     * false leaves the check to Facebook, for every other plugin and otherwise.
+     */
+    public static boolean holdsBottomContent(@Nullable String plugin) {
+        try {
+            HookStatus.invoked(FAMILY);
+            if (!RELATED_GROUPS.equals(plugin)) return false;
+            HookStatus.bound(FAMILY, BOTTOM);
+            if (!Utils.settingsReady() || !Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS.get()) return false;
+            HookStatus.counted(FAMILY, RELATED_GROUPS_HIDDEN);
+            return true;
+        } catch (Throwable failure) {
+            HookStatus.threw(FAMILY, "under comments check", failure);
             return false;
         }
     }

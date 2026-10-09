@@ -40,8 +40,8 @@ import app.morphe.extension.shared.settings.Setting;
  * live wallpaper data provider's URIs are built on, the package a content URI's authority or an
  * activity's link has to hold to count as TikTok's own, and the multiprocess settings authority
  * its provider shell fills from a template. In a renamed copy each of those reaches the store app
- * installed beside it, which doesn't export the provider, or nothing at all. {@link #ownPackage}
- * answers the copy's own name for the checks, and {@link #declared} answers the name the copy's
+ * installed beside it, which doesn't export the provider, or nothing at all. {@link #holdsOwnPackage}
+ * lets the checks accept the copy's own name too, and {@link #declared} answers the name the copy's
  * manifest declares for a provider authority or a permission, whatever Clone app made of it.
  *
  * <p>Only the one write of the running package into {@code package} comes to {@link #putPackage}.
@@ -56,6 +56,8 @@ public final class BesideStoreApp {
     static final String PACKAGE_KEY = "package";
 
     private static volatile boolean logged;
+    /** Whether a manifest read already failed and said so, so a failing read logs once. */
+    private static volatile boolean readFailed;
     /** Every provider authority and permission this package's manifest declares, read once. */
     @Nullable
     private static volatile Set<String> declaredNames;
@@ -93,15 +95,38 @@ public final class BesideStoreApp {
     }
 
     /**
-     * TikTok's own package where its code names the store package to mean this app: the package
-     * a content URI's authority has to hold for the URI to count as TikTok's own rather than
-     * another app's, and the one an app-settings page or a Play link has to name to open under
-     * Family Pairing. A renamed copy gets its own name there, as the store app gets its own;
-     * {@code storePackage} comes back unchanged everywhere else, and whenever Hushfeed is paused
-     * or has no context yet.
+     * In place of Kotlin's {@code contains(text, storePackage, ignoreCase)} where TikTok asks
+     * whether some text names its own package: whether a content URI's authority counts as
+     * TikTok's own rather than another app's, and whether an app-settings page or a Play link
+     * may open under Family Pairing. True wherever TikTok's call is, and in a renamed copy also
+     * where the text holds the copy's own name, so the copy's own URIs and pages count while
+     * whatever named the store package still does.
+     */
+    public static boolean holdsOwnPackage(CharSequence text, CharSequence storePackage, boolean ignoreCase) {
+        if (contains(text, storePackage, ignoreCase)) return true;
+        String needle = storePackage.toString();
+        String own = ownPackage(needle);
+        return own != null && !own.equals(needle) && contains(text, own, ignoreCase);
+    }
+
+    /** Kotlin's {@code CharSequence.contains(other, ignoreCase)}, which throws on a null text as it does. */
+    static boolean contains(CharSequence text, CharSequence other, boolean ignoreCase) {
+        String haystack = text.toString();
+        String needle = other.toString();
+        if (!ignoreCase) return haystack.contains(needle);
+        for (int start = 0; start + needle.length() <= haystack.length(); start++) {
+            if (haystack.regionMatches(true, start, needle, 0, needle.length())) return true;
+        }
+        return false;
+    }
+
+    /**
+     * The package that counts as this app's own where TikTok's code names the store package: a
+     * renamed copy's own name, as the store app gets its own. {@code storePackage} comes back
+     * unchanged for any other name, and whenever Hushfeed is paused or has no context yet.
      */
     @Nullable
-    public static String ownPackage(@Nullable String storePackage) {
+    static String ownPackage(@Nullable String storePackage) {
         Context context = Utils.getContext();
         if (context == null || Setting.isPaused() || !STORE_PACKAGE.equals(storePackage)) return storePackage;
         String running = context.getPackageName();
@@ -151,20 +176,33 @@ public final class BesideStoreApp {
         return name;
     }
 
-    /** Every provider authority and permission this package declares, read from the manifest once. */
+    /**
+     * What the manifest read asks for. A provider the manifest declares disabled, for TikTok to
+     * turn on later, still has the name Clone app gave it, and without the disabled flag Android
+     * leaves it out of the list. GET_DISABLED_COMPONENTS is MATCH_DISABLED_COMPONENTS's API 23
+     * name, the same bit.
+     */
+    @SuppressWarnings("deprecation")
+    static final int MANIFEST_FLAGS = PackageManager.GET_PROVIDERS | PackageManager.GET_PERMISSIONS
+            | PackageManager.GET_DISABLED_COMPONENTS;
+
+    /** Every provider authority and permission this package declares, read from the manifest once it reads. */
     static Set<String> declaredNames(Context context) {
         Set<String> names = declaredNames;
         if (names != null) return names;
         names = readDeclaredNames(context);
+        // A read that failed isn't kept, so the next name asks again rather than the whole
+        // process answering every name as TikTok built it.
+        if (names == null) return Collections.emptySet();
         declaredNames = names;
         return names;
     }
 
+    @Nullable
     private static Set<String> readDeclaredNames(Context context) {
         Set<String> names = new HashSet<>();
         try {
-            PackageInfo info = context.getPackageManager().getPackageInfo(
-                    context.getPackageName(), PackageManager.GET_PROVIDERS | PackageManager.GET_PERMISSIONS);
+            PackageInfo info = context.getPackageManager().getPackageInfo(context.getPackageName(), MANIFEST_FLAGS);
             if (info.providers != null) {
                 for (ProviderInfo provider : info.providers) {
                     // One provider may serve several authorities, written with ';' between them.
@@ -177,13 +215,18 @@ public final class BesideStoreApp {
                 }
             }
         } catch (PackageManager.NameNotFoundException | RuntimeException failure) {
-            Logger.printException(() -> "Beside the store app: could not read this package's providers", failure);
+            if (!readFailed) {
+                readFailed = true;
+                Logger.printException(() -> "Beside the store app: could not read this package's providers", failure);
+            }
+            return null;
         }
         return Collections.unmodifiableSet(names);
     }
 
     static void resetForTests() {
         logged = false;
+        readFailed = false;
         declaredNames = null;
         reported.clear();
     }

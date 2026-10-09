@@ -56,6 +56,35 @@ landing seconds after a system destroy still stops playback. Everything else
 about the destroy proceeds untouched, so the activity is still released and its
 memory still reclaimed.
 
+### Play videos Music marks unavailable (YouTube Music)
+
+Plays a video that YouTube Music refuses with "This video is not available"
+when the same video is playable through a regular YouTube client. YouTube Music
+decides this per video on its own servers (two episodes of the same show from
+the same uploader can land on different sides), while youtube.com and the
+YouTube clients that Spoof video streams uses still serve it.
+
+Two hooks, both working on the protobuf wire format by field number rather than
+on obfuscated field names, and both no-ops for anything Music already plays:
+
+- **Player response.** Right before the app checks whether a `/player` response
+  carries streaming data, an UNPLAYABLE response is swapped for the spoof
+  clients' playable one (their `playabilityStatus` and `streamingData`). With
+  Spoof video streams on, that is the response the spoof patch already fetched;
+  with it off (the default whenever the PoToken provider patch is in the
+  build), the video is resolved the way the Music download feature does it, for
+  this one video only, so normal playback keeps using Music's own client.
+- **List rows.** A playlist row for such a video arrives greyed out
+  (`MusicResponsiveListItemRenderer` field 20 = 2) with a "Content is
+  unavailable" command where its watch endpoint should be, so a tap does
+  nothing. As the row presenter binds it, the grey-out and the stub swipe
+  actions are dropped and the command becomes a plain watch endpoint, so a tap
+  reaches `/player` and the first hook.
+
+Known limits: "Play all" and autoplay still skip the video, because the server
+leaves it out of the queue it builds; the row keeps its "!" thumbnail badge; and
+plays of these videos may not reach watch history.
+
 ### Clone with badge (Claude)
 
 Turns the Claude app into an installable copy with its own package name so

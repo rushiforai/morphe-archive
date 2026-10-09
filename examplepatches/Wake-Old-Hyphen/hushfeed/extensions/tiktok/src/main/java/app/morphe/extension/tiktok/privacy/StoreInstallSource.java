@@ -49,13 +49,13 @@ public final class StoreInstallSource {
     /** In place of {@link InstallSourceInfo#getInstallingPackageName()}. */
     @Nullable
     public static String installingOf(InstallSourceInfo info) {
-        return answered(info) ? StoreIdentity.STORE : info.getInstallingPackageName();
+        return answered(info) ? StoreIdentity.installer() : info.getInstallingPackageName();
     }
 
     /** In place of {@link InstallSourceInfo#getInitiatingPackageName()}. */
     @Nullable
     public static String initiatingOf(InstallSourceInfo info) {
-        return answered(info) ? StoreIdentity.STORE : info.getInitiatingPackageName();
+        return answered(info) ? StoreIdentity.installer() : info.getInitiatingPackageName();
     }
 
     /** In place of {@link InstallSourceInfo#getOriginatingPackageName()}. */

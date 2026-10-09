@@ -92,19 +92,18 @@ public final class PhenotypeSeedData {
         return count;
     }
 
-    public static final long LATEST_SEED_VERSION = 1791355000L;
+    public static final long LATEST_SEED_VERSION = 1791356000L;
 
     public static void ensureSeeded(Context context) {
         SharedPreferences seedPrefs = context.getSharedPreferences("morphe_seed_meta", Context.MODE_PRIVATE);
         long seededVersion = seedPrefs.getLong("seeded_preset_version", 0L);
-        if (seededVersion < LATEST_SEED_VERSION) {
-            SharedPreferences phenoPrefs = context.getSharedPreferences(
-                "com.google.android.apps.photos.phenotype", Context.MODE_PRIVATE);
+        SharedPreferences phenoPrefs = context.getSharedPreferences(
+            "com.google.android.apps.photos.phenotype", Context.MODE_PRIVATE);
+        boolean needSeed = seededVersion < LATEST_SEED_VERSION || !phenoPrefs.getBoolean("_presets_loaded", false);
+        if (needSeed) {
             int restored = restoreOfficialFlags(context, phenoPrefs);
             app.morphe.extension.shared.patches.flags.PhotoFlagsRegistry.applyCuratedDefaults(phenoPrefs);
-            if (restored > 0) {
-                seedPrefs.edit().putLong("seeded_preset_version", LATEST_SEED_VERSION).commit();
-            }
+            seedPrefs.edit().putLong("seeded_preset_version", LATEST_SEED_VERSION).commit();
             Logger.printInfo(() -> "Seeded " + restored + " official baseline flags + " +
                 app.morphe.extension.shared.patches.flags.PhotoFlagsRegistry.CURATED_FLAGS.size() +
                 " Morphe preset flags (version " + LATEST_SEED_VERSION + ")");

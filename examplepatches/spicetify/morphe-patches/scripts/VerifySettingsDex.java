@@ -40,8 +40,16 @@ import java.util.zip.ZipFile;
 class VerifySettingsDex {
     static Map<String, ClassDef> classes = new HashMap<>();
     static Map<String, byte[]> expectedBridge = new HashMap<>();
+    static Map<String, byte[]> expectedMenus = new HashMap<>();
     static final String PREFIX = "Lapp/spicetify/extension/spotify/settings/";
     static final String BRIDGE = PREFIX + "nativebridge/";
+    static final String EXTENSIONS = "Lapp/spicetify/extension/spotify/extensions/";
+    static final String HOME = "Lapp/spicetify/extension/spotify/home/";
+    // The extensions patch's context menu bridge, playlist menu provider and Home chip bridge, and the
+    // Home pins patch's tile bridge, assembled into the same settings.dex.
+    static final String MENU_BRIDGE = EXTENSIONS + "nativebridge/";
+    static final Set<String> MENU_TYPES = Set.of(MENU_BRIDGE + "MenuBridge;", MENU_BRIDGE + "MenuAction;",
+            MENU_BRIDGE + "PlaylistMenuProvider;", MENU_BRIDGE + "HomeChipBridge;", HOME + "nativebridge/HomeTileBridge;");
 
     static byte[] canonical(ClassDef definition) {
         var pool = new DexPool(Opcodes.forApi(35));
@@ -61,10 +69,13 @@ class VerifySettingsDex {
 
     static void loadBridge(byte[] dex) {
         expectedBridge = new HashMap<>();
+        expectedMenus = new HashMap<>();
         var file = new DexBackedDexFile(Opcodes.forApi(24), ByteBuffer.wrap(dex));
         for (var definition : file.getClasses()) {
-            require(definition.getType().startsWith(BRIDGE), "Unexpected canonical bridge type");
-            expectedBridge.put(definition.getType(), canonical(definition));
+            var expected = definition.getType().startsWith(BRIDGE) ? expectedBridge
+                    : MENU_TYPES.contains(definition.getType()) ? expectedMenus : null;
+            require(expected != null, "Unexpected canonical bridge type");
+            expected.put(definition.getType(), canonical(definition));
         }
     }
 
@@ -145,7 +156,7 @@ class VerifySettingsDex {
         }
         System.out.println(
                 "Settings DEX verified: one startup hook, one native settings row hook,"
-                        + " capabilities, analytics and four bridge classes");
+                        + " capabilities, analytics, four bridge classes, four extensions bridge classes and the Home tile bridge");
     }
 
     static void verify(boolean sharing, boolean theme) {
@@ -155,6 +166,21 @@ class VerifySettingsDex {
         verifyAnalytics();
         verifyScreen();
         verifyBridge();
+        verifyMenuBridge();
+    }
+
+    // The settings patch merges all of settings.dex, so every settings-patched APK carries the menu and
+    // Home tile bridges, whether or not their patches hook them up. Byte equality alone would pass a bad
+    // reference that the bundle shares, so each class is link-checked too.
+    static void verifyMenuBridge() {
+        require(expectedMenus.keySet().equals(MENU_TYPES),
+                "Canonical bundle must contain the four extensions bridge classes and the Home tile bridge");
+        for (var type : MENU_TYPES) {
+            var definition = classes.get(type);
+            require(definition != null && Arrays.equals(expectedMenus.get(type), canonical(definition)),
+                    "Menu bridge differs from bundle: " + type);
+            require(verifyLinks(definition) > 0, "No menu bridge references checked: " + type);
+        }
     }
 
     static void verifyScreen() {
@@ -403,105 +429,7 @@ class VerifySettingsDex {
                 "Expected the exact four bridge types");
         int checked = 0;
         for (var c : owned) {
-            for (var iface : c.getInterfaces()) {
-                require(classes.containsKey(iface), "Missing interface " + iface);
-                for (var m : classes.get(iface).getMethods()) {
-                    if ((m.getAccessFlags() & AccessFlags.ABSTRACT.getValue()) != 0) {
-                        require(implemented(c, m), "Unimplemented " + m);
-                    }
-                }
-            }
-            for (var m : c.getMethods()) {
-                var impl = m.getImplementation();
-                require(impl != null, "Missing bridge body " + m);
-                for (var i : impl.getInstructions()) {
-                    if (i instanceof OneRegisterInstruction r) {
-                        require(
-                                r.getRegisterA() < impl.getRegisterCount(),
-                                "Register A out of bounds " + m);
-                    }
-                    if (i instanceof TwoRegisterInstruction r) {
-                        require(
-                                r.getRegisterB() < impl.getRegisterCount(),
-                                "Register B out of bounds " + m);
-                    }
-                    if (i instanceof RegisterRangeInstruction r) {
-                        require(
-                                r.getStartRegister() + r.getRegisterCount()
-                                        <= impl.getRegisterCount(),
-                                "Range out of bounds " + m);
-                    }
-                    if (i instanceof FiveRegisterInstruction r) {
-                        int[] regs = {
-                            r.getRegisterC(),
-                            r.getRegisterD(),
-                            r.getRegisterE(),
-                            r.getRegisterF(),
-                            r.getRegisterG()
-                        };
-                        for (int n = 0; n < r.getRegisterCount(); n++) {
-                            require(
-                                    regs[n] < impl.getRegisterCount(),
-                                    "Invoke register out of bounds " + m);
-                        }
-                    }
-                    if (!(i instanceof ReferenceInstruction ri)) {
-                        continue;
-                    }
-                    var ref = ri.getReference();
-                    if (ref instanceof MethodReference mr) {
-                        int words =
-                                mr.getParameterTypes().stream()
-                                                .mapToInt(
-                                                        p -> p.equals("J") || p.equals("D") ? 2 : 1)
-                                                .sum()
-                                        + (i.getOpcode().name().startsWith("INVOKE_STATIC")
-                                                ? 0
-                                                : 1);
-                        if (i instanceof VariableRegisterInstruction r) {
-                            require(r.getRegisterCount() == words, "Invocation arity " + mr);
-                        }
-                        if (!mr.getDefiningClass().startsWith("Lp/")
-                                && !mr.getDefiningClass().startsWith("Lkotlin/")
-                                && !mr.getDefiningClass().startsWith(PREFIX)) {
-                            continue;
-                        }
-                        var target = method(mr);
-                        require(
-                                (target.getAccessFlags() & AccessFlags.PUBLIC.getValue()) != 0
-                                        || mr.getDefiningClass().equals(c.getType()),
-                                "Nonpublic method " + mr);
-                        boolean isStatic =
-                                (target.getAccessFlags() & AccessFlags.STATIC.getValue()) != 0;
-                        require(
-                                isStatic == i.getOpcode().name().startsWith("INVOKE_STATIC"),
-                                "Static invoke mismatch " + mr);
-                        checked++;
-                    } else if (ref instanceof FieldReference fr) {
-                        if (!fr.getDefiningClass().startsWith("Lp/")
-                                && !fr.getDefiningClass().startsWith(PREFIX)) {
-                            continue;
-                        }
-                        var target = field(fr);
-                        require(
-                                (target.getAccessFlags() & AccessFlags.PUBLIC.getValue()) != 0
-                                        || fr.getDefiningClass().equals(c.getType()),
-                                "Nonpublic field " + fr);
-                        boolean isStatic =
-                                (target.getAccessFlags() & AccessFlags.STATIC.getValue()) != 0;
-                        require(
-                                isStatic
-                                        == (i.getOpcode().name().startsWith("SGET")
-                                                || i.getOpcode().name().startsWith("SPUT")),
-                                "Static field mismatch " + fr);
-                        checked++;
-                    } else if (ref instanceof TypeReference tr
-                            && (tr.getType().startsWith("Lp/")
-                                    || tr.getType().startsWith(PREFIX))) {
-                        require(classes.containsKey(tr.getType()), "Missing type " + tr);
-                    }
-                }
-            }
+            checked += verifyLinks(c);
         }
         var navigator =
                 owned.stream()
@@ -525,5 +453,118 @@ class VerifySettingsDex {
             require(Arrays.equals(expectedBridge.get(definition.getType()), canonical(definition)),
                     "Bridge implementation differs from bundle: " + definition.getType());
         }
+    }
+
+    // Checks class c the way ART will link it: register bounds, invoke arity, and that each reference
+    // into Lp/, kotlin or our own packages (settings, extensions and home) exists, is public or c's own,
+    // and matches its instruction's static-ness. Returns how many references it resolved.
+    static int verifyLinks(ClassDef c) {
+        int checked = 0;
+        for (var iface : c.getInterfaces()) {
+            require(classes.containsKey(iface), "Missing interface " + iface);
+            for (var m : classes.get(iface).getMethods()) {
+                if ((m.getAccessFlags() & AccessFlags.ABSTRACT.getValue()) != 0) {
+                    require(implemented(c, m), "Unimplemented " + m);
+                }
+            }
+        }
+        for (var m : c.getMethods()) {
+            var impl = m.getImplementation();
+            require(impl != null, "Missing bridge body " + m);
+            for (var i : impl.getInstructions()) {
+                if (i instanceof OneRegisterInstruction r) {
+                    require(
+                            r.getRegisterA() < impl.getRegisterCount(),
+                            "Register A out of bounds " + m);
+                }
+                if (i instanceof TwoRegisterInstruction r) {
+                    require(
+                            r.getRegisterB() < impl.getRegisterCount(),
+                            "Register B out of bounds " + m);
+                }
+                if (i instanceof RegisterRangeInstruction r) {
+                    require(
+                            r.getStartRegister() + r.getRegisterCount()
+                                    <= impl.getRegisterCount(),
+                            "Range out of bounds " + m);
+                }
+                if (i instanceof FiveRegisterInstruction r) {
+                    int[] regs = {
+                        r.getRegisterC(),
+                        r.getRegisterD(),
+                        r.getRegisterE(),
+                        r.getRegisterF(),
+                        r.getRegisterG()
+                    };
+                    for (int n = 0; n < r.getRegisterCount(); n++) {
+                        require(
+                                regs[n] < impl.getRegisterCount(),
+                                "Invoke register out of bounds " + m);
+                    }
+                }
+                if (!(i instanceof ReferenceInstruction ri)) {
+                    continue;
+                }
+                var ref = ri.getReference();
+                if (ref instanceof MethodReference mr) {
+                    int words =
+                            mr.getParameterTypes().stream()
+                                            .mapToInt(
+                                                    p -> p.equals("J") || p.equals("D") ? 2 : 1)
+                                            .sum()
+                                    + (i.getOpcode().name().startsWith("INVOKE_STATIC")
+                                            ? 0
+                                            : 1);
+                    if (i instanceof VariableRegisterInstruction r) {
+                        require(r.getRegisterCount() == words, "Invocation arity " + mr);
+                    }
+                    if (!mr.getDefiningClass().startsWith("Lp/")
+                            && !mr.getDefiningClass().startsWith("Lkotlin/")
+                            && !mr.getDefiningClass().startsWith(PREFIX)
+                            && !mr.getDefiningClass().startsWith(EXTENSIONS)
+                            && !mr.getDefiningClass().startsWith(HOME)) {
+                        continue;
+                    }
+                    var target = method(mr);
+                    require(
+                            (target.getAccessFlags() & AccessFlags.PUBLIC.getValue()) != 0
+                                    || mr.getDefiningClass().equals(c.getType()),
+                            "Nonpublic method " + mr);
+                    boolean isStatic =
+                            (target.getAccessFlags() & AccessFlags.STATIC.getValue()) != 0;
+                    require(
+                            isStatic == i.getOpcode().name().startsWith("INVOKE_STATIC"),
+                            "Static invoke mismatch " + mr);
+                    checked++;
+                } else if (ref instanceof FieldReference fr) {
+                    if (!fr.getDefiningClass().startsWith("Lp/")
+                            && !fr.getDefiningClass().startsWith(PREFIX)
+                            && !fr.getDefiningClass().startsWith(EXTENSIONS)
+                            && !fr.getDefiningClass().startsWith(HOME)) {
+                        continue;
+                    }
+                    var target = field(fr);
+                    require(
+                            (target.getAccessFlags() & AccessFlags.PUBLIC.getValue()) != 0
+                                    || fr.getDefiningClass().equals(c.getType()),
+                            "Nonpublic field " + fr);
+                    boolean isStatic =
+                            (target.getAccessFlags() & AccessFlags.STATIC.getValue()) != 0;
+                    require(
+                            isStatic
+                                    == (i.getOpcode().name().startsWith("SGET")
+                                            || i.getOpcode().name().startsWith("SPUT")),
+                            "Static field mismatch " + fr);
+                    checked++;
+                } else if (ref instanceof TypeReference tr
+                        && (tr.getType().startsWith("Lp/")
+                                || tr.getType().startsWith(PREFIX)
+                                || tr.getType().startsWith(EXTENSIONS)
+                                || tr.getType().startsWith(HOME))) {
+                    require(classes.containsKey(tr.getType()), "Missing type " + tr);
+                }
+            }
+        }
+        return checked;
     }
 }

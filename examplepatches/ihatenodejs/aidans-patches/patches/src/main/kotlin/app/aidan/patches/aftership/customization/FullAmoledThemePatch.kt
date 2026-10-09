@@ -23,6 +23,7 @@ val fullAmoledThemePatch = resourcePatch(
     description = "Themes AfterShip in pure AMOLED black by removing dark gray backgrounds from the bottom navigation bar, account items, cards, and windows.",
     default = true
 ) {
+    category("Customization")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     dependsOn(bypassSignatureCheckResourcePatch)
 

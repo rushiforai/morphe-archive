@@ -1,6 +1,8 @@
 package app.morphe.extension.tiktok.spoof.region;
 
 import static org.junit.Assert.*;
+import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.os.Build;
 import app.morphe.extension.shared.Utils;
 import app.morphe.extension.tiktok.settings.Settings;
@@ -8,6 +10,7 @@ import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.categories.SimSpoofPreferenceCategory;
 import app.morphe.extension.tiktok.spoof.sim.SimPreset;
 import app.morphe.extension.tiktok.spoof.sim.SimPresets;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -21,6 +24,7 @@ import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 import org.robolectric.annotation.GraphicsMode;
+import org.robolectric.shadows.ShadowSystemClock;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(sdk = {23, 28})
@@ -71,6 +75,47 @@ public class RegionSpoofTest {
         assertEquals("/passport/token/beat/", RegionSpoof.pathOf("https://h/passport/token/beat/?a=1#b"));
     }
 
+    @Test public void aMarkWhoseEndNeverCameRunsOut() {
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        // TikTok's fill threw before requestDone() and the thread sends nothing after it.
+        RegionSpoof.requestPath("/passport/user/login/");
+        assertEquals("US", RegionSpoof.country("US"));
+        ShadowSystemClock.advanceBy(
+                Duration.ofMillis(RegionSpoof.MARK_LIFETIME_MS - 1));
+        assertEquals("still in the fill's time", "US", RegionSpoof.country("US"));
+        ShadowSystemClock.advanceBy(Duration.ofMillis(1));
+        assertEquals("the mark ran out", "JP", RegionSpoof.country("US"));
+        // And it went cleanly: the next sign-in marks the thread again, and its end takes it off.
+        RegionSpoof.requestPath("/passport/user/login/");
+        assertEquals("US", RegionSpoof.country("US"));
+        RegionSpoof.requestDone();
+        assertEquals("JP", RegionSpoof.country("US"));
+    }
+
+    @Test public void aFillInsideASignInsOwnLeavesTheMarkToTheOuterEnd() {
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        RegionSpoof.requestPath("/passport/user/login/");
+        // AppLog's own fill for the same URL, run from inside the handler's.
+        RegionSpoof.requestUrl("https://api.tiktokv.com/passport/user/login/?aid=1233");
+        assertEquals("US", RegionSpoof.country("US"));
+        RegionSpoof.requestDone();
+        assertEquals("the handler's fill is still a sign-in's", "US", RegionSpoof.country("US"));
+        RegionSpoof.requestDone();
+        assertEquals("JP", RegionSpoof.country("US"));
+    }
+
+    @Test public void aSignInAfterAMarkRanOutGetsAFullMarkOfItsOwn() {
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        RegionSpoof.requestPath("/passport/user/login/");
+        ShadowSystemClock.advanceBy(Duration.ofMillis(RegionSpoof.MARK_LIFETIME_MS));
+        // The first fill threw before its end. The next sign-in comes after its mark ran out.
+        RegionSpoof.requestPath("/passport/user/login/");
+        ShadowSystemClock.advanceBy(Duration.ofMillis(RegionSpoof.MARK_LIFETIME_MS - 1));
+        assertEquals("US", RegionSpoof.country("US"));
+        RegionSpoof.requestDone();
+        assertEquals("its end takes it off", "JP", RegionSpoof.country("US"));
+    }
+
     @Test public void aTokenRequestMarksTheThreadLikeASignIn() {
         Settings.REGION_REQUEST_SPOOF.save(true);
         RegionSpoof.requestUrl("https://api.tiktokv.com/passport/token/beat/v2/?aid=1233");
@@ -87,31 +132,126 @@ public class RegionSpoofTest {
         Settings.REGION_STORE_SPOOF.save(true);
         Locale locale = Locale.US;
         TimeZone zone = TimeZone.getTimeZone("UTC");
-        RegionSpoof.requestPath("/passport/user/login/");
-        Map<String, String> params = requestParams();
-        RegionSpoof.requestParams(params);
-        assertEquals("a sign-in's fields took the preset", requestParams(), params);
-        assertEquals("US", RegionSpoof.country("US"));
-        assertEquals("US", RegionSpoof.storeCountry("US"));
-        assertSame(locale, RegionSpoof.locale(locale));
-        assertSame(zone, RegionSpoof.timeZone(zone));
-
-        // A feed request built on another thread at the same moment keeps the preset.
+        Map<String, String> signIn = requestParams();
+        Map<String, String> feed = requestParams();
         String[] elsewhere = new String[1];
-        Thread other = new Thread(() -> elsewhere[0] = RegionSpoof.country("US"));
-        other.start();
-        other.join();
-        assertEquals("JP", elsewhere[0]);
+        withSystem(Locale.GERMANY, "Europe/Paris", () -> {
+            RegionSpoof.requestPath("/passport/user/login/");
+            RegionSpoof.requestParams(signIn);
+            assertEquals("US", RegionSpoof.country("US"));
+            assertEquals("US", RegionSpoof.storeCountry("US"));
+            assertSame(locale, RegionSpoof.locale(locale));
+            assertSame(zone, RegionSpoof.timeZone(zone));
 
+            // A feed request built on another thread at the same moment keeps the preset.
+            try {
+                Thread other = new Thread(() -> elsewhere[0] = RegionSpoof.country("US"));
+                other.start();
+                other.join();
+            } catch (InterruptedException error) {
+                throw new AssertionError(error);
+            }
+
+            RegionSpoof.requestDone();
+            assertEquals("JP", RegionSpoof.country("US"));
+            assertEquals("JP", RegionSpoof.locale(locale).getCountry());
+            RegionSpoof.requestPath("/aweme/v1/feed/");
+            RegionSpoof.requestParams(feed);
+            RegionSpoof.requestDone();
+        });
+        // The region TikTok saved and the account's own stay as TikTok set them, and the two
+        // copies it took at start-up are what the system says now.
+        Map<String, String> expected = requestParams();
+        expected.put("sys_region", "DE");
+        expected.put("timezone_name", "Europe/Paris");
+        assertEquals("a sign-in's fields took the preset", expected, signIn);
+        assertEquals("JP", elsewhere[0]);
+        assertEquals("JP", feed.get("current_region"));
+        assertEquals("440", feed.get("carrier_region_v2"));
+        assertEquals("a feed request's copies were replaced", "US", feed.get("sys_region"));
+        assertEquals("a feed request's copies were replaced", "Asia/Tokyo", feed.get("timezone_name"));
+    }
+
+    @Test public void aSignInOnlyPutsBackTheStartUpCopiesTikTokPutInTheMap() {
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        withSystem(Locale.GERMANY, "Europe/Paris", () -> {
+            RegionSpoof.requestPath("/passport/user/login/");
+            Map<String, String> sparse = new HashMap<>();
+            sparse.put("aid", "1233");
+            RegionSpoof.requestParams(sparse);
+            assertEquals("a field TikTok left out was added", 1, sparse.size());
+
+            Map<String, Object> odd = new HashMap<>();
+            odd.put("sys_region", 7);
+            odd.put("timezone_name", null);
+            RegionSpoof.requestParams(odd);
+            assertEquals("a value that isn't a String was replaced", 7, odd.get("sys_region"));
+            assertNull(odd.get("timezone_name"));
+            assertEquals(2, odd.size());
+
+            Map<String, String> onlyZone = new HashMap<>();
+            onlyZone.put("timezone_name", "Asia/Tokyo");
+            RegionSpoof.requestParams(onlyZone);
+            assertEquals("Europe/Paris", onlyZone.get("timezone_name"));
+            assertEquals("sys_region was added", 1, onlyZone.size());
+            RegionSpoof.requestDone();
+        });
+    }
+
+    @Test public void aSystemLocaleWithoutACountryLeavesSysRegionOutOfASignIn() {
+        // TikTok's start-up cache never takes an empty value, so with no country there'd be no field.
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        withSystem(Locale.GERMAN, "Europe/Paris", () -> {
+            RegionSpoof.requestPath("/passport/user/login/");
+            Map<String, String> params = requestParams();
+            RegionSpoof.requestParams(params);
+            RegionSpoof.requestDone();
+            assertFalse(params.containsKey("sys_region"));
+            assertEquals("Europe/Paris", params.get("timezone_name"));
+            assertEquals(requestParams().size() - 1, params.size());
+        });
+    }
+
+    @Test public void aSignInGetsTheLiveValuesEvenWhenThePresetIsOffNow() {
+        // The copies were made when the preset was on. Switching it off doesn't change them
+        // until TikTok restarts, so a sign-in puts them right whatever the preset says.
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        Settings.REGION_SPOOF.save(false);
+        withSystem(Locale.GERMANY, "Europe/Paris", () -> {
+            RegionSpoof.requestPath("/passport/user/login/");
+            Map<String, String> params = requestParams();
+            RegionSpoof.requestParams(params);
+            RegionSpoof.requestDone();
+            assertEquals("DE", params.get("sys_region"));
+            assertEquals("Europe/Paris", params.get("timezone_name"));
+            assertEquals("US", params.get("current_region"));
+        });
+    }
+
+    @Test public void aSignInMapIsLeftAloneWithoutTheRequestSwitch() {
+        withSystem(Locale.GERMANY, "Europe/Paris", () -> {
+            RegionSpoof.requestPath("/passport/user/login/");
+            Map<String, String> params = requestParams();
+            RegionSpoof.requestParams(params);
+            RegionSpoof.requestDone();
+            assertEquals(requestParams(), params);
+        });
+    }
+
+    @Test public void aUrlBeingBuiltMarksTheThreadLikeAUrlAndANullOneDoesNothing() {
+        Settings.REGION_REQUEST_SPOOF.save(true);
+        RegionSpoof.requestUrlBuilder(new StringBuilder("https://api.tiktokv.com/passport/user/login/?aid=1233"));
+        assertEquals("US", RegionSpoof.country("US"));
         RegionSpoof.requestDone();
         assertEquals("JP", RegionSpoof.country("US"));
-        assertEquals("JP", RegionSpoof.locale(locale).getCountry());
-        RegionSpoof.requestPath("/aweme/v1/feed/");
-        params = requestParams();
-        RegionSpoof.requestParams(params);
+        RegionSpoof.requestUrlBuilder(new StringBuilder("https://api.tiktokv.com/aweme/v1/feed/?next=/passport/"));
+        assertEquals("JP", RegionSpoof.country("US"));
         RegionSpoof.requestDone();
-        assertEquals("JP", params.get("current_region"));
-        assertEquals("440", params.get("carrier_region_v2"));
+        RegionSpoof.requestUrlBuilder(null);
+        assertEquals("JP", RegionSpoof.country("US"));
+        RegionSpoof.requestUrl((String) null);
+        assertEquals("JP", RegionSpoof.country("US"));
+        RegionSpoof.requestDone();
     }
 
     @Test public void aSignInIsLeftAloneWithoutTheRequestSwitchAndAMissedEndIsPutRight() {
@@ -232,6 +372,7 @@ public class RegionSpoofTest {
         assertEquals("US", params.get("op_region"));
         assertEquals("US", params.get("account_region"));
         assertEquals("en", params.get("app_language"));
+        assertEquals("a start-up copy changed on an ordinary request", "Asia/Tokyo", params.get("timezone_name"));
         assertEquals(requestParams().size(), params.size());
 
         Map<String, String> sparse = new HashMap<>();
@@ -276,7 +417,28 @@ public class RegionSpoofTest {
         }
         params.put("carrier_region_v2", "310");
         params.put("app_language", "en");
+        // Worked out once as TikTok started, with the preset's zone, like sys_region above.
+        params.put("timezone_name", "Asia/Tokyo");
         return params;
+    }
+
+    /**
+     * Runs the body with the system configuration's locale and the default time zone set to
+     * these, which are what a sign-in's start-up copies are put back to, and restores both.
+     */
+    @SuppressWarnings("deprecation")
+    private static void withSystem(Locale locale, String zone, Runnable body) {
+        Configuration system = Resources.getSystem().getConfiguration();
+        Locale savedLocale = system.locale;
+        TimeZone savedZone = TimeZone.getDefault();
+        try {
+            system.locale = locale;
+            TimeZone.setDefault(TimeZone.getTimeZone(zone));
+            body.run();
+        } finally {
+            system.locale = savedLocale;
+            TimeZone.setDefault(savedZone);
+        }
     }
 
     @Test public void legacyVariantKeepsScriptAndExtensionsWhenCountryChanges() {

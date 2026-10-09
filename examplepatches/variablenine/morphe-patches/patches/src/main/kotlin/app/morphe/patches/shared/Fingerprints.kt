@@ -10,7 +10,6 @@ package app.morphe.patches.shared
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.InstructionLocation.MatchAfterWithin
 import app.morphe.patcher.StringComparisonType
-import app.morphe.patcher.anyInstruction
 import app.morphe.patcher.checkCast
 import app.morphe.patcher.fieldAccess
 import app.morphe.patcher.literal
@@ -54,21 +53,28 @@ internal object BoldIconsFeatureFlagFingerprint : Fingerprint(
 )
 
 internal object BuildInnerTubeProtoRequestUriFingerprint : Fingerprint(
+    returnType = $$"Landroid/net/Uri$Builder;",
     parameters = listOf(),
     filters = listOf(
         string("key"),
         string("asig"),
         checkCast("Ljava/lang/String;"),
         methodCall($$"Landroid/net/Uri$Builder;->appendQueryParameter(Ljava/lang/String;Ljava/lang/String;)Landroid/net/Uri$Builder;"),
-        anyInstruction(
-            // YT 21.20, YTM 9.18
-            methodCall($$"Landroid/net/Uri$Builder;->build()Landroid/net/Uri;"),
-            // YT 21.21+, YTM 9.19+
-            opcode(
-                opcode = Opcode.RETURN_OBJECT,
-                location = MatchAfterWithin(5)
-            )
+        opcode(
+            opcode = Opcode.RETURN_OBJECT,
+            location = MatchAfterWithin(5)
         )
+    )
+)
+
+internal object BuildInnerTubeProtoRequestUriLegacyFingerprint : Fingerprint(
+    returnType = "Ljava/lang/String;",
+    parameters = listOf(),
+    filters = listOf(
+        string("key"),
+        string("asig"),
+        checkCast("Ljava/lang/String;"),
+        methodCall($$"Landroid/net/Uri$Builder;->appendQueryParameter(Ljava/lang/String;Ljava/lang/String;)Landroid/net/Uri$Builder;")
     )
 )
 

@@ -68,7 +68,7 @@ function Get-PatchTarget {
 
 <#
 .SYNOPSIS
-    Versions as a sentence names them: "47.0.3", "47.0.3 and 47.1.3", "a, b and c".
+    Versions as a sentence names them: "47.1.4", "47.1.4 and 47.2.3", "a, b and c".
 #>
 function Format-VersionList {
     [CmdletBinding()]

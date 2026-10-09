@@ -4,12 +4,10 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,23 +15,24 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 
-/** A bottom sheet matching Spotify's confirmation sheets: grab handle, centred title and message, stacked buttons. */
-final class SpotifySheet extends Dialog {
+/**
+ * A bottom sheet matching Spotify's confirmation sheets: grab handle, centred title and message, stacked buttons.
+ * Public for the extensions' sheets outside settings, such as Home's Random chooser.
+ */
+public final class SpotifySheet extends Dialog {
 
     /** Returns true to dismiss the sheet after the click. */
-    interface Action {
+    public interface Action {
         boolean onClick();
     }
 
     private final LinearLayout content;
     private final LinearLayout buttons;
 
-    SpotifySheet(Context context, String title, String message) {
+    public SpotifySheet(Context context, String title, String message) {
         super(context, android.R.style.Theme_Material_Dialog_NoActionBar);
         // Settings pages pass a themed wrapper of Spotify's activity; the owner supplies the bottom inset.
         Context owner = context;
@@ -70,37 +69,6 @@ final class SpotifySheet extends Dialog {
         content.addView(buttons, buttonsParams);
     }
 
-    /** Adds scrollable checkbox rows that write each change into {@code checked}. */
-    SpotifySheet choices(String[] labels, boolean[] checked) {
-        Context context = getContext();
-        LinearLayout list = SpotifyStyle.column(context);
-        ColorStateList tint = new ColorStateList(
-                new int[][] {new int[] {android.R.attr.state_checked}, new int[0]},
-                new int[] {SpotifyStyle.accent(), SpotifyStyle.SUBDUED});
-        for (int i = 0; i < labels.length; i++) {
-            int index = i;
-            CheckBox box = new CheckBox(context);
-            box.setText(labels[i]);
-            box.setChecked(checked[i]);
-            box.setTextColor(Color.WHITE);
-            box.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
-            box.setTypeface(SpotifyStyle.font(context, SpotifyStyle.Font.REGULAR));
-            box.setButtonTintList(tint);
-            box.setMinHeight(SpotifyStyle.dp(context, 48));
-            box.setPaddingRelative(SpotifyStyle.dp(context, 12), 0, 0, 0);
-            box.setOnCheckedChangeListener((button, value) -> checked[index] = value);
-            list.addView(box, wide());
-        }
-        ScrollView scroll = new ScrollView(context);
-        scroll.addView(list);
-        int height = Math.round(context.getResources().getDisplayMetrics().heightPixels * 0.5f);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
-                labels.length * SpotifyStyle.dp(context, 48) > height ? height : ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.topMargin = SpotifyStyle.dp(context, 16);
-        content.addView(scroll, content.indexOfChild(buttons), params);
-        return this;
-    }
-
     /** Adds custom content between the message and the buttons. */
     SpotifySheet view(View view) {
         LinearLayout.LayoutParams params = wide();
@@ -109,7 +77,7 @@ final class SpotifySheet extends Dialog {
         return this;
     }
 
-    SpotifySheet primary(String label, Action action) {
+    public SpotifySheet primary(String label, Action action) {
         Button button = new Button(getContext());
         button.setText(label);
         SpotifyStyle.style(button, true);
@@ -119,7 +87,7 @@ final class SpotifySheet extends Dialog {
         return this;
     }
 
-    SpotifySheet secondary(String label) {
+    public SpotifySheet secondary(String label) {
         Context context = getContext();
         Button button = new Button(context);
         button.setText(label);

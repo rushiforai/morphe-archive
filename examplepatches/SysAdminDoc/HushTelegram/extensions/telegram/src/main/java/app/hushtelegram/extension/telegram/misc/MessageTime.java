@@ -30,7 +30,9 @@ public final class MessageTime {
      */
     public static String shown(Object formatter, long millis) {
         String time = stockFormat(formatter, millis);
-        return time != null && on() ? withSeconds(time, millis) : time;
+        if (time != null && on()) time = withSeconds(time, millis);
+        // Keep deleted messages marks a kept message here, the same way, so no second patch touches these calls.
+        return KeepDeleted.labelled(time);
     }
 
     static boolean on() {

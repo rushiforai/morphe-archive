@@ -60,15 +60,8 @@ class AppCompatibilitiesMatchFixturesTest {
     @Test
     fun `every declared target carries the version code and floor of its vendor build`() {
         val targets = AppCompatibilities.facebook().single().targets
-        assertEquals(
-            "declared versions, newest first",
-            listOf(
-                AppCompatibilities.FACEBOOK_TARGET_VERSION,
-                AppCompatibilities.FACEBOOK_PREVIOUS_VERSION,
-                AppCompatibilities.FACEBOOK_ORIGINAL_VERSION,
-            ),
-            targets.map { it.version },
-        )
+        // Only the newest stable build is declared; a newer one replaces it in the same release.
+        assertEquals("the declared version", listOf(AppCompatibilities.FACEBOOK_TARGET_VERSION), targets.map { it.version })
         var checked = 0
         for (target in targets) {
             val version = checkNotNull(target.version)

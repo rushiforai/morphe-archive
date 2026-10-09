@@ -9,8 +9,8 @@ import app.morphe.patcher.patch.rawResourcePatch
 import com.android.tools.smali.dexlib2.Opcode
 
 private const val EMOJI_COMPAT_INITIALIZER = "Landroidx/emoji2/text/EmojiCompatInitializer;"
-private const val ANDROID_FONT_LOADER = "Ln4/a;"
-private const val PLATFORM_TYPEFACES = "Luj/a;"
+private const val ANDROID_FONT_LOADER = "Lhg/g;"
+private const val PLATFORM_TYPEFACES = "Lwj/a;"
 private const val EMOJI_FONT_BRIDGE = "Lapp/aidan/extension/emoji/EmojiFontBridge;"
 private object FontResourceHolder
 
@@ -21,6 +21,7 @@ val replaceEmojiFontWithIosResourcePatch = rawResourcePatch(
     description = "Copies the packaged Apple Color Emoji font into the target APK assets.",
     default = true
 ) {
+    category("Customization")
     compatibleWith(COMPATIBILITY_FIZZ)
 
     execute {
@@ -42,6 +43,7 @@ val replaceEmojiFontWithIosPatch = bytecodePatch(
     description = "Replaces Android system emoji with iOS Apple Color Emoji across Compose UI, posts, comments, and direct messages.",
     default = true
 ) {
+    category("Customization")
     compatibleWith(COMPATIBILITY_FIZZ)
     dependsOn(replaceEmojiFontWithIosResourcePatch)
     extendWith("extensions/extension.mpe")
@@ -76,11 +78,11 @@ private fun BytecodePatchContext.patchAndroidFontLoader() {
     val fontLoaderClass = mutableClassDefByOrNull(ANDROID_FONT_LOADER)
         ?: throw PatchException("Class $ANDROID_FONT_LOADER not found")
     val bMethod = fontLoaderClass.methods.firstOrNull {
-        it.name == "b" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Ln4/w;") &&
+        it.name == "c" &&
+            it.parameterTypes.map(CharSequence::toString) == listOf("Ln4/v;") &&
             it.returnType == "Landroid/graphics/Typeface;" &&
             it.implementation != null
-    } ?: throw PatchException("Method $ANDROID_FONT_LOADER->b(Ln4/w;) not found")
+    } ?: throw PatchException("Method $ANDROID_FONT_LOADER->c(Ln4/v;) not found")
 
     val impl = bMethod.implementation
         ?: throw PatchException("Method $ANDROID_FONT_LOADER->b has no implementation")
@@ -115,11 +117,11 @@ private fun BytecodePatchContext.patchPlatformTypefaces() {
     val platformTypefacesClass = mutableClassDefByOrNull(PLATFORM_TYPEFACES)
         ?: throw PatchException("Class $PLATFORM_TYPEFACES not found")
     val vMethod = platformTypefacesClass.methods.firstOrNull {
-        it.name == "v" &&
-            it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "Ln4/s;", "I") &&
+        it.name == "t" &&
+            it.parameterTypes.map(CharSequence::toString) == listOf("Ljava/lang/String;", "Ln4/r;", "I") &&
             it.returnType == "Landroid/graphics/Typeface;" &&
             it.implementation != null
-    } ?: throw PatchException("Method $PLATFORM_TYPEFACES->v not found")
+    } ?: throw PatchException("Method $PLATFORM_TYPEFACES->t not found")
 
     val impl = vMethod.implementation
         ?: throw PatchException("Method $PLATFORM_TYPEFACES->v has no implementation")
@@ -138,8 +140,8 @@ private fun BytecodePatchContext.patchPlatformTypefaces() {
     vMethod.addInstructions(
         secondReturnIndex,
         """
-        invoke-static {v2, v3, v0}, $EMOJI_FONT_BRIDGE->wrapPlatformTypeface(Landroid/graphics/Typeface;IZ)Landroid/graphics/Typeface;
-        move-result-object v2
+        invoke-static {p0, p1, v0}, $EMOJI_FONT_BRIDGE->wrapPlatformTypeface(Landroid/graphics/Typeface;IZ)Landroid/graphics/Typeface;
+        move-result-object p0
         """.trimIndent()
     )
 
@@ -148,8 +150,8 @@ private fun BytecodePatchContext.patchPlatformTypefaces() {
     vMethod.addInstructions(
         firstReturnIndex,
         """
-        invoke-static {v2}, $EMOJI_FONT_BRIDGE->wrapDefaultTypeface(Landroid/graphics/Typeface;)Landroid/graphics/Typeface;
-        move-result-object v2
+        invoke-static {p0}, $EMOJI_FONT_BRIDGE->wrapDefaultTypeface(Landroid/graphics/Typeface;)Landroid/graphics/Typeface;
+        move-result-object p0
         """.trimIndent()
     )
 }

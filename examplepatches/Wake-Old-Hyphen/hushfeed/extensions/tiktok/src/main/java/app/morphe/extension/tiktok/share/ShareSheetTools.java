@@ -39,8 +39,9 @@ import java.util.WeakHashMap;
  * Share sheet tools: hiding of chosen people or share options, or the whole "Send to" row.
  *
  * Ids were read off the live view hierarchy with the share sheet open. TikTok 47.0.3 moved
- * the panel into its own window and renamed all four anchors. The 46.x names (ibc, u3t, dqr,
- * a59) are not kept as fallbacks: on 47.0.3 each of them names some other view.
+ * the panel into its own window and renamed all four anchors, and every build since renames
+ * them again. Only 47.1.4's names are looked up; an older build's name (46.x's ibc, u3t, dqr,
+ * a59) names some other view there.
  * <pre>
  *   ip5   frame around the "Send to" contacts row
  *   v3j   the contacts list; each child is the contact cell, content description
@@ -60,10 +61,10 @@ import java.util.WeakHashMap;
 public final class ShareSheetTools {
     /** One family for everything that touches the sheet, so an export reads as one surface. */
     private static final String FAMILY = ShareModelFilter.FAMILY;
-    private static final String[] CONTACTS_SECTION_IDS = {"47.0.3:ip5", "47.1.3:iql", "47.1.4:iql"};
-    private static final String[] CONTACTS_LIST_IDS = {"47.0.3:v3j", "47.1.3:v71", "47.1.4:v71"};
-    private static final String[] CHANNELS_LIST_IDS = {"47.0.3:dwr", "47.1.3:dxb", "47.1.4:dxb"};
-    private static final String[] ACTIONS_LIST_IDS = {"47.0.3:a5t", "47.1.3:a5u", "47.1.4:a5u"};
+    private static final String[] CONTACTS_SECTION_IDS = {"47.1.4:iql"};
+    private static final String[] CONTACTS_LIST_IDS = {"47.1.4:v71"};
+    private static final String[] CHANNELS_LIST_IDS = {"47.1.4:dxb"};
+    private static final String[] ACTIONS_LIST_IDS = {"47.1.4:a5u"};
 
     private static final ResourceIdCache RESOURCE_IDS = new ResourceIdCache();
 
@@ -239,9 +240,9 @@ public final class ShareSheetTools {
         List<String> hidden = entries(ShareModelFilter.hiddenItems());
         boolean hideContacts = Settings.HIDE_SHARE_CONTACTS.get();
         if (section != null) setVisible(section, !hideContacts);
-        if (!hideContacts) hideByLabel(contacts, hidden);
-        hideByLabel(channels, hidden);
-        hideByLabel(actions, hidden);
+        if (!hideContacts) hideByLabel("contacts", contacts, hidden);
+        hideByLabel("channels", channels, hidden);
+        hideByLabel("actions", actions, hidden);
     }
 
     /**
@@ -299,15 +300,34 @@ public final class ShareSheetTools {
         }
     }
 
-    private static void hideByLabel(View list, List<String> hidden) {
+    /**
+     * TikTok's small share sheet lost every row but "Share with" once anything was hidden (#120),
+     * on a server layout no test account here gets. The debug line names each cell as it goes,
+     * with its row and shape, so a diagnostic export shows which row held what. A contact's label
+     * is a person's name, so that row's stays out of the log.
+     */
+    private static void hideByLabel(String row, View list, List<String> hidden) {
         if (!(list instanceof ViewGroup)) {
             return;
         }
         ViewGroup group = (ViewGroup) list;
         for (int index = 0; index < group.getChildCount(); index++) {
             View cell = group.getChildAt(index);
-            setCellHidden(cell, matches(hidden, labelOf(cell)));
+            String label = labelOf(cell);
+            boolean hide = matches(hidden, label);
+            if (hide && cell != null && cell.getVisibility() != View.GONE) {
+                int position = index;
+                String named = "contacts".equals(row) ? "a person" : "\"" + label + "\"";
+                Logger.printDebug(() -> "Share sheet hides " + row + " cell " + position + " " + named + " ("
+                        + cell.getClass().getSimpleName() + ", " + childCount(cell) + " children) in "
+                        + list.getClass().getSimpleName() + " of " + group.getChildCount());
+            }
+            setCellHidden(cell, hide);
         }
+    }
+
+    private static int childCount(View view) {
+        return view instanceof ViewGroup ? ((ViewGroup) view).getChildCount() : 0;
     }
 
     /**

@@ -7,37 +7,37 @@ import app.morphe.patcher.string
 import com.android.tools.smali.dexlib2.AccessFlags
 
 object EmitHintRewardFingerprint : Fingerprint(
-    definingClass = "Ljz;",
+    definingClass = "Lah;",
     name = "emit",
     returnType = "Ljava/lang/Object;",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf("Ljava/lang/Object;", "Lcg0;"),
+    parameters = listOf("Ljava/lang/Object;", "Lhp0;"),
     filters = listOf(
-        methodCall(definingClass = "Lvc2;", name = "<init>"),
+        methodCall(definingClass = "Lhs1;", name = "<init>"),
         string("not_ready"),
     )
 )
 
 object ShareGateTouchFingerprint : Fingerprint(
-    definingClass = "Lxe1;",
+    definingClass = "Lgt1;",
     name = "onTouchEvent",
     returnType = "Z",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     parameters = listOf("Landroid/view/MotionEvent;"),
     filters = listOf(
-        fieldAccess(smali = "Lse1;->m:Z"),
-        methodCall(definingClass = "Li25;", name = "p"),
-        fieldAccess(smali = "Lse1;->m:Z"),
+        fieldAccess(smali = "Lct1;->r:Z"),
+        methodCall(definingClass = "Ld63;", name = "b"),
+        fieldAccess(smali = "Lct1;->r:Z"),
     )
 )
 
 object ShareGateDrawFingerprint : Fingerprint(
-    definingClass = "Liw2;",
+    definingClass = "Lxg3;",
     name = "a",
     returnType = "V",
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
-    parameters = listOf("Landroid/graphics/Canvas;", "Lwe1;", "Lse1;", "Lth4;", "J"),
+    parameters = listOf("Landroid/graphics/Canvas;", "Lft1;", "Lct1;", "Lcf5;", "J"),
     filters = listOf(
-        fieldAccess(smali = "Lse1;->m:Z"),
+        fieldAccess(smali = "Lct1;->r:Z"),
     )
 )

@@ -48,14 +48,14 @@ public final class NicoidDexMerger {
         // Prefer freshly compiled versions for any classes present in both DEXes.
         for (ClassDef classDef : generated.getClasses()) {
             generatedTypes.add(classDef.getType());
-            if (overrideTypes.contains(classDef.getType())) continue;
+            if (overridden(classDef.getType(), overrideTypes)) continue;
             mergedTypes.add(classDef.getType());
             pool.internClass(classDef);
         }
 
         // Keep DEX-only helpers (for example DynamicTheme and ModernDebug).
         for (ClassDef classDef : existing.getClasses()) {
-            if (!generatedTypes.contains(classDef.getType()) && !overrideTypes.contains(classDef.getType())) {
+            if (!generatedTypes.contains(classDef.getType()) && !overridden(classDef.getType(), overrideTypes)) {
                 mergedTypes.add(classDef.getType());
                 pool.internClass(classDef);
             }
@@ -77,6 +77,12 @@ public final class NicoidDexMerger {
         } finally {
             store.close();
         }
+    }
+
+    private static boolean overridden(String type, Set<String> overrides) {
+        if (overrides.contains(type)) return true;
+        int nested = type.indexOf('$');
+        return nested > 0 && overrides.contains(type.substring(0, nested) + ";");
     }
 
     private static DexBackedDexFile readDex(File file) throws IOException {

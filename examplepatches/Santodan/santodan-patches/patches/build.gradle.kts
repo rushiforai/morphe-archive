@@ -19,6 +19,11 @@ val patchListGeneratorClasspath = configurations.create("patchListGeneratorClass
 dependencies {
     compileOnly(libs.gson)
     patchListGeneratorClasspath(libs.gson)
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+}
+
+kotlin.sourceSets.named("test") {
+    kotlin.srcDir("../extensions/nuvio-stream-preload/src/main/java")
 }
 
 // The Morphe patch runtime targets Java 11. Pin Java sources explicitly so
@@ -36,13 +41,52 @@ tasks.withType<org.gradle.api.tasks.testing.Test>().configureEach {
 
 // Exercise the exact Android runtime accessor table against original app DEX files.
 tasks.named<org.gradle.api.tasks.compile.JavaCompile>("compileTestJava") {
+    source(file("../extensions/nuvio-remaining-episodes/src/main/java/software/santodan/extension/nuvioremaining/NuvioBadgeComposition.java"))
+    source(file("../extensions/nuvio-airing-series/src/main/java/software/santodan/extension/nuvioairing/NuvioBadgeComposition.java"))
+    source(file("../extensions/nuvio-movie-release-dates/src/main/java/software/santodan/extension/nuviomovierelease/MovieReleaseDate.java"))
+    source(file("../extensions/nuvio-movie-release-dates/src/main/java/software/santodan/extension/nuviomovierelease/NuvioBadgeComposition.java"))
+    source(file("../extensions/nuvio-finale-dates/src/main/java/software/santodan/extension/nuviofinale/NuvioBadgeComposition.java"))
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioProviderLayout.java"))
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioWatchedHistory.java"))
+    source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioBadgeDelta.java"))
     source(file("../extensions/nuvio-merged-progress/src/main/java/software/santodan/extension/nuviomerged/NuvioSettingsStoreResolver.java"))
     source(file("../extensions/nuvio-remaining-episodes/src/main/java/software/santodan/extension/nuvioremaining/NuvioEpisodeCounts.java"))
 }
 
 tasks {
+    register<JavaExec>("verifyNuvioMovieReleaseRuntime") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioMovieReleaseRuntime")
+        args(file("../extensions/nuvio-movie-release-dates/src/main/java/software/santodan/extension/nuviomovierelease").absolutePath, file("${layout.buildDirectory.get()}/verification/movie-release-runtime").absolutePath)
+    }
+    register<JavaExec>("verifyNuvioMovieReleaseDates") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioMovieReleaseDates")
+    }
+    register<JavaExec>("verifyNuvioStreamPreload") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioStreamPreloadKt")
+    }
+    register<JavaExec>("verifyNuvioStreamPreloadRuntime") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioStreamPreloadRuntimeKt")
+    }
+    register<JavaExec>("verifyNuvioBadgeComposition") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioBadgeComposition")
+    }
+
+    register<JavaExec>("verifyNuvioBadgeDelta") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioBadgeDelta")
+    }
+
     register<JavaExec>("verifyNuvioWatchedHistory") {
         dependsOn("testClasses")
         classpath = sourceSets["test"].runtimeClasspath
@@ -84,6 +128,14 @@ tasks {
         mainClass.set("santodan.patches.VerifyNuvioLayout")
         args("1.1.0-beta.4", file("../../.inspect-nuvio-beta4").absolutePath,
             file("${layout.buildDirectory.get()}/verification/nuvio-beta4.dex").absolutePath)
+    }
+
+    register<JavaExec>("verifyNuvioBeta5") {
+        dependsOn("testClasses")
+        classpath = sourceSets["test"].runtimeClasspath
+        mainClass.set("santodan.patches.VerifyNuvioLayout")
+        args("1.1.0-beta.5", file("../../.inspect-nuvio-beta5").absolutePath,
+            file("${layout.buildDirectory.get()}/verification/nuvio-beta5.dex").absolutePath)
     }
 
     register<JavaExec>("verifyRedditContentFilter") {

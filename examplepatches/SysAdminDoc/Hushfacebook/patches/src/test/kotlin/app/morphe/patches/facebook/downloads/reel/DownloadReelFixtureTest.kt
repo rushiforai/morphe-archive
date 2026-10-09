@@ -15,10 +15,12 @@ import com.android.tools.smali.dexlib2.iface.ClassDef
 import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.FiveRegisterInstruction
 import com.android.tools.smali.dexlib2.iface.instruction.ReferenceInstruction
+import com.android.tools.smali.dexlib2.iface.instruction.RegisterRangeInstruction
 import com.android.tools.smali.dexlib2.iface.reference.FieldReference
 import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 import com.android.tools.smali.dexlib2.iface.reference.TypeReference
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -26,7 +28,9 @@ import org.junit.Test
  * block goes in three instructions before the assembly call, borrowing v0 to v2 and a fourth local
  * for the story, each proved free there by the liveness of the whole builder, and each register it
  * reads unchanged up to the call. The build's one FbShortsSideBarComponent render, which the button
- * can't go in, gets a counter as its first instruction and nothing else (#18).
+ * can't go in, gets a counter as its first instruction and nothing else (#18). And the More sheet's
+ * builder asks for a Download row first thing, through a helper on its class, with the handler made
+ * to take the row's click interface (#18).
  */
 class DownloadReelFixtureTest {
     private val sidebarName = "UDDSideBarComponent"
@@ -42,8 +46,6 @@ class DownloadReelFixtureTest {
     /** The story's local, v3 and up, on each declared build. */
     private val storyLocal = mapOf(
         AppCompatibilities.FACEBOOK_TARGET_VERSION to 3,
-        AppCompatibilities.FACEBOOK_PREVIOUS_VERSION to 3,
-        AppCompatibilities.FACEBOOK_ORIGINAL_VERSION to 3,
     )
 
     private fun callsButtonFactory(method: Method) = method.implementation?.instructions?.any { instruction ->
@@ -62,8 +64,14 @@ class DownloadReelFixtureTest {
         }
     }.filter { it.startsWith("L") }.toSet()
 
+    /** [namedBy], plus the parameter and return types of everything [method] calls. */
+    private fun reachedBy(method: Method): Set<String> = namedBy(method) + method.implementation!!.instructions.flatMap { instruction ->
+        ((instruction as? ReferenceInstruction)?.reference as? MethodReference)
+            ?.let { it.parameterTypes.map(CharSequence::toString) + it.returnType }.orEmpty()
+    }.filter { it.startsWith("L") }
+
     @Test
-    fun `the reel button goes in with proved registers on each declared build`() {
+    fun `the reel button and the More sheet row go in with proved registers on each declared build`() {
         val versions = AppCompatibilities.facebook().single().targets.mapNotNull { it.version }.toSet()
         assertEquals("the declared builds", storyLocal.keys, versions)
         val checked = mutableSetOf<String>()
@@ -87,10 +95,47 @@ class DownloadReelFixtureTest {
                 val other = others.single()
                 classes.putIfAbsent(other.type, other)
                 classes[component.type] = component
+                // The More sheet's builder, everything it calls with, and the row's own types (#18).
+                val sheetHolder = FixtureDex.classesHolding(bundle, CLEAR_MODE_ROW).single()
+                val sheetBuilder = sheetHolder.methods.single { holdsString(it, CLEAR_MODE_ROW) }
+                val sheetTypes = reachedBy(sheetBuilder)
+                FixtureDex.classes(bundle, sheetTypes).forEach { (type, classDef) -> classes.putIfAbsent(type, classDef) }
+                val rowTypes = sheetTypes.mapNotNull(classes::get).flatMap { classDef ->
+                    classDef.methods.filter { it.name == "<init>" }.flatMap { it.parameterTypes.map(CharSequence::toString) }
+                }.toSet()
+                FixtureDex.classes(bundle, rowTypes).forEach { (type, classDef) -> classes.putIfAbsent(type, classDef) }
+                classes[sheetHolder.type] = sheetHolder
                 classes[SETTINGS_STATUS] = ExtensionDex.classDef(SETTINGS_STATUS)
+                classes[MENU_HANDLER] = ExtensionDex.classDef(MENU_HANDLER)
                 val context = PatchContexts.of(classes.values)
+                val sheet = context.moreSheet("the fixture")
 
                 downloadReelPatch.execute(context)
+
+                val sheetBody = context.mutableClassDefBy(sheetHolder.type).methods
+                    .single { it.name == sheetBuilder.name && holdsString(it, CLEAR_MODE_ROW) }
+                    .implementation!!.instructions.toList()
+                val rowCall = sheetBody[6] as RegisterRangeInstruction
+                assertEquals(
+                    "${bundle.name}: the More sheet asks the row helper first thing, from v0 to v5",
+                    "$ROW_HELPER 0 6",
+                    "${((rowCall as ReferenceInstruction).reference as MethodReference).name} ${rowCall.startRegister} ${rowCall.registerCount}",
+                )
+                assertEquals(
+                    "${bundle.name}: the builder keeps the rest of its own code",
+                    sheetBuilder.implementation!!.instructions.count() + 7,
+                    sheetBody.size,
+                )
+                assertTrue(
+                    "${bundle.name}: the helper is on the builder's class",
+                    context.mutableClassDefBy(sheetHolder.type).methods.any { it.name == ROW_HELPER },
+                )
+                val handler = context.mutableClassDefBy(MENU_HANDLER)
+                assertEquals("${bundle.name}: the handler takes the row's click", listOf(sheet.click), handler.interfaces.toList())
+                assertTrue(
+                    "${bundle.name}: the handler answers the click's one method",
+                    handler.methods.any { it.name == sheet.clickMethod && it.parameterTypes.isEmpty() && it.returnType == "V" },
+                )
 
                 val patched = context.mutableClassDefBy(component.type).methods.single {
                     it.name == builder.name && it.parameterTypes.map(CharSequence::toString) == builder.parameterTypes.map(CharSequence::toString)

@@ -12,6 +12,7 @@ val customGoogleMapsApiKeyPatch = resourcePatch(
     description = "Replaces the embedded Google Maps API key with a personal Google Cloud API key so native Google Maps renders on re-signed builds. Note: To use native Google Maps, disable the OpenStreetMap Drop-in Replacement patch.",
     default = false
 ) {
+    category("Customization")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     dependsOn(bypassSignatureCheckResourcePatch)
 

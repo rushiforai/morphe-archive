@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 
+import app.morphe.extension.facebook.misc.AppLock;
 import app.morphe.extension.facebook.navigation.FacebookTabs;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.Utils;
@@ -37,6 +38,11 @@ import app.morphe.extension.shared.settings.BaseSettings;
  *
  * <p>At most {@link #DUMPS_MAX} times a run, {@link #GAP_MS} apart, since Facebook can build the
  * Menu before it's on screen, and never again once one found the card.
+ *
+ * <p>A reel's long-press menu lists Muse first among its share targets (see the roadmap's Hide
+ * Muse as a share target), and no hook sees that row either. After a long press on a reel, every
+ * window Facebook shows is read the same way, labelled "Reel menu layout", under the same limits
+ * counted apart from Menu's.
  */
 public final class MenuLayoutDump {
     /** What the Muse card shows, its title's name and its button, as whole words. */
@@ -44,6 +50,12 @@ public final class MenuLayoutDump {
 
     /** How long after Menu builds the layout is read, so Litho has drawn it. */
     static final long DELAY_MS = 2_000;
+
+    /** How long after a reel's long press the windows are read, so the menu has opened. */
+    static final long REEL_MENU_DELAY_MS = 1_500;
+
+    static final String MENU = "Menu layout";
+    static final String REEL_MENU = "Reel menu layout";
 
     static final int DUMPS_MAX = 3;
     static final long GAP_MS = 15_000;
@@ -62,6 +74,9 @@ public final class MenuLayoutDump {
     private static int dumps;
     private static long lastDump = -GAP_MS;
     private static boolean found;
+    private static int reelDumps;
+    private static long lastReelDump = -GAP_MS;
+    private static boolean reelFound;
 
     private MenuLayoutDump() {
     }
@@ -87,6 +102,42 @@ public final class MenuLayoutDump {
         }
     }
 
+    /**
+     * As a reel is long-pressed. With Debug logging on, every window Facebook shows is read a
+     * moment later, the long-press menu's among them. Never throws.
+     */
+    public static synchronized void reelLongPressed() {
+        try {
+            if (!Utils.settingsReady() || !BaseSettings.DEBUG.get() || reelFound || reelDumps >= DUMPS_MAX) return;
+            long now = SystemClock.uptimeMillis();
+            if (now - lastReelDump < GAP_MS) return;
+            reelDumps++;
+            lastReelDump = now;
+            Utils.runOnMainThreadDelayed(MenuLayoutDump::dumpWindows, REEL_MENU_DELAY_MS);
+        } catch (Throwable failure) {
+            Logger.printDebug(() -> REEL_MENU + ": couldn't plan a read: " + failure);
+        }
+    }
+
+    private static void dumpWindows() {
+        try {
+            List<View> windows = AppLock.windowsForDiagnostics();
+            if (windows == null || windows.isEmpty()) {
+                Logger.printDebug(() -> REEL_MENU + ": no windows to read");
+                return;
+            }
+            boolean any = false;
+            for (View window : windows) any |= dump(window, REEL_MENU);
+            if (any) {
+                synchronized (MenuLayoutDump.class) {
+                    reelFound = true;
+                }
+            }
+        } catch (Throwable failure) {
+            Logger.printDebug(() -> REEL_MENU + ": couldn't read the windows: " + failure);
+        }
+    }
+
     private static void dumpMainScreen() {
         try {
             Activity activity = mainScreen.get();
@@ -105,15 +156,20 @@ public final class MenuLayoutDump {
         }
     }
 
-    /** Writes what shown under [root] names Muse. True when anything did. */
+    /** Writes what shown under [root] names Muse, as Menu's. True when anything did. */
     static boolean dump(View root) {
+        return dump(root, MENU);
+    }
+
+    /** Writes what shown under [root] names Muse, each line starting with [label]. True when anything did. */
+    static boolean dump(View root, String label) {
         Class<?> mounting = null;
         Method describe = null;
         try {
             mounting = Class.forName(MOUNTING_VIEW);
             describe = Class.forName(HELPER).getMethod("viewToString", mounting);
         } catch (Throwable failure) {
-            Logger.printDebug(() -> "Menu layout: Litho's describer isn't there: " + failure);
+            Logger.printDebug(() -> label + ": Litho's describer isn't there: " + failure);
         }
         List<View> trees = new ArrayList<>();
         List<View> named = new ArrayList<>();
@@ -129,22 +185,22 @@ public final class MenuLayoutDump {
                 List<String> lines = around(description);
                 if (lines.isEmpty()) continue;
                 matched++;
-                String where = "Menu layout, Litho tree " + (i + 1) + " of " + trees.size() + ":\n";
+                String where = label + ", Litho tree " + (i + 1) + " of " + trees.size() + ":\n";
                 String body = String.join("\n", lines);
                 Logger.printDebug(() -> where + body);
             }
         } catch (Throwable failure) {
-            Logger.printDebug(() -> "Menu layout: Litho's trees couldn't be read: " + failure);
+            Logger.printDebug(() -> label + ": Litho's trees couldn't be read: " + failure);
         }
 
         for (View view : named) {
             String path = chain(view);
-            Logger.printDebug(() -> "Menu layout, a view naming Muse: " + path);
+            Logger.printDebug(() -> label + ", a view naming Muse: " + path);
         }
         if (matched == 0 && named.isEmpty()) {
             int read = trees.size();
             int gave = described;
-            Logger.printDebug(() -> "Menu layout: nothing names Muse in " + read
+            Logger.printDebug(() -> label + ": nothing names Muse in " + read
                     + " Litho trees (" + gave + " gave a description)");
         }
         return matched > 0 || !named.isEmpty();
@@ -233,6 +289,9 @@ public final class MenuLayoutDump {
         dumps = 0;
         lastDump = -GAP_MS;
         found = false;
+        reelDumps = 0;
+        lastReelDump = -GAP_MS;
+        reelFound = false;
         mainScreen = new WeakReference<>(null);
     }
 }

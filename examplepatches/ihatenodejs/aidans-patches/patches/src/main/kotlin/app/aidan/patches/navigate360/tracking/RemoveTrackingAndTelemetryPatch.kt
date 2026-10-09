@@ -15,6 +15,7 @@ val removeTrackingAndTelemetryPatch = bytecodePatch(
     description = "Neutralizes Gainsight PX behavioral analytics (session tracking, screen views, custom events, user identification) and disables the Cordova Gainsight native plugin.",
     default = true
 ) {
+    category("Privacy")
     compatibleWith(COMPATIBILITY_NAVIGATE360)
 
     execute {

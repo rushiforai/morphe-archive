@@ -33,12 +33,12 @@ import com.android.tools.smali.dexlib2.iface.reference.TypeReference
  * down.
  *
  * - Facebook's Clean mode (its "clear mode" inside) is switched by an event whose toString formats
- *   "%s: %s, enableClearMode: %s" (581 LX/88G, 580 LX/88k, 577 LX/9bT). Every Clean mode toggle
- *   makes one: the three-dot menu item, the pinch gesture, the store below.
+ *   "%s: %s, enableClearMode: %s" (581 LX/88G). Every Clean mode toggle makes one: the three-dot
+ *   menu item, the pinch gesture, the store below.
  * - The store is an injected singleton keeping one AtomicBoolean, the remembered choice for
- *   accounts Facebook gives sticky Clean mode (581 LX/87t, 580 LX/88N, 577 LX/9b5). Its one setter
- *   sets the flag and posts the event, and only when the sticky config getter answers yes, so for
- *   everyone else the flag stays false.
+ *   accounts Facebook gives sticky Clean mode (581 LX/87t). Its one setter sets the flag and posts
+ *   the event, and only when the sticky config getter answers yes, so for everyone else the flag
+ *   stays false.
  * - Four parts of the Reels viewer read the flag as they're made, each in its Litho
  *   createInitialState (577's overlay in a static helper it calls), each naming its spec in a log
  *   literal: FbShortsViewerOverlayComponentSpec (the buttons down the side; it skips the read for an

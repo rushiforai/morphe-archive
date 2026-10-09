@@ -122,6 +122,15 @@ public final class TapToPlay {
     private static final String SOURCE = "TapToPlay";
     private static final String OFF = "OFF";
 
+    /** What {@link #position} answers until the patch fills it. */
+    static final int NO_POSITION = Integer.MIN_VALUE;
+    /** How far in, in ms, a reel's player has to be when its start comes to count as partway (#90). */
+    static final int PARTWAY_MS = 500;
+    /** How many partway starts are logged one by one. Hook status counts them all. */
+    static final int PARTWAY_LOGGED = 20;
+    static final String REEL_PARTWAY = "Reel start with the player partway in";
+    private static int partwayLogged;
+
     private static final ArmedPlayers ARMED = new ArmedPlayers();
     /** When a link from another app last opened a Facebook screen, on the uptime clock. */
     private static final AtomicLong LINK_OPENED_AT = new AtomicLong(NO_LINK);
@@ -164,6 +173,32 @@ public final class TapToPlay {
     /** Filled in by the patch: the field VideoPlayerParams' debug dump reports as isFbShorts. Only params may be passed. */
     public static boolean fbShorts(Object params) {
         return false;
+    }
+
+    /** Filled in by the patch: FbGrootPlayer's position reader, in ms, or {@link #NO_POSITION}. Only a player may be passed. */
+    public static int position(Object player) {
+        return NO_POSITION;
+    }
+
+    /**
+     * Where a reel's player stood, at [at] ms, when Facebook asked it to start (#90). Some reels
+     * showed time gone on their seekbar before anyone played them. A start that comes with the
+     * player already {@link #PARTWAY_MS} or more in is counted in Hook status, and the first
+     * {@link #PARTWAY_LOGGED} are logged with the trigger and the decision, so a report says whether
+     * Facebook began those reels partway, or only the seekbar showed time that wasn't played.
+     */
+    static void notePosition(int at, @Nullable String trigger, boolean allowed) {
+        if (at == NO_POSITION) return;
+        HookStatus.bound(FamilyNames.TAP_TO_PLAY, "reel position");
+        if (at < PARTWAY_MS) return;
+        HookStatus.counted(FamilyNames.TAP_TO_PLAY, REEL_PARTWAY);
+        synchronized (LOG_LOCK) {
+            if (partwayLogged >= PARTWAY_LOGGED) return;
+            partwayLogged++;
+        }
+        Logger.diagnosticDebug(DiagnosticCategory.OTHER, SOURCE, () -> "Tap to play: a reel's "
+                + (trigger == null ? "start" : trigger + " start") + " came " + at + " ms in, "
+                + (allowed ? "allowed" : "held"));
     }
 
     /**
@@ -343,8 +378,10 @@ public final class TapToPlay {
             }
             HookStatus.bound(FamilyNames.TAP_TO_PLAY, hook);
             String name = trigger instanceof Enum ? ((Enum<?>) trigger).name() : null;
-            boolean autoplayedReel = groot && BY_AUTOPLAY.equals(name) && playsReel(player);
-            return decide(player, name, autoplayedReel, SystemClock.uptimeMillis(), path);
+            boolean reel = groot && playsReel(player);
+            boolean allowed = decide(player, name, reel && BY_AUTOPLAY.equals(name), SystemClock.uptimeMillis(), path);
+            if (reel) notePosition(position(player), name, allowed);
+            return allowed;
         } catch (Throwable failure) {
             HookStatus.threw(FamilyNames.TAP_TO_PLAY, hook, failure);
             return true;
@@ -484,6 +521,7 @@ public final class TapToPlay {
             heldSinceSummary = 0;
             SETTINGS_LOGGED.clear();
             reelButtonLogged = false;
+            partwayLogged = 0;
         }
         failNext = null;
     }

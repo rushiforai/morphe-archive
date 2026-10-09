@@ -18,10 +18,10 @@ import org.xml.sax.InputSource
 /**
  * Trust user certificates on the decoded shape of TikTok's network security config.
  *
- * <p>47.0.3, 47.1.3 and 47.1.4 all name `@xml/u` (0x7f150014, archive path res/au/o.xml), and the
- * three files are the same: a base config trusting the system's certificates with their pins
- * overridden, debug overrides trusting the user's, and domain configs that set only cleartext.
- * TIKTOK below is that file cut to two of its 57 domains, read off each fixture with
+ * <p>47.1.4 names `@xml/u` (0x7f150014, archive path res/au/o.xml), as 47.0.3 and 47.1.3 did, with
+ * the same file: a base config trusting the system's certificates with their pins overridden,
+ * debug overrides trusting the user's, and domain configs that set only cleartext. TIKTOK below
+ * is that file cut to two of its 57 domains, read off the fixture with
  * `aapt2 dump xmltree --file res/au/o.xml`.
  */
 class TrustUserCertificatesTest {

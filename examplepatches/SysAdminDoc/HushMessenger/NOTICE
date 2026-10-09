@@ -12,6 +12,8 @@ Spoof package version is adapted from rushiranpise/morphe-patches
 (5cf78f17aae0665c196fb71d63d50726d9ba518e), under GPL-3.0.
 Restore old emoji drawer takes its anchor string from ReVanced patches
 merge request !6833 (Messenger, restore old emoji drawer), under GPL-3.0.
+Keep emoji search on emoji takes its text watcher anchor from the ReVanced
+patch "Disable switching emoji to sticker" (Messenger), under GPL-3.0.
 The bubble eligibility anchor originates from NeonOrbit/ChatHeadEnabler.
 The runtime settings and checked 580 integrations are HushMessenger changes.
 

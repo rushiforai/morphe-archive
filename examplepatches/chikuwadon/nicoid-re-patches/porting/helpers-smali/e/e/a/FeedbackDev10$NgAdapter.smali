@@ -40,6 +40,29 @@
 
 
 # virtual methods
+.method synthetic confirmedDelete(Landroid/widget/Button;Ljava/lang/Object;)V
+    .registers 5
+
+    .line 143
+    const/4 v1, 0x0
+
+    invoke-virtual {p1, v1}, Landroid/widget/Button;->setEnabled(Z)V
+
+    # getter for: Le/e/a/FeedbackDev10;->workers:Ljava/util/concurrent/ExecutorService;
+    invoke-static {}, Le/e/a/FeedbackDev10;->access$000()Ljava/util/concurrent/ExecutorService;
+
+    move-result-object v1
+
+    new-instance v0, Le/e/a/FeedbackDev10$NgAdapter$$ExternalSyntheticLambda2;
+
+    invoke-direct {v0, p0, p2, p1}, Le/e/a/FeedbackDev10$NgAdapter$$ExternalSyntheticLambda2;-><init>(Le/e/a/FeedbackDev10$NgAdapter;Ljava/lang/Object;Landroid/widget/Button;)V
+
+    invoke-interface {v1, v0}, Ljava/util/concurrent/ExecutorService;->execute(Ljava/lang/Runnable;)V
+
+    .line 148
+    return-void
+.end method
+
 .method public getCount()I
     .registers 2
 
@@ -209,22 +232,39 @@
     new-instance p3, Landroid/widget/LinearLayout$LayoutParams;
 
     invoke-virtual {v0}, Landroid/widget/Button;->getContext()Landroid/content/Context;
+
     move-result-object v1
+
     const/16 v3, 0x40
+
     invoke-static {v1, v3}, Le/e/a/FeedbackDev10;->dp(Landroid/content/Context;I)I
+
     move-result v3
+
     const/16 v5, 0x28
+
     invoke-static {v1, v5}, Le/e/a/FeedbackDev10;->dp(Landroid/content/Context;I)I
+
     move-result v5
+
     invoke-direct {p3, v3, v5}, Landroid/widget/LinearLayout$LayoutParams;-><init>(II)V
+
     const/4 v3, 0x4
+
     invoke-static {v1, v3}, Le/e/a/FeedbackDev10;->dp(Landroid/content/Context;I)I
+
     move-result v3
+
     iput v3, p3, Landroid/widget/LinearLayout$LayoutParams;->topMargin:I
+
     iput v3, p3, Landroid/widget/LinearLayout$LayoutParams;->bottomMargin:I
+
     const/16 v3, 0x8
+
     invoke-static {v1, v3}, Le/e/a/FeedbackDev10;->dp(Landroid/content/Context;I)I
+
     move-result v3
+
     iput v3, p3, Landroid/widget/LinearLayout$LayoutParams;->leftMargin:I
 
     invoke-virtual {p2, v0, p3}, Landroid/widget/LinearLayout;->addView(Landroid/view/View;Landroid/view/ViewGroup$LayoutParams;)V
@@ -476,60 +516,68 @@
     return-void
 .end method
 
-.method synthetic confirmedDelete(Landroid/widget/Button;Ljava/lang/Object;)V
-    .registers 5
-
-    .line 143
-    const/4 v1, 0x0
-
-    invoke-virtual {p1, v1}, Landroid/widget/Button;->setEnabled(Z)V
-
-    # getter for: Le/e/a/FeedbackDev10;->workers:Ljava/util/concurrent/ExecutorService;
-    invoke-static {}, Le/e/a/FeedbackDev10;->access$000()Ljava/util/concurrent/ExecutorService;
-
-    move-result-object v1
-
-    new-instance v0, Le/e/a/FeedbackDev10$NgAdapter$$ExternalSyntheticLambda2;
-
-    invoke-direct {v0, p0, p2, p1}, Le/e/a/FeedbackDev10$NgAdapter$$ExternalSyntheticLambda2;-><init>(Le/e/a/FeedbackDev10$NgAdapter;Ljava/lang/Object;Landroid/widget/Button;)V
-
-    invoke-interface {v1, v0}, Ljava/util/concurrent/ExecutorService;->execute(Ljava/lang/Runnable;)V
-
-    .line 148
-    return-void
-.end method
-
 .method synthetic lambda$getView$3$e-e-a-FeedbackDev10$NgAdapter(Landroid/widget/Button;Ljava/lang/Object;Landroid/view/View;)V
-    .locals 5
+    .registers 9
+
     invoke-virtual {p1}, Landroid/widget/Button;->getContext()Landroid/content/Context;
+
     move-result-object v0
+
     invoke-static {v0}, Le/e/a/FeedbackFixes;->dialogContext(Landroid/content/Context;)Landroid/content/Context;
+
     move-result-object v0
+
     new-instance v1, Landroid/app/AlertDialog$Builder;
+
     invoke-direct {v1, v0}, Landroid/app/AlertDialog$Builder;-><init>(Landroid/content/Context;)V
-    const-string v0, "NG設定を削除しますか？"
+
+    const-string v0, "NG\u8a2d\u5b9a\u3092\u524a\u9664\u3057\u307e\u3059\u304b\uff1f"
+
     invoke-static {v0}, Le/e/a/FeedbackDev10;->tr(Ljava/lang/String;)Ljava/lang/String;
+
     move-result-object v0
+
     invoke-virtual {v1, v0}, Landroid/app/AlertDialog$Builder;->setTitle(Ljava/lang/CharSequence;)Landroid/app/AlertDialog$Builder;
+
     const-string v0, "b"
+
     invoke-static {p2, v0}, Le/e/a/FeedbackDev10;->get(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;
+
     move-result-object v0
+
     invoke-static {v0}, Ljava/lang/String;->valueOf(Ljava/lang/Object;)Ljava/lang/String;
+
     move-result-object v0
+
     invoke-virtual {v1, v0}, Landroid/app/AlertDialog$Builder;->setMessage(Ljava/lang/CharSequence;)Landroid/app/AlertDialog$Builder;
-    const-string v0, "削除"
+
+    const-string v0, "\u524a\u9664"
+
     invoke-static {v0}, Le/e/a/FeedbackDev10;->tr(Ljava/lang/String;)Ljava/lang/String;
+
     move-result-object v0
+
     new-instance v2, Le/e/a/NgDeleteConfirmation;
+
     invoke-direct {v2, p0, p1, p2}, Le/e/a/NgDeleteConfirmation;-><init>(Le/e/a/FeedbackDev10$NgAdapter;Landroid/widget/Button;Ljava/lang/Object;)V
+
     invoke-virtual {v1, v0, v2}, Landroid/app/AlertDialog$Builder;->setPositiveButton(Ljava/lang/CharSequence;Landroid/content/DialogInterface$OnClickListener;)Landroid/app/AlertDialog$Builder;
-    const-string v0, "キャンセル"
+
+    const-string v0, "\u30ad\u30e3\u30f3\u30bb\u30eb"
+
     invoke-static {v0}, Le/e/a/FeedbackDev10;->tr(Ljava/lang/String;)Ljava/lang/String;
+
     move-result-object v0
+
     const/4 v2, 0x0
+
     invoke-virtual {v1, v0, v2}, Landroid/app/AlertDialog$Builder;->setNegativeButton(Ljava/lang/CharSequence;Landroid/content/DialogInterface$OnClickListener;)Landroid/app/AlertDialog$Builder;
+
     invoke-virtual {v1}, Landroid/app/AlertDialog$Builder;->create()Landroid/app/AlertDialog;
+
     move-result-object v1
+
     invoke-static {v1}, Le/e/a/PlaybackSession;->showDialog(Landroid/app/AlertDialog;)V
+
     return-void
 .end method

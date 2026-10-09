@@ -18,7 +18,7 @@ public final class PopupPinchLayout extends LinearLayout {
     private float startSpan, startHeight, ratio, anchorX, anchorY, fractionX, fractionY;
 
     public PopupPinchLayout(Context context, AttributeSet attrs) { super(context, attrs); }
-    public void bind(Object service) { owner = new WeakReference<>(service); }
+    public void bind(Object service) { owner = new WeakReference<>(service); PlaybackReturn.bind(service); }
 
     private static Object field(Object object, String name) throws Exception {
         return object.getClass().getField(name).get(object);

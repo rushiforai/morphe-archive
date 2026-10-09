@@ -82,6 +82,36 @@ public class AutomaticClearDisplayTest {
         }
     }
 
+    /** The feed lock covers the feed like the hold does, and needs the tabs just as much. */
+    @Test public void theFeedLockStopsClearDisplayFromClearingTheFeedItCovers() {
+        SettingsStatus.blockAuthorEnabled = true;
+        Settings.FEED_LOCK.save(true);
+        try {
+            Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+            Settings.CLEAR_DISPLAY.save(true);
+            List<Boolean> events = new ArrayList<>();
+            RememberClearDisplayPatch.firstFrame("remembered", () -> true, events::add);
+            assertEquals("a remembered clear display cleared under the feed lock", List.of(), events);
+
+            Settings.AUTOMATIC_CLEAR_DISPLAY.save(true);
+            Settings.AUTOMATIC_CLEAR_DISPLAY_DELAY.save(0);
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("auto", () -> true, events::add);
+            Shadows.shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(2000));
+            assertEquals("the automatic path cleared under the feed lock", List.of(false), events);
+
+            Settings.FEED_LOCK.save(false);
+            Settings.AUTOMATIC_CLEAR_DISPLAY.save(false);
+            events.clear();
+            RememberClearDisplayPatch.firstFrame("after", () -> true, events::add);
+            assertEquals("the remembered choice didn't come back", List.of(true), events);
+        } finally {
+            Settings.FEED_LOCK.resetToDefault();
+            Settings.CLEAR_DISPLAY.resetToDefault();
+            SettingsStatus.blockAuthorEnabled = false;
+        }
+    }
+
     private static void lockTheDay() {
         Settings.SESSION_BUDGET_VIDEOS.save(1);
         Settings.SESSION_BUDGET_LOCK_MINUTES.save(5);

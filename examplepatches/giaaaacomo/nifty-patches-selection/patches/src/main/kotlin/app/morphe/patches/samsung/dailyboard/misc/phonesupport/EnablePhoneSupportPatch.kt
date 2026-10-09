@@ -11,7 +11,6 @@ import app.morphe.patcher.extensions.InstructionExtensions.replaceInstruction
 import app.morphe.patcher.patch.PatchException
 import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patcher.patch.resourcePatch
-import app.morphe.patches.samsung.dailyboard.misc.extension.sharedExtensionPatch
 import app.morphe.patches.samsung.dailyboard.shared.Constants.COMPATIBILITY_DAILY_BOARD
 import app.morphe.util.getReference
 import app.morphe.util.indexOfFirstInstructionOrThrow
@@ -28,13 +27,6 @@ private const val MAIN_ACTIVITY =
     "com.samsung.android.homemode.ui.activity.main.HomeModeActivity"
 private const val DREAM_SERVICE =
     "com.samsung.android.homemode.ui.dream.HomeModeDreamService"
-private const val NOTIFICATION_LISTENER =
-    "app.morphe.extension.samsung.dailyboard.DailyBoardNotificationListener"
-private const val MEDIA_SESSION_EXTENSION =
-    "Lapp/morphe/extension/samsung/dailyboard/MediaSessionPatch;"
-private const val WEATHER_EXTENSION =
-    "Lapp/morphe/extension/samsung/dailyboard/OpenMeteoWeatherPatch;"
-
 private val TABLET_SCALED_DIMENSION_PREFIXES = arrayOf(
     "action_bar_layout_",
     "bottom_action_bar_layout_",
@@ -119,23 +111,6 @@ private val enablePhoneComponentsPatch = resourcePatch(
                 )
             }
 
-            val application = document.getElementsByTagName("application").item(0) as Element
-            val listenerService = document.createElement("service").apply {
-                setAttribute("android:name", NOTIFICATION_LISTENER)
-                setAttribute("android:label", "Daily Board media and notifications")
-                setAttribute("android:permission", "android.permission.BIND_NOTIFICATION_LISTENER_SERVICE")
-                setAttribute("android:exported", "true")
-            }
-            val intentFilter = document.createElement("intent-filter")
-            val listenerAction = document.createElement("action").apply {
-                setAttribute(
-                    "android:name",
-                    "android.service.notification.NotificationListenerService"
-                )
-            }
-            intentFilter.appendChild(listenerAction)
-            listenerService.appendChild(intentFilter)
-            application.appendChild(listenerService)
         }
 
         fun applyTabletDimensions(phonePath: String, tabletPath: String) {
@@ -246,56 +221,23 @@ private val enablePhoneComponentsPatch = resourcePatch(
             }
         }
 
-        fun replacePogoLabels(path: String, title: String, condition: String, description: String) {
-            val replacements = mapOf(
-                "auto_start_with_pogo" to title,
-                "when_auto_start_with_pogo" to condition,
-                "auto_start_description" to description,
-            )
-            val missing = replacements.keys.toMutableSet()
-            document(path).use { document ->
-                val strings = document.getElementsByTagName("string")
-                for (index in 0 until strings.length) {
-                    val entry = strings.item(index) as? Element ?: continue
-                    val name = entry.getAttribute("name")
-                    val replacement = replacements[name] ?: continue
-                    entry.textContent = replacement
-                    missing.remove(name)
-                }
-            }
-            if (missing.isNotEmpty()) {
-                throw PatchException("Daily Board POGO strings were not found in $path: $missing")
-            }
-        }
-        replacePogoLabels(
-            "res/values/strings.xml",
-            "Wireless or landscape USB charging",
-            "With wireless or landscape USB charging",
-            "Daily Board starts during wireless charging or wired charging in landscape.",
-        )
-        replacePogoLabels(
-            "res/values-it/strings.xml",
-            "Wireless o USB in landscape",
-            "Con ricarica wireless o USB in landscape",
-            "Bacheca giornaliera si avvia con la ricarica wireless o USB in landscape.",
-        )
     }
 }
 
 @Suppress("unused")
 val enableDailyBoardOnPhonesPatch = bytecodePatch(
     name = "Enable phone support",
-    description = "Runs Samsung Daily Board on phones and treats wireless charging, or charging in landscape, as docking.",
+    description = "Runs Samsung Daily Board on phones with launcher, screen layout and crash fixes. Optional features are separate patches.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_DAILY_BOARD)
-    dependsOn(enablePhoneComponentsPatch, sharedExtensionPatch)
+    dependsOn(enablePhoneComponentsPatch)
 
     execute {
-        PogoFeatureFingerprint.method.returnEarly(true)
         TaFeatureFingerprint.method.returnEarly(true)
         SupportedDeviceFingerprint.method.returnEarly(true)
         SecureSettingsWriteFingerprint.method.returnEarly()
+        DisableDreamSettingsWriteFingerprint.method.returnEarly()
 
         // HolidayProvider is signature-protected; keep the calendar grid and personal events.
         CalendarDayInfoFingerprint.method.apply {
@@ -309,48 +251,7 @@ val enableDailyBoardOnPhonesPatch = bytecodePatch(
             replaceInstruction(holidayQueryIndex + 1, "nop")
         }
 
-        MusicSessionListenerFingerprint.method.apply {
-            val addListenerIndex = indexOfFirstInstructionOrThrow {
-                val reference = getReference<MethodReference>()
-                reference?.definingClass == "Landroid/media/session/MediaSessionManager;" &&
-                    reference.name == "addOnActiveSessionsChangedListener"
-            }
-            replaceInstruction(
-                addListenerIndex,
-                "invoke-static { v0, v2, v3 }, $MEDIA_SESSION_EXTENSION->startListening(" +
-                    "Ljava/lang/Object;Landroid/media/session/MediaSessionManager;" +
-                    "Landroid/media/session/MediaSessionManager\$OnActiveSessionsChangedListener;)" +
-                    "Ljava/util/List;"
-            )
-            replaceInstruction(addListenerIndex + 1, "move-result-object v0")
-            replaceInstruction(
-                addListenerIndex + 2,
-                "invoke-virtual { v3, v0 }, Lx0/a;->onActiveSessionsChanged(Ljava/util/List;)V"
-            )
-            replaceInstruction(addListenerIndex + 3, "nop")
-            replaceInstruction(addListenerIndex + 4, "nop")
-        }
-
-        WeatherRepositoryUpdateFingerprint.method.addInstructionsWithLabels(
-            0,
-            """
-                invoke-static/range { p0 .. p0 }, $WEATHER_EXTENSION->updateWeather(Landroid/content/Context;)V
-                return-void
-            """
-        )
-        WeatherStateFingerprint.method.returnEarly()
-        WeatherSourceFingerprint.method.addInstructionsWithLabels(
-            0,
-            """
-                invoke-static { p1, p2 }, $WEATHER_EXTENSION->bindWeatherSource(Landroid/widget/TextView;Ljava/lang/Object;)Z
-                move-result v0
-                if-eqz v0, :original_weather_source
-                return-void
-
-                :original_weather_source
-                nop
-            """
-        )
+        // Samsung photo providers require signature permissions and crash Application.onCreate.
         PhotoDataSourceLookupFingerprint.method.addInstructionsWithLabels(
             0,
             "const/4 p1, 0x0"
@@ -414,43 +315,5 @@ val enableDailyBoardOnPhonesPatch = bytecodePatch(
             """
         )
 
-        DockingFingerprint.method.addInstructionsWithLabels(
-            0,
-            """
-                new-instance v0, Landroid/content/IntentFilter;
-                const-string v1, "android.intent.action.BATTERY_CHANGED"
-                invoke-direct { v0, v1 }, Landroid/content/IntentFilter;-><init>(Ljava/lang/String;)V
-                const/4 v1, 0x0
-                const/4 v2, 0x2
-                invoke-virtual { p0, v1, v0, v2 }, Landroid/content/Context;->registerReceiver(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;I)Landroid/content/Intent;
-                move-result-object v0
-                if-eqz v0, :check_landscape
-                const-string v1, "plugged"
-                const/4 v2, -0x1
-                invoke-virtual { v0, v1, v2 }, Landroid/content/Intent;->getIntExtra(Ljava/lang/String;I)I
-                move-result v0
-                const/4 v1, 0x4
-                if-eq v0, v1, :phone_docked
-
-                :check_landscape
-                invoke-static { p0 }, Lcom/samsung/android/homemode/infra/utils/e;->a(Landroid/content/Context;)Z
-                move-result v0
-                if-eqz v0, :original_dock_check
-                invoke-virtual { p0 }, Landroid/content/Context;->getResources()Landroid/content/res/Resources;
-                move-result-object v0
-                invoke-virtual { v0 }, Landroid/content/res/Resources;->getConfiguration()Landroid/content/res/Configuration;
-                move-result-object v0
-                iget v0, v0, Landroid/content/res/Configuration;->orientation:I
-                const/4 v1, 0x2
-                if-ne v0, v1, :original_dock_check
-
-                :phone_docked
-                const/4 v0, 0x1
-                return v0
-
-                :original_dock_check
-                nop
-            """
-        )
     }
 }

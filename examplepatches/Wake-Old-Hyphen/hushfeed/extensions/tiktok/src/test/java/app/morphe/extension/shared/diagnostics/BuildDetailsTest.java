@@ -120,6 +120,8 @@ public class BuildDetailsTest {
             assertTrue(report.contains("patch_time.native_locales_retained: " + locales + "\n"));
             assertTrue(report.contains("target_version: " + target[0] + "\n"));
         }
+        // A build the bundle no longer declares is no target of this one.
+        assertUnknown(record.replace("47.1.4", "47.1.3").replace("2024701040", "2024701030"));
     }
 
     private static void assertUnknown(String record) {

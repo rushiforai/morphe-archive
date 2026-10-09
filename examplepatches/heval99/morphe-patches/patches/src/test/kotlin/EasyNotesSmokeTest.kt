@@ -66,7 +66,7 @@ class EasyNotesSmokeTest {
             apk,
             workDir.resolve("out"),
             PKG,
-            "1.3.59.0819",
+            "1.3.63.0921",
         )
 
         // Patcher.invoke() only executes the patches. Patcher.get() finalizes the bytecode

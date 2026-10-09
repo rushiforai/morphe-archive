@@ -50,3 +50,19 @@ object HookEventReportFingerprint : Fingerprint(
     accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
     parameters = listOf("Landroid/content/Context;", "Landroid/os/Bundle;", "Z", "Ljava/lang/String;"),
 )
+
+object LicenseRefreshWorkerFingerprint : Fingerprint(
+    definingClass = "Lcom/sal/privacykit/work/LicenseRefreshWorker;",
+    name = "c",
+    returnType = "Ljava/lang/Object;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    parameters = listOf("Lem0;"),
+)
+
+object J82GetLicenseStateFingerprint : Fingerprint(
+    definingClass = "Lj82;",
+    name = "g",
+    returnType = "Lo82;",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.STATIC),
+    parameters = listOf("Li72;", "J"),
+)

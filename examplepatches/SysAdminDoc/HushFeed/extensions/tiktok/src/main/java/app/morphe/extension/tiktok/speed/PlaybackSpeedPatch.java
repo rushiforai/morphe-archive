@@ -12,6 +12,7 @@ import app.morphe.extension.shared.Utils;
 import app.morphe.extension.shared.settings.Setting;
 import app.morphe.extension.tiktok.settings.Settings;
 import com.ss.android.ugc.aweme.feed.model.Aweme;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -48,6 +49,13 @@ public final class PlaybackSpeedPatch {
     private static volatile float rememberedSpeed = 1.0f;
     private static String currentVideoId = "";
     private static float manualSpeed = Float.NaN;
+    /**
+     * The last live change, which is saved nowhere: the video it was made on and its speed. It's
+     * kept apart from {@link #currentVideoId}, since a preloaded neighbour's early first frame moves
+     * that on while the dragged video is still the one on screen.
+     */
+    private static String liveVideoId = "";
+    private static float liveSpeed = Float.NaN;
 
     private PlaybackSpeedPatch() {}
 
@@ -72,16 +80,175 @@ public final class PlaybackSpeedPatch {
                 (!isExplicitSelectionSource(source) && !isEdgeSpeedupSelection(source))) return;
         beginVideo(aweme);
         manualSpeed = speed;
+        forgetLiveSpeed();
         rememberPlaybackSpeed(speed, source);
     }
 
     public static synchronized float getPlaybackSpeedForVideo(Aweme aweme) {
         beginVideo(aweme);
+        // A speed dragged in for this video stands for as long as the video does, even when the
+        // first frame is drawn again (nothing was saved for it to come back from).
+        float live = liveSpeedFor(currentVideoId);
+        if (isValidSpeed(live)) return live;
         return getPlaybackSpeed();
+    }
+
+    /** The speed dragged in for video {@code id}, or NaN when the last live change wasn't on it. */
+    private static float liveSpeedFor(String id) {
+        return !id.isEmpty() && id.equals(liveVideoId) ? liveSpeed : Float.NaN;
+    }
+
+    private static void forgetLiveSpeed() {
+        liveVideoId = "";
+        liveSpeed = Float.NaN;
     }
 
     /** Replaced with the verified native Aweme getter and controller setSpeed calls. */
     public static void onFirstFrame(Object controller) { }
+
+    /** The speeds a live change lands on, in steps of this much from {@link #MIN_SPEED} up. */
+    public static final float LIVE_STEP = 0.25f;
+
+    /**
+     * The player that last reported a video playing, with that video's id. A preloaded neighbour
+     * can draw its first frame early, so the first frame says nothing about what is on screen. The
+     * progress report is the signal the on-screen tracker (CurrentVideoAuthor) already trusts.
+     */
+    private static final class OnScreen {
+        final WeakReference<Object> controller;
+        final String aid;
+
+        OnScreen(Object controller, String aid) {
+            this.controller = new WeakReference<>(controller);
+            this.aid = aid;
+        }
+    }
+
+    private static volatile OnScreen onScreen;
+
+    /** A player and the video it has now, both checked against what the progress report named. */
+    private static final class Live {
+        final Object controller;
+        final Aweme aweme;
+
+        Live(Object controller, Aweme aweme) {
+            this.controller = controller;
+            this.aweme = aweme;
+        }
+    }
+
+    /** What the player's own members answer, so a test can stand in for TikTok's player. */
+    public interface NativePlayer {
+        Aweme aweme(Object controller);
+
+        void setSpeed(Object controller, float speed);
+    }
+
+    /** Set by tests only. Unpatched, as in the tests, the two bridge methods below do nothing. */
+    public static volatile NativePlayer nativeForTests;
+
+    /**
+     * Called from {@code PlayerController.onPlayProgressChange} with p0 and p1. It fires several
+     * times a second while a video plays, so a report that repeats the last one costs nothing.
+     */
+    public static void onPlayerProgress(Object controller, String aid) {
+        if (controller == null || aid == null || aid.isEmpty()) return;
+        OnScreen known = onScreen;
+        if (known != null && known.controller.get() == controller && aid.equals(known.aid)) return;
+        onScreen = new OnScreen(controller, aid);
+    }
+
+    /** Replaced with a call to the verified native getter of the video a PlayerController has. */
+    public static Aweme nativeAweme(Object controller) { return null; }
+
+    /**
+     * Replaced with what the first-frame bridge does for a speed it picked itself: the native
+     * selection state is brought to this speed and video, then the controller's setSpeed is called.
+     */
+    public static void setNativeSpeed(Object controller, float speed) { }
+
+    private static Aweme awemeOf(Object controller) {
+        NativePlayer player = nativeForTests;
+        return player != null ? player.aweme(controller) : nativeAweme(controller);
+    }
+
+    private static void setSpeedOn(Object controller, float speed) {
+        NativePlayer player = nativeForTests;
+        if (player != null) player.setSpeed(controller, speed);
+        else setNativeSpeed(controller, speed);
+    }
+
+    /**
+     * The player of the video on screen, or null when no player has reported yet, it is gone, or it
+     * has moved on to another video since: a photo post reports nothing, and its neighbour's player
+     * would otherwise take the change.
+     */
+    private static Live liveTarget() {
+        OnScreen target = onScreen;
+        if (target == null) return null;
+        Object controller = target.controller.get();
+        if (controller == null) return null;
+        try {
+            Aweme aweme = awemeOf(controller);
+            if (aweme == null || !target.aid.equals(aweme.getAid())) return null;
+            return new Live(controller, aweme);
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not read the video on screen for a live speed change", ex);
+            return null;
+        }
+    }
+
+    /**
+     * The speed the video on screen plays at now, from where a drag should start, or NaN when no
+     * player is known for it. A choice made for this video stands; otherwise it is the speed this
+     * patch gave it at its first frame.
+     */
+    public static float liveStartSpeed() {
+        Live live = liveTarget();
+        if (live == null) return Float.NaN;
+        String id = live.aweme.getAid();
+        synchronized (PlaybackSpeedPatch.class) {
+            float dragged = liveSpeedFor(id == null ? "" : id);
+            if (isValidSpeed(dragged)) return dragged;
+            if (id != null && id.equals(currentVideoId) && isValidSpeed(manualSpeed)) return manualSpeed;
+            return getPlaybackSpeed();
+        }
+    }
+
+    /** The grid a live change lands on: whole steps of {@link #LIVE_STEP}, held to 0.5x through 3x. */
+    public static float snapLiveSpeed(float speed) {
+        if (Float.isNaN(speed)) return Float.NaN;
+        float stepped = Math.round(speed / LIVE_STEP) * LIVE_STEP;
+        return Math.max(MIN_SPEED, Math.min(MAX_SPEED, stepped));
+    }
+
+    /**
+     * Plays the video on screen at {@code speed} (snapped), for a gesture. The choice is this
+     * video's alone: it's kept as this video's live speed (so its first frame drawn again keeps
+     * it), the next video starts at the default or the remembered speed, and nothing is saved.
+     *
+     * @return whether the video's own player took it
+     */
+    public static boolean setLiveSpeed(float speed) {
+        float snapped = snapLiveSpeed(speed);
+        if (!isValidSpeed(snapped)) return false;
+        Live live = liveTarget();
+        if (live == null) return false;
+        try {
+            // The player first: a player that refuses leaves nothing recorded as this video's speed.
+            setSpeedOn(live.controller, snapped);
+            synchronized (PlaybackSpeedPatch.class) {
+                beginVideo(live.aweme);
+                manualSpeed = snapped;
+                liveVideoId = live.aweme.getAid();
+                liveSpeed = snapped;
+            }
+            return true;
+        } catch (Throwable ex) {
+            Logger.printException(() -> "Could not change the speed of the video on screen", ex);
+            return false;
+        }
+    }
 
     public static List<Float> parseMenuSpeeds(String text) {
         if (text == null || text.trim().isEmpty()) return List.of();
@@ -241,6 +408,15 @@ public final class PlaybackSpeedPatch {
     }
 
     public static float preserveTransitionSpeed(float requestedSpeed) {
+        synchronized (PlaybackSpeedPatch.class) {
+            // The live bridge brought TikTok's own speed state to a dragged speed, and TikTok carries
+            // that state into the next video. The transition began that video just before this, so
+            // a dragged speed asked for any other video is the dragged one's alone.
+            if (isValidSpeed(liveSpeed) && !currentVideoId.equals(liveVideoId)
+                    && Float.compare(requestedSpeed, liveSpeed) == 0) {
+                return getPlaybackSpeed();
+            }
+        }
         if (Settings.DEFAULT_SPEED_ENABLED.get()) return getPlaybackSpeed();
         if (Float.compare(requestedSpeed, 1.0f) != 0) {
             return requestedSpeed;

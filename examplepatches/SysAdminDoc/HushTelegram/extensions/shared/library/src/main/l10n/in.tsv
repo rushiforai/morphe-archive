@@ -287,6 +287,31 @@ Hide Telegram Features and Invite Friends	Sembunyikan Fitur Telegram dan Undang 
 Settings drops its Telegram Features row and Contacts drops Invite Friends. When you have no contacts yet, the invite list Contacts shows in their place goes too. Off by default in settings.	Pengaturan tidak lagi menampilkan baris Fitur Telegram dan Kontak tidak lagi menampilkan Undang Teman. Jika Anda belum punya kontak, daftar undangan yang muncul di Kontak sebagai gantinya juga hilang. Nonaktif secara default di pengaturan.
 Add Repeat to the message menu	Tambahkan Ulangi ke menu pesan
 Puts Repeat under Forward in a message's long-press menu. It sends the message again to the same chat as a new message from you. It only shows where Telegram offers Forward and you can write, so it won't appear in protected or secret chats. Off by default in settings.	Menaruh Ulangi di bawah Teruskan pada menu yang Anda buka dengan menekan lama sebuah pesan. Pesan itu dikirim lagi ke obrolan yang sama sebagai pesan baru dari Anda. Hanya muncul jika Telegram menawarkan Teruskan dan Anda bisa menulis, jadi tidak pernah di obrolan terlindungi atau rahasia. Nonaktif secara default di pengaturan.
+Keep deleted messages	Simpan pesan yang dihapus
+Messages other people delete stay in your chats on this phone, marked deleted next to the time. Your own deletes and anything that disappears or is protected work as usual. Off by default in settings.	Pesan yang dihapus orang lain tetap ada di obrolan Anda di ponsel ini, ditandai dihapus di samping jam. Penghapusan oleh Anda sendiri dan semua yang hilang sendiri atau dilindungi tetap berjalan seperti biasa. Nonaktif secara default di pengaturan.
+Ask before sending a sticker	Tanya dulu sebelum mengirim stiker
+Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it, and a scheduled sticker goes through as it always did. Off by default in settings.	Menanyakan Kirim atau Batal sebelum stiker yang Anda ketuk masuk ke obrolan. Batal membuangnya, dan stiker terjadwal tetap lewat seperti biasa. Nonaktif secara default di pengaturan.
+Ask before sending a GIF	Tanya dulu sebelum mengirim GIF
+Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it, and a scheduled GIF goes through as it always did. Off by default in settings.	Menanyakan Kirim atau Batal sebelum GIF yang Anda ketuk masuk ke obrolan. Batal membuangnya, dan GIF terjadwal tetap lewat seperti biasa. Nonaktif secara default di pengaturan.
+Ask before sending a voice or video message	Tanya dulu sebelum mengirim pesan suara atau video
+Asks Send or Cancel before a voice or video message you recorded goes into a chat. Cancel throws the recording away. Off by default in settings.	Menanyakan Kirim atau Batal sebelum pesan suara atau video yang Anda rekam masuk ke obrolan. Batal membuang rekamannya. Nonaktif secara default di pengaturan.
+Ask before starting a call	Tanya dulu sebelum memulai panggilan
+Asks Call or Cancel before the call button in a chat's header or on a profile starts a call. Off by default in settings.	Menanyakan Panggil atau Batal sebelum tombol panggilan di header obrolan atau di profil memulai panggilan. Nonaktif secara default di pengaturan.
+Send sticker	Kirim stiker
+Send this sticker to this chat?	Kirim stiker ini ke obrolan ini?
+Send GIF	Kirim GIF
+Send this GIF to this chat?	Kirim GIF ini ke obrolan ini?
+Send voice message	Kirim pesan suara
+Send this voice message to this chat?	Kirim pesan suara ini ke obrolan ini?
+Send video message	Kirim pesan video
+Send this video message to this chat?	Kirim pesan video ini ke obrolan ini?
+Send	Kirim
+Start a call	Mulai panggilan
+Start a voice call?	Mulai panggilan suara?
+Start a video call?	Mulai panggilan video?
+Call	Panggil
+# context: the label before the time of a message someone else deleted that this phone kept
+deleted	dihapus
 Add Copy photo to the message menu	Tambahkan Salin foto ke menu pesan
 Puts Copy photo under Forward in a photo's long-press menu once the photo has downloaded. It copies the picture itself, so you can paste it into another app. It won't appear in protected or secret chats. Off by default in settings.	Menaruh Salin foto di bawah Teruskan pada menu yang Anda buka dengan menekan lama sebuah foto, setelah foto itu terunduh. Gambarnya sendiri yang disalin, jadi Anda bisa menempelkannya di aplikasi lain. Tidak muncul di obrolan terlindungi atau rahasia. Nonaktif secara default di pengaturan.
 Add Message details to the message menu	Tambahkan Detail pesan ke menu pesan
@@ -307,6 +332,13 @@ File data center: %1$s	Pusat data file: %1$s
 File size: %1$s	Ukuran file: %1$s
 Copy	Salin
 Message details copied	Detail pesan disalin
+Add Quick forward to the message menu	Tambahkan Teruskan cepat ke menu pesan
+Puts Quick forward under Forward in a message's long-press menu. It lists Saved Messages and a few recent chats, and one tap forwards the message there with the sender shown, unless Hide sender names when forwarding is on. It won't appear in protected or secret chats. Off by default in settings.	Menaruh Teruskan cepat di bawah Teruskan pada menu yang Anda buka dengan menekan lama sebuah pesan. Menampilkan Pesan Tersimpan dan beberapa obrolan terbaru, dan satu ketukan meneruskan pesan ke sana dengan pengirim tetap terlihat, kecuali Sembunyikan nama pengirim saat meneruskan sedang aktif. Tidak muncul di obrolan terlindungi atau rahasia. Nonaktif secara default di pengaturan.
+Quick forward	Teruskan cepat
+Forward to	Teruskan ke
+Forwarding to %1$s	Meneruskan ke %1$s
+Can't forward there	Tidak bisa meneruskan ke sana
+No chat to forward to	Tidak ada obrolan tujuan
 
 # context: Notifications repair and bottom-pull controls.
 Notifications	Notifikasi
@@ -324,6 +356,11 @@ Notification permission: %1$s	Izin notifikasi: %1$s
 Push token saved: %1$s	Token push tersimpan: %1$s
 Signed-in accounts: %1$s	Akun yang masuk: %1$s
 Accounts confirmed for push: %1$s	Akun dengan pendaftaran push terkonfirmasi: %1$s
+Telegram's push answer: %1$s	Jawaban Telegram untuk pendaftaran push: %1$s
+None since Telegram started	Belum ada sejak Telegram dibuka
+Accepted	Diterima
+Refused	Ditolak
+Refused (%1$s)	Ditolak (%1$s)
 Read-only local state. This doesn't confirm notification delivery.	Hanya membaca status lokal. Ini tidak memastikan bahwa notifikasi telah terkirim.
 Unknown	Tidak diketahui
 Allowed	Diizinkan

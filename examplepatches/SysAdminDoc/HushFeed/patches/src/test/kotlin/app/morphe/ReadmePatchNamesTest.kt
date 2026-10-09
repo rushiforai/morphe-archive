@@ -166,7 +166,7 @@ class ReadmePatchNamesTest {
             Regex("""src="([^"]+)"""").find(badge)!!.groupValues[1],
             lines.single { it.startsWith("> Hushfeed targets the global TikTok package") },
             lines.single { it.startsWith("1. Get the TikTok ") },
-            lines.single { it.startsWith("- Versions: ") },
+            lines.single { it.startsWith("- Version: ") },
             lines.single { it.startsWith("Google Play only ever serves") },
             lines.single { it.startsWith("APKMirror also offers some TikTok releases") },
         )

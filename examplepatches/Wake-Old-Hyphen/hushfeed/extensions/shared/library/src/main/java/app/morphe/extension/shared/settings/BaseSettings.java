@@ -12,7 +12,10 @@ import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static app.morphe.extension.shared.settings.Setting.parent;
 
+import androidx.annotation.NonNull;
+
 import app.morphe.extension.shared.Logger;
+import app.morphe.extension.shared.diagnostics.DebugCapture;
 
 /**
  * Settings shared across multiple apps.
@@ -21,7 +24,23 @@ import app.morphe.extension.shared.Logger;
  * or reference this class.
  */
 public class BaseSettings {
-    public static final BooleanSetting DEBUG = new BooleanSetting("morphe_debug", FALSE);
+    /**
+     * Log diagnostics. A timed capture ({@link DebugCapture}) answers on as well, without saving
+     * anything here: the switch keeps what the reader set, a backup carries that, and the
+     * capture ends on its own.
+     */
+    public static final BooleanSetting DEBUG = new BooleanSetting("morphe_debug", FALSE) {
+        @NonNull
+        @Override
+        protected Boolean currentValue() {
+            return savedValue() || DebugCapture.isRunning() ? TRUE : FALSE;
+        }
+    };
+    /**
+     * The running timed capture, written by {@link DebugCapture} only. Left out of backups, so
+     * restoring one can't start logging again.
+     */
+    public static final StringSetting DEBUG_CAPTURE = new StringSetting("hushfeed_debug_capture", "", false, false);
     public static final StringSetting DEBUG_LOG_FILTERS = new StringSetting("morphe_debug_log_filters", "all", false, false);
     public static final BooleanSetting CAPTURE_JAVA_CRASHES =
             new BooleanSetting("morphe_capture_java_crashes", FALSE, true);
@@ -62,7 +81,7 @@ public class BaseSettings {
 
     static {
         // Hushfeed's own state and its diagnostics, which keep working while it is paused.
-        Setting.keepWhenPaused(DEBUG, DEBUG_LOG_FILTERS, CAPTURE_JAVA_CRASHES, DEBUG_STACKTRACE,
+        Setting.keepWhenPaused(DEBUG, DEBUG_CAPTURE, DEBUG_LOG_FILTERS, CAPTURE_JAVA_CRASHES, DEBUG_STACKTRACE,
                 DEBUG_TOAST_ON_ERROR, CHECK_ENVIRONMENT_WARNINGS_ISSUED, MORPHE_LANGUAGE, SHOW_MENU_ICONS,
                 FIRST_TIME_APP_LAUNCHED, EXPERIMENTAL_APP_CONFIRMED, PAUSED, SAFE_MODE);
 

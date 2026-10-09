@@ -81,9 +81,12 @@ public final class FeedLock {
     private FeedLock() {
     }
 
-    /** A video's own page, as a link or a share opens it. */
+    /**
+     * A video's own page, as a link or a share opens it. A photo post's page is one post too, and
+     * the mobile site's older links end in .html (m.tiktok.com/v/{id}.html).
+     */
     private static final Pattern VIDEO_PATH = Pattern.compile(
-            "/(?:share/video/|v/|@[^/]*/video/)[0-9]{1,20}/?");
+            "/(?:share/video/|v/|@[^/]*/(?:video|photo)/)[0-9]{1,20}(?:\\.html)?/?");
     /** The short links a share sheet hands out, which TikTok resolves to one video. */
     private static final Pattern SHORT_PATH = Pattern.compile("/(?:t/)?[A-Za-z0-9]{4,20}/?");
     /** The app's own scheme for a video: aweme://aweme/detail/{id}, also under snssdk{n}. */
@@ -179,8 +182,8 @@ public final class FeedLock {
     }
 
     /**
-     * Whether an intent is a link to one video: a VIEW of a TikTok video page, a share's short
-     * link, or the app's own detail address. Any other intent with an address (a profile, a
+     * Whether an intent is a link to one video: a VIEW of a TikTok video or photo post page, a
+     * share's short link, or the app's own detail address. Any other intent with an address (a profile, a
      * hashtag, a sound, a search, a web page) opens something that isn't a single video, so it
      * stays covered like the rest of the feed.
      */

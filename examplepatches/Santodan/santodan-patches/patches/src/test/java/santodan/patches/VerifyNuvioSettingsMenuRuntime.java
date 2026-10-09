@@ -17,14 +17,19 @@ import kotlin.coroutines.EmptyCoroutineContext;
 public final class VerifyNuvioSettingsMenuRuntime {
     public static void main(String[] args) throws Exception {
         String[] bridges = {
-            "software.santodan.extension.nuvioremaining.NuvioRemainingEpisodes",
             "software.santodan.extension.nuviomerged.NuvioMergedProgress",
+            "software.santodan.extension.nuvioremaining.NuvioRemainingEpisodes",
             "software.santodan.extension.nuvioairing.NuvioAiringSeries",
-            "software.santodan.extension.nuviofinale.NuvioFinaleDates"
+            "software.santodan.extension.nuviofinale.NuvioFinaleDates",
+        "software.santodan.extension.nuviomovierelease.NuvioMovieReleaseDates",
+            "software.santodan.extension.nuviocwstreams.NuvioContinueWatchingStreams",
+            "software.santodan.extension.nuviodetailstreams.NuvioDetailStreams"
         };
-        for (int installed : new int[]{0, 1, 4}) {
-            Path directory = Path.of(args[2], "installed-" + installed);
-            Files.createDirectories(directory);
+        for (int selection = 0; selection < 128; selection++) {
+            int installed = Integer.bitCount(selection);
+            Path root = Path.of(args[2]);
+            Files.createDirectories(root);
+            Path directory = Files.createTempDirectory(root, "selection-" + selection + "-");
             Map<String, String> sources = new LinkedHashMap<>();
             sources.put("android.util.Log", "package android.util; public class Log { public static int e(String tag,String message,Throwable cause) { throw new AssertionError(message,cause); } }");
             sources.put("q1.s", "package q1; public class s { public final Object content; public s(int key,Object content,boolean tracked) { this.content=content; } }");
@@ -32,11 +37,28 @@ public final class VerifyNuvioSettingsMenuRuntime {
             sources.put("w1.n", "package w1; public class n { public static final n b=new n(); }");
             sources.put("g0.i", "package g0; import kotlin.jvm.functions.*; public class i { public int count; public Object key; public q1.s content; public void q(int n,Function1 key,Function1 type,q1.s body){count+=n;this.key=key.invoke(0);content=body;} public void render(){((Function4)content.content).invoke(null,0,new g1.j.Composer(),0);} }");
             sources.put("sa.kc", "package sa; import kotlin.jvm.functions.*; public class kc { public static boolean expanded; public static Function0 toggle; public static int rendered; public static void a(String title,String description,boolean open,Function0 onToggle,w1.n modifier,Object icon,Object focus,Function0 noop,q1.s body,Object composer,int flags) { if(!title.equals(\"Santodan-Patches\"))throw new AssertionError(title); expanded=open;toggle=onToggle;if(open)((Function3)body.content).invoke(null,composer,0); } }");
-            for (int index = 0; index < installed; index++) {
+            sources.put("sa.kc", sources.get("sa.kc").replace("public static boolean expanded;",
+                "public static java.util.List<String> events=new java.util.ArrayList<>(); public static void e(int flags,int defaults,Object composer,String text,String description,w1.n modifier){if(defaults!=4)throw new AssertionError();events.add(text);} public static boolean expanded;"));
+            List<String> expected = new ArrayList<>();
+            boolean continueWatching = false;
+            boolean streams = false;
+            boolean ui = false;
+            for (int index = 0; index < bridges.length; index++) {
+                if ((selection & (1 << index)) == 0) continue;
+                if (index < 3 && !continueWatching) {
+                    expected.add("Continue Watching");
+                    continueWatching = true;
+                }
+                if (index >= 3 && index < 5 && !ui) { expected.add("UI"); ui = true; }
+                if (index >= 5 && !streams) {
+                    expected.add("Streams");
+                    streams = true;
+                }
                 String bridge = bridges[index];
+                expected.add(bridge);
                 int dot = bridge.lastIndexOf('.');
                 sources.put(bridge, "package " + bridge.substring(0, dot) + "; public class " + bridge.substring(dot + 1)
-                    + " { public static void renderSettings(Object composer){sa.kc.rendered++;} }");
+                    + " { public static void renderSettings(Object composer){sa.kc.rendered++;sa.kc.events.add(\"" + bridge + "\");} }");
             }
             List<String> compile = new ArrayList<>(List.of("-classpath", System.getProperty("java.class.path"), "-d", directory.toString()));
             for (Map.Entry<String, String> source : sources.entrySet()) {
@@ -64,6 +86,8 @@ public final class VerifyNuvioSettingsMenuRuntime {
                 scope.getMethod("render").invoke(list);
                 if (!section.getField("expanded").getBoolean(null) || section.getField("rendered").getInt(null) != installed)
                     throw new AssertionError("Expanded menu failed to discover exactly the installed patches");
+                if (!expected.equals(section.getField("events").get(null)))
+                    throw new AssertionError("Incorrect section labels or setting order: " + section.getField("events").get(null));
                 ((kotlin.jvm.functions.Function0<?>) section.getField("toggle").get(null)).invoke();
                 scope.getMethod("render").invoke(list);
                 if (section.getField("expanded").getBoolean(null) || section.getField("rendered").getInt(null) != installed)
@@ -78,7 +102,7 @@ public final class VerifyNuvioSettingsMenuRuntime {
                 ((Continuation<Object>) adapter).resumeWith("saved");
                 if (!"saved".equals(result[0])) throw new AssertionError("Native coroutine completion was not forwarded");
             }
-            System.out.println("PASS: menu expansion, collapse, installed=" + installed + ", and native coroutine completion");
+            System.out.println("PASS: menu labels, expansion, collapse, selection=" + selection + ", and native coroutine completion");
         }
     }
 }

@@ -524,6 +524,37 @@ public final class HushTelegramPreferenceFragment extends AbstractPreferenceFrag
                                 + "IDs, when it was sent and edited, where it was forwarded from and the file's data "
                                 + "center and size, with a Copy button. Off by default in settings."))),
                         SettingsIcons.CHAT));
+                chats.addPreference(mark(toggle(context, Settings.MESSAGE_MENU_QUICK_FORWARD, L10n.t("Add Quick forward to the message menu"),
+                        PatchFamily.MESSAGE_MENU_REPEAT.coverageSummary(L10n.t("Puts Quick forward under Forward in a message's long-press menu. It lists Saved "
+                                + "Messages and a few recent chats, and one tap forwards the message there with the "
+                                + "sender shown, unless Hide sender names when forwarding is on. It won't appear in "
+                                + "protected or secret chats. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.KEEP_DELETED_MESSAGES)) {
+                chats.addPreference(mark(toggle(context, Settings.KEEP_DELETED_MESSAGES, L10n.t("Keep deleted messages"),
+                        PatchFamily.KEEP_DELETED_MESSAGES.coverageSummary(L10n.t("Messages other people delete stay in your chats on this phone, marked deleted next to "
+                                + "the time. Your own deletes and anything that disappears or is protected work as usual. "
+                                + "Off by default in settings."))),
+                        SettingsIcons.CHAT));
+            }
+            if (build.contains(PatchFamily.ASK_BEFORE_STICKER)) {
+                chats.addPreference(mark(toggle(context, Settings.ASK_BEFORE_STICKER, L10n.t("Ask before sending a sticker"),
+                        PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Send or Cancel before a sticker you tap goes into a chat. Cancel drops it, and a "
+                                + "scheduled sticker goes through as it always did. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+                chats.addPreference(mark(toggle(context, Settings.ASK_BEFORE_GIF, L10n.t("Ask before sending a GIF"),
+                        PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Send or Cancel before a GIF you tap goes into a chat. Cancel drops it, and a "
+                                + "scheduled GIF goes through as it always did. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+                chats.addPreference(mark(toggle(context, Settings.ASK_BEFORE_VOICE_VIDEO, L10n.t("Ask before sending a voice or video message"),
+                        PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Send or Cancel before a voice or video message you recorded goes into a chat. "
+                                + "Cancel throws the recording away. Off by default in settings."))),
+                        SettingsIcons.CHAT));
+                chats.addPreference(mark(toggle(context, Settings.ASK_BEFORE_CALL, L10n.t("Ask before starting a call"),
+                        PatchFamily.ASK_BEFORE_STICKER.coverageSummary(L10n.t("Asks Call or Cancel before the call button in a chat's header or on a profile starts a "
+                                + "call. Off by default in settings."))),
+                        SettingsIcons.CHAT));
             }
         }
 

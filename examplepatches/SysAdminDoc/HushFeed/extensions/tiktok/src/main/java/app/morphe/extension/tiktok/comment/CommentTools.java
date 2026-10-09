@@ -52,10 +52,10 @@ import java.util.WeakHashMap;
  * 46.2.3 ({@code getText}, {@code getUser}, {@code getCid}, {@code getReplyComments}, and
  * the public {@code items} list), so nothing here depends on an obfuscated name.
  *
- * The thumbs down is a RelativeLayout ({@code k0k} on 47.0.3, {@code jlk} on 46.x) holding an
- * icon ({@code mmt} on 47.0.3, {@code m3b} on 46.x) at the
+ * The thumbs down is a RelativeLayout ({@code k2_} on 47.1.4, {@code jlk} on 46.x) holding an
+ * icon ({@code mpe} on 47.1.4, {@code m3b} on 46.x) at the
  * right end of the comment's action row; both ids were read off a live comment panel. Only
- * the 47.0.3 names are looked up: on 47.0.3 jlk and m3b name other views. TikTok
+ * the 47.1.4 names are looked up: an older build's names name other views there. TikTok
  * drives it with a touch listener that can be installed only once per view. A native install
  * hook keeps that listener in a view-owned wrapper, and the posted cell bind switches the
  * wrapper to blocking while the setting is enabled. The icon stays; a tap blocks the commenter
@@ -226,11 +226,11 @@ public final class CommentTools {
     }
 
     private static final String POLL_HOOK_FAMILY = "comment polls";
-    private static final String[] DISLIKE_BUTTON_IDS = {"47.0.3:k0k", "47.1.3:k2_", "47.1.4:k2_"};
+    private static final String[] DISLIKE_BUTTON_IDS = {"47.1.4:k2_"};
 
     /** One log line for a cell with no thumbs down, not a verdict on the build. */
     private static boolean warnedNoDislikeControl;
-    private static final String[] DISLIKE_ICON_IDS = {"47.0.3:mmt", "47.1.3:mpe", "47.1.4:mpe"};
+    private static final String[] DISLIKE_ICON_IDS = {"47.1.4:mpe"};
     /**
      * Faded enough to read as blocked, still readable. At 0.35 the comment text dropped to about
      * 3:1 on the sheet, which is below the floor for text of that size.

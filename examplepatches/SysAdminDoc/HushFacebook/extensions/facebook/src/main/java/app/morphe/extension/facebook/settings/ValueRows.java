@@ -262,7 +262,9 @@ final class ValueRows {
 
         /**
          * Adds [pack]'s words to the text in the open dialog, after what's there, and says what came
-         * of it. The list isn't saved: the words are lines in the editor until Save.
+         * of it on the count line, above the count, until the next edit. A toast lost the end:
+         * Android 12 and later cut one to two lines, and the S22 showed "Tap Save to keep the l…".
+         * The list isn't saved: the words are lines in the editor until Save.
          */
         void addPack(TopicPacks.Pack pack) {
             String typed = getEditText().getText().toString();
@@ -271,7 +273,12 @@ final class ValueRows {
                 getEditText().setText(result.text);
                 getEditText().setSelection(getEditText().getText().length());
             }
-            Utils.showToastLong(packResult(pack, result));
+            String said = packResult(pack, result);
+            if (count == null) {
+                Utils.showToastLong(said);
+                return;
+            }
+            count.setText(said + "\n" + wordsEditorLine(PostWords.size(getEditText().getText().toString(), otherBytes)));
         }
 
         @Override protected void onBindDialogView(View view) {

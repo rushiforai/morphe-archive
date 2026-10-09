@@ -32,9 +32,26 @@ internal object DetailActivityOnCreateFingerprint : Fingerprint(
 )
 
 /**
- * Depends on the block author patch only for its tracking of which video is on screen; the
- * region is read from that Aweme, so it follows the player rather than the feed's prefetch.
+ * Installs the creator's row decoration in both windows a video plays in. Show author region and
+ * Show engagement rate share it, so a build with both installs the row once and each adds its
+ * part. Depends on the block author patch only for its tracking of which video is on screen; what
+ * the row shows is read from that Aweme, so it follows the player rather than the feed's prefetch.
  */
+internal val authorRowPatch = bytecodePatch {
+    dependsOn(sharedExtensionPatch, blockAuthorPatch)
+
+    execute {
+        // p0 is the activity. /range because a parameter register is usually above v15.
+        listOf(MainActivityOnCreateFingerprint, DetailActivityOnCreateFingerprint).forEach {
+            it.method.addInstruction(
+                0,
+                "invoke-static/range { p0 .. p0 }, " +
+                    "$EXTENSION_CLASS_DESCRIPTOR->install(Landroid/app/Activity;)V",
+            )
+        }
+    }
+}
+
 @Suppress("unused")
 val showAuthorRegionPatch = bytecodePatch(
     name = "Show author region",
@@ -43,7 +60,7 @@ val showAuthorRegionPatch = bytecodePatch(
     default = false,
 ) {
     category("Feed")
-    dependsOn(settingsPatch, sharedExtensionPatch, blockAuthorPatch)
+    dependsOn(settingsPatch, sharedExtensionPatch, authorRowPatch)
 
     compatibleWith(*AppCompatibilities.tiktok())
 
@@ -53,14 +70,5 @@ val showAuthorRegionPatch = bytecodePatch(
             "invoke-static {}, " +
                 "Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableAuthorRegion()V",
         )
-
-        // p0 is the activity. /range because a parameter register is usually above v15.
-        listOf(MainActivityOnCreateFingerprint, DetailActivityOnCreateFingerprint).forEach {
-            it.method.addInstruction(
-                0,
-                "invoke-static/range { p0 .. p0 }, " +
-                    "$EXTENSION_CLASS_DESCRIPTOR->install(Landroid/app/Activity;)V",
-            )
-        }
     }
 }

@@ -54,6 +54,16 @@ jobs:
         run: |
           javac -d /tmp/nicoid-content-tests extensions/extension/src/main/java/e/e/a/ContentFilterRules.java extensions/extension/src/main/java/e/e/a/HistoryRules.java porting/tests/ContentHistoryRulesTest.java
           java -cp /tmp/nicoid-content-tests e.e.a.ContentHistoryRulesTest
+      - name: Check Nico Reports activity filters
+        run: |
+          javac -cp /tmp/nicoid-json.jar -d /tmp/nicoid-feed-tests extensions/extension/src/main/java/e/e/a/FollowFeedData.java porting/tests/FollowFeedDataTest.java
+          java -cp /tmp/nicoid-feed-tests:/tmp/nicoid-json.jar e.e.a.FollowFeedDataTest
+      - name: Check NG comment management and playback return
+        run: |
+          javac -cp /tmp/nicoid-json.jar -d /tmp/nicoid-ng-tests extensions/extension/src/main/java/e/e/a/NgCommentData.java porting/tests/NgCommentDataTest.java
+          java -cp /tmp/nicoid-ng-tests:/tmp/nicoid-json.jar e.e.a.NgCommentDataTest
+          javac -d /tmp/nicoid-return-tests $(find porting/tests/return-stubs -name '*.java') extensions/extension/src/main/java/e/e/a/PlaybackReturn.java porting/tests/PlaybackReturnTest.java
+          java -cp /tmp/nicoid-return-tests e.e.a.PlaybackReturnTest
       - name: Check manual login cookie input
         run: |
           javac -d /tmp/nicoid-cookie-tests extensions/extension/src/main/java/e/e/a/ManualCookie.java porting/tests/ManualCookieTest.java

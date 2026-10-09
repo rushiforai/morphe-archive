@@ -87,6 +87,7 @@ val unlockReceiptScannerPatch = rawResourcePatch(
     description = "Makes the receipt scanner available from Development Settings and forces its V2 flow to render. REQUIRES Unlock Developer Settings to be enabled.",
     default = false
 ) {
+    category("Features")
     compatibleWith(COMPATIBILITY_SEZZLE)
     dependsOn(unlockDevSettingsPatch)
 

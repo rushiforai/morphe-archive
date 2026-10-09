@@ -6,11 +6,10 @@ import app.morphe.patches.tiktok.feedfilter.COMMENT_TOP_BAR_BRIDGE_BASE
 import app.morphe.patches.tiktok.feedfilter.FriendsV3FeedHandleResponseFingerprint
 import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_BRIDGE
 import app.morphe.patches.tiktok.feedfilter.TAKO_COMMENT_TOP_BAR_SERVICE
+import app.morphe.patches.tiktok.feedfilter.COLD_START_STORES
 import app.morphe.patches.tiktok.feedfilter.coldStartCall
 import app.morphe.patches.tiktok.feedfilter.coldStartOrchestrators
 import app.morphe.patches.tiktok.feedfilter.countColdStartFeedItemListStores
-import app.morphe.patches.tiktok.feedfilter.expectedColdStartStores
-import app.morphe.patches.tiktok.feedfilter.goldenRunsTheColdStart
 import app.morphe.patches.tiktok.feedfilter.isCommentTopBarCanShow
 import app.morphe.patches.tiktok.feedfilter.isTakoSearchEntranceInflater
 import app.morphe.patches.tiktok.feedfilter.takoSearchEntranceVariants
@@ -84,7 +83,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Instruction-level anchors used by TikTok 47.0.3 remain unique on every
+ * Instruction-level anchors the patches use on TikTok remain unique on every
  * retained universal APK. The assertions describe behavior the patches consume rather than R8
  * names or strings that can move into adjacent methods.
  */
@@ -1125,8 +1124,10 @@ class TikTokPatchAnchorsMatchFixturesTest {
             assertEquals("${apk.name}: offline cold-cache anchor", 1, offlineCache.size)
             assertEquals("${apk.name}: playback speed anchor", 1, speed.size)
 
-            // What calls both cache methods: nothing on 47.0.3, where the golden method runs the
-            // cold start itself, and the orchestrator 47.1.3 split off, which the patch hooks too.
+            // What calls both cache methods: the cold start's orchestrator, which the patch hooks
+            // too. Up to 47.0.3 the golden method ran the cold start itself, a shape the patch no
+            // longer takes, so only a declared build is held to it.
+            if (Fixtures.versionOf(apk) !in Fixtures.declaredVersions()) continue
             val targets = setOf(goldenCache.single().coldStartCall(), offlineCache.single().coldStartCall())
             val calls = container.dexEntryNames.asSequence()
                 .flatMap { container.getEntry(it)!!.dexFile.classes.asSequence() }
@@ -1138,12 +1139,12 @@ class TikTokPatchAnchorsMatchFixturesTest {
                         ?.filter { it in targets }?.toSet().orEmpty()
                     if (called.isEmpty()) null else method to called
                 }.toMap()
-            val orchestrators = if (goldenCache.single().goldenRunsTheColdStart()) emptyList()
-                else coldStartOrchestrators(goldenCache.single(), offlineCache.single(), calls)
+            val orchestrators = coldStartOrchestrators(goldenCache.single(), offlineCache.single(), calls)
+            assertEquals("${apk.name}: cold-start orchestrators", 1, orchestrators.size)
             val coldMethods = (goldenCache + offlineCache + orchestrators).distinctBy { it.anchorSignature() }
             assertEquals(
-                "${apk.name}: cold-cache FeedItemList stores with ${orchestrators.size} orchestrator(s)",
-                expectedColdStartStores(orchestrators.size),
+                "${apk.name}: cold-cache FeedItemList stores",
+                COLD_START_STORES,
                 coldMethods.sumOf { it.countColdStartFeedItemListStores() },
             )
             val offlineMarkers = coldMethods.sumOf { method ->

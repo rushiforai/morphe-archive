@@ -1,238 +1,124 @@
 # Kizu Twitch Patches
 
-Morphe-compatible patches for the Twitch Android app, maintained for Kizu's Twitch enhancements.
+Morphe-compatible patches for the **Twitch Android app**.
 
-This repository contains **Twitch patches only**.
+Kizu's goal is simple: add useful Twitch enhancements, privacy/cleanup controls, and third-party emote support while keeping the patch focused on the features that are actually supported and tested.
 
-## Included patches
+**Current stable:** [v1.9.2](https://github.com/K8R8TO/kizu-morphe-patches/releases/tag/v1.9.2)  
+**Target:** Twitch Android **31.3.1** (tv.twitch.android.app)  
+**Format:** Morphe .mpp patch bundle
 
-The project is focused on a single user-facing patch:
+## Features
 
-- **Twitch Enhancement**
+### Twitch enhancements
 
-Its internal dependencies provide the individual Twitch features, including:
+- Automatic **Channel Points** bonus-claiming.
+- Choose the default startup tab:
+  - Following
+  - Live
+  - Clips
+- **Login compatibility fixes**.
+- **Notification compatibility fixes**.
+- Third-party **chat rendering** support.
 
-- Third-party 7TV / BTTV emotes
-- Third-party emote picker integration
-- Emote animation support
-- Privacy controls
-- UYU/Kizu settings integration
-- Twitch ad and promotion handling
-- Login and notification compatibility fixes
-- Automatic Channel Points bonus claiming
+### Home & navigation
 
-Internal dependencies are deliberately kept hidden from Morphe's user-facing patch list.
+- Hide **Stories**.
+- Hide **Go Ad-Free / Turbo** from the Following feed.
+- Hide **Continue Watching**.
+- Hide **Offline Channels**.
 
-## Sources, attribution and reused work
+### Appearance & cleanup
 
-This project is a derivative work assembled from several open-source projects, upstream implementations, public APIs, platform documentation, and reverse-engineering of the target Twitch application. This section distinguishes **code that is directly reused/adapted** from **reference material and upstream lineage**.
+- Hide **Subscribe / Gift Sub / Bits** controls above chat.
+- Hide the **Bits** button.
+- Hide the **gift leaderboard**.
+- Hide **subscription/promotion** banners.
+- Disable Twitch's supported **link disclaimer**.
 
-### Direct code sources
+### Ads
 
-#### 1. UYU — 'bakwudo/uyu'
+- Twitch **ad blocking**.
+- Optional **stream proxy** support.
+- Built-in proxy choices and a custom proxy URL.
+- Proxy fallback behavior for supported playback paths.
 
-**Repository:** https://github.com/bakwudo/uyu
+### Third-party emotes
 
-**Role:** Major upstream codebase for the Twitch patch bundle and the base architecture used by this project.
+- **7TV** emotes.
+- **BTTV** emotes.
+- **FFZ / FrankerFaceZ** emotes.
+- One master **3rd party emotes** toggle.
+- Animated third-party emotes.
+- Third-party **emote picker**.
+- Third-party **autocomplete**.
+- **Zero-width / overlay emotes**.
+- Emote caching and image loading.
+- Twitch 31.3.1-specific emote URL compatibility.
 
-**Used/adapted:**
+Kizu's third-party picker is kept separate from Twitch's native emote picker. Twitch's native picker and its native three-button menu are not replaced.
 
-- Twitch patch structure and patch organization.
-- Twitch 31.3.1 targeting and version-specific fingerprints.
-- UYU/Kizu settings integration and settings UI.
-- Login compatibility implementation.
-- Notification compatibility implementation.
-- Ad blocking / promotion handling and related runtime hooks.
-- Danmaku/chat overlay implementation where retained.
-- Channel Points patch structure and Twitch Channel Points model fingerprints.
-- Shared extension/runtime utilities and constants.
-- Morphe extension packaging and Twitch compatibility plumbing.
+### Chat
 
-The current project modifies and extends UYU's Twitch implementation rather than presenting the inherited portions as wholly original.
+- Show **deleted messages**.
+- Deleted-message styles:
+  - Mod
+  - Strikethrough
+  - Grey
+- **Chat timestamps**.
+- **Mention highlighting**.
+- Custom mention highlight color.
+- Optional mention sound.
+- Configurable mention-sound cooldown.
 
-#### 2. Hooman's Morphe Patches — 'arandomhooman/hoomans-morphe-patches'
+### Privacy
 
-**Repository:** https://github.com/arandomhooman/hoomans-morphe-patches
+- Disable **Comscore** measurement.
+- Disable **Bugsnag / crash reporting**.
 
-**Role:** Primary upstream for the third-party Twitch emote implementation.
+## Sources & adapted work
 
-**Used/adapted:**
+Kizu combines original work with code and implementation ideas adapted from other open-source projects. The table below shows the sources used for features or major parts of the patch.
 
-- 7TV / BTTV emote loading architecture.
-- EmoteCatalog, EmoteSupport, EmoteImageLoader, Emote, and CenteredImageSpan implementation/code.
-- Third-party emote retrieval, caching and chat rendering.
-- Twitch emote-related fingerprints and hooks where applicable.
-- 7TV / BTTV emote data handling and asset URL construction.
-
-The Hooman implementation targets an older Twitch version, so the code here has been adapted for newer Twitch builds and extended with Kizu's picker and animation work.
-
-Hooman's own README identifies ReVanced as part of its upstream lineage; see the indirect upstream section below.
-
-### Framework and build sources
-
-#### 3. Morphe Patches / Morphe Patcher
-
-**Morphe:** https://github.com/MorpheApp  
-**Morphe Patches template:** https://github.com/MorpheApp/morphe-patches-template  
-**Morphe Patcher:** https://github.com/MorpheApp/morphe-patcher  
-**Morphe documentation:** https://github.com/MorpheApp/morphe-documentation
-
-**Used:**
-
-- Morphe patch project/template structure.
-- Patch DSL and bytecode-patching APIs.
-- Fingerprint and compatibility mechanisms.
-- Extension packaging.
-- .mpp patch bundle format.
-- Build and patch tooling.
-- Morphe-specific licensing/NOTICE requirements.
-
-This repository is built as a Morphe patch bundle; Morphe is the patching/build framework, not the source of the Kizu-specific Twitch features.
-
-### Indirect upstream lineage / reference projects
-
-The following projects are **not claimed as direct copied source for the current implementation** unless explicitly noted above. They are included because they are upstream references identified by the projects whose code we adapted, or because they informed specific implementation work.
-
-#### 4. ReVanced
-
-**Repository:** https://github.com/ReVanced/revanced-patches
-
-UYU and Hooman's projects identify ReVanced as upstream/reference work. The current project therefore preserves that attribution lineage for inherited patching patterns and concepts.
-
-This README does **not** claim that every ReVanced implementation is present in this repository.
-
-#### 5. niconico-yt-morphe-patches
-
-**Repository:** https://github.com/david419kr/niconico-yt-morphe-patches
-
-UYU credits this project as a reference for the danmaku overlay design. Any retained danmaku functionality therefore carries that upstream reference.
-
-#### 6. morphe-androidtv-patches
-
-**Repository:** https://github.com/ajstrick81/morphe-androidtv-patches
-
-UYU credits this project as a reference for client-side ad blocking. It is listed here as upstream reference material rather than as a claim that its code was copied wholesale into Kizu.
-
-#### 7. bttv-android
-
-**Repository:** https://github.com/bttv-android/bttv
-
-This project is an independent Android Twitch mod with 7TV/BTTV/FFZ support and automatic Channel Points claiming.
-
-It was used as a **technical reference during development**, particularly when investigating Android-side automatic Channel Points claiming and third-party emote behavior. It is not presented as a direct source of the current Kizu Channel Points implementation.
-
-### Target application and external services
-
-#### 8. Twitch Android
-
-**Target:** Twitch Android 31.3.1 / build 3103016  
-**Package:** tv.twitch.android.app
-
-A genuine Twitch APKM was inspected to identify the current app's obfuscated classes, methods, models and UI structures.
-
-**Used for reverse engineering, not copied as source code:**
-
-- Exact Twitch 31.3.1 class/method signatures.
-- Channel Points provider/model structure.
-- The exact Channel Points claim method used by the target build.
-- The actual EmoteUrlUtil.b(String,String) URL helper.
-- Native Twitch emote-picker model classes and enums.
-- Twitch emote animation-related state/mutation names.
-- Runtime behavior needed to target the current Twitch build.
-
-Twitch's application code is proprietary. Its code is not presented here as project source.
-
-#### 9. 7TV
-
-**Project:** https://7tv.app/
-
-**Used:**
-
-- Public 7TV emote-set data/API endpoints.
-- 7TV emote IDs and names.
-- Static and animated emote asset URLs.
-- Emote metadata needed by the third-party emote loader and picker.
-
-The project does not include 7TV's service code.
-
-#### 10. BetterTTV (BTTV)
-
-**Project:** https://betterttv.com/
-
-**Used:**
-
-- Public BTTV emote-set data/API endpoints.
-- BTTV emote IDs and names.
-- Static and animated emote asset URLs.
-- Emote metadata needed by the third-party emote loader and picker.
-
-The project does not include BTTV's service code.
-
-### Android / platform references
-
-#### 11. Android / AOSP
-
-**Android documentation:** https://developer.android.com/  
-**AOSP:** https://android.googlesource.com/platform/frameworks/base/
-
-**Used:**
-
-- Android ImageDecoder behavior.
-- AnimatedImageDrawable behavior.
-- Explicit animation start/repeat behavior.
-- Android view, popup, keyboard and input-method behavior used by the picker.
-- Standard Android lifecycle and UI APIs used by the extension.
-
-These are platform references, not copied application code.
-
-## What is original or Kizu-specific
-
-The following work is developed specifically for this repository, even where it builds on the upstream implementations above:
-
-- Porting the combined Twitch feature set to Twitch 31.3.1.
-- Reverse-engineering Twitch 31.3.1's obfuscated emote-picker and Channel Points structures.
-- The Kizu third-party emote picker bridge.
-- Integration between the adapted Hooman emote system and Twitch's native emote picker.
-- The Kizu picker button and compact standalone picker UI.
-- Native-picker lifecycle handling so Twitch's original picker remains in its own view hierarchy.
-- Kizu-specific emote search/filter behavior and keyboard handling.
-- Twitch-version-specific emote URL hooking.
-- Animated 7TV/BTTV emote loading and playback fixes.
-- Kizu-specific settings behavior, including third-party emote animation controls.
-- Kizu's automatic Channel Points retry logic and integration with Twitch's exact claim method.
-- Compatibility fixes and regression repairs made while testing against the target Twitch APK.
-
-Where a component is adapted from another project, the upstream project is identified above rather than treating the adaptation as wholly original.
-
-## Attribution notes
-
-There are several different kinds of dependencies in this project:
-
-| Source | Relationship |
+| Feature / area | Source |
 |---|---|
-| UYU | **Directly adapted upstream codebase** |
-| Hooman's Morphe Patches | **Directly adapted for third-party emotes** |
-| Morphe / Morphe Patcher / template | **Build and patch framework** |
-| ReVanced | **Indirect upstream lineage/reference** |
-| niconico-yt-morphe-patches | **Indirect danmaku reference via UYU** |
-| morphe-androidtv-patches | **Indirect ad-blocking reference via UYU** |
-| bttv-android | **Independent technical reference for emotes/auto-claim** |
-| Twitch Android | **Reverse-engineering target; proprietary, not copied as source** |
-| 7TV | **External emote service/API** |
-| BTTV | **External emote service/API** |
-| Android / AOSP | **Platform/API documentation and behavior reference** |
+| Twitch patch architecture, settings, login/notification compatibility, ad/promotion handling, shared utilities | [UYU](https://github.com/bakwudo/uyu) |
+| 7TV / BTTV / FFZ emotes, emote loading/caching, third-party emote handling | [Hooman's Morphe Patches](https://github.com/arandomhooman/hoomans-morphe-patches) |
+| Channel Points auto-claim architecture/reference | [PurpleTV ReVive](https://github.com/alienware377/purpletv-revive) |
+| Twitch patching framework and build tooling | [Morphe](https://github.com/MorpheApp), [Morphe Patches](https://github.com/MorpheApp/morphe-patches), [Morphe Patches Template](https://github.com/MorpheApp/morphe-patches-template), [Morphe Patcher](https://github.com/MorpheApp/morphe-patcher), [Morphe Documentation](https://github.com/MorpheApp/morphe-documentation) |
+| Additional patching/reference lineage | [ReVanced](https://github.com/ReVanced/revanced-patches), [morphe-androidtv-patches](https://github.com/ajstrick81/morphe-androidtv-patches), [bttv-android](https://github.com/bttv-android/bttv) |
 
-This distinction is intentional: a project being listed here does not automatically mean its source code was copied into Kizu. The relationship is stated explicitly for each source.
+Kizu is responsible for the Twitch 31.3.1-specific adaptation, reverse engineering, integration, settings, compatibility work, and regression fixes.
 
-## Add to Morphe
+### Twitch 31.3.1
 
-Add this repository as a remote patch source in Morphe Manager:
+The actual **Twitch Android 31.3.1 APKM** is the authoritative target for Twitch-specific fingerprints, resources, and bytecode structure.
 
-github.com/K8R8TO/kizu-morphe-patches
+Donor projects are references for implementation and lineage; their obfuscated Twitch class or method names are not assumed to match Twitch 31.3.1.
 
-Morphe supports GitHub repository patch sources and can keep them updated automatically.
+### External emote services
 
-## Building locally
+Kizu uses the public services/data of:
+
+- [7TV](https://7tv.app/)
+- [BetterTTV](https://betterttv.com/)
+- [FrankerFaceZ](https://www.frankerfacez.com/)
+
+These services are not included in this repository.
+
+## Licensing
+
+Kizu is licensed under **GNU GPLv3**. See [LICENSE](LICENSE).
+
+Code adapted from upstream projects remains subject to the applicable upstream license and attribution requirements.
+
+The repository also includes [NOTICE](NOTICE) with the Morphe-specific GPLv3 Section 7 notice. In particular, Kizu uses its own project name and branding and only refers to Morphe as the compatibility/build framework.
+
+Twitch is proprietary software and is not owned by Kizu. Kizu does not distribute Twitch's proprietary source code.
+
+## Building
+
+Requirements are the normal Morphe patch development environment with a compatible JDK and Gradle setup.
 
 Build the Android patch bundle with:
 
@@ -240,33 +126,31 @@ Build the Android patch bundle with:
 ./gradlew buildAndroid
 ~~~
 
-The generated .mpp bundle is written to patches/build/libs/.
+The generated .mpp bundle is produced under:
 
-## License
+~~~
+patches/build/libs/
+~~~
 
-This project follows the licenses and additional conditions included in the repository's LICENSE and NOTICE files. Upstream licenses and attribution requirements remain applicable to the respective reused/adapted components.
+The patch metadata/release files are maintained in the repository so Morphe Manager can consume published releases.
 
-<!-- Kizu feature-chain build verification -->
+## Development
 
-<!-- settings package fix -->
+Kizu targets specific Twitch versions rather than arbitrary versions.
 
-<!-- runtime trigger -->
+For a supported Twitch build, Kizu:
 
-<!-- release retrigger -->
-\n### Channel Points reverse-engineering archive
+1. Inspects the actual target APK/APKM.
+2. Derives Twitch-specific fingerprints from that build.
+3. Implements and tests the feature.
+4. Builds the .mpp bundle.
+5. Verifies the release metadata.
+6. Runtime-tests the patched app before treating the change as complete.
 
-The exact Twitch 31.3.1 APKM used for current development, plus the exact PurpleTV 2.4_r2 APK used as a working auto-claim reference, are documented permanently under `reference/channel-points/`. The archive records artifact hashes, split/DEX inventories, relevant Twitch 31.3.1 Channel Points classes and GraphQL operations, PurpleTV's GraphQL claim architecture, and the assessment of historical/Copilot diagnoses.
+Experimental features stay out of stable releases until they are verified.
 
-See: `reference/channel-points/README.md`
+## License & attribution
 
-The current known-good baseline is documented in `reference/channel-points/BASELINE-1.8.0.md`. Future changes should start from 1.8.0 unless a historical version is explicitly required.
+This repository is a combined/derivative project. Upstream projects are credited above, and their respective licenses and attribution requirements continue to apply to the reused components.
 
-
-
-
-<!-- 1.9.0.16 release workflow trigger -->
-
-
-<!-- 1.9.0.19 release workflow trigger -->
-
-<!-- 1.9.0.19 release workflow trigger -->
+Kizu does not claim ownership of Twitch or any upstream project, service, or framework listed in this README.

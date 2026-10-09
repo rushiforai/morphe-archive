@@ -37,6 +37,7 @@ import org.robolectric.annotation.Implementation;
 import org.robolectric.annotation.Implements;
 import org.robolectric.android.controller.ActivityController;
 import org.robolectric.shadows.ShadowLooper;
+import org.telegram.tgnet.TLRPC;
 
 import app.hushtelegram.extension.shared.SettingsContextRule;
 import app.hushtelegram.extension.shared.Utils;
@@ -47,6 +48,7 @@ import app.hushtelegram.extension.shared.settings.PauseForTests;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManager;
 import app.hushtelegram.extension.shared.settings.preference.LogBufferManagerExportTest;
 import app.hushtelegram.extension.telegram.misc.FirebasePush;
+import app.hushtelegram.extension.telegram.misc.FirebasePushTest;
 
 /** Only the test shadow supplies synthetic native answers; fixture tests prove the shipped readers. */
 @RunWith(RobolectricTestRunner.class)
@@ -67,6 +69,7 @@ public class NotificationStatusTest {
         LogBufferManager.clearLogBuffer();
         Shadows.shadowOf(manager()).setNotificationsEnabled(true);
         PauseForTests.resume();
+        FirebasePushTest.forgetAnswer();
     }
 
     @After public void restore() {
@@ -77,6 +80,7 @@ public class NotificationStatusTest {
         PauseForTests.resume();
         HookStatus.clear();
         LogBufferManager.clearLogBuffer();
+        FirebasePushTest.forgetAnswer();
     }
 
     private static Context context() { return RuntimeEnvironment.getApplication(); }
@@ -91,6 +95,7 @@ public class NotificationStatusTest {
             assertEquals(Boolean.TRUE, status.tokenPresent);
             assertEquals(2, status.activeAccounts);
             assertEquals(1, status.acknowledgedAccounts);
+            assertEquals("none since start", status.pushAnswer);
             assertTrue(status.summary().contains("This doesn't confirm notification delivery."));
             assertFalse(Settings.REPAIR_FIREBASE_PUSH.savedValue());
             assertNull(Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity());
@@ -105,7 +110,27 @@ public class NotificationStatusTest {
         assertNull(status.tokenPresent);
         assertEquals(-1, status.activeAccounts);
         assertEquals(-1, status.acknowledgedAccounts);
+        FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolTrue(), null);
+        assertNull(FirebasePush.localStatus(context()).pushAnswer);
+        assertTrue(FirebasePush.localStatus(context()).summary().contains("Telegram's push answer: Unknown"));
         assertEquals(0, LocalReaders.reads);
+    }
+
+    @Test public void theSummaryNamesTelegramsLastAnswerToThePushRegistration() {
+        assertTrue(FirebasePush.localStatus(context()).summary().contains("Telegram's push answer: None since Telegram started"));
+        FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolTrue(), null);
+        assertTrue(FirebasePush.localStatus(context()).summary().contains("Telegram's push answer: Accepted"));
+        FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolFalse(), null);
+        assertTrue(FirebasePush.localStatus(context()).summary().contains("Telegram's push answer: Refused\n"));
+        FirebasePush.registerDeviceAnswer(null, new TLRPC.TL_error(400, "APP_PUSH_ERROR"));
+        String summary = FirebasePush.localStatus(context()).summary();
+        assertTrue(summary, summary.contains("Telegram's push answer: Refused (APP_PUSH_ERROR 400)"));
+        FirebasePush.registerDeviceAnswer(null, new TLRPC.TL_error(-1000, PRIVATE_CANARY));
+        summary = FirebasePush.localStatus(context()).summary();
+        assertTrue(summary, summary.contains("Telegram's push answer: Refused (unreadable -1000)"));
+        assertFalse(summary, summary.contains(PRIVATE_CANARY));
+        LocalReaders.brokenToken = LocalReaders.brokenCounts = true;
+        assertEquals("refused unreadable -1000", FirebasePush.localStatus(null).pushAnswer);
     }
 
     @Test public void missingInvalidAndUnreadableFactsStayIndependentAndUnknown() {
@@ -170,6 +195,9 @@ public class NotificationStatusTest {
             assertTrue(status.getSummary().toString().contains("Notification permission: Blocked"));
             assertTrue(status.getSummary().toString().contains("Push token saved: No"));
             assertTrue(status.getSummary().toString().contains("Signed-in accounts: 0"));
+            FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolTrue(), null);
+            page.onResume();
+            assertTrue(status.getSummary().toString().contains("Telegram's push answer: Accepted"));
             assertFalse(status.isSelectable());
             assertNull(status.getIntent());
         }
@@ -180,25 +208,36 @@ public class NotificationStatusTest {
         for (String[] language : languages) {
             RuntimeEnvironment.setQualifiers("+" + language[0]);
             Map<String, String> table = SettingsL10nTest.TranslationsForTests.of(language[1]);
-            String[] labels = {"Notification permission: %1$s", "Push token saved: %1$s", "Signed-in accounts: %1$s", "Accounts confirmed for push: %1$s"};
+            String[] labels = {"Notification permission: %1$s", "Push token saved: %1$s", "Signed-in accounts: %1$s", "Accounts confirmed for push: %1$s",
+                    "Telegram's push answer: %1$s"};
             for (int state = 0; state < 3; state++) {
                 LocalReaders.token = state == 0 ? -1 : state == 1 ? 1 : 0;
                 LocalReaders.counts = state == 0 ? -1 : state == 1 ? 2 | (1 << 8) : 0;
                 Shadows.shadowOf(manager()).setNotificationsEnabled(state == 1);
-                String[] values = state == 0 ? new String[]{table.get("Unknown"), table.get("Unknown"), table.get("Unknown"), table.get("Unknown")}
-                        : state == 1 ? new String[]{table.get("Allowed"), table.get("Yes"), "2", "1"}
-                        : new String[]{table.get("Blocked"), table.get("No"), "0", "0"};
+                FirebasePushTest.forgetAnswer();
+                if (state == 1) FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolTrue(), null);
+                if (state == 2) FirebasePush.registerDeviceAnswer(null, new TLRPC.TL_error(400, "APP_PUSH_ERROR"));
+                String[] values = state == 0 ? new String[]{table.get("Unknown"), table.get("Unknown"), table.get("Unknown"), table.get("Unknown"),
+                        table.get("None since Telegram started")}
+                        : state == 1 ? new String[]{table.get("Allowed"), table.get("Yes"), "2", "1", table.get("Accepted")}
+                        : new String[]{table.get("Blocked"), table.get("No"), "0", "0",
+                        String.format(table.get("Refused (%1$s)"), "APP_PUSH_ERROR 400")};
                 String summary = FirebasePush.localStatus(state == 0 ? null : context()).summary();
                 for (int label = 0; label < labels.length; label++) {
                     assertTrue(language[0] + ": " + summary, summary.contains(String.format(table.get(labels[label]), values[label])));
                 }
                 assertTrue(summary.contains(table.get("Read-only local state. This doesn't confirm notification delivery.")));
             }
+            FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolFalse(), null);
+            String summary = FirebasePush.localStatus(context()).summary();
+            assertTrue(language[0] + ": " + summary,
+                    summary.contains(String.format(table.get("Telegram's push answer: %1$s"), table.get("Refused"))));
         }
     }
 
     @Test public void bothExportsCarryOnlyTheBooleanAndAggregateCountsEvenAfterReaderFailures() throws Exception {
         PatchFamily.registerDiagnostics();
+        FirebasePush.registerDeviceAnswer(new TLRPC.TL_boolFalse(), new TLRPC.TL_error(400, PRIVATE_CANARY));
         for (boolean unreadable : new boolean[]{false, true}) {
             LocalReaders.brokenToken = LocalReaders.brokenCounts = unreadable;
             for (String report : bothExports()) {
@@ -206,6 +245,8 @@ public class NotificationStatusTest {
                 assertTrue(report, report.contains("token present: " + (unreadable ? "unknown" : "true")));
                 assertTrue(report, report.contains("active accounts: " + (unreadable ? "unknown" : "2")));
                 assertTrue(report, report.contains("acknowledged accounts: " + (unreadable ? "unknown" : "1")));
+                assertTrue(report, report.contains("push registration answer: refused unreadable 400"));
+                assertTrue(report, report.contains("push registrations refused 1"));
                 assertTrue(report, report.contains("local state only; notification delivery is unverified"));
                 assertFalse(report, report.contains(PRIVATE_CANARY));
                 assertFalse(report, report.contains("SecurityException"));
@@ -216,6 +257,7 @@ public class NotificationStatusTest {
         for (String report : bothExports()) {
             assertFalse(report, report.contains("notification permission:"));
             assertFalse(report, report.contains("token present:"));
+            assertFalse(report, report.contains("push registration answer:"));
         }
         assertEquals(0, LocalReaders.reads);
         assertNull(Shadows.shadowOf(RuntimeEnvironment.getApplication()).getNextStartedActivity());

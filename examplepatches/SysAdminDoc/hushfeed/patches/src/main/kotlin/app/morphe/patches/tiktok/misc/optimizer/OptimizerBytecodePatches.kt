@@ -11,11 +11,16 @@ import app.morphe.patcher.patch.bytecodePatch
 import app.morphe.patches.shared.compat.AppCompatibilities
 import app.morphe.patches.tiktok.shared.requireRegisters
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.util.proxy.mutableTypes.MutableMethod
 import app.morphe.util.addInstruction
+import app.morphe.util.getReference
 import app.morphe.util.implementationOrPatchException
 import app.morphe.util.returnEarly
 import com.android.tools.smali.dexlib2.AccessFlags
+import com.android.tools.smali.dexlib2.Opcode
+import com.android.tools.smali.dexlib2.iface.Method
 import com.android.tools.smali.dexlib2.iface.instruction.OneRegisterInstruction
+import com.android.tools.smali.dexlib2.iface.reference.MethodReference
 
 @Suppress("unused")
 val instantLaunchSplashBlockerPatch = bytecodePatch(
@@ -172,10 +177,29 @@ internal val liveGiftEffectOptimizerPatch = bytecodePatch {
     compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
-        val methods = listOf(
-            LiveGiftInitViewFingerprint.method,
-            LiveGiftOnCreateFingerprint.method,
-        )
-        methods.forEach { it.returnEarly() }
+        LiveGiftInitViewFingerprint.method.returnEarly()
+        LiveGiftOnCreateFingerprint.method.keepOnlyLiveWidgetCreate()
     }
+}
+
+/**
+ * Returns right after the gift widget's call to LiveWidget.onCreate, skipping the widget's own
+ * setup. That call creates the CompositeDisposable LiveWidget.onDestroy disposes without a null
+ * test, so returning before it crashed TikTok on leaving a LIVE room (#119).
+ */
+internal fun MutableMethod.keepOnlyLiveWidgetCreate() {
+    val superCreate = liveWidgetCreateIndex()
+        ?: throw PatchException("Remove LIVE extras: the gift widget's onCreate doesn't start with LiveWidget.onCreate.")
+    addInstruction(superCreate + 1, "return-void")
+}
+
+/** The index of the method's opening LiveWidget.onCreate super call, or null when it opens with anything else. */
+internal fun Method.liveWidgetCreateIndex(): Int? {
+    val first = implementation?.instructions?.firstOrNull() ?: return null
+    val call = first.getReference<MethodReference>() ?: return null
+    // A method with more than 16 registers gets the range form of the same call.
+    val superCall = first.opcode == Opcode.INVOKE_SUPER || first.opcode == Opcode.INVOKE_SUPER_RANGE
+    val opensWithSuper = superCall && call.definingClass == LIVE_WIDGET_DESCRIPTOR &&
+        call.name == "onCreate" && call.parameterTypes.isEmpty() && call.returnType == "V"
+    return if (opensWithSuper) 0 else null
 }

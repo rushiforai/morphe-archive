@@ -13,10 +13,11 @@ This document details the binary bytecode, asset, and resource patches available
 | [Enable App Debugging](#patch-enable-app-debugging) | `dev/EnableAppDebuggingPatch.kt` | `resourcePatch` | `false` | None | None | Injects `android:debuggable="true"` into `AndroidManifest.xml` for ADB debugging. |
 | [Unlock Developer Settings](#patch-unlock-developer-settings) | `dev/UnlockDevSettingsPatch.kt` | `rawResourcePatch` | `false` | None | None | Unlocks internal Development Settings menu in Account for all authenticated users. |
 | [Unlock Receipt Scanner](#patch-unlock-receipt-scanner) | `features/UnlockReceiptScannerPatch.kt` | `rawResourcePatch` | `false` | `Unlock Developer Settings` | None | Enables receipt scanner from Developer Settings and forces V2 scanner flow to render. |
-| [Configure Shortcuts](#patch-configure-shortcuts) | `navigation/ConfigureShortcutsPatch.kt` | `rawResourcePatch` | `true` | None | 5 boolean options (default: `true`) | Customizes items in "Your Shortcuts" carousel (Refer a Friend, Giveaway, Offers, Rewards, Sezzle Mobile). |
+| [Configure Shortcuts](#patch-configure-shortcuts) | `navigation/ConfigureShortcutsPatch.kt` | `rawResourcePatch` | `true` | None | 7 boolean options (default: `true`) | Customizes items in "Your Shortcuts" carousel (Refer a Friend, Giveaway, Offers, Rewards, Sezzle Mobile, Amazon Deals, Pay Later Anywhere). |
 | [Hide Sezzle Mobile](#patch-hide-sezzle-mobile) | `navigation/HideSezzleMobilePatch.kt` | `rawResourcePatch` | `false` | None | None | Stubs `useIsSezzleMobilePlanEnabled` and hides `MobilePlanSection` in Wallet. |
 | [Remove Promos & Giveaways](#patch-remove-promos--giveaways) | `navigation/RemovePromosAndGiveawaysPatch.kt` | `rawResourcePatch` | `true` | None | 7 boolean options | Blocks deal popups, giveaway screens, Knot linking, wallet marketing, playtime, and referrals. |
 | [Remove Rewards](#patch-remove-rewards) | `navigation/RemoveRewardsPatch.kt` | `rawResourcePatch` | `true` | None | None | Removes Rewards bottom navigation tab while keeping Account Sezzle Points accessible. |
+| [Remove Sezzle Subscriptions](#patch-remove-sezzle-subscriptions) | `navigation/RemoveSezzleSubscriptionsPatch.kt` | `rawResourcePatch` | `false` | None | None | Removes references to Sezzle Anywhere and Sezzle Premium subscriptions in Account benefits, Wallet, and Orders help. |
 | [Replace AI Discover with Products](#patch-replace-ai-discover-with-products) | `navigation/ReplaceAiDiscoverWithProductsPatch.kt` | `rawResourcePatch` | `true` | None | `removeProductsTab` (default: `false`) | Replaces AI Discover tab with original non-AI Products tab and removes AI search callouts. |
 | [Replace Shop with Home](#patch-replace-shop-with-home) | `navigation/ReplaceShopWithHomePatch.kt` | `rawResourcePatch` | `true` | None | None | Replaces commercial Shop tab with custom personal finance dashboard Home tab. |
 | [Patch Consent Screen](#patch-patch-consent-screen) | `security/PatchConsentScreenPatch.kt` | `bytecodePatch` | `true` | `Clean Authentication`, `ConsentGate.java` | None | Injects native `ConsentGate` modal dialog into `MainActivity.onCreate` before auth. |
@@ -192,14 +193,15 @@ Modifies `assets/index.android.bundle`:
   - `hideOffers` (Boolean, default: `true`)
   - `hideRewards` (Boolean, default: `true`)
   - `hideSezzleMobile` (Boolean, default: `true`)
-
+  - `hideAmazonDeals` (Boolean, default: `true`)
+  - `hidePayLaterAnywhere` (Boolean, default: `true`)
 #### 1. Motivation & Purpose
 Customizes which items appear in the "Your Shortcuts" carousel on Home and Shop tabs.
 
 #### 2. Technical Implementation & Injection Points
 Modifies `assets/index.android.bundle`:
 1. Validates Hermes function `#97583` (offset `0x019ba337`, capacity 57) and donor function `#75517` (offset `0x017d2ed7`, capacity 152).
-2. Synthesizes a predicate in the donor region filtering targeted shortcut string identifiers (`user_referrals`, `sezzle_mobile`, `offers`, `offer`, `giveaway`, `earn`).
+2. Synthesizes a predicate in the donor region filtering targeted shortcut string identifiers (`user_referrals`, `sezzle_mobile`, `offers`, `offer`, `giveaway`, `earn`, `amazon_deals`, `amazonDeals`, `amazon`, `amazonStore`, `deals`, `deal`, `anywhere`, `sezzleAnywhere`, `pay_later_anywhere`, `sezzle_anywhere`).
 3. Re-points `#97583`'s function header to the synthesized donor logic.
 4. Recomputes Hermes footer hash.
 
@@ -274,10 +276,34 @@ Removes the commercial Rewards bottom tab while preserving access to Sezzle Poin
 #### 2. Technical Implementation & Injection Points
 Modifies `assets/index.android.bundle`:
 1. Unmounts `EarnTab` in `ProtectedStack` by stubbing `useIsShowEarnTabEnabled` to return `false`.
-2. Rewires the Home `customer/points` shortcut to dispatch through the P2P deep-link dispatcher directly to `Account > SezzleSpend > SezzlePoints`.
+2. Rewires the Home `customer/points` shortcut by conditionally branching in the P2P deep-link dispatcher: if the deep link contains the `send` payload property it jumps directly to native Sezzle Send navigation, otherwise it navigates to `Account > SezzleSpend > SezzlePoints` and jumps to cleanup, keeping both Sezzle Send and Sezzle Points fully functional.
 3. Recomputes Hermes footer hash.
 
 ---
+### Patch: Remove Sezzle Subscriptions
+
+- **Name:** Remove Sezzle Subscriptions
+- **Target Package:** `com.sezzle.sezzlemobile`
+- **Supported Versions:** `5.3.9`
+- **Default State:** `false` (Disabled by default)
+- **Type:** Raw Binary / Asset Patch (`rawResourcePatch`)
+- **Dependencies:** None
+
+#### 1. Motivation & Purpose
+Removes references to Sezzle's subscription plans (Sezzle Anywhere and Sezzle Premium) across the Account menu benefits list, Wallet promotional surfaces, and Orders customer support entry points.
+
+#### 2. Technical Implementation & Injection Points
+Modifies `assets/index.android.bundle`:
+1. **Account Menu Benefits & Anywhere Banner:** In `AccountView` (`0x12c11ea`), patches the conditional subscriptions branch at offset `+0x133c` (`b0 0c 44` -> `7e 7e 7e`), bypassing the entire subscription array construction and jumping directly to `+0x14ce`, eliminating Sezzle Anywhere and Sezzle Premium benefit entries while preserving remaining benefits (Sezzle Mobile, Sezzle Points, Sezzle Spend, Sezzle Up, Sezzle Balance). Additionally, at offset `+0x11eb`, replaces the Anywhere banner short-circuit evaluation prologue (`10 19 50 b2 06 19 10 19 48` -> `96 19 7e 7e 7e 7e 7e 7e 7e`), forcing condition register `r25` to `false` so that the conditional jump at `+0x11f4` (`b2 2c 19` -> `JmpFalse +0x2c`) always triggers and skips over the entire `sezzleAnywhereBanner` JSX container, passing `false` to the JSX array and cleanly eliminating the "Pay later anywhere Visa is accepted" card banner from the Account screen.
+2. **Wallet Screen Banner:** Neutralizes `WalletBanner` prologue (`34 0e 00 40` -> `93 01 76 01`) and `WalletBannerCarousel` prologue (`34 07 00 40` -> `93 01 76 01`), returning `undefined` to cleanly unmount single and carousel promotional Anywhere subscription banners (`wallet-banner-box`).
+3. **Wallet Screen Gift Cards:** Neutralizes `GiftCardsSection` prologue (`34 05 00 40` -> `93 01 76 01`), returning `undefined` to cleanly unmount the Gift cards section (all gift cards require an active Anywhere subscription).
+4. **Orders Tab Help:** In `GetHelpScreen`'s priority support closure `#64670` (`0x16ed5a8`), replaces the prologue (`34 01 00 3b 02 01` -> `08 02 00 00 76 02`), returning an empty array `[]` so "Priority Customer Support" (an Anywhere-only feature/ad) is never mounted in the Help options list.
+5. Recomputes Hermes footer hash.
+
+Note: To remove the "Pay Later Anywhere" shortcut on the home screen carousel, configure the `hidePayLaterAnywhere` option (enabled by default) in [Configure Shortcuts](#patch-configure-shortcuts).
+
+---
+
 
 ### Patch: Replace AI Discover with Products
 

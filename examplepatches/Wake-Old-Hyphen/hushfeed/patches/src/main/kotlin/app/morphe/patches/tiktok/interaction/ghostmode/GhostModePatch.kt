@@ -77,6 +77,33 @@ internal object AwemeStatsSenderFingerprint : Fingerprint(
 )
 
 /**
+ * The two coroutine bodies that send TikTok's activity status report (/tiktok/v1/activity_status/
+ * report, the call that lights the green dot and "Active now" for your friends). The regular
+ * poll runs in doReport$1, and the reportAdditional and cancelPolling paths go through
+ * doReport$2. Each is the only caller of the report service in its dex. R8 renames every class,
+ * but the trace tag each body opens with names the original class and lambda, and it is the
+ * same on 47.0.3, 47.1.3 and 47.1.4.
+ */
+internal const val ONLINE_STATUS_REGULAR_TAG = "ActivityStatusReporter@261e.doReport\$1"
+internal const val ONLINE_STATUS_IRREGULAR_TAG = "ActivityStatusReporter@261e.doReport\$2"
+
+internal object OnlineStatusRegularReportFingerprint : Fingerprint(
+    name = "invokeSuspend",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    strings = listOf(ONLINE_STATUS_REGULAR_TAG),
+)
+
+internal object OnlineStatusIrregularReportFingerprint : Fingerprint(
+    name = "invokeSuspend",
+    accessFlags = listOf(AccessFlags.PUBLIC, AccessFlags.FINAL),
+    returnType = "Ljava/lang/Object;",
+    parameters = listOf("Ljava/lang/Object;"),
+    strings = listOf(ONLINE_STATUS_IRREGULAR_TAG),
+)
+
+/**
  * Returns from a reporter before it sends anything, when the extension says to.
  *
  * <p>Only a reporter that returns nothing can take this. One that hands something back is
@@ -112,7 +139,7 @@ val ghostModePatch = bytecodePatch(
     name = "Ghost mode",
     description = "Block hooked story, profile and typing reports. The switch shows local activity and " +
         "retains a warning after a known story-reporting failure. Viewer-list privacy still needs a " +
-        "two-account check. Online status is unchanged. Switch and diagnostics: Hushfeed settings > Privacy.",
+        "two-account check. Online status stays visible unless you also turn on Hide online status. Switch and diagnostics: Hushfeed settings > Privacy.",
     default = false,
 ) {
     category("Privacy")
@@ -150,6 +177,22 @@ val ghostModePatch = bytecodePatch(
                 throw PatchException("Ghost mode: could not install every $guard hook.")
             }
             if (lazy.isNotEmpty()) skipReportsAtEveryCallSite(lazy, guard)
+        }
+
+        // The activity status report. Each body is a launched coroutine whose result nobody
+        // reads, so a null return ends it before it sends; the guard answers false unless
+        // Ghost mode and Hide online status are both on, and the answer is read on every
+        // report, so the switch needs no restart.
+        listOf(OnlineStatusRegularReportFingerprint, OnlineStatusIrregularReportFingerprint).forEach { fingerprint ->
+            val senders = fingerprint.matchAllOrNull().orEmpty().map { it.method }
+            if (senders.size != 1) {
+                throw PatchException("Ghost mode: expected one activity status sender, found ${senders.size}.")
+            }
+            senders.single().guardAtEntry(
+                "Ghost mode",
+                "invoke-static {}, $GHOST_MODE_EXTENSION->shouldBlockOnlineStatus()Z",
+                "const/4 v0, 0x0\nreturn-object v0",
+            )
         }
 
         // The play report a story view also sends. The guard asks about the Aweme (p4) and lets

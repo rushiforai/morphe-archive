@@ -31,4 +31,8 @@ public final class InstalledPatches {
     public static boolean hidePlayerAdCards() {
         return false;
     }
+
+    public static boolean extensions() {
+        return false;
+    }
 }

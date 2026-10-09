@@ -37,7 +37,9 @@ import app.morphe.extension.shared.settings.PauseForTests;
  * Comment sheet options: with its switch on, the comment box's check answers no for the GIF and
  * sticker buttons, each counted, and leaves every other button to Facebook. With Like only on, the
  * reaction picker's method is told to return. With Open every reply thread on, a comment's state
- * starts with its replies open. Off, paused, or before the settings are ready, nothing changes. The
+ * starts with its replies open. With Hide related groups on, the check under a post's comments
+ * answers no for the Related groups list and leaves every other plugin to Facebook (#101). Off,
+ * paused, or before the settings are ready, nothing changes. The
  * row opens Facebook's own settings, in this package only.
  */
 @RunWith(RobolectricTestRunner.class)
@@ -46,6 +48,10 @@ public class CommentSheetOptionsTest {
     /** Another button the comment box's socket asks about, which always stays. */
     private static final String PHOTO_BUTTON =
             "com.facebook.feedback.comments.plugins.commentcomposer.attachmentbutton.photo.PhotoAttachmentButtonPlugin";
+
+    /** Another plugin the socket under a post's comments asks about, which always stays. */
+    private static final String RELATED_CONTENT =
+            "com.facebook.feedback.comments.plugins.bottomcontent.impl.relatedcontent.RelatedContentPlugin";
 
     @Rule public final SettingsContextRule settingsContext = new SettingsContextRule();
 
@@ -60,6 +66,7 @@ public class CommentSheetOptionsTest {
         Settings.LIKE_ONLY.resetToDefault();
         Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS.resetToDefault();
         Settings.OPEN_REPLY_THREADS.resetToDefault();
+        Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS.resetToDefault();
         HookStatus.clear();
     }
 
@@ -91,6 +98,43 @@ public class CommentSheetOptionsTest {
         assertTrue("a thread Facebook opened was closed", CommentSheetOptions.openReplyThreads(true));
         assertEquals(FamilyNames.COMMENT_SHEET_OPTIONS + ": invoked 3, 1 found, 0 missing. Counted: "
                 + CommentSheetOptions.THREAD_OPENED + " 2", statusLine());
+    }
+
+    @Test
+    public void onRelatedGroupsAreHeldUnderCommentsAndCounted() {
+        Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS.save(true);
+        assertFalse("another plugin under the comments was held", CommentSheetOptions.holdsBottomContent(RELATED_CONTENT));
+        assertFalse("a plugin with no name was held", CommentSheetOptions.holdsBottomContent(null));
+        assertFalse("the GIF button was held by the check under the comments",
+                CommentSheetOptions.holdsBottomContent(CommentSheetOptions.GIF_BUTTON));
+        assertTrue("Related groups stayed", CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
+        assertTrue("Related groups stayed", CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
+        assertEquals(FamilyNames.COMMENT_SHEET_OPTIONS + ": invoked 5, 1 found, 0 missing. Counted: "
+                + CommentSheetOptions.RELATED_GROUPS_HIDDEN + " 2", statusLine());
+    }
+
+    @Test
+    public void offPausedOrColdRelatedGroupsAreFacebooks() {
+        assertFalse("Hide related groups doesn't start off", Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS.get());
+        assertFalse("off, Related groups were held",
+                CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
+
+        Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS.save(true);
+        for (HushfacebookPause.Reason reason : new HushfacebookPause.Reason[] {
+                HushfacebookPause.Reason.SWITCH, HushfacebookPause.Reason.CRASH_LOOP,
+                HushfacebookPause.Reason.MARKER_FILE}) {
+            PauseForTests.pause(reason);
+            assertFalse("a Hushfacebook paused by " + reason + " held Related groups",
+                    CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
+            PauseForTests.resume();
+        }
+        SettingsContextRule.withoutContext(() -> assertFalse("Related groups were held before the settings were ready",
+                CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS)));
+
+        String line = statusLine();
+        assertFalse("a plugin left to Facebook was counted: " + line, line != null && line.contains("Counted"));
+        assertTrue("on again after the pause, Related groups stayed",
+                CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
     }
 
     @Test
@@ -132,6 +176,16 @@ public class CommentSheetOptionsTest {
         assertFalse("the reply switch held the GIF button", CommentSheetOptions.holdsButton(CommentSheetOptions.GIF_BUTTON));
         assertFalse("the reply switch kept the picker closed", CommentSheetOptions.skipReactionPicker());
         assertTrue("the reply switch left a thread closed", CommentSheetOptions.openReplyThreads(false));
+        assertFalse("the reply switch held Related groups",
+                CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
+        Settings.OPEN_REPLY_THREADS.save(false);
+        Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS.save(true);
+        assertFalse("the related groups switch held the GIF button",
+                CommentSheetOptions.holdsButton(CommentSheetOptions.GIF_BUTTON));
+        assertFalse("the related groups switch kept the picker closed", CommentSheetOptions.skipReactionPicker());
+        assertFalse("the related groups switch opened a reply thread", CommentSheetOptions.openReplyThreads(false));
+        assertTrue("the related groups switch left Related groups",
+                CommentSheetOptions.holdsBottomContent(CommentSheetOptions.RELATED_GROUPS));
     }
 
     @Test
@@ -169,7 +223,8 @@ public class CommentSheetOptionsTest {
     @Test
     public void theSwitchesNeedNoRestartAndTravelWithTheirFamily() {
         for (app.morphe.extension.shared.settings.BooleanSetting setting : new app.morphe.extension.shared.settings.BooleanSetting[] {
-                Settings.LIKE_ONLY, Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS, Settings.OPEN_REPLY_THREADS}) {
+                Settings.LIKE_ONLY, Settings.HIDE_COMMENT_GIF_STICKER_BUTTONS, Settings.OPEN_REPLY_THREADS,
+                Settings.HIDE_RELATED_GROUPS_UNDER_COMMENTS}) {
             assertFalse(setting.key + " asks for a restart, but each hook reads it again", setting.rebootApp);
             assertNull(setting.key + " asks before it changes", setting.userDialogMessage);
             assertTrue("Pause and the report don't know " + setting.key,

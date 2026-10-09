@@ -477,3 +477,64 @@ internal fun storyReadSetClass(
     return MutableClass(ImmutableClassDef(STORY_READ_SET, AccessFlags.PUBLIC.value or AccessFlags.FINAL.value, "Ljava/lang/Object;",
         emptyList(), null, emptySet(), fields, methods))
 }
+
+internal const val STORY_PREVIEW_RING = "$MONTAGE_BUCKET_PREVIEW->A00(${FB_USER_SESSION}Z)LX/4Qx;"
+
+/**
+ * The preview's constructor cut down to the writes the ring hook checks, with 346013440's 23 registers, so p0 is v6:
+ * the new-story flag, the count, the card, then the own-story check and its throw before the only return.
+ */
+internal const val STORY_PREVIEW_INIT_BODY = """invoke-direct {p0}, Ljava/lang/Object;-><init>()V
+move/from16 v2, p12
+iput-boolean v2, p0, $MONTAGE_BUCKET_PREVIEW->A0D:Z
+move/from16 v1, p13
+iput-boolean v1, p0, $MONTAGE_BUCKET_PREVIEW->A0E:Z
+move/from16 v0, p11
+iput v0, p0, $MONTAGE_BUCKET_PREVIEW->A02:I
+iput-object p3, p0, $MONTAGE_BUCKET_PREVIEW->A05:$MONTAGE_CARD
+if-eqz p13, :keep
+if-eqz p12, :keep
+const-string v0, "myMontage"
+invoke-static {v0}, LX/001;->A0P(Ljava/lang/String;)Ljava/lang/IllegalStateException;
+move-result-object v0
+throw v0
+:keep
+move/from16 v0, p16
+iput-boolean v0, p0, $MONTAGE_BUCKET_PREVIEW->A0A:Z
+return-void"""
+
+/** Messenger's ring state for a preview: your own story first, then close friends, then new while the flag or the count says so. */
+internal const val STORY_PREVIEW_RING_BODY = """iget-boolean v0, p0, $MONTAGE_BUCKET_PREVIEW->A0E:Z
+if-eqz v0, :others
+sget-object v0, LX/4Qx;->A09:LX/4Qx;
+return-object v0
+:others
+iget-boolean v0, p0, $MONTAGE_BUCKET_PREVIEW->A0C:Z
+if-eqz v0, :plain
+sget-object v0, LX/4Qx;->A03:LX/4Qx;
+return-object v0
+:plain
+iget-boolean v0, p0, $MONTAGE_BUCKET_PREVIEW->A0D:Z
+if-nez v0, :ring
+iget v0, p0, $MONTAGE_BUCKET_PREVIEW->A02:I
+if-lez v0, :seen
+:ring
+sget-object v0, LX/4Qx;->A08:LX/4Qx;
+return-object v0
+:seen
+sget-object v0, LX/4Qx;->A07:LX/4Qx;
+return-object v0"""
+
+internal fun storyPreviewClass(
+    init: String = STORY_PREVIEW_INIT_BODY,
+    ring: String = STORY_PREVIEW_RING_BODY,
+    cards: Int = 1,
+    extraMethods: List<Method> = emptyList(),
+): MutableClass {
+    val final = AccessFlags.PUBLIC.value or AccessFlags.FINAL.value
+    val fields = listOf("A02" to "I", "A0A" to "Z", "A0C" to "Z", "A0D" to "Z", "A0E" to "Z")
+        .map { (name, type) -> ImmutableField(MONTAGE_BUCKET_PREVIEW, name, type, final, null, null, null) } +
+        (0 until cards).map { ImmutableField(MONTAGE_BUCKET_PREVIEW, "A0${5 + it}", MONTAGE_CARD, final, null, null, null) }
+    val methods = listOf(fixtureMethod(STORY_PREVIEW_INIT, init, registers = 23), fixtureMethod(STORY_PREVIEW_RING, ring, registers = 5)) + extraMethods
+    return MutableClass(ImmutableClassDef(MONTAGE_BUCKET_PREVIEW, final, "Ljava/lang/Object;", emptyList(), null, emptySet(), fields, methods))
+}

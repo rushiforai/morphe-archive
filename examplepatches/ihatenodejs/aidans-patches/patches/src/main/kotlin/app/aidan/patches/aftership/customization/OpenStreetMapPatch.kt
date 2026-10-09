@@ -17,6 +17,7 @@ val openStreetMapPatch = bytecodePatch(
     description = "Replaces the broken Google Maps view with a free, self-contained OpenStreetMap (Leaflet) engine that renders routes, checkpoints, and dark/light styled tiles without requiring an API key.",
     default = true
 ) {
+    category("Customization")
     compatibleWith(COMPATIBILITY_AFTERSHIP)
     extendWith("extensions/extension.mpe")
     dependsOn(bypassSignatureCheckResourcePatch)

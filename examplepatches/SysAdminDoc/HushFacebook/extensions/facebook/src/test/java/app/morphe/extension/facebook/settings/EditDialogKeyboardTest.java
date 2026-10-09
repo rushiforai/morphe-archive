@@ -281,6 +281,14 @@ public class EditDialogKeyboardTest {
             assertEquals("the pack's lines went in once after the typed word",
                     1 + TopicPacks.Pack.CRYPTO.lines().size(), PostWords.count(typed));
             assertEquals("nothing is saved yet", "", Settings.HIDDEN_WORDS.savedValue());
+            assertTrue("the dialog says what the pack added, in full", dialogSays(dialog, "Tap Save to keep the list."));
+
+            buttons.get(0).performClick();
+            ShadowLooper.idleMainLooper();
+            Shadows.shadowOf(ShadowAlertDialog.getLatestAlertDialog()).clickOnItem(crypto);
+            ShadowLooper.idleMainLooper();
+            assertEquals("a second pick adds nothing", typed, row.getEditText().getText().toString());
+            assertTrue("a second pick says so", dialogSays(dialog, "Every word from Crypto is already in the list."));
 
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             ShadowLooper.idleMainLooper();
@@ -288,6 +296,12 @@ public class EditDialogKeyboardTest {
             assertEquals("the words are ordinary saved lines", typed, Settings.HIDDEN_WORDS.savedValue());
         }
         Settings.HIDDEN_WORDS.resetToDefault();
+    }
+
+    private static boolean dialogSays(AlertDialog dialog, String text) {
+        ArrayList<View> found = new ArrayList<>();
+        dialog.getWindow().getDecorView().findViewsWithText(found, text, View.FIND_VIEWS_WITH_TEXT);
+        return !found.isEmpty();
     }
 
     private static String why(PostWords.Size size) {

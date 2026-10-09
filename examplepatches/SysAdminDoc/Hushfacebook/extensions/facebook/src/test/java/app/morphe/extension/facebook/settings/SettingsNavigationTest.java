@@ -709,9 +709,9 @@ public class SettingsNavigationTest {
         assertEquals(1, position(HushfacebookPreferenceFragment.MISSING_RESTORE_TRUST));
         assertFalse(contains(HushfacebookPreferenceFragment.MISSING_DEFAULTS));
         Preference row = (Preference) list().getItemAtPosition(1);
-        assertEquals("Profiles and some Settings pages won't open", String.valueOf(row.getTitle()));
+        assertEquals("Profiles, photos and posts won't open", String.valueOf(row.getTitle()));
         assertEquals("Patch again with " + L10n.isolate("Restore screens on re-signed builds")
-                + " selected. Re-signed builds need it for profiles and some Facebook Settings pages.",
+                + " selected. Re-signed builds need it to open profiles, photos, posts and some Facebook Settings pages.",
                 String.valueOf(row.getSummary()));
         assertFalse(list().getAdapter().isEnabled(1));
     }

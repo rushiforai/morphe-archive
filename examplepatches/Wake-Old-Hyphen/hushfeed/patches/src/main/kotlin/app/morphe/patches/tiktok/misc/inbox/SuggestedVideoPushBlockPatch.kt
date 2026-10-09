@@ -84,11 +84,38 @@ internal fun MutableMethod.postThroughSuggestedVideoFilter() {
 }
 
 /**
+ * Routes every call in TikTok that hands Android a notification through the extension's one
+ * filter. TikTok builds notifications along several routes (its push handler, a lambda the
+ * handler posts from, local pushes, the androidx compat layer), so the filter stands in for
+ * NotificationManager.notify itself.
+ *
+ * <p>No name, so it's never picked on its own. Block suggested video notifications and
+ * Notification controls both drop notifications in that filter, and each one's check only counts
+ * in a build carrying its own patch, so either can bring the routing in without the other.
+ */
+internal val notificationFilterPatch = bytecodePatch {
+    dependsOn(sharedExtensionPatch)
+    compatibleWith(*AppCompatibilities.tiktok())
+
+    execute {
+        // Only the classes the patcher's type index says call NotificationManager are read. On
+        // 47.1.4 a full walk is about 40 million instructions for 22 calls in 66 classes (#54).
+        val callers = classesCalling(listOf(NOTIFICATION_MANAGER))
+        val found = mutableListOf<ClassDef>()
+        classDefForEach { if (it.type in callers) found += it }
+        val targets = notifyingMethods(found)
+        if (targets.none { (classDef, _) -> classDef.type == PUSH_HANDLER }) {
+            throw PatchException("Notification filter: TikTok's push handler no longer posts a notification.")
+        }
+        targets.forEach { (classDef, method) ->
+            mutableClassDefBy(classDef).findMutableMethodOf(method).postThroughSuggestedVideoFilter()
+        }
+    }
+}
+
+/**
  * Blocks TikTok's "Videos you might like" pushes (the S25 got "25M+ people viewed: ..." on
- * 2026-10-02). TikTok builds notifications along several routes (its push handler, a lambda
- * the handler posts from, local pushes, the androidx compat layer), so every call that hands
- * Android a notification goes through one filter, which drops only that channel and posts
- * everything else as TikTok asked.
+ * 2026-10-02). The filter drops only that channel and posts everything else as TikTok asked.
  */
 @Suppress("unused")
 val suggestedVideoPushBlockPatch = bytecodePatch(
@@ -100,26 +127,13 @@ val suggestedVideoPushBlockPatch = bytecodePatch(
     default = true,
 ) {
     category("Inbox")
-    dependsOn(settingsPatch, sharedExtensionPatch)
+    dependsOn(settingsPatch, sharedExtensionPatch, notificationFilterPatch)
     compatibleWith(*AppCompatibilities.tiktok())
 
     execute {
-        // Only the classes the patcher's type index says call NotificationManager are read. On
-        // 47.1.4 a full walk is about 40 million instructions for 22 calls in 66 classes (#54).
-        val callers = classesCalling(listOf(NOTIFICATION_MANAGER))
-        val found = mutableListOf<ClassDef>()
-        classDefForEach { if (it.type in callers) found += it }
-        val targets = notifyingMethods(found)
-        if (targets.none { (classDef, _) -> classDef.type == PUSH_HANDLER }) {
-            throw PatchException("Block suggested video notifications: TikTok's push handler no longer posts a notification.")
-        }
-
         SettingsStatusLoadFingerprint.method.addInstruction(
             0,
             "invoke-static {}, Lapp/morphe/extension/tiktok/settings/SettingsStatus;->enableSuggestedVideoPushBlock()V",
         )
-        targets.forEach { (classDef, method) ->
-            mutableClassDefBy(classDef).findMutableMethodOf(method).postThroughSuggestedVideoFilter()
-        }
     }
 }

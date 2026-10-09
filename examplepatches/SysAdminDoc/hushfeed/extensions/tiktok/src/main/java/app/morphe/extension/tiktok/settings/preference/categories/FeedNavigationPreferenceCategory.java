@@ -7,10 +7,12 @@ package app.morphe.extension.tiktok.settings.preference.categories;
 import android.content.Context;
 import android.preference.PreferenceScreen;
 
+import app.morphe.extension.shared.settings.StringSetting;
 import app.morphe.extension.tiktok.navigation.StartPage;
 import app.morphe.extension.tiktok.settings.Settings;
 import app.morphe.extension.tiktok.settings.SettingsStatus;
 import app.morphe.extension.tiktok.settings.preference.ChoicePreference;
+import app.morphe.extension.tiktok.settings.preference.InputTextPreference;
 import app.morphe.extension.tiktok.settings.preference.TabSelectionPreference;
 import app.morphe.extension.tiktok.settings.preference.TogglePreference;
 
@@ -23,7 +25,7 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
 
     /** Whether this page has anything on it. The row into it asks the same question. */
     public static boolean isAvailable() {
-        return SettingsStatus.feedNavigationEnabled;
+        return SettingsStatus.feedNavigationEnabled || SettingsStatus.bottomTabLabelsEnabled;
     }
 
     @Override
@@ -109,6 +111,21 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
                         + "The inbox itself still shows what came in.",
                 Settings.HIDE_TAB_BADGES
         ));
+        // Left out with their hooks on a build where the tab icons' names weren't found.
+        if (SettingsStatus.bottomTabLabelsEnabled) {
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide the bottom tab names",
+                    "The words under the bottom tab icons go away. The icons stay, and each tab "
+                            + "opens what it always did.",
+                    Settings.HIDE_BOTTOM_TAB_LABELS
+            ));
+            addTabName(context, "Home tab name", Settings.BOTTOM_TAB_NAME_HOME);
+            addTabName(context, "Friends tab name", Settings.BOTTOM_TAB_NAME_FRIENDS);
+            addTabName(context, "Inbox tab name", Settings.BOTTOM_TAB_NAME_INBOX);
+            addTabName(context, "Profile tab name", Settings.BOTTOM_TAB_NAME_PROFILE);
+            addTabName(context, "Shop tab name", Settings.BOTTOM_TAB_NAME_SHOP);
+        }
         addPreference(new TogglePreference(
                 context,
                 "Hide the Tako bubble",
@@ -116,6 +133,15 @@ public class FeedNavigationPreferenceCategory extends ConditionalPreferenceCateg
                         + "the Ask Tako button on the search page, the Ask Tako tab on search results "
                         + "and the Tako bar above comments.",
                 Settings.HIDE_TAKO_AI
+        ));
+    }
+
+    private void addTabName(Context context, String title, StringSetting setting) {
+        addPreference(new InputTextPreference(
+                context,
+                title,
+                "A name of your own under this tab's icon. Leave it empty to keep TikTok's.",
+                setting
         ));
     }
 }

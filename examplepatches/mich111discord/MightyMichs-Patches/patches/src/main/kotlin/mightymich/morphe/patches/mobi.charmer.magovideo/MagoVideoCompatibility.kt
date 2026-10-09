@@ -1,4 +1,4 @@
-package mightymich.morphe.patches.magovideo
+package mightymich.morphe.patches.mobi.charmer.magovideo
 
 import app.morphe.patcher.patch.ApkFileType
 import app.morphe.patcher.patch.AppTarget
@@ -11,10 +11,7 @@ object MagoVideoCompatibility {
         apkFileType = ApkFileType.APK,
         appIconColor = 0xFF5722,
         targets = listOf(
-            AppTarget(
-                version = "5.7.1",
-                isExperimental = true // Experimental support – patch may cause crashes.
-            )
+            AppTarget(version = "5.7.1")
         )
     )
 }

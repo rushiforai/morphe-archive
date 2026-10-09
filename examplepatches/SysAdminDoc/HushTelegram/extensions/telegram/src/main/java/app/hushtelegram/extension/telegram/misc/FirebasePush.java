@@ -33,18 +33,32 @@ public final class FirebasePush {
 
     private FirebasePush() { }
 
+    private static final String BOOL_TRUE = "org.telegram.tgnet.TLRPC$TL_boolTrue";
+    // Telegram's error names are upper-case constants such as APP_PUSH_APIKEY_MISSING or FLOOD_WAIT_30.
+    private static final Pattern ERROR_NAME = Pattern.compile("[A-Z0-9_]{1,64}");
+    static final String ACCEPTED = "accepted";
+    static final String REFUSED = "refused";
+    static final String NO_ANSWER = "none since start";
+
+    /** Telegram's answer to the last account.registerDevice this process sent, or null before one arrives. */
+    static volatile String lastAnswer;
+
     /** Only scalar local facts leave the native readers. A null or -1 means unreadable. */
     public static final class LocalStatus {
         public final Boolean notificationPermission;
         public final Boolean tokenPresent;
         public final int activeAccounts;
         public final int acknowledgedAccounts;
+        /** accepted, refused, "refused NAME CODE", none since start, or null when the answer hook isn't installed. */
+        public final String pushAnswer;
 
-        private LocalStatus(Boolean notificationPermission, Boolean tokenPresent, int activeAccounts, int acknowledgedAccounts) {
+        private LocalStatus(Boolean notificationPermission, Boolean tokenPresent, int activeAccounts, int acknowledgedAccounts,
+                            String pushAnswer) {
             this.notificationPermission = notificationPermission;
             this.tokenPresent = tokenPresent;
             this.activeAccounts = activeAccounts;
             this.acknowledgedAccounts = acknowledgedAccounts;
+            this.pushAnswer = pushAnswer;
         }
 
         public String summary() {
@@ -54,10 +68,19 @@ public final class FirebasePush {
                     : tokenPresent ? L10n.t("Yes") : L10n.t("No"))
                     + "\n" + L10n.f("Signed-in accounts: %1$s", count(activeAccounts))
                     + "\n" + L10n.f("Accounts confirmed for push: %1$s", count(acknowledgedAccounts))
+                    + "\n" + L10n.f("Telegram's push answer: %1$s", answer())
                     + "\n" + L10n.t("Read-only local state. This doesn't confirm notification delivery.");
         }
 
         private static String count(int value) { return value < 0 ? L10n.t("Unknown") : Integer.toString(value); }
+
+        private String answer() {
+            if (pushAnswer == null) return L10n.t("Unknown");
+            if (NO_ANSWER.equals(pushAnswer)) return L10n.t("None since Telegram started");
+            if (ACCEPTED.equals(pushAnswer)) return L10n.t("Accepted");
+            if (REFUSED.equals(pushAnswer)) return L10n.t("Refused");
+            return L10n.f("Refused (%1$s)", pushAnswer.substring(REFUSED.length() + 1));
+        }
 
         private List<String> reportLines() {
             return Arrays.asList("notification permission: " + (notificationPermission == null ? "unknown"
@@ -65,8 +88,41 @@ public final class FirebasePush {
                     "token present: " + (tokenPresent == null ? "unknown" : tokenPresent.toString()),
                     "active accounts: " + (activeAccounts < 0 ? "unknown" : activeAccounts),
                     "acknowledged accounts: " + (acknowledgedAccounts < 0 ? "unknown" : acknowledgedAccounts),
+                    "push registration answer: " + (pushAnswer == null ? "unknown" : pushAnswer),
                     "local state only; notification delivery is unverified");
         }
+    }
+
+    /**
+     * Injected in front of Telegram's own boolTrue test in its account.registerDevice callback, which
+     * otherwise drops a refusal without a trace. Reads both parameters and changes neither, so it runs
+     * whatever the switch and Pause say. Only the error's upper-case name and number are kept.
+     */
+    public static void registerDeviceAnswer(Object response, Object error) {
+        try {
+            String answer = response != null && BOOL_TRUE.equals(response.getClass().getName()) ? ACCEPTED
+                    : error == null ? REFUSED : REFUSED + " " + errorName(error);
+            lastAnswer = answer;
+            HookStatus.counted(FamilyNames.REPAIR_FIREBASE_PUSH,
+                    ACCEPTED.equals(answer) ? "push registrations accepted" : "push registrations refused");
+            Logger.printInfo(() -> "Telegram answered the push registration: " + answer);
+        } catch (Throwable failure) {
+            HookStatus.threw(FamilyNames.REPAIR_FIREBASE_PUSH, "push registration answer", failure);
+        }
+    }
+
+    /** TL_error's public text and code fields. Text that isn't an upper-case error name never leaves. */
+    static String errorName(Object error) {
+        String name = "unreadable";
+        String code = "";
+        try {
+            Object text = error.getClass().getField("text").get(error);
+            if (text instanceof String && ERROR_NAME.matcher((String) text).matches()) name = (String) text;
+        } catch (Throwable unreadable) { }
+        try {
+            code = " " + error.getClass().getField("code").getInt(error);
+        } catch (Throwable unreadable) { }
+        return name + code;
     }
 
     /** Independent of the repair switch and Pause. Never loads configs or asks for registration. */
@@ -85,8 +141,11 @@ public final class FirebasePush {
         Boolean token = null;
         int active = -1;
         int acknowledged = -1;
+        String answer = null;
         if (Utils.settingsReady() && PatchFamily.REPAIR_FIREBASE_PUSH.inBuild()
                 && PatchFamily.Capability.FIREBASE_LOCAL_STATUS.installed()) {
+            String last = lastAnswer;
+            answer = last == null ? NO_ANSWER : last;
             try {
                 int presence = nativeTokenPresence();
                 if (presence == 0 || presence == 1) token = presence == 1;
@@ -101,7 +160,7 @@ public final class FirebasePush {
                 }
             } catch (Throwable unreadable) { }
         }
-        return new LocalStatus(permission, token, active, acknowledged);
+        return new LocalStatus(permission, token, active, acknowledged, answer);
     }
 
     /** Replaced only after the patch verifies the retained native fields and their local readers. */

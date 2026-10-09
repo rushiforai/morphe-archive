@@ -41,6 +41,8 @@ class MessageMenuFixtureTest {
         "Lorg/telegram/messenger/MessagesController;", "Lorg/telegram/messenger/ChatObject;", "Lorg/telegram/messenger/UserObject;",
         "Lorg/telegram/messenger/DialogObject;", "Lorg/telegram/messenger/UserConfig;", "Lorg/telegram/messenger/R\$drawable;",
         "Lorg/telegram/messenger/FileLoader;", "Lorg/telegram/messenger/ApplicationLoader;", "Landroidx/core/content/FileProvider;",
+        "Lorg/telegram/messenger/SendMessagesHelper;", "Lorg/telegram/tgnet/TLRPC\$Dialog;", "Lorg/telegram/tgnet/TLRPC\$Chat;",
+        "Lorg/telegram/messenger/LocaleController;", "Lorg/telegram/messenger/R\$string;",
     )
 
     private fun Instruction.shape() = listOf(opcode, namedRegisters(), (this as? ReferenceInstruction)?.reference?.toString())
@@ -107,6 +109,23 @@ class MessageMenuFixtureTest {
             assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_retry:I", stub("repeatIcon").first().controlRef())
             assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_copy:I", stub("copyIcon").first().controlRef())
             assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_info:I", stub("detailsIcon").first().controlRef())
+            assertEquals("Lorg/telegram/messenger/R\$drawable;->msg_forward:I", stub("quickIcon").first().controlRef())
+
+            // Quick forward: the chat list, a chat's rights and name, and Telegram's own forward with the sender left shown.
+            val sendHelper = "Lorg/telegram/messenger/SendMessagesHelper;->sendMessage(Ljava/util/ArrayList;JZZZIJ)I"
+            val forwardTo = stub("forwardTo")
+            val quick = forwardTo.single { it.opcode == Opcode.INVOKE_VIRTUAL_RANGE }
+            assertEquals("$name: Telegram's own forward into a chat", sendHelper, quick.controlRef())
+            assertEquals((0..9).toList(), quick.namedRegisters())
+            assertEquals("$name: notify on, no schedule, no stars", listOf(0L, 1L, 0L, 0L),
+                forwardTo.filter { it.opcode == Opcode.CONST_4 || it.opcode == Opcode.CONST_WIDE_16 }.map { (it as WideLiteralInstruction).wideLiteral })
+            assertTrue("$name: Telegram's chat list", stub("dialogs").any { it.controlRef()?.endsWith("->getAllDialogs()Ljava/util/ArrayList;") == true })
+            assertTrue("$name: a chat list entry's ID", stub("dialogId").any { it.controlRef() == "Lorg/telegram/tgnet/TLRPC\$Dialog;->id:J" })
+            assertTrue("$name: your own ID", stub("selfId").any { it.controlRef()?.endsWith("->getClientUserId()J") == true })
+            assertTrue("$name: secret chats refused", stub("secret").any { it.controlRef() == "Lorg/telegram/messenger/DialogObject;->isEncryptedDialog(J)Z" })
+            assertTrue("$name: forums skipped", stub("reachable").any { it.controlRef()?.endsWith("->isForum(Lorg/telegram/tgnet/TLRPC\$Chat;)Z") == true })
+            assertTrue("$name: the chat's own send rights", stub("reachable").any { it.controlRef()?.endsWith("->canSendMessages(Lorg/telegram/tgnet/TLRPC\$Chat;)Z") == true })
+            assertTrue("$name: Saved Messages named by Telegram", stub("title").any { it.controlRef() == "Lorg/telegram/messenger/R\$string;->SavedMessages:I" })
             assertEquals("$name: the file provider Share uses", "Landroidx/core/content/FileProvider;", site.provider.substringBefore("->"))
             assertEquals(listOf(APPLICATION_ID, site.provider), stub("uri").filter { it.opcode == Opcode.INVOKE_STATIC }.map { it.controlRef() })
             assertTrue("$name: Telegram's downloaded copy", stub("photoFile").any { it.controlRef() == "Lorg/telegram/messenger/FileLoader;->getPathToMessage(Lorg/telegram/tgnet/TLRPC\$Message;)Ljava/io/File;" })

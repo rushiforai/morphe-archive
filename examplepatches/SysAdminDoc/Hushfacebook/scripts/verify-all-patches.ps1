@@ -28,6 +28,16 @@
     branch targets, invoke registers, parameter kinds, try ranges and the one feed guard. Its
     report goes beside the result file too.
 
+    The merge, the CLI and the checks on its output wait for a slot of the machine's build queue
+    when BUILD_QUEUE_SCRIPT names one (Invoke-HeavyJob in common.ps1), and run straight away when
+    it doesn't.
+
+    -KeepIn keeps a passing run: the patched APK, the CLI's result report and the merge it patched
+    go into that folder, with stamp.json written last naming the bundle, APK, patch list and CLI
+    by SHA-256. build-release-receipt.ps1 -AppliedDir reads a kept run whose stamp matches instead
+    of patching that fixture again. The folder is emptied first, so a failed run leaves nothing to
+    read.
+
 .EXAMPLE
     scripts/verify-all-patches.ps1 -Apk C:\path\to\native-fixture.apk `
         -DesktopJar C:\path\to\morphe-desktop.jar -WorkDir C:\path\to\scratch
@@ -45,7 +55,9 @@ param(
     [string]$PatchList,
     [string]$Java,
     [switch]$Force,
-    [string]$Aapt2
+    [string]$Aapt2,
+    # A folder that keeps a passing run for the release receipt. See the description.
+    [string]$KeepIn
 )
 
 $ErrorActionPreference = 'Stop'
@@ -69,6 +81,23 @@ if (-not $Bundle -or -not (Test-Path -LiteralPath $Bundle -PathType Leaf)) { thr
 if (-not (Test-Path -LiteralPath $PatchList -PathType Leaf)) { throw "No patch list found: $PatchList" }
 if (-not (Test-Path -LiteralPath $Apk -PathType Leaf)) { throw "APK not found: $Apk" }
 if (-not (Test-Path -LiteralPath $DesktopJar -PathType Leaf)) { throw "Desktop CLI jar not found: $DesktopJar" }
+
+# Emptied before anything runs, so a run that fails leaves nothing a receipt could read, stamp
+# first. Only what a keep writes is removed: a folder holding anything else was named by mistake.
+$keptNames = @('stamp.json', 'patched.apk', 'result.json', 'stock-merged.apk')
+if ($KeepIn) {
+    $KeepIn = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($KeepIn)
+    if (Test-Path -LiteralPath $KeepIn -PathType Leaf) { throw "-KeepIn names a file, not a folder: $KeepIn" }
+    if (Test-Path -LiteralPath $KeepIn -PathType Container) {
+        $foreign = @(Get-ChildItem -LiteralPath $KeepIn -Force | Where-Object { $_.PSIsContainer -or $keptNames -notcontains $_.Name })
+        if ($foreign.Count -gt 0) {
+            throw "-KeepIn names $KeepIn, which holds $($foreign[0].Name) as well as a kept run, so nothing there was touched."
+        }
+        foreach ($name in $keptNames) {
+            Remove-Item -LiteralPath (Join-Path $KeepIn $name) -Force -ErrorAction SilentlyContinue
+        }
+    }
+}
 
 try {
     $catalog = Get-Content -LiteralPath $PatchList -Raw | ConvertFrom-Json
@@ -125,129 +154,162 @@ if ($forced) {
 $out = Resolve-WithinRoot -Path (Join-Path $runDir 'verify-all.apk') -Root $workRoot
 $temp = Resolve-WithinRoot -Path (Join-Path $runDir 'verify-all-tmp') -Root $workRoot
 $result = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-result-$runId.json") -Root $workRoot
-$exitCode = 1
+# The run's verdict, in a table the block below fills in: the block runs in a scope of its own, so
+# a plain assignment there wouldn't reach this script.
+$verdict = @{ ExitCode = 1 }
+# What a kept run is stamped with, read before the run: a bundle rebuilt while the CLI ran would
+# otherwise be named as the one it patched with.
+$keepStamp = $null
+if ($KeepIn) {
+    $keepStamp = [ordered]@{
+        bundleSha256     = Get-Sha256Hex -Path $Bundle
+        apkSha256        = Get-Sha256Hex -Path $Apk
+        patchListSha256  = Get-Sha256Hex -Path $PatchList
+        desktopJarSha256 = Get-Sha256Hex -Path $DesktopJar
+        versionName      = [string]$stock.versionName
+        versionCode      = [string]$stock.versionCode
+        forced           = [bool]$forced
+        merged           = $false
+    }
+}
 
+# The merge, the CLI and the checks that read its output, the heavy part of the run, in a slot of
+# the machine's build queue when there is one (Invoke-HeavyJob).
 try {
-    # What the CLI patches and what the patched table is held to, one file: a bundle's merge, made
-    # here because the CLI deletes its own, or the APK itself. A bundle that won't merge stops the
-    # run; base.apk alone lacks the splits' resources and would pass a table that lost them.
-    $mergedApk = Resolve-WithinRoot -Path (Join-Path $runDir 'stock-merged.apk') -Root $workRoot
-    $patchInput = Get-MergedApk -Apk $Apk -Destination $mergedApk -Java $Java -DesktopJar $DesktopJar
-    if ($patchInput -eq $mergedApk) { Write-Host "[verify] merged $(Split-Path -Leaf $Apk) into one APK for the CLI" }
-    $enable = @()
-    foreach ($name in $names) { $enable += '-e'; $enable += $name }
-    $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
-        '-o', $out, '-t', $temp, '-r', $result)
-    if ($forced) { $arguments += '-f' }
-    $arguments = $arguments + $enable + @($patchInput)
+    Invoke-HeavyJob -Label "verify $(Split-Path -Leaf $Apk)" -ScriptBlock {
+        # What the CLI patches and what the patched table is held to, one file: a bundle's merge, made
+        # here because the CLI deletes its own, or the APK itself. A bundle that won't merge stops the
+        # run; base.apk alone lacks the splits' resources and would pass a table that lost them.
+        $mergedApk = Resolve-WithinRoot -Path (Join-Path $runDir 'stock-merged.apk') -Root $workRoot
+        $patchInput = Get-MergedApk -Apk $Apk -Destination $mergedApk -Java $Java -DesktopJar $DesktopJar
+        if ($patchInput -eq $mergedApk) { Write-Host "[verify] merged $(Split-Path -Leaf $Apk) into one APK for the CLI" }
+        $enable = @()
+        foreach ($name in $names) { $enable += '-e'; $enable += $name }
+        $arguments = @('patch', '--exclusive', '--continue-on-error', '--unsigned', '-p', $Bundle,
+            '-o', $out, '-t', $temp, '-r', $result)
+        if ($forced) { $arguments += '-f' }
+        $arguments = $arguments + $enable + @($patchInput)
 
-    # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
-    # PowerShell 5.1 turns into a terminating error under Stop. The report and the exit code decide.
-    $preference = $ErrorActionPreference
-    try {
-        $ErrorActionPreference = 'Continue'
-        $global:LASTEXITCODE = -1
-        $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
-        $cliExitCode = $LASTEXITCODE
-    } finally {
-        $ErrorActionPreference = $preference
-    }
-    # WARNING lines are the patches' own: a patch that works down a list of targets names each one
-    # the build lacks there, and still applies.
-    $cliOutput | ForEach-Object {
-        $line = [string]$_
-        if ($line -match 'SEVERE|ERROR|WARNING|Exception|result saved|Saved to') { Write-Host "[verify] $line" }
-    }
-
-    $report = $null
-    if (Test-Path -LiteralPath $result -PathType Leaf) {
-        try { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json }
-        catch { Write-Warning "Could not parse result JSON: $($_.Exception.Message)" }
-    }
-    $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
-        -AllowedDependencyNames $dependencyNames -OutputPath $out `
-        -ExpectedPackageName $expectedTarget.PackageName -ExpectedPackageVersion $expectedVersion
-    $reportApplied = if ($null -ne $report) { @($report.appliedPatches).Count } else { 0 }
-    $reportFailed = if ($null -ne $report) { @($report.failedPatches).Count } else { 0 }
-    $target = if ($null -ne $report) { "$($report.packageName) $($report.packageVersion)" } else { 'unknown target' }
-    Write-Host "[verify] ${target}: applied $reportApplied, failed $reportFailed, CLI exit $cliExitCode"
-    if ($null -ne $report) {
-        foreach ($failure in @($report.failedPatches)) {
-            $patchName = if ($null -ne $failure.patch) { $failure.patch.name } else { 'unknown patch' }
-            Write-Host "[verify] FAILED ${patchName}: $($failure.reason -split "`n" | Select-Object -First 1)"
-        }
-    }
-    Write-Host "[verify] result file: $result"
-    if ($cliExitCode -ne 0) { Write-Warning "The desktop CLI exited with $cliExitCode." }
-    if (-not $validation.Valid) { Write-Warning "[verify] $($validation.Reason)" }
-    $unapprovedChanges = @()
-    if ($cliExitCode -eq 0 -and $validation.Valid) {
-        # What patching did to the manifest, read the way the release receipt reads it, against the
-        # APK the CLI patched, and held to the same allowlist, so a change nobody approved stops this
-        # run and not only the release. An approved change this run didn't make is reported and left
-        # to the receipt, which needs every declared build to decide it.
-        $manifestChanges = @(ConvertTo-ManifestDeltaEntries -Delta (Get-ManifestDelta `
-            -Stock (Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2) -Patched (Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2)))
-        $approvedChanges = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') |
-            Where-Object { $_ })
-        $unapprovedChanges = @($manifestChanges | Where-Object { $approvedChanges -cnotcontains $_ })
-        Write-Host "[verify] manifest delta: $($manifestChanges.Count) change(s), $($unapprovedChanges.Count) not approved"
-        foreach ($change in $manifestChanges) {
-            $mark = if ($approvedChanges -ccontains $change) { 'approved' } else { 'NOT APPROVED' }
-            Write-Host "[verify]   $change ($mark)"
-        }
-        $unmade = @($approvedChanges | Where-Object { $manifestChanges -cnotcontains $_ })
-        if ($unmade.Count -gt 0) { Write-Host "[verify] approved but not made here: $($unmade -join ', ')" }
-    }
-    if ($cliExitCode -eq 0 -and $validation.Valid -and $unapprovedChanges.Count -gt 0) {
-        Write-Warning ('[verify] the patched manifest changed in ways scripts/manifest-delta-allowlist.txt ' +
-            "doesn't approve: $($unapprovedChanges -join ', ')")
-    } elseif ($cliExitCode -eq 0 -and $validation.Valid) {
-        # The rebuilt resource table against the stock one. A resource patch has Morphe decode and
-        # rebuild the app's whole table, and an id the rebuild loses only fails when the app
-        # inflates it (Hushfeed upstream #84, a layout in one of TikTok's feature packages). The
-        # stock side is the APK the CLI patched, a split bundle's merge among them: that is the
-        # table the patched APK was rebuilt from.
-        $resourceReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-resources-$runId.txt") -Root $workRoot
-        # Continue for the call alone, as for the CLI: a JDK note or a stack trace on stderr would
-        # otherwise end the run under Windows PowerShell 5.1 before the exit code is read.
+        # Continue for the call alone: the CLI logs WARNING and SEVERE on stderr, which Windows
+        # PowerShell 5.1 turns into a terminating error under Stop. The report and the exit code decide.
         $preference = $ErrorActionPreference
         try {
             $ErrorActionPreference = 'Continue'
             $global:LASTEXITCODE = -1
-            $resourceOutput = @(& $Java '-Xmx4g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
-                $patchInput $out $resourceReport 2>&1)
-            $resourceExitCode = $LASTEXITCODE
+            $cliOutput = @(& $Java '-jar' $DesktopJar @arguments 2>&1)
+            $cliExitCode = $LASTEXITCODE
         } finally {
             $ErrorActionPreference = $preference
         }
-        $resourceOutput | ForEach-Object { Write-Host "[verify] $_" }
-        Write-Host "[verify] resource report: $resourceReport"
-        if ($resourceExitCode -eq 0) {
-            # The injected code against Meta's: registers, branches, invokes, parameters and try
-            # ranges, the shapes that pass the CLI and fail on a device. The one-feed-guard rule
-            # rides along from injected-mutation-contracts.txt; it's a project contract, which
-            # the device verifier doesn't check.
-            $registerReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-registers-$runId.txt") -Root $workRoot
-            $global:LASTEXITCODE = 0
-            & (Join-Path $PSScriptRoot 'verify-injected-registers.ps1') -CleanApk $stockApk -CleanMerged $patchInput `
-                -PatchedApk $out -ReportPath $registerReport -Java $Java -DesktopJar $DesktopJar -Aapt2 $Aapt2
-            $registerExitCode = $LASTEXITCODE
-            Write-Host "[verify] register report: $registerReport"
-            if ($registerExitCode -eq 0) {
-                Write-Host ('[verify] success: every requested patch applied to a valid APK whose manifest changes ' +
-                    'are all approved, whose resource table holds every stock resource and whose injected code ' +
-                    'passes the structural checks.')
-                $exitCode = 0
-            } else {
-                Write-Warning "[verify] the injected code failed its structural checks (exit $registerExitCode)."
+        # WARNING lines are the patches' own: a patch that works down a list of targets names each one
+        # the build lacks there, and still applies.
+        $cliOutput | ForEach-Object {
+            $line = [string]$_
+            if ($line -match 'SEVERE|ERROR|WARNING|Exception|result saved|Saved to') { Write-Host "[verify] $line" }
+        }
+
+        $report = $null
+        if (Test-Path -LiteralPath $result -PathType Leaf) {
+            try { $report = Get-Content -LiteralPath $result -Raw | ConvertFrom-Json }
+            catch { Write-Warning "Could not parse result JSON: $($_.Exception.Message)" }
+        }
+        $validation = Test-PatchingReport -Report $report -ExpectedNames $names `
+            -AllowedDependencyNames $dependencyNames -OutputPath $out `
+            -ExpectedPackageName $expectedTarget.PackageName -ExpectedPackageVersion $expectedVersion
+        $reportApplied = if ($null -ne $report) { @($report.appliedPatches).Count } else { 0 }
+        $reportFailed = if ($null -ne $report) { @($report.failedPatches).Count } else { 0 }
+        $target = if ($null -ne $report) { "$($report.packageName) $($report.packageVersion)" } else { 'unknown target' }
+        Write-Host "[verify] ${target}: applied $reportApplied, failed $reportFailed, CLI exit $cliExitCode"
+        if ($null -ne $report) {
+            foreach ($failure in @($report.failedPatches)) {
+                $patchName = if ($null -ne $failure.patch) { $failure.patch.name } else { 'unknown patch' }
+                Write-Host "[verify] FAILED ${patchName}: $($failure.reason -split "`n" | Select-Object -First 1)"
             }
-        } else {
-            Write-Warning "[verify] the patched resource table failed its check against the stock one (exit $resourceExitCode)."
+        }
+        Write-Host "[verify] result file: $result"
+        if ($cliExitCode -ne 0) { Write-Warning "The desktop CLI exited with $cliExitCode." }
+        if (-not $validation.Valid) { Write-Warning "[verify] $($validation.Reason)" }
+        $unapprovedChanges = @()
+        if ($cliExitCode -eq 0 -and $validation.Valid) {
+            # What patching did to the manifest, read the way the release receipt reads it, against the
+            # APK the CLI patched, and held to the same allowlist, so a change nobody approved stops this
+            # run and not only the release. An approved change this run didn't make is reported and left
+            # to the receipt, which needs every declared build to decide it.
+            $manifestChanges = @(ConvertTo-ManifestDeltaEntries -Delta (Get-ManifestDelta `
+                -Stock (Get-ApkManifestFacts -Apk $patchInput -Aapt2 $Aapt2) -Patched (Get-ApkManifestFacts -Apk $out -Aapt2 $Aapt2)))
+            $approvedChanges = @(Read-ManifestDeltaAllowlist -Path (Join-Path $PSScriptRoot 'manifest-delta-allowlist.txt') |
+                Where-Object { $_ })
+            $unapprovedChanges = @($manifestChanges | Where-Object { $approvedChanges -cnotcontains $_ })
+            Write-Host "[verify] manifest delta: $($manifestChanges.Count) change(s), $($unapprovedChanges.Count) not approved"
+            foreach ($change in $manifestChanges) {
+                $mark = if ($approvedChanges -ccontains $change) { 'approved' } else { 'NOT APPROVED' }
+                Write-Host "[verify]   $change ($mark)"
+            }
+            $unmade = @($approvedChanges | Where-Object { $manifestChanges -cnotcontains $_ })
+            if ($unmade.Count -gt 0) { Write-Host "[verify] approved but not made here: $($unmade -join ', ')" }
+        }
+        if ($cliExitCode -eq 0 -and $validation.Valid -and $unapprovedChanges.Count -gt 0) {
+            Write-Warning ('[verify] the patched manifest changed in ways scripts/manifest-delta-allowlist.txt ' +
+                "doesn't approve: $($unapprovedChanges -join ', ')")
+        } elseif ($cliExitCode -eq 0 -and $validation.Valid) {
+            # The rebuilt resource table against the stock one. A resource patch has Morphe decode and
+            # rebuild the app's whole table, and an id the rebuild loses only fails when the app
+            # inflates it (Hushfeed upstream #84, a layout in one of TikTok's feature packages). The
+            # stock side is the APK the CLI patched, a split bundle's merge among them: that is the
+            # table the patched APK was rebuilt from.
+            $resourceReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-resources-$runId.txt") -Root $workRoot
+            # Continue for the call alone, as for the CLI: a JDK note or a stack trace on stderr would
+            # otherwise end the run under Windows PowerShell 5.1 before the exit code is read.
+            $preference = $ErrorActionPreference
+            try {
+                $ErrorActionPreference = 'Continue'
+                $global:LASTEXITCODE = -1
+                $resourceOutput = @(& $Java '-Xmx4g' '-cp' $DesktopJar (Join-Path $PSScriptRoot 'ResourceTableCheck.java') `
+                    $patchInput $out $resourceReport 2>&1)
+                $resourceExitCode = $LASTEXITCODE
+            } finally {
+                $ErrorActionPreference = $preference
+            }
+            $resourceOutput | ForEach-Object { Write-Host "[verify] $_" }
+            Write-Host "[verify] resource report: $resourceReport"
+            if ($resourceExitCode -eq 0) {
+                # The injected code against Meta's: registers, branches, invokes, parameters and try
+                # ranges, the shapes that pass the CLI and fail on a device. The one-feed-guard rule
+                # rides along from injected-mutation-contracts.txt; it's a project contract, which
+                # the device verifier doesn't check.
+                $registerReport = Resolve-WithinRoot -Path (Join-Path $workRoot "verify-all-registers-$runId.txt") -Root $workRoot
+                $global:LASTEXITCODE = 0
+                & (Join-Path $PSScriptRoot 'verify-injected-registers.ps1') -CleanApk $stockApk -CleanMerged $patchInput `
+                    -PatchedApk $out -ReportPath $registerReport -Java $Java -DesktopJar $DesktopJar -Aapt2 $Aapt2
+                $registerExitCode = $LASTEXITCODE
+                Write-Host "[verify] register report: $registerReport"
+                if ($registerExitCode -eq 0) {
+                    Write-Host ('[verify] success: every requested patch applied to a valid APK whose manifest changes ' +
+                        'are all approved, whose resource table holds every stock resource and whose injected code ' +
+                        'passes the structural checks.')
+                    if ($KeepIn) {
+                        New-Item -ItemType Directory -Force -Path $KeepIn | Out-Null
+                        Move-Item -LiteralPath $out -Destination (Join-Path $KeepIn 'patched.apk') -Force
+                        Copy-Item -LiteralPath $result -Destination (Join-Path $KeepIn 'result.json') -Force
+                        if ($patchInput -eq $mergedApk) {
+                            Move-Item -LiteralPath $mergedApk -Destination (Join-Path $KeepIn 'stock-merged.apk') -Force
+                            $keepStamp.merged = $true
+                        }
+                        # Written last, so a keep cut short has no stamp and is never read.
+                        $keepStamp | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $KeepIn 'stamp.json') -Encoding UTF8
+                        Write-Host "[verify] kept this run for the release receipt in $KeepIn"
+                    }
+                    $verdict.ExitCode = 0
+                } else {
+                    Write-Warning "[verify] the injected code failed its structural checks (exit $registerExitCode)."
+                }
+            } else {
+                Write-Warning "[verify] the patched resource table failed its check against the stock one (exit $resourceExitCode)."
+            }
         }
     }
 } finally {
     Remove-GeneratedPath -Path $runDir -Root $workRoot
 }
 
-exit $exitCode
+exit $verdict.ExitCode

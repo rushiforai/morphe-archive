@@ -14,18 +14,32 @@ import app.morphe.extension.shared.settings.StringSetting;
 
 @SuppressWarnings("deprecation")
 public final class ChoicePreference extends ListPreference {
+    private final boolean needsRestart;
+
     public ChoicePreference(Context context, String title, StringSetting setting, String[] labels, String[] values) {
         super(context);
+        needsRestart = setting.rebootApp;
         setTitle(title);
         setDialogTitle(title);
         setKey(setting.key);
         setEntries(labels);
         setEntryValues(values);
         setValue(setting.savedValue());
-        setSummary("%s");
+        showValue();
         // Left unset, the platform's own Cancel shows, in the phone's language rather than the
         // one the rest of the dialog is translated into.
         setNegativeButtonText(L10n.t(context, "Cancel"));
+    }
+
+    /**
+     * The summary the row starts with, and takes back whenever the settings screen syncs it: a
+     * "%s" that ListPreference fills with the label of the chosen value. A choice TikTok reads
+     * only as it starts says so under the value, like every other restart-gated row. The note
+     * is translated here, so it goes past the lookup.
+     */
+    void showValue() {
+        super.setSummary(needsRestart
+                ? "%s\n" + L10n.t(getContext(), TogglePreference.RESTART_SENTENCE) : "%s");
     }
 
     @Override protected void showDialog(android.os.Bundle state) {

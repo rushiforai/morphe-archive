@@ -200,7 +200,7 @@ class HoldSpeedAnchorsTest {
     @Test
     fun `every retained fixture has the gesture's literals read only as floats`() {
         val apks = Fixtures.apks()
-        assertTrue("fixtures: ${apks.map { it.name }}", apks.size >= 2)
+        assertTrue("fixtures: ${apks.map { it.name }}", apks.containsAll(Fixtures.declared()))
         apks.forEach { apk ->
             val (press, release) = gestureMethods(load(apk), apk)
             assertTrue("${apk.name}: press has a 2x literal", floatLiterals(press).isNotEmpty())

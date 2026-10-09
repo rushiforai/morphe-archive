@@ -85,6 +85,14 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
             ));
             addPreference(new TogglePreference(
                     context,
+                    "Export comments",
+                    "Adds Export CSV and Export JSON under the search box, so it needs Search within comments. "
+                            + "They save the comments and replies this video has loaded to a file you pick. "
+                            + "Open the reply threads you want first, since TikTok only loads them when you do.",
+                    Settings.COMMENT_EXPORT
+            ));
+            addPreference(new TogglePreference(
+                    context,
                     "Links in comments open",
                     "A web address someone left in a comment can be tapped instead of copied "
                             + "out by hand. Tapping anywhere else in the comment still does what "
@@ -181,6 +189,19 @@ public class CommentsPreferenceCategory extends ConditionalPreferenceCategory {
                     "Hide comment polls",
                     "Hide voting cards and poll results above the comments, including polls that have ended.",
                     Settings.HIDE_COMMENT_POLLS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide comment surveys",
+                    "Hide the question cards TikTok sometimes puts in a comment list to ask what you think.",
+                    Settings.HIDE_COMMENT_SURVEYS
+            ));
+            addPreference(new TogglePreference(
+                    context,
+                    "Hide comment box buttons",
+                    "Hide the photo, @ and gift buttons in the box where you write a comment. "
+                            + "Emoji and sending work as before.",
+                    Settings.HIDE_COMMENT_BOX_BUTTONS
             ));
             addPreference(new TogglePreference(
                     context,
