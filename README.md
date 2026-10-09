@@ -2,7 +2,7 @@
 
 An auto-generated, continuously updated index of every GitHub or GitLab repository that publishes a [Morphe](https://morphe.software) (`.mpp`) patch bundle.
 
-![Repos tracked](https://img.shields.io/badge/repos%20tracked-322-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-10-08%2004:44%20UTC-555)
+![Repos tracked](https://img.shields.io/badge/repos%20tracked-322-6366f1) ![Last updated](https://img.shields.io/badge/last%20updated-2026-10-09%2004:47%20UTC-555)
 
 ---
 
@@ -385,4 +385,4 @@ Use `owner/repo` for GitHub, or `gitlab.com/group/project` for GitLab.
 
 59 approved repo entries were hidden because their bundle URL is currently invalid.
 
-*Last generated: 2026-10-08 04:44 UTC*
+*Last generated: 2026-10-09 04:47 UTC*
